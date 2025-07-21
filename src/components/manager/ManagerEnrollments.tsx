@@ -116,7 +116,7 @@ const ManagerEnrollments = () => {
   };
 
   const filteredRequests = enrollmentRequests.filter(request => {
-    const matchesStatus = selectedStatus === '' || request.status === selectedStatus;
+    const matchesStatus = selectedStatus === '' || selectedStatus === 'tous' || request.status === selectedStatus;
     const matchesSearch = request.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          request.course.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesStatus && matchesSearch;
@@ -203,7 +203,7 @@ const ManagerEnrollments = () => {
                   <SelectValue placeholder="Tous les statuts" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tous les statuts</SelectItem>
+                  <SelectItem value="tous">Tous les statuts</SelectItem>
                   <SelectItem value="En attente">En attente</SelectItem>
                   <SelectItem value="Approuvée">Approuvée</SelectItem>
                   <SelectItem value="Rejetée">Rejetée</SelectItem>
