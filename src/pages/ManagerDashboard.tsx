@@ -162,14 +162,14 @@ const ManagerDashboardHome = () => {
 
 const ManagerDashboard = () => {
   const sidebarItems = [
-    { title: 'Vue d\'ensemble', href: '/gestionnaire', icon: TrendingUp, isActive: true },
-    { title: 'Apprenants', href: '/gestionnaire/apprenants', icon: Users },
-    { title: 'Formations', href: '/gestionnaire/formations', icon: BookOpen },
-    { title: 'Planning', href: '/gestionnaire/planning', icon: Calendar },
-    { title: 'Inscriptions', href: '/gestionnaire/inscriptions', icon: UserCheck },
-    { title: 'Rapports', href: '/gestionnaire/rapports', icon: ClipboardList },
-    { title: 'Messages', href: '/gestionnaire/messages', icon: MessageSquare },
-    { title: 'Paramètres', href: '/gestionnaire/parametres', icon: Settings },
+    { title: 'Vue d\'ensemble', href: '/dashboard/gestionnaire', icon: TrendingUp, isActive: true },
+    { title: 'Apprenants', href: '/dashboard/gestionnaire/apprenants', icon: Users },
+    { title: 'Formations', href: '/dashboard/gestionnaire/formations', icon: BookOpen },
+    { title: 'Planning', href: '/dashboard/gestionnaire/planning', icon: Calendar },
+    { title: 'Inscriptions', href: '/dashboard/gestionnaire/inscriptions', icon: UserCheck },
+    { title: 'Rapports', href: '/dashboard/gestionnaire/rapports', icon: ClipboardList },
+    { title: 'Messages', href: '/dashboard/gestionnaire/messages', icon: MessageSquare },
+    { title: 'Paramètres', href: '/dashboard/gestionnaire/parametres', icon: Settings },
   ];
 
   const userInfo = {
@@ -188,13 +188,13 @@ const ManagerDashboard = () => {
       <main className="flex-1 p-8">
         <Routes>
           <Route path="/" element={<ManagerDashboardHome />} />
-          <Route path="/apprenants" element={<div>Gestion des Apprenants</div>} />
-          <Route path="/formations" element={<div>Gestion des Formations</div>} />
-          <Route path="/planning" element={<div>Planning des Sessions</div>} />
-          <Route path="/inscriptions" element={<div>Gestion des Inscriptions</div>} />
-          <Route path="/rapports" element={<div>Rapports Détaillés</div>} />
-          <Route path="/messages" element={<div>Messagerie</div>} />
-          <Route path="/parametres" element={<div>Paramètres</div>} />
+          <Route path="apprenants" element={<div>Gestion des Apprenants</div>} />
+          <Route path="formations" element={<div>Gestion des Formations</div>} />
+          <Route path="planning" element={<div>Planning des Sessions</div>} />
+          <Route path="inscriptions" element={<div>Gestion des Inscriptions</div>} />
+          <Route path="rapports" element={<div>Rapports Détaillés</div>} />
+          <Route path="messages" element={<div>Messagerie</div>} />
+          <Route path="parametres" element={<div>Paramètres</div>} />
         </Routes>
       </main>
     </div>

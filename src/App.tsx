@@ -64,7 +64,7 @@ const App = () => (
           <Route path="/dashboard/etudiant/messages" element={<StudentMessaging />} />
           
           {/* New Dashboard routes */}
-          <Route path="/gestionnaire/*" element={<ManagerDashboard />} />
+          <Route path="/dashboard/gestionnaire/*" element={<ManagerDashboard />} />
           <Route path="/formateur-interne/*" element={<InternalTrainerDashboard />} />
           <Route path="/formateur-externe/*" element={<ExternalTrainerDashboard />} />
           <Route path="/parent/*" element={<ParentDashboard />} />
