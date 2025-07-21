@@ -19,6 +19,9 @@ import {
 import ManagerPlanning from '@/components/manager/ManagerPlanning';
 import ManagerAttendance from '@/components/manager/ManagerAttendance';
 import ManagerEnrollments from '@/components/manager/ManagerEnrollments';
+import ManagerSettings from '@/components/manager/ManagerSettings';
+import ManagerMessaging from '@/components/manager/ManagerMessaging';
+import ManagerReports from '@/components/manager/ManagerReports';
 import { useToast } from '@/hooks/use-toast';
 
 const ManagerDashboardHome = () => {
@@ -198,9 +201,9 @@ const ManagerDashboard = () => {
           <Route path="planning" element={<ManagerPlanning />} />
           <Route path="inscriptions" element={<ManagerEnrollments />} />
           <Route path="presences" element={<ManagerAttendance />} />
-          <Route path="rapports" element={<div>Rapports Détaillés</div>} />
-          <Route path="messages" element={<div>Messagerie</div>} />
-          <Route path="parametres" element={<div>Paramètres</div>} />
+          <Route path="rapports" element={<ManagerReports />} />
+          <Route path="messages" element={<ManagerMessaging />} />
+          <Route path="parametres" element={<ManagerSettings />} />
         </Routes>
       </main>
     </div>
