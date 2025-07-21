@@ -115,32 +115,32 @@ const CourseSection = () => {
   };
 
   return (
-    <section id="cours" className="py-12 sm:py-16 lg:py-20 bg-muted/30">
+    <section id="cours" className="py-20 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-8 sm:mb-12 lg:mb-16">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-3 sm:mb-4">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl font-bold text-gray-900 mb-4">
             Cours Populaires
           </h2>
-          <p className="text-base sm:text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto">
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Découvrez nos formations les plus demandées, créées par des experts 
             et adaptées aux besoins du marché actuel.
           </p>
         </div>
 
-        {/* Course Grid - Responsive */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-12">
+        {/* Course Grid - 4 columns on large screens */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {courses.map((course) => (
             <div
               key={course.id}
-              className="bg-card rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group cursor-pointer border border-border"
+              className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group cursor-pointer"
             >
               {/* Course Image */}
               <div className="relative overflow-hidden">
                 <img
                   src={course.image}
                   alt={course.title}
-                  className="w-full h-24 sm:h-32 object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300"
                 />
                 <div className="absolute top-2 left-2">
                   <Badge className={`text-xs ${getBadgeColor(course.level)}`}>
@@ -156,7 +156,7 @@ const CourseSection = () => {
 
               {/* Course Content */}
               <div className="p-4">
-                <h3 className="text-sm sm:text-base font-bold text-card-foreground mb-1 group-hover:text-primary transition-colors line-clamp-2">
+                <h3 className="text-sm font-bold text-gray-900 mb-1 group-hover:text-pink-600 transition-colors line-clamp-2">
                   {course.title}
                 </h3>
                 <p className="text-xs text-gray-600 mb-3">Par {course.instructor}</p>
