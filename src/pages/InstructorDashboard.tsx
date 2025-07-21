@@ -1,170 +1,87 @@
 import React from 'react';
-import { Users, BookOpen, DollarSign, TrendingUp, Plus, Eye, Edit, BarChart3, MessageSquare, Settings, Home, User } from 'lucide-react';
+import { BookOpen, Users, DollarSign, TrendingUp, Plus, Settings, BarChart3, MessageSquare, Calendar, Home, Play } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
+import DashboardSidebar from '@/components/DashboardSidebar';
 
-const InstructorSidebar = () => {
+const InstructorDashboard = () => {
   const sidebarItems = [
     { title: "Tableau de bord", href: "/dashboard/instructeur", icon: Home, isActive: true },
     { title: "Mes cours", href: "/dashboard/instructeur/courses", icon: BookOpen },
-    { title: "Créer un cours", href: "/dashboard/instructeur/create-course", icon: Plus },
-    { title: "Analytics", href: "/dashboard/instructeur/analytics", icon: BarChart3 },
     { title: "Étudiants", href: "/dashboard/instructeur/students", icon: Users },
-    { title: "Messages", href: "/dashboard/instructeur/messagerie", icon: MessageSquare, badge: "5" },
-    { title: "Profil", href: "/profil", icon: User },
+    { title: "Revenus", href: "/dashboard/instructeur/analytics", icon: DollarSign },
+    { title: "Messages", href: "/dashboard/instructeur/messages", icon: MessageSquare, badge: "12" },
+    { title: "Planning", href: "/dashboard/instructeur/calendar", icon: Calendar },
     { title: "Paramètres", href: "/dashboard/instructeur/settings", icon: Settings },
   ];
 
-  return (
-    <Sidebar className="border-r">
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Espace Instructeur</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {sidebarItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={item.isActive}>
-                    <a href={item.href}>
-                      <item.icon className="mr-2 h-4 w-4" />
-                      <span>{item.title}</span>
-                      {item.badge && (
-                        <span className="ml-auto bg-primary text-primary-foreground rounded-full px-2 py-1 text-xs">
-                          {item.badge}
-                        </span>
-                      )}
-                    </a>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-    </Sidebar>
-  );
-};
-
-const InstructorDashboard = () => {
-  const { toast } = useToast();
-  const navigate = useNavigate();
+  const userInfo = {
+    name: "Marie Dubois",
+    email: "marie.dubois@email.com"
+  };
 
   const myCourses = [
     {
       id: 1,
-      title: "React pour Débutants",
-      students: 1250,
-      rating: 4.8,
-      revenue: 15000,
-      status: "Publié",
+      title: "React.js Avancé",
+      students: 156,
+      rating: 4.9,
+      revenue: "€2,340",
       image: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400&h=200&fit=crop"
     },
     {
       id: 2,
-      title: "JavaScript Avancé",
-      students: 890,
-      rating: 4.9,
-      revenue: 12500,
-      status: "Publié",
+      title: "JavaScript ES6+",
+      students: 91,
+      rating: 4.7,
+      revenue: "€1,507",
       image: "https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=400&h=200&fit=crop"
     }
   ];
 
-  const handleCreateCourse = () => {
-    navigate('/dashboard/instructeur/create-course');
-  };
-
-  const handleViewCourse = (courseId: number) => {
-    navigate(`/cours/${courseId}`);
-  };
-
-  const handleEditCourse = (courseId: number) => {
-    navigate(`/dashboard/instructeur/edit-course/${courseId}`);
-  };
-
-  const handleCourseAnalytics = (courseId: number) => {
-    navigate('/dashboard/instructeur/analytics');
-  };
-
-  const handleViewAnalytics = () => {
-    navigate('/dashboard/instructeur/analytics');
-  };
-
-  const handleManageStudents = () => {
-    navigate('/dashboard/instructeur/students');
-  };
-
-  const handleMessaging = () => {
-    navigate('/dashboard/instructeur/messagerie');
-  };
-
-  const handleSettings = () => {
-    toast({
-      title: "Paramètres",
-      description: "Configuration de votre profil instructeur",
-    });
-  };
-
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <InstructorSidebar />
-        
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Header */}
-          <header className="bg-background border-b px-6 py-4">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-4">
-                <SidebarTrigger className="lg:hidden" />
-                <div>
-                  <h1 className="text-2xl font-bold text-foreground">Tableau de bord Instructeur</h1>
-                  <p className="text-muted-foreground">Gérez vos cours et suivez vos performances</p>
-                </div>
-              </div>
-              <Button onClick={() => navigate('/dashboard/instructeur/create-course')} className="bg-primary hover:bg-primary/90">
-                <Plus className="h-4 w-4 mr-2" />
-                Nouveau cours
-              </Button>
-            </div>
-          </header>
+    <div className="flex h-screen bg-gray-50">
+      <div className="fixed left-0 top-0 h-full z-30">
+        <DashboardSidebar
+          title="Espace Instructeur"
+          subtitle="Créez et gérez vos cours"
+          items={sidebarItems}
+          userInfo={userInfo}
+        />
+      </div>
+      
+      <div className="flex-1 ml-64 flex flex-col overflow-hidden">
+        {/* Main Content */}
+        <main className="flex-1 overflow-x-hidden overflow-y-auto p-6">
+          {/* Welcome Section */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Bonjour, Marie ! 👩‍🏫
+            </h1>
+            <p className="text-gray-600">Gérez vos cours et suivez vos performances</p>
+          </div>
 
-          {/* Main Content */}
-          <main className="flex-1 overflow-auto p-6">
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total étudiants</CardTitle>
-                <Users className="h-4 w-4 text-pink-600" />
+                <CardTitle className="text-sm font-medium">Cours publiés</CardTitle>
+                <BookOpen className="h-4 w-4 text-pink-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">2,140</div>
-                <p className="text-xs text-muted-foreground">+180 ce mois-ci</p>
+                <div className="text-2xl font-bold">8</div>
+                <p className="text-xs text-muted-foreground">+1 ce mois-ci</p>
               </CardContent>
             </Card>
             
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Cours publiés</CardTitle>
-                <BookOpen className="h-4 w-4 text-orange-600" />
+                <CardTitle className="text-sm font-medium">Étudiants inscrits</CardTitle>
+                <Users className="h-4 w-4 text-orange-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">8</div>
-                <p className="text-xs text-muted-foreground">2 en cours</p>
+                <div className="text-2xl font-bold">247</div>
+                <p className="text-xs text-muted-foreground">+15 cette semaine</p>
               </CardContent>
             </Card>
             
@@ -174,8 +91,8 @@ const InstructorDashboard = () => {
                 <DollarSign className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">€45,231</div>
-                <p className="text-xs text-muted-foreground">+20.1% vs mois dernier</p>
+                <div className="text-2xl font-bold">€3,847</div>
+                <p className="text-xs text-muted-foreground">+12% depuis le mois dernier</p>
               </CardContent>
             </Card>
             
@@ -185,8 +102,8 @@ const InstructorDashboard = () => {
                 <TrendingUp className="h-4 w-4 text-yellow-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">4.85</div>
-                <p className="text-xs text-muted-foreground">Sur 5 étoiles</p>
+                <div className="text-2xl font-bold">4.8</div>
+                <p className="text-xs text-muted-foreground">Excellent</p>
               </CardContent>
             </Card>
           </div>
@@ -196,8 +113,16 @@ const InstructorDashboard = () => {
             <div className="lg:col-span-2">
               <Card>
                 <CardHeader>
-                  <CardTitle>Mes cours</CardTitle>
-                  <CardDescription>Gérez et suivez vos cours</CardDescription>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Mes cours</CardTitle>
+                      <CardDescription>Gérez et modifiez vos cours</CardDescription>
+                    </div>
+                    <Button className="bg-pink-600 hover:bg-pink-700">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Nouveau cours
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {myCourses.map((course) => (
@@ -209,41 +134,16 @@ const InstructorDashboard = () => {
                       />
                       <div className="flex-1">
                         <h3 className="font-semibold text-gray-900">{course.title}</h3>
-                        <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
-                          <span>{course.students} étudiants</span>
-                          <span>⭐ {course.rating}</span>
-                          <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
-                            {course.status}
-                          </span>
-                        </div>
-                        <p className="text-sm font-medium text-green-600 mt-1">
-                          €{course.revenue.toLocaleString()}
-                        </p>
+                        <p className="text-sm text-gray-600">{course.students} étudiants • {course.rating} ⭐</p>
+                        <p className="text-sm text-green-600 font-medium">{course.revenue}</p>
                       </div>
                       <div className="flex space-x-2">
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => handleViewCourse(course.id)}
-                          title="Voir le cours"
-                        >
-                          <Eye className="h-4 w-4" />
+                        <Button size="sm" variant="outline">
+                          Modifier
                         </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => handleEditCourse(course.id)}
-                          title="Éditer le cours"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => handleCourseAnalytics(course.id)}
-                          title="Analytics du cours"
-                        >
-                          <BarChart3 className="h-4 w-4" />
+                        <Button size="sm" className="bg-pink-600 hover:bg-pink-700">
+                          <Play className="h-4 w-4 mr-1" />
+                          Voir
                         </Button>
                       </div>
                     </div>
@@ -254,77 +154,57 @@ const InstructorDashboard = () => {
 
             {/* Sidebar */}
             <div className="space-y-6">
-              {/* Actions rapides */}
+              {/* Messages récents */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Actions rapides</CardTitle>
+                  <CardTitle className="flex items-center">
+                    <MessageSquare className="h-5 w-5 mr-2 text-pink-600" />
+                    Messages récents
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <Button 
-                    className="w-full justify-start" 
-                    variant="outline"
-                    onClick={handleCreateCourse}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Créer un cours
-                  </Button>
-                  <Button 
-                    className="w-full justify-start" 
-                    variant="outline"
-                    onClick={handleViewAnalytics}
-                  >
-                    <BarChart3 className="h-4 w-4 mr-2" />
-                    Voir les analytics
-                  </Button>
-                  <Button 
-                    className="w-full justify-start" 
-                    variant="outline"
-                    onClick={handleManageStudents}
-                  >
-                    <Users className="h-4 w-4 mr-2" />
-                    Gérer les étudiants
-                  </Button>
-                  <Button 
-                    className="w-full justify-start" 
-                    variant="outline"
-                    onClick={handleMessaging}
-                  >
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    Messagerie
-                  </Button>
-                  <Button 
-                    className="w-full justify-start" 
-                    variant="outline"
-                    onClick={handleSettings}
-                  >
-                    <Settings className="h-4 w-4 mr-2" />
-                    Paramètres
-                  </Button>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-2 h-2 bg-pink-500 rounded-full"></div>
+                    <div>
+                      <p className="text-sm font-medium">Jean Martin</p>
+                      <p className="text-xs text-gray-600">Question sur les hooks React</p>
+                      <p className="text-xs text-gray-500">Il y a 2h</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                    <div>
+                      <p className="text-sm font-medium">Sophie Leroy</p>
+                      <p className="text-xs text-gray-600">Problème avec l'exercice 3</p>
+                      <p className="text-xs text-gray-500">Il y a 4h</p>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
 
-              {/* Notifications */}
+              {/* Performance */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Notifications récentes</CardTitle>
+                  <CardTitle className="flex items-center">
+                    <TrendingUp className="h-5 w-5 mr-2 text-green-600" />
+                    Performance
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="p-3 bg-blue-50 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors">
-                    <p className="text-sm font-medium">Nouveau commentaire</p>
-                    <p className="text-xs text-gray-600">Sur "React pour Débutants"</p>
-                  </div>
-                  <div className="p-3 bg-green-50 rounded-lg cursor-pointer hover:bg-green-100 transition-colors">
-                    <p className="text-sm font-medium">Cours approuvé</p>
-                    <p className="text-xs text-gray-600">"JavaScript Avancé" est maintenant live</p>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="p-3 border rounded-lg">
+                      <h4 className="font-medium text-sm">Taux de complétion</h4>
+                      <p className="text-2xl font-bold text-green-600">87%</p>
+                      <p className="text-xs text-gray-600">+5% ce mois</p>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             </div>
           </div>
-          </main>
-        </div>
+        </main>
       </div>
-    </SidebarProvider>
+    </div>
   );
 };
 
