@@ -9,8 +9,8 @@ import { useToast } from '@/hooks/use-toast';
 
 const ManagerPlanning = () => {
   const { toast } = useToast();
-  const [selectedUser, setSelectedUser] = useState('');
-  const [selectedFormation, setSelectedFormation] = useState('');
+  const [selectedUser, setSelectedUser] = useState('all');
+  const [selectedFormation, setSelectedFormation] = useState('all');
 
   const users = [
     { id: 1, name: 'Alice Bernard', email: 'alice@learneezy.com', role: 'Apprenant', status: 'Actif' },
@@ -55,13 +55,13 @@ const ManagerPlanning = () => {
   ];
 
   const handleAssignTraining = () => {
-    if (selectedUser && selectedFormation) {
+    if (selectedUser !== 'all' && selectedFormation !== 'all') {
       toast({
         title: "Formation assignée",
         description: `Formation assignée avec succès à l'utilisateur sélectionné.`,
       });
-      setSelectedUser('');
-      setSelectedFormation('');
+      setSelectedUser('all');
+      setSelectedFormation('all');
     } else {
       toast({
         title: "Erreur",
@@ -96,6 +96,7 @@ const ManagerPlanning = () => {
                   <SelectValue placeholder="Sélectionner un utilisateur" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="all">Sélectionner un utilisateur</SelectItem>
                   {users.filter(u => u.role === 'Apprenant').map((user) => (
                     <SelectItem key={user.id} value={user.id.toString()}>
                       {user.name} - {user.email}
@@ -112,6 +113,7 @@ const ManagerPlanning = () => {
                   <SelectValue placeholder="Sélectionner une formation" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="all">Sélectionner une formation</SelectItem>
                   {formations.map((formation) => (
                     <SelectItem key={formation.id} value={formation.id.toString()}>
                       {formation.title} ({formation.duration})

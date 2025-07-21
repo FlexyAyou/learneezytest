@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const ManagerEnrollments = () => {
   const { toast } = useToast();
-  const [selectedStatus, setSelectedStatus] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('tous');
   const [searchTerm, setSearchTerm] = useState('');
 
   const enrollmentRequests = [

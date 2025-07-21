@@ -9,8 +9,8 @@ import { useToast } from '@/hooks/use-toast';
 
 const ManagerAttendance = () => {
   const { toast } = useToast();
-  const [selectedCourse, setSelectedCourse] = useState('');
-  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedCourse, setSelectedCourse] = useState('all');
+  const [selectedDate, setSelectedDate] = useState('all');
 
   const courses = [
     { id: 1, title: 'React Development - Semaine 1', date: '2024-01-15', instructor: 'Marie Dubois' },
@@ -125,7 +125,17 @@ const ManagerAttendance = () => {
             
             <div className="space-y-2">
               <label className="text-sm font-medium">Date</label>
-              <Input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} />
+              <Select value={selectedDate} onValueChange={setSelectedDate}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Toutes les dates" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Toutes les dates</SelectItem>
+                  <SelectItem value="today">Aujourd'hui</SelectItem>
+                  <SelectItem value="week">Cette semaine</SelectItem>
+                  <SelectItem value="month">Ce mois</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             
             <div className="space-y-2">
