@@ -13,8 +13,12 @@ import {
   UserCheck, 
   ClipboardList,
   Settings,
-  MessageSquare
+  MessageSquare,
+  UserPlus
 } from 'lucide-react';
+import ManagerPlanning from '@/components/manager/ManagerPlanning';
+import ManagerAttendance from '@/components/manager/ManagerAttendance';
+import ManagerEnrollments from '@/components/manager/ManagerEnrollments';
 import { useToast } from '@/hooks/use-toast';
 
 const ManagerDashboardHome = () => {
@@ -167,6 +171,7 @@ const ManagerDashboard = () => {
     { title: 'Formations', href: '/dashboard/gestionnaire/formations', icon: BookOpen },
     { title: 'Planning', href: '/dashboard/gestionnaire/planning', icon: Calendar },
     { title: 'Inscriptions', href: '/dashboard/gestionnaire/inscriptions', icon: UserCheck },
+    { title: 'Suivi des présences', href: '/dashboard/gestionnaire/presences', icon: UserPlus },
     { title: 'Rapports', href: '/dashboard/gestionnaire/rapports', icon: ClipboardList },
     { title: 'Messages', href: '/dashboard/gestionnaire/messages', icon: MessageSquare },
     { title: 'Paramètres', href: '/dashboard/gestionnaire/parametres', icon: Settings },
@@ -190,8 +195,9 @@ const ManagerDashboard = () => {
           <Route path="/" element={<ManagerDashboardHome />} />
           <Route path="apprenants" element={<div>Gestion des Apprenants</div>} />
           <Route path="formations" element={<div>Gestion des Formations</div>} />
-          <Route path="planning" element={<div>Planning des Sessions</div>} />
-          <Route path="inscriptions" element={<div>Gestion des Inscriptions</div>} />
+          <Route path="planning" element={<ManagerPlanning />} />
+          <Route path="inscriptions" element={<ManagerEnrollments />} />
+          <Route path="presences" element={<ManagerAttendance />} />
           <Route path="rapports" element={<div>Rapports Détaillés</div>} />
           <Route path="messages" element={<div>Messagerie</div>} />
           <Route path="parametres" element={<div>Paramètres</div>} />
