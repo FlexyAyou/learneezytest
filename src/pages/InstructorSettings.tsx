@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import DashboardSidebar from '@/components/DashboardSidebar';
+import { DashboardSidebar } from '@/components/DashboardSidebar';
 
 const InstructorSettings = () => {
   const { toast } = useToast();

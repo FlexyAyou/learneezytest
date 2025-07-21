@@ -3,7 +3,7 @@ import React from 'react';
 import { Book, Play, Award, Clock, TrendingUp, Calendar, Star, Home, User, Settings, BookOpen, BarChart3, MessageSquare } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import DashboardSidebar from '@/components/DashboardSidebar';
+import { DashboardSidebar } from '@/components/DashboardSidebar';
 
 const StudentDashboard = () => {
   const sidebarItems = [

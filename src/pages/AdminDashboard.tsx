@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useNavigate, useLocation, Routes, Route } from 'react-router-dom';
-import DashboardSidebar from '@/components/DashboardSidebar';
+import { DashboardSidebar } from '@/components/DashboardSidebar';
 import AdminUsers from '@/components/admin/AdminUsers';
 import AdminCourses from '@/components/admin/AdminCourses';
 import AdminPayments from '@/components/admin/AdminPayments';

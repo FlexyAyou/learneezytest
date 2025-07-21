@@ -24,7 +24,7 @@ interface DashboardSidebarProps {
   };
 }
 
-const DashboardSidebar = ({ title, subtitle, items, userInfo }: DashboardSidebarProps) => {
+export const DashboardSidebar = ({ title, subtitle, items, userInfo }: DashboardSidebarProps) => {
   return (
     <div className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen">
       {/* Header */}
@@ -94,5 +94,3 @@ const DashboardSidebar = ({ title, subtitle, items, userInfo }: DashboardSidebar
     </div>
   );
 };
-
-export default DashboardSidebar;

@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import DashboardSidebar from '@/components/DashboardSidebar';
+import { DashboardSidebar } from '@/components/DashboardSidebar';
 
 const StudentMessaging = () => {
   const [selectedConversation, setSelectedConversation] = useState(1);

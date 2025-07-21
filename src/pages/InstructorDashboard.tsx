@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate, useLocation } from 'react-router-dom';
-import DashboardSidebar from '@/components/DashboardSidebar';
+import { DashboardSidebar } from '@/components/DashboardSidebar';
 
 const InstructorDashboard = () => {
   const { toast } = useToast();

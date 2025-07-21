@@ -4,7 +4,7 @@ import { Award, Download, Share2, Calendar, Check, Home, Book, BarChart3, Messag
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import DashboardSidebar from '@/components/DashboardSidebar';
+import { DashboardSidebar } from '@/components/DashboardSidebar';
 
 const StudentCertificates = () => {
   const sidebarItems = [
