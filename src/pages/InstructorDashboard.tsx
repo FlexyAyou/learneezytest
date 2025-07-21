@@ -4,12 +4,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
-import DashboardSidebar from '@/components/DashboardSidebar';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger,
+} from '@/components/ui/sidebar';
 
-const InstructorDashboard = () => {
-  const { toast } = useToast();
-  const navigate = useNavigate();
-
+const InstructorSidebar = () => {
   const sidebarItems = [
     { title: "Tableau de bord", href: "/dashboard/instructeur", icon: Home, isActive: true },
     { title: "Mes cours", href: "/dashboard/instructeur/courses", icon: BookOpen },
@@ -21,10 +29,39 @@ const InstructorDashboard = () => {
     { title: "Paramètres", href: "/dashboard/instructeur/settings", icon: Settings },
   ];
 
-  const userInfo = {
-    name: "Marie Dubois",
-    email: "marie.dubois@email.com"
-  };
+  return (
+    <Sidebar className="border-r">
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Espace Instructeur</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {sidebarItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild isActive={item.isActive}>
+                    <a href={item.href}>
+                      <item.icon className="mr-2 h-4 w-4" />
+                      <span>{item.title}</span>
+                      {item.badge && (
+                        <span className="ml-auto bg-primary text-primary-foreground rounded-full px-2 py-1 text-xs">
+                          {item.badge}
+                        </span>
+                      )}
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+    </Sidebar>
+  );
+};
+
+const InstructorDashboard = () => {
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
   const myCourses = [
     {
@@ -83,33 +120,30 @@ const InstructorDashboard = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <div className="fixed left-0 top-0 h-full z-30">
-        <DashboardSidebar
-          title="Espace Instructeur"
-          subtitle="Gérez vos cours et étudiants"
-          items={sidebarItems}
-          userInfo={userInfo}
-        />
-      </div>
-      
-      <div className="flex-1 ml-64 flex flex-col overflow-hidden">
-        {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-6 py-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Tableau de bord Instructeur</h1>
-              <p className="text-gray-600">Gérez vos cours et suivez vos performances</p>
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full">
+        <InstructorSidebar />
+        
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Header */}
+          <header className="bg-background border-b px-6 py-4">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-4">
+                <SidebarTrigger className="lg:hidden" />
+                <div>
+                  <h1 className="text-2xl font-bold text-foreground">Tableau de bord Instructeur</h1>
+                  <p className="text-muted-foreground">Gérez vos cours et suivez vos performances</p>
+                </div>
+              </div>
+              <Button onClick={() => navigate('/dashboard/instructeur/create-course')} className="bg-primary hover:bg-primary/90">
+                <Plus className="h-4 w-4 mr-2" />
+                Nouveau cours
+              </Button>
             </div>
-            <Button onClick={() => navigate('/dashboard/instructeur/create-course')} className="bg-pink-600 hover:bg-pink-700">
-              <Plus className="h-4 w-4 mr-2" />
-              Nouveau cours
-            </Button>
-          </div>
-        </header>
+          </header>
 
-        {/* Main Content */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto p-6">
+          {/* Main Content */}
+          <main className="flex-1 overflow-auto p-6">
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <Card>
@@ -287,9 +321,10 @@ const InstructorDashboard = () => {
               </Card>
             </div>
           </div>
-        </main>
+          </main>
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 

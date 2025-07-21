@@ -6,7 +6,18 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useNavigate, useLocation, Routes, Route } from 'react-router-dom';
-import DashboardSidebar from '@/components/DashboardSidebar';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger,
+} from '@/components/ui/sidebar';
 import AdminUsers from '@/components/admin/AdminUsers';
 import AdminCourses from '@/components/admin/AdminCourses';
 import AdminPayments from '@/components/admin/AdminPayments';
@@ -231,7 +242,7 @@ const AdminDashboardHome = () => {
   );
 };
 
-const AdminDashboard = () => {
+const AdminSidebar = () => {
   const location = useLocation();
   const currentPath = location.pathname;
 
@@ -246,52 +257,77 @@ const AdminDashboard = () => {
     { title: "Paramètres", href: "/dashboard/admin/settings", icon: Settings, isActive: currentPath === "/dashboard/admin/settings" },
   ];
 
-  const userInfo = {
-    name: "Admin Principal",
-    email: "admin@infinitiax.com"
-  };
+  return (
+    <Sidebar className="border-r">
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Administration</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {sidebarItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild isActive={item.isActive}>
+                    <a href={item.href}>
+                      <item.icon className="mr-2 h-4 w-4" />
+                      <span>{item.title}</span>
+                      {item.badge && (
+                        <span className="ml-auto bg-primary text-primary-foreground rounded-full px-2 py-1 text-xs">
+                          {item.badge}
+                        </span>
+                      )}
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+    </Sidebar>
+  );
+};
+
+const AdminDashboard = () => {
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <div className="fixed left-0 top-0 h-full z-30">
-        <DashboardSidebar
-          title="Administration"
-          subtitle="Gestion de la plateforme"
-          items={sidebarItems}
-          userInfo={userInfo}
-        />
-      </div>
-      
-      <div className="flex-1 ml-64 flex flex-col overflow-hidden">
-        {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-6 py-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Administration InfinitiaX</h1>
-              <p className="text-gray-600">Gérez la plateforme et supervisez les activités</p>
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full">
+        <AdminSidebar />
+        
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Header */}
+          <header className="bg-background border-b px-6 py-4">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-4">
+                <SidebarTrigger className="lg:hidden" />
+                <div>
+                  <h1 className="text-2xl font-bold text-foreground">Administration InfinitiaX</h1>
+                  <p className="text-muted-foreground">Gérez la plateforme et supervisez les activités</p>
+                </div>
+              </div>
+              <Button className="bg-primary hover:bg-primary/90">
+                <Settings className="h-4 w-4 mr-2" />
+                Paramètres
+              </Button>
             </div>
-            <Button className="bg-pink-600 hover:bg-pink-700">
-              <Settings className="h-4 w-4 mr-2" />
-              Paramètres
-            </Button>
-          </div>
-        </header>
+          </header>
 
-        {/* Main Content */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto p-6">
-          <Routes>
-            <Route index element={<AdminDashboardHome />} />
-            <Route path="users" element={<AdminUsers />} />
-            <Route path="courses" element={<AdminCourses />} />
-            <Route path="payments" element={<AdminPayments />} />
-            <Route path="stats" element={<AdminStats />} />
-            <Route path="support" element={<AdminSupport />} />
-            <Route path="security" element={<AdminSecurity />} />
-            <Route path="settings" element={<AdminSettings />} />
-          </Routes>
-        </main>
+          {/* Main Content */}
+          <main className="flex-1 overflow-auto p-6">
+            <Routes>
+              <Route index element={<AdminDashboardHome />} />
+              <Route path="users" element={<AdminUsers />} />
+              <Route path="courses" element={<AdminCourses />} />
+              <Route path="payments" element={<AdminPayments />} />
+              <Route path="stats" element={<AdminStats />} />
+              <Route path="support" element={<AdminSupport />} />
+              <Route path="security" element={<AdminSecurity />} />
+              <Route path="settings" element={<AdminSettings />} />
+            </Routes>
+          </main>
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 

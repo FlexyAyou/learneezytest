@@ -77,7 +77,7 @@ const CourseCategories = () => {
   ];
 
   return (
-    <section className="py-20 bg-gradient-to-br from-background to-muted/20">
+    <section className="py-20 bg-gradient-to-br from-background to-muted/20 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-16">
@@ -89,30 +89,36 @@ const CourseCategories = () => {
           </p>
         </div>
 
-        {/* Categories Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-          {categories.map((category, index) => {
-            const IconComponent = category.icon;
-            return (
-              <div
-                key={category.id}
-                className="group cursor-pointer animate-fade-in"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <div className="text-center p-6 rounded-xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:-translate-y-2 hover:bg-card/80">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors duration-300 group-hover:scale-110 transform">
-                    <IconComponent className="h-8 w-8 text-primary group-hover:text-primary" />
+        {/* Categories Horizontal Scroll */}
+        <div className="relative">
+          <div className="flex overflow-x-auto scrollbar-hide pb-6 space-x-6 animate-slide-in-right">
+            {categories.map((category, index) => {
+              const IconComponent = category.icon;
+              return (
+                <div
+                  key={category.id}
+                  className="group cursor-pointer flex-shrink-0 w-48 animate-fade-in"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
+                  <div className="text-center p-6 rounded-xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:-translate-y-2 hover:bg-card/80">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors duration-300 group-hover:scale-110 transform">
+                      <IconComponent className="h-8 w-8 text-primary group-hover:text-primary" />
+                    </div>
+                    <h3 className="text-sm font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
+                      {category.name}
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                      {category.count} cours
+                    </p>
                   </div>
-                  <h3 className="text-sm font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
-                    {category.name}
-                  </h3>
-                  <p className="text-xs text-muted-foreground">
-                    {category.count} cours
-                  </p>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
+          
+          {/* Gradient Fade Effects */}
+          <div className="absolute left-0 top-0 w-16 h-full bg-gradient-to-r from-background to-transparent pointer-events-none z-10"></div>
+          <div className="absolute right-0 top-0 w-16 h-full bg-gradient-to-l from-background to-transparent pointer-events-none z-10"></div>
         </div>
 
         {/* Bottom CTA */}
