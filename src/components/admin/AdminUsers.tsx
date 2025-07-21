@@ -13,13 +13,14 @@ const AdminUsers = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('all');
 
-  const users = [
-    { id: 1, name: "Marie Dubois", email: "marie@email.com", role: "Instructeur", status: "Actif", courses: 5, students: 42, joinedDate: "2024-01-15" },
-    { id: 2, name: "Pierre Martin", email: "pierre@email.com", role: "Étudiant", status: "Actif", courses: 12, progress: "85%", joinedDate: "2024-02-10" },
-    { id: 3, name: "Sophie Durand", email: "sophie@email.com", role: "Instructeur", status: "Suspendu", courses: 3, students: 18, joinedDate: "2024-01-20" },
-    { id: 4, name: "Jean Dupont", email: "jean@email.com", role: "Admin", status: "Actif", lastLogin: "2024-03-15", joinedDate: "2023-12-01" },
-    { id: 5, name: "Lisa Chen", email: "lisa@email.com", role: "Étudiant", status: "Inactif", courses: 8, progress: "45%", joinedDate: "2024-03-01" }
-  ];
+      const users = [
+        { id: 1, name: "Marie Dubois", email: "marie@email.com", role: "Formateur Interne", status: "Actif", courses: 5, students: 42, joinedDate: "2024-01-15" },
+        { id: 2, name: "Pierre Martin", email: "pierre@email.com", role: "Étudiant", status: "Actif", courses: 12, progress: "85%", joinedDate: "2024-02-10" },
+        { id: 3, name: "Sophie Durand", email: "sophie@email.com", role: "Gestionnaire", status: "Actif", teams: 3, students: 45, joinedDate: "2024-01-20" },
+        { id: 4, name: "Jean Martin", email: "jean@email.com", role: "Formateur Externe", status: "Actif", rating: "4.9", hours: 124, joinedDate: "2024-01-10" },
+        { id: 5, name: "Claire Durand", email: "claire@email.com", role: "Parent", status: "Actif", children: 2, joinedDate: "2024-02-15" },
+        { id: 6, name: "Admin Master", email: "admin@learneezy.com", role: "Admin", status: "Actif", lastLogin: "2024-03-15", joinedDate: "2023-12-01" }
+      ];
 
   const handleUserAction = (userId: number, action: string) => {
     toast({

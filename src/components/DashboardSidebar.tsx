@@ -30,8 +30,8 @@ export const DashboardSidebar = ({ title, subtitle, items, userInfo }: Dashboard
       {/* Header */}
       <div className="p-6 border-b border-gray-200">
         <Link to="/" className="flex items-center space-x-2 mb-4">
-          <BookOpen className="h-8 w-8 text-pink-600" />
-          <span className="text-xl font-bold text-gray-900">InfinitiaX</span>
+          <img src="/lovable-uploads/1f9e89ea-d486-45d5-9888-312555180802.png" alt="Learneezy" className="h-8 w-auto" />
+          <span className="text-xl font-bold text-gray-900">Learneezy</span>
         </Link>
         <div>
           <h2 className="text-lg font-semibold text-gray-900">{title}</h2>

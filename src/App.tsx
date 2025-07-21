@@ -23,15 +23,12 @@ import StudentProgress from "./pages/StudentProgress";
 import StudentCertificates from "./pages/StudentCertificates";
 import StudentSettings from "./pages/StudentSettings";
 import StudentMessaging from "./pages/StudentMessaging";
-import InstructorDashboard from "./pages/InstructorDashboard";
-import InstructorCourses from "./pages/InstructorCourses";
-import InstructorSettings from "./pages/InstructorSettings";
+import InternalTrainerDashboard from "./pages/InternalTrainerDashboard";
+import ExternalTrainerDashboard from "./pages/ExternalTrainerDashboard";
+import ManagerDashboard from "./pages/ManagerDashboard";
+import ParentDashboard from "./pages/ParentDashboard";
 import CreateCourse from "./pages/CreateCourse";
 import EditCourse from "./pages/EditCourse";
-import InstructorAnalytics from "./pages/InstructorAnalytics";
-import ManageStudents from "./pages/ManageStudents";
-import StudentProgressDetail from "./pages/StudentProgress";
-import InstructorMessaging from "./pages/InstructorMessaging";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
@@ -66,16 +63,13 @@ const App = () => (
           <Route path="/dashboard/etudiant/settings" element={<StudentSettings />} />
           <Route path="/dashboard/etudiant/messages" element={<StudentMessaging />} />
           
-          {/* Instructor routes */}
-          <Route path="/dashboard/instructeur" element={<InstructorDashboard />} />
-          <Route path="/dashboard/instructeur/courses" element={<InstructorCourses />} />
-          <Route path="/dashboard/instructeur/settings" element={<InstructorSettings />} />
-          <Route path="/dashboard/instructeur/create-course" element={<CreateCourse />} />
-          <Route path="/dashboard/instructeur/edit-course/:id" element={<EditCourse />} />
-          <Route path="/dashboard/instructeur/analytics" element={<InstructorAnalytics />} />
-          <Route path="/dashboard/instructeur/students" element={<ManageStudents />} />
-          <Route path="/dashboard/instructeur/student-progress/:studentId" element={<StudentProgressDetail />} />
-          <Route path="/dashboard/instructeur/messagerie" element={<InstructorMessaging />} />
+          {/* New Dashboard routes */}
+          <Route path="/gestionnaire/*" element={<ManagerDashboard />} />
+          <Route path="/formateur-interne/*" element={<InternalTrainerDashboard />} />
+          <Route path="/formateur-externe/*" element={<ExternalTrainerDashboard />} />
+          <Route path="/parent/*" element={<ParentDashboard />} />
+          <Route path="/create-course" element={<CreateCourse />} />
+          <Route path="/edit-course/:id" element={<EditCourse />} />
           
           {/* Admin routes - all under /dashboard/admin */}
           <Route path="/dashboard/admin/*" element={<AdminDashboard />} />

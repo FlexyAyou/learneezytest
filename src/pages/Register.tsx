@@ -85,8 +85,8 @@ const Register = () => {
           {/* Logo */}
           <div className="text-center mb-8">
             <Link to="/" className="inline-flex items-center space-x-2">
-              <BookOpen className="h-10 w-10 text-pink-600" />
-              <span className="text-3xl font-bold text-gray-900">InfinitiaX</span>
+              <img src="/lovable-uploads/1f9e89ea-d486-45d5-9888-312555180802.png" alt="Learneezy" className="h-10 w-auto" />
+              <span className="text-3xl font-bold text-gray-900">Learneezy</span>
             </Link>
             <p className="text-gray-600 mt-2">Créez votre compte et commencez à apprendre</p>
           </div>

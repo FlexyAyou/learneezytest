@@ -13,8 +13,8 @@ const Header = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <BookOpen className="h-8 w-8 text-pink-600" />
-            <span className="text-2xl font-bold text-gray-900">InfinitiaX</span>
+            <img src="/lovable-uploads/1f9e89ea-d486-45d5-9888-312555180802.png" alt="Learneezy" className="h-8 w-auto" />
+            <span className="text-2xl font-bold text-gray-900">Learneezy</span>
           </Link>
 
           {/* Desktop Navigation */}
