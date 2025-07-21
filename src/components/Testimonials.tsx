@@ -62,31 +62,31 @@ const Testimonials = () => {
   ];
 
   return (
-    <section className="py-20 bg-gray-50">
+    <section className="py-12 sm:py-16 lg:py-20 bg-muted/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
+        <div className="text-center mb-8 sm:mb-12 lg:mb-16">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-3 sm:mb-4">
             Ce Que Disent Nos Clients
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-base sm:text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto">
             Lorem ipsum dolor sit amet elit
           </p>
         </div>
 
         {/* Carousel */}
-        <div className="relative max-w-5xl mx-auto">
+        <div className="relative max-w-6xl mx-auto">
           <Carousel className="w-full" opts={{ align: "start", loop: true }}>
-            <CarouselContent className="-ml-4">
+            <CarouselContent className="-ml-2 sm:-ml-4">
               {testimonials.map((testimonial) => (
-                <CarouselItem key={testimonial.id} className="pl-4 md:basis-1/2 lg:basis-1/3">
-                  <div className="bg-white rounded-xl shadow-lg p-8 h-full flex flex-col">
+                <CarouselItem key={testimonial.id} className="pl-2 sm:pl-4 basis-full sm:basis-1/2 lg:basis-1/3">
+                  <div className="bg-card rounded-xl shadow-lg p-4 sm:p-6 lg:p-8 h-full flex flex-col border border-border">
                     {/* Author Info */}
                     <div className="flex flex-col items-center mb-6">
                       <img
                         src={testimonial.image}
                         alt={testimonial.name}
-                        className="w-20 h-20 rounded-full object-cover mb-4"
+                        className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover mb-3 sm:mb-4"
                       />
                       <h4 className="font-bold text-gray-900 text-lg">{testimonial.name}</h4>
                       <p className="text-sm text-gray-600">{testimonial.role}</p>
@@ -113,15 +113,15 @@ const Testimonials = () => {
         </div>
 
         {/* CTA Section */}
-        <div className="mt-16 text-center bg-gradient-to-r from-pink-600 to-orange-500 rounded-2xl p-12 text-white">
-          <h3 className="text-3xl font-bold mb-4">
+        <div className="mt-8 sm:mt-12 lg:mt-16 text-center bg-gradient-to-r from-primary to-orange-500 rounded-2xl p-6 sm:p-8 lg:p-12 text-primary-foreground">
+          <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-3 sm:mb-4">
             Rejoignez Plus de 50 000 Étudiants Satisfaits
           </h3>
-          <p className="text-xl text-pink-100 mb-8 max-w-2xl mx-auto">
+          <p className="text-sm sm:text-lg lg:text-xl text-primary-foreground/80 mb-6 sm:mb-8 max-w-2xl mx-auto">
             Commencez votre parcours d'apprentissage dès aujourd'hui et 
             transformez votre avenir professionnel.
           </p>
-          <button className="bg-white text-pink-600 font-bold px-8 py-3 rounded-lg hover:bg-gray-100 transition-colors">
+          <button className="bg-background text-primary font-bold px-6 sm:px-8 py-2 sm:py-3 text-sm sm:text-base rounded-lg hover:bg-secondary transition-colors">
             Commencer Maintenant
           </button>
         </div>

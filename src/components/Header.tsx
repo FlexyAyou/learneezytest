@@ -26,24 +26,25 @@ const Header = () => {
           </nav>
 
           {/* Search and Auth */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-2 lg:space-x-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <input
                 type="text"
-                placeholder="Rechercher un cours..."
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                placeholder="Rechercher..."
+                className="w-32 lg:w-48 xl:w-56 pl-10 pr-4 py-2 text-sm border border-input rounded-lg bg-background focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
               />
             </div>
             <Link to="/connexion">
-              <Button variant="outline" size="sm">
-                <User className="h-4 w-4 mr-2" />
-                Connexion
+              <Button variant="outline" size="sm" className="text-xs lg:text-sm px-3 lg:px-4">
+                <User className="h-3 w-3 lg:h-4 lg:w-4 mr-1 lg:mr-2" />
+                <span className="hidden lg:inline">Connexion</span>
               </Button>
             </Link>
             <Link to="/inscription">
-              <Button size="sm" className="bg-pink-600 hover:bg-pink-700">
-                S'inscrire
+              <Button size="sm" className="bg-primary hover:bg-primary/90 text-xs lg:text-sm px-3 lg:px-4">
+                <span className="hidden sm:inline">S'inscrire</span>
+                <span className="sm:hidden">+</span>
               </Button>
             </Link>
           </div>
@@ -67,14 +68,25 @@ const Header = () => {
               <Link to="/cours" className="block px-3 py-2 text-gray-700 hover:text-pink-600">Cours</Link>
               <Link to="/apropos" className="block px-3 py-2 text-gray-700 hover:text-pink-600">À propos</Link>
               <Link to="/contact" className="block px-3 py-2 text-gray-700 hover:text-pink-600">Contact</Link>
-              <div className="pt-4 border-t">
+              <div className="pt-4 border-t space-y-2">
+                <div className="px-3 pb-2">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                    <input
+                      type="text"
+                      placeholder="Rechercher un cours..."
+                      className="w-full pl-10 pr-4 py-2 text-sm border border-input rounded-lg bg-background focus:ring-2 focus:ring-primary focus:border-transparent"
+                    />
+                  </div>
+                </div>
                 <Link to="/connexion">
                   <Button variant="outline" size="sm" className="w-full mb-2">
+                    <User className="h-4 w-4 mr-2" />
                     Connexion
                   </Button>
                 </Link>
                 <Link to="/inscription">
-                  <Button size="sm" className="w-full bg-pink-600 hover:bg-pink-700">
+                  <Button size="sm" className="w-full bg-primary hover:bg-primary/90">
                     S'inscrire
                   </Button>
                 </Link>

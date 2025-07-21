@@ -76,7 +76,7 @@ const Hero = () => {
   return (
     <section 
       id="accueil" 
-      className={`pt-20 bg-gradient-to-br ${currentSlideData.bgGradient} min-h-screen flex items-center relative overflow-hidden transition-all duration-1000 ease-in-out`}
+      className={`pt-16 md:pt-20 bg-gradient-to-br ${currentSlideData.bgGradient} min-h-[100dvh] flex items-center relative overflow-hidden transition-all duration-1000 ease-in-out`}
     >
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
@@ -85,8 +85,8 @@ const Hero = () => {
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-green-200/10 to-teal-200/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 relative z-10">
-        <div className="lg:grid lg:grid-cols-2 lg:gap-12 items-center">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-20 relative z-10">
+        <div className="flex flex-col lg:grid lg:grid-cols-2 lg:gap-8 xl:gap-12 items-center">
           {/* Content */}
           <div className="text-center lg:text-left relative">
             <div className="relative min-h-[200px] flex items-center">
@@ -97,7 +97,7 @@ const Hero = () => {
                     : 'opacity-100 translate-y-0 scale-100'
                 }`}
               >
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground leading-tight">
                   <span className="inline-block animate-fade-in">
                     {currentSlideData.title}
                   </span>
@@ -108,14 +108,14 @@ const Hero = () => {
                     {" "}{currentSlideData.subtitle}
                   </span>
                 </h1>
-                <p className="mt-6 text-xl text-gray-600 max-w-2xl mx-auto lg:mx-0 animate-fade-in delay-500">
+                <p className="mt-4 sm:mt-6 text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto lg:mx-0 animate-fade-in delay-500">
                   {currentSlideData.description}
                 </p>
               </div>
             </div>
             
             {/* CTA Buttons */}
-            <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-fade-in delay-700">
+            <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start animate-fade-in delay-700">
               <Link to="/inscription">
                 <Button size="lg" className="bg-pink-600 hover:bg-pink-700 text-lg px-8 py-3 transform hover:scale-105 transition-all duration-300 hover:shadow-lg">
                   Commencer gratuitement
@@ -152,7 +152,7 @@ const Hero = () => {
             </div>
 
             {/* Stats */}
-            <div className="mt-12 grid grid-cols-3 gap-4 text-center lg:text-left animate-fade-in delay-1000">
+            <div className="mt-8 sm:mt-12 grid grid-cols-3 gap-2 sm:gap-4 text-center lg:text-left animate-fade-in delay-1000">
               <div className="flex flex-col items-center lg:items-start transform hover:scale-105 transition-transform duration-300">
                 <div className="flex items-center space-x-1 text-yellow-500 mb-1">
                   {[...Array(5)].map((_, i) => (
@@ -179,7 +179,7 @@ const Hero = () => {
           </div>
 
           {/* Image with Navigation */}
-          <div className="mt-12 lg:mt-0 relative">
+          <div className="mt-8 sm:mt-12 lg:mt-0 relative order-first lg:order-last">
             <div className="relative min-h-[400px] flex items-center justify-center">
               <div
                 className={`transition-all duration-700 ease-out transform ${

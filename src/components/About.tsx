@@ -62,30 +62,30 @@ const About = () => {
   ];
 
   return (
-    <section id="apropos" className="py-20 bg-white">
+    <section id="apropos" className="py-12 sm:py-16 lg:py-20 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            Pourquoi Choisir <span className="text-pink-600">InfinitiaX</span> ?
+        <div className="text-center mb-8 sm:mb-12 lg:mb-16">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-3 sm:mb-4">
+            Pourquoi Choisir <span className="text-primary">InfinitiaX</span> ?
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-base sm:text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto">
             Nous révolutionnons l'apprentissage en ligne avec une approche moderne, 
             pratique et axée sur les résultats.
           </p>
         </div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-20">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 mb-12 sm:mb-16 lg:mb-20">
           {features.map((feature, index) => (
             <div
               key={index}
-              className="group text-center p-6 rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-2 bg-gradient-to-b from-white to-gray-50 border border-gray-100"
+              className="group text-center p-4 sm:p-6 rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-2 bg-gradient-to-b from-card to-muted/20 border border-border"
             >
               <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6 ${feature.color} group-hover:scale-110 transition-transform duration-300`}>
                 <feature.icon className="h-8 w-8" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">
+              <h3 className="text-lg sm:text-xl font-bold text-card-foreground mb-3">
                 {feature.title}
               </h3>
               <p className="text-gray-600 leading-relaxed">
@@ -96,12 +96,12 @@ const About = () => {
         </div>
 
         {/* Stats */}
-        <div className="bg-gradient-to-r from-pink-600 to-orange-500 rounded-3xl p-12 text-white mb-20 shadow-2xl">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div className="bg-gradient-to-r from-primary via-primary to-orange-500 rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-12 text-primary-foreground mb-12 sm:mb-16 lg:mb-20 shadow-2xl">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
-                <div className="text-4xl font-bold mb-2">{stat.number}</div>
-                <div className="text-pink-100 font-medium">{stat.label}</div>
+                <div className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2">{stat.number}</div>
+                <div className="text-xs sm:text-sm text-primary-foreground/80 font-medium">{stat.label}</div>
               </div>
             ))}
           </div>

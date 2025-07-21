@@ -4,16 +4,16 @@ import { BookOpen, Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Instagram }
 
 const Footer = () => {
   return (
-    <footer id="contact" className="bg-gray-900 text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+    <footer id="contact" className="bg-background border-t border-border">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
           {/* Company Info */}
           <div>
-            <div className="flex items-center space-x-2 mb-6">
-              <BookOpen className="h-8 w-8 text-pink-400" />
-              <span className="text-2xl font-bold">InfinitiaX</span>
+            <div className="flex items-center space-x-2 mb-4 sm:mb-6">
+              <BookOpen className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+              <span className="text-xl sm:text-2xl font-bold text-foreground">InfinitiaX</span>
             </div>
-            <p className="text-gray-400 mb-6 leading-relaxed">
+            <p className="text-muted-foreground mb-4 sm:mb-6 leading-relaxed text-sm sm:text-base">
               Votre plateforme d'apprentissage en ligne pour développer vos compétences 
               et booster votre carrière avec des formations de qualité.
             </p>
@@ -35,9 +35,9 @@ const Footer = () => {
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-lg font-bold mb-6">Liens Rapides</h3>
+            <h3 className="text-base sm:text-lg font-bold mb-4 sm:mb-6 text-foreground">Liens Rapides</h3>
             <ul className="space-y-3">
-              <li><a href="#accueil" className="text-gray-400 hover:text-white transition-colors">Accueil</a></li>
+              <li><a href="#accueil" className="text-muted-foreground hover:text-primary transition-colors text-sm sm:text-base">Accueil</a></li>
               <li><a href="#cours" className="text-gray-400 hover:text-white transition-colors">Nos Cours</a></li>
               <li><a href="#apropos" className="text-gray-400 hover:text-white transition-colors">À Propos</a></li>
               <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Instructeurs</a></li>
@@ -99,17 +99,17 @@ const Footer = () => {
         </div>
 
         {/* Bottom Section */}
-        <div className="border-t border-gray-800 mt-16 pt-8">
-          <div className="md:flex md:items-center md:justify-between">
-            <div className="text-center md:text-left">
-              <p className="text-gray-400">
+        <div className="border-t border-border mt-8 sm:mt-12 lg:mt-16 pt-6 sm:pt-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+            <div className="text-center sm:text-left">
+              <p className="text-muted-foreground text-sm">
                 © 2024 UpSkill. Tous droits réservés.
               </p>
             </div>
-            <div className="mt-4 md:mt-0">
-              <ul className="flex flex-wrap justify-center md:justify-end space-x-6 text-sm">
+            <div className="sm:mt-0">
+              <ul className="flex flex-wrap justify-center sm:justify-end space-x-4 sm:space-x-6 text-xs sm:text-sm">
                 <li>
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                    <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
                     Politique de Confidentialité
                   </a>
                 </li>
