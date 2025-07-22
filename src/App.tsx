@@ -58,12 +58,7 @@ const App = () => (
           <Route path="/inscription" element={<Register />} />
           
           {/* Student routes */}
-          <Route path="/dashboard/etudiant" element={<StudentDashboard />} />
-          <Route path="/dashboard/etudiant/courses" element={<StudentCourses />} />
-          <Route path="/dashboard/etudiant/progress" element={<StudentProgress />} />
-          <Route path="/dashboard/etudiant/certificates" element={<StudentCertificates />} />
-          <Route path="/dashboard/etudiant/settings" element={<StudentSettings />} />
-          <Route path="/dashboard/etudiant/messages" element={<StudentMessaging />} />
+          <Route path="/dashboard/etudiant/*" element={<StudentDashboard />} />
           
           {/* New Dashboard routes */}
           <Route path="/dashboard/gestionnaire/*" element={<ManagerDashboard />} />
