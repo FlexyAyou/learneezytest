@@ -17,9 +17,18 @@ import {
   Settings,
   Calendar,
   Award,
-  FileText
+  FileText,
+  ClipboardList,
+  TrendingUp,
+  HelpCircle
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+
+// Import des composants spécialisés
+import InternalTrainerContent from '@/components/internal-trainer/InternalTrainerContent';
+import InternalTrainerSessions from '@/components/internal-trainer/InternalTrainerSessions';
+import InternalTrainerStudents from '@/components/internal-trainer/InternalTrainerStudents';
+import InternalTrainerMessaging from '@/components/internal-trainer/InternalTrainerMessaging';
 
 const InternalTrainerDashboardHome = () => {
   const { toast } = useToast();
@@ -213,13 +222,11 @@ const InternalTrainerDashboardHome = () => {
 
 const InternalTrainerDashboard = () => {
   const sidebarItems = [
-    { title: 'Vue d\'ensemble', href: '/formateur-interne', icon: BarChart3, isActive: true },
-    { title: 'Mes Cours', href: '/formateur-interne/cours', icon: BookOpen },
-    { title: 'Étudiants', href: '/formateur-interne/etudiants', icon: Users },
-    { title: 'Sessions', href: '/formateur-interne/sessions', icon: Video },
-    { title: 'Évaluations', href: '/formateur-interne/evaluations', icon: Award },
-    { title: 'Messages', href: '/formateur-interne/messages', icon: MessageSquare },
-    { title: 'Paramètres', href: '/formateur-interne/parametres', icon: Settings },
+    { title: 'Tableau de bord', href: '/formateur-interne', icon: BarChart3, isActive: true },
+    { title: 'Contenus pédagogiques', href: '/formateur-interne/contenus', icon: FileText },
+    { title: 'Animation sessions', href: '/formateur-interne/sessions', icon: Video },
+    { title: 'Suivi apprenants', href: '/formateur-interne/etudiants', icon: TrendingUp },
+    { title: 'Messagerie', href: '/formateur-interne/messages', icon: MessageSquare },
   ];
 
   const userInfo = {
@@ -238,12 +245,10 @@ const InternalTrainerDashboard = () => {
       <main className="flex-1 p-8">
         <Routes>
           <Route path="/" element={<InternalTrainerDashboardHome />} />
-          <Route path="/cours" element={<div>Gestion des Cours</div>} />
-          <Route path="/etudiants" element={<div>Suivi des Étudiants</div>} />
-          <Route path="/sessions" element={<div>Animation des Sessions</div>} />
-          <Route path="/evaluations" element={<div>Évaluations</div>} />
-          <Route path="/messages" element={<div>Messagerie</div>} />
-          <Route path="/parametres" element={<div>Paramètres</div>} />
+          <Route path="/contenus" element={<InternalTrainerContent />} />
+          <Route path="/sessions" element={<InternalTrainerSessions />} />
+          <Route path="/etudiants" element={<InternalTrainerStudents />} />
+          <Route path="/messages" element={<InternalTrainerMessaging />} />
         </Routes>
       </main>
     </div>
