@@ -16,9 +16,23 @@ import {
   Settings,
   MessageSquare,
   Award,
-  TrendingUp
+  TrendingUp,
+  Target,
+  History,
+  HelpCircle
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+
+// Import des composants spécialisés
+import TrainerSpecialties from '@/components/external-trainer/TrainerSpecialties';
+import TrainerAvailabilities from '@/components/external-trainer/TrainerAvailabilities';
+import TrainerRates from '@/components/external-trainer/TrainerRates';
+import TrainerBookings from '@/components/external-trainer/TrainerBookings';
+import TrainerEarnings from '@/components/external-trainer/TrainerEarnings';
+import TrainerHistory from '@/components/external-trainer/TrainerHistory';
+import TrainerReviews from '@/components/external-trainer/TrainerReviews';
+import TrainerProfile from '@/components/external-trainer/TrainerProfile';
+import TrainerSupport from '@/components/external-trainer/TrainerSupport';
 
 const ExternalTrainerDashboardHome = () => {
   const { toast } = useToast();
@@ -212,13 +226,16 @@ const ExternalTrainerDashboardHome = () => {
 
 const ExternalTrainerDashboard = () => {
   const sidebarItems = [
-    { title: 'Vue d\'ensemble', href: '/formateur-externe', icon: TrendingUp, isActive: true },
-    { title: 'Disponibilités', href: '/formateur-externe/disponibilites', icon: Calendar },
-    { title: 'Réservations', href: '/formateur-externe/reservations', icon: BookOpen },
-    { title: 'Revenus', href: '/formateur-externe/revenus', icon: DollarSign },
-    { title: 'Évaluations', href: '/formateur-externe/evaluations', icon: Star },
-    { title: 'Messages', href: '/formateur-externe/messages', icon: MessageSquare },
-    { title: 'Profil', href: '/formateur-externe/profil', icon: Settings },
+    { title: 'Tableau de bord', href: '/formateur-externe', icon: TrendingUp, isActive: true },
+    { title: 'Mes spécialités', href: '/formateur-externe/specialites', icon: Target },
+    { title: 'Mes disponibilités', href: '/formateur-externe/disponibilites', icon: Calendar },
+    { title: 'Mes tarifs', href: '/formateur-externe/tarifs', icon: DollarSign },
+    { title: 'Mes réservations', href: '/formateur-externe/reservations', icon: BookOpen },
+    { title: 'Historique séances', href: '/formateur-externe/historique', icon: History },
+    { title: 'Mes évaluations', href: '/formateur-externe/evaluations', icon: Star },
+    { title: 'Mes revenus', href: '/formateur-externe/revenus', icon: Award },
+    { title: 'Support & Assistance', href: '/formateur-externe/support', icon: HelpCircle },
+    { title: 'Profil formateur', href: '/formateur-externe/profil', icon: Settings },
   ];
 
   const userInfo = {
@@ -237,12 +254,15 @@ const ExternalTrainerDashboard = () => {
       <main className="flex-1 p-8">
         <Routes>
           <Route path="/" element={<ExternalTrainerDashboardHome />} />
-          <Route path="/disponibilites" element={<div>Gestion des Disponibilités</div>} />
-          <Route path="/reservations" element={<div>Réservations</div>} />
-          <Route path="/revenus" element={<div>Suivi des Revenus</div>} />
-          <Route path="/evaluations" element={<div>Évaluations Reçues</div>} />
-          <Route path="/messages" element={<div>Messagerie</div>} />
-          <Route path="/profil" element={<div>Gestion du Profil</div>} />
+          <Route path="/specialites" element={<TrainerSpecialties />} />
+          <Route path="/disponibilites" element={<TrainerAvailabilities />} />
+          <Route path="/tarifs" element={<TrainerRates />} />
+          <Route path="/reservations" element={<TrainerBookings />} />
+          <Route path="/historique" element={<TrainerHistory />} />
+          <Route path="/evaluations" element={<TrainerReviews />} />
+          <Route path="/revenus" element={<TrainerEarnings />} />
+          <Route path="/support" element={<TrainerSupport />} />
+          <Route path="/profil" element={<TrainerProfile />} />
         </Routes>
       </main>
     </div>
