@@ -27,10 +27,12 @@ import InternalTrainerDashboard from "./pages/InternalTrainerDashboard";
 import ExternalTrainerDashboard from "./pages/ExternalTrainerDashboard";
 import ManagerDashboard from "./pages/ManagerDashboard";
 import ParentDashboard from "./pages/ParentDashboard";
+import TutorDashboard from "./pages/TutorDashboard";
+import ContentCreatorDashboard from "./pages/ContentCreatorDashboard";
 import CreateCourse from "./pages/CreateCourse";
 import EditCourse from "./pages/EditCourse";
 import AdminDashboard from "./pages/AdminDashboard";
-import NotFound from "./pages/NotFound";
+import TechnicianDashboard from "./pages/TechnicianDashboard";
 
 const queryClient = new QueryClient();
 
@@ -56,26 +58,23 @@ const App = () => (
           <Route path="/inscription" element={<Register />} />
           
           {/* Student routes */}
-          <Route path="/dashboard/etudiant" element={<StudentDashboard />} />
-          <Route path="/dashboard/etudiant/courses" element={<StudentCourses />} />
-          <Route path="/dashboard/etudiant/progress" element={<StudentProgress />} />
-          <Route path="/dashboard/etudiant/certificates" element={<StudentCertificates />} />
-          <Route path="/dashboard/etudiant/settings" element={<StudentSettings />} />
-          <Route path="/dashboard/etudiant/messages" element={<StudentMessaging />} />
+          <Route path="/dashboard/etudiant/*" element={<StudentDashboard />} />
           
           {/* New Dashboard routes */}
           <Route path="/dashboard/gestionnaire/*" element={<ManagerDashboard />} />
           <Route path="/formateur-interne/*" element={<InternalTrainerDashboard />} />
           <Route path="/formateur-externe/*" element={<ExternalTrainerDashboard />} />
           <Route path="/parent/*" element={<ParentDashboard />} />
+          <Route path="/dashboard/tuteur/*" element={<TutorDashboard />} />
+          <Route path="/createur-de-contenu" element={<ContentCreatorDashboard />} />
           <Route path="/create-course" element={<CreateCourse />} />
           <Route path="/edit-course/:id" element={<EditCourse />} />
           
           {/* Admin routes - all under /dashboard/admin */}
           <Route path="/dashboard/admin/*" element={<AdminDashboard />} />
           
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
+          {/* Technician dashboard */}
+          <Route path="/technicien" element={<TechnicianDashboard />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

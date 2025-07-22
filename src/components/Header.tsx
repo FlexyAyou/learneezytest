@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Menu, X, BookOpen, User, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,9 +11,8 @@ const Header = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <img src="/lovable-uploads/1f9e89ea-d486-45d5-9888-312555180802.png" alt="Learneezy" className="h-16 w-auto" />
-            <span className="text-2xl font-bold text-gray-900"></span>
+          <Link to="/" className="flex items-center">
+            <img src="/lovable-uploads/52aaa383-7635-46d0-ac37-eb3ee6b878d1.png" alt="Learneezy" className="h-20 w-auto" />
           </Link>
 
           {/* Desktop Navigation */}
