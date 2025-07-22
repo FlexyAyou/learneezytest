@@ -11,7 +11,7 @@ const Footer = () => {
           <div>
             <div className="flex items-center space-x-2 mb-6">
               <BookOpen className="h-8 w-8 text-pink-400" />
-              <span className="text-2xl font-bold">InfinitiaX</span>
+              <span className="text-2xl font-bold">Learneezy</span>
             </div>
             <p className="text-gray-400 mb-6 leading-relaxed">
               Votre plateforme d'apprentissage en ligne pour développer vos compétences 
