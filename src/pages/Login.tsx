@@ -32,7 +32,7 @@ const Login = () => {
           {/* Logo */}
           <div className="text-center mb-8">
             <Link to="/" className="inline-flex items-center">
-              <img src="/lovable-uploads/52aaa383-7635-46d0-ac37-eb3ee6b878d1.png" alt="Learneezy" className="h-10 w-auto" />
+              <img src="/lovable-uploads/52aaa383-7635-46d0-ac37-eb3ee6b878d1.png" alt="Learneezy" className="h-20 w-auto" />
             </Link>
             <p className="text-gray-600 mt-2">Bienvenue ! Connectez-vous à votre compte</p>
           </div>

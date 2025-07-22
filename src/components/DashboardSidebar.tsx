@@ -30,7 +30,7 @@ export const DashboardSidebar = ({ title, subtitle, items, userInfo }: Dashboard
       {/* Header */}
       <div className="p-6 border-b border-gray-200">
         <Link to="/" className="flex items-center mb-4">
-          <img src="/lovable-uploads/52aaa383-7635-46d0-ac37-eb3ee6b878d1.png" alt="Learneezy" className="h-8 w-auto" />
+          <img src="/lovable-uploads/52aaa383-7635-46d0-ac37-eb3ee6b878d1.png" alt="Learneezy" className="h-20 w-auto" />
         </Link>
         <div>
           <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
