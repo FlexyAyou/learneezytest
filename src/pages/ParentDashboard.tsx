@@ -5,6 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import ParentStudentTracking from '@/components/parent/ParentStudentTracking';
+import ParentMessaging from '@/components/parent/ParentMessaging';
+import ParentPlanningNotifications from '@/components/parent/ParentPlanningNotifications';
 import { 
   User, 
   BookOpen, 
@@ -237,11 +240,9 @@ const ParentDashboardHome = () => {
 const ParentDashboard = () => {
   const sidebarItems = [
     { title: 'Vue d\'ensemble', href: '/parent', icon: TrendingUp, isActive: true },
-    { title: 'Mes Enfants', href: '/parent/enfants', icon: User },
-    { title: 'Résultats', href: '/parent/resultats', icon: Award },
-    { title: 'Planning', href: '/parent/planning', icon: Calendar },
-    { title: 'Messages', href: '/parent/messages', icon: MessageSquare, badge: '3' },
-    { title: 'Notifications', href: '/parent/notifications', icon: Bell },
+    { title: 'Suivi des élèves', href: '/parent/suivi', icon: User },
+    { title: 'Messagerie', href: '/parent/messagerie', icon: MessageSquare, badge: '3' },
+    { title: 'Planning & Notifications', href: '/parent/planning', icon: Calendar },
   ];
 
   const userInfo = {
@@ -260,11 +261,9 @@ const ParentDashboard = () => {
       <main className="flex-1 p-8">
         <Routes>
           <Route path="/" element={<ParentDashboardHome />} />
-          <Route path="/enfants" element={<div>Gestion des Enfants</div>} />
-          <Route path="/resultats" element={<div>Résultats et Notes</div>} />
-          <Route path="/planning" element={<div>Planning des Cours</div>} />
-          <Route path="/messages" element={<div>Messagerie</div>} />
-          <Route path="/notifications" element={<div>Notifications</div>} />
+          <Route path="/suivi" element={<ParentStudentTracking />} />
+          <Route path="/messagerie" element={<ParentMessaging />} />
+          <Route path="/planning" element={<ParentPlanningNotifications />} />
         </Routes>
       </main>
     </div>
