@@ -32,7 +32,7 @@ import ContentCreatorDashboard from "./pages/ContentCreatorDashboard";
 import CreateCourse from "./pages/CreateCourse";
 import EditCourse from "./pages/EditCourse";
 import AdminDashboard from "./pages/AdminDashboard";
-import NotFound from "./pages/NotFound";
+import TechnicianDashboard from "./pages/TechnicianDashboard";
 
 const queryClient = new QueryClient();
 
@@ -78,8 +78,8 @@ const App = () => (
           {/* Admin routes - all under /dashboard/admin */}
           <Route path="/dashboard/admin/*" element={<AdminDashboard />} />
           
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
+          {/* Technician dashboard */}
+          <Route path="/technicien" element={<TechnicianDashboard />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
