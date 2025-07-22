@@ -65,8 +65,8 @@ export function TechnicalSupport() {
   const [response, setResponse] = useState("");
 
   const filteredIncidents = incidents.filter(incident => {
-    return (!filter.priority || incident.priority === filter.priority) &&
-           (!filter.status || incident.status === filter.status) &&
+    return (!filter.priority || filter.priority === "all" || incident.priority === filter.priority) &&
+           (!filter.status || filter.status === "all" || incident.status === filter.status) &&
            (!filter.user || incident.user.toLowerCase().includes(filter.user.toLowerCase()));
   });
 
@@ -80,7 +80,7 @@ export function TechnicalSupport() {
               <SelectValue placeholder="Priorité" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Toutes</SelectItem>
+              <SelectItem value="all">Toutes</SelectItem>
               <SelectItem value="high">Haute</SelectItem>
               <SelectItem value="medium">Moyenne</SelectItem>
               <SelectItem value="low">Basse</SelectItem>
@@ -92,7 +92,7 @@ export function TechnicalSupport() {
               <SelectValue placeholder="Statut" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Tous</SelectItem>
+              <SelectItem value="all">Tous</SelectItem>
               <SelectItem value="nouveau">Nouveau</SelectItem>
               <SelectItem value="en-cours">En cours</SelectItem>
               <SelectItem value="resolu">Résolu</SelectItem>
