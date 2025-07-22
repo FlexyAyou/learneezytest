@@ -93,9 +93,9 @@ export default function ContentCreatorDashboard() {
   if (activeTab !== 'dashboard') {
     return (
       <div className="min-h-screen bg-background">
-        <div className="border-b">
-          <div className="container mx-auto px-4">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <div className="container mx-auto px-4">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <div className="border-b">
               <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="dashboard">Tableau de bord</TabsTrigger>
                 <TabsTrigger value="creation">Création modules</TabsTrigger>
@@ -103,23 +103,23 @@ export default function ContentCreatorDashboard() {
                 <TabsTrigger value="collaboration">Collaboration</TabsTrigger>
                 <TabsTrigger value="validation">Validation</TabsTrigger>
               </TabsList>
-            </Tabs>
-          </div>
-        </div>
+            </div>
 
-        <div className="container mx-auto px-4 py-6">
-          <TabsContent value="creation">
-            <ModuleCreation />
-          </TabsContent>
-          <TabsContent value="ressources">
-            <ResourceManagement />
-          </TabsContent>
-          <TabsContent value="collaboration">
-            <TrainerCollaboration />
-          </TabsContent>
-          <TabsContent value="validation">
-            <ContentValidation />
-          </TabsContent>
+            <div className="py-6">
+              <TabsContent value="creation">
+                <ModuleCreation />
+              </TabsContent>
+              <TabsContent value="ressources">
+                <ResourceManagement />
+              </TabsContent>
+              <TabsContent value="collaboration">
+                <TrainerCollaboration />
+              </TabsContent>
+              <TabsContent value="validation">
+                <ContentValidation />
+              </TabsContent>
+            </div>
+          </Tabs>
         </div>
       </div>
     );
@@ -127,9 +127,9 @@ export default function ContentCreatorDashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="border-b">
-        <div className="container mx-auto px-4">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <div className="container mx-auto px-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <div className="border-b">
             <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="dashboard">Tableau de bord</TabsTrigger>
               <TabsTrigger value="creation">Création modules</TabsTrigger>
@@ -137,11 +137,9 @@ export default function ContentCreatorDashboard() {
               <TabsTrigger value="collaboration">Collaboration</TabsTrigger>
               <TabsTrigger value="validation">Validation</TabsTrigger>
             </TabsList>
-          </Tabs>
-        </div>
-      </div>
+          </div>
 
-      <div className="container mx-auto px-4 py-6 space-y-6">
+          <TabsContent value="dashboard" className="py-6 space-y-6">
         {/* En-tête */}
         <div className="flex items-center justify-between">
           <div>
@@ -344,6 +342,8 @@ export default function ContentCreatorDashboard() {
             </div>
           </CardContent>
         </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
