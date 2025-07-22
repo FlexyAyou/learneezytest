@@ -84,9 +84,8 @@ const Register = () => {
         <div className="w-full max-w-md">
           {/* Logo */}
           <div className="text-center mb-8">
-            <Link to="/" className="inline-flex items-center space-x-2">
-              <img src="/lovable-uploads/1f9e89ea-d486-45d5-9888-312555180802.png" alt="Learneezy" className="h-10 w-auto" />
-              <span className="text-3xl font-bold text-gray-900">Learneezy</span>
+            <Link to="/" className="inline-flex items-center">
+              <img src="/lovable-uploads/52aaa383-7635-46d0-ac37-eb3ee6b878d1.png" alt="Learneezy" className="h-10 w-auto" />
             </Link>
             <p className="text-gray-600 mt-2">Créez votre compte et commencez à apprendre</p>
           </div>

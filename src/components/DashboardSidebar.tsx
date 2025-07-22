@@ -29,9 +29,8 @@ export const DashboardSidebar = ({ title, subtitle, items, userInfo }: Dashboard
     <div className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen">
       {/* Header */}
       <div className="p-6 border-b border-gray-200">
-        <Link to="/" className="flex items-center space-x-2 mb-4">
-          <img src="/lovable-uploads/1f9e89ea-d486-45d5-9888-312555180802.png" alt="Learneezy" className="h-8 w-auto" />
-          <span className="text-xl font-bold text-gray-900">Learneezy</span>
+        <Link to="/" className="flex items-center mb-4">
+          <img src="/lovable-uploads/52aaa383-7635-46d0-ac37-eb3ee6b878d1.png" alt="Learneezy" className="h-8 w-auto" />
         </Link>
         <div>
           <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
