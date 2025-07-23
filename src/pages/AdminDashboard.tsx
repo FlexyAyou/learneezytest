@@ -11,12 +11,12 @@ import AdminPayments from '@/components/admin/AdminPayments';
 import AdminSecurity from '@/components/admin/AdminSecurity';
 import AdminSettings from '@/components/admin/AdminSettings';
 import AdminSupport from '@/components/admin/AdminSupport';
-import LicenseManagement from '@/components/admin/LicenseManagement';
-import IdentityVerification from '@/components/admin/IdentityVerification';
-import DocumentDownload from '@/components/common/DocumentDownload';
-import AIChat from '@/components/common/AIChat';
-import VideoConference from '@/components/common/VideoConference';
-import PositioningTest from '@/components/common/PositioningTest';
+import { LicenseManagement } from '@/components/admin/LicenseManagement';
+import { IdentityVerification } from '@/components/admin/IdentityVerification';
+import { DocumentDownload } from '@/components/common/DocumentDownload';
+import { AIChat } from '@/components/common/AIChat';
+import { VideoConference } from '@/components/common/VideoConference';
+import { PositioningTest } from '@/components/common/PositioningTest';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
