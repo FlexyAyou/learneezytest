@@ -1,23 +1,22 @@
-
 import React from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { Users, BookOpen, DollarSign, Settings, BarChart3, Shield, Key, FileText, MessageSquare, Video, Download, Brain, TestTube, Home } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
-import { AdminStats } from '@/components/admin/AdminStats';
-import { AdminUsers } from '@/components/admin/AdminUsers';
-import { AdminCourses } from '@/components/admin/AdminCourses';
-import { AdminPayments } from '@/components/admin/AdminPayments';
-import { AdminSecurity } from '@/components/admin/AdminSecurity';
-import { AdminSettings } from '@/components/admin/AdminSettings';
-import { AdminSupport } from '@/components/admin/AdminSupport';
-import { LicenseManagement } from '@/components/admin/LicenseManagement';
-import { IdentityVerification } from '@/components/admin/IdentityVerification';
-import { DocumentDownload } from '@/components/common/DocumentDownload';
-import { AIChat } from '@/components/common/AIChat';
-import { VideoConference } from '@/components/common/VideoConference';
-import { PositioningTest } from '@/components/common/PositioningTest';
+import AdminStats from '@/components/admin/AdminStats';
+import AdminUsers from '@/components/admin/AdminUsers';
+import AdminCourses from '@/components/admin/AdminCourses';
+import AdminPayments from '@/components/admin/AdminPayments';
+import AdminSecurity from '@/components/admin/AdminSecurity';
+import AdminSettings from '@/components/admin/AdminSettings';
+import AdminSupport from '@/components/admin/AdminSupport';
+import LicenseManagement from '@/components/admin/LicenseManagement';
+import IdentityVerification from '@/components/admin/IdentityVerification';
+import DocumentDownload from '@/components/common/DocumentDownload';
+import AIChat from '@/components/common/AIChat';
+import VideoConference from '@/components/common/VideoConference';
+import PositioningTest from '@/components/common/PositioningTest';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
