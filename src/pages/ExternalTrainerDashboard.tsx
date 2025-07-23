@@ -278,10 +278,10 @@ const ExternalTrainerDashboard = () => {
           <Route path="/historique" element={<TrainerHistory />} />
           <Route path="/evaluations" element={<TrainerReviews />} />
           <Route path="/revenus" element={<TrainerEarnings />} />
-          <Route path="/tests" element={<PositioningTest userRole="trainer" />} />
+          <Route path="/tests" element={<PositioningTest userRole="instructor" />} />
           <Route path="/video" element={<VideoConference />} />
           <Route path="/chat" element={<AIChat />} />
-          <Route path="/documents" element={<DocumentDownload documents={mockDocuments} userRole="trainer" />} />
+          <Route path="/documents" element={<DocumentDownload documents={mockDocuments} userRole="instructor" />} />
           <Route path="/support" element={<TrainerSupport />} />
           <Route path="/profil" element={<TrainerProfile />} />
         </Routes>

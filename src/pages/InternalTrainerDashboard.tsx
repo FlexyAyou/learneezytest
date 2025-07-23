@@ -265,10 +265,10 @@ const InternalTrainerDashboard = () => {
           <Route path="/contenus" element={<InternalTrainerContent />} />
           <Route path="/sessions" element={<InternalTrainerSessions />} />
           <Route path="/etudiants" element={<InternalTrainerStudents />} />
-          <Route path="/tests" element={<PositioningTest userRole="trainer" />} />
+          <Route path="/tests" element={<PositioningTest userRole="instructor" />} />
           <Route path="/video" element={<VideoConference />} />
           <Route path="/chat" element={<AIChat />} />
-          <Route path="/documents" element={<DocumentDownload documents={mockDocuments} userRole="trainer" />} />
+          <Route path="/documents" element={<DocumentDownload documents={mockDocuments} userRole="instructor" />} />
           <Route path="/messages" element={<InternalTrainerMessaging />} />
         </Routes>
       </main>
