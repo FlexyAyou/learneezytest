@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -33,6 +32,10 @@ import CreateCourse from "./pages/CreateCourse";
 import EditCourse from "./pages/EditCourse";
 import AdminDashboard from "./pages/AdminDashboard";
 import TechnicianDashboard from "./pages/TechnicianDashboard";
+import InstructorDashboard from "./pages/InstructorDashboard";
+import InstructorCourses from "./pages/InstructorCourses";
+import InstructorAnalytics from "./pages/InstructorAnalytics";
+import InstructorOFDocuments from "./pages/InstructorOFDocuments";
 
 const queryClient = new QueryClient();
 
@@ -59,6 +62,12 @@ const App = () => (
           
           {/* Student routes */}
           <Route path="/dashboard/etudiant/*" element={<StudentDashboard />} />
+          
+          {/* Instructor routes */}
+          <Route path="/dashboard/instructeur" element={<InstructorDashboard />} />
+          <Route path="/dashboard/instructeur/courses" element={<InstructorCourses />} />
+          <Route path="/dashboard/instructeur/analytics" element={<InstructorAnalytics />} />
+          <Route path="/dashboard/instructeur/of-documents" element={<InstructorOFDocuments />} />
           
           {/* New Dashboard routes */}
           <Route path="/dashboard/gestionnaire/*" element={<ManagerDashboard />} />

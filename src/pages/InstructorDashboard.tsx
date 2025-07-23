@@ -1,10 +1,14 @@
 import React from 'react';
-import { Users, BookOpen, DollarSign, TrendingUp, Plus, Eye, Edit, BarChart3, MessageSquare, Settings, Home, User } from 'lucide-react';
+import { Users, BookOpen, DollarSign, TrendingUp, Plus, Eye, Edit, BarChart3, MessageSquare, Settings, Home, User, Video, Download, Brain, TestTube, FileText } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
+import { DocumentDownload } from '@/components/common/DocumentDownload';
+import { AIChat } from '@/components/common/AIChat';
+import { VideoConference } from '@/components/common/VideoConference';
+import { PositioningTest } from '@/components/common/PositioningTest';
 
 const InstructorDashboard = () => {
   const { toast } = useToast();
@@ -16,8 +20,13 @@ const InstructorDashboard = () => {
     { title: "Tableau de bord", href: "/dashboard/instructeur", icon: Home, isActive: currentPath === "/dashboard/instructeur" },
     { title: "Mes cours", href: "/dashboard/instructeur/courses", icon: BookOpen, isActive: currentPath === "/dashboard/instructeur/courses" },
     { title: "Créer un cours", href: "/dashboard/instructeur/create-course", icon: Plus, isActive: currentPath === "/dashboard/instructeur/create-course" },
+    { title: "Tests de positionnement", href: "/dashboard/instructeur/tests", icon: TestTube, isActive: currentPath === "/dashboard/instructeur/tests" },
+    { title: "Documents OF", href: "/dashboard/instructeur/of-documents", icon: FileText, isActive: currentPath === "/dashboard/instructeur/of-documents" },
     { title: "Analytics", href: "/dashboard/instructeur/analytics", icon: BarChart3, isActive: currentPath === "/dashboard/instructeur/analytics" },
     { title: "Étudiants", href: "/dashboard/instructeur/students", icon: Users, isActive: currentPath === "/dashboard/instructeur/students" },
+    { title: "Visioconférence", href: "/dashboard/instructeur/video", icon: Video, isActive: currentPath === "/dashboard/instructeur/video" },
+    { title: "Chat IA", href: "/dashboard/instructeur/chat", icon: Brain, isActive: currentPath === "/dashboard/instructeur/chat" },
+    { title: "Documents élèves", href: "/dashboard/instructeur/documents", icon: Download, isActive: currentPath === "/dashboard/instructeur/documents" },
     { title: "Messages", href: "/dashboard/instructeur/messagerie", icon: MessageSquare, badge: "5", isActive: currentPath === "/dashboard/instructeur/messagerie" },
     { title: "Profil", href: "/profil", icon: User, isActive: currentPath === "/profil" },
     { title: "Paramètres", href: "/dashboard/instructeur/settings", icon: Settings, isActive: currentPath === "/dashboard/instructeur/settings" },
@@ -27,6 +36,11 @@ const InstructorDashboard = () => {
     name: "Dr. Marie Dubois",
     email: "marie.dubois@infinitiax.com"
   };
+
+  const mockStudentDocuments = [
+    { id: '1', name: 'Rapport_Alice_Martin.pdf', type: 'PDF', date: '2024-01-20', size: '1.2 MB' },
+    { id: '2', name: 'Projet_Jean_Dupont.zip', type: 'ZIP', date: '2024-01-18', size: '5.4 MB' }
+  ];
 
   const myCourses = [
     {
@@ -229,6 +243,30 @@ const InstructorDashboard = () => {
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Créer un cours
+                  </Button>
+                  <Button 
+                    className="w-full justify-start" 
+                    variant="outline"
+                    onClick={() => navigate('/dashboard/instructeur/tests')}
+                  >
+                    <TestTube className="h-4 w-4 mr-2" />
+                    Créer un test
+                  </Button>
+                  <Button 
+                    className="w-full justify-start" 
+                    variant="outline"
+                    onClick={() => navigate('/dashboard/instructeur/video')}
+                  >
+                    <Video className="h-4 w-4 mr-2" />
+                    Session vidéo
+                  </Button>
+                  <Button 
+                    className="w-full justify-start" 
+                    variant="outline"
+                    onClick={() => navigate('/dashboard/instructeur/chat')}
+                  >
+                    <Brain className="h-4 w-4 mr-2" />
+                    Chat IA
                   </Button>
                   <Button 
                     className="w-full justify-start" 
