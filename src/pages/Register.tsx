@@ -9,6 +9,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { BookOpen, Mail, Lock, User, Eye, EyeOff, ArrowRight, CheckCircle, Star, AlertCircle, GraduationCap, UserCheck } from 'lucide-react';
 
+interface StudentInfo {
+  firstName: string;
+  lastName: string;
+  studyLevel: string;
+}
+
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -20,7 +26,10 @@ const Register = () => {
     password: '',
     confirmPassword: '',
     userType: '',
-    ageStatus: '' // 'adult' ou 'minor'
+    ageStatus: '',
+    role: '', // 'student' ou 'tutor'
+    numberOfStudents: '',
+    students: [] as StudentInfo[]
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -29,12 +38,6 @@ const Register = () => {
     // Validation des mots de passe
     if (formData.password !== formData.confirmPassword) {
       alert('Les mots de passe ne correspondent pas');
-      return;
-    }
-
-    // Validation pour les mineurs
-    if (formData.userType === 'student' && formData.ageStatus === 'minor') {
-      setShowMinorError(true);
       return;
     }
 
@@ -48,6 +51,31 @@ const Register = () => {
     if (field === 'userType' || field === 'ageStatus') {
       setShowMinorError(false);
     }
+
+    // Afficher l'erreur si mineur
+    if (field === 'ageStatus' && value === 'minor') {
+      setShowMinorError(true);
+    }
+
+    // Initialiser les étudiants quand le nombre est sélectionné
+    if (field === 'numberOfStudents' && value) {
+      const count = parseInt(value);
+      const students = Array.from({ length: count }, () => ({
+        firstName: '',
+        lastName: '',
+        studyLevel: ''
+      }));
+      setFormData(prev => ({ ...prev, students }));
+    }
+  };
+
+  const handleStudentChange = (index: number, field: keyof StudentInfo, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      students: prev.students.map((student, i) => 
+        i === index ? { ...student, [field]: value } : student
+      )
+    }));
   };
 
   const benefits = [
@@ -55,6 +83,13 @@ const Register = () => {
     "Support communautaire actif",
     "Certificats de completion",
     "Suivi de progression avancé"
+  ];
+
+  const studyLevels = [
+    "CP", "CE1", "CE2", "CM1", "CM2",
+    "6ème", "5ème", "4ème", "3ème",
+    "2nde", "1ère", "Terminale",
+    "Bac+1", "Bac+2", "Bac+3", "Bac+4", "Bac+5"
   ];
 
   return (
@@ -171,8 +206,46 @@ const Register = () => {
                   </Alert>
                 )}
 
-                {/* Informations de base - affichées seulement si le profil est sélectionné et valide */}
-                {formData.userType && !(formData.userType === 'student' && formData.ageStatus === 'minor') && (
+                {/* Choix du rôle pour les adultes */}
+                {formData.userType === 'student' && formData.ageStatus === 'adult' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="role" className="text-sm font-medium text-gray-700">
+                      Vous êtes :
+                    </Label>
+                    <Select value={formData.role} onValueChange={(value) => handleChange('role', value)}>
+                      <SelectTrigger className="h-12 border-gray-200 focus:border-pink-500 focus:ring-pink-500">
+                        <SelectValue placeholder="Sélectionnez votre rôle" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="student">Élève</SelectItem>
+                        <SelectItem value="tutor">Tuteur</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {/* Nombre d'étudiants pour les tuteurs */}
+                {formData.role === 'tutor' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="numberOfStudents" className="text-sm font-medium text-gray-700">
+                      Nombre de profils d'élèves à inscrire
+                    </Label>
+                    <Select value={formData.numberOfStudents} onValueChange={(value) => handleChange('numberOfStudents', value)}>
+                      <SelectTrigger className="h-12 border-gray-200 focus:border-pink-500 focus:ring-pink-500">
+                        <SelectValue placeholder="Sélectionnez le nombre" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1 élève</SelectItem>
+                        <SelectItem value="2">2 élèves</SelectItem>
+                        <SelectItem value="3">3 élèves</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {/* Informations personnelles - affichées pour les profils valides */}
+                {(formData.userType === 'instructor' || 
+                  (formData.userType === 'student' && formData.ageStatus === 'adult' && formData.role)) && (
                   <>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
@@ -275,7 +348,77 @@ const Register = () => {
                         </button>
                       </div>
                     </div>
+                  </>
+                )}
 
+                {/* Informations des étudiants pour les tuteurs */}
+                {formData.role === 'tutor' && formData.numberOfStudents && formData.students.length > 0 && (
+                  <div className="space-y-6">
+                    <div className="border-t pt-6">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                        Informations des élèves
+                      </h3>
+                      {formData.students.map((student, index) => (
+                        <div key={index} className="border rounded-lg p-4 mb-4 bg-gray-50">
+                          <h4 className="font-medium text-gray-800 mb-3">Élève {index + 1}</h4>
+                          <div className="grid grid-cols-2 gap-4 mb-4">
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium text-gray-700">
+                                Prénom
+                              </Label>
+                              <Input
+                                type="text"
+                                placeholder="Prénom de l'élève"
+                                value={student.firstName}
+                                onChange={(e) => handleStudentChange(index, 'firstName', e.target.value)}
+                                className="h-10 border-gray-200 focus:border-pink-500 focus:ring-pink-500"
+                                required
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium text-gray-700">
+                                Nom
+                              </Label>
+                              <Input
+                                type="text"
+                                placeholder="Nom de l'élève"
+                                value={student.lastName}
+                                onChange={(e) => handleStudentChange(index, 'lastName', e.target.value)}
+                                className="h-10 border-gray-200 focus:border-pink-500 focus:ring-pink-500"
+                                required
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-gray-700">
+                              Niveau d'étude
+                            </Label>
+                            <Select 
+                              value={student.studyLevel} 
+                              onValueChange={(value) => handleStudentChange(index, 'studyLevel', value)}
+                            >
+                              <SelectTrigger className="h-10 border-gray-200 focus:border-pink-500 focus:ring-pink-500">
+                                <SelectValue placeholder="Sélectionnez le niveau" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {studyLevels.map((level) => (
+                                  <SelectItem key={level} value={level}>
+                                    {level}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Conditions d'utilisation et bouton de soumission */}
+                {(formData.userType === 'instructor' || 
+                  (formData.userType === 'student' && formData.ageStatus === 'adult' && formData.role)) && (
+                  <>
                     <div className="flex items-center space-x-2">
                       <input
                         id="terms"
@@ -298,7 +441,6 @@ const Register = () => {
                     <Button 
                       type="submit" 
                       className="w-full h-12 bg-pink-600 hover:bg-pink-700 text-white font-medium"
-                      disabled={!formData.userType || (formData.userType === 'student' && !formData.ageStatus)}
                     >
                       Créer mon compte
                       <ArrowRight className="ml-2 h-4 w-4" />
