@@ -1,151 +1,186 @@
 
-import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useSupabaseAuth } from './useSupabaseAuth';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { User, Course, Enrollment, AdminStats, ApiResponse, PaginatedResponse } from '@/types';
 
-export const useApi = () => {
-  const { user, session } = useSupabaseAuth();
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+// Base API configuration
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
-  const callApi = async (endpoint: string, options: RequestInit = {}) => {
-    setIsLoading(true);
-    setError(null);
+class ApiClient {
+  private baseUrl: string;
 
-    try {
-      const response = await fetch(endpoint, {
-        ...options,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': session?.access_token ? `Bearer ${session.access_token}` : '',
-          ...options.headers,
-        },
-      });
+  constructor(baseUrl: string) {
+    this.baseUrl = baseUrl;
+  }
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+  private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
+    const url = `${this.baseUrl}${endpoint}`;
+    const token = localStorage.getItem('auth_token');
+    
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+        ...options?.headers,
+      },
+    });
 
-      const data = await response.json();
-      return data;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
-      setError(errorMessage);
-      throw err;
-    } finally {
-      setIsLoading(false);
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status} ${response.statusText}`);
     }
-  };
 
-  return {
-    callApi,
-    isLoading,
-    error,
-    user,
-    session,
-  };
-};
+    return response.json();
+  }
 
-// Export useAuth hook that wraps useSupabaseAuth
+  // Auth methods
+  async login(email: string, password: string): Promise<ApiResponse<{ user: User; token: string }>> {
+    return this.request('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+  }
+
+  async register(userData: Partial<User> & { password: string }): Promise<ApiResponse<{ user: User; token: string }>> {
+    return this.request('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(userData),
+    });
+  }
+
+  async getCurrentUser(): Promise<ApiResponse<User>> {
+    return this.request('/auth/me');
+  }
+
+  // User methods
+  async getUsers(page = 1, limit = 10): Promise<PaginatedResponse<User>> {
+    return this.request(`/users?page=${page}&limit=${limit}`);
+  }
+
+  async updateUser(id: string, userData: Partial<User>): Promise<ApiResponse<User>> {
+    return this.request(`/users/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(userData),
+    });
+  }
+
+  // Course methods
+  async getCourses(page = 1, limit = 10, filters?: Record<string, any>): Promise<PaginatedResponse<Course>> {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+      ...filters,
+    });
+    return this.request(`/courses?${params}`);
+  }
+
+  async getCourse(id: string): Promise<ApiResponse<Course>> {
+    return this.request(`/courses/${id}`);
+  }
+
+  async createCourse(courseData: Partial<Course>): Promise<ApiResponse<Course>> {
+    return this.request('/courses', {
+      method: 'POST',
+      body: JSON.stringify(courseData),
+    });
+  }
+
+  async updateCourse(id: string, courseData: Partial<Course>): Promise<ApiResponse<Course>> {
+    return this.request(`/courses/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(courseData),
+    });
+  }
+
+  // Enrollment methods
+  async enrollInCourse(courseId: string): Promise<ApiResponse<Enrollment>> {
+    return this.request('/enrollments', {
+      method: 'POST',
+      body: JSON.stringify({ courseId }),
+    });
+  }
+
+  async getUserEnrollments(userId: string): Promise<ApiResponse<Enrollment[]>> {
+    return this.request(`/users/${userId}/enrollments`);
+  }
+
+  // Admin methods
+  async getAdminStats(): Promise<ApiResponse<AdminStats>> {
+    return this.request('/admin/stats');
+  }
+}
+
+export const apiClient = new ApiClient(API_BASE_URL);
+
+// Custom hooks
 export const useAuth = () => {
-  const { user, profile, loading } = useSupabaseAuth();
-  
+  const queryClient = useQueryClient();
+
+  const loginMutation = useMutation({
+    mutationFn: ({ email, password }: { email: string; password: string }) =>
+      apiClient.login(email, password),
+    onSuccess: (data) => {
+      localStorage.setItem('auth_token', data.data.token);
+      queryClient.setQueryData(['currentUser'], data.data.user);
+    },
+  });
+
+  const registerMutation = useMutation({
+    mutationFn: (userData: Partial<User> & { password: string }) =>
+      apiClient.register(userData),
+    onSuccess: (data) => {
+      localStorage.setItem('auth_token', data.data.token);
+      queryClient.setQueryData(['currentUser'], data.data.user);
+    },
+  });
+
+  const currentUserQuery = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => apiClient.getCurrentUser().then(res => res.data),
+    enabled: !!localStorage.getItem('auth_token'),
+  });
+
+  const logout = () => {
+    localStorage.removeItem('auth_token');
+    queryClient.clear();
+    window.location.href = '/connexion';
+  };
+
   return {
-    user: user ? {
-      id: user.id,
-      email: user.email || '',
-      firstName: profile?.first_name || '',
-      lastName: profile?.last_name || '',
-      role: profile?.role || 'student',
-      avatar: user.user_metadata?.avatar_url || null,
-      createdAt: user.created_at || '',
-      profile: {
-        phone: user.user_metadata?.phone || null,
-        city: user.user_metadata?.city || null,
-      }
-    } : null,
-    isLoading: loading,
+    login: loginMutation,
+    register: registerMutation,
+    user: currentUserQuery.data,
+    isLoading: currentUserQuery.isLoading,
+    isAuthenticated: !!currentUserQuery.data,
+    logout,
   };
 };
 
-// Export useUserEnrollments hook
+export const useCourses = (page = 1, limit = 10, filters?: Record<string, any>) => {
+  return useQuery({
+    queryKey: ['courses', page, limit, filters],
+    queryFn: () => apiClient.getCourses(page, limit, filters),
+  });
+};
+
+export const useCourse = (id: string) => {
+  return useQuery({
+    queryKey: ['course', id],
+    queryFn: () => apiClient.getCourse(id).then(res => res.data),
+    enabled: !!id,
+  });
+};
+
 export const useUserEnrollments = (userId: string) => {
   return useQuery({
-    queryKey: ['user-enrollments', userId],
-    queryFn: async () => {
-      // Mock data for now - replace with actual API call
-      if (!userId) return [];
-      
-      return [
-        {
-          id: '1',
-          progress: 75,
-          course: {
-            id: '1',
-            title: 'Introduction à React',
-            duration: 180,
-            instructor: {
-              firstName: 'Marie',
-              lastName: 'Dupont'
-            }
-          }
-        },
-        {
-          id: '2',
-          progress: 45,
-          course: {
-            id: '2',
-            title: 'JavaScript Avancé',
-            duration: 240,
-            instructor: {
-              firstName: 'Jean',
-              lastName: 'Martin'
-            }
-          }
-        }
-      ];
-    },
+    queryKey: ['userEnrollments', userId],
+    queryFn: () => apiClient.getUserEnrollments(userId).then(res => res.data),
     enabled: !!userId,
   });
 };
 
-// Export useAdminStats hook
 export const useAdminStats = () => {
   return useQuery({
-    queryKey: ['admin-stats'],
-    queryFn: async () => {
-      // Mock data for now - replace with actual API call
-      return {
-        totalUsers: 1250,
-        totalCourses: 45,
-        totalEnrollments: 3200,
-        totalRevenue: 125000,
-        monthlyGrowth: {
-          users: 12,
-          courses: 8,
-          revenue: 15
-        },
-        topCourses: [
-          {
-            id: '1',
-            title: 'Introduction à React',
-            enrollments: 450,
-            revenue: 22500
-          },
-          {
-            id: '2',
-            title: 'JavaScript Avancé',
-            enrollments: 320,
-            revenue: 16000
-          },
-          {
-            id: '3',
-            title: 'CSS et Design',
-            enrollments: 280,
-            revenue: 14000
-          }
-        ]
-      };
-    },
+    queryKey: ['adminStats'],
+    queryFn: () => apiClient.getAdminStats().then(res => res.data),
   });
 };

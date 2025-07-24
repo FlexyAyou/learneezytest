@@ -1,24 +1,26 @@
 
 import { useState } from 'react';
-import { useSupabaseAuth, SignUpData } from '@/hooks/useSupabaseAuth';
+import { useAuth } from '@/hooks/useApi';
 import { useToast } from '@/hooks/use-toast';
 
 export const useAuthForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { signIn, signUp } = useSupabaseAuth();
+  const { login, register } = useAuth();
   const { toast } = useToast();
 
   const handleLogin = async (email: string, password: string) => {
     setIsSubmitting(true);
     try {
-      const result = await signIn(email, password);
-      if (result.error) {
-        return;
-      }
+      await login.mutateAsync({ email, password });
+      toast({
+        title: "Connexion réussie",
+        description: "Vous êtes maintenant connecté",
+      });
+      // Redirection sera gérée par le composant parent
     } catch (error) {
       toast({
         title: "Erreur de connexion",
-        description: "Une erreur inattendue s'est produite",
+        description: "Email ou mot de passe incorrect",
         variant: "destructive",
       });
     } finally {
@@ -26,17 +28,27 @@ export const useAuthForm = () => {
     }
   };
 
-  const handleRegister = async (userData: SignUpData) => {
+  const handleRegister = async (userData: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    role?: 'student' | 'instructor';
+  }) => {
     setIsSubmitting(true);
     try {
-      const result = await signUp(userData);
-      if (result.error) {
-        return;
-      }
+      await register.mutateAsync({
+        ...userData,
+        role: userData.role || 'student',
+      });
+      toast({
+        title: "Inscription réussie",
+        description: "Votre compte a été créé avec succès",
+      });
     } catch (error) {
       toast({
         title: "Erreur d'inscription",
-        description: "Une erreur inattendue s'est produite",
+        description: "Une erreur s'est produite lors de la création du compte",
         variant: "destructive",
       });
     } finally {

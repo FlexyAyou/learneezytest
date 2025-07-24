@@ -1,12 +1,12 @@
 
 import React from 'react';
+import { useAuth } from '@/hooks/useApi';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import LoadingSpinner from './LoadingSpinner';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: 'student' | 'instructor' | 'tutor' | 'parent' | 'admin' | 'manager';
+  requiredRole?: 'student' | 'instructor' | 'admin';
   redirectTo?: string;
 }
 
@@ -15,10 +15,10 @@ const ProtectedRoute = ({
   requiredRole,
   redirectTo = '/connexion' 
 }: ProtectedRouteProps) => {
-  const { isAuthenticated, profile, loading } = useSupabaseAuth();
+  const { user, isLoading } = useAuth();
   const location = useLocation();
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <LoadingSpinner size="lg" />
@@ -26,21 +26,12 @@ const ProtectedRoute = ({
     );
   }
 
-  if (!isAuthenticated) {
+  if (!user) {
     return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }
 
-  if (requiredRole && profile?.role !== requiredRole) {
-    // Redirect to user's appropriate dashboard based on their role
-    const userDashboard = profile?.role === 'student' ? '/dashboard/etudiant' : 
-                         profile?.role === 'instructor' ? '/dashboard/instructeur' :
-                         profile?.role === 'tutor' ? '/dashboard/tuteur' :
-                         profile?.role === 'parent' ? '/dashboard/parent' :
-                         profile?.role === 'admin' ? '/dashboard/admin' :
-                         profile?.role === 'manager' ? '/dashboard/manager' :
-                         '/dashboard/etudiant';
-    
-    return <Navigate to={userDashboard} replace />;
+  if (requiredRole && user.role !== requiredRole) {
+    return <Navigate to="/dashboard/etudiant" replace />;
   }
 
   return <>{children}</>;
