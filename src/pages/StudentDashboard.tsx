@@ -55,7 +55,7 @@ const StudentDashboard = () => {
           <p className="text-gray-600">Continuez votre apprentissage</p>
         </div>
         <Button onClick={() => navigate('/cours')}>
-          Parcourir les cours
+          Catalogue de formations
         </Button>
       </div>
 

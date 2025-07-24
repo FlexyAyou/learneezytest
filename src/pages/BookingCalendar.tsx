@@ -18,53 +18,60 @@ const BookingCalendar = () => {
   const [bookingNotes, setBookingNotes] = useState('');
   const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
 
-  // Mock data pour les créneaux disponibles
-  const availableSlots = [
-    {
-      id: '1',
-      instructorName: 'Marie Dubois',
-      instructorPhoto: 'https://images.unsplash.com/photo-1494790108755-2616b9c9b3c8?w=100&h=100&fit=crop&crop=face',
-      startTime: '09:00',
-      endTime: '10:00',
-      date: '2024-01-25',
-      maxStudents: 8,
-      bookedStudents: 3,
-      price: 25,
-      location: 'Salle A101',
-      type: 'presential' as const,
-      rating: 4.8,
-      totalReviews: 156
-    },
-    {
-      id: '2',
-      instructorName: 'Paul Martin',
-      instructorPhoto: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
-      startTime: '14:00',
-      endTime: '15:30',
-      date: '2024-01-25',
-      maxStudents: 12,
-      bookedStudents: 7,
-      price: 30,
-      type: 'online' as const,
-      rating: 4.9,
-      totalReviews: 203
-    },
-    {
-      id: '3',
-      instructorName: 'Sophie Laurent',
-      instructorPhoto: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face',
-      startTime: '16:00',
-      endTime: '17:00',
-      date: '2024-01-25',
-      maxStudents: 6,
-      bookedStudents: 4,
-      price: 35,
-      location: 'Salle B203',
-      type: 'presential' as const,
-      rating: 4.7,
-      totalReviews: 89
+  // Mock data pour les créneaux disponibles - générer des créneaux pour plusieurs dates
+  const generateSlotsForDates = () => {
+    const slots = [];
+    const today = new Date();
+    
+    // Génère des créneaux pour les 30 prochains jours
+    for (let i = 0; i < 30; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      const dateStr = date.toISOString().split('T')[0];
+      
+      // Skip weekends for some variety
+      if (date.getDay() === 0 || date.getDay() === 6) continue;
+      
+      // Add 2-3 random slots per day
+      const instructors = [
+        { name: 'Marie Dubois', photo: 'https://images.unsplash.com/photo-1494790108755-2616b9c9b3c8?w=100&h=100&fit=crop&crop=face', rating: 4.8, reviews: 156 },
+        { name: 'Paul Martin', photo: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face', rating: 4.9, reviews: 203 },
+        { name: 'Sophie Laurent', photo: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face', rating: 4.7, reviews: 89 }
+      ];
+      
+      const times = [
+        { start: '09:00', end: '10:00' },
+        { start: '14:00', end: '15:30' },
+        { start: '16:00', end: '17:00' }
+      ];
+      
+      for (let j = 0; j < Math.min(2 + Math.floor(Math.random() * 2), times.length); j++) {
+        const instructor = instructors[j % instructors.length];
+        const time = times[j];
+        const isOnline = Math.random() > 0.5;
+        
+        slots.push({
+          id: `${dateStr}-${j}`,
+          instructorName: instructor.name,
+          instructorPhoto: instructor.photo,
+          startTime: time.start,
+          endTime: time.end,
+          date: dateStr,
+          maxStudents: 6 + Math.floor(Math.random() * 6),
+          bookedStudents: Math.floor(Math.random() * 4),
+          price: 25 + Math.floor(Math.random() * 15),
+          location: isOnline ? undefined : `Salle ${String.fromCharCode(65 + Math.floor(Math.random() * 3))}${100 + Math.floor(Math.random() * 300)}`,
+          type: isOnline ? 'online' as const : 'presential' as const,
+          rating: instructor.rating,
+          totalReviews: instructor.reviews
+        });
+      }
     }
-  ];
+    
+    return slots;
+  };
+
+  const availableSlots = generateSlotsForDates();
 
   const courseInfo = {
     title: 'Mathématiques - Fractions et Nombres Décimaux',
@@ -73,7 +80,11 @@ const BookingCalendar = () => {
     description: 'Apprenez les bases des fractions et des nombres décimaux avec des exercices pratiques.'
   };
 
-  const selectedDateSlots = availableSlots.filter(slot => slot.date === selectedDate?.toISOString().split('T')[0]);
+  const selectedDateSlots = availableSlots.filter(slot => {
+    if (!selectedDate) return false;
+    const selectedDateStr = selectedDate.toISOString().split('T')[0];
+    return slot.date === selectedDateStr;
+  });
 
   const handleBookSlot = (slotId: string) => {
     setSelectedSlot(slotId);

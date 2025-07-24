@@ -39,7 +39,7 @@ const Payment = () => {
     duration: '1h',
     price: 25,
     location: 'Salle A101',
-    type: 'presential' as const,
+    type: 'presential' as 'presential' | 'online',
     level: 'CM1',
     category: 'Mathématiques'
   };
@@ -278,7 +278,7 @@ const Payment = () => {
                   <div className="flex justify-between">
                     <span className="text-gray-600">Type:</span>
                     <span className="font-medium">
-                      {bookingDetails.type === 'online' ? 'En ligne' : `Présentiel - ${bookingDetails.location}`}
+                      {bookingDetails.type === 'online' ? 'En ligne' : `Présentiel${bookingDetails.location ? ` - ${bookingDetails.location}` : ''}`}
                     </span>
                   </div>
                 </div>
