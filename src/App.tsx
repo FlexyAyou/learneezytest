@@ -36,6 +36,9 @@ import InstructorDashboard from "./pages/InstructorDashboard";
 import InstructorCourses from "./pages/InstructorCourses";
 import InstructorAnalytics from "./pages/InstructorAnalytics";
 import InstructorOFDocuments from "./pages/InstructorOFDocuments";
+import BookingCalendar from "./pages/BookingCalendar";
+import BookingHistory from "./pages/BookingHistory";
+import Payment from "./pages/Payment";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +52,9 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/cours" element={<Courses />} />
           <Route path="/cours/:id" element={<CourseDetailStudent />} />
+          <Route path="/cours/:courseId/reservation" element={<BookingCalendar />} />
+          <Route path="/cours/:courseId/paiement/:slotId" element={<Payment />} />
+          <Route path="/reservations" element={<BookingHistory />} />
           <Route path="/course/:id" element={<CourseDetail />} />
           <Route path="/rechercher" element={<SearchCourses />} />
           <Route path="/lesson/:id" element={<Lesson />} />

@@ -34,8 +34,10 @@ export interface Course {
   thumbnail?: string;
   price: number;
   duration: number; // in minutes
-  level: 'beginner' | 'intermediate' | 'advanced';
-  category: string;
+  level: 'cp' | 'ce1' | 'ce2' | 'cm1' | 'cm2' | '6eme' | '5eme' | '4eme' | '3eme' | '2nde' | '1ere' | 'terminale';
+  category: 'mathematiques' | 'francais' | 'anglais' | 'histoire-geo' | 'sciences' | 'physique-chimie' | 'svt' | 'arts' | 'sport' | 'informatique';
+  subject: string;
+  cycle: 'primaire' | 'college' | 'lycee';
   instructorId: string;
   instructor?: User;
   lessons: Lesson[];
@@ -43,8 +45,53 @@ export interface Course {
   rating: number;
   reviews: Review[];
   isPublished: boolean;
+  availableSlots?: TimeSlot[];
+  prerequisites?: string[];
+  objectives: string[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface TimeSlot {
+  id: string;
+  courseId: string;
+  instructorId: string;
+  startTime: string;
+  endTime: string;
+  date: string;
+  maxStudents: number;
+  bookedStudents: number;
+  price: number;
+  isAvailable: boolean;
+  location?: string;
+  type: 'presential' | 'online';
+}
+
+export interface Booking {
+  id: string;
+  userId: string;
+  courseId: string;
+  slotId: string;
+  user?: User;
+  course?: Course;
+  slot?: TimeSlot;
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  paymentStatus: 'pending' | 'paid' | 'refunded';
+  totalAmount: number;
+  bookedAt: string;
+  confirmationCode?: string;
+  notes?: string;
+}
+
+export interface Notification {
+  id: string;
+  userId: string;
+  type: 'booking_confirmation' | 'booking_reminder' | 'booking_cancelled' | 'payment_success' | 'course_update';
+  title: string;
+  message: string;
+  isRead: boolean;
+  data?: any;
+  createdAt: string;
 }
 
 export interface Lesson {
