@@ -1,5 +1,5 @@
-
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Users, UserPlus, UserCheck, UserX, Shield, Search, Filter, MoreHorizontal, Edit, Ban, Mail } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 
 const AdminUsers = () => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('all');
@@ -37,10 +38,7 @@ const AdminUsers = () => {
   };
 
   const handleAddUser = () => {
-    toast({
-      title: "Ajouter un utilisateur",
-      description: "Interface de création d'un nouvel utilisateur",
-    });
+    navigate('/dashboard/admin/users/add');
   };
 
   const getRoleColor = (role: string) => {

@@ -19,7 +19,11 @@ import {
   TrendingUp,
   Target,
   History,
-  HelpCircle
+  HelpCircle,
+  Download,
+  Brain,
+  Video,
+  TestTube
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -33,6 +37,10 @@ import TrainerHistory from '@/components/external-trainer/TrainerHistory';
 import TrainerReviews from '@/components/external-trainer/TrainerReviews';
 import TrainerProfile from '@/components/external-trainer/TrainerProfile';
 import TrainerSupport from '@/components/external-trainer/TrainerSupport';
+import { DocumentDownload } from '@/components/common/DocumentDownload';
+import { AIChat } from '@/components/common/AIChat';
+import { VideoConference } from '@/components/common/VideoConference';
+import { PositioningTest } from '@/components/common/PositioningTest';
 
 const ExternalTrainerDashboardHome = () => {
   const { toast } = useToast();
@@ -234,6 +242,10 @@ const ExternalTrainerDashboard = () => {
     { title: 'Historique séances', href: '/formateur-externe/historique', icon: History },
     { title: 'Mes évaluations', href: '/formateur-externe/evaluations', icon: Star },
     { title: 'Mes revenus', href: '/formateur-externe/revenus', icon: Award },
+    { title: 'Tests de positionnement', href: '/formateur-externe/tests', icon: TestTube },
+    { title: 'Visioconférence', href: '/formateur-externe/video', icon: Video },
+    { title: 'Chat IA', href: '/formateur-externe/chat', icon: Brain },
+    { title: 'Mes documents', href: '/formateur-externe/documents', icon: Download },
     { title: 'Support & Assistance', href: '/formateur-externe/support', icon: HelpCircle },
     { title: 'Profil formateur', href: '/formateur-externe/profil', icon: Settings },
   ];
@@ -242,6 +254,11 @@ const ExternalTrainerDashboard = () => {
     name: "Jean Martin",
     email: "jean.martin@email.com"
   };
+
+  const mockDocuments = [
+    { id: '1', name: 'Contrat formateur.pdf', type: 'PDF', date: '2024-01-20', size: '2.3 MB' },
+    { id: '2', name: 'Supports de cours.pdf', type: 'PDF', date: '2024-01-18', size: '1.8 MB' }
+  ];
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -261,6 +278,10 @@ const ExternalTrainerDashboard = () => {
           <Route path="/historique" element={<TrainerHistory />} />
           <Route path="/evaluations" element={<TrainerReviews />} />
           <Route path="/revenus" element={<TrainerEarnings />} />
+          <Route path="/tests" element={<PositioningTest userRole="instructor" />} />
+          <Route path="/video" element={<VideoConference />} />
+          <Route path="/chat" element={<AIChat />} />
+          <Route path="/documents" element={<DocumentDownload documents={mockDocuments} userRole="instructor" />} />
           <Route path="/support" element={<TrainerSupport />} />
           <Route path="/profil" element={<TrainerProfile />} />
         </Routes>

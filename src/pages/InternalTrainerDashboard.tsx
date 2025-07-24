@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
@@ -20,7 +21,10 @@ import {
   FileText,
   ClipboardList,
   TrendingUp,
-  HelpCircle
+  HelpCircle,
+  Download,
+  Brain,
+  TestTube
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -29,6 +33,10 @@ import InternalTrainerContent from '@/components/internal-trainer/InternalTraine
 import InternalTrainerSessions from '@/components/internal-trainer/InternalTrainerSessions';
 import InternalTrainerStudents from '@/components/internal-trainer/InternalTrainerStudents';
 import InternalTrainerMessaging from '@/components/internal-trainer/InternalTrainerMessaging';
+import { DocumentDownload } from '@/components/common/DocumentDownload';
+import { AIChat } from '@/components/common/AIChat';
+import { VideoConference } from '@/components/common/VideoConference';
+import { PositioningTest } from '@/components/common/PositioningTest';
 
 const InternalTrainerDashboardHome = () => {
   const { toast } = useToast();
@@ -226,6 +234,10 @@ const InternalTrainerDashboard = () => {
     { title: 'Contenus pédagogiques', href: '/formateur-interne/contenus', icon: FileText },
     { title: 'Animation sessions', href: '/formateur-interne/sessions', icon: Video },
     { title: 'Suivi apprenants', href: '/formateur-interne/etudiants', icon: TrendingUp },
+    { title: 'Tests de positionnement', href: '/formateur-interne/tests', icon: TestTube },
+    { title: 'Visioconférence', href: '/formateur-interne/video', icon: Video },
+    { title: 'Chat IA', href: '/formateur-interne/chat', icon: Brain },
+    { title: 'Mes documents', href: '/formateur-interne/documents', icon: Download },
     { title: 'Messagerie', href: '/formateur-interne/messages', icon: MessageSquare },
   ];
 
@@ -233,6 +245,11 @@ const InternalTrainerDashboard = () => {
     name: "Marie Dubois",
     email: "marie.dubois@learneezy.com"
   };
+
+  const mockDocuments = [
+    { id: '1', name: 'Support React.pdf', type: 'PDF', date: '2024-01-20', size: '2.3 MB' },
+    { id: '2', name: 'Exercices JS.pdf', type: 'PDF', date: '2024-01-18', size: '1.8 MB' }
+  ];
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -248,6 +265,10 @@ const InternalTrainerDashboard = () => {
           <Route path="/contenus" element={<InternalTrainerContent />} />
           <Route path="/sessions" element={<InternalTrainerSessions />} />
           <Route path="/etudiants" element={<InternalTrainerStudents />} />
+          <Route path="/tests" element={<PositioningTest userRole="instructor" />} />
+          <Route path="/video" element={<VideoConference />} />
+          <Route path="/chat" element={<AIChat />} />
+          <Route path="/documents" element={<DocumentDownload documents={mockDocuments} userRole="instructor" />} />
           <Route path="/messages" element={<InternalTrainerMessaging />} />
         </Routes>
       </main>

@@ -1,160 +1,237 @@
 
 import React, { useState } from 'react';
-import { Clock, Users, Star, Filter, Search, Grid, List } from 'lucide-react';
+import { Clock, Users, Star, Filter, Search, Grid, List, Calendar, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { Link } from 'react-router-dom';
 
 const Courses = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedLevel, setSelectedLevel] = useState('all');
+  const [selectedCycle, setSelectedCycle] = useState('all');
 
   const courses = [
     {
       id: 1,
-      title: "Développement Web Complet - HTML, CSS, JavaScript et React",
+      title: "Mathématiques - Les Fractions",
       instructor: "Marie Dubois",
-      image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=250&fit=crop",
-      duration: "40h",
-      students: 1250,
+      image: "https://images.unsplash.com/photo-1632571401005-ad206e71bb21?w=400&h=250&fit=crop",
+      duration: "1h",
+      students: 45,
       rating: 4.8,
-      price: "99€",
-      originalPrice: "149€",
-      level: "Débutant",
-      category: "Développement",
-      description: "Apprenez le développement web moderne de A à Z avec HTML5, CSS3, JavaScript ES6+ et React. Formation complète avec projets pratiques."
+      price: "25€",
+      originalPrice: "35€",
+      level: "CM1",
+      category: "Mathématiques",
+      cycle: "primaire",
+      availableSlots: 12,
+      description: "Comprenez les fractions avec des exemples concrets et des exercices ludiques adaptés au niveau CM1."
     },
     {
       id: 2,
-      title: "Intelligence Artificielle & Machine Learning avec Python",
+      title: "Français - Analyse de Texte",
       instructor: "Paul Martin",
-      image: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&h=250&fit=crop",
-      duration: "60h",
-      students: 890,
+      image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=250&fit=crop",
+      duration: "1h30",
+      students: 38,
       rating: 4.9,
-      price: "149€",
-      originalPrice: "199€",
-      level: "Intermédiaire",
-      category: "IA",
-      description: "Maîtrisez les concepts de l'IA et du ML avec Python, TensorFlow et Scikit-learn. Projets concrets et cas d'usage réels."
+      price: "30€",
+      originalPrice: "40€",
+      level: "6ème",
+      category: "Français",
+      cycle: "college",
+      availableSlots: 8,
+      description: "Apprenez à analyser un texte littéraire et à identifier les figures de style au niveau collège."
     },
     {
       id: 3,
-      title: "Design UX/UI Modern - Figma et Principes de Design",
+      title: "Sciences - Les États de la Matière",
       instructor: "Sophie Laurent",
-      image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&h=250&fit=crop",
-      duration: "25h",
-      students: 650,
+      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=250&fit=crop",
+      duration: "1h",
+      students: 52,
       rating: 4.7,
-      price: "79€",
-      originalPrice: "99€",
-      level: "Tous niveaux",
-      category: "Design",
-      description: "Créez des interfaces utilisateur modernes et intuitives avec Figma. Apprenez les principes du design UX/UI."
+      price: "28€",
+      originalPrice: "38€",
+      level: "CE2",
+      category: "Sciences",
+      cycle: "primaire",
+      availableSlots: 15,
+      description: "Découvrez les différents états de la matière à travers des expériences simples et amusantes."
     },
     {
       id: 4,
-      title: "Marketing Digital & Réseaux Sociaux - Stratégies 2024",
+      title: "Histoire-Géographie - La Révolution Française",
       instructor: "Lucas Petit",
-      image: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&h=250&fit=crop",
-      duration: "30h",
-      students: 1100,
+      image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=250&fit=crop",
+      duration: "1h15",
+      students: 41,
       rating: 4.6,
-      price: "89€",
-      originalPrice: "129€",
-      level: "Débutant",
-      category: "Marketing",
-      description: "Développez votre présence en ligne avec les dernières stratégies de marketing digital et réseaux sociaux."
+      price: "32€",
+      originalPrice: "42€",
+      level: "4ème",
+      category: "Histoire-Géographie",
+      cycle: "college",
+      availableSlots: 6,
+      description: "Plongez dans l'histoire de la Révolution française et comprenez ses enjeux politiques et sociaux."
     },
     {
       id: 5,
-      title: "Cybersécurité & Ethical Hacking - Protection des Systèmes",
-      instructor: "Thomas Roux",
-      image: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=400&h=250&fit=crop",
-      duration: "45h",
-      students: 780,
+      title: "Anglais - Les Temps du Passé",
+      instructor: "Emma Wilson",
+      image: "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=400&h=250&fit=crop",
+      duration: "1h",
+      students: 67,
       rating: 4.8,
-      price: "129€",
-      originalPrice: "179€",
-      level: "Avancé",
-      category: "Sécurité",
-      description: "Apprenez à sécuriser les systèmes informatiques et à détecter les vulnérabilités avec les techniques d'ethical hacking."
+      price: "26€",
+      originalPrice: "36€",
+      level: "5ème",
+      category: "Anglais",
+      cycle: "college",
+      availableSlots: 10,
+      description: "Maîtrisez l'utilisation du preterit et du present perfect en anglais avec des exercices pratiques."
     },
     {
       id: 6,
-      title: "Photographie Professionnelle - Technique et Post-Production",
-      instructor: "Emma Moreau",
-      image: "https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?w=400&h=250&fit=crop",
-      duration: "20h",
-      students: 420,
+      title: "Physique-Chimie - Les Réactions Chimiques",
+      instructor: "Thomas Roux",
+      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=250&fit=crop",
+      duration: "1h30",
+      students: 29,
       rating: 4.9,
-      price: "69€",
-      originalPrice: "89€",
-      level: "Tous niveaux",
-      category: "Créatif",
-      description: "Maîtrisez les techniques de photographie professionnelle et la post-production avec Lightroom et Photoshop."
+      price: "35€",
+      originalPrice: "45€",
+      level: "3ème",
+      category: "Physique-Chimie",
+      cycle: "college",
+      availableSlots: 5,
+      description: "Explorez les réactions chimiques fondamentales et leurs applications dans la vie quotidienne."
     },
     {
       id: 7,
-      title: "Data Science & Analyse de Données avec Python",
-      instructor: "Alex Durand",
-      image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=250&fit=crop",
-      duration: "50h",
-      students: 950,
+      title: "Mathématiques - Calcul Littéral",
+      instructor: "Alex Durand", 
+      image: "https://images.unsplash.com/photo-1632571401005-ad206e71bb21?w=400&h=250&fit=crop",
+      duration: "1h15",
+      students: 33,
       rating: 4.7,
-      price: "119€",
-      originalPrice: "159€",
-      level: "Intermédiaire",
-      category: "Data",
-      description: "Explorez le monde de la data science avec Python, Pandas, NumPy et les techniques d'analyse de données."
+      price: "30€",
+      originalPrice: "40€",
+      level: "2nde",
+      category: "Mathématiques",
+      cycle: "lycee",
+      availableSlots: 7,
+      description: "Développez vos compétences en calcul littéral et résolution d'équations au niveau seconde."
     },
     {
       id: 8,
-      title: "Développement Mobile - React Native & Flutter",
+      title: "SVT - La Génétique",
       instructor: "Julie Bernard",
-      image: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=400&h=250&fit=crop",
-      duration: "35h",
-      students: 720,
+      image: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=250&fit=crop",
+      duration: "1h30",
+      students: 24,
       rating: 4.6,
-      price: "109€",
-      originalPrice: "139€",
-      level: "Intermédiaire",
-      category: "Mobile",
-      description: "Créez des applications mobiles cross-platform avec React Native et Flutter. Déployez sur iOS et Android."
+      price: "38€",
+      originalPrice: "48€",
+      level: "1ère",
+      category: "SVT",
+      cycle: "lycee",
+      availableSlots: 4,
+      description: "Comprenez les bases de la génétique et de l'hérédité avec des exemples concrets et actuels."
+    },
+    {
+      id: 9,
+      title: "Lecture - Compréhension de Texte",
+      instructor: "Camille Moreau",
+      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=250&fit=crop",
+      duration: "45min",
+      students: 78,
+      rating: 4.9,
+      price: "20€",
+      originalPrice: "28€",
+      level: "CP",
+      category: "Français",
+      cycle: "primaire",
+      availableSlots: 20,
+      description: "Améliorez la compréhension de lecture avec des textes adaptés au niveau CP."
+    },
+    {
+      id: 10,
+      title: "Arts Plastiques - Techniques de Dessin",
+      instructor: "Pierre Dubois",
+      image: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=250&fit=crop",
+      duration: "2h",
+      students: 15,
+      rating: 4.8,
+      price: "45€",
+      originalPrice: "55€",
+      level: "Terminale",
+      category: "Arts",
+      cycle: "lycee",
+      availableSlots: 3,
+      description: "Perfectionnez vos techniques de dessin et explorez différents styles artistiques."
     }
   ];
 
   const categories = [
-    { value: 'all', label: 'Toutes les catégories' },
-    { value: 'Développement', label: 'Développement' },
-    { value: 'Design', label: 'Design' },
-    { value: 'Marketing', label: 'Marketing' },
-    { value: 'IA', label: 'Intelligence Artificielle' },
-    { value: 'Data', label: 'Data Science' },
-    { value: 'Mobile', label: 'Mobile' },
-    { value: 'Sécurité', label: 'Cybersécurité' },
-    { value: 'Créatif', label: 'Créatif' }
+    { value: 'all', label: 'Toutes les matières' },
+    { value: 'Mathématiques', label: 'Mathématiques' },
+    { value: 'Français', label: 'Français' },
+    { value: 'Anglais', label: 'Anglais' },
+    { value: 'Histoire-Géographie', label: 'Histoire-Géographie' },
+    { value: 'Sciences', label: 'Sciences' },
+    { value: 'Physique-Chimie', label: 'Physique-Chimie' },
+    { value: 'SVT', label: 'SVT' },
+    { value: 'Arts', label: 'Arts' },
+    { value: 'Sport', label: 'Sport' }
   ];
 
   const levels = [
     { value: 'all', label: 'Tous les niveaux' },
-    { value: 'Débutant', label: 'Débutant' },
-    { value: 'Intermédiaire', label: 'Intermédiaire' },
-    { value: 'Avancé', label: 'Avancé' },
-    { value: 'Tous niveaux', label: 'Tous niveaux' }
+    { value: 'CP', label: 'CP' },
+    { value: 'CE1', label: 'CE1' },
+    { value: 'CE2', label: 'CE2' },
+    { value: 'CM1', label: 'CM1' },
+    { value: 'CM2', label: 'CM2' },
+    { value: '6ème', label: '6ème' },
+    { value: '5ème', label: '5ème' },
+    { value: '4ème', label: '4ème' },
+    { value: '3ème', label: '3ème' },
+    { value: '2nde', label: '2nde' },
+    { value: '1ère', label: '1ère' },
+    { value: 'Terminale', label: 'Terminale' }
+  ];
+
+  const cycles = [
+    { value: 'all', label: 'Tous les cycles' },
+    { value: 'primaire', label: 'Primaire' },
+    { value: 'college', label: 'Collège' },
+    { value: 'lycee', label: 'Lycée' }
   ];
 
   const getBadgeColor = (level: string) => {
-    switch (level) {
-      case 'Débutant': return 'bg-green-100 text-green-800';
-      case 'Intermédiaire': return 'bg-yellow-100 text-yellow-800';
-      case 'Avancé': return 'bg-red-100 text-red-800';
-      default: return 'bg-blue-100 text-blue-800';
+    if (['CP', 'CE1', 'CE2', 'CM1', 'CM2'].includes(level)) {
+      return 'bg-green-100 text-green-800';
+    } else if (['6ème', '5ème', '4ème', '3ème'].includes(level)) {
+      return 'bg-blue-100 text-blue-800';
+    } else if (['2nde', '1ère', 'Terminale'].includes(level)) {
+      return 'bg-purple-100 text-purple-800';
+    }
+    return 'bg-gray-100 text-gray-800';
+  };
+
+  const getCycleColor = (cycle: string) => {
+    switch (cycle) {
+      case 'primaire': return 'bg-green-50 text-green-700 border-green-200';
+      case 'college': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'lycee': return 'bg-purple-50 text-purple-700 border-purple-200';
+      default: return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
 
@@ -163,8 +240,9 @@ const Courses = () => {
                          course.instructor.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || course.category === selectedCategory;
     const matchesLevel = selectedLevel === 'all' || course.level === selectedLevel;
+    const matchesCycle = selectedCycle === 'all' || course.cycle === selectedCycle;
     
-    return matchesSearch && matchesCategory && matchesLevel;
+    return matchesSearch && matchesCategory && matchesLevel && matchesCycle;
   });
 
   return (
@@ -175,10 +253,10 @@ const Courses = () => {
       <section className="bg-gradient-to-r from-pink-600 to-purple-700 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-5xl font-bold text-white mb-6">
-            Tous nos Cours
+            Catalogue de Formations & Réservation de Cours
           </h1>
           <p className="text-xl text-blue-100 max-w-3xl mx-auto">
-            Découvrez notre catalogue complet de formations professionnelles. Plus de 1000 cours créés par des experts.
+            Découvrez nos cours personnalisés du primaire au lycée. Réservez directement vos créneaux avec nos formateurs qualifiés.
           </p>
         </div>
       </section>
@@ -199,10 +277,23 @@ const Courses = () => {
             </div>
 
             {/* Filters */}
-            <div className="flex gap-4 items-center">
+            <div className="flex gap-4 items-center flex-wrap">
+              <Select value={selectedCycle} onValueChange={setSelectedCycle}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Cycle" />
+                </SelectTrigger>
+                <SelectContent>
+                  {cycles.map(cycle => (
+                    <SelectItem key={cycle.value} value={cycle.value}>
+                      {cycle.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                 <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Catégorie" />
+                  <SelectValue placeholder="Matière" />
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map(category => (
@@ -214,7 +305,7 @@ const Courses = () => {
               </Select>
 
               <Select value={selectedLevel} onValueChange={setSelectedLevel}>
-                <SelectTrigger className="w-48">
+                <SelectTrigger className="w-32">
                   <SelectValue placeholder="Niveau" />
                 </SelectTrigger>
                 <SelectContent>
@@ -277,7 +368,12 @@ const Courses = () => {
                       </Badge>
                     </div>
                     <div className="absolute top-4 right-4">
-                      <Badge variant="secondary" className="bg-white/90 text-gray-800">
+                      <Badge variant="secondary" className={getCycleColor(course.cycle)}>
+                        {course.cycle}
+                      </Badge>
+                    </div>
+                    <div className="absolute bottom-4 left-4">
+                      <Badge variant="outline" className="bg-white/90 text-gray-800">
                         {course.category}
                       </Badge>
                     </div>
@@ -302,6 +398,10 @@ const Courses = () => {
                           <Users className="h-4 w-4 mr-1" />
                           {course.students}
                         </div>
+                        <div className="flex items-center">
+                          <Calendar className="h-4 w-4 mr-1" />
+                          {course.availableSlots} créneaux
+                        </div>
                       </div>
                       <div className="flex items-center">
                         <Star className="h-4 w-4 text-yellow-500 fill-current mr-1" />
@@ -318,9 +418,12 @@ const Courses = () => {
                           {course.originalPrice}
                         </div>
                       </div>
-                      <Button className="bg-pink-600 hover:bg-blue-700">
-                        S'inscrire
-                      </Button>
+                      <Link to={`/cours/${course.id}/reservation`}>
+                        <Button className="bg-blue-600 hover:bg-blue-700">
+                          <Calendar className="h-4 w-4 mr-1" />
+                          Réserver
+                        </Button>
+                      </Link>
                       
                     </div>
                   </div>
@@ -335,23 +438,28 @@ const Courses = () => {
                   className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden group cursor-pointer"
                 >
                   <div className="flex flex-col md:flex-row">
-                    <div className="relative md:w-80 h-48 md:h-auto overflow-hidden">
-                      <img
-                        src={course.image}
-                        alt={course.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <div className="absolute top-4 left-4">
-                        <Badge className={getBadgeColor(course.level)}>
-                          {course.level}
-                        </Badge>
+                      <div className="relative md:w-80 h-48 md:h-auto overflow-hidden">
+                        <img
+                          src={course.image}
+                          alt={course.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute top-4 left-4">
+                          <Badge className={getBadgeColor(course.level)}>
+                            {course.level}
+                          </Badge>
+                        </div>
+                        <div className="absolute top-4 right-4">
+                          <Badge variant="secondary" className={getCycleColor(course.cycle)}>
+                            {course.cycle}
+                          </Badge>
+                        </div>
+                        <div className="absolute bottom-4 left-4">
+                          <Badge variant="outline" className="bg-white/90 text-gray-800">
+                            {course.category}
+                          </Badge>
+                        </div>
                       </div>
-                      <div className="absolute top-4 right-4">
-                        <Badge variant="secondary" className="bg-white/90 text-gray-800">
-                          {course.category}
-                        </Badge>
-                      </div>
-                    </div>
 
                     <div className="flex-1 p-6">
                       <div className="flex justify-between items-start mb-4">
@@ -374,6 +482,10 @@ const Courses = () => {
                               {course.students} étudiants
                             </div>
                             <div className="flex items-center">
+                              <Calendar className="h-4 w-4 mr-1" />
+                              {course.availableSlots} créneaux
+                            </div>
+                            <div className="flex items-center">
                               <Star className="h-4 w-4 text-yellow-500 fill-current mr-1" />
                               {course.rating}
                             </div>
@@ -387,9 +499,12 @@ const Courses = () => {
                           <div className="text-sm text-gray-400 line-through mb-4">
                             {course.originalPrice}
                           </div>
-                          <Button className="bg-blue-600 hover:bg-blue-700">
-                            S'inscrire
-                          </Button>
+                          <Link to={`/cours/${course.id}/reservation`}>
+                            <Button className="bg-blue-600 hover:bg-blue-700">
+                              <Calendar className="h-4 w-4 mr-1" />
+                              Réserver
+                            </Button>
+                          </Link>
                         </div>
                       </div>
                     </div>

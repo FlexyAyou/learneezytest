@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -33,6 +32,13 @@ import CreateCourse from "./pages/CreateCourse";
 import EditCourse from "./pages/EditCourse";
 import AdminDashboard from "./pages/AdminDashboard";
 import TechnicianDashboard from "./pages/TechnicianDashboard";
+import InstructorDashboard from "./pages/InstructorDashboard";
+import InstructorCourses from "./pages/InstructorCourses";
+import InstructorAnalytics from "./pages/InstructorAnalytics";
+import InstructorOFDocuments from "./pages/InstructorOFDocuments";
+import BookingCalendar from "./pages/BookingCalendar";
+import BookingHistory from "./pages/BookingHistory";
+import Payment from "./pages/Payment";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +52,9 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/cours" element={<Courses />} />
           <Route path="/cours/:id" element={<CourseDetailStudent />} />
+          <Route path="/cours/:courseId/reservation" element={<BookingCalendar />} />
+          <Route path="/cours/:courseId/paiement/:slotId" element={<Payment />} />
+          <Route path="/reservations" element={<BookingHistory />} />
           <Route path="/course/:id" element={<CourseDetail />} />
           <Route path="/rechercher" element={<SearchCourses />} />
           <Route path="/lesson/:id" element={<Lesson />} />
@@ -59,6 +68,12 @@ const App = () => (
           
           {/* Student routes */}
           <Route path="/dashboard/etudiant/*" element={<StudentDashboard />} />
+          
+          {/* Instructor routes */}
+          <Route path="/dashboard/instructeur" element={<InstructorDashboard />} />
+          <Route path="/dashboard/instructeur/courses" element={<InstructorCourses />} />
+          <Route path="/dashboard/instructeur/analytics" element={<InstructorAnalytics />} />
+          <Route path="/dashboard/instructeur/of-documents" element={<InstructorOFDocuments />} />
           
           {/* New Dashboard routes */}
           <Route path="/dashboard/gestionnaire/*" element={<ManagerDashboard />} />
