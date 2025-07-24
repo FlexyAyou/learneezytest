@@ -1,373 +1,291 @@
 
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { BookOpen, Mail, Lock, User, Eye, EyeOff, ArrowRight, CheckCircle, Star, AlertCircle, GraduationCap, UserCheck } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ArrowLeft, UserPlus } from 'lucide-react';
+import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 
 const Register = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [showMinorError, setShowMinorError] = useState(false);
+  const navigate = useNavigate();
+  const { signUp, isAuthenticated, profile, getRoleBasedRedirectPath } = useSupabaseAuth();
+  
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
     password: '',
     confirmPassword: '',
-    userType: '',
-    ageStatus: '',
-    role: '', // 'student' ou 'tutor'
+    role: '' as 'student' | 'instructor' | 'tutor' | 'parent' | '',
+    isAdult: true,
+    agreeToTerms: false
   });
+  
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && profile) {
+      const redirectPath = getRoleBasedRedirectPath(profile.role);
+      navigate(redirectPath);
+    }
+  }, [isAuthenticated, profile, navigate, getRoleBasedRedirectPath]);
+
+  const handleInputChange = (field: string, value: string | boolean) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = 'Le prénom est requis';
+    }
+
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = 'Le nom est requis';
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = 'L\'email est requis';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Format d\'email invalide';
+    }
+
+    if (!formData.password) {
+      newErrors.password = 'Le mot de passe est requis';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Le mot de passe doit contenir au moins 6 caractères';
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Les mots de passe ne correspondent pas';
+    }
+
+    if (!formData.role) {
+      newErrors.role = 'Le type de profil est requis';
+    }
+
+    if (!formData.agreeToTerms) {
+      newErrors.agreeToTerms = 'Vous devez accepter les conditions d\'utilisation';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validation des mots de passe
-    if (formData.password !== formData.confirmPassword) {
-      alert('Les mots de passe ne correspondent pas');
+    if (!validateForm()) {
       return;
     }
 
-    console.log('Inscription:', formData);
-  };
+    setIsLoading(true);
 
-  const handleChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    
-    // Réinitialiser l'erreur mineur si l'utilisateur change ses choix
-    if (field === 'userType' || field === 'ageStatus') {
-      setShowMinorError(false);
+    try {
+      const result = await signUp({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+        role: formData.role,
+        isAdult: formData.isAdult
+      });
+
+      if (result.error) {
+        // Error is already handled in the signUp function with toast
+        return;
+      }
+
+      // Success case - the user will be redirected automatically when auth state changes
+      console.log('Inscription réussie');
+      
+    } catch (error) {
+      console.error('Erreur lors de l\'inscription:', error);
+    } finally {
+      setIsLoading(false);
     }
-
-    // Afficher l'erreur si mineur
-    if (field === 'ageStatus' && value === 'minor') {
-      setShowMinorError(true);
-    }
   };
-
-  const benefits = [
-    "Accès illimité à tous les cours",
-    "Support communautaire actif",
-    "Certificats de completion",
-    "Suivi de progression avancé"
-  ];
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left Side - Marketing */}
-      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-orange-600 via-pink-700 to-pink-600 items-center justify-center p-8">
-        <div className="max-w-md text-white">
-          <h2 className="text-4xl font-bold mb-6">
-            Commencez votre parcours d'apprentissage
-          </h2>
-          <p className="text-pink-100 mb-8 text-lg leading-relaxed">
-            Créez votre compte et accédez à des milliers de cours de qualité professionnelle. 
-            Développez vos compétences avec les meilleurs instructeurs.
-          </p>
-          
-          <div className="space-y-4 mb-8">
-            {benefits.map((benefit, index) => (
-              <div key={index} className="flex items-center space-x-3">
-                <CheckCircle className="h-5 w-5 text-pink-200" />
-                <span className="text-pink-100">{benefit}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="bg-white/10 rounded-lg p-6 backdrop-blur-sm">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-pink-100">Note moyenne</span>
-              <div className="flex items-center space-x-1">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                ))}
-                <span className="ml-2 font-semibold">4.9</span>
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <Card className="shadow-xl">
+          <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+              <div className="w-16 h-16 bg-gradient-to-br from-pink-500 to-purple-600 rounded-full flex items-center justify-center">
+                <UserPlus className="w-8 h-8 text-white" />
               </div>
             </div>
-            <p className="text-sm text-pink-200">
-              "Les meilleurs cours en ligne que j'ai jamais suivis. Très recommandé !"
-            </p>
-            <p className="text-xs text-pink-300 mt-2">- Sarah, Développeuse Web</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Right Side - Form */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-white">
-        <div className="w-full max-w-md">
-          {/* Logo */}
-          <div className="text-center mb-8">
-            <Link to="/" className="inline-flex items-center">
-              <img src="/lovable-uploads/52aaa383-7635-46d0-ac37-eb3ee6b878d1.png" alt="Learneezy" className="h-20 w-auto" />
-            </Link>
-            <p className="text-gray-600 mt-2">Créez votre compte et commencez à apprendre</p>
-          </div>
-
-          <Card className="border-0 shadow-none">
-            <CardHeader className="px-0">
-              <CardTitle className="text-2xl font-bold text-gray-900">Créer un compte</CardTitle>
-              <CardDescription>
-                Rejoignez notre communauté d'apprentissage dès aujourd'hui
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="px-0">
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Choix du type de profil */}
+            <CardTitle className="text-2xl font-bold text-gray-900">
+              Créer un compte
+            </CardTitle>
+            <CardDescription className="text-gray-600">
+              Rejoignez Learneezy et commencez votre parcours d'apprentissage
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="userType" className="text-sm font-medium text-gray-700">
-                    Type de profil
-                  </Label>
-                  <Select value={formData.userType} onValueChange={(value) => handleChange('userType', value)}>
-                    <SelectTrigger className="h-12 border-gray-200 focus:border-pink-500 focus:ring-pink-500">
-                      <SelectValue placeholder="Choisissez votre profil" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="student">
-                        <div className="flex items-center space-x-2">
-                          <GraduationCap className="h-4 w-4" />
-                          <span>Profil Élève</span>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="instructor">
-                        <div className="flex items-center space-x-2">
-                          <UserCheck className="h-4 w-4" />
-                          <span>Profil Professeur</span>
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="firstName">Prénom *</Label>
+                  <Input
+                    id="firstName"
+                    type="text"
+                    value={formData.firstName}
+                    onChange={(e) => handleInputChange('firstName', e.target.value)}
+                    placeholder="Votre prénom"
+                    className={errors.firstName ? 'border-red-500' : ''}
+                  />
+                  {errors.firstName && (
+                    <p className="text-sm text-red-500">{errors.firstName}</p>
+                  )}
                 </div>
-
-                {/* Champ spécifique pour les étudiants : statut d'âge */}
-                {formData.userType === 'student' && (
-                  <div className="space-y-2">
-                    <Label htmlFor="ageStatus" className="text-sm font-medium text-gray-700">
-                      Êtes-vous majeur ?
-                    </Label>
-                    <Select value={formData.ageStatus} onValueChange={(value) => handleChange('ageStatus', value)}>
-                      <SelectTrigger className="h-12 border-gray-200 focus:border-pink-500 focus:ring-pink-500">
-                        <SelectValue placeholder="Sélectionnez votre statut" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="adult">Oui, je suis majeur</SelectItem>
-                        <SelectItem value="minor">Non, je suis mineur</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-
-                {/* Message d'erreur pour les mineurs */}
-                {showMinorError && (
-                  <Alert className="border-red-200 bg-red-50">
-                    <AlertCircle className="h-4 w-4 text-red-600" />
-                    <AlertDescription className="text-red-800">
-                      <strong>Vous êtes mineur.</strong> C'est votre parent ou représentant légal qui doit créer un compte à votre place.
-                    </AlertDescription>
-                  </Alert>
-                )}
-
-                {/* Choix du rôle pour les adultes */}
-                {formData.userType === 'student' && formData.ageStatus === 'adult' && (
-                  <div className="space-y-2">
-                    <Label htmlFor="role" className="text-sm font-medium text-gray-700">
-                      Vous êtes :
-                    </Label>
-                    <Select value={formData.role} onValueChange={(value) => handleChange('role', value)}>
-                      <SelectTrigger className="h-12 border-gray-200 focus:border-pink-500 focus:ring-pink-500">
-                        <SelectValue placeholder="Sélectionnez votre rôle" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="student">Élève</SelectItem>
-                        <SelectItem value="tutor">Tuteur</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-
-                {/* Informations personnelles - affichées pour les profils valides */}
-                {(formData.userType === 'instructor' || 
-                  (formData.userType === 'student' && formData.ageStatus === 'adult' && formData.role)) && (
-                  <>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">
-                          Prénom
-                        </Label>
-                        <div className="relative">
-                          <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                          <Input
-                            id="firstName"
-                            type="text"
-                            placeholder="Prénom"
-                            value={formData.firstName}
-                            onChange={(e) => handleChange('firstName', e.target.value)}
-                            className="pl-12 h-12 border-gray-200 focus:border-pink-500 focus:ring-pink-500"
-                            required
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">
-                          Nom
-                        </Label>
-                        <Input
-                          id="lastName"
-                          type="text"
-                          placeholder="Nom"
-                          value={formData.lastName}
-                          onChange={(e) => handleChange('lastName', e.target.value)}
-                          className="h-12 border-gray-200 focus:border-pink-500 focus:ring-pink-500"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-                        Adresse email
-                      </Label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                        <Input
-                          id="email"
-                          type="email"
-                          placeholder="votre@email.com"
-                          value={formData.email}
-                          onChange={(e) => handleChange('email', e.target.value)}
-                          className="pl-12 h-12 border-gray-200 focus:border-pink-500 focus:ring-pink-500"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="password" className="text-sm font-medium text-gray-700">
-                        Mot de passe
-                      </Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                        <Input
-                          id="password"
-                          type={showPassword ? "text" : "password"}
-                          placeholder="••••••••"
-                          value={formData.password}
-                          onChange={(e) => handleChange('password', e.target.value)}
-                          className="pl-12 pr-12 h-12 border-gray-200 focus:border-pink-500 focus:ring-pink-500"
-                          required
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                        >
-                          {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
-                        Confirmer le mot de passe
-                      </Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                        <Input
-                          id="confirmPassword"
-                          type={showConfirmPassword ? "text" : "password"}
-                          placeholder="••••••••"
-                          value={formData.confirmPassword}
-                          onChange={(e) => handleChange('confirmPassword', e.target.value)}
-                          className="pl-12 pr-12 h-12 border-gray-200 focus:border-pink-500 focus:ring-pink-500"
-                          required
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                        >
-                          {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Conditions d'utilisation et bouton de soumission */}
-                    <div className="flex items-center space-x-2">
-                      <input
-                        id="terms"
-                        type="checkbox"
-                        className="rounded border-gray-300 text-pink-600 focus:ring-pink-500"
-                        required
-                      />
-                      <Label htmlFor="terms" className="text-sm text-gray-600">
-                        J'accepte les{' '}
-                        <Link to="/conditions" className="text-pink-600 hover:underline font-medium">
-                          conditions d'utilisation
-                        </Link>
-                        {' '}et la{' '}
-                        <Link to="/confidentialite" className="text-pink-600 hover:underline font-medium">
-                          politique de confidentialité
-                        </Link>
-                      </Label>
-                    </div>
-
-                    <Button 
-                      type="submit" 
-                      className="w-full h-12 bg-pink-600 hover:bg-pink-700 text-white font-medium"
-                    >
-                      Créer mon compte
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </>
-                )}
-              </form>
-
-              <div className="mt-8 text-center">
-                <p className="text-sm text-gray-600">
-                  Vous avez déjà un compte ?{' '}
-                  <Link to="/connexion" className="text-pink-600 hover:underline font-medium">
-                    Se connecter
-                  </Link>
-                </p>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="lastName">Nom *</Label>
+                  <Input
+                    id="lastName"
+                    type="text"
+                    value={formData.lastName}
+                    onChange={(e) => handleInputChange('lastName', e.target.value)}
+                    placeholder="Votre nom"
+                    className={errors.lastName ? 'border-red-500' : ''}
+                  />
+                  {errors.lastName && (
+                    <p className="text-sm text-red-500">{errors.lastName}</p>
+                  )}
+                </div>
               </div>
 
-              {/* Social Registration - seulement si pas d'erreur mineur */}
-              {!showMinorError && (
-                <div className="mt-6">
-                  <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-gray-200" />
-                    </div>
-                    <div className="relative flex justify-center text-sm">
-                      <span className="px-2 bg-white text-gray-500">Ou s'inscrire avec</span>
-                    </div>
-                  </div>
-                  <div className="mt-6 grid grid-cols-2 gap-3">
-                    <Button variant="outline" className="h-12">
-                      <svg className="h-5 w-5" viewBox="0 0 24 24">
-                        <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                        <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                        <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                        <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                      </svg>
-                      <span className="ml-2">Google</span>
-                    </Button>
-                    <Button variant="outline" className="h-12">
-                      <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                      </svg>
-                      <span className="ml-2">Facebook</span>
-                    </Button>
-                  </div>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  placeholder="votre@email.com"
+                  className={errors.email ? 'border-red-500' : ''}
+                />
+                {errors.email && (
+                  <p className="text-sm text-red-500">{errors.email}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">Mot de passe *</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => handleInputChange('password', e.target.value)}
+                  placeholder="••••••••"
+                  className={errors.password ? 'border-red-500' : ''}
+                />
+                {errors.password && (
+                  <p className="text-sm text-red-500">{errors.password}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirmer le mot de passe *</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={formData.confirmPassword}
+                  onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                  placeholder="••••••••"
+                  className={errors.confirmPassword ? 'border-red-500' : ''}
+                />
+                {errors.confirmPassword && (
+                  <p className="text-sm text-red-500">{errors.confirmPassword}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="role">Type de profil *</Label>
+                <Select value={formData.role} onValueChange={(value: any) => handleInputChange('role', value)}>
+                  <SelectTrigger className={errors.role ? 'border-red-500' : ''}>
+                    <SelectValue placeholder="Sélectionnez votre profil" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="student">Élève</SelectItem>
+                    <SelectItem value="instructor">Professeur</SelectItem>
+                    <SelectItem value="tutor">Tuteur</SelectItem>
+                    <SelectItem value="parent">Parent</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.role && (
+                  <p className="text-sm text-red-500">{errors.role}</p>
+                )}
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="agreeToTerms"
+                  checked={formData.agreeToTerms}
+                  onCheckedChange={(checked) => handleInputChange('agreeToTerms', checked as boolean)}
+                />
+                <Label htmlFor="agreeToTerms" className="text-sm">
+                  J'accepte les{' '}
+                  <a href="#" className="text-pink-600 hover:underline">
+                    conditions d'utilisation
+                  </a>{' '}
+                  et la{' '}
+                  <a href="#" className="text-pink-600 hover:underline">
+                    politique de confidentialité
+                  </a>
+                </Label>
+              </div>
+              {errors.agreeToTerms && (
+                <p className="text-sm text-red-500">{errors.agreeToTerms}</p>
               )}
-            </CardContent>
-          </Card>
-        </div>
+
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
+                disabled={isLoading}
+              >
+                {isLoading ? 'Création du compte...' : 'Créer mon compte'}
+              </Button>
+            </form>
+
+            <div className="mt-6 text-center">
+              <p className="text-sm text-gray-600">
+                Déjà un compte ?{' '}
+                <button
+                  onClick={() => navigate('/connexion')}
+                  className="text-pink-600 hover:underline font-medium"
+                >
+                  Se connecter
+                </button>
+              </p>
+            </div>
+
+            <div className="mt-4 text-center">
+              <Button
+                variant="ghost"
+                onClick={() => navigate('/')}
+                className="text-gray-600 hover:text-gray-900"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Retour à l'accueil
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

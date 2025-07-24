@@ -1,10 +1,10 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { User, Course, Enrollment, AdminStats, ApiResponse, PaginatedResponse } from '@/types';
+import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 
-// Base API configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-
+// Mock API client for compatibility with existing code
 class ApiClient {
   private baseUrl: string;
 
@@ -13,174 +13,139 @@ class ApiClient {
   }
 
   private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
-    const url = `${this.baseUrl}${endpoint}`;
-    const token = localStorage.getItem('auth_token');
-    
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { Authorization: `Bearer ${token}` }),
-        ...options?.headers,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`API Error: ${response.status} ${response.statusText}`);
-    }
-
-    return response.json();
+    // For now, this is a mock implementation
+    // In a real app, you'd implement the actual API calls
+    throw new Error('API not implemented yet. Use Supabase hooks instead.');
   }
 
-  // Auth methods
+  // Auth methods - now using Supabase
   async login(email: string, password: string): Promise<ApiResponse<{ user: User; token: string }>> {
-    return this.request('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
+    throw new Error('Use useSupabaseAuth hook instead');
   }
 
   async register(userData: Partial<User> & { password: string }): Promise<ApiResponse<{ user: User; token: string }>> {
-    return this.request('/auth/register', {
-      method: 'POST',
-      body: JSON.stringify(userData),
-    });
+    throw new Error('Use useSupabaseAuth hook instead');
   }
 
   async getCurrentUser(): Promise<ApiResponse<User>> {
-    return this.request('/auth/me');
+    throw new Error('Use useSupabaseAuth hook instead');
   }
 
   // User methods
   async getUsers(page = 1, limit = 10): Promise<PaginatedResponse<User>> {
-    return this.request(`/users?page=${page}&limit=${limit}`);
+    throw new Error('Not implemented yet');
   }
 
   async updateUser(id: string, userData: Partial<User>): Promise<ApiResponse<User>> {
-    return this.request(`/users/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(userData),
-    });
+    throw new Error('Not implemented yet');
   }
 
   // Course methods
   async getCourses(page = 1, limit = 10, filters?: Record<string, any>): Promise<PaginatedResponse<Course>> {
-    const params = new URLSearchParams({
-      page: page.toString(),
-      limit: limit.toString(),
-      ...filters,
-    });
-    return this.request(`/courses?${params}`);
+    throw new Error('Not implemented yet');
   }
 
   async getCourse(id: string): Promise<ApiResponse<Course>> {
-    return this.request(`/courses/${id}`);
+    throw new Error('Not implemented yet');
   }
 
   async createCourse(courseData: Partial<Course>): Promise<ApiResponse<Course>> {
-    return this.request('/courses', {
-      method: 'POST',
-      body: JSON.stringify(courseData),
-    });
+    throw new Error('Not implemented yet');
   }
 
   async updateCourse(id: string, courseData: Partial<Course>): Promise<ApiResponse<Course>> {
-    return this.request(`/courses/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(courseData),
-    });
+    throw new Error('Not implemented yet');
   }
 
   // Enrollment methods
   async enrollInCourse(courseId: string): Promise<ApiResponse<Enrollment>> {
-    return this.request('/enrollments', {
-      method: 'POST',
-      body: JSON.stringify({ courseId }),
-    });
+    throw new Error('Not implemented yet');
   }
 
   async getUserEnrollments(userId: string): Promise<ApiResponse<Enrollment[]>> {
-    return this.request(`/users/${userId}/enrollments`);
+    throw new Error('Not implemented yet');
   }
 
   // Admin methods
   async getAdminStats(): Promise<ApiResponse<AdminStats>> {
-    return this.request('/admin/stats');
+    throw new Error('Not implemented yet');
   }
 }
 
-export const apiClient = new ApiClient(API_BASE_URL);
+export const apiClient = new ApiClient('');
 
-// Custom hooks
+// Updated useAuth hook to use Supabase
 export const useAuth = () => {
-  const queryClient = useQueryClient();
+  const { user, profile, signIn, signUp, signOut, isAuthenticated, loading } = useSupabaseAuth();
 
   const loginMutation = useMutation({
     mutationFn: ({ email, password }: { email: string; password: string }) =>
-      apiClient.login(email, password),
-    onSuccess: (data) => {
-      localStorage.setItem('auth_token', data.data.token);
-      queryClient.setQueryData(['currentUser'], data.data.user);
-    },
+      signIn(email, password),
   });
 
   const registerMutation = useMutation({
     mutationFn: (userData: Partial<User> & { password: string }) =>
-      apiClient.register(userData),
-    onSuccess: (data) => {
-      localStorage.setItem('auth_token', data.data.token);
-      queryClient.setQueryData(['currentUser'], data.data.user);
-    },
+      signUp({
+        firstName: userData.firstName || '',
+        lastName: userData.lastName || '',
+        email: userData.email || '',
+        password: userData.password,
+        role: userData.role || 'student',
+        isAdult: userData.isAdult || true
+      }),
   });
 
-  const currentUserQuery = useQuery({
-    queryKey: ['currentUser'],
-    queryFn: () => apiClient.getCurrentUser().then(res => res.data),
-    enabled: !!localStorage.getItem('auth_token'),
-  });
-
-  const logout = () => {
-    localStorage.removeItem('auth_token');
-    queryClient.clear();
-    window.location.href = '/connexion';
+  const logout = async () => {
+    await signOut();
   };
 
   return {
     login: loginMutation,
     register: registerMutation,
-    user: currentUserQuery.data,
-    isLoading: currentUserQuery.isLoading,
-    isAuthenticated: !!currentUserQuery.data,
+    user: profile,
+    isLoading: loading,
+    isAuthenticated,
     logout,
   };
 };
 
+// Placeholder hooks for existing functionality
 export const useCourses = (page = 1, limit = 10, filters?: Record<string, any>) => {
   return useQuery({
     queryKey: ['courses', page, limit, filters],
-    queryFn: () => apiClient.getCourses(page, limit, filters),
+    queryFn: () => {
+      throw new Error('Not implemented yet');
+    },
+    enabled: false,
   });
 };
 
 export const useCourse = (id: string) => {
   return useQuery({
     queryKey: ['course', id],
-    queryFn: () => apiClient.getCourse(id).then(res => res.data),
-    enabled: !!id,
+    queryFn: () => {
+      throw new Error('Not implemented yet');
+    },
+    enabled: false,
   });
 };
 
 export const useUserEnrollments = (userId: string) => {
   return useQuery({
     queryKey: ['userEnrollments', userId],
-    queryFn: () => apiClient.getUserEnrollments(userId).then(res => res.data),
-    enabled: !!userId,
+    queryFn: () => {
+      throw new Error('Not implemented yet');
+    },
+    enabled: false,
   });
 };
 
 export const useAdminStats = () => {
   return useQuery({
     queryKey: ['adminStats'],
-    queryFn: () => apiClient.getAdminStats().then(res => res.data),
+    queryFn: () => {
+      throw new Error('Not implemented yet');
+    },
+    enabled: false,
   });
 };
