@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useSupabaseAuth } from './useSupabaseAuth';
 
 export const useApi = () => {
@@ -43,4 +44,108 @@ export const useApi = () => {
     user,
     session,
   };
+};
+
+// Export useAuth hook that wraps useSupabaseAuth
+export const useAuth = () => {
+  const { user, profile, loading } = useSupabaseAuth();
+  
+  return {
+    user: user ? {
+      id: user.id,
+      email: user.email || '',
+      firstName: profile?.first_name || '',
+      lastName: profile?.last_name || '',
+      role: profile?.role || 'student',
+      avatar: user.user_metadata?.avatar_url || null,
+      createdAt: user.created_at || '',
+      profile: {
+        phone: user.user_metadata?.phone || null,
+        city: user.user_metadata?.city || null,
+      }
+    } : null,
+    isLoading: loading,
+  };
+};
+
+// Export useUserEnrollments hook
+export const useUserEnrollments = (userId: string) => {
+  return useQuery({
+    queryKey: ['user-enrollments', userId],
+    queryFn: async () => {
+      // Mock data for now - replace with actual API call
+      if (!userId) return [];
+      
+      return [
+        {
+          id: '1',
+          progress: 75,
+          course: {
+            id: '1',
+            title: 'Introduction à React',
+            duration: 180,
+            instructor: {
+              firstName: 'Marie',
+              lastName: 'Dupont'
+            }
+          }
+        },
+        {
+          id: '2',
+          progress: 45,
+          course: {
+            id: '2',
+            title: 'JavaScript Avancé',
+            duration: 240,
+            instructor: {
+              firstName: 'Jean',
+              lastName: 'Martin'
+            }
+          }
+        }
+      ];
+    },
+    enabled: !!userId,
+  });
+};
+
+// Export useAdminStats hook
+export const useAdminStats = () => {
+  return useQuery({
+    queryKey: ['admin-stats'],
+    queryFn: async () => {
+      // Mock data for now - replace with actual API call
+      return {
+        totalUsers: 1250,
+        totalCourses: 45,
+        totalEnrollments: 3200,
+        totalRevenue: 125000,
+        monthlyGrowth: {
+          users: 12,
+          courses: 8,
+          revenue: 15
+        },
+        topCourses: [
+          {
+            id: '1',
+            title: 'Introduction à React',
+            enrollments: 450,
+            revenue: 22500
+          },
+          {
+            id: '2',
+            title: 'JavaScript Avancé',
+            enrollments: 320,
+            revenue: 16000
+          },
+          {
+            id: '3',
+            title: 'CSS et Design',
+            enrollments: 280,
+            revenue: 14000
+          }
+        ]
+      };
+    },
+  });
 };
