@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,27 +18,25 @@ import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import StudentDashboard from "./pages/StudentDashboard";
-import StudentCourses from "./pages/StudentCourses";
-import StudentProgress from "./pages/StudentProgress";
-import StudentCertificates from "./pages/StudentCertificates";
-import StudentSettings from "./pages/StudentSettings";
-import StudentMessaging from "./pages/StudentMessaging";
-import InternalTrainerDashboard from "./pages/InternalTrainerDashboard";
-import ExternalTrainerDashboard from "./pages/ExternalTrainerDashboard";
-import ManagerDashboard from "./pages/ManagerDashboard";
-import ParentDashboard from "./pages/ParentDashboard";
-import TutorDashboard from "./pages/TutorDashboard";
-import ContentCreatorDashboard from "./pages/ContentCreatorDashboard";
-import CreateCourse from "./pages/CreateCourse";
-import EditCourse from "./pages/EditCourse";
-import AdminDashboard from "./pages/AdminDashboard";
-import TechnicianDashboard from "./pages/TechnicianDashboard";
 import InstructorDashboard from "./pages/InstructorDashboard";
 import InstructorCourses from "./pages/InstructorCourses";
 import InstructorAnalytics from "./pages/InstructorAnalytics";
 import InstructorOFDocuments from "./pages/InstructorOFDocuments";
+import ManagerDashboard from "./pages/ManagerDashboard";
+import ParentDashboard from "./pages/ParentDashboard";
+import TutorDashboard from "./pages/TutorDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
+import TechnicianDashboard from "./pages/TechnicianDashboard";
+import ProtectedRoute from "./components/common/ProtectedRoute";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -60,30 +59,91 @@ const App = () => (
           <Route path="/connexion" element={<Login />} />
           <Route path="/inscription" element={<Register />} />
           
-          {/* Student routes */}
-          <Route path="/dashboard/etudiant/*" element={<StudentDashboard />} />
+          {/* Protected Student routes */}
+          <Route 
+            path="/dashboard/etudiant/*" 
+            element={
+              <ProtectedRoute requiredRole="student">
+                <StudentDashboard />
+              </ProtectedRoute>
+            } 
+          />
           
-          {/* Instructor routes */}
-          <Route path="/dashboard/instructeur" element={<InstructorDashboard />} />
-          <Route path="/dashboard/instructeur/courses" element={<InstructorCourses />} />
-          <Route path="/dashboard/instructeur/analytics" element={<InstructorAnalytics />} />
-          <Route path="/dashboard/instructeur/of-documents" element={<InstructorOFDocuments />} />
+          {/* Protected Instructor routes */}
+          <Route 
+            path="/dashboard/instructeur" 
+            element={
+              <ProtectedRoute requiredRole="instructor">
+                <InstructorDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/dashboard/instructeur/courses" 
+            element={
+              <ProtectedRoute requiredRole="instructor">
+                <InstructorCourses />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/dashboard/instructeur/analytics" 
+            element={
+              <ProtectedRoute requiredRole="instructor">
+                <InstructorAnalytics />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/dashboard/instructeur/of-documents" 
+            element={
+              <ProtectedRoute requiredRole="instructor">
+                <InstructorOFDocuments />
+              </ProtectedRoute>
+            } 
+          />
           
-          {/* New Dashboard routes */}
-          <Route path="/dashboard/gestionnaire/*" element={<ManagerDashboard />} />
-          <Route path="/formateur-interne/*" element={<InternalTrainerDashboard />} />
-          <Route path="/formateur-externe/*" element={<ExternalTrainerDashboard />} />
-          <Route path="/parent/*" element={<ParentDashboard />} />
-          <Route path="/dashboard/tuteur/*" element={<TutorDashboard />} />
-          <Route path="/createur-de-contenu" element={<ContentCreatorDashboard />} />
-          <Route path="/create-course" element={<CreateCourse />} />
-          <Route path="/edit-course/:id" element={<EditCourse />} />
-          
-          {/* Admin routes - all under /dashboard/admin */}
-          <Route path="/dashboard/admin/*" element={<AdminDashboard />} />
-          
-          {/* Technician dashboard */}
-          <Route path="/technicien" element={<TechnicianDashboard />} />
+          {/* Protected other role routes */}
+          <Route 
+            path="/dashboard/gestionnaire/*" 
+            element={
+              <ProtectedRoute requiredRole="manager">
+                <ManagerDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/dashboard/parent/*" 
+            element={
+              <ProtectedRoute requiredRole="parent">
+                <ParentDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/dashboard/tuteur/*" 
+            element={
+              <ProtectedRoute requiredRole="tutor">
+                <TutorDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/dashboard/admin/*" 
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/technicien" 
+            element={
+              <ProtectedRoute>
+                <TechnicianDashboard />
+              </ProtectedRoute>
+            } 
+          />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

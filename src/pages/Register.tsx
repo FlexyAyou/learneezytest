@@ -10,6 +10,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowLeft, UserPlus } from 'lucide-react';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 
+type UserRole = 'student' | 'instructor' | 'tutor' | 'parent';
+
 const Register = () => {
   const navigate = useNavigate();
   const { signUp, isAuthenticated, profile, getRoleBasedRedirectPath } = useSupabaseAuth();
@@ -20,7 +22,7 @@ const Register = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    role: '' as 'student' | 'instructor' | 'tutor' | 'parent' | '',
+    role: '' as UserRole | '',
     isAdult: true,
     agreeToTerms: false
   });
@@ -90,6 +92,11 @@ const Register = () => {
       return;
     }
 
+    // Ensure role is not empty before submission
+    if (!formData.role) {
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -98,7 +105,7 @@ const Register = () => {
         lastName: formData.lastName,
         email: formData.email,
         password: formData.password,
-        role: formData.role,
+        role: formData.role as UserRole,
         isAdult: formData.isAdult
       });
 
@@ -216,7 +223,7 @@ const Register = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="role">Type de profil *</Label>
-                <Select value={formData.role} onValueChange={(value: any) => handleInputChange('role', value)}>
+                <Select value={formData.role} onValueChange={(value: UserRole) => handleInputChange('role', value)}>
                   <SelectTrigger className={errors.role ? 'border-red-500' : ''}>
                     <SelectValue placeholder="Sélectionnez votre profil" />
                   </SelectTrigger>

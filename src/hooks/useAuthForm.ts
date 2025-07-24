@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
+import { useSupabaseAuth, SignUpData } from '@/hooks/useSupabaseAuth';
 import { useToast } from '@/hooks/use-toast';
 
 export const useAuthForm = () => {
@@ -28,14 +28,7 @@ export const useAuthForm = () => {
     }
   };
 
-  const handleRegister = async (userData: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    password: string;
-    role: 'student' | 'instructor' | 'tutor' | 'parent';
-    isAdult: boolean;
-  }) => {
+  const handleRegister = async (userData: SignUpData) => {
     setIsSubmitting(true);
     try {
       const result = await signUp(userData);
