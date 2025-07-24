@@ -6,19 +6,20 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ArrowLeft, LogIn } from 'lucide-react';
+import { useAuthForm } from '@/hooks/useAuthForm';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signIn, isAuthenticated, profile, getRoleBasedRedirectPath } = useSupabaseAuth();
+  const { handleLogin, isSubmitting } = useAuthForm();
+  const { isAuthenticated, profile, getRoleBasedRedirectPath } = useSupabaseAuth();
   
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
   
-  const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Redirect if already authenticated
@@ -31,7 +32,6 @@ const Login = () => {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
@@ -61,24 +61,7 @@ const Login = () => {
       return;
     }
 
-    setIsLoading(true);
-
-    try {
-      const result = await signIn(formData.email, formData.password);
-
-      if (result.error) {
-        // Error is already handled in the signIn function with toast
-        return;
-      }
-
-      // Success case - the user will be redirected automatically when auth state changes
-      console.log('Connexion réussie');
-      
-    } catch (error) {
-      console.error('Erreur lors de la connexion:', error);
-    } finally {
-      setIsLoading(false);
-    }
+    await handleLogin(formData.email, formData.password);
   };
 
   return (
@@ -134,9 +117,9 @@ const Login = () => {
               <Button
                 type="submit"
                 className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
-                disabled={isLoading}
+                disabled={isSubmitting}
               >
-                {isLoading ? 'Connexion...' : 'Se connecter'}
+                {isSubmitting ? 'Connexion...' : 'Se connecter'}
               </Button>
             </form>
 

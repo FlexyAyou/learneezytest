@@ -20,7 +20,7 @@ export type SignUpData = {
   lastName: string;
   email: string;
   password: string;
-  role: 'student' | 'instructor' | 'tutor' | 'parent';
+  role: 'student' | 'instructor' | 'tutor';
   isAdult: boolean;
 };
 

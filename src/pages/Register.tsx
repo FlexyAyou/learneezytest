@@ -8,13 +8,15 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowLeft, UserPlus } from 'lucide-react';
+import { useAuthForm } from '@/hooks/useAuthForm';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 
-type UserRole = 'student' | 'instructor' | 'tutor' | 'parent';
+type UserRole = 'student' | 'instructor' | 'tutor';
 
 const Register = () => {
   const navigate = useNavigate();
-  const { signUp, isAuthenticated, profile, getRoleBasedRedirectPath } = useSupabaseAuth();
+  const { handleRegister, isSubmitting } = useAuthForm();
+  const { isAuthenticated, profile, getRoleBasedRedirectPath } = useSupabaseAuth();
   
   const [formData, setFormData] = useState({
     firstName: '',
@@ -27,7 +29,6 @@ const Register = () => {
     agreeToTerms: false
   });
   
-  const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Redirect if already authenticated
@@ -40,7 +41,6 @@ const Register = () => {
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
@@ -92,36 +92,18 @@ const Register = () => {
       return;
     }
 
-    // Ensure role is not empty before submission
     if (!formData.role) {
       return;
     }
 
-    setIsLoading(true);
-
-    try {
-      const result = await signUp({
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        password: formData.password,
-        role: formData.role as UserRole,
-        isAdult: formData.isAdult
-      });
-
-      if (result.error) {
-        // Error is already handled in the signUp function with toast
-        return;
-      }
-
-      // Success case - the user will be redirected automatically when auth state changes
-      console.log('Inscription réussie');
-      
-    } catch (error) {
-      console.error('Erreur lors de l\'inscription:', error);
-    } finally {
-      setIsLoading(false);
-    }
+    await handleRegister({
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      password: formData.password,
+      role: formData.role as UserRole,
+      isAdult: formData.isAdult
+    });
   };
 
   return (
@@ -231,7 +213,6 @@ const Register = () => {
                     <SelectItem value="student">Élève</SelectItem>
                     <SelectItem value="instructor">Professeur</SelectItem>
                     <SelectItem value="tutor">Tuteur</SelectItem>
-                    <SelectItem value="parent">Parent</SelectItem>
                   </SelectContent>
                 </Select>
                 {errors.role && (
@@ -263,9 +244,9 @@ const Register = () => {
               <Button
                 type="submit"
                 className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
-                disabled={isLoading}
+                disabled={isSubmitting}
               >
-                {isLoading ? 'Création du compte...' : 'Créer mon compte'}
+                {isSubmitting ? 'Création du compte...' : 'Créer mon compte'}
               </Button>
             </form>
 

@@ -13,10 +13,8 @@ export const useAuthForm = () => {
     try {
       const result = await signIn(email, password);
       if (result.error) {
-        // Error is already handled in signIn with toast
         return;
       }
-      // Success is handled in signIn with toast and redirect
     } catch (error) {
       toast({
         title: "Erreur de connexion",
@@ -33,10 +31,8 @@ export const useAuthForm = () => {
     try {
       const result = await signUp(userData);
       if (result.error) {
-        // Error is already handled in signUp with toast
         return;
       }
-      // Success is handled in signUp with toast and redirect
     } catch (error) {
       toast({
         title: "Erreur d'inscription",
