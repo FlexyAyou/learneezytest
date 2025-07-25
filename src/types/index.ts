@@ -37,7 +37,7 @@ export interface Course {
   level: 'cp' | 'ce1' | 'ce2' | 'cm1' | 'cm2' | '6eme' | '5eme' | '4eme' | '3eme' | '2nde' | '1ere' | 'terminale';
   category: 'mathematiques' | 'francais' | 'anglais' | 'histoire-geo' | 'sciences' | 'physique-chimie' | 'svt' | 'arts' | 'sport' | 'informatique';
   subject: string;
-  cycle: 'primaire' | 'college' | 'lycee';
+  cycle: 'élémentaire' | 'secondaire';
   instructorId: string;
   instructor?: User;
   lessons: Lesson[];

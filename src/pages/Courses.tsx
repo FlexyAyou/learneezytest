@@ -29,7 +29,7 @@ const Courses = () => {
       originalPrice: "35€",
       level: "CM1",
       category: "Mathématiques",
-      cycle: "primaire",
+      cycle: "élémentaire",
       availableSlots: 12,
       description: "Comprenez les fractions avec des exemples concrets et des exercices ludiques adaptés au niveau CM1."
     },
@@ -45,7 +45,7 @@ const Courses = () => {
       originalPrice: "40€",
       level: "6ème",
       category: "Français",
-      cycle: "college",
+      cycle: "secondaire",
       availableSlots: 8,
       description: "Apprenez à analyser un texte littéraire et à identifier les figures de style au niveau collège."
     },
@@ -61,7 +61,7 @@ const Courses = () => {
       originalPrice: "38€",
       level: "CE2",
       category: "Sciences",
-      cycle: "primaire",
+      cycle: "élémentaire",
       availableSlots: 15,
       description: "Découvrez les différents états de la matière à travers des expériences simples et amusantes."
     },
@@ -77,7 +77,7 @@ const Courses = () => {
       originalPrice: "42€",
       level: "4ème",
       category: "Histoire-Géographie",
-      cycle: "college",
+      cycle: "secondaire",
       availableSlots: 6,
       description: "Plongez dans l'histoire de la Révolution française et comprenez ses enjeux politiques et sociaux."
     },
@@ -93,7 +93,7 @@ const Courses = () => {
       originalPrice: "36€",
       level: "5ème",
       category: "Anglais",
-      cycle: "college",
+      cycle: "secondaire",
       availableSlots: 10,
       description: "Maîtrisez l'utilisation du preterit et du present perfect en anglais avec des exercices pratiques."
     },
@@ -109,7 +109,7 @@ const Courses = () => {
       originalPrice: "45€",
       level: "3ème",
       category: "Physique-Chimie",
-      cycle: "college",
+      cycle: "secondaire",
       availableSlots: 5,
       description: "Explorez les réactions chimiques fondamentales et leurs applications dans la vie quotidienne."
     },
@@ -125,7 +125,7 @@ const Courses = () => {
       originalPrice: "40€",
       level: "2nde",
       category: "Mathématiques",
-      cycle: "lycee",
+      cycle: "secondaire",
       availableSlots: 7,
       description: "Développez vos compétences en calcul littéral et résolution d'équations au niveau seconde."
     },
@@ -141,7 +141,7 @@ const Courses = () => {
       originalPrice: "48€",
       level: "1ère",
       category: "SVT",
-      cycle: "lycee",
+      cycle: "secondaire",
       availableSlots: 4,
       description: "Comprenez les bases de la génétique et de l'hérédité avec des exemples concrets et actuels."
     },
@@ -157,7 +157,7 @@ const Courses = () => {
       originalPrice: "28€",
       level: "CP",
       category: "Français",
-      cycle: "primaire",
+      cycle: "élémentaire",
       availableSlots: 20,
       description: "Améliorez la compréhension de lecture avec des textes adaptés au niveau CP."
     },
@@ -173,7 +173,7 @@ const Courses = () => {
       originalPrice: "55€",
       level: "Terminale",
       category: "Arts",
-      cycle: "lycee",
+      cycle: "secondaire",
       availableSlots: 3,
       description: "Perfectionnez vos techniques de dessin et explorez différents styles artistiques."
     }
@@ -210,9 +210,8 @@ const Courses = () => {
 
   const cycles = [
     { value: 'all', label: 'Tous les cycles' },
-    { value: 'primaire', label: 'Primaire' },
-    { value: 'college', label: 'Collège' },
-    { value: 'lycee', label: 'Lycée' }
+    { value: 'élémentaire', label: 'Élémentaire' },
+    { value: 'secondaire', label: 'Secondaire' }
   ];
 
   const getBadgeColor = (level: string) => {
@@ -228,9 +227,8 @@ const Courses = () => {
 
   const getCycleColor = (cycle: string) => {
     switch (cycle) {
-      case 'primaire': return 'bg-green-50 text-green-700 border-green-200';
-      case 'college': return 'bg-blue-50 text-blue-700 border-blue-200';
-      case 'lycee': return 'bg-purple-50 text-purple-700 border-purple-200';
+      case 'élémentaire': return 'bg-green-50 text-green-700 border-green-200';
+      case 'secondaire': return 'bg-blue-50 text-blue-700 border-blue-200';
       default: return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
