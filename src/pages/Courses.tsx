@@ -21,7 +21,7 @@ const Courses = () => {
       id: 1,
       title: "Mathématiques - Les Fractions",
       instructor: "Marie Dubois",
-      image: "https://images.unsplash.com/photo-1632571401005-ad206e71bb21?w=400&h=250&fit=crop",
+      image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=250&fit=crop",
       duration: "1h",
       students: 45,
       rating: 4.8,
