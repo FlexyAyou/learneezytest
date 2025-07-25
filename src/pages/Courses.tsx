@@ -117,7 +117,7 @@ const Courses = () => {
       id: 7,
       title: "Mathématiques - Calcul Littéral",
       instructor: "Alex Durand", 
-      image: "https://images.unsplash.com/photo-1632571401005-ad206e71bb21?w=400&h=250&fit=crop",
+      image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=250&fit=crop",
       duration: "1h15",
       students: 33,
       rating: 4.7,
@@ -419,7 +419,7 @@ const Courses = () => {
                         </div>
                       </div>
                       <Link to={`/cours/${course.id}/reservation`}>
-                        <Button className="bg-blue-600 hover:bg-blue-700">
+                        <Button className="bg-pink-600 hover:bg-blue-700">
                           <Calendar className="h-4 w-4 mr-1" />
                           Réserver
                         </Button>
@@ -500,7 +500,7 @@ const Courses = () => {
                             {course.originalPrice}
                           </div>
                           <Link to={`/cours/${course.id}/reservation`}>
-                            <Button className="bg-blue-600 hover:bg-blue-700">
+                            <Button className="bg-pink-600 hover:bg-blue-700">
                               <Calendar className="h-4 w-4 mr-1" />
                               Réserver
                             </Button>
