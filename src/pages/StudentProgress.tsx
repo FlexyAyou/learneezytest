@@ -1,213 +1,257 @@
-
 import React from 'react';
-import { ArrowLeft, Book, Clock, Award, CheckCircle, Circle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { BookOpen, Clock, Award, CheckCircle, Circle, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { useNavigate, useParams } from 'react-router-dom';
-import Header from '@/components/Header';
+import { Badge } from '@/components/ui/badge';
 
-const StudentProgressDetail = () => {
-  const navigate = useNavigate();
-  const { studentId } = useParams();
-
-  // Mock data - sera remplacé par l'API
-  const student = {
-    id: 1,
-    name: 'Marie Dubois',
-    email: 'marie.dubois@email.com',
-    avatar: 'https://images.unsplash.com/photo-1494790108755-2616b78bd5e0?w=40&h=40&fit=crop&crop=face',
-    joinDate: '15 Mars 2024'
+const StudentProgress = () => {
+  // Mock data pour la progression de l'étudiant
+  const studentStats = {
+    totalCourses: 5,
+    completedCourses: 2,
+    totalHours: 24.5,
+    averageProgress: 65,
+    certificates: 2,
+    currentStreak: 7
   };
 
   const courses = [
     {
       id: 1,
-      title: 'React pour Débutants',
-      progress: 85,
-      totalLessons: 24,
-      completedLessons: 20,
-      timeSpent: 12.5, // heures
-      lastActivity: '2 heures',
-      lessons: [
-        { id: 1, title: 'Introduction à React', completed: true, duration: 30 },
-        { id: 2, title: 'Les composants', completed: true, duration: 45 },
-        { id: 3, title: 'Props et State', completed: true, duration: 60 },
-        { id: 4, title: 'Hooks', completed: false, duration: 75 },
-        { id: 5, title: 'Router', completed: false, duration: 90 }
-      ]
+      title: 'Mathématiques CM1 - Les fractions',
+      progress: 100,
+      totalLessons: 8,
+      completedLessons: 8,
+      timeSpent: 6.5,
+      lastActivity: '3 jours',
+      certificate: true,
+      grade: 'A',
+      level: 'CM1',
+      cycle: 'élémentaire'
     },
     {
       id: 2,
-      title: 'JavaScript Avancé',
-      progress: 45,
-      totalLessons: 18,
+      title: 'Français 6ème - Analyse de texte',
+      progress: 85,
+      totalLessons: 10,
       completedLessons: 8,
-      timeSpent: 6.2,
+      timeSpent: 8.2,
       lastActivity: '1 jour',
-      lessons: [
-        { id: 6, title: 'ES6+ Features', completed: true, duration: 45 },
-        { id: 7, title: 'Async/Await', completed: true, duration: 60 },
-        { id: 8, title: 'Promises', completed: false, duration: 50 },
-        { id: 9, title: 'Modules', completed: false, duration: 40 }
-      ]
+      certificate: false,
+      grade: null,
+      level: '6ème',
+      cycle: 'secondaire'
+    },
+    {
+      id: 3,
+      title: 'Sciences CE2 - Les états de la matière',
+      progress: 60,
+      totalLessons: 6,
+      completedLessons: 4,
+      timeSpent: 4.8,
+      lastActivity: '2 heures',
+      certificate: false,
+      grade: null,
+      level: 'CE2',
+      cycle: 'élémentaire'
+    },
+    {
+      id: 4,
+      title: 'Histoire-Géographie 4ème - Révolution française',
+      progress: 40,
+      totalLessons: 12,
+      completedLessons: 5,
+      timeSpent: 3.2,
+      lastActivity: '5 jours',
+      certificate: false,
+      grade: null,
+      level: '4ème',
+      cycle: 'secondaire'
+    },
+    {
+      id: 5,
+      title: 'Anglais 5ème - Present Perfect',
+      progress: 25,
+      totalLessons: 8,
+      completedLessons: 2,
+      timeSpent: 1.8,
+      lastActivity: '1 semaine',
+      certificate: false,
+      grade: null,
+      level: '5ème',
+      cycle: 'secondaire'
     }
   ];
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      
-      <div className="pt-20 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center">
-            <Button 
-              variant="ghost" 
-              onClick={() => navigate('/dashboard/instructeur/students')}
-              className="mr-4"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Retour
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Progression de {student.name}</h1>
-              <p className="text-gray-600">Détails de progression sur vos cours</p>
-            </div>
-          </div>
-        </div>
+  const getCycleColor = (cycle: string) => {
+    return cycle === 'élémentaire' 
+      ? 'bg-green-50 text-green-700 border-green-200'
+      : 'bg-blue-50 text-blue-700 border-blue-200';
+  };
 
-        {/* Profil étudiant */}
-        <Card className="mb-8">
+  const getProgressColor = (progress: number) => {
+    if (progress >= 80) return 'text-green-600';
+    if (progress >= 60) return 'text-yellow-600';
+    return 'text-red-600';
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Mon Progrès</h1>
+        <p className="text-gray-600">Suivez votre progression dans tous vos cours</p>
+      </div>
+
+      {/* Statistiques générales */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <Card>
           <CardContent className="p-6">
-            <div className="flex items-center space-x-4">
-              <img
-                src={student.avatar}
-                alt={student.name}
-                className="w-16 h-16 rounded-full"
-              />
-              <div className="flex-1">
-                <h2 className="text-xl font-semibold text-gray-900">{student.name}</h2>
-                <p className="text-gray-600">{student.email}</p>
-                <p className="text-sm text-gray-500">Inscrit le {student.joinDate}</p>
-              </div>
-              <div className="text-right">
-                <div className="text-2xl font-bold text-pink-600">
-                  {Math.round(courses.reduce((acc, course) => acc + course.progress, 0) / courses.length)}%
-                </div>
+            <div className="flex items-center justify-between">
+              <div>
                 <p className="text-sm text-gray-600">Progression moyenne</p>
+                <div className="text-2xl font-bold text-gray-900">{studentStats.averageProgress}%</div>
               </div>
+              <TrendingUp className="h-8 w-8 text-pink-600" />
             </div>
           </CardContent>
         </Card>
-
-        {/* Statistiques rapides */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Cours inscrits</p>
-                  <div className="text-2xl font-bold text-gray-900">{courses.length}</div>
+        
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Cours terminés</p>
+                <div className="text-2xl font-bold text-gray-900">
+                  {studentStats.completedCourses}/{studentStats.totalCourses}
                 </div>
-                <Book className="h-8 w-8 text-pink-600" />
               </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Leçons terminées</p>
-                  <div className="text-2xl font-bold text-gray-900">
-                    {courses.reduce((acc, course) => acc + course.completedLessons, 0)}
-                  </div>
-                </div>
-                <CheckCircle className="h-8 w-8 text-green-600" />
+              <CheckCircle className="h-8 w-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Temps d'étude</p>
+                <div className="text-2xl font-bold text-gray-900">{studentStats.totalHours}h</div>
               </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Temps d'étude</p>
-                  <div className="text-2xl font-bold text-gray-900">
-                    {courses.reduce((acc, course) => acc + course.timeSpent, 0).toFixed(1)}h
-                  </div>
-                </div>
-                <Clock className="h-8 w-8 text-blue-600" />
+              <Clock className="h-8 w-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Certificats obtenus</p>
+                <div className="text-2xl font-bold text-gray-900">{studentStats.certificates}</div>
               </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Cours terminés</p>
-                  <div className="text-2xl font-bold text-gray-900">
-                    {courses.filter(course => course.progress === 100).length}
-                  </div>
-                </div>
-                <Award className="h-8 w-8 text-yellow-600" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Détails des cours */}
-        <div className="space-y-6">
-          {courses.map((course) => (
-            <Card key={course.id}>
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle>{course.title}</CardTitle>
-                    <CardDescription>
-                      {course.completedLessons}/{course.totalLessons} leçons • {course.timeSpent}h d'étude
-                    </CardDescription>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-gray-900">{course.progress}%</div>
-                    <p className="text-sm text-gray-600">Dernière activité: {course.lastActivity}</p>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="mb-6">
-                  <Progress value={course.progress} className="h-3" />
-                </div>
-                
-                <div className="space-y-3">
-                  <h4 className="font-medium text-gray-900">Progression des leçons</h4>
-                  {course.lessons.map((lesson) => (
-                    <div key={lesson.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        {lesson.completed ? (
-                          <CheckCircle className="h-5 w-5 text-green-600" />
-                        ) : (
-                          <Circle className="h-5 w-5 text-gray-400" />
-                        )}
-                        <span className={`${lesson.completed ? 'text-gray-900' : 'text-gray-600'}`}>
-                          {lesson.title}
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-2 text-sm text-gray-600">
-                        <Clock className="h-4 w-4" />
-                        <span>{lesson.duration} min</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+              <Award className="h-8 w-8 text-yellow-600" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Détails des cours */}
+      <div className="space-y-6">
+        <h2 className="text-xl font-semibold text-gray-900">Détails par cours</h2>
+        
+        {courses.map((course) => (
+          <Card key={course.id}>
+            <CardHeader>
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <CardTitle className="text-lg">{course.title}</CardTitle>
+                    <Badge className={getCycleColor(course.cycle)}>
+                      {course.level}
+                    </Badge>
+                    {course.certificate && (
+                      <Badge className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                        <Award className="h-3 w-3 mr-1" />
+                        Certifié
+                      </Badge>
+                    )}
+                  </div>
+                  <CardDescription>
+                    {course.completedLessons}/{course.totalLessons} leçons • {course.timeSpent}h d'étude
+                    {course.grade && ` • Note: ${course.grade}`}
+                  </CardDescription>
+                </div>
+                <div className="text-right">
+                  <div className={`text-2xl font-bold ${getProgressColor(course.progress)}`}>
+                    {course.progress}%
+                  </div>
+                  <p className="text-sm text-gray-600">Dernière activité: {course.lastActivity}</p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <Progress value={course.progress} className="h-3" />
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                  <div className="flex items-center space-x-2">
+                    <BookOpen className="h-4 w-4 text-gray-500" />
+                    <span>{course.completedLessons} leçons terminées</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Clock className="h-4 w-4 text-gray-500" />
+                    <span>{course.timeSpent}h de temps d'étude</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {course.progress === 100 ? (
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <Circle className="h-4 w-4 text-gray-400" />
+                    )}
+                    <span className={course.progress === 100 ? 'text-green-600' : 'text-gray-600'}>
+                      {course.progress === 100 ? 'Cours terminé' : 'En cours'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Objectifs et recommandations */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Recommandations</CardTitle>
+          <CardDescription>Conseils pour améliorer votre progression</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <div className="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
+              <TrendingUp className="h-5 w-5 text-blue-600 mt-0.5" />
+              <div>
+                <p className="font-medium text-blue-900">Continuez sur votre lancée !</p>
+                <p className="text-sm text-blue-700">
+                  Vous avez une progression moyenne de {studentStats.averageProgress}%. 
+                  Essayez de terminer le cours d'Anglais 5ème cette semaine.
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-start space-x-3 p-3 bg-yellow-50 rounded-lg">
+              <Clock className="h-5 w-5 text-yellow-600 mt-0.5" />
+              <div>
+                <p className="font-medium text-yellow-900">Planifiez votre temps</p>
+                <p className="text-sm text-yellow-700">
+                  Consacrez 30 minutes par jour à l'Histoire-Géographie pour rattraper le retard.
+                </p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
 
-export default StudentProgressDetail;
+export default StudentProgress;

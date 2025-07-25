@@ -22,15 +22,15 @@ const StudentDashboard = () => {
 
   const sidebarItems = [
     { title: "Tableau de bord", href: "/dashboard/etudiant", icon: Home, isActive: currentPath === "/dashboard/etudiant" },
+    { title: "Catalogue de formations", href: "/cours", icon: BookOpen, isActive: currentPath === "/cours" },
     { title: "Mes cours", href: "/dashboard/etudiant/courses", icon: BookOpen, isActive: currentPath === "/dashboard/etudiant/courses" },
     { title: "Mon progrès", href: "/dashboard/etudiant/progress", icon: Award, isActive: currentPath === "/dashboard/etudiant/progress" },
     { title: "Certificats", href: "/dashboard/etudiant/certificates", icon: Award, isActive: currentPath === "/dashboard/etudiant/certificates" },
     { title: "Tests de positionnement", href: "/dashboard/etudiant/tests", icon: TestTube, isActive: currentPath === "/dashboard/etudiant/tests" },
-    { title: "Visioconférence", href: "/dashboard/etudiant/video", icon: Video, isActive: currentPath === "/dashboard/etudiant/video" },
-    { title: "Chat IA", href: "/dashboard/etudiant/chat", icon: Brain, isActive: currentPath === "/dashboard/etudiant/chat" },
     { title: "Mes documents", href: "/dashboard/etudiant/documents", icon: Download, isActive: currentPath === "/dashboard/etudiant/documents" },
     { title: "Messages", href: "/dashboard/etudiant/messages", icon: MessageSquare, badge: "3", isActive: currentPath === "/dashboard/etudiant/messages" },
-    { title: "Profil", href: "/profil", icon: User, isActive: currentPath === "/profil" },
+    { title: "Visioconférence", href: "/dashboard/etudiant/video", icon: Video, isActive: currentPath === "/dashboard/etudiant/video" },
+    { title: "Chat IA", href: "/dashboard/etudiant/chat", icon: Brain, isActive: currentPath === "/dashboard/etudiant/chat" },
     { title: "Paramètres", href: "/dashboard/etudiant/settings", icon: Settings, isActive: currentPath === "/dashboard/etudiant/settings" },
   ];
 
