@@ -1,30 +1,14 @@
 
 import React, { useState } from 'react';
-import { Send, Search, Phone, Video, MoreVertical, Paperclip, Smile, Home, Book, BarChart3, Award, MessageSquare, User, Settings } from 'lucide-react';
+import { Send, Search, Phone, Video, MoreVertical, Paperclip, Smile } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { DashboardSidebar } from '@/components/DashboardSidebar';
 
 const StudentMessaging = () => {
   const [selectedConversation, setSelectedConversation] = useState(1);
   const [message, setMessage] = useState('');
-
-  const sidebarItems = [
-    { title: "Tableau de bord", href: "/dashboard/etudiant", icon: Home },
-    { title: "Mes cours", href: "/dashboard/etudiant/courses", icon: Book },
-    { title: "Progression", href: "/dashboard/etudiant/progress", icon: BarChart3 },
-    { title: "Certificats", href: "/dashboard/etudiant/certificates", icon: Award },
-    { title: "Messages", href: "/dashboard/etudiant/messages", icon: MessageSquare, isActive: true, badge: "3" },
-    { title: "Profil", href: "/profil", icon: User },
-    { title: "Paramètres", href: "/dashboard/etudiant/settings", icon: Settings },
-  ];
-
-  const userInfo = {
-    name: "Jean-Paul Martin",
-    email: "jean-paul@email.com"
-  };
 
   const conversations = [
     {
@@ -101,13 +85,6 @@ const StudentMessaging = () => {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <DashboardSidebar
-        title="Espace Étudiant"
-        subtitle="Votre parcours d'apprentissage"
-        items={sidebarItems}
-        userInfo={userInfo}
-      />
-      
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="flex-1 flex">
           {/* Liste des conversations */}

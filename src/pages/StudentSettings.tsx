@@ -1,13 +1,12 @@
 
 import React, { useState } from 'react';
-import { User, Mail, Lock, Bell, Globe, Shield, Trash2, Home, Book, BarChart3, Award, MessageSquare, Settings } from 'lucide-react';
+import { User, Mail, Lock, Bell, Globe, Shield, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DashboardSidebar } from '@/components/DashboardSidebar';
 
 const StudentSettings = () => {
   const [notifications, setNotifications] = useState({
@@ -18,31 +17,8 @@ const StudentSettings = () => {
     marketing: false
   });
 
-  const sidebarItems = [
-    { title: "Tableau de bord", href: "/dashboard/etudiant", icon: Home },
-    { title: "Mes cours", href: "/dashboard/etudiant/courses", icon: Book },
-    { title: "Progression", href: "/dashboard/etudiant/progress", icon: BarChart3 },
-    { title: "Certificats", href: "/dashboard/etudiant/certificates", icon: Award },
-    { title: "Messages", href: "/dashboard/etudiant/messages", icon: MessageSquare, badge: "3" },
-    { title: "Profil", href: "/profil", icon: User },
-    { title: "Paramètres", href: "/dashboard/etudiant/settings", icon: Settings, isActive: true },
-  ];
-
-  const userInfo = {
-    name: "Jean-Paul Martin",
-    email: "jean-paul@email.com"
-  };
-
   return (
-    <div className="flex h-screen bg-gray-50">
-      <DashboardSidebar
-        title="Espace Étudiant"
-        subtitle="Votre parcours d'apprentissage"
-        items={sidebarItems}
-        userInfo={userInfo}
-      />
-      
-      <div className="flex-1 flex flex-col overflow-hidden">
+    <div className="flex-1 flex flex-col overflow-hidden bg-gray-50">
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-6">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Paramètres</h1>
@@ -255,7 +231,6 @@ const StudentSettings = () => {
             </CardContent>
           </Card>
         </main>
-      </div>
     </div>
   );
 };
