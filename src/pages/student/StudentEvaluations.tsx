@@ -1,231 +1,255 @@
 import React, { useState } from 'react';
-import { BookOpen, Trophy, TrendingUp, Star, Clock, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { BookOpen, Clock, Award, TrendingUp, CheckCircle } from 'lucide-react';
+
+interface Evaluation {
+  id: string;
+  courseTitle: string;
+  type: 'quiz' | 'exam' | 'practical';
+  title: string;
+  description: string;
+  status: 'available' | 'completed' | 'locked';
+  score?: number;
+  maxScore: number;
+  percentage?: number;
+  completedAt?: string;
+  timeLimit?: number; // en minutes
+  questionsCount: number;
+}
 
 const StudentEvaluations = () => {
-  const [selectedEvaluation, setSelectedEvaluation] = useState<any>(null);
+  const [selectedEvaluation, setSelectedEvaluation] = useState<string | null>(null);
 
-  // Données mockées
-  const evaluations = [
+  // Données d'exemple
+  const evaluations: Evaluation[] = [
     {
       id: '1',
-      courseId: 'math-ce2',
-      courseName: 'Mathématiques CE2',
-      type: 'positionnement',
-      score: 15,
-      maxScore: 20,
-      percentage: 75,
-      isCompleted: true,
-      completedAt: '2024-01-15T10:30:00Z',
-    },
-    {
-      id: '2',
-      courseId: 'math-ce2', 
-      courseName: 'Mathématiques CE2',
-      type: 'final',
+      courseTitle: 'Mathématiques CE2',
+      type: 'quiz',
+      title: 'Quiz Module 1 - Les nombres',
+      description: 'Évaluation des connaissances sur les nombres et le calcul',
+      status: 'completed',
       score: 18,
       maxScore: 20,
       percentage: 90,
-      isCompleted: true,
-      completedAt: '2024-02-15T10:30:00Z',
+      completedAt: '2024-01-16',
+      timeLimit: 30,
+      questionsCount: 10
+    },
+    {
+      id: '2',
+      courseTitle: 'Mathématiques CE2',
+      type: 'exam',
+      title: 'Examen Module 2 - Géométrie',
+      description: 'Évaluation approfondie des concepts géométriques',
+      status: 'available',
+      maxScore: 100,
+      timeLimit: 90,
+      questionsCount: 25
     },
     {
       id: '3',
-      courseId: 'francais-cm1',
-      courseName: 'Français CM1',
-      type: 'positionnement',
-      score: null,
-      maxScore: 20,
-      percentage: null,
-      isCompleted: false,
-      completedAt: null,
-    },
-    {
-      id: '4',
-      courseId: 'math-ce2',
-      courseName: 'Mathématiques CE2', 
-      type: 'satisfaction',
-      score: null,
-      maxScore: null,
-      percentage: null,
-      isCompleted: false,
-      completedAt: null,
+      courseTitle: 'Mathématiques CE2',
+      type: 'practical',
+      title: 'Exercice pratique - Résolution de problèmes',
+      description: 'Application des concepts mathématiques à des situations concrètes',
+      status: 'locked',
+      maxScore: 50,
+      timeLimit: 60,
+      questionsCount: 8
     }
   ];
 
-  const getTypeLabel = (type: string) => {
+  const getTypeLabel = (type: Evaluation['type']) => {
     switch (type) {
-      case 'positionnement':
-        return 'Test de positionnement';
-      case 'final':
-        return 'Évaluation finale';
-      case 'satisfaction':
-        return 'Satisfaction';
-      default:
-        return type;
+      case 'quiz': return 'Quiz';
+      case 'exam': return 'Examen';
+      case 'practical': return 'Pratique';
+      default: return 'Évaluation';
     }
   };
 
-  const getTypeBadge = (type: string) => {
+  const getTypeBadge = (type: Evaluation['type']) => {
     switch (type) {
-      case 'positionnement':
-        return <Badge variant="outline" className="bg-blue-50 text-blue-700">Positionnement</Badge>;
-      case 'final':
-        return <Badge variant="outline" className="bg-green-50 text-green-700">Final</Badge>;
-      case 'satisfaction':
-        return <Badge variant="outline" className="bg-purple-50 text-purple-700">Satisfaction</Badge>;
+      case 'quiz':
+        return <Badge variant="outline" className="bg-blue-50 text-blue-700">Quiz</Badge>;
+      case 'exam':
+        return <Badge variant="outline" className="bg-red-50 text-red-700">Examen</Badge>;
+      case 'practical':
+        return <Badge variant="outline" className="bg-green-50 text-green-700">Pratique</Badge>;
       default:
-        return <Badge variant="outline">{type}</Badge>;
+        return <Badge variant="outline">Évaluation</Badge>;
     }
   };
 
-  const getScoreColor = (percentage: number) => {
+  const getStatusBadge = (status: Evaluation['status']) => {
+    switch (status) {
+      case 'completed':
+        return <Badge variant="default" className="bg-green-100 text-green-800">Terminée</Badge>;
+      case 'available':
+        return <Badge variant="default" className="bg-blue-100 text-blue-800">Disponible</Badge>;
+      case 'locked':
+        return <Badge variant="outline" className="text-gray-500">Verrouillée</Badge>;
+      default:
+        return <Badge variant="outline">Inconnu</Badge>;
+    }
+  };
+
+  const getScoreColor = (percentage?: number) => {
+    if (!percentage) return 'text-gray-500';
     if (percentage >= 80) return 'text-green-600';
     if (percentage >= 60) return 'text-yellow-600';
     return 'text-red-600';
   };
 
-  // Calcul de l'évolution pour les cours avec test initial + final
-  const getEvolution = (courseId: string) => {
-    const initial = evaluations.find(e => e.courseId === courseId && e.type === 'positionnement' && e.isCompleted);
-    const final = evaluations.find(e => e.courseId === courseId && e.type === 'final' && e.isCompleted);
-    
-    if (initial && final) {
-      return {
-        initial: initial.percentage,
-        final: final.percentage,
-        progress: final.percentage - initial.percentage
-      };
-    }
-    return null;
-  };
+  const completedEvaluations = evaluations.filter(e => e.status === 'completed');
+  const averageScore = completedEvaluations.length > 0 
+    ? completedEvaluations.reduce((sum, e) => sum + (e.percentage || 0), 0) / completedEvaluations.length 
+    : 0;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Évaluations & Tests</h1>
-        <p className="text-gray-600">Suivez votre progression et vos résultats d'évaluation</p>
+    <div className="max-w-6xl mx-auto p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Mes Évaluations</h1>
       </div>
 
-      {/* Évolution des résultats */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <TrendingUp className="w-5 h-5 mr-2" />
-            Évolution de votre niveau
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
-            {Array.from(new Set(evaluations.map(e => e.courseId))).map(courseId => {
-              const evolution = getEvolution(courseId);
-              const courseName = evaluations.find(e => e.courseId === courseId)?.courseName;
-              
-              if (!evolution) return null;
-              
-              return (
-                <div key={courseId} className="border rounded-lg p-4">
-                  <h4 className="font-medium mb-4">{courseName}</h4>
-                  <div className="grid md:grid-cols-3 gap-4">
-                    <div className="text-center">
-                      <p className="text-sm text-gray-600">Test initial</p>
-                      <p className="text-2xl font-bold text-blue-600">{evolution.initial}%</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-sm text-gray-600">Test final</p>
-                      <p className="text-2xl font-bold text-green-600">{evolution.final}%</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-sm text-gray-600">Progression</p>
-                      <p className={`text-2xl font-bold ${evolution.progress >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {evolution.progress > 0 ? '+' : ''}{evolution.progress}%
-                      </p>
-                    </div>
-                  </div>
-                  <Progress value={evolution.final} className="mt-4" />
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Statistiques globales */}
+      <div className="grid md:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <BookOpen className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Évaluations complétées</p>
+                <p className="text-2xl font-bold">{completedEvaluations.length}/{evaluations.length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <TrendingUp className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Moyenne générale</p>
+                <p className={`text-2xl font-bold ${getScoreColor(averageScore)}`}>
+                  {averageScore > 0 ? `${averageScore.toFixed(1)}%` : 'N/A'}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-yellow-100 rounded-lg">
+                <Award className="w-5 h-5 text-yellow-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Meilleur score</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {completedEvaluations.length > 0 
+                    ? `${Math.max(...completedEvaluations.map(e => e.percentage || 0))}%`
+                    : 'N/A'
+                  }
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Liste des évaluations */}
-      <div className="grid gap-4">
+      <div className="grid gap-6">
         {evaluations.map((evaluation) => (
-          <Card key={evaluation.id}>
+          <Card key={evaluation.id} className="relative">
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-lg">{evaluation.courseName}</CardTitle>
-                  <CardDescription>
-                    {getTypeLabel(evaluation.type)}
-                    {evaluation.completedAt && (
-                      <span className="ml-2">
-                        • Complété le {new Date(evaluation.completedAt).toLocaleDateString('fr-FR')}
-                      </span>
-                    )}
-                  </CardDescription>
+              <div className="flex items-start justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="text-lg">{evaluation.title}</CardTitle>
+                    {getTypeBadge(evaluation.type)}
+                  </div>
+                  <CardDescription>{evaluation.description}</CardDescription>
+                  <div className="flex items-center gap-4 text-sm text-gray-500">
+                    <span>📚 {evaluation.courseTitle}</span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-4 h-4" />
+                      {evaluation.timeLimit}min
+                    </span>
+                    <span>{evaluation.questionsCount} questions</span>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  {getTypeBadge(evaluation.type)}
-                  {evaluation.isCompleted && (
-                    <Badge variant="default" className="bg-green-500">
-                      <CheckCircle className="w-3 h-3 mr-1" />
-                      Terminé
-                    </Badge>
+                <div className="flex flex-col items-end gap-2">
+                  {getStatusBadge(evaluation.status)}
+                  {evaluation.status === 'completed' && evaluation.score !== undefined && (
+                    <div className="text-right">
+                      <p className={`text-lg font-bold ${getScoreColor(evaluation.percentage)}`}>
+                        {evaluation.score}/{evaluation.maxScore}
+                      </p>
+                      <p className={`text-sm ${getScoreColor(evaluation.percentage)}`}>
+                        {evaluation.percentage}%
+                      </p>
+                    </div>
                   )}
                 </div>
               </div>
             </CardHeader>
+
             <CardContent>
-              {evaluation.isCompleted ? (
-                <div className="space-y-4">
-                  {evaluation.type !== 'satisfaction' && (
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium">Résultat</span>
-                        <span className={`text-lg font-bold ${getScoreColor(evaluation.percentage!)}`}>
-                          {evaluation.score}/{evaluation.maxScore} ({evaluation.percentage}%)
+              {evaluation.status === 'completed' ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-green-600">
+                    <CheckCircle className="w-4 h-4" />
+                    <span className="text-sm">
+                      Complétée le {new Date(evaluation.completedAt!).toLocaleDateString('fr-FR')}
+                    </span>
+                  </div>
+                  
+                  {evaluation.percentage && (
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Score</span>
+                        <span className={getScoreColor(evaluation.percentage)}>
+                          {evaluation.percentage}%
                         </span>
                       </div>
-                      <Progress value={evaluation.percentage!} />
-                    </div>
-                  )}
-                  
-                  {evaluation.type === 'satisfaction' && (
-                    <div className="flex items-center space-x-2">
-                      <Star className="w-5 h-5 text-yellow-500" />
-                      <span>Merci pour votre retour d'expérience</span>
+                      <Progress 
+                        value={evaluation.percentage} 
+                        className="h-2"
+                      />
                     </div>
                   )}
                   
                   <Button variant="outline" size="sm">
-                    Voir les détails
+                    Voir les résultats détaillés
                   </Button>
                 </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-2 text-gray-600">
+              ) : evaluation.status === 'available' ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-blue-600">
                     <Clock className="w-4 h-4" />
                     <span className="text-sm">
-                      {evaluation.type === 'satisfaction' 
-                        ? 'Formulaire de satisfaction disponible à la fin de la formation'
-                        : 'Test en attente'
-                      }
+                      Durée limitée : {evaluation.timeLimit} minutes
                     </span>
                   </div>
                   
-                  <Button 
-                    disabled={evaluation.type === 'satisfaction'}
-                    onClick={() => setSelectedEvaluation(evaluation)}
-                  >
-                    <BookOpen className="w-4 h-4 mr-2" />
-                    {evaluation.type === 'satisfaction' ? 'Pas encore disponible' : 'Commencer le test'}
+                  <Button className="bg-blue-600 hover:bg-blue-700">
+                    Commencer l'évaluation
                   </Button>
+                </div>
+              ) : (
+                <div className="text-sm text-gray-500">
+                  Cette évaluation sera déverrouillée après avoir terminé les prérequis.
                 </div>
               )}
             </CardContent>
@@ -235,10 +259,12 @@ const StudentEvaluations = () => {
 
       {evaluations.length === 0 && (
         <Card>
-          <CardContent className="text-center py-12">
-            <Trophy className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Aucune évaluation</h3>
-            <p className="text-gray-600">Les évaluations apparaîtront ici une fois vos formations commencées.</p>
+          <CardContent className="p-8 text-center">
+            <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium mb-2">Aucune évaluation disponible</h3>
+            <p className="text-gray-600">
+              Les évaluations apparaîtront ici une fois que vous serez inscrit à des formations.
+            </p>
           </CardContent>
         </Card>
       )}

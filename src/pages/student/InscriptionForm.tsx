@@ -75,8 +75,23 @@ const InscriptionForm = () => {
     });
   };
 
-  const onSubmit = (data: InscriptionForm) => {
-    // Simulation de soumission
+  const onSubmit = async (data: InscriptionForm) => {
+    if (currentStep < 4) {
+      // Si on n'est pas à la dernière étape, aller à l'étape suivante
+      handleNextStep();
+      return;
+    }
+    
+    if (!signatureData) {
+      toast({
+        title: "Signature requise",
+        description: "Veuillez signer électroniquement avant de finaliser.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Simulation de soumission finale
     console.log('Données d\'inscription:', data);
     console.log('Signature:', signatureData);
     
@@ -274,7 +289,7 @@ const InscriptionForm = () => {
                 </div>
                 
                 <div className="flex justify-end">
-                  <Button type="button" onClick={handleNextStep}>
+                  <Button type="submit">
                     Suivant
                   </Button>
                 </div>
@@ -357,7 +372,7 @@ const InscriptionForm = () => {
                   <Button type="button" variant="outline" onClick={handlePrevStep}>
                     Précédent
                   </Button>
-                  <Button type="button" onClick={handleNextStep}>
+                  <Button type="submit">
                     Suivant
                   </Button>
                 </div>
@@ -458,7 +473,7 @@ const InscriptionForm = () => {
                   <Button type="button" variant="outline" onClick={handlePrevStep}>
                     Précédent
                   </Button>
-                  <Button type="button" onClick={handleNextStep}>
+                  <Button type="submit">
                     Suivant
                   </Button>
                 </div>

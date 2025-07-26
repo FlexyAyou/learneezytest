@@ -1,207 +1,217 @@
 import React, { useState } from 'react';
-import { Calendar, Clock, CheckCircle, PenTool, MapPin } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Calendar, Clock, FileText, CheckCircle, AlertCircle } from 'lucide-react';
+import { ElectronicSignature } from '@/components/common/ElectronicSignature';
+import { useToast } from '@/hooks/use-toast';
+
+interface Session {
+  id: string;
+  courseTitle: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  status: 'upcoming' | 'current' | 'completed' | 'missed';
+  signed: boolean;
+  location?: string;
+}
 
 const StudentEmargements = () => {
-  const [selectedSession, setSelectedSession] = useState<any>(null);
+  const [selectedSession, setSelectedSession] = useState<string | null>(null);
+  const [signatureData, setSignatureData] = useState<string | null>(null);
+  const { toast } = useToast();
 
-  // Données mockées
-  const emargements = [
+  // Données d'exemple
+  const sessions: Session[] = [
     {
       id: '1',
-      courseName: 'Mathématiques CE2',
-      sessionDate: '2024-01-22',
-      sessionStartTime: '09:00',
-      sessionEndTime: '12:00',
-      isPresent: true,
-      signatureTimestamp: '2024-01-22T09:05:00Z',
+      courseTitle: 'Mathématiques CE2 - Module 1',
+      date: '2024-01-15',
+      startTime: '09:00',
+      endTime: '12:00',
+      status: 'completed',
+      signed: true,
+      location: 'Salle A101'
     },
     {
       id: '2',
-      courseName: 'Mathématiques CE2', 
-      sessionDate: '2024-01-24',
-      sessionStartTime: '09:00',
-      sessionEndTime: '12:00',
-      isPresent: false,
-      signatureTimestamp: null,
+      courseTitle: 'Mathématiques CE2 - Module 2',
+      date: '2024-01-22',
+      startTime: '09:00',
+      endTime: '12:00',
+      status: 'current',
+      signed: false,
+      location: 'Salle A101'
     },
     {
       id: '3',
-      courseName: 'Français CM1',
-      sessionDate: '2024-01-25',
-      sessionStartTime: '14:00',
-      sessionEndTime: '17:00',
-      isPresent: null, // Session en cours
-      signatureTimestamp: null,
+      courseTitle: 'Mathématiques CE2 - Module 3',
+      date: '2024-01-29',
+      startTime: '09:00',
+      endTime: '12:00',
+      status: 'upcoming',
+      signed: false,
+      location: 'Salle A101'
     }
   ];
 
-  const getStatusBadge = (emargement: any) => {
-    if (emargement.isPresent === true) {
-      return <Badge variant="default" className="bg-green-500"><CheckCircle className="w-3 h-3 mr-1" />Présent</Badge>;
-    } else if (emargement.isPresent === false) {
-      return <Badge variant="destructive">Absent</Badge>;
-    } else {
-      const sessionDate = new Date(emargement.sessionDate + 'T' + emargement.sessionStartTime);
-      const now = new Date();
-      const isToday = sessionDate.toDateString() === now.toDateString();
-      const isPast = sessionDate < now;
-      
-      if (isToday && !isPast) {
-        return <Badge variant="default" className="bg-blue-500">En cours</Badge>;
-      } else if (isPast) {
-        return <Badge variant="secondary">À signer</Badge>;
-      } else {
+  const getStatusBadge = (status: Session['status']) => {
+    switch (status) {
+      case 'completed':
+        return <Badge variant="default" className="bg-green-100 text-green-800">Terminée</Badge>;
+      case 'current':
+        return <Badge variant="default" className="bg-blue-100 text-blue-800">En cours</Badge>;
+      case 'upcoming':
         return <Badge variant="outline">À venir</Badge>;
-      }
+      case 'missed':
+        return <Badge variant="destructive">Manquée</Badge>;
+      default:
+        return <Badge variant="outline">Inconnu</Badge>;
     }
   };
 
-  const canSignEmargement = (emargement: any) => {
-    const sessionDate = new Date(emargement.sessionDate + 'T' + emargement.sessionStartTime);
-    const now = new Date();
-    const isToday = sessionDate.toDateString() === now.toDateString();
-    return emargement.isPresent === null && isToday;
+  const handleSignatureComplete = (signature: string) => {
+    setSignatureData(signature);
+    toast({
+      title: "Signature enregistrée",
+      description: "Votre émargement a été sauvegardé.",
+    });
   };
 
-  const handleSignEmargement = (emargement: any) => {
-    // Ici on intégrera la signature électronique
-    setSelectedSession(emargement);
+  const handleSignEmargement = (sessionId: string) => {
+    // Simulation de signature d'émargement
+    console.log('Émargement signé pour la session:', sessionId);
+    console.log('Signature:', signatureData);
+    
+    toast({
+      title: "Émargement validé",
+      description: "Votre présence a été enregistrée avec succès.",
+    });
+    
+    setSelectedSession(null);
+    setSignatureData(null);
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Émargement Digital</h1>
-        <p className="text-gray-600">Signez votre présence aux séances de formation</p>
+    <div className="max-w-6xl mx-auto p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Mes Émargements</h1>
+        <Badge variant="outline" className="text-sm">
+          {sessions.filter(s => s.signed).length} / {sessions.length} sessions signées
+        </Badge>
       </div>
 
-      {/* Statistiques rapides */}
-      <div className="grid md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-3">
-              <CheckCircle className="w-8 h-8 text-green-500" />
-              <div>
-                <p className="text-2xl font-bold">
-                  {emargements.filter(e => e.isPresent === true).length}
-                </p>
-                <p className="text-sm text-gray-600">Séances présent</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-3">
-              <Calendar className="w-8 h-8 text-blue-500" />
-              <div>
-                <p className="text-2xl font-bold">{emargements.length}</p>
-                <p className="text-sm text-gray-600">Total séances</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-3">
-              <Clock className="w-8 h-8 text-orange-500" />
-              <div>
-                <p className="text-2xl font-bold">
-                  {Math.round((emargements.filter(e => e.isPresent === true).length / emargements.length) * 100) || 0}%
-                </p>
-                <p className="text-sm text-gray-600">Assiduité</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Liste des émargements */}
-      <div className="space-y-4">
-        {emargements.map((emargement) => (
-          <Card key={emargement.id}>
+      <div className="grid gap-6">
+        {sessions.map((session) => (
+          <Card key={session.id} className="relative">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-lg">{emargement.courseName}</CardTitle>
-                  <CardDescription className="flex items-center space-x-4">
-                    <span className="flex items-center">
-                      <Calendar className="w-4 h-4 mr-1" />
-                      {new Date(emargement.sessionDate).toLocaleDateString('fr-FR')}
+                  <CardTitle className="text-lg">{session.courseTitle}</CardTitle>
+                  <CardDescription className="flex items-center gap-4 mt-2">
+                    <span className="flex items-center gap-1">
+                      <Calendar className="w-4 h-4" />
+                      {new Date(session.date).toLocaleDateString('fr-FR')}
                     </span>
-                    <span className="flex items-center">
-                      <Clock className="w-4 h-4 mr-1" />
-                      {emargement.sessionStartTime} - {emargement.sessionEndTime}
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-4 h-4" />
+                      {session.startTime} - {session.endTime}
                     </span>
+                    {session.location && (
+                      <span className="text-sm text-gray-500">
+                        📍 {session.location}
+                      </span>
+                    )}
                   </CardDescription>
                 </div>
-                {getStatusBadge(emargement)}
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div>
-                  {emargement.signatureTimestamp && (
-                    <p className="text-sm text-gray-600">
-                      Signé le {new Date(emargement.signatureTimestamp).toLocaleString('fr-FR')}
-                    </p>
-                  )}
-                  {!emargement.signatureTimestamp && emargement.isPresent === false && (
-                    <p className="text-sm text-red-600">Absence non justifiée</p>
+                <div className="flex items-center gap-2">
+                  {getStatusBadge(session.status)}
+                  {session.signed && (
+                    <CheckCircle className="w-5 h-5 text-green-500" />
                   )}
                 </div>
-                
-                {canSignEmargement(emargement) && (
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button onClick={() => setSelectedSession(emargement)}>
-                        <PenTool className="w-4 h-4 mr-2" />
-                        Signer ma présence
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Signature d'émargement</DialogTitle>
-                        <DialogDescription>
-                          Confirmez votre présence à la séance du {new Date(emargement.sessionDate).toLocaleDateString('fr-FR')}
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div className="p-4 bg-gray-50 rounded-lg">
-                          <h4 className="font-medium">{emargement.courseName}</h4>
-                          <p className="text-sm text-gray-600">
-                            {emargement.sessionStartTime} - {emargement.sessionEndTime}
-                          </p>
-                        </div>
-                        
-                        {/* Zone de signature électronique */}
-                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                          <PenTool className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                          <p className="text-gray-600 mb-4">Zone de signature électronique</p>
-                          <p className="text-xs text-gray-500">
-                            En signant, je certifie ma présence à cette séance
-                          </p>
-                        </div>
-                        
-                        <Button className="w-full" onClick={() => {
-                          // Ici on traiterait la signature
-                          console.log('Signature pour:', emargement);
-                        }}>
-                          Confirmer ma présence
+              </div>
+            </CardHeader>
+
+            <CardContent>
+              {session.status === 'current' && !session.signed ? (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-blue-600">
+                    <AlertCircle className="w-4 h-4" />
+                    <span className="text-sm font-medium">
+                      Session en cours - Émargement requis
+                    </span>
+                  </div>
+                  
+                  {selectedSession === session.id ? (
+                    <div className="space-y-4 border rounded-lg p-4 bg-gray-50">
+                      <h4 className="font-medium">Signature d'émargement</h4>
+                      <p className="text-sm text-gray-600">
+                        En signant ci-dessous, je certifie ma présence à cette session de formation.
+                      </p>
+                      
+                      <ElectronicSignature 
+                        onSignatureComplete={handleSignatureComplete}
+                      />
+                      
+                      <div className="flex gap-2 justify-end">
+                        <Button 
+                          variant="outline" 
+                          onClick={() => setSelectedSession(null)}
+                        >
+                          Annuler
+                        </Button>
+                        <Button 
+                          onClick={() => handleSignEmargement(session.id)}
+                          disabled={!signatureData}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          Valider l'émargement
                         </Button>
                       </div>
-                    </DialogContent>
-                  </Dialog>
-                )}
-              </div>
+                    </div>
+                  ) : (
+                    <Button 
+                      onClick={() => setSelectedSession(session.id)}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      <FileText className="w-4 h-4 mr-2" />
+                      Signer l'émargement
+                    </Button>
+                  )}
+                </div>
+              ) : session.signed ? (
+                <div className="flex items-center gap-2 text-green-600">
+                  <CheckCircle className="w-4 h-4" />
+                  <span className="text-sm">
+                    Émargement signé le {new Date(session.date).toLocaleDateString('fr-FR')}
+                  </span>
+                </div>
+              ) : (
+                <div className="text-sm text-gray-500">
+                  {session.status === 'upcoming' 
+                    ? 'L\'émargement sera disponible le jour de la session'
+                    : 'Session non disponible pour signature'
+                  }
+                </div>
+              )}
             </CardContent>
           </Card>
         ))}
       </div>
+
+      {sessions.length === 0 && (
+        <Card>
+          <CardContent className="p-8 text-center">
+            <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium mb-2">Aucune session disponible</h3>
+            <p className="text-gray-600">
+              Les sessions d'émargement apparaîtront ici une fois que vous serez inscrit à des formations.
+            </p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
