@@ -67,7 +67,7 @@ const About = () => {
         {/* Header */}
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            Pourquoi Choisir <span className="text-pink-600">InfinitiaX</span> ?
+            Pourquoi Choisir <span className="text-pink-600">Learneezy</span> ?
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Nous révolutionnons l'apprentissage en ligne avec une approche moderne, 
@@ -114,7 +114,7 @@ const About = () => {
               Notre Mission
             </h3>
             <p className="text-xl text-gray-600 leading-relaxed">
-              Chez <span className="text-pink-600 font-semibold">InfinitiaX</span>, nous croyons que l'éducation est la clé du succès. 
+              Chez <span className="text-pink-600 font-semibold">Learneezy</span>, nous croyons que l'éducation est la clé du succès. 
               Notre mission est de démocratiser l'accès à un apprentissage de qualité 
               en offrant des formations pratiques, actuelles et accessibles à tous, 
               partout dans le monde.

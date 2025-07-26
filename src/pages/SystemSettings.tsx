@@ -12,7 +12,7 @@ import Header from '@/components/Header';
 const SystemSettings = () => {
   const { toast } = useToast();
   const [settings, setSettings] = useState({
-    siteName: 'InfinitiaX',
+    siteName: 'Learneezy',
     siteDescription: 'Plateforme d\'apprentissage en ligne',
     maintenanceMode: false,
     registrationEnabled: true,
@@ -244,7 +244,7 @@ const SystemSettings = () => {
                 
                 <div>
                   <label className="block text-sm font-medium mb-2">Email expéditeur</label>
-                  <Input placeholder="noreply@infinitiaX.com" />
+                  <Input placeholder="noreply@Learneezy.com" />
                 </div>
                 
                 <Button variant="outline">

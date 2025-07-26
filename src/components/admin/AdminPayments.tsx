@@ -13,7 +13,7 @@ const AdminPayments = () => {
     { id: 1, user: "Marie Dubois", course: "Python pour Data Science", amount: "€49.99", date: "2024-01-15", status: "Payé" },
     { id: 2, user: "Pierre Martin", course: "Design Thinking", amount: "€79.99", date: "2024-01-14", status: "Payé" },
     { id: 3, user: "Sophie Durand", course: "Machine Learning", amount: "€99.99", date: "2024-01-13", status: "En attente" },
-    { id: 4, user: "Jean Michel", course: "React Avancé", amount: "€59.99", date: "2024-01-12", status: "Échoué" }
+    { id: 4, user: "Jean Michel", course: "Mathématiques", amount: "€59.99", date: "2024-01-12", status: "Échoué" }
   ];
 
   const handleExportPayments = () => {

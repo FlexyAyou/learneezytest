@@ -37,7 +37,7 @@ const TrainerReviews = () => {
       id: 2,
       student: { name: 'Pierre Durand', email: 'pierre@example.com', avatar: '' },
       date: '2024-01-08',
-      subject: 'JavaScript ES6+',
+      subject: 'Anglais',
       rating: 4,
       comment: 'Bonne formation dans l\'ensemble. Le contenu était intéressant mais j\'aurais aimé avoir plus d\'exemples concrets et d\'exercices pratiques.',
       helpful: 8,

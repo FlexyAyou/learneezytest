@@ -20,7 +20,7 @@ const SecurityLogs = () => {
       timestamp: '2024-03-15 14:32:15',
       level: 'Warning',
       event: 'Tentative de connexion échouée',
-      user: 'admin@infinitiaX.com',
+      user: 'admin@Learneezy.com',
       ip: '192.168.1.100',
       userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
       details: 'Mot de passe incorrect - 3ème tentative'

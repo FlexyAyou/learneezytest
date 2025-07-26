@@ -33,7 +33,7 @@ const CourseSection = () => {
     },
     {
       id: 3,
-      title: "Design UX/UI Modern",
+      title: "SVP Modern",
       instructor: "Sophie Laurent",
       image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=300&h=180&fit=crop",
       duration: "25h",

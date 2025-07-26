@@ -34,19 +34,19 @@ const AdminSettings = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="platform-name">Nom de la plateforme</Label>
-              <Input id="platform-name" defaultValue="InfinitiaX" />
+              <Input id="platform-name" defaultValue="Learneezy" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="platform-url">URL de base</Label>
-              <Input id="platform-url" defaultValue="https://infinitiax.com" />
+              <Input id="platform-url" defaultValue="https://Learneezy.com" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="admin-email">Email administrateur</Label>
-              <Input id="admin-email" type="email" defaultValue="admin@infinitiax.com" />
+              <Input id="admin-email" type="email" defaultValue="admin@Learneezy.com" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="support-email">Email support</Label>
-              <Input id="support-email" type="email" defaultValue="support@infinitiax.com" />
+              <Input id="support-email" type="email" defaultValue="support@Learneezy.com" />
             </div>
           </div>
         </CardContent>
@@ -101,7 +101,7 @@ const AdminSettings = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="smtp-server">Serveur SMTP</Label>
-              <Input id="smtp-server" defaultValue="smtp.infinitiax.com" />
+              <Input id="smtp-server" defaultValue="smtp.Learneezy.com" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="smtp-port">Port SMTP</Label>

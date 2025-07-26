@@ -29,7 +29,7 @@ const GlobalStats = () => {
     { course: 'Python Data Science', rate: 92, students: 189 },
     { course: 'UX/UI Design', rate: 78, students: 156 },
     { course: 'Marketing Digital', rate: 85, students: 234 },
-    { course: 'React Avancé', rate: 81, students: 167 }
+    { course: 'Mathématiques', rate: 81, students: 167 }
   ];
 
   return (

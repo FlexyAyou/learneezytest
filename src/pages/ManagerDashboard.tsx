@@ -54,7 +54,7 @@ const ManagerDashboardHome = () => {
   ];
 
   const upcomingSessions = [
-    { id: 1, title: 'Formation React Avancé', date: '2024-01-15', participants: 12, instructor: 'Marie Dubois' },
+    { id: 1, title: 'Formation Mathématiques', date: '2024-01-15', participants: 12, instructor: 'Marie Dubois' },
     { id: 2, title: 'Management d\'équipe', date: '2024-01-16', participants: 8, instructor: 'Jean Martin' },
     { id: 3, title: 'Excel pour les managers', date: '2024-01-17', participants: 15, instructor: 'Sophie Laurent' },
   ];

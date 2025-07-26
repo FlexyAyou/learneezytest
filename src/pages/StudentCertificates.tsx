@@ -9,7 +9,7 @@ const StudentCertificates = () => {
   const certificates = [
     {
       id: 1,
-      title: "JavaScript ES6+ Avancé",
+      title: "Anglais Avancé",
       instructor: "Sophie Laurent",
       completedDate: "15 Décembre 2024",
       score: 95,
@@ -41,7 +41,7 @@ const StudentCertificates = () => {
 
   const upcomingCertificates = [
     {
-      course: "React Avancé",
+      course: "Mathématiques",
       progress: 75,
       estimatedCompletion: "20 Janvier 2025"
     },

@@ -49,7 +49,7 @@ const UserProfile = () => {
       },
       {
         id: 2,
-        title: "Design UX/UI",
+        title: "SVP",
         progress: 40,
         instructor: "Pierre Martin",
         image: "https://images.unsplash.com/photo-1586717791821-3f44a563fa4c?w=300&h=200&fit=crop"
@@ -233,14 +233,14 @@ const UserProfile = () => {
                   <div className="flex items-center space-x-3">
                     <div className="w-2 h-2 bg-pink-500 rounded-full"></div>
                     <div>
-                      <p className="text-sm font-medium">Nouveau cours démarré : "Design UX/UI"</p>
+                      <p className="text-sm font-medium">Nouveau cours démarré : "SVP"</p>
                       <p className="text-xs text-gray-500">Hier</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-3">
                     <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
                     <div>
-                      <p className="text-sm font-medium">Certificat obtenu : "JavaScript ES6+"</p>
+                      <p className="text-sm font-medium">Certificat obtenu : "Anglais"</p>
                       <p className="text-xs text-gray-500">Il y a 3 jours</p>
                     </div>
                   </div>

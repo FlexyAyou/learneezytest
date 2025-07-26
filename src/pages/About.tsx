@@ -67,7 +67,7 @@ const About = () => {
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
               À propos d'
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-orange-600">
-                InfinitiaX
+                Learneezy
               </span>
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
@@ -77,7 +77,7 @@ const About = () => {
             <div className="flex justify-center">
               <img
                 src="/lovable-uploads/35025812-1694-4fb2-aa20-1b03dae12929.png"
-                alt="Notre équipe InfinitiaX"
+                alt="Notre équipe Learneezy"
                 className="rounded-2xl shadow-xl max-w-md w-full"
               />
             </div>
@@ -92,7 +92,7 @@ const About = () => {
             <div>
               <h2 className="text-3xl font-bold text-gray-900 mb-6">Notre Histoire</h2>
               <p className="text-lg text-gray-600 leading-relaxed mb-6">
-                InfinitiaX est née en 2020 d'une vision simple mais puissante : rendre l'éducation 
+                Learneezy est née en 2020 d'une vision simple mais puissante : rendre l'éducation 
                 de qualité accessible à tous, peu importe la localisation ou les circonstances.
               </p>
               <p className="text-lg text-gray-600 leading-relaxed mb-6">
@@ -129,7 +129,7 @@ const About = () => {
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">Nos Valeurs</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Ces valeurs guident chacune de nos décisions et façonnent l'expérience InfinitiaX
+              Ces valeurs guident chacune de nos décisions et façonnent l'expérience Learneezy
             </p>
           </div>
 
@@ -158,7 +158,7 @@ const About = () => {
       <section className="py-20 bg-gradient-to-r from-pink-600 to-orange-600">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-white mb-4">InfinitiaX en Chiffres</h2>
+            <h2 className="text-4xl font-bold text-white mb-4">Learneezy en Chiffres</h2>
             <p className="text-xl text-pink-100">Notre impact grandissant dans le monde</p>
           </div>
           
@@ -211,7 +211,7 @@ const About = () => {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl font-bold text-gray-900 mb-6">Notre Mission</h2>
           <p className="text-xl text-gray-600 leading-relaxed mb-8">
-            Chez InfinitiaX, nous croyons que l'éducation est la clé pour débloquer le potentiel humain. 
+            Chez Learneezy, nous croyons que l'éducation est la clé pour débloquer le potentiel humain. 
             Notre mission est de créer un monde où chaque personne peut accéder à une éducation de qualité, 
             développer ses compétences et réaliser ses rêves, peu importe ses origines ou sa situation.
           </p>

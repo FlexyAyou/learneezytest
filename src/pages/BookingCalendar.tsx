@@ -36,7 +36,7 @@ const BookingCalendar = () => {
       const instructors = [
         { name: 'Marie Dubois', photo: 'https://images.unsplash.com/photo-1494790108755-2616b9c9b3c8?w=100&h=100&fit=crop&crop=face', rating: 4.8, reviews: 156 },
         { name: 'Paul Martin', photo: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face', rating: 4.9, reviews: 203 },
-        { name: 'Sophie Laurent', photo: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face', rating: 4.7, reviews: 89 }
+        { name: 'Fatou', photo: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face', rating: 4.7, reviews: 89 }
       ];
       
       const times = [

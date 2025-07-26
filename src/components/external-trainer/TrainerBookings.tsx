@@ -71,7 +71,7 @@ const TrainerBookings = () => {
     { 
       id: 5, 
       student: { name: 'Pierre Durand', email: 'pierre@example.com', avatar: '' },
-      subject: 'JavaScript ES6+', 
+      subject: 'Anglais', 
       date: '2024-01-08', 
       time: '14:00-16:00', 
       price: 80,

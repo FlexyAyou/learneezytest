@@ -87,7 +87,7 @@ const ManagerMessaging = () => {
       role: 'Formatrice',
       subject: 'Confirmation de la session React prévue demain',
       time: '10:30 - Aujourd\'hui',
-      content: 'Bonjour Sophie,\n\nJe vous confirme que la session de formation React Avancé prévue demain à 14h00 aura bien lieu. J\'ai préparé le matériel pédagogique et les exercices pratiques.\n\nLes 12 participants inscrits ont tous confirmé leur présence. La salle B203 est réservée et l\'équipement technique a été vérifié.\n\nY a-t-il des points particuliers que vous souhaiteriez que j\'aborde pendant cette session ?\n\nCordialement,\nMarie'
+      content: 'Bonjour Sophie,\n\nJe vous confirme que la session de formation Mathématiques prévue demain à 14h00 aura bien lieu. J\'ai préparé le matériel pédagogique et les exercices pratiques.\n\nLes 12 participants inscrits ont tous confirmé leur présence. La salle B203 est réservée et l\'équipement technique a été vérifié.\n\nY a-t-il des points particuliers que vous souhaiteriez que j\'aborde pendant cette session ?\n\nCordialement,\nMarie'
     }
   };
 
@@ -323,7 +323,7 @@ const ManagerMessaging = () => {
               {[
                 { name: 'Marie Dubois', email: 'marie.dubois@learneezy.com', specialty: 'Développement Web' },
                 { name: 'Jean Martin', email: 'jean.martin@learneezy.com', specialty: 'Management' },
-                { name: 'Claire Roussel', email: 'claire.roussel@learneezy.com', specialty: 'Design UX/UI' }
+                { name: 'Claire Roussel', email: 'claire.roussel@learneezy.com', specialty: 'SVP' }
               ].map((contact, index) => (
                 <div key={index} className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">

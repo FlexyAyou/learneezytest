@@ -59,7 +59,7 @@ export default function ContentCreatorDashboard() {
     {
       id: 1,
       action: "Module validé",
-      title: "Formation React Avancée",
+      title: "Formation Mathématiquese",
       time: "Il y a 2h",
       icon: CheckCircle,
       iconColor: "text-green-500"

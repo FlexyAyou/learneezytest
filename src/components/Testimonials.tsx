@@ -11,7 +11,7 @@ const Testimonials = () => {
       role: "Développeuse Frontend",
       company: "TechCorp",
       image: "https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=150&h=150&fit=crop&crop=face",
-      content: "Grâce à InfinitiaX, j'ai pu me reconvertir dans le développement web en seulement 6 mois. Les cours sont excellents et le support est fantastique !",
+      content: "Grâce à Learneezy, j'ai pu me reconvertir dans le développement web en seulement 6 mois. Les cours sont excellents et le support est fantastique !",
       rating: 5
     },
     {
@@ -29,7 +29,7 @@ const Testimonials = () => {
       role: "UX Designer",
       company: "Creative Studio",
       image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
-      content: "Les cours de design UX/UI sont incroyables. J'ai appris plus en 3 mois qu'en 2 ans d'autoformation. L'investissement en vaut vraiment la peine.",
+      content: "Les cours de SVP sont incroyables. J'ai appris plus en 3 mois qu'en 2 ans d'autoformation. L'investissement en vaut vraiment la peine.",
       rating: 5
     },
     {
@@ -47,7 +47,7 @@ const Testimonials = () => {
       role: "Marketing Manager",
       company: "Growth Agency",
       image: "https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=150&h=150&fit=crop&crop=face",
-      content: "Excellent contenu, instructeurs passionnés et communauté bienveillante. InfinitiaX m'a permis de booster ma carrière dans le marketing digital.",
+      content: "Excellent contenu, instructeurs passionnés et communauté bienveillante. Learneezy m'a permis de booster ma carrière dans le marketing digital.",
       rating: 5
     },
     {

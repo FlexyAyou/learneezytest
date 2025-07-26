@@ -63,7 +63,7 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Custom InfinitiaX theme colors
+				// Custom Learneezy theme colors
 				infinitia: {
 					pink: {
 						50: '#fdf2f8',

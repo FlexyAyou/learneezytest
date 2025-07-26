@@ -37,7 +37,7 @@ const Courses = () => {
       id: 2,
       title: "Français - Analyse de Texte",
       instructor: "Paul Martin",
-      image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=250&fit=crop",
+      image: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=250&fit=crop",
       duration: "1h30",
       students: 38,
       rating: 4.9,

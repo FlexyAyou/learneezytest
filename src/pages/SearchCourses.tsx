@@ -41,7 +41,7 @@ const SearchCourses = () => {
     },
     {
       id: 2,
-      title: "Design UX/UI pour débutants",
+      title: "SVP pour débutants",
       instructor: "Pierre Martin",
       category: "Design",
       level: "Débutant",
@@ -50,7 +50,7 @@ const SearchCourses = () => {
       duration: "8 heures",
       price: 69,
       image: "https://images.unsplash.com/photo-1586717791821-3f44a563fa4c?w=400&h=200&fit=crop",
-      description: "Maîtrisez les principes du design UX/UI"
+      description: "Maîtrisez les principes du SVP"
     },
     {
       id: 3,

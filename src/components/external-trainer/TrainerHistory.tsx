@@ -33,7 +33,7 @@ const TrainerHistory = () => {
       time: '14:00-16:00',
       duration: 2,
       student: { name: 'Pierre Durand', email: 'pierre@example.com', avatar: '' },
-      subject: 'JavaScript ES6+',
+      subject: 'Anglais',
       price: 80,
       netEarnings: 56,
       rating: 4,

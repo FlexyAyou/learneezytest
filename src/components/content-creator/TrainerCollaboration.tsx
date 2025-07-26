@@ -27,7 +27,7 @@ export function TrainerCollaboration() {
   const [collaborations, setCollaborations] = useState([
     {
       id: 1,
-      moduleTitle: "Formation React Avancée",
+      moduleTitle: "Formation Mathématiquese",
       trainers: [
         { id: 1, name: "Marie Dubois", role: "Formateur expert", avatar: "/api/placeholder/32/32" },
         { id: 2, name: "Pierre Martin", role: "Formateur junior", avatar: "/api/placeholder/32/32" }

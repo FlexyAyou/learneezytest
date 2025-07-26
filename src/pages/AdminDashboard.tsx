@@ -56,7 +56,7 @@ const AdminDashboard = () => {
 
   const userInfo = {
     name: "Admin Système",
-    email: "admin@infinitiax.com"
+    email: "admin@Learneezy.com"
   };
 
   const mockAllDocuments = [

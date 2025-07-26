@@ -10,7 +10,7 @@ const StudentCourses = () => {
   const courses = [
     {
       id: 1,
-      title: "React Avancé",
+      title: "Mathématiques",
       instructor: "Marie Dubois",
       progress: 75,
       totalLessons: 24,
@@ -23,7 +23,7 @@ const StudentCourses = () => {
     },
     {
       id: 2,
-      title: "Design UX/UI",
+      title: "SVP",
       instructor: "Pierre Martin",
       progress: 40,
       totalLessons: 20,
@@ -36,7 +36,7 @@ const StudentCourses = () => {
     },
     {
       id: 3,
-      title: "JavaScript ES6+",
+      title: "Anglais",
       instructor: "Sophie Laurent",
       progress: 100,
       totalLessons: 16,

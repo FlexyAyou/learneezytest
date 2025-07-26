@@ -47,7 +47,7 @@ const InstructorOFDocuments = () => {
 
   const userInfo = {
     name: "Dr. Marie Dubois",
-    email: "marie.dubois@infinitiax.com"
+    email: "marie.dubois@Learneezy.com"
   };
 
   const getStatusBadge = (status: string) => {

@@ -52,7 +52,7 @@ const Footer = () => {
             <ul className="space-y-3">
               <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Développement Web</a></li>
               <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Intelligence Artificielle</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Design UX/UI</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">SVP</a></li>
               <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Marketing Digital</a></li>
               <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Cybersécurité</a></li>
               <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Data Science</a></li>
@@ -69,8 +69,8 @@ const Footer = () => {
               </div>
               <div className="flex items-center space-x-3">
                 <Mail className="h-5 w-5 text-pink-400 flex-shrink-0" />
-                <a href="mailto:contact@infinitiaX.fr" className="text-gray-400 hover:text-white transition-colors">
-                  contact@infinitiaX.fr
+                <a href="mailto:contact@Learneezy.fr" className="text-gray-400 hover:text-white transition-colors">
+                  contact@Learneezy.fr
                 </a>
               </div>
               <div className="flex items-center space-x-3">
