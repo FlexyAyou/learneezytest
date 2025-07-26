@@ -44,12 +44,32 @@ import { PositioningTest } from '@/components/common/PositioningTest';
 
 const ExternalTrainerDashboardHome = () => {
   const { toast } = useToast();
-
+  
   const stats = [
-    { title: 'Heures réservées', value: '124h', icon: Clock, color: 'text-blue-600' },
-    { title: 'Revenus ce mois', value: '3,840€', icon: DollarSign, color: 'text-green-600' },
-    { title: 'Note moyenne', value: '4.9', icon: Star, color: 'text-yellow-600' },
-    { title: 'Étudiants formés', value: '67', icon: Users, color: 'text-purple-600' },
+    {
+      title: "Revenus ce mois",
+      value: "2,450€",
+      icon: DollarSign,
+      change: "+15% vs mois dernier"
+    },
+    {
+      title: "Heures planifiées",
+      value: "32h",
+      icon: Clock,
+      change: "Cette semaine"
+    },
+    {
+      title: "Note moyenne",
+      value: "4.8",
+      icon: Star,
+      change: "Basé sur 47 avis"
+    },
+    {
+      title: "Étudiants actifs",
+      value: "23",
+      icon: Users,
+      change: "+2 ce mois"
+    }
   ];
 
   const availableSlots = [

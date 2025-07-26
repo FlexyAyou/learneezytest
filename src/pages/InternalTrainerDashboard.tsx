@@ -41,12 +41,32 @@ import { PositioningTest } from '@/components/common/PositioningTest';
 const InternalTrainerDashboardHome = () => {
   const { toast } = useToast();
   const [canCreateContent, setCanCreateContent] = useState(true);
-
+  
   const stats = [
-    { title: 'Cours créés', value: '12', icon: BookOpen, color: 'text-blue-600' },
-    { title: 'Étudiants actifs', value: '324', icon: Users, color: 'text-green-600' },
-    { title: 'Sessions animées', value: '28', icon: Video, color: 'text-purple-600' },
-    { title: 'Note moyenne', value: '4.8', icon: Award, color: 'text-orange-600' },
+    {
+      title: "Étudiants actifs",
+      value: "47",
+      icon: Users,
+      change: "+3 cette semaine"
+    },
+    {
+      title: "Sessions planifiées",
+      value: "12",
+      icon: Calendar,
+      change: "Cette semaine"
+    },
+    {
+      title: "Messages en attente",
+      value: "8",
+      icon: MessageSquare,
+      change: "À traiter"
+    },
+    {
+      title: "Contenu créé",
+      value: "23",
+      icon: BookOpen,
+      change: "Modules disponibles"
+    }
   ];
 
   const activeCourses = [

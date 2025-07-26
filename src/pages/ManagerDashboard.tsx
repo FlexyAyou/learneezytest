@@ -14,7 +14,8 @@ import {
   ClipboardList,
   Settings,
   MessageSquare,
-  UserPlus
+  UserPlus,
+  FileText
 } from 'lucide-react';
 import ManagerPlanning from '@/components/manager/ManagerPlanning';
 import ManagerAttendance from '@/components/manager/ManagerAttendance';
@@ -25,20 +26,31 @@ import ManagerReports from '@/components/manager/ManagerReports';
 import { useToast } from '@/hooks/use-toast';
 
 const ManagerDashboardHome = () => {
-  const { toast } = useToast();
-
-  const handleAssignTraining = (userId: number, trainingId: number) => {
-    toast({
-      title: "Formation assignée",
-      description: `Formation assignée avec succès à l'utilisateur #${userId}`,
-    });
-  };
-
   const stats = [
-    { title: 'Apprenants gérés', value: '245', icon: Users, color: 'text-blue-600' },
-    { title: 'Formations actives', value: '18', icon: BookOpen, color: 'text-green-600' },
-    { title: 'Sessions planifiées', value: '8', icon: Calendar, color: 'text-purple-600' },
-    { title: 'Taux de réussite', value: '92%', icon: TrendingUp, color: 'text-orange-600' },
+    {
+      title: "Inscriptions actives",
+      value: "142",
+      icon: Users,
+      change: "+12 cette semaine"
+    },
+    {
+      title: "Sessions planifiées",
+      value: "28",
+      icon: Calendar,
+      change: "Cette semaine"
+    },
+    {
+      title: "Rapports en attente",
+      value: "5",
+      icon: FileText,
+      change: "À valider"
+    },
+    {
+      title: "Taux de présence",
+      value: "94%",
+      icon: TrendingUp,
+      change: "+2% ce mois"
+    }
   ];
 
   const upcomingSessions = [

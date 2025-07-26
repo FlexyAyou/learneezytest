@@ -23,10 +23,32 @@ import { useToast } from '@/hooks/use-toast';
 
 const ParentDashboardHome = () => {
   const { toast } = useToast();
-
+  
   const children = [
-    { id: 1, name: 'Emma Durand', age: 16, courses: 3, avgScore: 85 },
-    { id: 2, name: 'Lucas Durand', age: 14, courses: 2, avgScore: 92 },
+    {
+      id: '1',
+      name: 'Emma Dubois',
+      age: 8,
+      grade: 'CE2',
+      courses: [
+        { name: 'Mathématiques', progress: 75, nextSession: 'Demain 14h' },
+        { name: 'Français', progress: 60, nextSession: 'Vendredi 16h' }
+      ],
+      weeklyHours: 4,
+      averageGrade: 85
+    },
+    {
+      id: '2',
+      name: 'Lucas Dubois',
+      age: 10,
+      grade: 'CM2',
+      courses: [
+        { name: 'Sciences', progress: 90, nextSession: 'Jeudi 15h' },
+        { name: 'Histoire', progress: 55, nextSession: 'Lundi 17h' }
+      ],
+      weeklyHours: 3,
+      averageGrade: 78
+    }
   ];
 
   const activeCourses = [
@@ -120,12 +142,12 @@ const ParentDashboardHome = () => {
                     <p className="text-sm text-gray-600">{child.age} ans</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-bold text-green-600">{child.avgScore}%</p>
+                    <p className="text-2xl font-bold text-green-600">{child.averageGrade}%</p>
                     <p className="text-xs text-gray-600">Moyenne générale</p>
                   </div>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span>{child.courses} cours actifs</span>
+                  <span>{child.courses.length} cours actifs</span>
                   <Badge variant="secondary">Actif</Badge>
                 </div>
               </div>

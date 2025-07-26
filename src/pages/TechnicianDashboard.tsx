@@ -16,8 +16,39 @@ import {
   Database
 } from "lucide-react";
 
-export default function TechnicianDashboard() {
+const TechnicianDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
+  
+  const systemStats = [
+    {
+      title: "Système opérationnel",
+      value: "99.8%",
+      icon: CheckCircle,
+      status: "good",
+      change: "Temps d'activité"
+    },
+    {
+      title: "Alertes actives",
+      value: "3",
+      icon: AlertTriangle,
+      status: "warning",
+      change: "À traiter"
+    },
+    {
+      title: "Serveurs en ligne",
+      value: "12/12",
+      icon: Server,
+      status: "good",
+      change: "Infrastructure stable"
+    },
+    {
+      title: "Tickets support",
+      value: "7",
+      icon: Settings,
+      status: "info",
+      change: "En cours"
+    }
+  ];
 
   const stats = {
     incidents: {
@@ -242,4 +273,6 @@ export default function TechnicianDashboard() {
       </div>
     </div>
   );
-}
+};
+
+export default TechnicianDashboard;
