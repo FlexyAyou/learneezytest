@@ -1,8 +1,10 @@
 import React from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { Users, BookOpen, DollarSign, Settings, BarChart3, Shield, Key, FileText, MessageSquare, Video, Download, Brain, TestTube, Home, UserCheck, PenTool } from 'lucide-react';
+import { Users, BookOpen, DollarSign, Settings, BarChart3, Shield, Key, FileText, MessageSquare, Video, Download, Brain, TestTube, Home, UserCheck, PenTool, Mail, FileSignature } from 'lucide-react';
 import AdminInscriptions from './admin/AdminInscriptions';
 import AdminDocumentsOF from './admin/AdminDocumentsOF';
+import AdminAutomaticMailings from './admin/AdminAutomaticMailings';
+import AdminConventionGenerator from './admin/AdminConventionGenerator';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
@@ -33,6 +35,8 @@ const AdminDashboard = () => {
     // === SECTION OF COMPLÈTE ===
     { title: "Inscriptions", href: "/dashboard/admin/inscriptions", icon: UserCheck, isActive: currentPath === "/dashboard/admin/inscriptions" },
     { title: "Documents OF", href: "/dashboard/admin/of-documents", icon: FileText, isActive: currentPath === "/dashboard/admin/of-documents" },
+    { title: "Conventions", href: "/dashboard/admin/conventions", icon: FileSignature, isActive: currentPath === "/dashboard/admin/conventions" },
+    { title: "Envois automatiques", href: "/dashboard/admin/mailings", icon: Mail, isActive: currentPath === "/dashboard/admin/mailings" },
     { title: "Émargements", href: "/dashboard/admin/emargements", icon: PenTool, isActive: currentPath === "/dashboard/admin/emargements" },
     // === SECTION ADMINISTRATION ===
     { title: "Gestion licences", href: "/dashboard/admin/licenses", icon: Key, isActive: currentPath === "/dashboard/admin/licenses" },
@@ -218,6 +222,8 @@ const AdminDashboard = () => {
             <Route path="/tests" element={<PositioningTest userRole="admin" />} />
             <Route path="/inscriptions" element={<AdminInscriptions />} />
             <Route path="/of-documents" element={<AdminDocumentsOF />} />
+            <Route path="/conventions" element={<AdminConventionGenerator />} />
+            <Route path="/mailings" element={<AdminAutomaticMailings />} />
             <Route path="/emargements" element={<div>Gestion émargements à implémenter</div>} />
             <Route path="/video" element={<VideoConference isHost={true} />} />
             <Route path="/chat" element={<AIChat />} />
