@@ -14,6 +14,258 @@ export type Database = {
   }
   public: {
     Tables: {
+      automatic_mailings: {
+        Row: {
+          content: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          inscription_id: string
+          recipient_email: string
+          sent_at: string | null
+          status: string
+          type: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          inscription_id: string
+          recipient_email: string
+          sent_at?: string | null
+          status?: string
+          type: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          inscription_id?: string
+          recipient_email?: string
+          sent_at?: string | null
+          status?: string
+          type?: string
+        }
+        Relationships: []
+      }
+      documents_of: {
+        Row: {
+          content: string | null
+          created_at: string
+          file_url: string | null
+          id: string
+          is_active: boolean | null
+          is_template: boolean | null
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          file_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_template?: boolean | null
+          title: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          file_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_template?: boolean | null
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      emargements: {
+        Row: {
+          course_id: string
+          created_at: string
+          id: string
+          ip_address: string | null
+          is_present: boolean | null
+          notes: string | null
+          session_date: string
+          session_end_time: string
+          session_start_time: string
+          signature_data: string | null
+          signature_timestamp: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          is_present?: boolean | null
+          notes?: string | null
+          session_date: string
+          session_end_time: string
+          session_start_time: string
+          signature_data?: string | null
+          signature_timestamp?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          is_present?: boolean | null
+          notes?: string | null
+          session_date?: string
+          session_end_time?: string
+          session_start_time?: string
+          signature_data?: string | null
+          signature_timestamp?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      evaluations: {
+        Row: {
+          completed_at: string | null
+          course_id: string
+          created_at: string
+          id: string
+          is_completed: boolean | null
+          max_score: number | null
+          percentage: number | null
+          questions: Json | null
+          score: number | null
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          course_id: string
+          created_at?: string
+          id?: string
+          is_completed?: boolean | null
+          max_score?: number | null
+          percentage?: number | null
+          questions?: Json | null
+          score?: number | null
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          course_id?: string
+          created_at?: string
+          id?: string
+          is_completed?: boolean | null
+          max_score?: number | null
+          percentage?: number | null
+          questions?: Json | null
+          score?: number | null
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      inscriptions: {
+        Row: {
+          convention_signed: boolean | null
+          course_id: string
+          created_at: string
+          documents_sent: boolean | null
+          id: string
+          signature_data: string | null
+          signature_ip: string | null
+          signature_timestamp: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          convention_signed?: boolean | null
+          course_id: string
+          created_at?: string
+          documents_sent?: boolean | null
+          id?: string
+          signature_data?: string | null
+          signature_ip?: string | null
+          signature_timestamp?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          convention_signed?: boolean | null
+          course_id?: string
+          created_at?: string
+          documents_sent?: boolean | null
+          id?: string
+          signature_data?: string | null
+          signature_ip?: string | null
+          signature_timestamp?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      organisations_formation: {
+        Row: {
+          address: string | null
+          created_at: string
+          email: string | null
+          id: string
+          logo_url: string | null
+          name: string
+          numero_declaration: string | null
+          phone: string | null
+          qualiopi_certified: boolean | null
+          settings: Json | null
+          siret: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          numero_declaration?: string | null
+          phone?: string | null
+          qualiopi_certified?: boolean | null
+          settings?: Json | null
+          siret?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          numero_declaration?: string | null
+          phone?: string | null
+          qualiopi_certified?: boolean | null
+          settings?: Json | null
+          siret?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null

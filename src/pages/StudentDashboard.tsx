@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { BookOpen, User, Award, MessageSquare, Settings, Home, Video, Download, Brain, TestTube } from 'lucide-react';
+import { BookOpen, User, Award, MessageSquare, Settings, Home, Video, Download, Brain, TestTube, FileText, PenTool, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
@@ -10,6 +10,9 @@ import StudentProgress from './StudentProgress';
 import StudentCertificates from './StudentCertificates';
 import StudentSettings from './StudentSettings';
 import StudentMessaging from './StudentMessaging';
+import StudentInscriptions from './student/StudentInscriptions';
+import StudentEmargements from './student/StudentEmargements';
+import StudentEvaluations from './student/StudentEvaluations';
 import { DocumentDownload } from '@/components/common/DocumentDownload';
 import { AIChat } from '@/components/common/AIChat';
 import { VideoConference } from '@/components/common/VideoConference';
@@ -26,6 +29,11 @@ const StudentDashboard = () => {
     { title: "Mes cours", href: "/dashboard/etudiant/courses", icon: BookOpen, isActive: currentPath === "/dashboard/etudiant/courses" },
     { title: "Mon progrès", href: "/dashboard/etudiant/progress", icon: Award, isActive: currentPath === "/dashboard/etudiant/progress" },
     { title: "Certificats", href: "/dashboard/etudiant/certificates", icon: Award, isActive: currentPath === "/dashboard/etudiant/certificates" },
+    // === SECTION OF COMPLÈTE ===
+    { title: "Mes inscriptions", href: "/dashboard/etudiant/inscriptions", icon: FileText, isActive: currentPath === "/dashboard/etudiant/inscriptions" },
+    { title: "Émargement", href: "/dashboard/etudiant/emargements", icon: PenTool, isActive: currentPath === "/dashboard/etudiant/emargements" },
+    { title: "Évaluations", href: "/dashboard/etudiant/evaluations", icon: TrendingUp, isActive: currentPath === "/dashboard/etudiant/evaluations" },
+    // === SECTION OUTILS ===
     { title: "Tests de positionnement", href: "/dashboard/etudiant/tests", icon: TestTube, isActive: currentPath === "/dashboard/etudiant/tests" },
     { title: "Mes documents", href: "/dashboard/etudiant/documents", icon: Download, isActive: currentPath === "/dashboard/etudiant/documents" },
     { title: "Messages", href: "/dashboard/etudiant/messages", icon: MessageSquare, badge: "3", isActive: currentPath === "/dashboard/etudiant/messages" },
@@ -166,6 +174,11 @@ const StudentDashboard = () => {
             <Route path="/courses" element={<StudentCourses />} />
             <Route path="/progress" element={<StudentProgress />} />
             <Route path="/certificates" element={<StudentCertificates />} />
+            {/* === ROUTES OF COMPLÈTES === */}
+            <Route path="/inscriptions" element={<StudentInscriptions />} />
+            <Route path="/emargements" element={<StudentEmargements />} />
+            <Route path="/evaluations" element={<StudentEvaluations />} />
+            {/* === ROUTES OUTILS === */}
             <Route path="/tests" element={<PositioningTest userRole="student" />} />
             <Route path="/video" element={<VideoConference />} />
             <Route path="/chat" element={<AIChat />} />

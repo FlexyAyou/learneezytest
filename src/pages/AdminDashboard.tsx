@@ -1,6 +1,8 @@
 import React from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { Users, BookOpen, DollarSign, Settings, BarChart3, Shield, Key, FileText, MessageSquare, Video, Download, Brain, TestTube, Home } from 'lucide-react';
+import { Users, BookOpen, DollarSign, Settings, BarChart3, Shield, Key, FileText, MessageSquare, Video, Download, Brain, TestTube, Home, UserCheck, PenTool } from 'lucide-react';
+import AdminInscriptions from './admin/AdminInscriptions';
+import AdminDocumentsOF from './admin/AdminDocumentsOF';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
@@ -28,10 +30,14 @@ const AdminDashboard = () => {
     { title: "Tableau de bord", href: "/dashboard/admin", icon: Home, isActive: currentPath === "/dashboard/admin" },
     { title: "Utilisateurs", href: "/dashboard/admin/users", icon: Users, isActive: currentPath === "/dashboard/admin/users" },
     { title: "Cours", href: "/dashboard/admin/courses", icon: BookOpen, isActive: currentPath === "/dashboard/admin/courses" },
+    // === SECTION OF COMPLÈTE ===
+    { title: "Inscriptions", href: "/dashboard/admin/inscriptions", icon: UserCheck, isActive: currentPath === "/dashboard/admin/inscriptions" },
+    { title: "Documents OF", href: "/dashboard/admin/of-documents", icon: FileText, isActive: currentPath === "/dashboard/admin/of-documents" },
+    { title: "Émargements", href: "/dashboard/admin/emargements", icon: PenTool, isActive: currentPath === "/dashboard/admin/emargements" },
+    // === SECTION ADMINISTRATION ===
     { title: "Gestion licences", href: "/dashboard/admin/licenses", icon: Key, isActive: currentPath === "/dashboard/admin/licenses" },
     { title: "Vérification identité", href: "/dashboard/admin/identity", icon: Shield, isActive: currentPath === "/dashboard/admin/identity" },
     { title: "Tests positionnement", href: "/dashboard/admin/tests", icon: TestTube, isActive: currentPath === "/dashboard/admin/tests" },
-    { title: "Documents OF", href: "/dashboard/admin/of-documents", icon: FileText, isActive: currentPath === "/dashboard/admin/of-documents" },
     { title: "Visioconférence", href: "/dashboard/admin/video", icon: Video, isActive: currentPath === "/dashboard/admin/video" },
     { title: "Chat IA", href: "/dashboard/admin/chat", icon: Brain, isActive: currentPath === "/dashboard/admin/chat" },
     { title: "Tous les documents", href: "/dashboard/admin/documents", icon: Download, isActive: currentPath === "/dashboard/admin/documents" },
@@ -210,7 +216,9 @@ const AdminDashboard = () => {
             <Route path="/licenses" element={<LicenseManagement />} />
             <Route path="/identity" element={<IdentityVerification />} />
             <Route path="/tests" element={<PositioningTest userRole="admin" />} />
-            <Route path="/of-documents" element={<div>Gestion des documents OF (à implémenter)</div>} />
+            <Route path="/inscriptions" element={<AdminInscriptions />} />
+            <Route path="/of-documents" element={<AdminDocumentsOF />} />
+            <Route path="/emargements" element={<div>Gestion émargements à implémenter</div>} />
             <Route path="/video" element={<VideoConference isHost={true} />} />
             <Route path="/chat" element={<AIChat />} />
             <Route path="/documents" element={<DocumentDownload documents={mockAllDocuments} userRole="admin" />} />

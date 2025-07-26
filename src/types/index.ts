@@ -173,6 +173,94 @@ export interface AdminStats {
   }[];
 }
 
+// ============ TYPES POUR SYSTÈME OF COMPLET ============
+
+export interface Inscription {
+  id: string;
+  userId: string;
+  courseId: string;
+  status: 'pending' | 'validated' | 'rejected' | 'completed';
+  signatureData?: string; // Données de la signature électronique
+  signatureIp?: string;
+  signatureTimestamp?: string;
+  conventionSigned: boolean;
+  documentsSent: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DocumentOF {
+  id: string;
+  type: 'programme' | 'reglement' | 'cgv' | 'convention' | 'convocation' | 'attestation' | 'certificat';
+  title: string;
+  content?: string; // Contenu du document ou template
+  fileUrl?: string; // URL du fichier PDF généré
+  isTemplate: boolean;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Emargement {
+  id: string;
+  userId: string;
+  courseId: string;
+  sessionDate: string; // Date de la séance
+  sessionStartTime: string; // Heure de début
+  sessionEndTime: string; // Heure de fin
+  signatureData?: string; // Signature numérique de présence
+  signatureTimestamp?: string;
+  ipAddress?: string;
+  isPresent: boolean;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Evaluation {
+  id: string;
+  userId: string;
+  courseId: string;
+  type: 'positionnement' | 'final' | 'satisfaction';
+  questions?: any; // Questions et réponses en JSONB
+  score?: number;
+  maxScore?: number;
+  percentage?: number;
+  completedAt?: string;
+  isCompleted: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AutomaticMailing {
+  id: string;
+  inscriptionId: string;
+  type: 'programme' | 'reglement' | 'cgv' | 'convocation' | 'satisfaction' | 'relance';
+  status: 'pending' | 'sent' | 'failed';
+  sentAt?: string;
+  recipientEmail: string;
+  content?: string;
+  errorMessage?: string;
+  createdAt: string;
+}
+
+export interface OrganisationFormation {
+  id: string;
+  name: string;
+  logoUrl?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  siret?: string;
+  numeroDeclaration?: string; // Numéro de déclaration d'activité
+  qualiopiCertified: boolean;
+  settings?: any; // Paramètres personnalisables en JSONB
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ============ TYPES EXISTANTS ============
+
 export interface ApiResponse<T> {
   data: T;
   message?: string;
