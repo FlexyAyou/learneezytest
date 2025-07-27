@@ -10,34 +10,34 @@ import { Users, UserPlus, Mail, Calendar, FileText, Building, GraduationCap } fr
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+// import { supabase } from '@/integrations/supabase/client';
+// import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface User {
   id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
+  first_name: string;
+  last_name: string;
   role: string;
-  group?: string;
-  establishment?: string;
+  status: string;
 }
 
 interface Course {
   id: string;
   title: string;
-  startDate: string;
-  endDate: string;
-  instructor: string;
+  description?: string;
+  start_date: string;
+  end_date: string;
+  instructor_id: string;
+  status: string;
 }
 
 export const GroupEnrollment = () => {
   const { toast } = useToast();
   
   // États pour l'inscription groupée
-  const [enrollmentType, setEnrollmentType] = useState<'individual' | 'role' | 'group' | 'establishment'>('individual');
+  const [enrollmentType, setEnrollmentType] = useState<'individual' | 'role'>('individual');
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [selectedRole, setSelectedRole] = useState('');
-  const [selectedGroup, setSelectedGroup] = useState('');
-  const [selectedEstablishment, setSelectedEstablishment] = useState('');
   const [selectedCourse, setSelectedCourse] = useState('');
   const [notificationSettings, setNotificationSettings] = useState({
     sendEmail: true,
@@ -48,31 +48,29 @@ export const GroupEnrollment = () => {
 
   // Données mockées
   const users: User[] = [
-    { id: '1', firstName: 'Marie', lastName: 'Dupont', email: 'marie.dupont@email.com', role: 'student', group: 'Classe A', establishment: 'Campus Paris' },
-    { id: '2', firstName: 'Jean', lastName: 'Martin', email: 'jean.martin@email.com', role: 'student', group: 'Classe A', establishment: 'Campus Paris' },
-    { id: '3', firstName: 'Sophie', lastName: 'Bernard', email: 'sophie.bernard@email.com', role: 'instructor', establishment: 'Campus Lyon' },
-    { id: '4', firstName: 'Pierre', lastName: 'Durand', email: 'pierre.durand@email.com', role: 'student', group: 'Classe B', establishment: 'Campus Lyon' },
-    { id: '5', firstName: 'Emma', lastName: 'Leroy', email: 'emma.leroy@email.com', role: 'student', group: 'Classe B', establishment: 'Campus Paris' },
+    { id: '1', first_name: 'Marie', last_name: 'Dupont', role: 'student', status: 'active' },
+    { id: '2', first_name: 'Jean', last_name: 'Martin', role: 'student', status: 'active' },
+    { id: '3', first_name: 'Sophie', last_name: 'Bernard', role: 'instructor', status: 'active' },
+    { id: '4', first_name: 'Pierre', last_name: 'Durand', role: 'student', status: 'active' },
+    { id: '5', first_name: 'Emma', last_name: 'Leroy', role: 'content_creator', status: 'active' },
+    { id: '6', first_name: 'Alex', last_name: 'Dubois', role: 'tutor', status: 'active' },
+    { id: '7', first_name: 'Sarah', last_name: 'Moreau', role: 'technician', status: 'active' },
   ];
 
   const courses: Course[] = [
-    { id: '1', title: 'Formation React Avancé', startDate: '2024-02-15', endDate: '2024-03-15', instructor: 'Sophie Bernard' },
-    { id: '2', title: 'Gestion de Projet Agile', startDate: '2024-02-20', endDate: '2024-03-20', instructor: 'Jean Martin' },
-    { id: '3', title: 'Marketing Digital', startDate: '2024-03-01', endDate: '2024-04-01', instructor: 'Marie Dupont' },
+    { id: '1', title: 'Formation React Avancé', description: 'Développement d\'applications React', start_date: '2024-02-15', end_date: '2024-03-15', instructor_id: '3', status: 'active' },
+    { id: '2', title: 'Gestion de Projet Agile', description: 'Méthodologies agiles et Scrum', start_date: '2024-02-20', end_date: '2024-03-20', instructor_id: '2', status: 'active' },
+    { id: '3', title: 'Marketing Digital', description: 'Stratégies de marketing en ligne', start_date: '2024-03-01', end_date: '2024-04-01', instructor_id: '1', status: 'active' },
   ];
 
-  const roles = ['student', 'instructor', 'manager', 'admin'];
-  const groups = ['Classe A', 'Classe B', 'Promotion 2024', 'Formation Continue'];
-  const establishments = ['Campus Paris', 'Campus Lyon', 'Campus Marseille', 'Centre Formation'];
+  const roles = ['student', 'instructor', 'manager', 'admin', 'content_creator', 'tutor', 'technician'];
+  const usersLoading = false;
+  const coursesLoading = false;
 
   const getFilteredUsers = () => {
     switch (enrollmentType) {
       case 'role':
         return selectedRole ? users.filter(user => user.role === selectedRole) : [];
-      case 'group':
-        return selectedGroup ? users.filter(user => user.group === selectedGroup) : [];
-      case 'establishment':
-        return selectedEstablishment ? users.filter(user => user.establishment === selectedEstablishment) : [];
       default:
         return users;
     }
@@ -131,7 +129,7 @@ export const GroupEnrollment = () => {
       // Simulation d'envoi des notifications
       if (notificationSettings.sendEmail) {
         for (const user of enrolledUsers) {
-          console.log(`Email envoyé à ${user.email} pour la formation ${course?.title}`);
+          console.log(`Email envoyé à ${user.first_name}.${user.last_name}@email.com pour la formation ${course?.title}`);
         }
       }
 
@@ -197,8 +195,6 @@ export const GroupEnrollment = () => {
                     <SelectContent>
                       <SelectItem value="individual">Sélection individuelle</SelectItem>
                       <SelectItem value="role">Par rôle</SelectItem>
-                      <SelectItem value="group">Par groupe/classe</SelectItem>
-                      <SelectItem value="establishment">Par établissement</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -215,7 +211,11 @@ export const GroupEnrollment = () => {
                           <SelectItem key={role} value={role}>
                             {role === 'student' ? 'Étudiant' : 
                              role === 'instructor' ? 'Formateur' :
-                             role === 'manager' ? 'Gestionnaire' : 'Administrateur'}
+                             role === 'manager' ? 'Gestionnaire' : 
+                             role === 'admin' ? 'Administrateur' :
+                             role === 'content_creator' ? 'Créateur de contenu' :
+                             role === 'tutor' ? 'Tuteur' :
+                             role === 'technician' ? 'Technicien' : role}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -223,37 +223,6 @@ export const GroupEnrollment = () => {
                   </div>
                 )}
 
-                {enrollmentType === 'group' && (
-                  <div>
-                    <Label>Groupe/Classe</Label>
-                    <Select value={selectedGroup} onValueChange={setSelectedGroup}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionnez un groupe" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {groups.map(group => (
-                          <SelectItem key={group} value={group}>{group}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-
-                {enrollmentType === 'establishment' && (
-                  <div>
-                    <Label>Établissement</Label>
-                    <Select value={selectedEstablishment} onValueChange={setSelectedEstablishment}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionnez un établissement" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {establishments.map(establishment => (
-                          <SelectItem key={establishment} value={establishment}>{establishment}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
 
                 <div className="flex space-x-2">
                   <Button variant="outline" size="sm" onClick={handleSelectAll}>
@@ -277,34 +246,32 @@ export const GroupEnrollment = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2 max-h-96 overflow-y-auto">
-                  {getFilteredUsers().map(user => (
-                    <div key={user.id} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
-                      <Checkbox
-                        checked={selectedUsers.includes(user.id)}
-                        onCheckedChange={(checked) => handleUserSelection(user.id, checked as boolean)}
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2">
-                          <span className="font-medium">{user.firstName} {user.lastName}</span>
-                          <Badge variant="outline">{user.role}</Badge>
+                {usersLoading ? (
+                  <div className="text-center py-8">Chargement des utilisateurs...</div>
+                ) : (
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {getFilteredUsers().map(user => (
+                      <div key={user.id} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
+                        <Checkbox
+                          checked={selectedUsers.includes(user.id)}
+                          onCheckedChange={(checked) => handleUserSelection(user.id, checked as boolean)}
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-medium">{user.first_name} {user.last_name}</span>
+                            <Badge variant="outline">{user.role}</Badge>
+                          </div>
+                          <p className="text-sm text-gray-600">Statut: {user.status}</p>
                         </div>
-                        <p className="text-sm text-gray-600">{user.email}</p>
-                        {user.group && (
-                          <p className="text-xs text-gray-500">Groupe: {user.group}</p>
-                        )}
-                        {user.establishment && (
-                          <p className="text-xs text-gray-500">Établissement: {user.establishment}</p>
-                        )}
                       </div>
-                    </div>
-                  ))}
-                  {getFilteredUsers().length === 0 && (
-                    <p className="text-center text-gray-500 py-8">
-                      Aucun utilisateur ne correspond aux critères sélectionnés
-                    </p>
-                  )}
-                </div>
+                    ))}
+                    {getFilteredUsers().length === 0 && (
+                      <p className="text-center text-gray-500 py-8">
+                        Aucun utilisateur ne correspond aux critères sélectionnés
+                      </p>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -322,35 +289,41 @@ export const GroupEnrollment = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <Label>Sélectionner une formation</Label>
-                  <Select value={selectedCourse} onValueChange={setSelectedCourse}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choisissez une formation" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {courses.map(course => (
-                        <SelectItem key={course.id} value={course.id}>
-                          {course.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {selectedCourseData && (
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <h4 className="font-medium mb-2">{selectedCourseData.title}</h4>
-                    <div className="text-sm text-gray-600 space-y-1">
-                      <p><Calendar className="h-4 w-4 inline mr-1" />
-                        Du {new Date(selectedCourseData.startDate).toLocaleDateString()} 
-                        au {new Date(selectedCourseData.endDate).toLocaleDateString()}
-                      </p>
-                      <p><Users className="h-4 w-4 inline mr-1" />
-                        Formateur: {selectedCourseData.instructor}
-                      </p>
+                {coursesLoading ? (
+                  <div className="text-center py-4">Chargement des formations...</div>
+                ) : (
+                  <>
+                    <div>
+                      <Label>Sélectionner une formation</Label>
+                      <Select value={selectedCourse} onValueChange={setSelectedCourse}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Choisissez une formation" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {courses.map(course => (
+                            <SelectItem key={course.id} value={course.id}>
+                              {course.title}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
-                  </div>
+
+                    {selectedCourseData && (
+                      <div className="p-4 bg-gray-50 rounded-lg">
+                        <h4 className="font-medium mb-2">{selectedCourseData.title}</h4>
+                        {selectedCourseData.description && (
+                          <p className="text-sm text-gray-600 mb-2">{selectedCourseData.description}</p>
+                        )}
+                        <div className="text-sm text-gray-600 space-y-1">
+                          <p><Calendar className="h-4 w-4 inline mr-1" />
+                            Du {new Date(selectedCourseData.start_date).toLocaleDateString()} 
+                            au {new Date(selectedCourseData.end_date).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
               </CardContent>
             </Card>
@@ -427,8 +400,8 @@ export const GroupEnrollment = () => {
                   <h4 className="font-medium text-blue-900 mb-2">Formation sélectionnée</h4>
                   <p className="text-blue-800">{selectedCourseData.title}</p>
                   <p className="text-sm text-blue-600">
-                    Du {new Date(selectedCourseData.startDate).toLocaleDateString()} 
-                    au {new Date(selectedCourseData.endDate).toLocaleDateString()}
+                    Du {new Date(selectedCourseData.start_date).toLocaleDateString()} 
+                    au {new Date(selectedCourseData.end_date).toLocaleDateString()}
                   </p>
                 </div>
               )}
@@ -442,7 +415,7 @@ export const GroupEnrollment = () => {
                   {selectedUsersData.map(user => (
                     <div key={user.id} className="p-2 bg-gray-50 rounded flex items-center space-x-2">
                       <UserPlus className="h-4 w-4 text-green-600" />
-                      <span className="text-sm">{user.firstName} {user.lastName}</span>
+                      <span className="text-sm">{user.first_name} {user.last_name}</span>
                     </div>
                   ))}
                 </div>

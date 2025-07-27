@@ -23,6 +23,7 @@ import { VideoConference } from '@/components/common/VideoConference';
 import { PositioningTest } from '@/components/common/PositioningTest';
 import { AddUser } from '@/components/admin/AddUser';
 import { GroupEnrollment } from '@/components/admin/GroupEnrollment';
+import AdminEmargements from '@/components/admin/AdminEmargements';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -226,7 +227,7 @@ const AdminDashboard = () => {
             <Route path="/of-documents" element={<AdminDocumentsOF />} />
             <Route path="/conventions" element={<AdminConventionGenerator />} />
             <Route path="/mailings" element={<AdminAutomaticMailings />} />
-            <Route path="/emargements" element={<div>Gestion émargements à implémenter</div>} />
+            <Route path="/emargements" element={<AdminEmargements />} />
             <Route path="/video" element={<VideoConference isHost={true} />} />
             <Route path="/chat" element={<AIChat />} />
             <Route path="/documents" element={<DocumentDownload documents={mockAllDocuments} userRole="admin" />} />
