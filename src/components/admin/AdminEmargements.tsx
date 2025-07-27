@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -41,7 +42,7 @@ interface EmargementWithDetails extends Emargement {
 
 export const AdminEmargements = () => {
   const { toast } = useToast();
-  const [selectedCourse, setSelectedCourse] = useState<string>('');
+  const [selectedCourse, setSelectedCourse] = useState<string>('all');
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'present' | 'absent'>('all');
 
@@ -140,11 +141,26 @@ export const AdminEmargements = () => {
   };
 
   const getFilteredEmargements = () => {
-    return emargements.filter(emg => {
-      if (filterStatus === 'present') return emg.is_present;
-      if (filterStatus === 'absent') return !emg.is_present;
-      return true;
-    });
+    let filtered = emargements;
+
+    // Filter by course
+    if (selectedCourse && selectedCourse !== 'all') {
+      filtered = filtered.filter(emg => emg.course_id === selectedCourse);
+    }
+
+    // Filter by date
+    if (selectedDate) {
+      filtered = filtered.filter(emg => emg.session_date === selectedDate);
+    }
+
+    // Filter by status
+    if (filterStatus === 'present') {
+      filtered = filtered.filter(emg => emg.is_present);
+    } else if (filterStatus === 'absent') {
+      filtered = filtered.filter(emg => !emg.is_present);
+    }
+
+    return filtered;
   };
 
   const getStats = () => {
@@ -245,7 +261,7 @@ export const AdminEmargements = () => {
                   <SelectValue placeholder="Toutes les formations" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Toutes les formations</SelectItem>
+                  <SelectItem value="all">Toutes les formations</SelectItem>
                   {courses.map(course => (
                     <SelectItem key={course.id} value={course.id}>
                       {course.title}

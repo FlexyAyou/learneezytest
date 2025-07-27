@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -37,8 +38,8 @@ export const GroupEnrollment = () => {
   // États pour l'inscription groupée
   const [enrollmentType, setEnrollmentType] = useState<'individual' | 'role'>('individual');
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-  const [selectedRole, setSelectedRole] = useState('');
-  const [selectedCourse, setSelectedCourse] = useState('');
+  const [selectedRole, setSelectedRole] = useState('all');
+  const [selectedCourse, setSelectedCourse] = useState('none');
   const [notificationSettings, setNotificationSettings] = useState({
     sendEmail: true,
     includeProgramFile: true,
@@ -70,7 +71,7 @@ export const GroupEnrollment = () => {
   const getFilteredUsers = () => {
     switch (enrollmentType) {
       case 'role':
-        return selectedRole ? users.filter(user => user.role === selectedRole) : [];
+        return selectedRole && selectedRole !== 'all' ? users.filter(user => user.role === selectedRole) : [];
       default:
         return users;
     }
@@ -96,7 +97,7 @@ export const GroupEnrollment = () => {
   };
 
   const handleEnrollment = async () => {
-    if (!selectedCourse) {
+    if (!selectedCourse || selectedCourse === 'none') {
       toast({
         title: "Erreur",
         description: "Veuillez sélectionner une formation",
@@ -140,7 +141,7 @@ export const GroupEnrollment = () => {
 
       // Réinitialisation du formulaire
       setSelectedUsers([]);
-      setSelectedCourse('');
+      setSelectedCourse('none');
       setEnrollmentType('individual');
 
     } catch (error) {
@@ -207,6 +208,7 @@ export const GroupEnrollment = () => {
                         <SelectValue placeholder="Sélectionnez un rôle" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="all">Tous les rôles</SelectItem>
                         {roles.map(role => (
                           <SelectItem key={role} value={role}>
                             {role === 'student' ? 'Étudiant' : 
@@ -222,7 +224,6 @@ export const GroupEnrollment = () => {
                     </Select>
                   </div>
                 )}
-
 
                 <div className="flex space-x-2">
                   <Button variant="outline" size="sm" onClick={handleSelectAll}>
@@ -300,6 +301,7 @@ export const GroupEnrollment = () => {
                           <SelectValue placeholder="Choisissez une formation" />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="none">Aucune formation sélectionnée</SelectItem>
                           {courses.map(course => (
                             <SelectItem key={course.id} value={course.id}>
                               {course.title}
@@ -441,7 +443,7 @@ export const GroupEnrollment = () => {
                 </Button>
                 <Button 
                   onClick={handleEnrollment}
-                  disabled={!selectedCourse || selectedUsers.length === 0}
+                  disabled={!selectedCourse || selectedCourse === 'none' || selectedUsers.length === 0}
                   className="bg-pink-600 hover:bg-pink-700"
                 >
                   <UserPlus className="h-4 w-4 mr-2" />
