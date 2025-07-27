@@ -249,8 +249,11 @@ export const AddUser = () => {
                       <SelectItem value="student">Étudiant</SelectItem>
                       <SelectItem value="instructor">Formateur Interne</SelectItem>
                       <SelectItem value="external_trainer">Formateur Externe</SelectItem>
+                      <SelectItem value="content_creator">Créateur de contenu</SelectItem>
                       <SelectItem value="manager">Gestionnaire</SelectItem>
                       <SelectItem value="parent">Parent</SelectItem>
+                      <SelectItem value="tutor">Tuteur</SelectItem>
+                      <SelectItem value="technician">Technicien</SelectItem>
                       <SelectItem value="admin">Administrateur</SelectItem>
                     </SelectContent>
                   </Select>

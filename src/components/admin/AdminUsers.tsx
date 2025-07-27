@@ -66,10 +66,16 @@ const AdminUsers = () => {
           <h2 className="text-2xl font-bold text-gray-900">Gestion des utilisateurs</h2>
           <p className="text-gray-600">Gérez tous les utilisateurs de la plateforme</p>
         </div>
-        <Button onClick={handleAddUser} className="bg-pink-600 hover:bg-pink-700">
-          <UserPlus className="h-4 w-4 mr-2" />
-          Ajouter un utilisateur
-        </Button>
+        <div className="flex space-x-4">
+          <Button onClick={handleAddUser} className="bg-pink-600 hover:bg-pink-700">
+            <UserPlus className="h-4 w-4 mr-2" />
+            Ajouter un utilisateur
+          </Button>
+          <Button onClick={() => navigate('/dashboard/admin/group-enrollment')} variant="outline">
+            <Users className="h-4 w-4 mr-2" />
+            Inscription groupée
+          </Button>
+        </div>
       </div>
 
       {/* Statistiques rapides */}

@@ -22,6 +22,7 @@ import { AIChat } from '@/components/common/AIChat';
 import { VideoConference } from '@/components/common/VideoConference';
 import { PositioningTest } from '@/components/common/PositioningTest';
 import { AddUser } from '@/components/admin/AddUser';
+import { GroupEnrollment } from '@/components/admin/GroupEnrollment';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -216,6 +217,7 @@ const AdminDashboard = () => {
             <Route path="/" element={<DashboardHome />} />
             <Route path="/users" element={<AdminUsers />} />
             <Route path="/users/add" element={<AddUser />} />
+            <Route path="/users/group-enrollment" element={<GroupEnrollment />} />
             <Route path="/courses" element={<AdminCourses />} />
             <Route path="/licenses" element={<LicenseManagement />} />
             <Route path="/identity" element={<IdentityVerification />} />
