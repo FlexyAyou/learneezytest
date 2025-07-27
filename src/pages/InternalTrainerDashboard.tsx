@@ -130,7 +130,7 @@ const InternalTrainerDashboardHome = () => {
             <Card key={index}>
               <CardContent className="p-6">
                 <div className="flex items-center">
-                  <Icon className={`h-8 w-8 ${stat.color}`} />
+                  <Icon className="h-8 w-8 text-primary" />
                   <div className="ml-4">
                     <p className="text-2xl font-bold">{stat.value}</p>
                     <p className="text-gray-600 text-sm">{stat.title}</p>
