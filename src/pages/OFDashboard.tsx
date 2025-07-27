@@ -5,6 +5,7 @@ import { FileText, Users, BookOpen, TrendingUp, Shield, Mail, Key, Zap, Home } f
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
 import { OFDashboard as OFDashboardComponent } from '@/components/admin/OFDashboard';
+import AdminDocumentsOF from './admin/AdminDocumentsOF';
 
 const OFDashboard = () => {
   const location = useLocation();
@@ -99,7 +100,7 @@ const OFDashboard = () => {
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-6">
           <Routes>
             <Route path="/" element={<OFDashboardHome />} />
-            <Route path="/documents" element={<OFDashboardComponent />} />
+            <Route path="/documents" element={<AdminDocumentsOF />} />
             <Route path="/apprenants" element={<OFDashboardComponent />} />
             <Route path="/formations" element={<OFDashboardComponent />} />
             <Route path="/suivi" element={<OFDashboardComponent />} />
