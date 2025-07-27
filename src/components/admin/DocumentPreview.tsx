@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { X, Download, QrCode, Shield, FileText, Award, Calendar, User, BookOpen } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -572,21 +571,21 @@ const TemplatePreview = ({ document }: { document: any }) => (
     <div className="bg-gray-50 p-4 rounded mb-4">
       <h3 className="font-bold mb-2">Variables disponibles</h3>
       <div className="grid grid-cols-2 gap-2 text-sm">
-        <div>{{nom_apprenant}}</div>
-        <div>{{formation_titre}}</div>
-        <div>{{date_debut}}</div>
-        <div>{{date_fin}}</div>
-        <div>{{duree_formation}}</div>
-        <div>{{logo_of}}</div>
+        <div>{"{{nom_apprenant}}"}</div>
+        <div>{"{{formation_titre}}"}</div>
+        <div>{"{{date_debut}}"}</div>
+        <div>{"{{date_fin}}"}</div>
+        <div>{"{{duree_formation}}"}</div>
+        <div>{"{{logo_of}}"}</div>
       </div>
     </div>
     
     <div className="border-2 border-dashed border-gray-300 p-4 rounded bg-white">
       <p className="text-sm text-gray-600 mb-2">Aperçu du template :</p>
       <div className="space-y-2 text-sm">
-        <p>Objet : Convocation à la formation {{formation_titre}}</p>
-        <p>Bonjour {{nom_apprenant}},</p>
-        <p>Vous êtes convoqué(e) à la formation {{formation_titre}} qui se déroulera du {{date_debut}} au {{date_fin}}.</p>
+        <p>Objet : Convocation à la formation {"{{formation_titre}}"}</p>
+        <p>Bonjour {"{{nom_apprenant}}"},</p>
+        <p>Vous êtes convoqué(e) à la formation {"{{formation_titre}}"} qui se déroulera du {"{{date_debut}}"} au {"{{date_fin}}"}.</p>
         <p>Cordialement,<br/>L'équipe de formation</p>
       </div>
     </div>
