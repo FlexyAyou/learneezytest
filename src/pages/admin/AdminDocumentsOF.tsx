@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   FileText, 
@@ -21,7 +20,8 @@ import {
   Mail,
   Calendar,
   User,
-  BookOpen
+  BookOpen,
+  Award
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -432,7 +432,7 @@ const AdminDocumentsOF = () => {
                         <div className="flex items-center space-x-2">
                           <span className="font-medium">{doc.title}</span>
                           {doc.qrCode && (
-                            <QrCode className="h-4 w-4 text-gray-500" title={`QR: ${doc.qrCode}`} />
+                            <QrCode className="h-4 w-4 text-gray-500" />
                           )}
                         </div>
                       </TableCell>
