@@ -6,6 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
 import { OFDashboard as OFDashboardComponent } from '@/components/admin/OFDashboard';
 import AdminDocumentsOF from './admin/AdminDocumentsOF';
+import { OFApprenants } from '@/components/admin/OFApprenants';
+import { OFFormations } from '@/components/admin/OFFormations';
+import { OFSuiviPedagogique } from '@/components/admin/OFSuiviPedagogique';
+import { OFLogs } from '@/components/admin/OFLogs';
+import { OFEnvois } from '@/components/admin/OFEnvois';
+import { OFLicences } from '@/components/admin/OFLicences';
+import { OFIntegrations } from '@/components/admin/OFIntegrations';
 
 const OFDashboard = () => {
   const location = useLocation();
@@ -101,13 +108,13 @@ const OFDashboard = () => {
           <Routes>
             <Route path="/" element={<OFDashboardHome />} />
             <Route path="/documents" element={<AdminDocumentsOF />} />
-            <Route path="/apprenants" element={<OFDashboardComponent />} />
-            <Route path="/formations" element={<OFDashboardComponent />} />
-            <Route path="/suivi" element={<OFDashboardComponent />} />
-            <Route path="/logs" element={<OFDashboardComponent />} />
-            <Route path="/envois" element={<OFDashboardComponent />} />
-            <Route path="/licences" element={<OFDashboardComponent />} />
-            <Route path="/integrations" element={<OFDashboardComponent />} />
+            <Route path="/apprenants" element={<OFApprenants />} />
+            <Route path="/formations" element={<OFFormations />} />
+            <Route path="/suivi" element={<OFSuiviPedagogique />} />
+            <Route path="/logs" element={<OFLogs />} />
+            <Route path="/envois" element={<OFEnvois />} />
+            <Route path="/licences" element={<OFLicences />} />
+            <Route path="/integrations" element={<OFIntegrations />} />
           </Routes>
         </main>
       </div>
