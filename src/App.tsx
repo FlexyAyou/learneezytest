@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -31,6 +32,7 @@ import ContentCreatorDashboard from "./pages/ContentCreatorDashboard";
 import CreateCourse from "./pages/CreateCourse";
 import EditCourse from "./pages/EditCourse";
 import AdminDashboard from "./pages/AdminDashboard";
+import OFDashboard from "./pages/OFDashboard";
 import TechnicianDashboard from "./pages/TechnicianDashboard";
 import InstructorDashboard from "./pages/InstructorDashboard";
 import InstructorCourses from "./pages/InstructorCourses";
@@ -87,6 +89,9 @@ const App = () => (
           
           {/* Admin routes - all under /dashboard/admin */}
           <Route path="/dashboard/admin/*" element={<AdminDashboard />} />
+          
+          {/* Organisme de Formation routes */}
+          <Route path="/dashboard/organisme-formation/*" element={<OFDashboard />} />
           
           {/* Technician dashboard */}
           <Route path="/technicien" element={<TechnicianDashboard />} />

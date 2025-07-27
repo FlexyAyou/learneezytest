@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { Users, BookOpen, DollarSign, Settings, BarChart3, Shield, Key, FileText, MessageSquare, Video, Download, Brain, TestTube, Home, UserCheck, PenTool, Mail, FileSignature } from 'lucide-react';
@@ -24,7 +25,6 @@ import { PositioningTest } from '@/components/common/PositioningTest';
 import { AddUser } from '@/components/admin/AddUser';
 import { GroupEnrollment } from '@/components/admin/GroupEnrollment';
 import AdminEmargements from '@/components/admin/AdminEmargements';
-import { OFDashboard } from '@/components/admin/OFDashboard';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -41,8 +41,6 @@ const AdminDashboard = () => {
     { title: "Conventions", href: "/dashboard/admin/conventions", icon: FileSignature, isActive: currentPath === "/dashboard/admin/conventions" },
     { title: "Envois automatiques", href: "/dashboard/admin/mailings", icon: Mail, isActive: currentPath === "/dashboard/admin/mailings" },
     { title: "Émargements", href: "/dashboard/admin/emargements", icon: PenTool, isActive: currentPath === "/dashboard/admin/emargements" },
-    { title: "Inscription groupée", href: "/dashboard/admin/users/group-enrollment", icon: Users, isActive: currentPath === "/dashboard/admin/users/group-enrollment" },
-    { title: "Dashboard OF", href: "/dashboard/admin/of-dashboard", icon: BarChart3, isActive: currentPath === "/dashboard/admin/of-dashboard" },
     // === SECTION ADMINISTRATION ===
     { title: "Gestion licences", href: "/dashboard/admin/licenses", icon: Key, isActive: currentPath === "/dashboard/admin/licenses" },
     { title: "Vérification identité", href: "/dashboard/admin/identity", icon: Shield, isActive: currentPath === "/dashboard/admin/identity" },
@@ -231,7 +229,6 @@ const AdminDashboard = () => {
             <Route path="/conventions" element={<AdminConventionGenerator />} />
             <Route path="/mailings" element={<AdminAutomaticMailings />} />
             <Route path="/emargements" element={<AdminEmargements />} />
-            <Route path="/of-dashboard" element={<OFDashboard />} />
             <Route path="/video" element={<VideoConference isHost={true} />} />
             <Route path="/chat" element={<AIChat />} />
             <Route path="/documents" element={<DocumentDownload documents={mockAllDocuments} userRole="admin" />} />
