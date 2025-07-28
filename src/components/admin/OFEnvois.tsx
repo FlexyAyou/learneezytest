@@ -1,17 +1,31 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Mail, Eye, MessageSquare, Plus } from 'lucide-react';
+import { OFNouvelEnvoi } from './OFNouvelEnvoi';
+import { OFEnvoiDetail } from './OFEnvoiDetail';
+
+interface Envoi {
+  id: string;
+  type: string;
+  destinataire: string;
+  sujet: string;
+  status: string;
+  date: string;
+}
 
 export const OFEnvois = () => {
-  const envois = [
+  const [showNouvelEnvoi, setShowNouvelEnvoi] = useState(false);
+  const [selectedEnvoi, setSelectedEnvoi] = useState<Envoi | null>(null);
+  const [showDetail, setShowDetail] = useState(false);
+  const [envois, setEnvois] = useState<Envoi[]>([
     { id: '1', type: 'convocation', destinataire: 'marie.dupont@email.com', sujet: 'Convocation formation React', status: 'delivered', date: '2024-01-15 08:30:00' },
     { id: '2', type: 'relance', destinataire: 'jean.martin@email.com', sujet: 'Rappel émargement', status: 'pending', date: '2024-01-15 08:25:00' },
     { id: '3', type: 'attestation', destinataire: 'sophie.bernard@email.com', sujet: 'Attestation de formation', status: 'read', date: '2024-01-15 08:20:00' },
-  ];
+  ]);
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -24,6 +38,16 @@ export const OFEnvois = () => {
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
+  const handleView = (envoi: Envoi) => {
+    setSelectedEnvoi(envoi);
+    setShowDetail(true);
+  };
+
+  const handleReply = (envoi: Envoi) => {
+    console.log('Reply to:', envoi.destinataire);
+    // Logique de réponse à implémenter
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -31,7 +55,7 @@ export const OFEnvois = () => {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Envois & Relances</h1>
           <p className="text-gray-600">Gestion des envois automatiques et relances</p>
         </div>
-        <Button>
+        <Button onClick={() => setShowNouvelEnvoi(true)}>
           <Plus className="h-4 w-4 mr-2" />
           Nouvel envoi
         </Button>
@@ -66,10 +90,10 @@ export const OFEnvois = () => {
                   <TableCell>{envoi.date}</TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
-                      <Button size="sm" variant="outline">
+                      <Button size="sm" variant="outline" onClick={() => handleView(envoi)}>
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="outline">
+                      <Button size="sm" variant="outline" onClick={() => handleReply(envoi)}>
                         <MessageSquare className="h-4 w-4" />
                       </Button>
                     </div>
@@ -80,6 +104,18 @@ export const OFEnvois = () => {
           </Table>
         </CardContent>
       </Card>
+
+      <OFNouvelEnvoi 
+        isOpen={showNouvelEnvoi}
+        onClose={() => setShowNouvelEnvoi(false)}
+      />
+
+      <OFEnvoiDetail
+        envoi={selectedEnvoi}
+        isOpen={showDetail}
+        onClose={() => setShowDetail(false)}
+        onReply={handleReply}
+      />
     </div>
   );
 };

@@ -1,18 +1,29 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Zap, Eye, Edit, Plus, CheckCircle, XCircle } from 'lucide-react';
+import { OFIntegrationDetail } from './OFIntegrationDetail';
+
+interface Integration {
+  id: string;
+  nom: string;
+  type: string;
+  status: string;
+  lastSync: string;
+}
 
 export const OFIntegrations = () => {
-  const integrations = [
+  const [selectedIntegration, setSelectedIntegration] = useState<Integration | null>(null);
+  const [showDetail, setShowDetail] = useState(false);
+  const [integrations, setIntegrations] = useState<Integration[]>([
     { id: '1', nom: 'Zoom API', type: 'Visioconférence', status: 'connected', lastSync: '2024-01-15 09:00:00' },
     { id: '2', nom: 'DocuSign', type: 'Signature électronique', status: 'connected', lastSync: '2024-01-15 08:45:00' },
     { id: '3', nom: 'Microsoft Teams', type: 'Communication', status: 'error', lastSync: '2024-01-14 16:30:00' },
     { id: '4', nom: 'Adobe Sign', type: 'Signature', status: 'disconnected', lastSync: '2024-01-10 12:00:00' },
-  ];
+  ]);
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -23,6 +34,16 @@ export const OFIntegrations = () => {
     
     const config = statusConfig[status as keyof typeof statusConfig] || { variant: 'outline' as const, label: status };
     return <Badge variant={config.variant}>{config.label}</Badge>;
+  };
+
+  const handleView = (integration: Integration) => {
+    setSelectedIntegration(integration);
+    setShowDetail(true);
+  };
+
+  const handleEdit = (integration: Integration) => {
+    console.log('Edit integration:', integration.nom);
+    // Logique d'édition à implémenter
   };
 
   return (
@@ -65,10 +86,10 @@ export const OFIntegrations = () => {
                   <TableCell>{integration.lastSync}</TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
-                      <Button size="sm" variant="outline">
+                      <Button size="sm" variant="outline" onClick={() => handleView(integration)}>
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="outline">
+                      <Button size="sm" variant="outline" onClick={() => handleEdit(integration)}>
                         <Edit className="h-4 w-4" />
                       </Button>
                       {integration.status === 'connected' ? (
@@ -88,6 +109,13 @@ export const OFIntegrations = () => {
           </Table>
         </CardContent>
       </Card>
+
+      <OFIntegrationDetail
+        integration={selectedIntegration}
+        isOpen={showDetail}
+        onClose={() => setShowDetail(false)}
+        onEdit={handleEdit}
+      />
     </div>
   );
 };

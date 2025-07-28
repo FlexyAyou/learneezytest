@@ -6,8 +6,6 @@ import AdminInscriptions from './admin/AdminInscriptions';
 import AdminDocumentsOF from './admin/AdminDocumentsOF';
 import AdminAutomaticMailings from './admin/AdminAutomaticMailings';
 import AdminConventionGenerator from './admin/AdminConventionGenerator';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
 import AdminStats from '@/components/admin/AdminStats';
 import AdminUsers from '@/components/admin/AdminUsers';
@@ -25,6 +23,7 @@ import { PositioningTest } from '@/components/common/PositioningTest';
 import { AddUser } from '@/components/admin/AddUser';
 import { GroupEnrollment } from '@/components/admin/GroupEnrollment';
 import AdminEmargements from '@/components/admin/AdminEmargements';
+import { OFDashboard } from '@/components/admin/OFDashboard';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -65,143 +64,6 @@ const AdminDashboard = () => {
     { id: '3', name: 'Statistiques_Cours.xlsx', type: 'XLSX', date: '2024-01-18', size: '3.8 MB' }
   ];
 
-  // Dashboard principal
-  const DashboardHome = () => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Tableau de bord Administrateur
-          </h1>
-          <p className="text-gray-600">Vue d'ensemble de la plateforme</p>
-        </div>
-      </div>
-
-      {/* Stats principales */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Utilisateurs totaux</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">12,547</div>
-            <p className="text-xs text-muted-foreground">+234 ce mois</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Cours actifs</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">456</div>
-            <p className="text-xs text-muted-foreground">+12 ce mois</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Revenus totaux</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">€285,430</div>
-            <p className="text-xs text-muted-foreground">+18% ce mois</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Licences actives</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">8,945</div>
-            <p className="text-xs text-muted-foreground">+156 ce mois</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Actions rapides */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Actions administrateur</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Button 
-              className="w-full justify-start" 
-              variant="outline"
-              onClick={() => navigate('/dashboard/admin/users')}
-            >
-              <Users className="h-4 w-4 mr-2" />
-              Gérer les utilisateurs
-            </Button>
-            <Button 
-              className="w-full justify-start" 
-              variant="outline"
-              onClick={() => navigate('/dashboard/admin/licenses')}
-            >
-              <Key className="h-4 w-4 mr-2" />
-              Gérer les licences
-            </Button>
-            <Button 
-              className="w-full justify-start" 
-              variant="outline"
-              onClick={() => navigate('/dashboard/admin/identity')}
-            >
-              <Shield className="h-4 w-4 mr-2" />
-              Vérifications d'identité
-            </Button>
-            <Button 
-              className="w-full justify-start" 
-              variant="outline"
-              onClick={() => navigate('/dashboard/admin/security')}
-            >
-              <Shield className="h-4 w-4 mr-2" />
-              Sécurité système
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Outils disponibles</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Button 
-              className="w-full justify-start" 
-              variant="outline"
-              onClick={() => navigate('/dashboard/admin/tests')}
-            >
-              <TestTube className="h-4 w-4 mr-2" />
-              Tests de positionnement
-            </Button>
-            <Button 
-              className="w-full justify-start" 
-              variant="outline"
-              onClick={() => navigate('/dashboard/admin/video')}
-            >
-              <Video className="h-4 w-4 mr-2" />
-              Visioconférence
-            </Button>
-            <Button 
-              className="w-full justify-start" 
-              variant="outline"
-              onClick={() => navigate('/dashboard/admin/chat')}
-            >
-              <Brain className="h-4 w-4 mr-2" />
-              Chat IA
-            </Button>
-            <Button 
-              className="w-full justify-start" 
-              variant="outline"
-              onClick={() => navigate('/dashboard/admin/documents')}
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Tous les documents
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-
   return (
     <div className="flex h-screen bg-gray-50">
       <div className="fixed left-0 top-0 h-full z-30">
@@ -216,7 +78,7 @@ const AdminDashboard = () => {
       <div className="flex-1 ml-64 flex flex-col overflow-hidden">
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-6">
           <Routes>
-            <Route path="/" element={<DashboardHome />} />
+            <Route path="/" element={<OFDashboard />} />
             <Route path="/users" element={<AdminUsers />} />
             <Route path="/users/add" element={<AddUser />} />
             <Route path="/users/group-enrollment" element={<GroupEnrollment />} />

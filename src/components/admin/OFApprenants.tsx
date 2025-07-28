@@ -1,18 +1,23 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Users, Eye, Edit, Plus } from 'lucide-react';
+import { OFApprenantDetail } from './OFApprenantDetail';
+import { OFAddApprenant } from './OFAddApprenant';
 
 export const OFApprenants = () => {
-  const apprenants = [
+  const [selectedApprenant, setSelectedApprenant] = useState<any>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [apprenants, setApprenants] = useState([
     { id: '1', nom: 'Dupont', prenom: 'Marie', email: 'marie.dupont@email.com', status: 'active', formation: 'React Avancé', progression: 78 },
     { id: '2', nom: 'Martin', prenom: 'Jean', email: 'jean.martin@email.com', status: 'completed', formation: 'JavaScript', progression: 100 },
     { id: '3', nom: 'Bernard', prenom: 'Sophie', email: 'sophie.bernard@email.com', status: 'pending', formation: 'Angular', progression: 45 },
     { id: '4', nom: 'Durand', prenom: 'Pierre', email: 'pierre.durand@email.com', status: 'active', formation: 'Vue.js', progression: 62 },
-  ];
+  ]);
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -25,6 +30,15 @@ export const OFApprenants = () => {
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
+  const handleViewApprenant = (apprenant: any) => {
+    setSelectedApprenant(apprenant);
+    setIsDetailOpen(true);
+  };
+
+  const handleAddApprenant = (newApprenant: any) => {
+    setApprenants(prev => [...prev, newApprenant]);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -32,7 +46,7 @@ export const OFApprenants = () => {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestion des apprenants</h1>
           <p className="text-gray-600">Suivi et gestion des apprenants</p>
         </div>
-        <Button>
+        <Button onClick={() => setIsAddOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
           Ajouter un apprenant
         </Button>
@@ -77,7 +91,11 @@ export const OFApprenants = () => {
                   <TableCell>{getStatusBadge(apprenant.status)}</TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
-                      <Button size="sm" variant="outline">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleViewApprenant(apprenant)}
+                      >
                         <Eye className="h-4 w-4" />
                       </Button>
                       <Button size="sm" variant="outline">
@@ -91,6 +109,18 @@ export const OFApprenants = () => {
           </Table>
         </CardContent>
       </Card>
+
+      <OFApprenantDetail
+        apprenant={selectedApprenant}
+        isOpen={isDetailOpen}
+        onClose={() => setIsDetailOpen(false)}
+      />
+
+      <OFAddApprenant
+        isOpen={isAddOpen}
+        onClose={() => setIsAddOpen(false)}
+        onAdd={handleAddApprenant}
+      />
     </div>
   );
 };

@@ -34,6 +34,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DocumentPreview } from '@/components/admin/DocumentPreview';
+import { OFDocumentEditor } from '@/components/admin/OFDocumentEditor';
 
 const AdminDocumentsOF = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -43,6 +44,7 @@ const AdminDocumentsOF = () => {
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<any>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [showEditor, setShowEditor] = useState(false);
 
   // Documents générés automatiquement
   const generatedDocuments = [
@@ -217,6 +219,11 @@ const AdminDocumentsOF = () => {
   const handlePreviewDocument = (document: any) => {
     setSelectedDocument(document);
     setShowPreview(true);
+  };
+
+  const handleEditDocument = (document: any) => {
+    setSelectedDocument(document);
+    setShowEditor(true);
   };
 
   const documentTypes = [
@@ -507,6 +514,13 @@ const AdminDocumentsOF = () => {
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleEditDocument(doc)}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
                           <Button size="sm" variant="outline">
                             <Download className="w-4 h-4" />
                           </Button>
@@ -571,11 +585,15 @@ const AdminDocumentsOF = () => {
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
-                          <Button size="sm" variant="outline">
-                            <Download className="w-4 h-4" />
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleEditDocument(doc)}
+                          >
+                            <Edit className="w-4 w-4" />
                           </Button>
                           <Button size="sm" variant="outline">
-                            <Edit className="w-4 h-4" />
+                            <Download className="w-4 h-4" />
                           </Button>
                           <Button size="sm" variant="outline">
                             <Trash2 className="w-4 h-4" />
@@ -732,11 +750,16 @@ const AdminDocumentsOF = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Modal de prévisualisation */}
       <DocumentPreview
         document={selectedDocument}
         isOpen={showPreview}
         onClose={() => setShowPreview(false)}
+      />
+
+      <OFDocumentEditor
+        document={selectedDocument}
+        isOpen={showEditor}
+        onClose={() => setShowEditor(false)}
       />
     </div>
   );

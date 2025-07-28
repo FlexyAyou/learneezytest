@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,17 +7,27 @@ import { Input } from '@/components/ui/input';
 import { Calendar } from '@/components/ui/calendar';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, Clock, Calendar as CalendarIcon, Edit, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { TrainerAvailabilityEdit } from './TrainerAvailabilityEdit';
+
+interface Availability {
+  id: number;
+  date: string;
+  timeStart: string;
+  timeEnd: string;
+  recurringType: string;
+  isBooked: boolean;
+}
 
 const TrainerAvailabilities = () => {
   const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [recurring, setRecurring] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [selectedAvailability, setSelectedAvailability] = useState<Availability | null>(null);
   
-  const [availabilities, setAvailabilities] = useState([
+  const [availabilities, setAvailabilities] = useState<Availability[]>([
     { id: 1, date: '2024-01-15', timeStart: '09:00', timeEnd: '12:00', isBooked: false, recurringType: 'none' },
     { id: 2, date: '2024-01-15', timeStart: '14:00', timeEnd: '17:00', isBooked: true, recurringType: 'none' },
     { id: 3, date: '2024-01-16', timeStart: '10:00', timeEnd: '16:00', isBooked: false, recurringType: 'weekly' },
@@ -29,10 +40,6 @@ const TrainerAvailabilities = () => {
     timeEnd: '',
     recurringType: 'none',
   });
-
-  const weekDays = [
-    'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'
-  ];
 
   const handleAddSlot = () => {
     if (!newSlot.date || !newSlot.timeStart || !newSlot.timeEnd) {
@@ -61,6 +68,18 @@ const TrainerAvailabilities = () => {
 
     setNewSlot({ date: '', timeStart: '', timeEnd: '', recurringType: 'none' });
     setIsDialogOpen(false);
+  };
+
+  const handleEditSlot = (availability: Availability) => {
+    setSelectedAvailability(availability);
+    setIsEditOpen(true);
+  };
+
+  const handleSaveEdit = (updatedAvailability: Availability) => {
+    setAvailabilities(prev => prev.map(a => 
+      a.id === updatedAvailability.id ? updatedAvailability : a
+    ));
+    setIsEditOpen(false);
   };
 
   const handleDeleteSlot = (id: number) => {
@@ -222,7 +241,12 @@ const TrainerAvailabilities = () => {
                   
                   {!availability.isBooked && (
                     <div className="flex items-center space-x-1">
-                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="h-8 w-8 p-0"
+                        onClick={() => handleEditSlot(availability)}
+                      >
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button 
@@ -280,6 +304,13 @@ const TrainerAvailabilities = () => {
           </CardContent>
         </Card>
       </div>
+
+      <TrainerAvailabilityEdit
+        availability={selectedAvailability}
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        onSave={handleSaveEdit}
+      />
     </div>
   );
 };
