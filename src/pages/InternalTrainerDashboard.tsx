@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
@@ -40,7 +41,8 @@ import {
   PhoneOff,
   VideoOff,
   Share,
-  HelpCircle
+  HelpCircle,
+  Bell
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
