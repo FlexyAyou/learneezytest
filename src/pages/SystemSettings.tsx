@@ -198,7 +198,7 @@ const SystemSettings = () => {
                     checked={settings.autoApprovalCourses}
                     onCheckedChange={(checked) => handleSettingChange('autoApprovalCourses', checked)}
                   />
-                </div> ²ssdr' 
+                </div> 
                 
                 <div>
                   <label className="block text-sm font-medium mb-2">Taille max upload (MB)</label>
