@@ -1,17 +1,16 @@
-
 import React from 'react';
 import { ExternalLink, Shield, Award } from 'lucide-react';
 
 const PartnersSection = () => {
   const partners = [
-    { name: 'Microsoft', logo: '/placeholder.svg' },
-    { name: 'Google', logo: '/placeholder.svg' },
-    { name: 'AWS', logo: '/placeholder.svg' },
-    { name: 'Adobe', logo: '/placeholder.svg' },
-    { name: 'Salesforce', logo: '/placeholder.svg' },
-    { name: 'IBM', logo: '/placeholder.svg' },
-    { name: 'Oracle', logo: '/placeholder.svg' },
-    { name: 'Meta', logo: '/placeholder.svg' }
+    { name: 'Microsoft', logo: 'https://images.unsplash.com/photo-1633419461186-7d40a38105ec?w=120&h=60&fit=crop&crop=center' },
+    { name: 'Google', logo: 'https://images.unsplash.com/photo-1573804633927-bfcbcd909acd?w=120&h=60&fit=crop&crop=center' },
+    { name: 'AWS', logo: 'https://images.unsplash.com/photo-1621839673705-6617adf9e890?w=120&h=60&fit=crop&crop=center' },
+    { name: 'Adobe', logo: 'https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=120&h=60&fit=crop&crop=center' },
+    { name: 'Salesforce', logo: 'https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=120&h=60&fit=crop&crop=center' },
+    { name: 'IBM', logo: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=120&h=60&fit=crop&crop=center' },
+    { name: 'Oracle', logo: 'https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?w=120&h=60&fit=crop&crop=center' },
+    { name: 'Meta', logo: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=120&h=60&fit=crop&crop=center' }
   ];
 
   const certifications = [
