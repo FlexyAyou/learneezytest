@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BookOpen, Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Instagram } from 'lucide-react';
+import { Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Instagram } from 'lucide-react';
 
 const Footer = () => {
   return (
@@ -10,8 +10,7 @@ const Footer = () => {
           {/* Company Info */}
           <div>
             <div className="flex items-center space-x-2 mb-6">
-              <BookOpen className="h-8 w-8 text-pink-400" />
-              <span className="text-2xl font-bold">Learneezy</span>
+              <img src="/lovable-uploads/a9b8c406-3405-4199-a624-50e2fac8b945.png" alt="Learneezy" className="h-8 w-auto" />
             </div>
             <p className="text-gray-400 mb-6 leading-relaxed">
               Votre plateforme d'apprentissage en ligne pour développer vos compétences 
@@ -103,7 +102,7 @@ const Footer = () => {
           <div className="md:flex md:items-center md:justify-between">
             <div className="text-center md:text-left">
               <p className="text-gray-400">
-                © 2024 UpSkill. Tous droits réservés.
+                © 2025 Learneezy. Tous droits réservés.
               </p>
             </div>
             <div className="mt-4 md:mt-0">
