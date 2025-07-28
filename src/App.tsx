@@ -104,7 +104,7 @@ const App = () => (
                 <Route path="/technicien" element={<TechnicianDashboard />} />
               </Routes>
             </main>
-          </div>
+          </BrowserRouter>
         </div>
       </TooltipProvider>
     </ThemeProvider>
