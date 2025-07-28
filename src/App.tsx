@@ -8,6 +8,9 @@ import Index from '@/pages/Index';
 import Login from '@/pages/Login';
 import StudentDashboard from '@/pages/StudentDashboard';
 import ForgotPassword from './pages/ForgotPassword';
+import Contact from './pages/Contact';
+import Courses from './pages/Courses';
+import About from './pages/About';
 
 const queryClient = new QueryClient();
 
@@ -23,6 +26,9 @@ function App() {
                 <Route path="/" element={<Index />} />
                 <Route path="/connexion" element={<Login />} />
                 <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
+                <Route path="/cours" element={<Courses />} />
+                <Route path="/apropos" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
                 <Route path="/dashboard/etudiant/*" element={<StudentDashboard />} />
               </Routes>
             </BrowserRouter>
