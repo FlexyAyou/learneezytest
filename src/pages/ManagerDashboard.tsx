@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
 import { 
   Users, 
@@ -20,19 +20,68 @@ import ManagerEnrollments from '@/components/manager/ManagerEnrollments';
 import ManagerSettings from '@/components/manager/ManagerSettings';
 import ManagerMessaging from '@/components/manager/ManagerMessaging';
 import ManagerReports from '@/components/manager/ManagerReports';
+import ManagerApprenants from '@/components/manager/ManagerApprenants';
+import ManagerFormations from '@/components/manager/ManagerFormations';
 import { ManagerDashboardHome } from '@/components/manager/ManagerDashboardHome';
 
 const ManagerDashboard = () => {
+  const location = useLocation();
+
   const sidebarItems = [
-    { title: 'Vue d\'ensemble', href: '/dashboard/gestionnaire', icon: TrendingUp, isActive: true },
-    { title: 'Apprenants', href: '/dashboard/gestionnaire/apprenants', icon: Users },
-    { title: 'Formations', href: '/dashboard/gestionnaire/formations', icon: BookOpen },
-    { title: 'Planning', href: '/dashboard/gestionnaire/planning', icon: Calendar },
-    { title: 'Inscriptions', href: '/dashboard/gestionnaire/inscriptions', icon: UserCheck },
-    { title: 'Suivi des présences', href: '/dashboard/gestionnaire/presences', icon: UserPlus },
-    { title: 'Rapports', href: '/dashboard/gestionnaire/rapports', icon: ClipboardList },
-    { title: 'Messages', href: '/dashboard/gestionnaire/messages', icon: MessageSquare },
-    { title: 'Paramètres', href: '/dashboard/gestionnaire/parametres', icon: Settings },
+    { 
+      title: 'Vue d\'ensemble', 
+      href: '/dashboard/gestionnaire', 
+      icon: TrendingUp, 
+      isActive: location.pathname === '/dashboard/gestionnaire' 
+    },
+    { 
+      title: 'Apprenants', 
+      href: '/dashboard/gestionnaire/apprenants', 
+      icon: Users, 
+      isActive: location.pathname === '/dashboard/gestionnaire/apprenants' 
+    },
+    { 
+      title: 'Formations', 
+      href: '/dashboard/gestionnaire/formations', 
+      icon: BookOpen, 
+      isActive: location.pathname === '/dashboard/gestionnaire/formations' 
+    },
+    { 
+      title: 'Planning', 
+      href: '/dashboard/gestionnaire/planning', 
+      icon: Calendar, 
+      isActive: location.pathname === '/dashboard/gestionnaire/planning' 
+    },
+    { 
+      title: 'Inscriptions', 
+      href: '/dashboard/gestionnaire/inscriptions', 
+      icon: UserCheck, 
+      isActive: location.pathname === '/dashboard/gestionnaire/inscriptions' 
+    },
+    { 
+      title: 'Suivi des présences', 
+      href: '/dashboard/gestionnaire/presences', 
+      icon: UserPlus, 
+      isActive: location.pathname === '/dashboard/gestionnaire/presences' 
+    },
+    { 
+      title: 'Rapports', 
+      href: '/dashboard/gestionnaire/rapports', 
+      icon: ClipboardList, 
+      isActive: location.pathname === '/dashboard/gestionnaire/rapports' 
+    },
+    { 
+      title: 'Messages', 
+      href: '/dashboard/gestionnaire/messages', 
+      icon: MessageSquare, 
+      isActive: location.pathname === '/dashboard/gestionnaire/messages' 
+    },
+    { 
+      title: 'Paramètres', 
+      href: '/dashboard/gestionnaire/parametres', 
+      icon: Settings, 
+      isActive: location.pathname === '/dashboard/gestionnaire/parametres' 
+    },
   ];
 
   const userInfo = {
@@ -51,8 +100,8 @@ const ManagerDashboard = () => {
       <main className="flex-1 p-8">
         <Routes>
           <Route path="/" element={<ManagerDashboardHome />} />
-          <Route path="apprenants" element={<div>Gestion des Apprenants</div>} />
-          <Route path="formations" element={<div>Gestion des Formations</div>} />
+          <Route path="apprenants" element={<ManagerApprenants />} />
+          <Route path="formations" element={<ManagerFormations />} />
           <Route path="planning" element={<ManagerPlanning />} />
           <Route path="inscriptions" element={<ManagerEnrollments />} />
           <Route path="presences" element={<ManagerAttendance />} />
