@@ -10,6 +10,7 @@ interface StatsCardProps {
   icon: LucideIcon;
   trend?: 'up' | 'down' | 'neutral';
   className?: string;
+  onClick?: () => void;
 }
 
 export const StatsCard: React.FC<StatsCardProps> = ({
@@ -18,7 +19,8 @@ export const StatsCard: React.FC<StatsCardProps> = ({
   change,
   icon: Icon,
   trend = 'neutral',
-  className = ''
+  className = '',
+  onClick
 }) => {
   const getTrendColor = () => {
     switch (trend) {
@@ -32,7 +34,10 @@ export const StatsCard: React.FC<StatsCardProps> = ({
   };
 
   return (
-    <Card className={className}>
+    <Card 
+      className={`${className} ${onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`}
+      onClick={onClick}
+    >
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
         <Icon className="h-4 w-4 text-muted-foreground" />
