@@ -32,7 +32,7 @@ export const OFDocumentEditor: React.FC<OFDocumentEditorProps> = ({ document, is
     onClose();
   };
 
-  const handleSignature = (signature: string) => {
+  const handleSignatureComplete = (signature: string) => {
     setSignatureData(signature);
     setHasSignature(true);
     toast({
@@ -161,8 +161,8 @@ export const OFDocumentEditor: React.FC<OFDocumentEditorProps> = ({ document, is
                       Ajoutez une signature électronique à ce document
                     </p>
                     <ElectronicSignature 
-                      onSignature={handleSignature}
-                      documentId={document.id}
+                      onSignatureComplete={handleSignatureComplete}
+                      disabled={false}
                     />
                   </div>
                 )}
