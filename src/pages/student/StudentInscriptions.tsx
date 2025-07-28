@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, FileText, Download, CheckCircle, AlertCircle, XCircle, GraduationCap } from 'lucide-react';
+import { Calendar, Clock, FileText, Download, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
 
 interface Inscription {
   id: string;
@@ -173,13 +173,10 @@ const StudentInscriptions = () => {
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="flex items-center justify-center space-x-2">
-              <GraduationCap className="w-6 h-6 text-purple-600" />
-              <p className="text-2xl font-bold text-purple-600">
-                {inscriptions.length}
-              </p>
-            </div>
-            <p className="text-sm text-gray-600">Formations suivies</p>
+            <p className="text-2xl font-bold text-gray-600">
+              {inscriptions.reduce((sum, i) => sum + i.price, 0)}€
+            </p>
+            <p className="text-sm text-gray-600">Total investissement</p>
           </CardContent>
         </Card>
       </div>
