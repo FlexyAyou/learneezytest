@@ -3,7 +3,11 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { FileText, Users, BookOpen, TrendingUp, Calendar, Award, AlertTriangle, CheckCircle, Clock, Mail, ArrowUp, ArrowDown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { FileText, Users, BookOpen, TrendingUp, Calendar, Award, AlertTriangle, CheckCircle, Clock, Mail, ArrowUp, ArrowDown, UserPlus } from 'lucide-react';
+import { DashboardChart } from '@/components/common/DashboardChart';
+import { StatsCard } from '@/components/common/StatsCard';
+import { AssignTrainingModal } from './AssignTrainingModal';
 
 export const OFDashboard = () => {
   const recentActivity = [
@@ -21,10 +25,10 @@ export const OFDashboard = () => {
   ];
 
   const monthlyStats = [
-    { label: 'Heures dispensées', value: 456, target: 500, increase: 12 },
-    { label: 'Taux de satisfaction', value: 87, target: 90, increase: 3 },
-    { label: 'Certifications délivrées', value: 23, target: 25, increase: 15 },
-    { label: 'Taux d\'assiduité', value: 92, target: 95, increase: 2 },
+    { label: 'Heures dispensées', value: 456, target: 500, increase: 12, trend: 'up' as const },
+    { label: 'Taux de satisfaction', value: 87, target: 90, increase: 3, trend: 'up' as const },
+    { label: 'Certifications délivrées', value: 23, target: 25, increase: 15, trend: 'up' as const },
+    { label: 'Taux d\'assiduité', value: 92, target: 95, increase: 2, trend: 'up' as const },
   ];
 
   const alerts = [
@@ -32,6 +36,32 @@ export const OFDashboard = () => {
     { type: 'info', message: 'Intégration Zoom fonctionnelle', priority: 'low' },
     { type: 'success', message: '3 nouvelles demandes d\'inscription', priority: 'medium' },
     { type: 'error', message: 'Erreur sync Microsoft Teams', priority: 'high' },
+  ];
+
+  // Données pour les graphiques
+  const usersGrowthData = [
+    { name: 'Jan', value: 120, nouveaux: 15 },
+    { name: 'Fév', value: 145, nouveaux: 25 },
+    { name: 'Mar', value: 165, nouveaux: 20 },
+    { name: 'Avr', value: 185, nouveaux: 20 },
+    { name: 'Mai', value: 210, nouveaux: 25 },
+    { name: 'Jun', value: 235, nouveaux: 25 },
+  ];
+
+  const trainingDistribution = [
+    { name: 'React/JavaScript', value: 45 },
+    { name: 'Vue.js', value: 30 },
+    { name: 'Angular', value: 15 },
+    { name: 'Node.js', value: 10 },
+  ];
+
+  const revenueData = [
+    { name: 'Jan', value: 28500 },
+    { name: 'Fév', value: 32000 },
+    { name: 'Mar', value: 35500 },
+    { name: 'Avr', value: 38000 },
+    { name: 'Mai', value: 42000 },
+    { name: 'Jun', value: 45000 },
   ];
 
   const getStatusBadge = (status: string) => {
@@ -61,6 +91,66 @@ export const OFDashboard = () => {
 
   return (
     <div className="space-y-6">
+      {/* Header avec action d'assignation */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Tableau de bord Administrateur
+          </h1>
+          <p className="text-gray-600">Vue d'ensemble de la plateforme</p>
+        </div>
+        <AssignTrainingModal />
+      </div>
+
+      {/* Statistiques principales avec graphiques */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatsCard
+          title="Utilisateurs totaux"
+          value="12,547"
+          change="+234 ce mois"
+          icon={Users}
+          trend="up"
+        />
+        <StatsCard
+          title="Cours actifs"
+          value="456"
+          change="+12 ce mois"
+          icon={BookOpen}
+          trend="up"
+        />
+        <StatsCard
+          title="Revenus totaux"
+          value="€285,430"
+          change="+18% ce mois"
+          icon={TrendingUp}
+          trend="up"
+        />
+        <StatsCard
+          title="Licences actives"
+          value="8,945"
+          change="+156 ce mois"
+          icon={Award}
+          trend="up"
+        />
+      </div>
+
+      {/* Graphiques principaux */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <DashboardChart
+          title="Évolution des utilisateurs"
+          data={usersGrowthData}
+          type="line"
+          dataKey="value"
+          color="#3b82f6"
+        />
+        <DashboardChart
+          title="Répartition des formations"
+          data={trainingDistribution}
+          type="pie"
+          dataKey="value"
+        />
+      </div>
+
       {/* Statistiques mensuelles avec graphiques */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {monthlyStats.map((stat, index) => (
@@ -168,72 +258,14 @@ export const OFDashboard = () => {
         </Card>
       </div>
 
-      {/* Graphiques et métriques supplémentaires */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <BookOpen className="h-5 w-5 mr-2 text-green-600" />
-              Répartition des formations
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {[
-                { name: 'React/JavaScript', value: 45, color: 'bg-blue-500' },
-                { name: 'Vue.js', value: 30, color: 'bg-green-500' },
-                { name: 'Angular', value: 15, color: 'bg-red-500' },
-                { name: 'Node.js', value: 10, color: 'bg-yellow-500' },
-              ].map((formation, index) => (
-                <div key={index} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">{formation.name}</span>
-                    <span className="text-sm text-gray-600">{formation.value}%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className={`h-2 rounded-full ${formation.color}`}
-                      style={{ width: `${formation.value}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Award className="h-5 w-5 mr-2 text-purple-600" />
-              Performance des apprenants
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {[
-                { label: 'Excellents (90-100%)', value: 35, color: 'bg-green-500' },
-                { label: 'Bons (80-89%)', value: 40, color: 'bg-blue-500' },
-                { label: 'Satisfaisants (70-79%)', value: 20, color: 'bg-yellow-500' },
-                { label: 'À améliorer (<70%)', value: 5, color: 'bg-red-500' },
-              ].map((perf, index) => (
-                <div key={index} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">{perf.label}</span>
-                    <span className="text-sm text-gray-600">{perf.value}%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className={`h-2 rounded-full ${perf.color}`}
-                      style={{ width: `${perf.value}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Graphique des revenus */}
+      <DashboardChart
+        title="Évolution des revenus (€)"
+        data={revenueData}
+        type="bar"
+        dataKey="value"
+        color="#10b981"
+      />
     </div>
   );
 };
