@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
@@ -21,15 +22,15 @@ import {
   BarChart3
 } from 'lucide-react';
 
-import { TrainerAvailabilities } from '@/components/external-trainer/TrainerAvailabilities';
-import { TrainerBookings } from '@/components/external-trainer/TrainerBookings';
-import { TrainerEarnings } from '@/components/external-trainer/TrainerEarnings';
-import { TrainerHistory } from '@/components/external-trainer/TrainerHistory';
-import { TrainerProfile } from '@/components/external-trainer/TrainerProfile';
-import { TrainerReviews } from '@/components/external-trainer/TrainerReviews';
-import { TrainerRates } from '@/components/external-trainer/TrainerRates';
-import { TrainerSpecialties } from '@/components/external-trainer/TrainerSpecialties';
-import { TrainerSupport } from '@/components/external-trainer/TrainerSupport';
+import TrainerAvailabilities from '@/components/external-trainer/TrainerAvailabilities';
+import TrainerBookings from '@/components/external-trainer/TrainerBookings';
+import TrainerEarnings from '@/components/external-trainer/TrainerEarnings';
+import TrainerHistory from '@/components/external-trainer/TrainerHistory';
+import TrainerProfile from '@/components/external-trainer/TrainerProfile';
+import TrainerReviews from '@/components/external-trainer/TrainerReviews';
+import TrainerRates from '@/components/external-trainer/TrainerRates';
+import TrainerSpecialties from '@/components/external-trainer/TrainerSpecialties';
+import TrainerSupport from '@/components/external-trainer/TrainerSupport';
 import { StatsCard } from '@/components/common/StatsCard';
 import { DashboardChart } from '@/components/common/DashboardChart';
 

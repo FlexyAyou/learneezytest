@@ -21,10 +21,10 @@ import {
   BarChart3
 } from 'lucide-react';
 
-import { InternalTrainerContent } from '@/components/internal-trainer/InternalTrainerContent';
-import { InternalTrainerSessions } from '@/components/internal-trainer/InternalTrainerSessions';
-import { InternalTrainerStudents } from '@/components/internal-trainer/InternalTrainerStudents';
-import { InternalTrainerMessaging } from '@/components/internal-trainer/InternalTrainerMessaging';
+import InternalTrainerContent from '@/components/internal-trainer/InternalTrainerContent';
+import InternalTrainerSessions from '@/components/internal-trainer/InternalTrainerSessions';
+import InternalTrainerStudents from '@/components/internal-trainer/InternalTrainerStudents';
+import InternalTrainerMessaging from '@/components/internal-trainer/InternalTrainerMessaging';
 import { StatsCard } from '@/components/common/StatsCard';
 import { DashboardChart } from '@/components/common/DashboardChart';
 
