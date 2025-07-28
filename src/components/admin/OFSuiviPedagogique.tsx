@@ -1,17 +1,26 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, Eye } from 'lucide-react';
+import { OFEvaluationDetail } from './OFEvaluationDetail';
 
 export const OFSuiviPedagogique = () => {
+  const [selectedEvaluation, setSelectedEvaluation] = useState<any>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+
   const evaluations = [
     { id: '1', apprenant: 'Marie Dupont', formation: 'React Avancé', type: 'Quiz final', score: 85, maxScore: 100, date: '2024-01-14' },
     { id: '2', apprenant: 'Jean Martin', formation: 'JavaScript', type: 'TP pratique', score: 92, maxScore: 100, date: '2024-01-13' },
     { id: '3', apprenant: 'Sophie Bernard', formation: 'Angular', type: 'Evaluation continue', score: 76, maxScore: 100, date: '2024-01-12' },
   ];
+
+  const handleViewEvaluation = (evaluation: any) => {
+    setSelectedEvaluation(evaluation);
+    setIsDetailOpen(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -57,7 +66,11 @@ export const OFSuiviPedagogique = () => {
                   </TableCell>
                   <TableCell>{evaluation.date}</TableCell>
                   <TableCell>
-                    <Button size="sm" variant="outline">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleViewEvaluation(evaluation)}
+                    >
                       <Eye className="h-4 w-4" />
                     </Button>
                   </TableCell>
@@ -67,6 +80,12 @@ export const OFSuiviPedagogique = () => {
           </Table>
         </CardContent>
       </Card>
+
+      <OFEvaluationDetail
+        evaluation={selectedEvaluation}
+        isOpen={isDetailOpen}
+        onClose={() => setIsDetailOpen(false)}
+      />
     </div>
   );
 };

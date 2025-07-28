@@ -1,12 +1,16 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Shield, Eye, Camera, QrCode } from 'lucide-react';
+import { DocumentPreview } from './DocumentPreview';
 
 export const OFLogs = () => {
+  const [selectedLog, setSelectedLog] = useState<any>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+
   const logs = [
     { id: '1', type: 'connexion', utilisateur: 'Marie Dupont', ip: '192.168.1.10', timestamp: '2024-01-15 09:30:15', status: 'success' },
     { id: '2', type: 'camera', utilisateur: 'Jean Martin', ip: '192.168.1.11', timestamp: '2024-01-15 09:25:42', status: 'captured' },
@@ -24,6 +28,18 @@ export const OFLogs = () => {
     
     const config = statusConfig[status as keyof typeof statusConfig] || { variant: 'outline' as const, label: status };
     return <Badge variant={config.variant}>{config.label}</Badge>;
+  };
+
+  const handleViewLog = (log: any) => {
+    const logDocument = {
+      type: 'logs',
+      title: `Logs - ${log.utilisateur}`,
+      apprenant: log.utilisateur,
+      formation: 'React Avancé',
+      qrCode: 'QR-' + log.id + '-' + Date.now()
+    };
+    setSelectedLog(logDocument);
+    setIsPreviewOpen(true);
   };
 
   return (
@@ -70,7 +86,11 @@ export const OFLogs = () => {
                   <TableCell>{log.timestamp}</TableCell>
                   <TableCell>{getStatusBadge(log.status)}</TableCell>
                   <TableCell>
-                    <Button size="sm" variant="outline">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleViewLog(log)}
+                    >
                       <Eye className="h-4 w-4" />
                     </Button>
                   </TableCell>
@@ -80,6 +100,12 @@ export const OFLogs = () => {
           </Table>
         </CardContent>
       </Card>
+
+      <DocumentPreview
+        document={selectedLog}
+        isOpen={isPreviewOpen}
+        onClose={() => setIsPreviewOpen(false)}
+      />
     </div>
   );
 };
