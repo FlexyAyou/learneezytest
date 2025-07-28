@@ -4,14 +4,14 @@ import { ExternalLink, Shield, Award } from 'lucide-react';
 
 const PartnersSection = () => {
   const partners = [
-    { name: 'Microsoft', logo: '/placeholder.svg' },
-    { name: 'Google', logo: '/placeholder.svg' },
-    { name: 'AWS', logo: '/placeholder.svg' },
-    { name: 'Adobe', logo: '/placeholder.svg' },
-    { name: 'Salesforce', logo: '/placeholder.svg' },
-    { name: 'IBM', logo: '/placeholder.svg' },
-    { name: 'Oracle', logo: '/placeholder.svg' },
-    { name: 'Meta', logo: '/placeholder.svg' }
+    { name: 'Microsoft', logo: '/lovable-uploads/microsoft-logo.png' },
+    { name: 'Google', logo: '/lovable-uploads/google-logo.png' },
+    { name: 'AWS', logo: '/lovable-uploads/aws-logo.png' },
+    { name: 'Adobe', logo: '/lovable-uploads/adobe-logo.png' },
+    { name: 'Salesforce', logo: '/lovable-uploads/salesforce-logo.png' },
+    { name: 'IBM', logo: '/lovable-uploads/ibm-logo.png' },
+    { name: 'Oracle', logo: '/lovable-uploads/oracle-logo.png' },
+    { name: 'Meta', logo: '/lovable-uploads/meta-logo.png' }
   ];
 
   const certifications = [
