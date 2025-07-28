@@ -1,252 +1,245 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { 
-  Users, 
-  Calendar, 
   BookOpen, 
-  MessageSquare,
+  Users, 
+  Video, 
+  MessageSquare, 
+  BarChart3, 
+  Plus,
   Settings,
-  TrendingUp,
-  CheckCircle,
-  Clock,
-  Star,
-  Target,
-  FileText,
-  Video,
+  Calendar,
   Award,
-  BarChart3
+  FileText,
+  ClipboardList,
+  TrendingUp,
+  HelpCircle,
+  Download,
+  Brain,
+  TestTube
 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
+// Import des composants spécialisés
 import InternalTrainerContent from '@/components/internal-trainer/InternalTrainerContent';
 import InternalTrainerSessions from '@/components/internal-trainer/InternalTrainerSessions';
 import InternalTrainerStudents from '@/components/internal-trainer/InternalTrainerStudents';
 import InternalTrainerMessaging from '@/components/internal-trainer/InternalTrainerMessaging';
-import { StatsCard } from '@/components/common/StatsCard';
-import { DashboardChart } from '@/components/common/DashboardChart';
+import { DocumentDownload } from '@/components/common/DocumentDownload';
+import { AIChat } from '@/components/common/AIChat';
+import { VideoConference } from '@/components/common/VideoConference';
+import { PositioningTest } from '@/components/common/PositioningTest';
 
 const InternalTrainerDashboardHome = () => {
+  const { toast } = useToast();
+  const [canCreateContent, setCanCreateContent] = useState(true);
+  
   const stats = [
     {
       title: "Étudiants actifs",
-      value: "48",
+      value: "47",
       icon: Users,
-      change: "+5 ce mois",
-      changeType: "positive" as const,
-      color: "text-blue-600"
+      change: "+3 cette semaine"
     },
     {
       title: "Sessions planifiées",
       value: "12",
       icon: Calendar,
-      change: "Cette semaine",
-      changeType: "neutral" as const,
-      color: "text-green-600"
+      change: "Cette semaine"
     },
     {
-      title: "Modules créés",
-      value: "24",
+      title: "Messages en attente",
+      value: "8",
+      icon: MessageSquare,
+      change: "À traiter"
+    },
+    {
+      title: "Contenu créé",
+      value: "23",
       icon: BookOpen,
-      change: "+3 ce mois",
-      changeType: "positive" as const,
-      color: "text-purple-600"
-    },
-    {
-      title: "Satisfaction",
-      value: "4.7/5",
-      icon: Star,
-      change: "+0.3 ce mois",
-      changeType: "positive" as const,
-      color: "text-orange-600"
+      change: "Modules disponibles"
     }
   ];
 
-  const activityData = [
-    { name: 'Lun', value: 12, etudiants: 45 },
-    { name: 'Mar', value: 8, etudiants: 38 },
-    { name: 'Mer', value: 15, etudiants: 52 },
-    { name: 'Jeu', value: 10, etudiants: 41 },
-    { name: 'Ven', value: 18, etudiants: 58 },
-    { name: 'Sam', value: 6, etudiants: 22 }
-  ];
-
-  const moduleData = [
-    { name: 'Mathématiques', value: 8 },
-    { name: 'Français', value: 6 },
-    { name: 'Anglais', value: 5 },
-    { name: 'Sciences', value: 3 },
-    { name: 'Histoire', value: 2 }
+  const activeCourses = [
+    { id: 1, title: 'React pour Débutants', students: 45, progress: 78, sessions: 3 },
+    { id: 2, title: 'JavaScript Avancé', students: 32, progress: 92, sessions: 2 },
+    { id: 3, title: 'Node.js Backend', students: 28, progress: 56, sessions: 4 },
   ];
 
   const upcomingSessions = [
-    { id: 1, course: 'React Avancé', date: '2024-01-22', time: '14:00', students: 15 },
-    { id: 2, course: 'JavaScript ES6', date: '2024-01-23', time: '10:00', students: 20 },
-    { id: 3, course: 'Node.js Backend', date: '2024-01-24', time: '16:00', students: 12 },
+    { id: 1, course: 'React pour Débutants', date: '2024-01-15', time: '14:00', type: 'Présentiel', students: 15 },
+    { id: 2, course: 'JavaScript Avancé', date: '2024-01-16', time: '10:00', type: 'À distance', students: 20 },
+    { id: 3, course: 'Node.js Backend', date: '2024-01-17', time: '16:00', type: 'Hybride', students: 12 },
   ];
 
-  const recentContent = [
-    { id: 1, title: 'Introduction à React', type: 'Vidéo', date: '2024-01-20', status: 'Publié' },
-    { id: 2, title: 'Quiz JavaScript ES6', type: 'Quiz', date: '2024-01-18', status: 'Brouillon' },
-    { id: 3, title: 'API REST avec Node.js', type: 'Article', date: '2024-01-15', status: 'Publié' },
-  ];
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Publié': return 'bg-green-100 text-green-800';
-      case 'Brouillon': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
+  const handleCreateCourse = () => {
+    if (!canCreateContent) {
+      toast({
+        title: "Accès restreint",
+        description: "Votre rôle ne permet pas la création de contenu. Contactez l'administrateur.",
+        variant: "destructive",
+      });
+      return;
     }
+    toast({
+      title: "Nouveau cours",
+      description: "Redirection vers l'outil de création de cours...",
+    });
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Formateur Interne</h1>
-          <p className="text-gray-600">Gérez vos contenus et vos sessions de formation</p>
+          <h1 className="text-3xl font-bold text-gray-900">Tableau de Bord Formateur</h1>
+          <p className="text-gray-600">Créez du contenu et animez vos formations</p>
         </div>
-        <div className="flex items-center space-x-2">
-          <Badge variant="secondary" className="flex items-center gap-1">
-            <CheckCircle className="w-3 h-3 text-green-500" />
-            Formateur certifié
-          </Badge>
-          <Button>
-            <BookOpen className="mr-2 h-4 w-4" />
-            Nouveau contenu
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <Switch 
+              id="content-creation" 
+              checked={canCreateContent}
+              onCheckedChange={setCanCreateContent}
+            />
+            <Label htmlFor="content-creation" className="text-sm">
+              Création de contenu
+            </Label>
+          </div>
+          <Button onClick={handleCreateCourse} disabled={!canCreateContent}>
+            <Plus className="mr-2 h-4 w-4" />
+            Nouveau Cours
           </Button>
         </div>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => (
-          <StatsCard
-            key={index}
-            title={stat.title}
-            value={stat.value}
-            icon={stat.icon}
-            change={stat.change}
-            changeType={stat.changeType}
-            color={stat.color}
-          />
-        ))}
-      </div>
-
-      {/* Graphiques */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <DashboardChart
-          title="Activité hebdomadaire (sessions)"
-          data={activityData}
-          type="bar"
-          dataKey="value"
-          color="#3B82F6"
-          height={300}
-        />
-        
-        <DashboardChart
-          title="Modules par matière"
-          data={moduleData}
-          type="pie"
-          height={300}
-        />
+        {stats.map((stat, index) => {
+          const Icon = stat.icon;
+          return (
+            <Card key={index}>
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <Icon className="h-8 w-8 text-primary" />
+                  <div className="ml-4">
+                    <p className="text-2xl font-bold">{stat.value}</p>
+                    <p className="text-gray-600 text-sm">{stat.title}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Active Courses */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <BookOpen className="mr-2 h-5 w-5" />
+              Cours Actifs
+            </CardTitle>
+            <CardDescription>Vos formations en cours</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {activeCourses.map((course) => (
+              <div key={course.id} className="p-4 border rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-medium">{course.title}</h4>
+                  <Badge>{course.students} étudiants</Badge>
+                </div>
+                <Progress value={course.progress} className="h-2 mb-2" />
+                <div className="flex justify-between text-sm text-gray-600">
+                  <span>{course.progress}% complété</span>
+                  <span>{course.sessions} sessions restantes</span>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
         {/* Upcoming Sessions */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
               <Calendar className="mr-2 h-5 w-5" />
-              Sessions à venir
+              Sessions Programmées
             </CardTitle>
-            <CardDescription>Vos prochaines sessions planifiées</CardDescription>
+            <CardDescription>Vos prochaines animations</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {upcomingSessions.map((session) => (
               <div key={session.id} className="flex items-center justify-between p-4 border rounded-lg">
                 <div>
                   <h4 className="font-medium text-sm">{session.course}</h4>
-                  <p className="text-xs text-gray-500">{session.date} à {session.time}</p>
+                  <p className="text-xs text-gray-600">{session.date} à {session.time}</p>
+                  <div className="flex items-center space-x-2 mt-1">
+                    <Badge variant="outline" className="text-xs">{session.type}</Badge>
+                    <span className="text-xs text-gray-500">{session.students} participants</span>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <Badge variant="outline" className="text-xs">
-                    {session.students} étudiants
-                  </Badge>
-                  <Button size="sm" className="ml-2">
-                    Gérer
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        {/* Recent Content */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <FileText className="mr-2 h-5 w-5" />
-              Contenu récent
-            </CardTitle>
-            <CardDescription>Vos derniers contenus créés</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {recentContent.map((content) => (
-              <div key={content.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <h4 className="font-medium text-sm">{content.title}</h4>
-                  <p className="text-xs text-gray-600">{content.type}</p>
-                  <p className="text-xs text-gray-500">Mis à jour le {content.date}</p>
-                </div>
-                <Badge className={`text-xs ${getStatusColor(content.status)}`}>
-                  {content.status}
-                </Badge>
+                <Button size="sm">Animer</Button>
               </div>
             ))}
           </CardContent>
         </Card>
       </div>
 
-      {/* Quick Actions */}
+      {/* Content Creation Tools */}
       <Card>
         <CardHeader>
-          <CardTitle>Actions Rapides</CardTitle>
-          <CardDescription>Accès rapide à vos outils principaux</CardDescription>
+          <CardTitle>Outils de Création</CardTitle>
+          <CardDescription>
+            {canCreateContent ? 
+              "Créez et gérez votre contenu pédagogique" : 
+              "Création de contenu désactivée - Animation uniquement"
+            }
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Button 
               className="h-20 flex flex-col items-center justify-center space-y-2"
-              variant="outline"
+              disabled={!canCreateContent}
+              variant={canCreateContent ? "default" : "secondary"}
             >
-              <Target className="h-6 w-6" />
-              <span>Nouvel objectif</span>
+              <BookOpen className="h-6 w-6" />
+              <span>Nouveau Module</span>
             </Button>
             <Button 
               className="h-20 flex flex-col items-center justify-center space-y-2" 
               variant="outline"
+              disabled={!canCreateContent}
             >
-              <MessageSquare className="h-6 w-6" />
-              <span>Message étudiant</span>
+              <FileText className="h-6 w-6" />
+              <span>Créer Quiz</span>
+            </Button>
+            <Button 
+              className="h-20 flex flex-col items-center justify-center space-y-2" 
+              variant="outline"
+              disabled={!canCreateContent}
+            >
+              <Award className="h-6 w-6" />
+              <span>Devoir</span>
             </Button>
             <Button 
               className="h-20 flex flex-col items-center justify-center space-y-2" 
               variant="outline"
             >
               <Video className="h-6 w-6" />
-              <span>Ajouter vidéo</span>
-            </Button>
-            <Button 
-              className="h-20 flex flex-col items-center justify-center space-y-2" 
-              variant="outline"
-            >
-              <Clock className="h-6 w-6" />
-              <span>Planifier session</span>
+              <span>Session Live</span>
             </Button>
           </div>
         </CardContent>
@@ -257,28 +250,32 @@ const InternalTrainerDashboardHome = () => {
 
 const InternalTrainerDashboard = () => {
   const sidebarItems = [
-    { title: 'Tableau de bord', href: '/interne', icon: TrendingUp, isActive: true },
-    { title: 'Contenus', href: '/interne/contenus', icon: BookOpen },
-    { title: 'Sessions', href: '/interne/sessions', icon: Calendar },
-    { title: 'Étudiants', href: '/interne/etudiants', icon: Users },
-    { title: 'Messagerie', href: '/interne/messagerie', icon: MessageSquare },
-    { title: 'Planning', href: '/interne/planning', icon: Clock },
-    { title: 'Évaluations', href: '/interne/evaluations', icon: Star },
-    { title: 'Ressources', href: '/interne/ressources', icon: FileText },
-    { title: 'Statistiques', href: '/interne/statistiques', icon: BarChart3 },
-    { title: 'Paramètres', href: '/interne/parametres', icon: Settings },
+    { title: 'Tableau de bord', href: '/formateur-interne', icon: BarChart3, isActive: true },
+    { title: 'Contenus pédagogiques', href: '/formateur-interne/contenus', icon: FileText },
+    { title: 'Animation sessions', href: '/formateur-interne/sessions', icon: Video },
+    { title: 'Suivi apprenants', href: '/formateur-interne/etudiants', icon: TrendingUp },
+    { title: 'Tests de positionnement', href: '/formateur-interne/tests', icon: TestTube },
+    { title: 'Visioconférence', href: '/formateur-interne/video', icon: Video },
+    { title: 'Chat IA', href: '/formateur-interne/chat', icon: Brain },
+    { title: 'Mes documents', href: '/formateur-interne/documents', icon: Download },
+    { title: 'Messagerie', href: '/formateur-interne/messages', icon: MessageSquare },
   ];
 
   const userInfo = {
-    name: "Jean Martin",
-    email: "jean.martin@learneezy.com"
+    name: "Marie Dubois",
+    email: "marie.dubois@learneezy.com"
   };
+
+  const mockDocuments = [
+    { id: '1', name: 'Support React.pdf', type: 'PDF', date: '2024-01-20', size: '2.3 MB' },
+    { id: '2', name: 'Exercices JS.pdf', type: 'PDF', date: '2024-01-18', size: '1.8 MB' }
+  ];
 
   return (
     <div className="flex min-h-screen bg-gray-50">
       <DashboardSidebar
         title="Formateur Interne"
-        subtitle="Contenus & Sessions"
+        subtitle="Création et Animation"
         items={sidebarItems}
         userInfo={userInfo}
       />
@@ -288,12 +285,11 @@ const InternalTrainerDashboard = () => {
           <Route path="/contenus" element={<InternalTrainerContent />} />
           <Route path="/sessions" element={<InternalTrainerSessions />} />
           <Route path="/etudiants" element={<InternalTrainerStudents />} />
-          <Route path="/messagerie" element={<InternalTrainerMessaging />} />
-          <Route path="/planning" element={<InternalTrainerSessions />} />
-          <Route path="/evaluations" element={<InternalTrainerStudents />} />
-          <Route path="/ressources" element={<InternalTrainerContent />} />
-          <Route path="/statistiques" element={<InternalTrainerStudents />} />
-          <Route path="/parametres" element={<InternalTrainerContent />} />
+          <Route path="/tests" element={<PositioningTest userRole="instructor" />} />
+          <Route path="/video" element={<VideoConference />} />
+          <Route path="/chat" element={<AIChat />} />
+          <Route path="/documents" element={<DocumentDownload documents={mockDocuments} userRole="instructor" />} />
+          <Route path="/messages" element={<InternalTrainerMessaging />} />
         </Routes>
       </main>
     </div>
