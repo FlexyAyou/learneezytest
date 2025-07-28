@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
@@ -38,8 +39,8 @@ import TrainerReviews from '@/components/external-trainer/TrainerReviews';
 import TrainerProfile from '@/components/external-trainer/TrainerProfile';
 import TrainerSupport from '@/components/external-trainer/TrainerSupport';
 import { DocumentDownload } from '@/components/common/DocumentDownload';
-import { AIChat } from '@/components/common/AIChat';
-import { VideoConference } from '@/components/common/VideoConference';
+import AIChat from '@/components/common/AIChat';
+import VideoConference from '@/components/common/VideoConference';
 import { PositioningTest } from '@/components/common/PositioningTest';
 
 const ExternalTrainerDashboardHome = () => {
