@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -27,7 +26,6 @@ interface Inscription {
 }
 
 const StudentInscriptions = () => {
-  const navigate = useNavigate();
   const [selectedInscription, setSelectedInscription] = useState<string | null>(null);
 
   // Données d'exemple
@@ -95,6 +93,8 @@ const StudentInscriptions = () => {
 
   const getStatusBadge = (status: Inscription['status']) => {
     switch (status) {
+      case 'pending':
+        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700">En attente</Badge>;
       case 'approved':
         return <Badge variant="outline" className="bg-green-50 text-green-700">Approuvée</Badge>;
       case 'rejected':
@@ -108,7 +108,18 @@ const StudentInscriptions = () => {
     }
   };
 
-  // Fonction supprimée - plus de badge de statut de paiement
+  const getPaymentStatusBadge = (status: Inscription['paymentStatus']) => {
+    switch (status) {
+      case 'paid':
+        return <Badge variant="default" className="bg-green-100 text-green-800">Payé</Badge>;
+      case 'partial':
+        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700">Partiel</Badge>;
+      case 'pending':
+        return <Badge variant="outline" className="bg-red-50 text-red-700">En attente</Badge>;
+      default:
+        return <Badge variant="outline">Inconnu</Badge>;
+    }
+  };
 
   const getStatusIcon = (status: Inscription['status']) => {
     switch (status) {
@@ -129,19 +140,27 @@ const StudentInscriptions = () => {
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Mes Inscriptions</h1>
-        <Button onClick={() => navigate('/cours')}>
+        <Button>
           Nouvelle inscription
         </Button>
       </div>
 
       {/* Statistiques rapides */}
-      <div className="grid md:grid-cols-3 gap-4">
+      <div className="grid md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold text-blue-600">
               {inscriptions.filter(i => i.status === 'active').length}
             </p>
             <p className="text-sm text-gray-600">Formations actives</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <p className="text-2xl font-bold text-yellow-600">
+              {inscriptions.filter(i => i.status === 'pending').length}
+            </p>
+            <p className="text-sm text-gray-600">En attente</p>
           </CardContent>
         </Card>
         <Card>
@@ -193,12 +212,25 @@ const StudentInscriptions = () => {
                     <span className="font-medium">{inscription.price}€</span>
                   </div>
                 </div>
+                <div className="flex flex-col items-end gap-2">
+                  {getPaymentStatusBadge(inscription.paymentStatus)}
+                </div>
               </div>
             </CardHeader>
 
             <CardContent>
               <div className="space-y-4">
                 {/* Statut et actions selon l'état */}
+                {inscription.status === 'pending' && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <h4 className="font-medium text-yellow-800 mb-2">Inscription en cours de traitement</h4>
+                    <p className="text-sm text-yellow-700">
+                      Votre demande d'inscription est en cours d'examen par notre équipe pédagogique. 
+                      Vous recevrez une réponse dans les 24-48h.
+                    </p>
+                  </div>
+                )}
+
                 {inscription.status === 'approved' && !inscription.conventionSigned && (
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                     <h4 className="font-medium text-green-800 mb-2">Inscription approuvée !</h4>
@@ -300,7 +332,7 @@ const StudentInscriptions = () => {
             <p className="text-gray-600 mb-4">
               Vous n'avez pas encore d'inscription à nos formations.
             </p>
-            <Button onClick={() => navigate('/cours')}>
+            <Button>
               Découvrir nos formations
             </Button>
           </CardContent>
