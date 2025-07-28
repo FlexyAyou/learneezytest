@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
@@ -26,13 +25,13 @@ import {
   Database
 } from 'lucide-react';
 
-import { AdminUsers } from '@/components/admin/AdminUsers';
-import { AdminCourses } from '@/components/admin/AdminCourses';
-import { AdminStats } from '@/components/admin/AdminStats';
-import { AdminSettings } from '@/components/admin/AdminSettings';
-import { AdminSecurity } from '@/components/admin/AdminSecurity';
-import { AdminPayments } from '@/components/admin/AdminPayments';
-import { AdminSupport } from '@/components/admin/AdminSupport';
+import AdminUsers from '@/components/admin/AdminUsers';
+import AdminCourses from '@/components/admin/AdminCourses';
+import AdminStats from '@/components/admin/AdminStats';
+import AdminSettings from '@/components/admin/AdminSettings';
+import AdminSecurity from '@/components/admin/AdminSecurity';
+import AdminPayments from '@/components/admin/AdminPayments';
+import AdminSupport from '@/components/admin/AdminSupport';
 import { StatsCard } from '@/components/common/StatsCard';
 import { DashboardChart } from '@/components/common/DashboardChart';
 
@@ -73,12 +72,12 @@ const AdminDashboardHome = () => {
   ];
 
   const userGrowthData = [
-    { name: 'Jan', utilisateurs: 2100, revenus: 65000 },
-    { name: 'Fév', utilisateurs: 2300, revenus: 68000 },
-    { name: 'Mar', utilisateurs: 2450, revenus: 72000 },
-    { name: 'Avr', utilisateurs: 2600, revenus: 76000 },
-    { name: 'Mai', utilisateurs: 2750, revenus: 80000 },
-    { name: 'Juin', utilisateurs: 2847, revenus: 84230 }
+    { name: 'Jan', value: 2100, revenus: 65000 },
+    { name: 'Fév', value: 2300, revenus: 68000 },
+    { name: 'Mar', value: 2450, revenus: 72000 },
+    { name: 'Avr', value: 2600, revenus: 76000 },
+    { name: 'Mai', value: 2750, revenus: 80000 },
+    { name: 'Juin', value: 2847, revenus: 84230 }
   ];
 
   const userTypeData = [
@@ -156,7 +155,7 @@ const AdminDashboardHome = () => {
           title="Croissance des utilisateurs et revenus"
           data={userGrowthData}
           type="line"
-          dataKey="utilisateurs"
+          dataKey="value"
           color="#3B82F6"
           height={300}
         />

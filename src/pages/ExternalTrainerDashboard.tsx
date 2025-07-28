@@ -1,139 +1,128 @@
-
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { 
   Calendar, 
-  DollarSign, 
-  Star, 
   Users, 
+  DollarSign, 
   Clock,
+  Star,
   BookOpen,
-  Settings,
   MessageSquare,
-  Award,
+  Settings,
   TrendingUp,
+  CheckCircle,
+  FileText,
+  Award,
   Target,
-  History,
-  HelpCircle,
-  Download,
-  Brain,
-  Video,
-  TestTube
+  BarChart3
 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 
-// Import des composants spécialisés
-import TrainerSpecialties from '@/components/external-trainer/TrainerSpecialties';
-import TrainerAvailabilities from '@/components/external-trainer/TrainerAvailabilities';
-import TrainerRates from '@/components/external-trainer/TrainerRates';
-import TrainerBookings from '@/components/external-trainer/TrainerBookings';
-import TrainerEarnings from '@/components/external-trainer/TrainerEarnings';
-import TrainerHistory from '@/components/external-trainer/TrainerHistory';
-import TrainerReviews from '@/components/external-trainer/TrainerReviews';
-import TrainerProfile from '@/components/external-trainer/TrainerProfile';
-import TrainerSupport from '@/components/external-trainer/TrainerSupport';
-import { DocumentDownload } from '@/components/common/DocumentDownload';
-import { AIChat } from '@/components/common/AIChat';
-import { VideoConference } from '@/components/common/VideoConference';
-import { PositioningTest } from '@/components/common/PositioningTest';
+import { TrainerAvailabilities } from '@/components/external-trainer/TrainerAvailabilities';
+import { TrainerBookings } from '@/components/external-trainer/TrainerBookings';
+import { TrainerEarnings } from '@/components/external-trainer/TrainerEarnings';
+import { TrainerHistory } from '@/components/external-trainer/TrainerHistory';
+import { TrainerProfile } from '@/components/external-trainer/TrainerProfile';
+import { TrainerReviews } from '@/components/external-trainer/TrainerReviews';
+import { TrainerRates } from '@/components/external-trainer/TrainerRates';
+import { TrainerSpecialties } from '@/components/external-trainer/TrainerSpecialties';
+import { TrainerSupport } from '@/components/external-trainer/TrainerSupport';
 import { StatsCard } from '@/components/common/StatsCard';
 import { DashboardChart } from '@/components/common/DashboardChart';
 
 const ExternalTrainerDashboardHome = () => {
-  const { toast } = useToast();
-  
   const stats = [
     {
-      title: "Revenus ce mois",
-      value: "2,450€",
-      icon: DollarSign,
+      title: "Réservations ce mois",
+      value: "28",
+      icon: Calendar,
       change: "+15% vs mois dernier",
+      changeType: "positive" as const,
+      color: "text-blue-600"
+    },
+    {
+      title: "Étudiants formés",
+      value: "156",
+      icon: Users,
+      change: "+23 ce mois",
       changeType: "positive" as const,
       color: "text-green-600"
     },
     {
-      title: "Heures planifiées",
-      value: "32h",
-      icon: Clock,
-      change: "Cette semaine",
-      changeType: "neutral" as const,
-      color: "text-blue-600"
+      title: "Revenus ce mois",
+      value: "€2,840",
+      icon: DollarSign,
+      change: "+18% vs mois dernier",
+      changeType: "positive" as const,
+      color: "text-purple-600"
     },
     {
       title: "Note moyenne",
-      value: "4.8",
+      value: "4.8/5",
       icon: Star,
-      change: "Basé sur 47 avis",
+      change: "+0.2 ce mois",
       changeType: "positive" as const,
-      color: "text-yellow-600"
-    },
-    {
-      title: "Étudiants actifs",
-      value: "23",
-      icon: Users,
-      change: "+2 ce mois",
-      changeType: "positive" as const,
-      color: "text-purple-600"
+      color: "text-orange-600"
     }
   ];
 
   const earningsData = [
-    { name: 'Jan', revenus: 1800, heures: 24 },
-    { name: 'Fév', revenus: 2100, heures: 28 },
-    { name: 'Mar', revenus: 1950, heures: 26 },
-    { name: 'Avr', revenus: 2300, heures: 31 },
-    { name: 'Mai', revenus: 2450, heures: 32 },
-    { name: 'Juin', revenus: 2200, heures: 29 }
+    { name: 'Jan', value: 1200, heures: 48 },
+    { name: 'Fév', value: 1850, heures: 52 },
+    { name: 'Mar', value: 2100, heures: 58 },
+    { name: 'Avr', value: 2450, heures: 62 },
+    { name: 'Mai', value: 2840, heures: 68 },
+    { name: 'Juin', value: 3200, heures: 72 }
   ];
 
   const subjectData = [
-    { name: 'React', value: 35 },
-    { name: 'JavaScript', value: 25 },
-    { name: 'UI/UX', value: 20 },
-    { name: 'Node.js', value: 15 },
-    { name: 'Python', value: 5 }
-  ];
-
-  const availableSlots = [
-    { id: 1, date: '2024-01-15', time: '10:00-12:00', price: 45, booked: false },
-    { id: 2, date: '2024-01-15', time: '14:00-16:00', price: 45, booked: true },
-    { id: 3, date: '2024-01-16', time: '09:00-11:00', price: 50, booked: false },
-    { id: 4, date: '2024-01-16', time: '16:00-18:00', price: 45, booked: false },
+    { name: 'Mathématiques', value: 40 },
+    { name: 'Français', value: 30 },
+    { name: 'Anglais', value: 20 },
+    { name: 'Sciences', value: 10 }
   ];
 
   const upcomingBookings = [
-    { id: 1, student: 'Alice Martin', subject: 'React Development', date: '2024-01-15', time: '14:00', price: 45, commission: 13.5 },
-    { id: 2, student: 'Thomas Petit', subject: 'JavaScript', date: '2024-01-16', time: '10:00', price: 50, commission: 15 },
-    { id: 3, student: 'Emma Dubois', subject: 'UI/UX Design', date: '2024-01-17', time: '15:00', price: 40, commission: 12 },
+    { id: 1, student: 'Alice Martin', date: '2024-01-22', time: '14:00', subject: 'Mathématiques', type: 'Présentiel' },
+    { id: 2, student: 'Thomas Petit', date: '2024-01-22', time: '16:00', subject: 'Français', type: 'À distance' },
+    { id: 3, student: 'Emma Dubois', date: '2024-01-23', time: '10:00', subject: 'Anglais', type: 'Présentiel' },
   ];
 
-  const handleSetAvailability = () => {
-    toast({
-      title: "Disponibilité mise à jour",
-      description: "Vos créneaux ont été publiés avec succès",
-    });
-  };
+  const recentEarnings = [
+    { id: 1, student: 'Alice Martin', date: '2024-01-20', amount: '€80' },
+    { id: 2, student: 'Thomas Petit', date: '2024-01-19', amount: '€120' },
+    { id: 3, student: 'Emma Dubois', date: '2024-01-21', amount: '€95' },
+  ];
 
-  const handlePriceUpdate = (slotId: number, newPrice: number) => {
-    toast({
-      title: "Prix mis à jour",
-      description: `Nouveau prix: ${newPrice}€/heure`,
-    });
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'Confirmé': return 'bg-green-100 text-green-800';
+      case 'En attente': return 'bg-yellow-100 text-yellow-800';
+      case 'Annulé': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
   };
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Formateur Externe</h1>
-        <p className="text-gray-600">Gérez vos disponibilités et vos tarifs</p>
-        <div className="mt-2 text-sm text-gray-500">
-          Commission Learneezy: 30% • Vous recevez: 70%
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Formateur Externe</h1>
+          <p className="text-gray-600">Gérez vos disponibilités et réservations</p>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Badge variant="secondary" className="flex items-center gap-1">
+            <CheckCircle className="w-3 h-3 text-green-500" />
+            Profil vérifié
+          </Badge>
+          <Button>
+            <Calendar className="mr-2 h-4 w-4" />
+            Nouvelle disponibilité
+          </Button>
         </div>
       </div>
 
@@ -158,8 +147,8 @@ const ExternalTrainerDashboardHome = () => {
           title="Évolution des revenus (6 derniers mois)"
           data={earningsData}
           type="area"
-          dataKey="revenus"
-          color="#10B981"
+          dataKey="value"
+          color="#3B82F6"
           height={300}
         />
         
@@ -173,122 +162,105 @@ const ExternalTrainerDashboardHome = () => {
 
       {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Availability Management */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Calendar className="mr-2 h-5 w-5" />
-              Mes Créneaux
-            </CardTitle>
-            <CardDescription>Gérez votre disponibilité et vos tarifs</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {availableSlots.map((slot) => (
-              <div key={slot.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <p className="font-medium text-sm">{slot.date}</p>
-                  <p className="text-xs text-gray-600">{slot.time}</p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Input 
-                    type="number" 
-                    value={slot.price} 
-                    className="w-16 h-8 text-xs"
-                    onChange={(e) => handlePriceUpdate(slot.id, Number(e.target.value))}
-                  />
-                  <span className="text-xs">€/h</span>
-                  {slot.booked ? (
-                    <Badge variant="default">Réservé</Badge>
-                  ) : (
-                    <Badge variant="outline">Libre</Badge>
-                  )}
-                </div>
-              </div>
-            ))}
-            <Button className="w-full" onClick={handleSetAvailability}>
-              Mettre à jour la disponibilité
-            </Button>
-          </CardContent>
-        </Card>
-
         {/* Upcoming Bookings */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
-              <Users className="mr-2 h-5 w-5" />
-              Réservations Confirmées
+              <Calendar className="mr-2 h-5 w-5" />
+              Réservations à venir
             </CardTitle>
             <CardDescription>Vos prochaines sessions</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {upcomingBookings.map((booking) => (
-              <div key={booking.id} className="p-4 border rounded-lg">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <p className="font-medium text-sm">{booking.student}</p>
-                    <p className="text-xs text-gray-600">{booking.subject}</p>
-                  </div>
-                  <Badge>Confirmé</Badge>
+              <div key={booking.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div>
+                  <h4 className="font-medium text-sm">{booking.student}</h4>
+                  <p className="text-xs text-gray-600">{booking.subject}</p>
+                  <p className="text-xs text-gray-500">{booking.date} à {booking.time}</p>
                 </div>
-                <div className="text-xs text-gray-500 space-y-1">
-                  <p>{booking.date} à {booking.time}</p>
-                  <div className="flex justify-between">
-                    <span>Prix: {booking.price}€</span>
-                    <span className="font-medium text-green-600">Vous: {booking.price * 0.7}€</span>
-                  </div>
+                <div className="text-right">
+                  <Badge variant="outline" className="text-xs">
+                    {booking.type}
+                  </Badge>
+                  <Button size="sm" className="ml-2">
+                    Gérer
+                  </Button>
                 </div>
               </div>
             ))}
           </CardContent>
         </Card>
-      </div>
 
-      {/* Performance & Specialties */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Earnings */}
         <Card>
           <CardHeader>
-            <CardTitle>Performance</CardTitle>
-            <CardDescription>Vos statistiques de formation</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">98%</div>
-                <div className="text-sm text-gray-600">Satisfaction</div>
-              </div>
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <div className="text-2xl font-bold text-blue-600">156</div>
-                <div className="text-sm text-gray-600">Sessions</div>
-              </div>
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <div className="text-2xl font-bold text-purple-600">85%</div>
-                <div className="text-sm text-gray-600">Taux réservation</div>
-              </div>
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">12,450€</div>
-                <div className="text-sm text-gray-600">Revenus totaux</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Mes Spécialités</CardTitle>
-            <CardDescription>Domaines d'expertise autorisés</CardDescription>
+            <CardTitle className="flex items-center">
+              <DollarSign className="mr-2 h-5 w-5" />
+              Derniers revenus
+            </CardTitle>
+            <CardDescription>Vos dernières transactions</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-wrap gap-2 mb-4">
-              {['React', 'JavaScript', 'UI/UX Design', 'Node.js', 'Python'].map((specialty, index) => (
-                <Badge key={index} variant="secondary">{specialty}</Badge>
+            <div className="space-y-4">
+              {recentEarnings.map((earning) => (
+                <div key={earning.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div>
+                    <h4 className="font-medium text-sm">{earning.student}</h4>
+                    <p className="text-xs text-gray-500">{earning.date}</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm font-medium text-green-600">{earning.amount}</div>
+                    <Button size="sm" variant="outline">
+                      Détails
+                    </Button>
+                  </div>
+                </div>
               ))}
             </div>
-            <Button className="w-full" variant="outline">
-              Demander nouvelles spécialités
-            </Button>
           </CardContent>
         </Card>
       </div>
+
+      {/* Quick Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Actions Rapides</CardTitle>
+          <CardDescription>Accès rapide à vos outils principaux</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Button 
+              className="h-20 flex flex-col items-center justify-center space-y-2"
+              variant="outline"
+            >
+              <Calendar className="h-6 w-6" />
+              <span>Gérer planning</span>
+            </Button>
+            <Button 
+              className="h-20 flex flex-col items-center justify-center space-y-2" 
+              variant="outline"
+            >
+              <Users className="h-6 w-6" />
+              <span>Voir étudiants</span>
+            </Button>
+            <Button 
+              className="h-20 flex flex-col items-center justify-center space-y-2" 
+              variant="outline"
+            >
+              <FileText className="h-6 w-6" />
+              <span>Rapports</span>
+            </Button>
+            <Button 
+              className="h-20 flex flex-col items-center justify-center space-y-2" 
+              variant="outline"
+            >
+              <MessageSquare className="h-6 w-6" />
+              <span>Contacter support</span>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
@@ -296,55 +268,43 @@ const ExternalTrainerDashboardHome = () => {
 const ExternalTrainerDashboard = () => {
   const sidebarItems = [
     { title: 'Tableau de bord', href: '/formateur-externe', icon: TrendingUp, isActive: true },
-    { title: 'Mes spécialités', href: '/formateur-externe/specialites', icon: Target },
-    { title: 'Mes disponibilités', href: '/formateur-externe/disponibilites', icon: Calendar },
-    { title: 'Mes tarifs', href: '/formateur-externe/tarifs', icon: DollarSign },
-    { title: 'Mes réservations', href: '/formateur-externe/reservations', icon: BookOpen },
-    { title: 'Historique séances', href: '/formateur-externe/historique', icon: History },
-    { title: 'Mes évaluations', href: '/formateur-externe/evaluations', icon: Star },
-    { title: 'Mes revenus', href: '/formateur-externe/revenus', icon: Award },
-    { title: 'Tests de positionnement', href: '/formateur-externe/tests', icon: TestTube },
-    { title: 'Visioconférence', href: '/formateur-externe/video', icon: Video },
-    { title: 'Chat IA', href: '/formateur-externe/chat', icon: Brain },
-    { title: 'Mes documents', href: '/formateur-externe/documents', icon: Download },
-    { title: 'Support & Assistance', href: '/formateur-externe/support', icon: HelpCircle },
-    { title: 'Profil formateur', href: '/formateur-externe/profil', icon: Settings },
+    { title: 'Disponibilités', href: '/formateur-externe/disponibilites', icon: Calendar },
+    { title: 'Réservations', href: '/formateur-externe/reservations', icon: BookOpen },
+    { title: 'Revenus', href: '/formateur-externe/revenus', icon: DollarSign },
+    { title: 'Historique', href: '/formateur-externe/historique', icon: Clock },
+    { title: 'Profil', href: '/formateur-externe/profil', icon: Users },
+    { title: 'Avis', href: '/formateur-externe/avis', icon: Star },
+    { title: 'Tarifs', href: '/formateur-externe/tarifs', icon: Award },
+    { title: 'Spécialités', href: '/formateur-externe/specialites', icon: Target },
+    { title: 'Support', href: '/formateur-externe/support', icon: MessageSquare },
+    { title: 'Paramètres', href: '/formateur-externe/parametres', icon: Settings },
   ];
 
   const userInfo = {
     name: "Jean Martin",
-    email: "jean.martin@email.com"
+    email: "jean.martin@learneezy.com"
   };
-
-  const mockDocuments = [
-    { id: '1', name: 'Contrat formateur.pdf', type: 'PDF', date: '2024-01-20', size: '2.3 MB' },
-    { id: '2', name: 'Supports de cours.pdf', type: 'PDF', date: '2024-01-18', size: '1.8 MB' }
-  ];
 
   return (
     <div className="flex min-h-screen bg-gray-50">
       <DashboardSidebar
         title="Formateur Externe"
-        subtitle="Formations à la demande"
+        subtitle="Freelance & Disponibilités"
         items={sidebarItems}
         userInfo={userInfo}
       />
       <main className="flex-1 p-8">
         <Routes>
           <Route path="/" element={<ExternalTrainerDashboardHome />} />
-          <Route path="/specialites" element={<TrainerSpecialties />} />
           <Route path="/disponibilites" element={<TrainerAvailabilities />} />
-          <Route path="/tarifs" element={<TrainerRates />} />
           <Route path="/reservations" element={<TrainerBookings />} />
-          <Route path="/historique" element={<TrainerHistory />} />
-          <Route path="/evaluations" element={<TrainerReviews />} />
           <Route path="/revenus" element={<TrainerEarnings />} />
-          <Route path="/tests" element={<PositioningTest userRole="instructor" />} />
-          <Route path="/video" element={<VideoConference />} />
-          <Route path="/chat" element={<AIChat />} />
-          <Route path="/documents" element={<DocumentDownload documents={mockDocuments} userRole="instructor" />} />
-          <Route path="/support" element={<TrainerSupport />} />
+          <Route path="/historique" element={<TrainerHistory />} />
           <Route path="/profil" element={<TrainerProfile />} />
+          <Route path="/avis" element={<TrainerReviews />} />
+          <Route path="/tarifs" element={<TrainerRates />} />
+          <Route path="/specialites" element={<TrainerSpecialties />} />
+          <Route path="/support" element={<TrainerSupport />} />
         </Routes>
       </main>
     </div>

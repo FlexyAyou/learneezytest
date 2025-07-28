@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
@@ -22,12 +21,12 @@ import {
   AlertTriangle
 } from 'lucide-react';
 
-import { ManagerPlanning } from '@/components/manager/ManagerPlanning';
-import { ManagerAttendance } from '@/components/manager/ManagerAttendance';
-import { ManagerEnrollments } from '@/components/manager/ManagerEnrollments';
-import { ManagerSettings } from '@/components/manager/ManagerSettings';
-import { ManagerMessaging } from '@/components/manager/ManagerMessaging';
-import { ManagerReports } from '@/components/manager/ManagerReports';
+import ManagerPlanning from '@/components/manager/ManagerPlanning';
+import ManagerAttendance from '@/components/manager/ManagerAttendance';
+import ManagerEnrollments from '@/components/manager/ManagerEnrollments';
+import ManagerSettings from '@/components/manager/ManagerSettings';
+import ManagerMessaging from '@/components/manager/ManagerMessaging';
+import ManagerReports from '@/components/manager/ManagerReports';
 import { StatsCard } from '@/components/common/StatsCard';
 import { DashboardChart } from '@/components/common/DashboardChart';
 
@@ -68,12 +67,12 @@ const ManagerDashboardHome = () => {
   ];
 
   const enrollmentData = [
-    { name: 'Jan', inscriptions: 85, abandons: 12 },
-    { name: 'Fév', inscriptions: 92, abandons: 8 },
-    { name: 'Mar', inscriptions: 78, abandons: 15 },
-    { name: 'Avr', inscriptions: 105, abandons: 10 },
-    { name: 'Mai', inscriptions: 124, abandons: 7 },
-    { name: 'Juin', inscriptions: 118, abandons: 9 }
+    { name: 'Jan', value: 85, abandons: 12 },
+    { name: 'Fév', value: 92, abandons: 8 },
+    { name: 'Mar', value: 78, abandons: 15 },
+    { name: 'Avr', value: 105, abandons: 10 },
+    { name: 'Mai', value: 124, abandons: 7 },
+    { name: 'Juin', value: 118, abandons: 9 }
   ];
 
   const attendanceData = [
@@ -139,7 +138,7 @@ const ManagerDashboardHome = () => {
           title="Évolution des inscriptions (6 derniers mois)"
           data={enrollmentData}
           type="line"
-          dataKey="inscriptions"
+          dataKey="value"
           color="#3B82F6"
           height={300}
         />

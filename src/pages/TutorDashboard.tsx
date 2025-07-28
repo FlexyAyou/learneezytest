@@ -18,12 +18,13 @@ import {
   Bell,
   BookOpen,
   Target,
-  Clock
+  Clock,
+  Plus
 } from 'lucide-react';
 
 import { TutorStudentTrackingActions } from '@/components/tutor/TutorStudentTrackingActions';
-import { TutorPlanningNotifications } from '@/components/tutor/TutorPlanningNotifications';
-import { TutorMessaging } from '@/components/tutor/TutorMessaging';
+import TutorPlanningNotifications from '@/components/tutor/TutorPlanningNotifications';
+import TutorMessaging from '@/components/tutor/TutorMessaging';
 import { DocumentDownload } from '@/components/common/DocumentDownload';
 import { AIChat } from '@/components/common/AIChat';
 import { VideoConference } from '@/components/common/VideoConference';
@@ -68,12 +69,12 @@ const TutorDashboardHome = () => {
   ];
 
   const progressData = [
-    { name: 'Sem 1', progression: 65 },
-    { name: 'Sem 2', progression: 68 },
-    { name: 'Sem 3', progression: 72 },
-    { name: 'Sem 4', progression: 75 },
-    { name: 'Sem 5', progression: 78 },
-    { name: 'Sem 6', progression: 82 }
+    { name: 'Sem 1', value: 65 },
+    { name: 'Sem 2', value: 68 },
+    { name: 'Sem 3', value: 72 },
+    { name: 'Sem 4', value: 75 },
+    { name: 'Sem 5', value: 78 },
+    { name: 'Sem 6', value: 82 }
   ];
 
   const subjectData = [
@@ -140,7 +141,7 @@ const TutorDashboardHome = () => {
           title="Évolution de la progression (6 dernières semaines)"
           data={progressData}
           type="area"
-          dataKey="progression"
+          dataKey="value"
           color="#3B82F6"
           height={300}
         />
@@ -302,10 +303,10 @@ const TutorDashboard = () => {
           <Route path="/suivi" element={<TutorStudentTrackingActions />} />
           <Route path="/planning" element={<TutorPlanningNotifications />} />
           <Route path="/messages" element={<TutorMessaging />} />
-          <Route path="/tests" element={<PositioningTest userRole="tutor" />} />
+          <Route path="/tests" element={<PositioningTest userRole="admin" />} />
           <Route path="/video" element={<VideoConference />} />
           <Route path="/chat" element={<AIChat />} />
-          <Route path="/documents" element={<DocumentDownload documents={mockDocuments} userRole="tutor" />} />
+          <Route path="/documents" element={<DocumentDownload documents={mockDocuments} userRole="admin" />} />
           <Route path="/notifications" element={<TutorPlanningNotifications />} />
           <Route path="/parametres" element={<TutorPlanningNotifications />} />
         </Routes>

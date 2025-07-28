@@ -69,12 +69,12 @@ const ContentCreatorDashboardHome = () => {
   ];
 
   const creationData = [
-    { name: 'Jan', modules: 18, validations: 16 },
-    { name: 'Fév', modules: 22, validations: 20 },
-    { name: 'Mar', modules: 19, validations: 18 },
-    { name: 'Avr', modules: 24, validations: 22 },
-    { name: 'Mai', modules: 26, validations: 24 },
-    { name: 'Juin', modules: 28, validations: 26 }
+    { name: 'Jan', value: 18, validations: 16 },
+    { name: 'Fév', value: 22, validations: 20 },
+    { name: 'Mar', value: 19, validations: 18 },
+    { name: 'Avr', value: 24, validations: 22 },
+    { name: 'Mai', value: 26, validations: 24 },
+    { name: 'Juin', value: 28, validations: 26 }
   ];
 
   const contentTypeData = [
@@ -187,7 +187,7 @@ const ContentCreatorDashboardHome = () => {
           title="Évolution de la création (6 derniers mois)"
           data={creationData}
           type="area"
-          dataKey="modules"
+          dataKey="value"
           color="#3B82F6"
           height={300}
         />

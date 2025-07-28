@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
@@ -24,12 +23,6 @@ import {
   Play
 } from 'lucide-react';
 
-import { StudentInscriptions } from '@/components/student/StudentInscriptions';
-import { StudentEmargements } from '@/components/student/StudentEmargements';
-import { StudentEvaluations } from '@/components/student/StudentEvaluations';
-import { StudentCourses } from '@/components/student/StudentCourses';
-import { StudentProgress } from '@/components/student/StudentProgress';
-import { StudentMessaging } from '@/components/student/StudentMessaging';
 import { DocumentDownload } from '@/components/common/DocumentDownload';
 import { AIChat } from '@/components/common/AIChat';
 import { VideoConference } from '@/components/common/VideoConference';
@@ -74,12 +67,12 @@ const StudentDashboardHome = () => {
   ];
 
   const progressData = [
-    { name: 'Sem 1', progression: 45 },
-    { name: 'Sem 2', progression: 52 },
-    { name: 'Sem 3', progression: 58 },
-    { name: 'Sem 4', progression: 63 },
-    { name: 'Sem 5', progression: 68 },
-    { name: 'Sem 6', progression: 72 }
+    { name: 'Sem 1', value: 45 },
+    { name: 'Sem 2', value: 52 },
+    { name: 'Sem 3', value: 58 },
+    { name: 'Sem 4', value: 63 },
+    { name: 'Sem 5', value: 68 },
+    { name: 'Sem 6', value: 72 }
   ];
 
   const subjectData = [
@@ -166,7 +159,7 @@ const StudentDashboardHome = () => {
           title="Évolution de ma progression (6 dernières semaines)"
           data={progressData}
           type="area"
-          dataKey="progression"
+          dataKey="value"
           color="#3B82F6"
           height={300}
         />
@@ -332,17 +325,17 @@ const StudentDashboard = () => {
       <main className="flex-1 p-8">
         <Routes>
           <Route path="/" element={<StudentDashboardHome />} />
-          <Route path="/cours" element={<StudentCourses />} />
-          <Route path="/progression" element={<StudentProgress />} />
-          <Route path="/inscriptions" element={<StudentInscriptions />} />
-          <Route path="/emargements" element={<StudentEmargements />} />
-          <Route path="/evaluations" element={<StudentEvaluations />} />
+          <Route path="/cours" element={<div>Mes cours</div>} />
+          <Route path="/progression" element={<div>Ma progression</div>} />
+          <Route path="/inscriptions" element={<div>Mes inscriptions</div>} />
+          <Route path="/emargements" element={<div>Mes émargements</div>} />
+          <Route path="/evaluations" element={<div>Mes évaluations</div>} />
           <Route path="/tests" element={<PositioningTest userRole="student" />} />
           <Route path="/video" element={<VideoConference />} />
           <Route path="/chat" element={<AIChat />} />
           <Route path="/documents" element={<DocumentDownload documents={mockDocuments} userRole="student" />} />
-          <Route path="/messages" element={<StudentMessaging />} />
-          <Route path="/parametres" element={<StudentProgress />} />
+          <Route path="/messages" element={<div>Messagerie</div>} />
+          <Route path="/parametres" element={<div>Paramètres</div>} />
         </Routes>
       </main>
     </div>
