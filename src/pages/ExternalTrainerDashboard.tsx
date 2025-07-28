@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
@@ -5,7 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { 
   Calendar, 
   DollarSign, 
@@ -41,6 +41,8 @@ import { DocumentDownload } from '@/components/common/DocumentDownload';
 import { AIChat } from '@/components/common/AIChat';
 import { VideoConference } from '@/components/common/VideoConference';
 import { PositioningTest } from '@/components/common/PositioningTest';
+import { StatsCard } from '@/components/common/StatsCard';
+import { DashboardChart } from '@/components/common/DashboardChart';
 
 const ExternalTrainerDashboardHome = () => {
   const { toast } = useToast();
@@ -50,26 +52,51 @@ const ExternalTrainerDashboardHome = () => {
       title: "Revenus ce mois",
       value: "2,450€",
       icon: DollarSign,
-      change: "+15% vs mois dernier"
+      change: "+15% vs mois dernier",
+      changeType: "positive" as const,
+      color: "text-green-600"
     },
     {
       title: "Heures planifiées",
       value: "32h",
       icon: Clock,
-      change: "Cette semaine"
+      change: "Cette semaine",
+      changeType: "neutral" as const,
+      color: "text-blue-600"
     },
     {
       title: "Note moyenne",
       value: "4.8",
       icon: Star,
-      change: "Basé sur 47 avis"
+      change: "Basé sur 47 avis",
+      changeType: "positive" as const,
+      color: "text-yellow-600"
     },
     {
       title: "Étudiants actifs",
       value: "23",
       icon: Users,
-      change: "+2 ce mois"
+      change: "+2 ce mois",
+      changeType: "positive" as const,
+      color: "text-purple-600"
     }
+  ];
+
+  const earningsData = [
+    { name: 'Jan', revenus: 1800, heures: 24 },
+    { name: 'Fév', revenus: 2100, heures: 28 },
+    { name: 'Mar', revenus: 1950, heures: 26 },
+    { name: 'Avr', revenus: 2300, heures: 31 },
+    { name: 'Mai', revenus: 2450, heures: 32 },
+    { name: 'Juin', revenus: 2200, heures: 29 }
+  ];
+
+  const subjectData = [
+    { name: 'React', value: 35 },
+    { name: 'JavaScript', value: 25 },
+    { name: 'UI/UX', value: 20 },
+    { name: 'Node.js', value: 15 },
+    { name: 'Python', value: 5 }
   ];
 
   const availableSlots = [
@@ -84,8 +111,6 @@ const ExternalTrainerDashboardHome = () => {
     { id: 2, student: 'Thomas Petit', subject: 'JavaScript', date: '2024-01-16', time: '10:00', price: 50, commission: 15 },
     { id: 3, student: 'Emma Dubois', subject: 'UI/UX Design', date: '2024-01-17', time: '15:00', price: 40, commission: 12 },
   ];
-
-  const specialties = ['React', 'JavaScript', 'UI/UX Design', 'Node.js', 'Python'];
 
   const handleSetAvailability = () => {
     toast({
@@ -102,7 +127,7 @@ const ExternalTrainerDashboardHome = () => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Formateur Externe</h1>
@@ -114,26 +139,40 @@ const ExternalTrainerDashboardHome = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => {
-          const Icon = stat.icon;
-          return (
-            <Card key={index}>
-              <CardContent className="p-6">
-                <div className="flex items-center">
-                  <Icon className="h-8 w-8 text-primary" />
-                  <div className="ml-4">
-                    <p className="text-2xl font-bold">{stat.value}</p>
-                    <p className="text-gray-600 text-sm">{stat.title}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+        {stats.map((stat, index) => (
+          <StatsCard
+            key={index}
+            title={stat.title}
+            value={stat.value}
+            icon={stat.icon}
+            change={stat.change}
+            changeType={stat.changeType}
+            color={stat.color}
+          />
+        ))}
+      </div>
+
+      {/* Graphiques */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <DashboardChart
+          title="Évolution des revenus (6 derniers mois)"
+          data={earningsData}
+          type="area"
+          dataKey="revenus"
+          color="#10B981"
+          height={300}
+        />
+        
+        <DashboardChart
+          title="Répartition par matière"
+          data={subjectData}
+          type="pie"
+          height={300}
+        />
       </div>
 
       {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Availability Management */}
         <Card>
           <CardHeader>
@@ -204,47 +243,49 @@ const ExternalTrainerDashboardHome = () => {
         </Card>
       </div>
 
-      {/* Specialties & Profile */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Mes Spécialités</CardTitle>
-            <CardDescription>Domaines d'expertise autorisés</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {specialties.map((specialty, index) => (
-                <Badge key={index} variant="secondary">{specialty}</Badge>
-              ))}
-            </div>
-            <Button className="w-full mt-4" variant="outline">
-              Demander nouvelles spécialités
-            </Button>
-          </CardContent>
-        </Card>
-
+      {/* Performance & Specialties */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
             <CardTitle>Performance</CardTitle>
             <CardDescription>Vos statistiques de formation</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex justify-between">
-              <span className="text-sm">Taux de satisfaction</span>
-              <span className="font-medium">98%</span>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <div className="text-2xl font-bold text-green-600">98%</div>
+                <div className="text-sm text-gray-600">Satisfaction</div>
+              </div>
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <div className="text-2xl font-bold text-blue-600">156</div>
+                <div className="text-sm text-gray-600">Sessions</div>
+              </div>
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <div className="text-2xl font-bold text-purple-600">85%</div>
+                <div className="text-sm text-gray-600">Taux réservation</div>
+              </div>
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <div className="text-2xl font-bold text-green-600">12,450€</div>
+                <div className="text-sm text-gray-600">Revenus totaux</div>
+              </div>
             </div>
-            <div className="flex justify-between">
-              <span className="text-sm">Sessions complétées</span>
-              <span className="font-medium">156</span>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Mes Spécialités</CardTitle>
+            <CardDescription>Domaines d'expertise autorisés</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2 mb-4">
+              {['React', 'JavaScript', 'UI/UX Design', 'Node.js', 'Python'].map((specialty, index) => (
+                <Badge key={index} variant="secondary">{specialty}</Badge>
+              ))}
             </div>
-            <div className="flex justify-between">
-              <span className="text-sm">Taux de réservation</span>
-              <span className="font-medium">85%</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-sm">Revenus totaux</span>
-              <span className="font-medium text-green-600">12,450€</span>
-            </div>
+            <Button className="w-full" variant="outline">
+              Demander nouvelles spécialités
+            </Button>
           </CardContent>
         </Card>
       </div>

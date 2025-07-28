@@ -4,7 +4,6 @@ import { Routes, Route } from 'react-router-dom';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -37,6 +36,8 @@ import { DocumentDownload } from '@/components/common/DocumentDownload';
 import { AIChat } from '@/components/common/AIChat';
 import { VideoConference } from '@/components/common/VideoConference';
 import { PositioningTest } from '@/components/common/PositioningTest';
+import { StatsCard } from '@/components/common/StatsCard';
+import { DashboardChart } from '@/components/common/DashboardChart';
 
 const InternalTrainerDashboardHome = () => {
   const { toast } = useToast();
@@ -47,26 +48,51 @@ const InternalTrainerDashboardHome = () => {
       title: "Étudiants actifs",
       value: "47",
       icon: Users,
-      change: "+3 cette semaine"
+      change: "+3 cette semaine",
+      changeType: "positive" as const,
+      color: "text-blue-600"
     },
     {
       title: "Sessions planifiées",
       value: "12",
       icon: Calendar,
-      change: "Cette semaine"
+      change: "Cette semaine",
+      changeType: "neutral" as const,
+      color: "text-green-600"
     },
     {
       title: "Messages en attente",
       value: "8",
       icon: MessageSquare,
-      change: "À traiter"
+      change: "À traiter",
+      changeType: "neutral" as const,
+      color: "text-orange-600"
     },
     {
       title: "Contenu créé",
       value: "23",
       icon: BookOpen,
-      change: "Modules disponibles"
+      change: "Modules disponibles",
+      changeType: "positive" as const,
+      color: "text-purple-600"
     }
+  ];
+
+  const activityData = [
+    { name: 'Lun', sessions: 3, etudiants: 45 },
+    { name: 'Mar', sessions: 2, etudiants: 48 },
+    { name: 'Mer', sessions: 4, etudiants: 47 },
+    { name: 'Jeu', sessions: 3, etudiants: 49 },
+    { name: 'Ven', sessions: 2, etudiants: 46 },
+    { name: 'Sam', sessions: 1, etudiants: 44 },
+    { name: 'Dim', sessions: 1, etudiants: 43 }
+  ];
+
+  const contentData = [
+    { name: 'Modules', value: 23 },
+    { name: 'Quiz', value: 18 },
+    { name: 'Vidéos', value: 12 },
+    { name: 'Exercices', value: 15 }
   ];
 
   const activeCourses = [
@@ -97,7 +123,7 @@ const InternalTrainerDashboardHome = () => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -124,26 +150,41 @@ const InternalTrainerDashboardHome = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => {
-          const Icon = stat.icon;
-          return (
-            <Card key={index}>
-              <CardContent className="p-6">
-                <div className="flex items-center">
-                  <Icon className="h-8 w-8 text-primary" />
-                  <div className="ml-4">
-                    <p className="text-2xl font-bold">{stat.value}</p>
-                    <p className="text-gray-600 text-sm">{stat.title}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+        {stats.map((stat, index) => (
+          <StatsCard
+            key={index}
+            title={stat.title}
+            value={stat.value}
+            icon={stat.icon}
+            change={stat.change}
+            changeType={stat.changeType}
+            color={stat.color}
+          />
+        ))}
+      </div>
+
+      {/* Graphiques */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <DashboardChart
+          title="Activité de la semaine"
+          data={activityData}
+          type="line"
+          dataKey="sessions"
+          color="#3B82F6"
+          height={300}
+        />
+        
+        <DashboardChart
+          title="Répartition du contenu créé"
+          data={contentData}
+          type="bar"
+          height={300}
+          color="#10B981"
+        />
       </div>
 
       {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Active Courses */}
         <Card>
           <CardHeader>
@@ -160,7 +201,12 @@ const InternalTrainerDashboardHome = () => {
                   <h4 className="font-medium">{course.title}</h4>
                   <Badge>{course.students} étudiants</Badge>
                 </div>
-                <Progress value={course.progress} className="h-2 mb-2" />
+                <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                  <div 
+                    className="bg-blue-600 h-2 rounded-full" 
+                    style={{ width: `${course.progress}%` }}
+                  ></div>
+                </div>
                 <div className="flex justify-between text-sm text-gray-600">
                   <span>{course.progress}% complété</span>
                   <span>{course.sessions} sessions restantes</span>
