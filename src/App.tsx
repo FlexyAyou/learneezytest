@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ThemeProvider } from "@/components/theme-provider"
+import { ThemeProvider } from "@/contexts/ThemeContext"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Toaster } from '@/components/ui/toaster';
 import Index from '@/pages/Index';
