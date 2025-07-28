@@ -4,80 +4,60 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { FileText, Users, BookOpen, TrendingUp, Calendar, Award, AlertTriangle, CheckCircle, Clock, Mail, ArrowUp, ArrowDown, UserPlus } from 'lucide-react';
+import { FileText, Users, BookOpen, TrendingUp, Calendar, Award, AlertTriangle, CheckCircle, Clock, Mail, ArrowUp, ArrowDown, UserPlus, Eye, Edit } from 'lucide-react';
 import { DashboardChart } from '@/components/common/DashboardChart';
 import { StatsCard } from '@/components/common/StatsCard';
-import { AssignTrainingModal } from './AssignTrainingModal';
+import { useNavigate } from 'react-router-dom';
 
 export const OFDashboard = () => {
+  const navigate = useNavigate();
+
   const recentActivity = [
-    { type: 'document', message: 'Attestation générée pour Marie Dupont', time: '2h', icon: FileText, color: 'text-blue-600' },
-    { type: 'inscription', message: 'Nouvelle inscription - Jean Martin', time: '3h', icon: Users, color: 'text-green-600' },
-    { type: 'formation', message: 'Formation React terminée', time: '5h', icon: BookOpen, color: 'text-purple-600' },
-    { type: 'envoi', message: 'Convocation envoyée à 12 apprenants', time: '1j', icon: Mail, color: 'text-orange-600' },
+    { type: 'inscription', message: 'Nouvelle inscription - Marie Dupont', time: '2h', icon: Users, color: 'text-green-600' },
+    { type: 'document', message: 'Attestation générée pour Jean Martin', time: '3h', icon: FileText, color: 'text-blue-600' },
+    { type: 'formation', message: 'Formation JavaScript terminée', time: '5h', icon: BookOpen, color: 'text-purple-600' },
+    { type: 'evaluation', message: 'Évaluation finale complétée par Sophie', time: '1j', icon: Award, color: 'text-orange-600' },
   ];
 
-  const upcomingEvents = [
-    { title: 'Formation React Avancé', date: '15 février', time: '09:00', participants: 15, status: 'confirmed' },
-    { title: 'Évaluation JavaScript', date: '18 février', time: '14:00', participants: 8, status: 'pending' },
-    { title: 'Certification Vue.js', date: '20 février', time: '10:00', participants: 12, status: 'confirmed' },
-    { title: 'Webinaire Angular', date: '22 février', time: '16:00', participants: 25, status: 'confirmed' },
+  const upcomingSessions = [
+    { title: 'Formation React Avancé', date: '15 février', time: '09:00', participants: 15, formateur: 'Sophie Bernard' },
+    { title: 'Évaluation JavaScript', date: '18 février', time: '14:00', participants: 8, formateur: 'Jean Martin' },
+    { title: 'Certification Vue.js', date: '20 février', time: '10:00', participants: 12, formateur: 'Marie Dupont' },
+    { title: 'Suivi pédagogique', date: '22 février', time: '16:00', participants: 25, formateur: 'Alex Rousseau' },
   ];
 
-  const monthlyStats = [
-    { label: 'Heures dispensées', value: 456, target: 500, increase: 12, trend: 'up' as const },
-    { label: 'Taux de satisfaction', value: 87, target: 90, increase: 3, trend: 'up' as const },
-    { label: 'Certifications délivrées', value: 23, target: 25, increase: 15, trend: 'up' as const },
-    { label: 'Taux d\'assiduité', value: 92, target: 95, increase: 2, trend: 'up' as const },
+  const alertes = [
+    { type: 'warning', message: '5 apprenants en retard sur leur formation', priority: 'high' },
+    { type: 'info', message: '3 nouvelles demandes d\'inscription', priority: 'medium' },
+    { type: 'success', message: 'Taux de réussite en hausse ce mois', priority: 'low' },
+    { type: 'error', message: '2 documents en attente de signature', priority: 'high' },
   ];
 
-  const alerts = [
-    { type: 'warning', message: 'Licence Adobe Sign expire dans 30 jours', priority: 'high' },
-    { type: 'info', message: 'Intégration Zoom fonctionnelle', priority: 'low' },
-    { type: 'success', message: '3 nouvelles demandes d\'inscription', priority: 'medium' },
-    { type: 'error', message: 'Erreur sync Microsoft Teams', priority: 'high' },
+  // Données pour les graphiques spécifiques à l'OF
+  const inscriptionsData = [
+    { name: 'Jan', value: 45, terminees: 38 },
+    { name: 'Fév', value: 52, terminees: 45 },
+    { name: 'Mar', value: 48, terminees: 42 },
+    { name: 'Avr', value: 61, terminees: 55 },
+    { name: 'Mai', value: 55, terminees: 48 },
+    { name: 'Jun', value: 67, terminees: 58 },
   ];
 
-  // Données pour les graphiques
-  const usersGrowthData = [
-    { name: 'Jan', value: 120, nouveaux: 15 },
-    { name: 'Fév', value: 145, nouveaux: 25 },
-    { name: 'Mar', value: 165, nouveaux: 20 },
-    { name: 'Avr', value: 185, nouveaux: 20 },
-    { name: 'Mai', value: 210, nouveaux: 25 },
-    { name: 'Jun', value: 235, nouveaux: 25 },
+  const formationsDistribution = [
+    { name: 'Développement Web', value: 45 },
+    { name: 'Design UI/UX', value: 25 },
+    { name: 'Marketing Digital', value: 20 },
+    { name: 'Gestion de Projet', value: 10 },
   ];
 
-  const trainingDistribution = [
-    { name: 'React/JavaScript', value: 45 },
-    { name: 'Vue.js', value: 30 },
-    { name: 'Angular', value: 15 },
-    { name: 'Node.js', value: 10 },
+  const satisfactionData = [
+    { name: 'Jan', value: 85 },
+    { name: 'Fév', value: 88 },
+    { name: 'Mar', value: 92 },
+    { name: 'Avr', value: 87 },
+    { name: 'Mai', value: 91 },
+    { name: 'Jun', value: 89 },
   ];
-
-  const revenueData = [
-    { name: 'Jan', value: 28500 },
-    { name: 'Fév', value: 32000 },
-    { name: 'Mar', value: 35500 },
-    { name: 'Avr', value: 38000 },
-    { name: 'Mai', value: 42000 },
-    { name: 'Jun', value: 45000 },
-  ];
-
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      confirmed: { variant: 'default' as const, label: 'Confirmé', icon: CheckCircle },
-      pending: { variant: 'outline' as const, label: 'En attente', icon: Clock },
-    };
-    const config = statusConfig[status as keyof typeof statusConfig];
-    const Icon = config?.icon || Clock;
-    return (
-      <Badge variant={config?.variant || 'outline'} className="flex items-center gap-1">
-        <Icon className="h-3 w-3" />
-        {config?.label || status}
-      </Badge>
-    );
-  };
 
   const getAlertColor = (type: string) => {
     const colors = {
@@ -91,88 +71,88 @@ export const OFDashboard = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header avec action d'assignation */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Tableau de bord Administrateur
-          </h1>
-          <p className="text-gray-600">Vue d'ensemble de la plateforme</p>
-        </div>
-        <AssignTrainingModal />
+      {/* Actions rapides */}
+      <div className="flex flex-wrap gap-4 mb-6">
+        <Button onClick={() => navigate('/dashboard/organisme-formation/apprenants')} className="flex items-center gap-2">
+          <UserPlus className="h-4 w-4" />
+          Nouvel apprenant
+        </Button>
+        <Button variant="outline" onClick={() => navigate('/dashboard/organisme-formation/documents')}>
+          <FileText className="h-4 w-4 mr-2" />
+          Générer document
+        </Button>
+        <Button variant="outline" onClick={() => navigate('/dashboard/organisme-formation/formations')}>
+          <BookOpen className="h-4 w-4 mr-2" />
+          Nouvelle formation
+        </Button>
+        <Button variant="outline" onClick={() => navigate('/dashboard/organisme-formation/envois')}>
+          <Mail className="h-4 w-4 mr-2" />
+          Envoi groupé
+        </Button>
       </div>
 
-      {/* Statistiques principales avec graphiques */}
+      {/* Statistiques principales */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatsCard
-          title="Utilisateurs totaux"
-          value="12,547"
-          change="+234 ce mois"
-          icon={Users}
-          trend="up"
-        />
-        <StatsCard
-          title="Cours actifs"
+          title="Apprenants actifs"
           value="456"
           change="+12 ce mois"
+          icon={Users}
+          trend="up"
+          onClick={() => navigate('/dashboard/organisme-formation/apprenants')}
+        />
+        <StatsCard
+          title="Formations en cours"
+          value="24"
+          change="+3 ce mois"
           icon={BookOpen}
           trend="up"
+          onClick={() => navigate('/dashboard/organisme-formation/formations')}
         />
         <StatsCard
-          title="Revenus totaux"
-          value="€285,430"
-          change="+18% ce mois"
-          icon={TrendingUp}
-          trend="up"
-        />
-        <StatsCard
-          title="Licences actives"
-          value="8,945"
-          change="+156 ce mois"
+          title="Taux de réussite"
+          value="87%"
+          change="+2% ce mois"
           icon={Award}
           trend="up"
+          onClick={() => navigate('/dashboard/organisme-formation/suivi')}
+        />
+        <StatsCard
+          title="Documents générés"
+          value="1,247"
+          change="+23 cette semaine"
+          icon={FileText}
+          trend="up"
+          onClick={() => navigate('/dashboard/organisme-formation/documents')}
         />
       </div>
 
       {/* Graphiques principaux */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <DashboardChart
-          title="Évolution des utilisateurs"
-          data={usersGrowthData}
+          title="Évolution des inscriptions"
+          data={inscriptionsData}
           type="line"
           dataKey="value"
           color="#3b82f6"
         />
         <DashboardChart
-          title="Répartition des formations"
-          data={trainingDistribution}
+          title="Répartition par domaine"
+          data={formationsDistribution}
           type="pie"
           dataKey="value"
         />
       </div>
 
-      {/* Statistiques mensuelles avec graphiques */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {monthlyStats.map((stat, index) => (
-          <Card key={index} className="relative overflow-hidden">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-600">{stat.label}</span>
-                <div className="flex items-center gap-1">
-                  <ArrowUp className="h-3 w-3 text-green-600" />
-                  <span className="text-xs text-green-600">+{stat.increase}%</span>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold">{stat.value}{stat.label.includes('Taux') ? '%' : ''}</span>
-                  <span className="text-sm text-gray-500">/{stat.target}</span>
-                </div>
-                <Progress value={(stat.value / stat.target) * 100} className="h-2" />
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+      {/* Graphique de satisfaction */}
+      <div className="grid grid-cols-1 gap-6">
+        <DashboardChart
+          title="Évolution de la satisfaction (%)"
+          data={satisfactionData}
+          type="bar"
+          dataKey="value"
+          color="#10b981"
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -201,28 +181,33 @@ export const OFDashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Prochaines échéances */}
+        {/* Prochaines sessions */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center">
               <Calendar className="h-4 w-4 mr-2 text-purple-600" />
-              Prochaines échéances
+              Prochaines sessions
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {upcomingEvents.map((event, index) => (
+              {upcomingSessions.map((session, index) => (
                 <div key={index} className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-medium">{event.title}</h4>
-                    {getStatusBadge(event.status)}
+                    <h4 className="text-sm font-medium">{session.title}</h4>
+                    <Button size="sm" variant="outline" onClick={() => navigate('/dashboard/organisme-formation/suivi')}>
+                      <Eye className="h-3 w-3" />
+                    </Button>
                   </div>
                   <div className="flex items-center justify-between text-xs text-gray-500">
-                    <span>{event.date} à {event.time}</span>
+                    <span>{session.date} à {session.time}</span>
                     <span className="flex items-center">
                       <Users className="h-3 w-3 mr-1" />
-                      {event.participants}
+                      {session.participants}
                     </span>
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    Formateur: {session.formateur}
                   </div>
                 </div>
               ))}
@@ -240,7 +225,7 @@ export const OFDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {alerts.map((alert, index) => (
+              {alertes.map((alert, index) => (
                 <div key={index} className={`p-3 rounded-lg border ${getAlertColor(alert.type)}`}>
                   <div className="flex items-start justify-between">
                     <p className="text-sm font-medium">{alert.message}</p>
@@ -257,15 +242,6 @@ export const OFDashboard = () => {
           </CardContent>
         </Card>
       </div>
-
-      {/* Graphique des revenus */}
-      <DashboardChart
-        title="Évolution des revenus (€)"
-        data={revenueData}
-        type="bar"
-        dataKey="value"
-        color="#10b981"
-      />
     </div>
   );
 };

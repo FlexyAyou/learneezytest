@@ -41,9 +41,9 @@ const OFDashboard = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Dashboard Organisme de Formation
+            Tableau de bord Organisme de Formation
           </h1>
-          <p className="text-gray-600">Vue d'ensemble de votre organisme de formation</p>
+          <p className="text-gray-600">Gestion et suivi de vos apprenants et formations</p>
         </div>
       </div>
 
@@ -51,20 +51,20 @@ const OFDashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Apprenants inscrits</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">456</div>
+            <p className="text-xs text-muted-foreground">+12 ce mois</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Formations actives</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">24</div>
             <p className="text-xs text-muted-foreground">+3 ce mois</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Apprenants</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">456</div>
-            <p className="text-xs text-muted-foreground">+12 ce mois</p>
           </CardContent>
         </Card>
         <Card>
