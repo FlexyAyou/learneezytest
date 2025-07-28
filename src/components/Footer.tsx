@@ -103,7 +103,7 @@ const Footer = () => {
           <div className="md:flex md:items-center md:justify-between">
             <div className="text-center md:text-left">
               <p className="text-gray-400">
-                © 2024 UpSkill. Tous droits réservés.
+                © 2025 Learneezy. Tous droits réservés.
               </p>
             </div>
             <div className="mt-4 md:mt-0">
