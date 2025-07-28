@@ -12,8 +12,8 @@ import StudentInscriptions from './student/StudentInscriptions';
 import StudentEmargements from './student/StudentEmargements';
 import StudentEvaluations from './student/StudentEvaluations';
 import { DocumentDownload } from '@/components/common/DocumentDownload';
-import { AIChat } from '@/components/common/AIChat';
-import { VideoConference } from '@/components/common/VideoConference';
+import AIChat from '@/components/common/AIChat';
+import VideoConference from '@/components/common/VideoConference';
 import { PositioningTest } from '@/components/common/PositioningTest';
 import { StudentDashboardHome } from '@/components/student/StudentDashboardHome';
 
