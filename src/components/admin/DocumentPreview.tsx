@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Download, QrCode, Shield, FileText, Award, Calendar, User, BookOpen } from 'lucide-react';
+import { Download, QrCode, Shield, FileText, Award, Calendar, User, BookOpen } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -46,15 +46,10 @@ export const DocumentPreview = ({ document, isOpen, onClose }: DocumentPreviewPr
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <span>{document.title}</span>
-            <div className="flex items-center space-x-2">
-              <Button size="sm" variant="outline">
-                <Download className="w-4 h-4 mr-2" />
-                Télécharger
-              </Button>
-              <Button size="sm" variant="outline" onClick={onClose}>
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
+            <Button size="sm" variant="outline">
+              <Download className="w-4 h-4 mr-2" />
+              Télécharger
+            </Button>
           </DialogTitle>
         </DialogHeader>
         <div className="mt-4">
