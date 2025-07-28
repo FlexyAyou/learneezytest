@@ -10,7 +10,7 @@ const Footer = () => {
           {/* Company Info */}
           <div>
             <div className="flex items-center space-x-2 mb-6">
-              <img src="/lovable-uploads/learneezy-white-logo.png" alt="Learneezy" className="h-16 w-auto" />
+              <h2 className="text-2xl font-bold text-white">Learneezy</h2>
             </div>
             <p className="text-gray-400 mb-6 leading-relaxed">
               Votre plateforme d'apprentissage en ligne pour développer vos compétences 
