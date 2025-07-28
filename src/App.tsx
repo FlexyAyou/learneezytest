@@ -18,6 +18,7 @@ import Contact from "./pages/Contact";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
 import StudentDashboard from "./pages/StudentDashboard";
 import StudentCourses from "./pages/StudentCourses";
 import StudentProgress from "./pages/StudentProgress";
@@ -69,6 +70,7 @@ const App = () => (
           <Route path="/profil" element={<Profile />} />
           <Route path="/connexion" element={<Login />} />
           <Route path="/inscription" element={<Register />} />
+          <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
           
           {/* Student routes */}
           <Route path="/dashboard/etudiant/*" element={<StudentDashboard />} />
