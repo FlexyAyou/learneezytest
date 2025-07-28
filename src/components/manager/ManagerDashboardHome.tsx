@@ -229,29 +229,33 @@ export const ManagerDashboardHome = () => {
         <StatsCard
           title="Apprenants Actifs"
           value="124"
+          change="+12 ce mois"
           icon={Users}
-          trend={{ value: 12, isPositive: true }}
+          trend="up"
           onClick={() => navigate('/dashboard/gestionnaire/apprenants')}
         />
         <StatsCard
           title="Formations En Cours"
           value="8"
+          change="+2 ce mois"
           icon={BookOpen}
-          trend={{ value: 2, isPositive: true }}
+          trend="up"
           onClick={() => navigate('/dashboard/gestionnaire/formations')}
         />
         <StatsCard
           title="Taux de Réussite"
           value="87%"
+          change="+5% ce mois"
           icon={TrendingUp}
-          trend={{ value: 5, isPositive: true }}
+          trend="up"
           onClick={() => navigate('/dashboard/gestionnaire/rapports')}
         />
         <StatsCard
           title="Sessions Planifiées"
           value="15"
+          change="+3 ce mois"
           icon={Calendar}
-          trend={{ value: 3, isPositive: true }}
+          trend="up"
           onClick={() => navigate('/dashboard/gestionnaire/planning')}
         />
       </div>
@@ -261,12 +265,14 @@ export const ManagerDashboardHome = () => {
         <DashboardChart
           title="Évolution des Inscriptions"
           data={chartData}
+          type="line"
           dataKey="inscriptions"
           color="#3b82f6"
         />
         <DashboardChart
           title="Taux d'Abandon"
           data={chartData}
+          type="bar"
           dataKey="abandons"
           color="#ef4444"
         />
