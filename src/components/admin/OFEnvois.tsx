@@ -1,12 +1,15 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Mail, Eye, MessageSquare, Plus } from 'lucide-react';
+import { OFNouvelEnvoi } from './OFNouvelEnvoi';
 
 export const OFEnvois = () => {
+  const [showNouvelEnvoi, setShowNouvelEnvoi] = useState(false);
+
   const envois = [
     { id: '1', type: 'convocation', destinataire: 'marie.dupont@email.com', sujet: 'Convocation formation React', status: 'delivered', date: '2024-01-15 08:30:00' },
     { id: '2', type: 'relance', destinataire: 'jean.martin@email.com', sujet: 'Rappel émargement', status: 'pending', date: '2024-01-15 08:25:00' },
@@ -31,7 +34,7 @@ export const OFEnvois = () => {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Envois & Relances</h1>
           <p className="text-gray-600">Gestion des envois automatiques et relances</p>
         </div>
-        <Button>
+        <Button onClick={() => setShowNouvelEnvoi(true)}>
           <Plus className="h-4 w-4 mr-2" />
           Nouvel envoi
         </Button>
@@ -80,6 +83,11 @@ export const OFEnvois = () => {
           </Table>
         </CardContent>
       </Card>
+
+      <OFNouvelEnvoi 
+        isOpen={showNouvelEnvoi}
+        onClose={() => setShowNouvelEnvoi(false)}
+      />
     </div>
   );
 };
