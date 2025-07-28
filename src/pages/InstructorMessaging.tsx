@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Search, Plus, Users, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -15,13 +16,13 @@ const InstructorMessaging = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
-  const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
+  const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
 
   const conversations = [
     {
-      id: 1,
+      id: '1',
       participant: 'Marie Dubois',
       role: 'Étudiant',
       lastMessage: 'Merci pour votre aide sur le module React Hooks!',
@@ -32,7 +33,7 @@ const InstructorMessaging = () => {
       lastMessageType: 'text' as const
     },
     {
-      id: 2,
+      id: '2',
       participant: 'Pierre Martin',
       role: 'Étudiant',
       lastMessage: 'J\'ai une question sur l\'exercice 3 du cours JavaScript...',
@@ -43,7 +44,7 @@ const InstructorMessaging = () => {
       lastMessageType: 'text' as const
     },
     {
-      id: 3,
+      id: '3',
       participant: 'Admin Support',
       role: 'Administrateur',
       lastMessage: 'Nouvelle politique de publication des cours',
@@ -54,7 +55,7 @@ const InstructorMessaging = () => {
       lastMessageType: 'text' as const
     },
     {
-      id: 4,
+      id: '4',
       participant: 'Sophie Laurent',
       role: 'Étudiant',
       lastMessage: 'Est-ce que vous pourriez m\'expliquer...',
@@ -68,7 +69,7 @@ const InstructorMessaging = () => {
   ];
 
   const messages = {
-    1: [
+    '1': [
       {
         id: '1',
         sender: 'Marie Dubois',
@@ -94,7 +95,7 @@ const InstructorMessaging = () => {
         status: 'delivered' as const
       }
     ],
-    2: [
+    '2': [
       {
         id: '1',
         sender: 'Pierre Martin',
