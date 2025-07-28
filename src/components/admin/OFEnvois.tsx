@@ -6,15 +6,26 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Mail, Eye, MessageSquare, Plus } from 'lucide-react';
 import { OFNouvelEnvoi } from './OFNouvelEnvoi';
+import { OFEnvoiDetail } from './OFEnvoiDetail';
+
+interface Envoi {
+  id: string;
+  type: string;
+  destinataire: string;
+  sujet: string;
+  status: string;
+  date: string;
+}
 
 export const OFEnvois = () => {
   const [showNouvelEnvoi, setShowNouvelEnvoi] = useState(false);
-
-  const envois = [
+  const [selectedEnvoi, setSelectedEnvoi] = useState<Envoi | null>(null);
+  const [showDetail, setShowDetail] = useState(false);
+  const [envois, setEnvois] = useState<Envoi[]>([
     { id: '1', type: 'convocation', destinataire: 'marie.dupont@email.com', sujet: 'Convocation formation React', status: 'delivered', date: '2024-01-15 08:30:00' },
     { id: '2', type: 'relance', destinataire: 'jean.martin@email.com', sujet: 'Rappel émargement', status: 'pending', date: '2024-01-15 08:25:00' },
     { id: '3', type: 'attestation', destinataire: 'sophie.bernard@email.com', sujet: 'Attestation de formation', status: 'read', date: '2024-01-15 08:20:00' },
-  ];
+  ]);
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -25,6 +36,16 @@ export const OFEnvois = () => {
     
     const config = statusConfig[status as keyof typeof statusConfig] || { variant: 'outline' as const, label: status };
     return <Badge variant={config.variant}>{config.label}</Badge>;
+  };
+
+  const handleView = (envoi: Envoi) => {
+    setSelectedEnvoi(envoi);
+    setShowDetail(true);
+  };
+
+  const handleReply = (envoi: Envoi) => {
+    console.log('Reply to:', envoi.destinataire);
+    // Logique de réponse à implémenter
   };
 
   return (
@@ -69,10 +90,10 @@ export const OFEnvois = () => {
                   <TableCell>{envoi.date}</TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
-                      <Button size="sm" variant="outline">
+                      <Button size="sm" variant="outline" onClick={() => handleView(envoi)}>
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="outline">
+                      <Button size="sm" variant="outline" onClick={() => handleReply(envoi)}>
                         <MessageSquare className="h-4 w-4" />
                       </Button>
                     </div>
@@ -87,6 +108,13 @@ export const OFEnvois = () => {
       <OFNouvelEnvoi 
         isOpen={showNouvelEnvoi}
         onClose={() => setShowNouvelEnvoi(false)}
+      />
+
+      <OFEnvoiDetail
+        envoi={selectedEnvoi}
+        isOpen={showDetail}
+        onClose={() => setShowDetail(false)}
+        onReply={handleReply}
       />
     </div>
   );
