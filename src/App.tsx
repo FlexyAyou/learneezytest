@@ -43,6 +43,7 @@ import InstructorOFDocuments from "./pages/InstructorOFDocuments";
 import BookingCalendar from "./pages/BookingCalendar";
 import BookingHistory from "./pages/BookingHistory";
 import Payment from "./pages/Payment";
+import TrainerBookingConfirmation from "./pages/TrainerBookingConfirmation";
 
 const queryClient = new QueryClient();
 
@@ -60,6 +61,7 @@ const App = () => (
           <Route path="/cours/:courseId/reservation" element={<BookingCalendar />} />
           <Route path="/cours/:courseId/paiement/:slotId" element={<Payment />} />
           <Route path="/reservations" element={<BookingHistory />} />
+          <Route path="/trainer-booking-confirmation" element={<TrainerBookingConfirmation />} />
           <Route path="/course/:id" element={<CourseDetail />} />
           <Route path="/rechercher" element={<SearchCourses />} />
           <Route path="/lesson/:id" element={<Lesson />} />

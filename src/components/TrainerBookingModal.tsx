@@ -43,8 +43,8 @@ const TrainerBookingModal = ({ isOpen, onClose, trainer }: TrainerBookingModalPr
       notes
     });
     
-    // Redirection vers la page de paiement
-    navigate('/payment', { 
+    // Redirection vers la page de confirmation
+    navigate('/trainer-booking-confirmation', { 
       state: { 
         type: 'trainer-booking',
         trainer: trainer,

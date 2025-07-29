@@ -60,11 +60,6 @@ const CourseCard = ({ course }: CourseCardProps) => {
             {course.category}
           </Badge>
         </div>
-        {course.availableSlots <= 5 && (
-          <Badge className="absolute top-3 right-3 bg-red-100 text-red-800 text-xs">
-            {course.availableSlots} places restantes
-          </Badge>
-        )}
       </div>
       
       <CardContent className="p-4">
@@ -96,9 +91,8 @@ const CourseCard = ({ course }: CourseCardProps) => {
         </div>
         
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div>
             <span className="text-xl font-bold text-primary">{course.price}</span>
-            <span className="text-sm text-gray-500 line-through">{course.originalPrice}</span>
           </div>
           <div className="flex gap-2">
             <Link to={`/cours/${course.id}`}>
