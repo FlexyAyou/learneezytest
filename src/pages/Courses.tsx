@@ -379,10 +379,10 @@ const Courses = () => {
         </div>
       </section>
 
-      {/* Contenu principal - Deux sections */}
+      {/* Contenu principal - Sections verticales */}
       <section className="py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+          <div className="space-y-12">
             
             {/* Section 1 - Catalogue de Formations */}
             <Card className="p-6 border-2 border-pink-200 bg-gradient-to-br from-pink-50 to-purple-50">
@@ -456,13 +456,13 @@ const Courses = () => {
                   {filteredCourses.length} formation{filteredCourses.length > 1 ? 's' : ''} trouvée{filteredCourses.length > 1 ? 's' : ''}
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
-                  {(showAllCourses ? filteredCourses : filteredCourses.slice(0, 6)).map((course) => (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {(showAllCourses ? filteredCourses : filteredCourses.slice(0, 12)).map((course) => (
                     <CourseCard key={course.id} course={course} />
                   ))}
                 </div>
 
-                {filteredCourses.length > 6 && !showAllCourses && (
+                {filteredCourses.length > 12 && !showAllCourses && (
                   <div className="mt-4 text-center">
                     <Button 
                       variant="outline" 
@@ -535,8 +535,8 @@ const Courses = () => {
                   {filteredTrainers.length} formateur{filteredTrainers.length > 1 ? 's' : ''} disponible{filteredTrainers.length > 1 ? 's' : ''}
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto">
-                  {(showAllTrainers ? filteredTrainers : filteredTrainers.slice(0, 4)).map((trainer) => (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {(showAllTrainers ? filteredTrainers : filteredTrainers.slice(0, 9)).map((trainer) => (
                     <TrainerCard 
                       key={trainer.id} 
                       trainer={trainer} 
@@ -545,7 +545,7 @@ const Courses = () => {
                   ))}
                 </div>
 
-                {filteredTrainers.length > 4 && !showAllTrainers && (
+                {filteredTrainers.length > 9 && !showAllTrainers && (
                   <div className="mt-4 text-center">
                     <Button 
                       variant="outline" 
