@@ -1,10 +1,11 @@
 
 import React, { useState } from 'react';
-import { Clock, Users, Star, Filter, Search, Grid, List, Calendar, MapPin } from 'lucide-react';
+import { Clock, Users, Star, Filter, Search, Grid, List, Calendar, MapPin, User, Award, Languages } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Link } from 'react-router-dom';
@@ -15,6 +16,11 @@ const Courses = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedLevel, setSelectedLevel] = useState('all');
   const [selectedCycle, setSelectedCycle] = useState('all');
+  
+  // États pour la section formateurs
+  const [trainerSearchTerm, setTrainerSearchTerm] = useState('');
+  const [selectedSpecialty, setSelectedSpecialty] = useState('all');
+  const [selectedLanguage, setSelectedLanguage] = useState('all');
 
   const courses = [
     {
@@ -179,6 +185,95 @@ const Courses = () => {
     }
   ];
 
+  // Données des formateurs
+  const trainers = [
+    {
+      id: 1,
+      name: "Marie Dubois",
+      photo: "https://images.unsplash.com/photo-1494790108755-2616b612b1ef?w=150&h=150&fit=crop&crop=face",
+      specialty: "Mathématiques",
+      description: "Formatrice experte en mathématiques avec 10 ans d'expérience dans l'enseignement personnalisé.",
+      experience: "10 ans",
+      rating: 4.9,
+      languages: ["Français", "Anglais"],
+      supportType: "Tutorat",
+      availableSlots: [
+        { day: "Lundi", time: "14h-16h" },
+        { day: "Mercredi", time: "10h-12h" },
+        { day: "Vendredi", time: "16h-18h" }
+      ],
+      hourlyRate: "35€/h"
+    },
+    {
+      id: 2,
+      name: "Paul Martin",
+      photo: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+      specialty: "Français",
+      description: "Spécialiste en littérature française et techniques de rédaction pour tous niveaux.",
+      experience: "8 ans",
+      rating: 4.8,
+      languages: ["Français"],
+      supportType: "Coaching",
+      availableSlots: [
+        { day: "Mardi", time: "9h-11h" },
+        { day: "Jeudi", time: "14h-16h" },
+        { day: "Samedi", time: "10h-12h" }
+      ],
+      hourlyRate: "32€/h"
+    },
+    {
+      id: 3,
+      name: "Sophie Laurent",
+      photo: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
+      specialty: "Sciences",
+      description: "Docteure en biologie, passionnée par la transmission des sciences naturelles.",
+      experience: "12 ans",
+      rating: 4.9,
+      languages: ["Français", "Anglais", "Espagnol"],
+      supportType: "Soutien technique",
+      availableSlots: [
+        { day: "Lundi", time: "10h-12h" },
+        { day: "Mercredi", time: "14h-16h" },
+        { day: "Vendredi", time: "9h-11h" }
+      ],
+      hourlyRate: "40€/h"
+    },
+    {
+      id: 4,
+      name: "Lucas Petit",
+      photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
+      specialty: "Histoire-Géographie",
+      description: "Historien passionné avec une approche interactive de l'enseignement.",
+      experience: "6 ans",
+      rating: 4.7,
+      languages: ["Français", "Italien"],
+      supportType: "Tutorat",
+      availableSlots: [
+        { day: "Mardi", time: "15h-17h" },
+        { day: "Jeudi", time: "10h-12h" },
+        { day: "Samedi", time: "14h-16h" }
+      ],
+      hourlyRate: "30€/h"
+    },
+    {
+      id: 5,
+      name: "Emma Wilson",
+      photo: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face",
+      specialty: "Anglais",
+      description: "Native speaker britannique spécialisée dans l'anglais conversationnel et académique.",
+      experience: "9 ans",
+      rating: 4.9,
+      languages: ["Anglais", "Français"],
+      supportType: "Coaching",
+      availableSlots: [
+        { day: "Lundi", time: "16h-18h" },
+        { day: "Mercredi", time: "9h-11h" },
+        { day: "Vendredi", time: "14h-16h" }
+      ],
+      hourlyRate: "38€/h"
+    }
+  ];
+
   const categories = [
     { value: 'all', label: 'Toutes les matières' },
     { value: 'Mathématiques', label: 'Mathématiques' },
@@ -214,6 +309,32 @@ const Courses = () => {
     { value: 'secondaire', label: 'Secondaire' }
   ];
 
+  const specialties = [
+    { value: 'all', label: 'Toutes les spécialités' },
+    { value: 'Mathématiques', label: 'Mathématiques' },
+    { value: 'Français', label: 'Français' },
+    { value: 'Anglais', label: 'Anglais' },
+    { value: 'Histoire-Géographie', label: 'Histoire-Géographie' },
+    { value: 'Sciences', label: 'Sciences' },
+    { value: 'Physique-Chimie', label: 'Physique-Chimie' },
+    { value: 'SVT', label: 'SVT' }
+  ];
+
+  const languages = [
+    { value: 'all', label: 'Toutes les langues' },
+    { value: 'Français', label: 'Français' },
+    { value: 'Anglais', label: 'Anglais' },
+    { value: 'Espagnol', label: 'Espagnol' },
+    { value: 'Italien', label: 'Italien' }
+  ];
+
+  const supportTypes = [
+    { value: 'all', label: 'Tous les types' },
+    { value: 'Tutorat', label: 'Tutorat' },
+    { value: 'Coaching', label: 'Coaching' },
+    { value: 'Soutien technique', label: 'Soutien technique' }
+  ];
+
   const getBadgeColor = (level: string) => {
     if (['CP', 'CE1', 'CE2', 'CM1', 'CM2'].includes(level)) {
       return 'bg-green-100 text-green-800';
@@ -243,6 +364,15 @@ const Courses = () => {
     return matchesSearch && matchesCategory && matchesLevel && matchesCycle;
   });
 
+  const filteredTrainers = trainers.filter(trainer => {
+    const matchesSearch = trainer.name.toLowerCase().includes(trainerSearchTerm.toLowerCase()) ||
+                         trainer.specialty.toLowerCase().includes(trainerSearchTerm.toLowerCase());
+    const matchesSpecialty = selectedSpecialty === 'all' || trainer.specialty === selectedSpecialty;
+    const matchesLanguage = selectedLanguage === 'all' || trainer.languages.includes(selectedLanguage);
+    
+    return matchesSearch && matchesSpecialty && matchesLanguage;
+  });
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -259,258 +389,256 @@ const Courses = () => {
         </div>
       </section>
 
-      {/* Filters and Search */}
-      <section className="py-8 bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
-            {/* Search */}
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <Input
-                placeholder="Rechercher un cours..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-
-            {/* Filters */}
-            <div className="flex gap-4 items-center flex-wrap">
-              <Select value={selectedCycle} onValueChange={setSelectedCycle}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Cycle" />
-                </SelectTrigger>
-                <SelectContent>
-                  {cycles.map(cycle => (
-                    <SelectItem key={cycle.value} value={cycle.value}>
-                      {cycle.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Matière" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map(category => (
-                    <SelectItem key={category.value} value={category.value}>
-                      {category.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={selectedLevel} onValueChange={setSelectedLevel}>
-                <SelectTrigger className="w-32">
-                  <SelectValue placeholder="Niveau" />
-                </SelectTrigger>
-                <SelectContent>
-                  {levels.map(level => (
-                    <SelectItem key={level.value} value={level.value}>
-                      {level.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {/* View Mode Toggle */}
-              <div className="flex border rounded-lg">
-                <Button
-                  variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('grid')}
-                  className="rounded-r-none"
-                >
-                  <Grid className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === 'list' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('list')}
-                  className="rounded-l-none"
-                >
-                  <List className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Results count */}
-          <div className="mt-4 text-gray-600">
-            {filteredCourses.length} cours trouvé{filteredCourses.length > 1 ? 's' : ''}
-          </div>
-        </div>
-      </section>
-
-      {/* Courses Grid/List */}
+      {/* Contenu principal - Deux sections */}
       <section className="py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {viewMode === 'grid' ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredCourses.map((course) => (
-                <div
-                  key={course.id}
-                  className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden group cursor-pointer"
-                >
-                  <div className="relative overflow-hidden">
-                    <img
-                      src={course.image}
-                      alt={course.title}
-                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+            
+            {/* Section 1 - Catalogue de Formations */}
+            <Card className="p-6 border-2 border-pink-200 bg-gradient-to-br from-pink-50 to-purple-50">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-2xl font-bold text-pink-600 flex items-center">
+                  <Award className="h-6 w-6 mr-2" />
+                  Catalogue de formations disponibles
+                </CardTitle>
+                <CardDescription>
+                  Explorez nos formations en ligne et choisissez celle qui vous convient
+                </CardDescription>
+              </CardHeader>
+              
+              <CardContent>
+                {/* Filtres pour les formations */}
+                <div className="mb-6 space-y-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Input
+                      placeholder="Rechercher une formation..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
                     />
-                    <div className="absolute top-4 left-4">
-                      <Badge className={getBadgeColor(course.level)}>
-                        {course.level}
-                      </Badge>
-                    </div>
-                    <div className="absolute top-4 right-4">
-                      <Badge variant="secondary" className={getCycleColor(course.cycle)}>
-                        {course.cycle}
-                      </Badge>
-                    </div>
-                    <div className="absolute bottom-4 left-4">
-                      <Badge variant="outline" className="bg-white/90 text-gray-800">
-                        {course.category}
-                      </Badge>
-                    </div>
                   </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Thème" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map(category => (
+                          <SelectItem key={category.value} value={category.value}>
+                            {category.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
 
-                  <div className="p-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">
-                      {course.title}
-                    </h3>
-                    <p className="text-gray-600 mb-3">Par {course.instructor}</p>
-                    <p className="text-sm text-gray-500 mb-4 line-clamp-2">
-                      {course.description}
-                    </p>
+                    <Select value={selectedLevel} onValueChange={setSelectedLevel}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Niveau" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {levels.map(level => (
+                          <SelectItem key={level.value} value={level.value}>
+                            {level.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
 
-                    <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                      <div className="flex items-center space-x-4">
-                        <div className="flex items-center">
-                          <Clock className="h-4 w-4 mr-1" />
-                          {course.duration}
-                        </div>
-                        <div className="flex items-center">
-                          <Users className="h-4 w-4 mr-1" />
-                          {course.students}
-                        </div>
-                        <div className="flex items-center">
-                          <Calendar className="h-4 w-4 mr-1" />
-                          {course.availableSlots} créneaux
-                        </div>
-                      </div>
-                      <div className="flex items-center">
-                        <Star className="h-4 w-4 text-yellow-500 fill-current mr-1" />
-                        {course.rating}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-xl font-bold text-blue-600">
-                          {course.price}
-                        </div>
-                        <div className="text-sm text-gray-400 line-through">
-                          {course.originalPrice}
-                        </div>
-                      </div>
-                      <Link to={`/cours/${course.id}/reservation`}>
-                        <Button className="bg-pink-600 hover:bg-blue-700">
-                          <Calendar className="h-4 w-4 mr-1" />
-                          Réserver
-                        </Button>
-                      </Link>
-                      
-                    </div>
+                    <Select value={selectedCycle} onValueChange={setSelectedCycle}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Durée" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {cycles.map(cycle => (
+                          <SelectItem key={cycle.value} value={cycle.value}>
+                            {cycle.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {filteredCourses.map((course) => (
-                <div
-                  key={course.id}
-                  className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden group cursor-pointer"
-                >
-                  <div className="flex flex-col md:flex-row">
-                      <div className="relative md:w-80 h-48 md:h-auto overflow-hidden">
-                        <img
-                          src={course.image}
-                          alt={course.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                        <div className="absolute top-4 left-4">
-                          <Badge className={getBadgeColor(course.level)}>
-                            {course.level}
-                          </Badge>
+
+                {/* Résultats formations */}
+                <div className="mb-4 text-sm text-gray-600">
+                  {filteredCourses.length} formation{filteredCourses.length > 1 ? 's' : ''} trouvée{filteredCourses.length > 1 ? 's' : ''}
+                </div>
+
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {filteredCourses.slice(0, 6).map((course) => (
+                    <div key={course.id} className="bg-white rounded-lg p-4 border hover:shadow-md transition-shadow">
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="font-semibold text-gray-900 line-clamp-1">{course.title}</h3>
+                        <Badge className={getBadgeColor(course.level)} variant="secondary">
+                          {course.level}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2 line-clamp-2">{course.description}</p>
+                      <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
+                        <div className="flex items-center space-x-3">
+                          <span className="flex items-center">
+                            <Clock className="h-3 w-3 mr-1" />
+                            {course.duration}
+                          </span>
+                          <span className="flex items-center">
+                            <Users className="h-3 w-3 mr-1" />
+                            {course.students}
+                          </span>
                         </div>
-                        <div className="absolute top-4 right-4">
-                          <Badge variant="secondary" className={getCycleColor(course.cycle)}>
-                            {course.cycle}
-                          </Badge>
-                        </div>
-                        <div className="absolute bottom-4 left-4">
-                          <Badge variant="outline" className="bg-white/90 text-gray-800">
-                            {course.category}
-                          </Badge>
+                        <div className="flex items-center">
+                          <Star className="h-3 w-3 text-yellow-500 fill-current mr-1" />
+                          {course.rating}
                         </div>
                       </div>
-
-                    <div className="flex-1 p-6">
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="flex-1">
-                          <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
-                            {course.title}
-                          </h3>
-                          <p className="text-gray-600 mb-3">Par {course.instructor}</p>
-                          <p className="text-gray-500 mb-4">
-                            {course.description}
-                          </p>
-
-                          <div className="flex items-center space-x-6 text-sm text-gray-500 mb-4">
-                            <div className="flex items-center">
-                              <Clock className="h-4 w-4 mr-1" />
-                              {course.duration}
-                            </div>
-                            <div className="flex items-center">
-                              <Users className="h-4 w-4 mr-1" />
-                              {course.students} étudiants
-                            </div>
-                            <div className="flex items-center">
-                              <Calendar className="h-4 w-4 mr-1" />
-                              {course.availableSlots} créneaux
-                            </div>
-                            <div className="flex items-center">
-                              <Star className="h-4 w-4 text-yellow-500 fill-current mr-1" />
-                              {course.rating}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="text-right ml-6">
-                          <div className="text-2xl font-bold text-blue-600 mb-1">
-                            {course.price}
-                          </div>
-                          <div className="text-sm text-gray-400 line-through mb-4">
-                            {course.originalPrice}
-                          </div>
+                      <div className="flex items-center justify-between">
+                        <div className="text-lg font-bold text-pink-600">{course.price}</div>
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm">Voir détails</Button>
                           <Link to={`/cours/${course.id}/reservation`}>
-                            <Button className="bg-pink-600 hover:bg-blue-700">
-                              <Calendar className="h-4 w-4 mr-1" />
-                              Réserver
+                            <Button size="sm" className="bg-pink-600 hover:bg-pink-700">
+                              S'inscrire
                             </Button>
                           </Link>
                         </div>
                       </div>
                     </div>
+                  ))}
+                </div>
+
+                {filteredCourses.length > 6 && (
+                  <div className="mt-4 text-center">
+                    <Button variant="outline" className="w-full">
+                      Voir toutes les formations ({filteredCourses.length})
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Section 2 - Réservation avec un Formateur */}
+            <Card className="p-6 border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-2xl font-bold text-blue-600 flex items-center">
+                  <User className="h-6 w-6 mr-2" />
+                  Réserver un créneau avec un formateur
+                </CardTitle>
+                <CardDescription>
+                  Choisissez votre formateur et réservez un créneau personnalisé
+                </CardDescription>
+              </CardHeader>
+              
+              <CardContent>
+                {/* Filtres pour les formateurs */}
+                <div className="mb-6 space-y-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Input
+                      placeholder="Rechercher un formateur..."
+                      value={trainerSearchTerm}
+                      onChange={(e) => setTrainerSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <Select value={selectedSpecialty} onValueChange={setSelectedSpecialty}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Spécialité" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {specialties.map(specialty => (
+                          <SelectItem key={specialty.value} value={specialty.value}>
+                            {specialty.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Langue" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {languages.map(language => (
+                          <SelectItem key={language.value} value={language.value}>
+                            {language.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+
+                {/* Résultats formateurs */}
+                <div className="mb-4 text-sm text-gray-600">
+                  {filteredTrainers.length} formateur{filteredTrainers.length > 1 ? 's' : ''} disponible{filteredTrainers.length > 1 ? 's' : ''}
+                </div>
+
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {filteredTrainers.map((trainer) => (
+                    <div key={trainer.id} className="bg-white rounded-lg p-4 border hover:shadow-md transition-shadow">
+                      <div className="flex items-start space-x-3 mb-3">
+                        <img
+                          src={trainer.photo}
+                          alt={trainer.name}
+                          className="w-12 h-12 rounded-full object-cover"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-semibold text-gray-900">{trainer.name}</h3>
+                            <div className="flex items-center text-sm">
+                              <Star className="h-3 w-3 text-yellow-500 fill-current mr-1" />
+                              {trainer.rating}
+                            </div>
+                          </div>
+                          <p className="text-sm text-blue-600 font-medium">{trainer.specialty}</p>
+                          <p className="text-xs text-gray-500">{trainer.experience} d'expérience</p>
+                        </div>
+                      </div>
+                      
+                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">{trainer.description}</p>
+                      
+                      <div className="mb-3">
+                        <p className="text-xs text-gray-500 mb-1">Créneaux disponibles :</p>
+                        <div className="flex flex-wrap gap-1">
+                          {trainer.availableSlots.slice(0, 2).map((slot, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {slot.day} {slot.time}
+                            </Badge>
+                          ))}
+                          {trainer.availableSlots.length > 2 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{trainer.availableSlots.length - 2}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-lg font-bold text-blue-600">{trainer.hourlyRate}</span>
+                          <div className="flex items-center">
+                            <Languages className="h-3 w-3 text-gray-400 mr-1" />
+                            <span className="text-xs text-gray-500">
+                              {trainer.languages.slice(0, 2).join(', ')}
+                            </span>
+                          </div>
+                        </div>
+                        <Link to={`/booking-calendar?trainer=${trainer.id}`}>
+                          <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                            <Calendar className="h-3 w-3 mr-1" />
+                            Réserver
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </section>
 
