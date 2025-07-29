@@ -13,7 +13,7 @@ const Hero = () => {
       highlight: "compétences", 
       subtitle: "avec Learneezy",
       description: "Accédez à plus de 1000 cours en ligne créés par des experts. Apprenez à votre rythme et obtenez des certifications reconnues.",
-      image: "/lovable-uploads/35025812-1694-4fb2-aa20-1b03dae12929.png",
+      image: "/lovable-uploads/hero-white-man-professional.png",
       gradient: "from-pink-600 to-orange-600",
       bgGradient: "from-pink-50 via-white to-orange-50"
     },
