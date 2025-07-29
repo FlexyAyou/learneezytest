@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Book, Play, Clock, Award, Star, Search, Filter } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 
 const StudentCourses = () => {
+  const navigate = useNavigate();
+  
   const courses = [
     {
       id: 1,
@@ -127,7 +130,10 @@ const StudentCourses = () => {
               </div>
 
               <div className="flex gap-2">
-                <Button className="flex-1 bg-pink-600 hover:bg-pink-700">
+                <Button 
+                  className="flex-1 bg-pink-600 hover:bg-pink-700"
+                  onClick={() => navigate(`/dashboard/etudiant/courses/${course.id}`)}
+                >
                   <Play className="h-4 w-4 mr-2" />
                   {course.status === 'Terminé' ? 'Revoir' : 'Continuer'}
                 </Button>
