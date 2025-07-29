@@ -1,26 +1,30 @@
 
 import React, { useState } from 'react';
-import { Clock, Users, Star, Filter, Search, Grid, List, Calendar, MapPin, User, Award, Languages } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Search, Award, Users as UsersIcon } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { Link } from 'react-router-dom';
+import CourseCard from '@/components/CourseCard';
+import TrainerCard from '@/components/TrainerCard';
+import TrainerBookingModal from '@/components/TrainerBookingModal';
 
 const Courses = () => {
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedLevel, setSelectedLevel] = useState('all');
   const [selectedCycle, setSelectedCycle] = useState('all');
+  const [showAllCourses, setShowAllCourses] = useState(false);
   
   // États pour la section formateurs
   const [trainerSearchTerm, setTrainerSearchTerm] = useState('');
   const [selectedSpecialty, setSelectedSpecialty] = useState('all');
   const [selectedLanguage, setSelectedLanguage] = useState('all');
+  const [showAllTrainers, setShowAllTrainers] = useState(false);
+  const [selectedTrainer, setSelectedTrainer] = useState(null);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
   const courses = [
     {
@@ -335,23 +339,9 @@ const Courses = () => {
     { value: 'Soutien technique', label: 'Soutien technique' }
   ];
 
-  const getBadgeColor = (level: string) => {
-    if (['CP', 'CE1', 'CE2', 'CM1', 'CM2'].includes(level)) {
-      return 'bg-green-100 text-green-800';
-    } else if (['6ème', '5ème', '4ème', '3ème'].includes(level)) {
-      return 'bg-blue-100 text-blue-800';
-    } else if (['2nde', '1ère', 'Terminale'].includes(level)) {
-      return 'bg-purple-100 text-purple-800';
-    }
-    return 'bg-gray-100 text-gray-800';
-  };
-
-  const getCycleColor = (cycle: string) => {
-    switch (cycle) {
-      case 'élémentaire': return 'bg-green-50 text-green-700 border-green-200';
-      case 'secondaire': return 'bg-blue-50 text-blue-700 border-blue-200';
-      default: return 'bg-gray-50 text-gray-700 border-gray-200';
-    }
+  const handleTrainerBooking = (trainer: any) => {
+    setSelectedTrainer(trainer);
+    setIsBookingModalOpen(true);
   };
 
   const filteredCourses = courses.filter(course => {
@@ -461,55 +451,24 @@ const Courses = () => {
                   </div>
                 </div>
 
-                {/* Résultats formations */}
+                {/* Résultats formations - Grille de cartes */}
                 <div className="mb-4 text-sm text-gray-600">
                   {filteredCourses.length} formation{filteredCourses.length > 1 ? 's' : ''} trouvée{filteredCourses.length > 1 ? 's' : ''}
                 </div>
 
-                <div className="space-y-4 max-h-96 overflow-y-auto">
-                  {filteredCourses.slice(0, 6).map((course) => (
-                    <div key={course.id} className="bg-white rounded-lg p-4 border hover:shadow-md transition-shadow">
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-semibold text-gray-900 line-clamp-1">{course.title}</h3>
-                        <Badge className={getBadgeColor(course.level)} variant="secondary">
-                          {course.level}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-2 line-clamp-2">{course.description}</p>
-                      <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
-                        <div className="flex items-center space-x-3">
-                          <span className="flex items-center">
-                            <Clock className="h-3 w-3 mr-1" />
-                            {course.duration}
-                          </span>
-                          <span className="flex items-center">
-                            <Users className="h-3 w-3 mr-1" />
-                            {course.students}
-                          </span>
-                        </div>
-                        <div className="flex items-center">
-                          <Star className="h-3 w-3 text-yellow-500 fill-current mr-1" />
-                          {course.rating}
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="text-lg font-bold text-pink-600">{course.price}</div>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm">Voir détails</Button>
-                          <Link to={`/cours/${course.id}/reservation`}>
-                            <Button size="sm" className="bg-pink-600 hover:bg-pink-700">
-                              S'inscrire
-                            </Button>
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+                  {(showAllCourses ? filteredCourses : filteredCourses.slice(0, 6)).map((course) => (
+                    <CourseCard key={course.id} course={course} />
                   ))}
                 </div>
 
-                {filteredCourses.length > 6 && (
+                {filteredCourses.length > 6 && !showAllCourses && (
                   <div className="mt-4 text-center">
-                    <Button variant="outline" className="w-full">
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => setShowAllCourses(true)}
+                    >
                       Voir toutes les formations ({filteredCourses.length})
                     </Button>
                   </div>
@@ -521,7 +480,7 @@ const Courses = () => {
             <Card className="p-6 border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
               <CardHeader className="pb-4">
                 <CardTitle className="text-2xl font-bold text-blue-600 flex items-center">
-                  <User className="h-6 w-6 mr-2" />
+                  <UsersIcon className="h-6 w-6 mr-2" />
                   Réserver un créneau avec un formateur
                 </CardTitle>
                 <CardDescription>
@@ -571,76 +530,47 @@ const Courses = () => {
                   </div>
                 </div>
 
-                {/* Résultats formateurs */}
+                {/* Résultats formateurs - Grille de cartes */}
                 <div className="mb-4 text-sm text-gray-600">
                   {filteredTrainers.length} formateur{filteredTrainers.length > 1 ? 's' : ''} disponible{filteredTrainers.length > 1 ? 's' : ''}
                 </div>
 
-                <div className="space-y-4 max-h-96 overflow-y-auto">
-                  {filteredTrainers.map((trainer) => (
-                    <div key={trainer.id} className="bg-white rounded-lg p-4 border hover:shadow-md transition-shadow">
-                      <div className="flex items-start space-x-3 mb-3">
-                        <img
-                          src={trainer.photo}
-                          alt={trainer.name}
-                          className="w-12 h-12 rounded-full object-cover"
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between">
-                            <h3 className="font-semibold text-gray-900">{trainer.name}</h3>
-                            <div className="flex items-center text-sm">
-                              <Star className="h-3 w-3 text-yellow-500 fill-current mr-1" />
-                              {trainer.rating}
-                            </div>
-                          </div>
-                          <p className="text-sm text-blue-600 font-medium">{trainer.specialty}</p>
-                          <p className="text-xs text-gray-500">{trainer.experience} d'expérience</p>
-                        </div>
-                      </div>
-                      
-                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">{trainer.description}</p>
-                      
-                      <div className="mb-3">
-                        <p className="text-xs text-gray-500 mb-1">Créneaux disponibles :</p>
-                        <div className="flex flex-wrap gap-1">
-                          {trainer.availableSlots.slice(0, 2).map((slot, index) => (
-                            <Badge key={index} variant="outline" className="text-xs">
-                              {slot.day} {slot.time}
-                            </Badge>
-                          ))}
-                          {trainer.availableSlots.length > 2 && (
-                            <Badge variant="outline" className="text-xs">
-                              +{trainer.availableSlots.length - 2}
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-lg font-bold text-blue-600">{trainer.hourlyRate}</span>
-                          <div className="flex items-center">
-                            <Languages className="h-3 w-3 text-gray-400 mr-1" />
-                            <span className="text-xs text-gray-500">
-                              {trainer.languages.slice(0, 2).join(', ')}
-                            </span>
-                          </div>
-                        </div>
-                        <Link to={`/booking-calendar?trainer=${trainer.id}`}>
-                          <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-                            <Calendar className="h-3 w-3 mr-1" />
-                            Réserver
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
+                <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto">
+                  {(showAllTrainers ? filteredTrainers : filteredTrainers.slice(0, 4)).map((trainer) => (
+                    <TrainerCard 
+                      key={trainer.id} 
+                      trainer={trainer} 
+                      onBooking={handleTrainerBooking}
+                    />
                   ))}
                 </div>
+
+                {filteredTrainers.length > 4 && !showAllTrainers && (
+                  <div className="mt-4 text-center">
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => setShowAllTrainers(true)}
+                    >
+                      Voir tous les formateurs ({filteredTrainers.length})
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
         </div>
       </section>
+
+      {/* Modal de réservation */}
+      <TrainerBookingModal
+        isOpen={isBookingModalOpen}
+        onClose={() => {
+          setIsBookingModalOpen(false);
+          setSelectedTrainer(null);
+        }}
+        trainer={selectedTrainer}
+      />
 
       <Footer />
     </div>
