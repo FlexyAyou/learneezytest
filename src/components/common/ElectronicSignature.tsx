@@ -32,9 +32,12 @@ export const ElectronicSignature: React.FC<ElectronicSignatureProps> = ({
       isDrawingMode: true,
     });
 
-    // Configuration du pinceau
-    canvas.freeDrawingBrush.color = '#000000';
-    canvas.freeDrawingBrush.width = 2;
+    // Configuration du pinceau pour Fabric.js v6
+    // Vérifier que freeDrawingBrush existe avant de l'utiliser
+    if (canvas.freeDrawingBrush) {
+      canvas.freeDrawingBrush.color = '#000000';
+      canvas.freeDrawingBrush.width = 2;
+    }
 
     // Événement pour détecter quand l'utilisateur signe
     canvas.on('path:created', () => {
