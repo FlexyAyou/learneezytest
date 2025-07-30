@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -176,25 +177,6 @@ All colors MUST be HSL.
   }
 }
 
-/* New keyframes for geometric morphing */
-@keyframes morph-circle-to-triangle {
-  0% { d: path("M 50 10 A 40 40 0 0 1 90 50 A 40 40 0 0 1 50 90 A 40 40 0 0 1 10 50 A 40 40 0 0 1 50 10 Z"); }
-  100% { d: path("M 50 10 L 90 80 L 10 80 Z"); }
-}
-
-@keyframes morph-triangle-to-pentagon {
-  0% { d: path("M 50 10 L 90 80 L 10 80 Z"); }
-  100% { d: path("M 50 10 L 78 35 L 69 75 L 31 75 L 22 35 Z"); }
-}
-
-@keyframes color-shift {
-  0% { stop-color: hsl(330, 81%, 60%); }
-  25% { stop-color: hsl(250, 85%, 65%); }
-  50% { stop-color: hsl(200, 80%, 70%); }
-  75% { stop-color: hsl(300, 75%, 65%); }
-  100% { stop-color: hsl(330, 81%, 60%); }
-}
-
 /* Hide scrollbar for Chrome, Safari and Opera */
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
@@ -219,52 +201,11 @@ All colors MUST be HSL.
   animation: glow-pulse 3s ease-in-out infinite;
 }
 
-.animate-geometric-morph {
-  animation: morph-circle-to-triangle 4s ease-in-out infinite alternate;
-}
-
-.animate-color-shift {
-  animation: color-shift 6s ease-in-out infinite;
-}
-
-/* Glassmorphism utilities */
-.glass-card {
-  @apply bg-white/5 backdrop-blur-xl border border-white/10;
-}
-
-.glass-button {
-  @apply bg-white/10 backdrop-blur-lg border border-white/20 hover:bg-white/20;
-}
-
-/* Custom slider styles for hero controls */
-.hero-slider::-webkit-slider-thumb {
-  appearance: none;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: linear-gradient(45deg, #ec4899, #a855f7);
-  cursor: pointer;
-  border: 2px solid white;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-}
-
-.hero-slider::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: linear-gradient(45deg, #ec4899, #a855f7);
-  cursor: pointer;
-  border: 2px solid white;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-}
-
 /* Reduced motion preferences */
 @media (prefers-reduced-motion: reduce) {
   .animate-float,
   .animate-float-delayed,
-  .animate-glow-pulse,
-  .animate-geometric-morph,
-  .animate-color-shift {
+  .animate-glow-pulse {
     animation: none;
   }
   
