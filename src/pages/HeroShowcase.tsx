@@ -45,7 +45,6 @@ const HeroShowcase = () => {
                   </Button>
                 </div>
               </div>
-              {/* Academic Illustration */}
               <div className="relative">
                 <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20">
                   <img 
@@ -90,7 +89,6 @@ const HeroShowcase = () => {
                   <ChevronRight className="ml-2 h-5 w-5" />
                 </Button>
               </div>
-              {/* Academic Illustration */}
               <div className="relative">
                 <img 
                   src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=600&h=400&fit=crop&crop=center" 
@@ -113,7 +111,6 @@ const HeroShowcase = () => {
         {/* Hero Option 3 - Style tech futuriste avec illustration */}
         <section className="mb-24 border rounded-2xl overflow-hidden shadow-lg">
           <div className="bg-slate-900 text-white min-h-[600px] relative overflow-hidden">
-            {/* Grid background pattern */}
             <div className="absolute inset-0 opacity-10">
               <div className="grid grid-cols-12 h-full">
                 {Array.from({length: 144}).map((_, i) => (
@@ -144,7 +141,6 @@ const HeroShowcase = () => {
                   </Button>
                 </div>
               </div>
-              {/* Academic Illustration */}
               <div className="relative">
                 <div className="bg-gray-800 rounded-2xl p-6 border border-purple-500/30">
                   <img 
@@ -171,7 +167,6 @@ const HeroShowcase = () => {
         {/* Hero Option 4 - Créatif avec formes et illustration */}
         <section className="mb-24 border rounded-2xl overflow-hidden shadow-lg">
           <div className="bg-gradient-to-br from-orange-400 via-pink-500 to-purple-600 text-white min-h-[600px] relative">
-            {/* Floating shapes */}
             <div className="absolute top-20 left-20 w-16 h-16 bg-yellow-400/30 rounded-full blur-sm animate-pulse"></div>
             <div className="absolute top-32 right-32 w-24 h-24 bg-blue-400/30 rotate-45 blur-sm animate-pulse" style={{animationDelay: '1s'}}></div>
             <div className="absolute bottom-32 left-32 w-20 h-20 bg-green-400/30 rounded-full blur-sm animate-pulse" style={{animationDelay: '2s'}}></div>
@@ -205,7 +200,6 @@ const HeroShowcase = () => {
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </div>
-              {/* Academic Illustration */}
               <div className="relative">
                 <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-6 border border-white/20">
                   <img 
@@ -276,7 +270,6 @@ const HeroShowcase = () => {
                   </Button>
                 </div>
               </div>
-              {/* Academic Illustration */}
               <div className="relative">
                 <img 
                   src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&h=400&fit=crop&crop=center" 
@@ -310,7 +303,9 @@ const HeroShowcase = () => {
         {/* Hero Option 6 - Innovation & IA */}
         <section className="mb-24 border rounded-2xl overflow-hidden shadow-lg">
           <div className="bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-white min-h-[600px] relative">
-            <div className="absolute inset-0 bg-[url('data:image/svg+xml,<svg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"><g fill=\"none\" fill-rule=\"evenodd\"><g fill=\"%239333ea\" fill-opacity=\"0.1\"><circle cx=\"30\" cy=\"30\" r=\"2\"/></g></g></svg>')] opacity-30"></div>
+            <div className="absolute inset-0 opacity-30" style={{
+              backgroundImage: "url(\"data:image/svg+xml,<svg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'><g fill='none' fill-rule='evenodd'><g fill='%239333ea' fill-opacity='0.1'><circle cx='30' cy='30' r='2'/></g></g></svg>\")"
+            }}></div>
             
             <div className="max-w-6xl mx-auto px-8 py-16 grid md:grid-cols-2 gap-16 items-center relative z-10">
               <div>
@@ -337,7 +332,6 @@ const HeroShowcase = () => {
                   </Button>
                 </div>
               </div>
-              {/* Academic Illustration */}
               <div className="relative">
                 <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10">
                   <img 
@@ -412,7 +406,6 @@ const HeroShowcase = () => {
                   </Button>
                 </div>
               </div>
-              {/* Academic Illustration */}
               <div className="relative">
                 <div className="bg-gray-800/50 backdrop-blur-lg rounded-2xl p-6 border border-red-500/30">
                   <img 
@@ -493,7 +486,6 @@ const HeroShowcase = () => {
                   </Button>
                 </div>
               </div>
-              {/* Academic Illustration */}
               <div className="relative">
                 <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-teal-400/30">
                   <img 
@@ -570,7 +562,6 @@ const HeroShowcase = () => {
                   </Button>
                 </div>
               </div>
-              {/* Academic Illustration */}
               <div className="relative">
                 <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-emerald-400/30">
                   <img 
@@ -642,7 +633,6 @@ const HeroShowcase = () => {
                   </Button>
                 </div>
               </div>
-              {/* Academic Illustration */}
               <div className="relative">
                 <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-amber-400/30">
                   <img 
