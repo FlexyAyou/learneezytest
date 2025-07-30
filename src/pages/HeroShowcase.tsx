@@ -137,7 +137,7 @@ const HeroShowcase = () => {
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Button className="bg-purple-600 hover:bg-purple-700 text-lg px-8 py-4">
-                    Démarrer {'>'}_
+                    Démarrer &gt;_
                   </Button>
                   <Button variant="outline" className="border-purple-400 text-purple-400 hover:bg-purple-400/10 text-lg px-8 py-4">
                     Documentation
@@ -172,9 +172,9 @@ const HeroShowcase = () => {
         <section className="mb-24 border rounded-2xl overflow-hidden shadow-lg">
           <div className="bg-gradient-to-br from-orange-400 via-pink-500 to-purple-600 text-white min-h-[600px] relative">
             {/* Floating shapes */}
-            <div className="absolute top-20 left-20 w-16 h-16 bg-yellow-400/30 rounded-full blur-sm animate-float"></div>
-            <div className="absolute top-32 right-32 w-24 h-24 bg-blue-400/30 rotate-45 blur-sm animate-float" style={{animationDelay: '1s'}}></div>
-            <div className="absolute bottom-32 left-32 w-20 h-20 bg-green-400/30 rounded-full blur-sm animate-float" style={{animationDelay: '2s'}}></div>
+            <div className="absolute top-20 left-20 w-16 h-16 bg-yellow-400/30 rounded-full blur-sm animate-pulse"></div>
+            <div className="absolute top-32 right-32 w-24 h-24 bg-blue-400/30 rotate-45 blur-sm animate-pulse" style={{animationDelay: '1s'}}></div>
+            <div className="absolute bottom-32 left-32 w-20 h-20 bg-green-400/30 rounded-full blur-sm animate-pulse" style={{animationDelay: '2s'}}></div>
             
             <div className="max-w-6xl mx-auto px-8 py-16 grid md:grid-cols-2 gap-16 items-center relative z-10">
               <div>
@@ -310,7 +310,7 @@ const HeroShowcase = () => {
         {/* Hero Option 6 - Innovation & IA */}
         <section className="mb-24 border rounded-2xl overflow-hidden shadow-lg">
           <div className="bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-white min-h-[600px] relative">
-            <div className="absolute inset-0 bg-[url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><g fill="%239333ea" fill-opacity="0.1"><circle cx="30" cy="30" r="2"/></g></g></svg>')] opacity-30"></div>
+            <div className="absolute inset-0 bg-[url('data:image/svg+xml,<svg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"><g fill=\"none\" fill-rule=\"evenodd\"><g fill=\"%239333ea\" fill-opacity=\"0.1\"><circle cx=\"30\" cy=\"30\" r=\"2\"/></g></g></svg>')] opacity-30"></div>
             
             <div className="max-w-6xl mx-auto px-8 py-16 grid md:grid-cols-2 gap-16 items-center relative z-10">
               <div>
