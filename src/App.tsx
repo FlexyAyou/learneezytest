@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -5,7 +6,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
-import HeroShowcase from "./pages/HeroShowcase";
 import Courses from "./pages/Courses";
 import CourseDetail from "./pages/CourseDetail";
 import CourseDetailStudent from "./pages/CourseDetailStudent";
@@ -56,7 +56,6 @@ const App = () => (
         <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/hero-showcase" element={<HeroShowcase />} />
           <Route path="/cours" element={<Courses />} />
           <Route path="/cours/:id" element={<CourseDetailStudent />} />
           <Route path="/cours/:courseId/reservation" element={<BookingCalendar />} />
