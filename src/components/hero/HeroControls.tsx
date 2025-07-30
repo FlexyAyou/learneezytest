@@ -56,7 +56,7 @@ const HeroControls: React.FC<HeroControlsProps> = ({
               step="0.1"
               value={animationSpeed}
               onChange={(e) => onAnimationSpeedChange(Number(e.target.value))}
-              className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
+              className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer hero-slider"
             />
             <div className="text-xs text-white/60 mt-1">{animationSpeed.toFixed(1)}x</div>
           </div>
@@ -73,7 +73,7 @@ const HeroControls: React.FC<HeroControlsProps> = ({
               step="0.1"
               value={colorIntensity}
               onChange={(e) => onColorIntensityChange(Number(e.target.value))}
-              className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
+              className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer hero-slider"
             />
             <div className="text-xs text-white/60 mt-1">{Math.round(colorIntensity * 100)}%</div>
           </div>
@@ -90,36 +90,12 @@ const HeroControls: React.FC<HeroControlsProps> = ({
               step="0.1"
               value={shapeComplexity}
               onChange={(e) => onShapeComplexityChange(Number(e.target.value))}
-              className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
+              className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer hero-slider"
             />
             <div className="text-xs text-white/60 mt-1">Niveau {shapeComplexity.toFixed(1)}</div>
           </div>
         </div>
       </div>
-
-      {/* Custom slider styles */}
-      <style jsx>{`
-        .slider::-webkit-slider-thumb {
-          appearance: none;
-          width: 16px;
-          height: 16px;
-          border-radius: 50%;
-          background: linear-gradient(45deg, #ec4899, #a855f7);
-          cursor: pointer;
-          border: 2px solid white;
-          box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-        }
-        
-        .slider::-moz-range-thumb {
-          width: 16px;
-          height: 16px;
-          border-radius: 50%;
-          background: linear-gradient(45deg, #ec4899, #a855f7);
-          cursor: pointer;
-          border: 2px solid white;
-          box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-        }
-      `}</style>
     </>
   );
 };
