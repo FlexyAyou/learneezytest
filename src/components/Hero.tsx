@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Play, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import GeometricMorphing from './hero/GeometricMorphing';
+import Matrix3D from './hero/Matrix3D';
 import AnimatedText from './hero/AnimatedText';
 import HeroControls from './hero/HeroControls';
 
@@ -26,8 +26,8 @@ const Hero = () => {
       id="accueil" 
       className="relative pt-20 min-h-screen flex items-center overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900"
     >
-      {/* Geometric Morphing Background */}
-      <GeometricMorphing 
+      {/* Matrix 3D Background */}
+      <Matrix3D 
         animationSpeed={animationSpeed}
         colorIntensity={colorIntensity}
         shapeComplexity={shapeComplexity}
