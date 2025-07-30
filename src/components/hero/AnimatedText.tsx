@@ -40,7 +40,8 @@ const AnimatedText: React.FC<AnimatedTextProps> = ({ text, className = '', delay
           }`}
           style={{ 
             transitionDelay: `${index * 30}ms`,
-            textShadow: '0 0 20px rgba(236, 72, 153, 0.3)'
+            textShadow: '0 0 20px rgba(236, 72, 153, 0.5), 0 0 40px rgba(236, 72, 153, 0.3)',
+            filter: 'none' // Supprime tout effet de flou
           }}
         >
           {char === ' ' ? '\u00A0' : char}

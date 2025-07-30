@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import ParticleBackground from './hero/ParticleBackground';
 import AnimatedText from './hero/AnimatedText';
 import FloatingElements from './hero/FloatingElements';
+import AnimatedSliders from './hero/AnimatedSliders';
 
 const Hero = () => {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -72,7 +73,7 @@ const Hero = () => {
                 <Button 
                   variant="outline" 
                   size="lg" 
-                  className="group text-lg px-10 py-4 rounded-full border-2 border-purple-400/50 text-white hover:border-purple-400 hover:bg-purple-400/10 backdrop-blur-sm transform hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/25"
+                  className="group text-lg px-10 py-4 rounded-full border-2 border-emerald-400/50 text-white hover:border-emerald-400 hover:bg-emerald-400/10 backdrop-blur-sm transform hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/25 bg-gradient-to-r from-emerald-600/20 to-teal-600/20"
                 >
                   <Play className="h-5 w-5 mr-3 group-hover:scale-110 transition-transform" />
                   Découvrir nos cours
@@ -81,8 +82,16 @@ const Hero = () => {
             </div>
           </div>
 
-          {/* Stats Cards */}
+          {/* Animated Sliders */}
           <div className={`transition-all duration-1000 delay-700 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            <div className="mb-16">
+              <h3 className="text-2xl font-bold text-white mb-8">Explorez nos domaines de formation</h3>
+              <AnimatedSliders />
+            </div>
+          </div>
+
+          {/* Stats Cards */}
+          <div className={`transition-all duration-1000 delay-900 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-3xl mx-auto">
               {[
                 { number: '50K+', label: 'Étudiants actifs', icon: '👥' },
