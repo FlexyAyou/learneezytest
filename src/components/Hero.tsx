@@ -3,12 +3,18 @@ import React, { useState, useEffect } from 'react';
 import { Play, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import ParticleBackground from './hero/ParticleBackground';
+import GeometricMorphing from './hero/GeometricMorphing';
 import AnimatedText from './hero/AnimatedText';
-import FloatingElements from './hero/FloatingElements';
+import HeroControls from './hero/HeroControls';
 
 const Hero = () => {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [controlsVisible, setControlsVisible] = useState(false);
+  
+  // Animation control states
+  const [animationSpeed, setAnimationSpeed] = useState(1);
+  const [colorIntensity, setColorIntensity] = useState(1);
+  const [shapeComplexity, setShapeComplexity] = useState(2);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoaded(true), 300);
@@ -20,14 +26,27 @@ const Hero = () => {
       id="accueil" 
       className="relative pt-20 min-h-screen flex items-center overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900"
     >
-      {/* Particle Background */}
-      <ParticleBackground />
+      {/* Geometric Morphing Background */}
+      <GeometricMorphing 
+        animationSpeed={animationSpeed}
+        colorIntensity={colorIntensity}
+        shapeComplexity={shapeComplexity}
+      />
       
-      {/* Floating Elements */}
-      <FloatingElements />
+      {/* Hero Controls */}
+      <HeroControls
+        animationSpeed={animationSpeed}
+        colorIntensity={colorIntensity}
+        shapeComplexity={shapeComplexity}
+        onAnimationSpeedChange={setAnimationSpeed}
+        onColorIntensityChange={setColorIntensity}
+        onShapeComplexityChange={setShapeComplexity}
+        isVisible={controlsVisible}
+        onToggleVisibility={() => setControlsVisible(!controlsVisible)}
+      />
 
-      {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-purple-900/20 to-transparent"></div>
+      {/* Gradient Overlay for readability */}
+      <div className="absolute inset-0 bg-gradient-to-br from-black/40 via-transparent to-black/40"></div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center max-w-4xl mx-auto">
@@ -37,7 +56,7 @@ const Hero = () => {
               <span className="block">Développez vos</span>
               <AnimatedText
                 text="compétences"
-                className="block text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400"
+                className="block text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 animate-glow-pulse"
                 delay={500}
               />
               <span className="block">avec Learneezy</span>
@@ -81,7 +100,7 @@ const Hero = () => {
             </div>
           </div>
 
-          {/* Stats Cards */}
+          {/* Stats Cards with glassmorphism */}
           <div className={`transition-all duration-1000 delay-700 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-3xl mx-auto">
               {[
@@ -91,13 +110,16 @@ const Hero = () => {
               ].map((stat, index) => (
                 <div 
                   key={index}
-                  className="group relative p-6 rounded-2xl bg-white/5 backdrop-blur-lg border border-white/10 hover:bg-white/10 transition-all duration-300 transform hover:scale-105 hover:shadow-xl hover:shadow-purple-500/20"
+                  className="group relative p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 hover:bg-white/10 transition-all duration-500 transform hover:scale-105 hover:shadow-xl hover:shadow-purple-500/20"
                   style={{ animationDelay: `${index * 0.2}s` }}
                 >
                   <div className="text-3xl mb-2">{stat.icon}</div>
                   <div className="text-2xl font-bold text-white mb-1">{stat.number}</div>
                   <div className="text-gray-400 text-sm">{stat.label}</div>
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-pink-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  
+                  {/* Glassmorphism hover effect */}
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-pink-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
+                  <div className="absolute inset-0 rounded-2xl border border-gradient-to-r from-pink-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 </div>
               ))}
             </div>
