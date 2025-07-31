@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { BookOpen, Mail, Lock, User, Eye, EyeOff, ArrowRight, CheckCircle, Star, AlertCircle, GraduationCap, UserCheck } from 'lucide-react';
+import { BookOpen, Mail, Lock, User, Eye, EyeOff, ArrowRight, CheckCircle, Star, AlertCircle, GraduationCap, UserCheck, Users } from 'lucide-react';
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -21,7 +21,6 @@ const Register = () => {
     confirmPassword: '',
     userType: '',
     ageStatus: '',
-    role: '', // 'student' ou 'tutor'
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -133,6 +132,12 @@ const Register = () => {
                           <span>Profil Élève</span>
                         </div>
                       </SelectItem>
+                      <SelectItem value="tutor">
+                        <div className="flex items-center space-x-2">
+                          <Users className="h-4 w-4" />
+                          <span>Profil Tuteur</span>
+                        </div>
+                      </SelectItem>
                       <SelectItem value="instructor">
                         <div className="flex items-center space-x-2">
                           <UserCheck className="h-4 w-4" />
@@ -171,27 +176,10 @@ const Register = () => {
                   </Alert>
                 )}
 
-                {/* Choix du rôle pour les adultes */}
-                {formData.userType === 'student' && formData.ageStatus === 'adult' && (
-                  <div className="space-y-2">
-                    <Label htmlFor="role" className="text-sm font-medium text-gray-700">
-                      Vous êtes :
-                    </Label>
-                    <Select value={formData.role} onValueChange={(value) => handleChange('role', value)}>
-                      <SelectTrigger className="h-12 border-gray-200 focus:border-pink-500 focus:ring-pink-500">
-                        <SelectValue placeholder="Sélectionnez votre rôle" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="student">Élève</SelectItem>
-                        <SelectItem value="tutor">Tuteur</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-
                 {/* Informations personnelles - affichées pour les profils valides */}
                 {(formData.userType === 'instructor' || 
-                  (formData.userType === 'student' && formData.ageStatus === 'adult' && formData.role)) && (
+                  formData.userType === 'tutor' ||
+                  (formData.userType === 'student' && formData.ageStatus === 'adult')) && (
                   <>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
