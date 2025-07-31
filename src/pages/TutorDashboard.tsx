@@ -10,6 +10,8 @@ import TutorMessaging from '@/components/tutor/TutorMessaging';
 import TutorPlanningNotifications from '@/components/tutor/TutorPlanningNotifications';
 import { TutorAddStudent } from '@/components/tutor/TutorAddStudent';
 import { TutorSettings } from '@/components/tutor/TutorSettings';
+import { TutorSubscription } from '@/components/tutor/TutorSubscription';
+import { TutorDocuments } from '@/components/tutor/TutorDocuments';
 import { 
   Users, 
   MessageSquare, 
@@ -21,7 +23,9 @@ import {
   Eye,
   UserPlus,
   Settings,
-  Library
+  Library,
+  CreditCard,
+  FileText
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -99,7 +103,7 @@ const TutorDashboardHome = () => {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/dashboard/tuteur/ajouter-eleve')}>
           <CardContent className="p-6 text-center">
             <UserPlus className="h-8 w-8 mx-auto mb-3 text-blue-600" />
@@ -116,11 +120,19 @@ const TutorDashboardHome = () => {
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/dashboard/tuteur/parametres')}>
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/dashboard/tuteur/abonnements')}>
           <CardContent className="p-6 text-center">
-            <Settings className="h-8 w-8 mx-auto mb-3 text-purple-600" />
-            <h3 className="font-semibold">Paramètres</h3>
-            <p className="text-sm text-gray-600">Configurer votre profil</p>
+            <CreditCard className="h-8 w-8 mx-auto mb-3 text-orange-600" />
+            <h3 className="font-semibold">Abonnements</h3>
+            <p className="text-sm text-gray-600">Gérer vos crédits</p>
+          </CardContent>
+        </Card>
+
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/dashboard/tuteur/documents')}>
+          <CardContent className="p-6 text-center">
+            <FileText className="h-8 w-8 mx-auto mb-3 text-purple-600" />
+            <h3 className="font-semibold">Mes documents</h3>
+            <p className="text-sm text-gray-600">Cours et exercices</p>
           </CardContent>
         </Card>
       </div>
@@ -314,6 +326,8 @@ const TutorDashboard = () => {
     { title: 'Vue d\'ensemble', href: '/dashboard/tuteur', icon: TrendingUp, isActive: currentPath === '/dashboard/tuteur' },
     { title: 'Suivi des élèves', href: '/dashboard/tuteur/suivi', icon: Users, isActive: currentPath === '/dashboard/tuteur/suivi' },
     { title: 'Ajouter un élève', href: '/dashboard/tuteur/ajouter-eleve', icon: UserPlus, isActive: currentPath === '/dashboard/tuteur/ajouter-eleve' },
+    { title: 'Abonnements', href: '/dashboard/tuteur/abonnements', icon: CreditCard, isActive: currentPath === '/dashboard/tuteur/abonnements' },
+    { title: 'Mes documents', href: '/dashboard/tuteur/documents', icon: FileText, isActive: currentPath === '/dashboard/tuteur/documents' },
     { title: 'Messagerie', href: '/dashboard/tuteur/messagerie', icon: MessageSquare, badge: '3', isActive: currentPath === '/dashboard/tuteur/messagerie' },
     { title: 'Planning & Notifications', href: '/dashboard/tuteur/planning', icon: Calendar, isActive: currentPath === '/dashboard/tuteur/planning' },
     { title: 'Paramètres', href: '/dashboard/tuteur/parametres', icon: Settings, isActive: currentPath === '/dashboard/tuteur/parametres' },
@@ -337,6 +351,8 @@ const TutorDashboard = () => {
           <Route path="/" element={<TutorDashboardHome />} />
           <Route path="/suivi" element={<TutorStudentTracking />} />
           <Route path="/ajouter-eleve" element={<TutorAddStudent />} />
+          <Route path="/abonnements" element={<TutorSubscription />} />
+          <Route path="/documents" element={<TutorDocuments />} />
           <Route path="/messagerie" element={<TutorMessaging />} />
           <Route path="/planning" element={<TutorPlanningNotifications />} />
           <Route path="/parametres" element={<TutorSettings />} />
