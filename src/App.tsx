@@ -16,6 +16,14 @@ import StudentDashboard from '@/pages/StudentDashboard';
 import StudentCourses from '@/pages/StudentCourses';
 import UserProfile from '@/pages/UserProfile';
 import PublicInscription from '@/pages/PublicInscription';
+import OFDashboard from '@/pages/OFDashboard';
+import TutorDashboard from '@/pages/TutorDashboard';
+import ParentDashboard from '@/pages/ParentDashboard';
+import ManagerDashboard from '@/pages/ManagerDashboard';
+import InternalTrainerDashboard from '@/pages/InternalTrainerDashboard';
+import ExternalTrainerDashboard from '@/pages/ExternalTrainerDashboard';
+import ContentCreatorDashboard from '@/pages/ContentCreatorDashboard';
+import TechnicianDashboard from '@/pages/TechnicianDashboard';
 import { Toaster } from '@/components/ui/toaster';
 import DownloadAppButton from '@/components/common/DownloadAppButton';
 import AIChatButton from '@/components/common/AIChatButton';
@@ -51,6 +59,17 @@ function App() {
             <Route path="/student/tableau-de-bord" element={<StudentDashboard />} />
             <Route path="/student/cours" element={<StudentCourses />} />
             <Route path="/student/profil" element={<UserProfile />} />
+            <Route path="/dashboard/etudiant/*" element={<StudentDashboard />} />
+
+            {/* Dashboard Routes */}
+            <Route path="/dashboard/organisme-formation/*" element={<OFDashboard />} />
+            <Route path="/dashboard/tuteur/*" element={<TutorDashboard />} />
+            <Route path="/dashboard/parent/*" element={<ParentDashboard />} />
+            <Route path="/dashboard/gestionnaire/*" element={<ManagerDashboard />} />
+            <Route path="/dashboard/formateur-interne/*" element={<InternalTrainerDashboard />} />
+            <Route path="/dashboard/formateur-externe/*" element={<ExternalTrainerDashboard />} />
+            <Route path="/dashboard/createur-contenu/*" element={<ContentCreatorDashboard />} />
+            <Route path="/dashboard/technicien/*" element={<TechnicianDashboard />} />
 
             {/* Public Inscription */}
             <Route path="/inscription-formation" element={<PublicInscription />} />

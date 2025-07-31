@@ -60,6 +60,11 @@ const CourseCard = ({ course }: CourseCardProps) => {
             {course.category}
           </Badge>
         </div>
+        <div className="absolute top-3 right-3">
+          <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-bold text-xs px-2 py-1">
+            {course.price}
+          </Badge>
+        </div>
       </div>
       
       <CardContent className="p-4">
@@ -90,22 +95,17 @@ const CourseCard = ({ course }: CourseCardProps) => {
           </div>
         </div>
         
-        <div className="flex items-center justify-between">
-          <div>
-            <span className="text-xl font-bold text-primary">{course.price}</span>
-          </div>
-          <div className="flex gap-2">
-            <Link to={`/cours/${course.id}`}>
-              <Button variant="outline" size="sm">
-                Voir détails
-              </Button>
-            </Link>
-            <Link to={`/cours/${course.id}/reservation`}>
-              <Button size="sm" className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700">
-                S'inscrire
-              </Button>
-            </Link>
-          </div>
+        <div className="flex items-center justify-end gap-2">
+          <Link to={`/cours/${course.id}`}>
+            <Button variant="outline" size="sm">
+              Voir détails
+            </Button>
+          </Link>
+          <Link to={`/cours/${course.id}/reservation`}>
+            <Button size="sm" className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700">
+              S'inscrire
+            </Button>
+          </Link>
         </div>
       </CardContent>
     </Card>
