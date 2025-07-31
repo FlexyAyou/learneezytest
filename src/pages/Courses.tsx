@@ -19,7 +19,7 @@ const Courses = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedLevel, setSelectedLevel] = useState('all');
   const [selectedCycle, setSelectedCycle] = useState('all');
-  const [priceType, setPriceType] = useState('tokens'); // tokens or credits
+  const [priceType, setPriceType] = useState<'tokens' | 'credits'>('tokens');
   const [showAllCourses, setShowAllCourses] = useState(false);
   
   // États pour la section formateurs
@@ -223,7 +223,6 @@ const Courses = () => {
     }
   ];
 
-  // Données des formateurs
   const trainers = [
     {
       id: 1,
@@ -312,7 +311,6 @@ const Courses = () => {
     }
   ];
 
-  // Nouveaux niveaux d'étude pour le filtre en entonnoir
   const studyLevels = [
     { value: 'all', label: t('courses.level') },
     { value: 'maternelle', label: 'Maternelle' },
