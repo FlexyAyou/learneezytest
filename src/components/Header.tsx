@@ -1,7 +1,9 @@
+
 import React, { useState } from 'react';
-import { Menu, X, BookOpen, User, Search } from 'lucide-react';
+import { Menu, X, BookOpen, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import LanguageSelector from '@/components/common/LanguageSelector';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -18,21 +20,14 @@ const Header = () => {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             <Link to="/" className="text-gray-700 hover:text-pink-600 transition-colors">Accueil</Link>
-            <Link to="/cours" className="text-gray-700 hover:text-pink-600 transition-colors">Cours</Link>
+            <Link to="/nos-formations" className="text-gray-700 hover:text-pink-600 transition-colors">Nos formations</Link>
             <Link to="/apropos" className="text-gray-700 hover:text-pink-600 transition-colors">À propos</Link>
             <Link to="/contact" className="text-gray-700 hover:text-pink-600 transition-colors">Contact</Link>
           </nav>
 
-          {/* Search and Auth */}
+          {/* Language Selector and Auth */}
           <div className="hidden md:flex items-center space-x-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <input
-                type="text"
-                placeholder="Rechercher un cours..."
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-              />
-            </div>
+            <LanguageSelector />
             <Link to="/connexion">
               <Button variant="outline" size="sm">
                 <User className="h-4 w-4 mr-2" />
@@ -62,10 +57,13 @@ const Header = () => {
           <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 bg-white border-t">
               <Link to="/" className="block px-3 py-2 text-gray-700 hover:text-pink-600">Accueil</Link>
-              <Link to="/cours" className="block px-3 py-2 text-gray-700 hover:text-pink-600">Cours</Link>
+              <Link to="/nos-formations" className="block px-3 py-2 text-gray-700 hover:text-pink-600">Nos formations</Link>
               <Link to="/apropos" className="block px-3 py-2 text-gray-700 hover:text-pink-600">À propos</Link>
               <Link to="/contact" className="block px-3 py-2 text-gray-700 hover:text-pink-600">Contact</Link>
               <div className="pt-4 border-t">
+                <div className="px-3 py-2">
+                  <LanguageSelector />
+                </div>
                 <Link to="/connexion">
                   <Button variant="outline" size="sm" className="w-full mb-2">
                     Connexion
