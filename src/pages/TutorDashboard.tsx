@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import TutorStudentTracking from '@/components/tutor/TutorStudentTracking';
 import TutorMessaging from '@/components/tutor/TutorMessaging';
 import TutorPlanningNotifications from '@/components/tutor/TutorPlanningNotifications';
+import { TutorAddStudent } from '@/components/tutor/TutorAddStudent';
+import { TutorSettings } from '@/components/tutor/TutorSettings';
 import { 
   Users, 
   MessageSquare, 
@@ -16,12 +18,16 @@ import {
   BookOpen,
   Award,
   Bell,
-  Eye
+  Eye,
+  UserPlus,
+  Settings,
+  Library
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const TutorDashboardHome = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const students = [
     { id: 1, name: 'Emma Martin', age: 16, courses: 3, avgScore: 85, status: 'active' },
@@ -74,12 +80,49 @@ const TutorDashboardHome = () => {
     });
   };
 
+  const handleViewCatalog = () => {
+    navigate('/nos-formations');
+  };
+
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard Tuteur</h1>
-        <p className="text-gray-600">Suivez la progression de vos élèves</p>
+      {/* Header with Catalog Button */}
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard Tuteur</h1>
+          <p className="text-gray-600">Suivez la progression de vos élèves</p>
+        </div>
+        <Button onClick={handleViewCatalog} className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700">
+          <Library className="h-4 w-4 mr-2" />
+          Catalogue de formation
+        </Button>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/dashboard/tuteur/ajouter-eleve')}>
+          <CardContent className="p-6 text-center">
+            <UserPlus className="h-8 w-8 mx-auto mb-3 text-blue-600" />
+            <h3 className="font-semibold">Ajouter un élève</h3>
+            <p className="text-sm text-gray-600">Créer un nouveau compte</p>
+          </CardContent>
+        </Card>
+
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/dashboard/tuteur/suivi')}>
+          <CardContent className="p-6 text-center">
+            <Eye className="h-8 w-8 mx-auto mb-3 text-green-600" />
+            <h3 className="font-semibold">Suivi des élèves</h3>
+            <p className="text-sm text-gray-600">Voir les progressions</p>
+          </CardContent>
+        </Card>
+
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/dashboard/tuteur/parametres')}>
+          <CardContent className="p-6 text-center">
+            <Settings className="h-8 w-8 mx-auto mb-3 text-purple-600" />
+            <h3 className="font-semibold">Paramètres</h3>
+            <p className="text-sm text-gray-600">Configurer votre profil</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Stats Cards */}
@@ -263,11 +306,17 @@ const TutorDashboardHome = () => {
 };
 
 const TutorDashboard = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const currentPath = location.pathname;
+
   const sidebarItems = [
-    { title: 'Vue d\'ensemble', href: '/dashboard/tuteur', icon: TrendingUp, isActive: true },
-    { title: 'Suivi des élèves', href: '/dashboard/tuteur/suivi', icon: Users },
-    { title: 'Messagerie', href: '/dashboard/tuteur/messagerie', icon: MessageSquare, badge: '3' },
-    { title: 'Planning & Notifications', href: '/dashboard/tuteur/planning', icon: Calendar },
+    { title: 'Vue d\'ensemble', href: '/dashboard/tuteur', icon: TrendingUp, isActive: currentPath === '/dashboard/tuteur' },
+    { title: 'Suivi des élèves', href: '/dashboard/tuteur/suivi', icon: Users, isActive: currentPath === '/dashboard/tuteur/suivi' },
+    { title: 'Ajouter un élève', href: '/dashboard/tuteur/ajouter-eleve', icon: UserPlus, isActive: currentPath === '/dashboard/tuteur/ajouter-eleve' },
+    { title: 'Messagerie', href: '/dashboard/tuteur/messagerie', icon: MessageSquare, badge: '3', isActive: currentPath === '/dashboard/tuteur/messagerie' },
+    { title: 'Planning & Notifications', href: '/dashboard/tuteur/planning', icon: Calendar, isActive: currentPath === '/dashboard/tuteur/planning' },
+    { title: 'Paramètres', href: '/dashboard/tuteur/parametres', icon: Settings, isActive: currentPath === '/dashboard/tuteur/parametres' },
   ];
 
   const userInfo = {
@@ -287,8 +336,10 @@ const TutorDashboard = () => {
         <Routes>
           <Route path="/" element={<TutorDashboardHome />} />
           <Route path="/suivi" element={<TutorStudentTracking />} />
+          <Route path="/ajouter-eleve" element={<TutorAddStudent />} />
           <Route path="/messagerie" element={<TutorMessaging />} />
           <Route path="/planning" element={<TutorPlanningNotifications />} />
+          <Route path="/parametres" element={<TutorSettings />} />
         </Routes>
       </main>
     </div>
