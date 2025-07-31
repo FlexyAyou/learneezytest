@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { Users, BookOpen, DollarSign, Settings, BarChart3, Shield, Key, FileText, MessageSquare, Video, Download, Brain, TestTube, Home, UserCheck, PenTool, Mail, FileSignature } from 'lucide-react';
+import { Users, BookOpen, DollarSign, Settings, BarChart3, Shield, Key, FileText, MessageSquare, Video, Download, Brain, TestTube, Home, UserCheck, PenTool, Mail, FileSignature, Building } from 'lucide-react';
 import AdminInscriptions from './admin/AdminInscriptions';
 import AdminDocumentsOF from './admin/AdminDocumentsOF';
 import AdminAutomaticMailings from './admin/AdminAutomaticMailings';
@@ -24,6 +24,7 @@ import { AddUser } from '@/components/admin/AddUser';
 import { GroupEnrollment } from '@/components/admin/GroupEnrollment';
 import AdminEmargements from '@/components/admin/AdminEmargements';
 import { OFDashboard } from '@/components/admin/OFDashboard';
+import AdminOrganisations from '@/components/admin/AdminOrganisations';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -33,6 +34,7 @@ const AdminDashboard = () => {
   const sidebarItems = [
     { title: "Tableau de bord", href: "/dashboard/admin", icon: Home, isActive: currentPath === "/dashboard/admin" },
     { title: "Utilisateurs", href: "/dashboard/admin/users", icon: Users, isActive: currentPath === "/dashboard/admin/users" },
+    { title: "Organismes de formations", href: "/dashboard/admin/organisations", icon: Building, isActive: currentPath === "/dashboard/admin/organisations" },
     { title: "Cours", href: "/dashboard/admin/courses", icon: BookOpen, isActive: currentPath === "/dashboard/admin/courses" },
     // === SECTION OF COMPLÈTE ===
     { title: "Inscriptions", href: "/dashboard/admin/inscriptions", icon: UserCheck, isActive: currentPath === "/dashboard/admin/inscriptions" },
@@ -82,6 +84,7 @@ const AdminDashboard = () => {
             <Route path="/users" element={<AdminUsers />} />
             <Route path="/users/add" element={<AddUser />} />
             <Route path="/users/group-enrollment" element={<GroupEnrollment />} />
+            <Route path="/organisations" element={<AdminOrganisations />} />
             <Route path="/courses" element={<AdminCourses />} />
             <Route path="/licenses" element={<LicenseManagement />} />
             <Route path="/identity" element={<IdentityVerification />} />

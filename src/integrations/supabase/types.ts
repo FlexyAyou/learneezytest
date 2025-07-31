@@ -50,6 +50,53 @@ export type Database = {
         }
         Relationships: []
       }
+      documents_administratifs: {
+        Row: {
+          created_at: string
+          document_type: string
+          document_url: string | null
+          id: string
+          is_signed: boolean | null
+          is_validated: boolean | null
+          signed_at: string | null
+          updated_at: string
+          user_id: string
+          validated_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          document_type: string
+          document_url?: string | null
+          id?: string
+          is_signed?: boolean | null
+          is_validated?: boolean | null
+          signed_at?: string | null
+          updated_at?: string
+          user_id: string
+          validated_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          document_type?: string
+          document_url?: string | null
+          id?: string
+          is_signed?: boolean | null
+          is_validated?: boolean | null
+          signed_at?: string | null
+          updated_at?: string
+          user_id?: string
+          validated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_administratifs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents_of: {
         Row: {
           content: string | null
@@ -273,6 +320,7 @@ export type Database = {
           id: string
           is_adult: boolean
           last_name: string
+          organisation_id: string | null
           role: Database["public"]["Enums"]["user_role"]
           status: Database["public"]["Enums"]["user_status"]
           updated_at: string | null
@@ -283,6 +331,7 @@ export type Database = {
           id: string
           is_adult?: boolean
           last_name: string
+          organisation_id?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           status?: Database["public"]["Enums"]["user_status"]
           updated_at?: string | null
@@ -293,11 +342,20 @@ export type Database = {
           id?: string
           is_adult?: boolean
           last_name?: string
+          organisation_id?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           status?: Database["public"]["Enums"]["user_status"]
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations_formation"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
