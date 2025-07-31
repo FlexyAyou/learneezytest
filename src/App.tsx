@@ -16,6 +16,7 @@ import StudentDashboard from '@/pages/StudentDashboard';
 import StudentCourses from '@/pages/StudentCourses';
 import UserProfile from '@/pages/UserProfile';
 import PublicInscription from '@/pages/PublicInscription';
+import Offers from '@/pages/Offers';
 import OFDashboard from '@/pages/OFDashboard';
 import TutorDashboard from '@/pages/TutorDashboard';
 import ParentDashboard from '@/pages/ParentDashboard';
@@ -42,6 +43,7 @@ function App() {
             <Route path="/cours/:id" element={<Navigate to="/nos-formations/:id" replace />} />
             <Route path="/nos-formations/:id" element={<CourseDetail />} />
             <Route path="/tarifs" element={<Contact />} />
+            <Route path="/offres" element={<Offers />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/connexion" element={<Login />} />
             <Route path="/inscription" element={<Register />} />

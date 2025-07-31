@@ -33,16 +33,62 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+    <div className="min-h-screen flex">
+      {/* Left Side - Marketing */}
+      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-pink-600 via-orange-700 to-pink-600 items-center justify-center p-8">
+        <div className="max-w-md text-white">
+          <h2 className="text-4xl font-bold mb-6">
+            Bon retour parmi nous !
+          </h2>
+          <p className="text-pink-100 mb-8 text-lg leading-relaxed">
+            Connectez-vous à votre compte et continuez votre parcours d'apprentissage. 
+            Accédez à vos cours favoris et suivez vos progrès.
+          </p>
+          
+          <div className="space-y-4 mb-8">
+            <div className="flex items-center space-x-3">
+              <div className="h-5 w-5 text-pink-200">✓</div>
+              <span className="text-pink-100">Accès instantané à vos cours</span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="h-5 w-5 text-pink-200">✓</div>
+              <span className="text-pink-100">Suivi de vos progrès en temps réel</span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="h-5 w-5 text-pink-200">✓</div>
+              <span className="text-pink-100">Certificats et badges de réussite</span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="h-5 w-5 text-pink-200">✓</div>
+              <span className="text-pink-100">Communauté d'apprenants actifs</span>
+            </div>
+          </div>
+
+          <div className="bg-white/10 rounded-lg p-6 backdrop-blur-sm">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-pink-100">Satisfaction client</span>
+              <div className="flex items-center space-x-1">
+                <span className="ml-2 font-semibold text-2xl">98%</span>
+              </div>
+            </div>
+            <p className="text-sm text-pink-200">
+              "Une plateforme exceptionnelle qui a transformé ma carrière !"
+            </p>
+            <p className="text-xs text-pink-300 mt-2">- Marie, Data Scientist</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Side - Form */}
+      <div className="flex-1 flex items-center justify-center p-8 bg-white">
+        <div className="w-full max-w-md">
           {/* Logo */}
           <div className="flex justify-center mb-8">
             <Link to="/">
               <img 
                 src="/lovable-uploads/52aaa383-7635-46d0-ac37-eb3ee6b878d1.png" 
                 alt="Learneezy" 
-                className="h-20 w-auto"
+                className="h-24 w-auto"
               />
             </Link>
           </div>
