@@ -5,6 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 
 export const useAuthForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { login, register } = useAuth();
   const { toast } = useToast();
 
@@ -60,5 +61,8 @@ export const useAuthForm = () => {
     handleLogin,
     handleRegister,
     isSubmitting,
+    showPassword,
+    setShowPassword,
+    isLoading: isSubmitting, // Alias pour la compatibilité
   };
 };

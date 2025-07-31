@@ -17,7 +17,7 @@ const Login = () => {
 
   const onSubmit = async (data: any) => {
     try {
-      await handleLogin(data);
+      await handleLogin(data.email, data.password);
       toast({
         title: "Connexion réussie",
         description: "Vous êtes maintenant connecté",
@@ -42,7 +42,7 @@ const Login = () => {
               <img 
                 src="/lovable-uploads/52aaa383-7635-46d0-ac37-eb3ee6b878d1.png" 
                 alt="Learneezy" 
-                className="h-16 w-auto"
+                className="h-20 w-auto"
               />
             </Link>
           </div>
