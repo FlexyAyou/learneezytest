@@ -1,11 +1,9 @@
-
 import React from 'react';
 import { Clock, Users, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
-import { useLanguage } from '@/contexts/LanguageContext';
 
 interface CourseCardProps {
   course: {
@@ -16,24 +14,17 @@ interface CourseCardProps {
     duration: string;
     students: number;
     rating: number;
-    tokens?: number;
-    credits?: number;
-    originalTokens?: number;
-    originalCredits?: number;
-    price?: string;
-    originalPrice?: string;
+    price: string;
+    originalPrice: string;
     level: string;
     category: string;
     cycle: string;
     availableSlots: number;
     description: string;
   };
-  priceType?: 'tokens' | 'credits';
 }
 
-const CourseCard = ({ course, priceType = 'tokens' }: CourseCardProps) => {
-  const { t } = useLanguage();
-  
+const CourseCard = ({ course }: CourseCardProps) => {
   const getBadgeColor = (level: string) => {
     if (['CP', 'CE1', 'CE2', 'CM1', 'CM2'].includes(level)) {
       return 'bg-green-100 text-green-800';
@@ -51,46 +42,6 @@ const CourseCard = ({ course, priceType = 'tokens' }: CourseCardProps) => {
       case 'secondaire': return 'bg-blue-50 text-blue-700 border-blue-200';
       default: return 'bg-gray-50 text-gray-700 border-gray-200';
     }
-  };
-
-  const renderPrice = () => {
-    if (priceType === 'tokens' && course.tokens) {
-      return (
-        <div className="flex items-center gap-2">
-          <span className="text-xl font-bold text-primary flex items-center gap-1">
-            💰 {course.tokens}
-          </span>
-          {course.originalTokens && course.originalTokens > course.tokens && (
-            <span className="text-sm text-gray-500 line-through">
-              {course.originalTokens}
-            </span>
-          )}
-        </div>
-      );
-    } else if (priceType === 'credits' && course.credits) {
-      return (
-        <div className="flex items-center gap-2">
-          <span className="text-xl font-bold text-primary flex items-center gap-1">
-            🎯 {course.credits}
-          </span>
-          {course.originalCredits && course.originalCredits > course.credits && (
-            <span className="text-sm text-gray-500 line-through">
-              {course.originalCredits}
-            </span>
-          )}
-        </div>
-      );
-    } else if (course.price) {
-      return (
-        <div className="flex items-center gap-2">
-          <span className="text-xl font-bold text-primary">{course.price}</span>
-          {course.originalPrice && (
-            <span className="text-sm text-gray-500 line-through">{course.originalPrice}</span>
-          )}
-        </div>
-      );
-    }
-    return null;
   };
 
   return (
@@ -140,16 +91,18 @@ const CourseCard = ({ course, priceType = 'tokens' }: CourseCardProps) => {
         </div>
         
         <div className="flex items-center justify-between">
-          {renderPrice()}
+          <div>
+            <span className="text-xl font-bold text-primary">{course.price}</span>
+          </div>
           <div className="flex gap-2">
-            <Link to={`/nos-formations/${course.id}`}>
+            <Link to={`/cours/${course.id}`}>
               <Button variant="outline" size="sm">
-                {t('courses.viewDetails')}
+                Voir détails
               </Button>
             </Link>
-            <Link to={`/nos-formations/${course.id}/reservation`}>
+            <Link to={`/cours/${course.id}/reservation`}>
               <Button size="sm" className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700">
-                {t('courses.reserve')}
+                S'inscrire
               </Button>
             </Link>
           </div>
