@@ -1,30 +1,48 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
 import { 
-  BookOpen, 
   Users, 
-  Video, 
-  MessageSquare, 
-  BarChart3, 
-  Plus,
-  Settings,
-  Calendar,
-  Award,
-  FileText,
-  ClipboardList,
+  BookOpen, 
+  Calendar, 
+  Award, 
   TrendingUp,
-  HelpCircle,
+  MessageSquare,
+  Settings,
+  FileText,
+  Video,
   Download,
   Brain,
-  TestTube
+  TestTube,
+  Home,
+  Clock,
+  Target,
+  Star,
+  BarChart3,
+  CheckCircle,
+  AlertCircle,
+  PlayCircle,
+  PauseCircle,
+  Edit,
+  Eye,
+  Plus,
+  Filter,
+  Search,
+  Send,
+  Paperclip,
+  Smile,
+  Mic,
+  Phone,
+  PhoneOff,
+  VideoOff,
+  Share,
+  HelpCircle,
+  Bell
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -34,92 +52,71 @@ import InternalTrainerSessions from '@/components/internal-trainer/InternalTrain
 import InternalTrainerStudents from '@/components/internal-trainer/InternalTrainerStudents';
 import InternalTrainerMessaging from '@/components/internal-trainer/InternalTrainerMessaging';
 import { DocumentDownload } from '@/components/common/DocumentDownload';
-import { AIChat } from '@/components/common/AIChat';
-import { VideoConference } from '@/components/common/VideoConference';
+import AIChat from '@/components/common/AIChat';
+import VideoConference from '@/components/common/VideoConference';
 import { PositioningTest } from '@/components/common/PositioningTest';
 
 const InternalTrainerDashboardHome = () => {
   const { toast } = useToast();
-  const [canCreateContent, setCanCreateContent] = useState(true);
-  
+
   const stats = [
     {
-      title: "Étudiants actifs",
-      value: "47",
-      icon: Users,
-      change: "+3 cette semaine"
-    },
-    {
-      title: "Sessions planifiées",
+      title: "Sessions ce mois",
       value: "12",
       icon: Calendar,
+      change: "+2 vs mois dernier"
+    },
+    {
+      title: "Heures de formation",
+      value: "24h",
+      icon: Clock,
       change: "Cette semaine"
     },
     {
-      title: "Messages en attente",
-      value: "8",
-      icon: MessageSquare,
-      change: "À traiter"
+      title: "Satisfaction moyenne",
+      value: "92%",
+      icon: Star,
+      change: "Basé sur 24 retours"
     },
     {
-      title: "Contenu créé",
-      value: "23",
-      icon: BookOpen,
-      change: "Modules disponibles"
+      title: "Apprenants actifs",
+      value: "45",
+      icon: Users,
+      change: "+5 ce mois"
     }
   ];
 
-  const activeCourses = [
-    { id: 1, title: 'React pour Débutants', students: 45, progress: 78, sessions: 3 },
-    { id: 2, title: 'JavaScript Avancé', students: 32, progress: 92, sessions: 2 },
-    { id: 3, title: 'Node.js Backend', students: 28, progress: 56, sessions: 4 },
+  const courseProgress = [
+    { id: 1, course: 'React Avancé', progress: 75 },
+    { id: 2, course: 'Node.js Déploiement', progress: 50 },
+    { id: 3, course: 'UI/UX Design', progress: 90 },
   ];
 
   const upcomingSessions = [
-    { id: 1, course: 'React pour Débutants', date: '2024-01-15', time: '14:00', type: 'Présentiel', students: 15 },
-    { id: 2, course: 'JavaScript Avancé', date: '2024-01-16', time: '10:00', type: 'À distance', students: 20 },
-    { id: 3, course: 'Node.js Backend', date: '2024-01-17', time: '16:00', type: 'Hybride', students: 12 },
+    { id: 1, course: 'React Avancé', date: '2024-01-15', time: '14:00', status: 'confirmed' },
+    { id: 2, course: 'Node.js Déploiement', date: '2024-01-16', time: '10:00', status: 'pending' },
+    { id: 3, course: 'UI/UX Design', date: '2024-01-17', time: '15:00', status: 'confirmed' },
   ];
 
-  const handleCreateCourse = () => {
-    if (!canCreateContent) {
-      toast({
-        title: "Accès restreint",
-        description: "Votre rôle ne permet pas la création de contenu. Contactez l'administrateur.",
-        variant: "destructive",
-      });
-      return;
-    }
+  const notifications = [
+    { id: 1, message: 'Nouveau feedback sur React Avancé', type: 'feedback', read: false },
+    { id: 2, message: 'Session Node.js à confirmer', type: 'session', read: true },
+    { id: 3, message: 'Mise à jour du guide UI/UX', type: 'content', read: false },
+  ];
+
+  const handleSessionAction = (sessionId: number, action: string) => {
     toast({
-      title: "Nouveau cours",
-      description: "Redirection vers l'outil de création de cours...",
+      title: `Session ${action}`,
+      description: `Session ${sessionId} ${action} avec succès`,
     });
   };
 
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Tableau de Bord Formateur</h1>
-          <p className="text-gray-600">Créez du contenu et animez vos formations</p>
-        </div>
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <Switch 
-              id="content-creation" 
-              checked={canCreateContent}
-              onCheckedChange={setCanCreateContent}
-            />
-            <Label htmlFor="content-creation" className="text-sm">
-              Création de contenu
-            </Label>
-          </div>
-          <Button onClick={handleCreateCourse} disabled={!canCreateContent}>
-            <Plus className="mr-2 h-4 w-4" />
-            Nouveau Cours
-          </Button>
-        </div>
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Formateur Interne</h1>
+        <p className="text-gray-600">Suivez vos sessions et vos apprenants</p>
       </div>
 
       {/* Stats Cards */}
@@ -144,27 +141,23 @@ const InternalTrainerDashboardHome = () => {
 
       {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Active Courses */}
+        {/* Course Progress */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
               <BookOpen className="mr-2 h-5 w-5" />
-              Cours Actifs
+              Progrès des Cours
             </CardTitle>
-            <CardDescription>Vos formations en cours</CardDescription>
+            <CardDescription>Suivi de l'avancement des cours</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {activeCourses.map((course) => (
-              <div key={course.id} className="p-4 border rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-medium">{course.title}</h4>
-                  <Badge>{course.students} étudiants</Badge>
+            {courseProgress.map((course) => (
+              <div key={course.id} className="space-y-2">
+                <div className="flex justify-between">
+                  <p className="text-sm font-medium">{course.course}</p>
+                  <p className="text-sm text-gray-500">{course.progress}%</p>
                 </div>
-                <Progress value={course.progress} className="h-2 mb-2" />
-                <div className="flex justify-between text-sm text-gray-600">
-                  <span>{course.progress}% complété</span>
-                  <span>{course.sessions} sessions restantes</span>
-                </div>
+                <Progress value={course.progress} />
               </div>
             ))}
           </CardContent>
@@ -175,107 +168,134 @@ const InternalTrainerDashboardHome = () => {
           <CardHeader>
             <CardTitle className="flex items-center">
               <Calendar className="mr-2 h-5 w-5" />
-              Sessions Programmées
+              Sessions à Venir
             </CardTitle>
-            <CardDescription>Vos prochaines animations</CardDescription>
+            <CardDescription>Planning des prochaines sessions</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {upcomingSessions.map((session) => (
               <div key={session.id} className="flex items-center justify-between p-4 border rounded-lg">
                 <div>
-                  <h4 className="font-medium text-sm">{session.course}</h4>
-                  <p className="text-xs text-gray-600">{session.date} à {session.time}</p>
-                  <div className="flex items-center space-x-2 mt-1">
-                    <Badge variant="outline" className="text-xs">{session.type}</Badge>
-                    <span className="text-xs text-gray-500">{session.students} participants</span>
-                  </div>
+                  <p className="font-medium text-sm">{session.course}</p>
+                  <p className="text-xs text-gray-600">{session.date} - {session.time}</p>
                 </div>
-                <Button size="sm">Animer</Button>
+                <div>
+                  {session.status === 'confirmed' ? (
+                    <Badge variant="default">Confirmée</Badge>
+                  ) : (
+                    <Badge variant="outline">En attente</Badge>
+                  )}
+                  <Button 
+                    size="sm" 
+                    variant="ghost"
+                    onClick={() => handleSessionAction(session.id, 'confirmée')}
+                  >
+                    <CheckCircle className="mr-1 h-3 w-3" />
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="ghost"
+                    onClick={() => handleSessionAction(session.id, 'annulée')}
+                  >
+                    <AlertCircle className="mr-1 h-3 w-3" />
+                  </Button>
+                </div>
               </div>
             ))}
           </CardContent>
         </Card>
       </div>
 
-      {/* Content Creation Tools */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Outils de Création</CardTitle>
-          <CardDescription>
-            {canCreateContent ? 
-              "Créez et gérez votre contenu pédagogique" : 
-              "Création de contenu désactivée - Animation uniquement"
-            }
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Button 
-              className="h-20 flex flex-col items-center justify-center space-y-2"
-              disabled={!canCreateContent}
-              variant={canCreateContent ? "default" : "secondary"}
-            >
-              <BookOpen className="h-6 w-6" />
-              <span>Nouveau Module</span>
+      {/* Notifications & Quick Actions */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Notifications */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Bell className="mr-2 h-5 w-5" />
+              Notifications
+            </CardTitle>
+            <CardDescription>Alertes et mises à jour</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {notifications.map((notification) => (
+              <div key={notification.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center space-x-3">
+                  {notification.type === 'feedback' && <MessageSquare className="h-4 w-4 text-blue-600" />}
+                  {notification.type === 'session' && <Calendar className="h-4 w-4 text-green-600" />}
+                  {notification.type === 'content' && <BookOpen className="h-4 w-4 text-purple-600" />}
+                  <div>
+                    <p className="font-medium text-sm">{notification.message}</p>
+                    {!notification.read && <Badge variant="secondary">Nouveau</Badge>}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Quick Actions */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Target className="mr-2 h-5 w-5" />
+              Actions Rapides
+            </CardTitle>
+            <CardDescription>Accès rapide aux outils</CardDescription>
+          </CardHeader>
+          <CardContent className="grid grid-cols-2 gap-4">
+            <Button variant="outline" className="justify-start">
+              <Edit className="mr-2 h-4 w-4" />
+              Modifier Cours
             </Button>
-            <Button 
-              className="h-20 flex flex-col items-center justify-center space-y-2" 
-              variant="outline"
-              disabled={!canCreateContent}
-            >
-              <FileText className="h-6 w-6" />
-              <span>Créer Quiz</span>
+            <Button variant="outline" className="justify-start">
+              <Eye className="mr-2 h-4 w-4" />
+              Voir Profil
             </Button>
-            <Button 
-              className="h-20 flex flex-col items-center justify-center space-y-2" 
-              variant="outline"
-              disabled={!canCreateContent}
-            >
-              <Award className="h-6 w-6" />
-              <span>Devoir</span>
+            <Button variant="outline" className="justify-start">
+              <Plus className="mr-2 h-4 w-4" />
+              Ajouter Session
             </Button>
-            <Button 
-              className="h-20 flex flex-col items-center justify-center space-y-2" 
-              variant="outline"
-            >
-              <Video className="h-6 w-6" />
-              <span>Session Live</span>
+            <Button variant="outline" className="justify-start">
+              <Users className="mr-2 h-4 w-4" />
+              Gérer Apprenants
             </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
 
 const InternalTrainerDashboard = () => {
   const sidebarItems = [
-    { title: 'Tableau de bord', href: '/formateur-interne', icon: BarChart3, isActive: true },
-    { title: 'Contenus pédagogiques', href: '/formateur-interne/contenus', icon: FileText },
-    { title: 'Animation sessions', href: '/formateur-interne/sessions', icon: Video },
-    { title: 'Suivi apprenants', href: '/formateur-interne/etudiants', icon: TrendingUp },
+    { title: 'Tableau de bord', href: '/formateur-interne', icon: Home, isActive: true },
+    { title: 'Contenus pédagogiques', href: '/formateur-interne/contenus', icon: BookOpen },
+    { title: 'Sessions de formation', href: '/formateur-interne/sessions', icon: Calendar },
+    { title: 'Suivi des apprenants', href: '/formateur-interne/apprenants', icon: Users },
+    { title: 'Messagerie interne', href: '/formateur-interne/messagerie', icon: MessageSquare },
     { title: 'Tests de positionnement', href: '/formateur-interne/tests', icon: TestTube },
     { title: 'Visioconférence', href: '/formateur-interne/video', icon: Video },
     { title: 'Chat IA', href: '/formateur-interne/chat', icon: Brain },
     { title: 'Mes documents', href: '/formateur-interne/documents', icon: Download },
-    { title: 'Messagerie', href: '/formateur-interne/messages', icon: MessageSquare },
+    { title: 'Paramètres', href: '/formateur-interne/parametres', icon: Settings },
   ];
 
   const userInfo = {
-    name: "Marie Dubois",
-    email: "marie.dubois@learneezy.com"
+    name: "Sophie Moreau",
+    email: "sophie.moreau@learneezy.com"
   };
 
   const mockDocuments = [
-    { id: '1', name: 'Support React.pdf', type: 'PDF', date: '2024-01-20', size: '2.3 MB' },
-    { id: '2', name: 'Exercices JS.pdf', type: 'PDF', date: '2024-01-18', size: '1.8 MB' }
+    { id: '1', name: 'Plan de formation.pdf', type: 'PDF', date: '2024-01-20', size: '2.3 MB' },
+    { id: '2', name: 'Guide formateur.pdf', type: 'PDF', date: '2024-01-18', size: '1.8 MB' }
   ];
 
   return (
     <div className="flex min-h-screen bg-gray-50">
       <DashboardSidebar
         title="Formateur Interne"
-        subtitle="Création et Animation"
+        subtitle="Formation continue"
         items={sidebarItems}
         userInfo={userInfo}
       />
@@ -284,12 +304,12 @@ const InternalTrainerDashboard = () => {
           <Route path="/" element={<InternalTrainerDashboardHome />} />
           <Route path="/contenus" element={<InternalTrainerContent />} />
           <Route path="/sessions" element={<InternalTrainerSessions />} />
-          <Route path="/etudiants" element={<InternalTrainerStudents />} />
+          <Route path="/apprenants" element={<InternalTrainerStudents />} />
+          <Route path="/messagerie" element={<InternalTrainerMessaging />} />
           <Route path="/tests" element={<PositioningTest userRole="instructor" />} />
           <Route path="/video" element={<VideoConference />} />
           <Route path="/chat" element={<AIChat />} />
           <Route path="/documents" element={<DocumentDownload documents={mockDocuments} userRole="instructor" />} />
-          <Route path="/messages" element={<InternalTrainerMessaging />} />
         </Routes>
       </main>
     </div>

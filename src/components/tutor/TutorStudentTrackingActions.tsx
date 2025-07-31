@@ -1,14 +1,14 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Users, Eye, Edit, MessageSquare, Download, Phone } from 'lucide-react';
+import { Users, Eye, Edit, MessageSquare, Download, Phone, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { TutorStudentDetail } from './TutorStudentDetail';
 import { TutorStudentEdit } from './TutorStudentEdit';
+import { TutorStudentDetailedView } from './TutorStudentDetailedView';
 
 interface Student {
   id: string;
@@ -28,6 +28,7 @@ export const TutorStudentTrackingActions = () => {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [showDetail, setShowDetail] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
+  const [showDetailedView, setShowDetailedView] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
   const [students, setStudents] = useState<Student[]>([
     {
@@ -86,6 +87,11 @@ export const TutorStudentTrackingActions = () => {
   const handleView = (student: Student) => {
     setSelectedStudent(student);
     setShowDetail(true);
+  };
+
+  const handleDetailedView = (student: Student) => {
+    setSelectedStudent(student);
+    setShowDetailedView(true);
   };
 
   const handleEdit = (student: Student) => {
@@ -238,6 +244,9 @@ export const TutorStudentTrackingActions = () => {
                       <Button size="sm" variant="outline" onClick={() => handleView(student)}>
                         <Eye className="h-4 w-4" />
                       </Button>
+                      <Button size="sm" variant="outline" onClick={() => handleDetailedView(student)}>
+                        <User className="h-4 w-4" />
+                      </Button>
                       <Button size="sm" variant="outline" onClick={() => handleEdit(student)}>
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -261,6 +270,12 @@ export const TutorStudentTrackingActions = () => {
         isOpen={showDetail}
         onClose={() => setShowDetail(false)}
         onEdit={handleEdit}
+      />
+
+      <TutorStudentDetailedView
+        student={selectedStudent}
+        isOpen={showDetailedView}
+        onClose={() => setShowDetailedView(false)}
       />
 
       <TutorStudentEdit

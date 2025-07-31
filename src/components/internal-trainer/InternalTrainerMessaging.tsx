@@ -3,26 +3,24 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { 
   MessageSquare,
-  Send,
   Users,
   Search,
   Filter,
   Plus,
   Bell,
-  Clock,
-  User,
   BookOpen,
-  MessageCircle,
-  Archive
+  MessageCircle
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { MessageBubble } from '@/components/messaging/MessageBubble';
+import { ConversationItem } from '@/components/messaging/ConversationItem';
+import { MessageInput } from '@/components/messaging/MessageInput';
+import { TypingIndicator } from '@/components/messaging/TypingIndicator';
 
 interface Message {
   id: string;
@@ -31,6 +29,7 @@ interface Message {
   content: string;
   timestamp: string;
   read: boolean;
+  status?: 'sending' | 'sent' | 'delivered' | 'read';
 }
 
 interface Conversation {
@@ -43,6 +42,9 @@ interface Conversation {
   sessionName?: string;
   moduleName?: string;
   messages: Message[];
+  status?: 'online' | 'offline' | 'away';
+  lastMessageType?: 'text' | 'image' | 'file' | 'audio';
+  typing?: boolean;
 }
 
 const InternalTrainerMessaging = () => {
@@ -56,6 +58,8 @@ const InternalTrainerMessaging = () => {
       unreadCount: 2,
       type: 'individual',
       sessionName: 'Formation Mathématiques - Niveau 1',
+      status: 'online',
+      lastMessageType: 'text',
       messages: [
         {
           id: '1',
@@ -63,7 +67,8 @@ const InternalTrainerMessaging = () => {
           senderType: 'student',
           content: 'Bonjour, j\'ai une question sur l\'exercice 3 du chapitre 2',
           timestamp: '09:15',
-          read: true
+          read: true,
+          status: 'read'
         },
         {
           id: '2',
@@ -71,7 +76,8 @@ const InternalTrainerMessaging = () => {
           senderType: 'trainer',
           content: 'Bonjour Alice ! Quelle est votre question exactement ?',
           timestamp: '09:20',
-          read: true
+          read: true,
+          status: 'read'
         },
         {
           id: '3',
@@ -79,7 +85,8 @@ const InternalTrainerMessaging = () => {
           senderType: 'student',
           content: 'Je ne comprends pas comment résoudre l\'équation du second degré',
           timestamp: '09:25',
-          read: true
+          read: true,
+          status: 'read'
         },
         {
           id: '4',
@@ -87,7 +94,8 @@ const InternalTrainerMessaging = () => {
           senderType: 'student',
           content: 'Merci pour l\'aide sur l\'exercice d\'algèbre',
           timestamp: '10:30',
-          read: false
+          read: false,
+          status: 'delivered'
         }
       ]
     },
@@ -99,6 +107,8 @@ const InternalTrainerMessaging = () => {
       unreadCount: 1,
       type: 'group',
       sessionName: 'Formation Mathématiques - Niveau 1',
+      status: 'online',
+      lastMessageType: 'text',
       messages: [
         {
           id: '5',
@@ -106,7 +116,8 @@ const InternalTrainerMessaging = () => {
           senderType: 'student',
           content: 'Bonjour, est-ce que quelqu\'un a les notes du dernier cours ?',
           timestamp: '13:30',
-          read: true
+          read: true,
+          status: 'read'
         },
         {
           id: '6',
@@ -114,17 +125,18 @@ const InternalTrainerMessaging = () => {
           senderType: 'student',
           content: 'La session de demain est-elle maintenue ?',
           timestamp: '14:45',
-          read: false
+          read: false,
+          status: 'delivered'
         }
       ]
     }
   ]);
 
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
-  const [newMessage, setNewMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
   const [isNewConversationOpen, setIsNewConversationOpen] = useState(false);
+  const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const [newConversation, setNewConversation] = useState({
     participants: [] as string[],
     type: 'individual' as 'individual' | 'group',
@@ -137,16 +149,18 @@ const InternalTrainerMessaging = () => {
     'Emma Rousseau', 'Franck Petit', 'Gabrielle Moreau', 'Henri Bernard'
   ];
 
-  const handleSendMessage = () => {
-    if (!newMessage.trim() || !selectedConversation) return;
+  const handleSendMessage = (messageText: string, attachments?: File[]) => {
+    if (!messageText.trim() && !attachments?.length) return;
+    if (!selectedConversation) return;
 
     const message: Message = {
       id: Date.now().toString(),
       sender: 'Formateur',
       senderType: 'trainer',
-      content: newMessage.trim(),
+      content: messageText.trim(),
       timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-      read: true
+      read: true,
+      status: 'sent'
     };
 
     setConversations(conversations.map(conv => {
@@ -168,12 +182,16 @@ const InternalTrainerMessaging = () => {
       lastMessageTime: message.timestamp
     });
 
-    setNewMessage('');
-    
     toast({
       title: "Message envoyé",
       description: "Votre message a été envoyé avec succès"
     });
+
+    // Simuler la frappe
+    setTypingUsers(['Alice Martin']);
+    setTimeout(() => {
+      setTypingUsers([]);
+    }, 3000);
   };
 
   const handleStartNewConversation = () => {
@@ -200,9 +218,12 @@ const InternalTrainerMessaging = () => {
           senderType: 'trainer',
           content: newConversation.initialMessage,
           timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-          read: true
+          read: true,
+          status: 'sent'
         }
-      ]
+      ],
+      status: 'online',
+      lastMessageType: 'text',
     };
 
     setConversations([conversation, ...conversations]);
@@ -258,7 +279,7 @@ const InternalTrainerMessaging = () => {
         
         <div className="flex items-center space-x-2">
           {totalUnreadMessages > 0 && (
-            <Badge variant="destructive" className="flex items-center space-x-1">
+            <Badge variant="destructive" className="flex items-center space-x-1 animate-pulse">
               <Bell className="h-3 w-3" />
               <span>{totalUnreadMessages}</span>
             </Badge>
@@ -336,11 +357,10 @@ const InternalTrainerMessaging = () => {
                 
                 <div>
                   <label className="text-sm font-medium">Message initial</label>
-                  <Textarea
+                  <Input
                     placeholder="Tapez votre message..."
                     value={newConversation.initialMessage}
                     onChange={(e) => setNewConversation({ ...newConversation, initialMessage: e.target.value })}
-                    rows={3}
                   />
                 </div>
                 
@@ -364,7 +384,10 @@ const InternalTrainerMessaging = () => {
           <Card className="h-full">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Conversations</CardTitle>
+                <CardTitle className="text-lg flex items-center">
+                  <MessageCircle className="h-5 w-5 mr-2" />
+                  Conversations
+                </CardTitle>
                 <Badge variant="outline">{conversations.length}</Badge>
               </div>
               
@@ -398,68 +421,27 @@ const InternalTrainerMessaging = () => {
             <CardContent className="p-0">
               <div className="overflow-y-auto h-[calc(100%-8rem)]">
                 {filteredConversations.map((conversation) => (
-                  <div
+                  <ConversationItem
                     key={conversation.id}
+                    conversation={{
+                      id: conversation.id,
+                      participant: conversation.type === 'group' 
+                        ? `Groupe (${conversation.participants.length})`
+                        : conversation.participants[0],
+                      lastMessage: conversation.lastMessage,
+                      timestamp: conversation.lastMessageTime,
+                      unread: conversation.unreadCount,
+                      status: conversation.status,
+                      isGroup: conversation.type === 'group',
+                      lastMessageType: conversation.lastMessageType,
+                      typing: conversation.typing
+                    }}
+                    isSelected={selectedConversation?.id === conversation.id}
                     onClick={() => {
                       setSelectedConversation(conversation);
                       markAsRead(conversation.id);
                     }}
-                    className={`p-4 border-b cursor-pointer hover:bg-muted/50 transition-colors ${
-                      selectedConversation?.id === conversation.id ? 'bg-muted' : ''
-                    }`}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start space-x-3 flex-1">
-                        <div className="flex items-center">
-                          {conversation.type === 'group' ? (
-                            <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                              <Users className="h-5 w-5 text-primary" />
-                            </div>
-                          ) : (
-                            <Avatar>
-                              <AvatarFallback>
-                                {conversation.participants[0]?.charAt(0)}
-                              </AvatarFallback>
-                            </Avatar>
-                          )}
-                        </div>
-                        
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center space-x-2">
-                            <p className="font-medium text-sm truncate">
-                              {conversation.type === 'group' 
-                                ? `Groupe (${conversation.participants.length})`
-                                : conversation.participants[0]
-                              }
-                            </p>
-                            {conversation.unreadCount > 0 && (
-                              <Badge variant="destructive" className="text-xs">
-                                {conversation.unreadCount}
-                              </Badge>
-                            )}
-                          </div>
-                          
-                          <p className="text-xs text-muted-foreground truncate">
-                            {conversation.lastMessage}
-                          </p>
-                          
-                          {conversation.sessionName && (
-                            <div className="flex items-center space-x-1 mt-1">
-                              <BookOpen className="h-3 w-3 text-muted-foreground" />
-                              <p className="text-xs text-muted-foreground truncate">
-                                {conversation.sessionName}
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center space-x-1 text-xs text-muted-foreground">
-                        <Clock className="h-3 w-3" />
-                        <span>{conversation.lastMessageTime}</span>
-                      </div>
-                    </div>
-                  </div>
+                  />
                 ))}
               </div>
             </CardContent>
@@ -470,20 +452,18 @@ const InternalTrainerMessaging = () => {
         <div className="lg:col-span-2">
           {selectedConversation ? (
             <Card className="h-full flex flex-col">
-              <CardHeader className="pb-3">
+              <CardHeader className="pb-3 flex-shrink-0">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    {selectedConversation.type === 'group' ? (
-                      <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                      {selectedConversation.type === 'group' ? (
                         <Users className="h-5 w-5 text-primary" />
-                      </div>
-                    ) : (
-                      <Avatar>
-                        <AvatarFallback>
+                      ) : (
+                        <span className="text-primary font-medium">
                           {selectedConversation.participants[0]?.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                    )}
+                        </span>
+                      )}
+                    </div>
                     
                     <div>
                       <h3 className="font-semibold">
@@ -493,9 +473,10 @@ const InternalTrainerMessaging = () => {
                         }
                       </h3>
                       {selectedConversation.sessionName && (
-                        <p className="text-sm text-muted-foreground">
-                          {selectedConversation.sessionName}
-                        </p>
+                        <div className="flex items-center space-x-1 text-sm text-muted-foreground">
+                          <BookOpen className="h-3 w-3" />
+                          <span>{selectedConversation.sessionName}</span>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -508,66 +489,37 @@ const InternalTrainerMessaging = () => {
               <CardContent className="flex-1 overflow-y-auto p-4">
                 <div className="space-y-4">
                   {selectedConversation.messages.map((message) => (
-                    <div
+                    <MessageBubble
                       key={message.id}
-                      className={`flex ${message.senderType === 'trainer' ? 'justify-end' : 'justify-start'}`}
-                    >
-                      <div
-                        className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                          message.senderType === 'trainer'
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-muted'
-                        }`}
-                      >
-                        {message.senderType === 'student' && (
-                          <p className="text-xs font-medium mb-1">{message.sender}</p>
-                        )}
-                        <p className="text-sm">{message.content}</p>
-                        <p className={`text-xs mt-1 ${
-                          message.senderType === 'trainer' 
-                            ? 'text-primary-foreground/70' 
-                            : 'text-muted-foreground'
-                        }`}>
-                          {message.timestamp}
-                        </p>
-                      </div>
-                    </div>
+                      message={{
+                        id: message.id,
+                        content: message.content,
+                        sender: message.sender,
+                        timestamp: message.timestamp,
+                        isFromMe: message.senderType === 'trainer',
+                        status: message.status
+                      }}
+                      showAvatar={message.senderType === 'student'}
+                      isGroupChat={selectedConversation.type === 'group'}
+                    />
                   ))}
                 </div>
+                
+                <TypingIndicator users={typingUsers} />
               </CardContent>
               
-              <Separator />
-              
-              {/* Zone de saisie */}
-              <div className="p-4">
-                <div className="flex space-x-2">
-                  <Textarea
-                    placeholder="Tapez votre message..."
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSendMessage();
-                      }
-                    }}
-                    rows={2}
-                    className="flex-1"
-                  />
-                  <Button 
-                    onClick={handleSendMessage} 
-                    disabled={!newMessage.trim()}
-                    size="sm"
-                  >
-                    <Send className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
+              <MessageInput
+                onSendMessage={handleSendMessage}
+                placeholder="Tapez votre message..."
+                showAttachments={true}
+                showEmoji={true}
+                showVoice={true}
+              />
             </Card>
           ) : (
             <Card className="h-full flex items-center justify-center">
               <div className="text-center p-8">
-                <MessageCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                <MessageCircle className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
                 <h3 className="text-lg font-semibold mb-2">Sélectionnez une conversation</h3>
                 <p className="text-muted-foreground">
                   Choisissez une conversation existante ou créez-en une nouvelle

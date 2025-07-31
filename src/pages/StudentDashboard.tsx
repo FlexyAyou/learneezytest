@@ -11,9 +11,12 @@ import StudentMessaging from './StudentMessaging';
 import StudentInscriptions from './student/StudentInscriptions';
 import StudentEmargements from './student/StudentEmargements';
 import StudentEvaluations from './student/StudentEvaluations';
+import EvaluationDetail from './student/EvaluationDetail';
+import TakeEvaluation from './student/TakeEvaluation';
+import CourseViewer from './student/CourseViewer';
 import { DocumentDownload } from '@/components/common/DocumentDownload';
-import { AIChat } from '@/components/common/AIChat';
-import { VideoConference } from '@/components/common/VideoConference';
+import AIChat from '@/components/common/AIChat';
+import VideoConference from '@/components/common/VideoConference';
 import { PositioningTest } from '@/components/common/PositioningTest';
 import { StudentDashboardHome } from '@/components/student/StudentDashboardHome';
 
@@ -67,12 +70,15 @@ const StudentDashboard = () => {
           <Routes>
             <Route path="/" element={<StudentDashboardHome />} />
             <Route path="/courses" element={<StudentCourses />} />
+            <Route path="/courses/:id" element={<CourseViewer />} />
             <Route path="/progress" element={<StudentProgress />} />
             <Route path="/certificates" element={<StudentCertificates />} />
             {/* === ROUTES OF COMPLÈTES === */}
             <Route path="/inscriptions" element={<StudentInscriptions />} />
             <Route path="/emargements" element={<StudentEmargements />} />
             <Route path="/evaluations" element={<StudentEvaluations />} />
+            <Route path="/evaluations/:id/results" element={<EvaluationDetail />} />
+            <Route path="/evaluations/:id/take" element={<TakeEvaluation />} />
             {/* === ROUTES OUTILS === */}
             <Route path="/tests" element={<PositioningTest userRole="student" />} />
             <Route path="/video" element={<VideoConference />} />

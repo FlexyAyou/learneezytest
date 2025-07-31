@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BookOpen, Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Instagram } from 'lucide-react';
+import { Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Instagram } from 'lucide-react';
 
 const Footer = () => {
   return (
@@ -10,8 +10,7 @@ const Footer = () => {
           {/* Company Info */}
           <div>
             <div className="flex items-center space-x-2 mb-6">
-              <BookOpen className="h-8 w-8 text-pink-400" />
-              <span className="text-2xl font-bold">Learneezy</span>
+              <h2 className="text-2xl font-bold text-white">Learneezy</h2>
             </div>
             <p className="text-gray-400 mb-6 leading-relaxed">
               Votre plateforme d'apprentissage en ligne pour développer vos compétences 

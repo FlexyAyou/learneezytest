@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +22,7 @@ interface Evaluation {
 }
 
 const StudentEvaluations = () => {
+  const navigate = useNavigate();
   const [selectedEvaluation, setSelectedEvaluation] = useState<string | null>(null);
 
   // Données d'exemple
@@ -230,7 +232,11 @@ const StudentEvaluations = () => {
                     </div>
                   )}
                   
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => navigate(`/dashboard/etudiant/evaluations/${evaluation.id}/results`)}
+                  >
                     Voir les résultats détaillés
                   </Button>
                 </div>
@@ -243,7 +249,10 @@ const StudentEvaluations = () => {
                     </span>
                   </div>
                   
-                  <Button className="bg-blue-600 hover:bg-blue-700">
+                  <Button 
+                    className="bg-blue-600 hover:bg-blue-700"
+                    onClick={() => navigate(`/dashboard/etudiant/evaluations/${evaluation.id}/take`)}
+                  >
                     Commencer l'évaluation
                   </Button>
                 </div>

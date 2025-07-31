@@ -4,8 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { BookOpen, Award, TrendingUp, Clock, Video, Brain, TestTube, Target, Calendar, MessageSquare } from 'lucide-react';
-import { DashboardChart } from '@/components/common/DashboardChart';
 import { StatsCard } from '@/components/common/StatsCard';
+import { InteractiveChart } from '@/components/common/InteractiveChart';
 import { useNavigate } from 'react-router-dom';
 
 export const StudentDashboardHome = () => {
@@ -64,13 +64,6 @@ export const StudentDashboardHome = () => {
     { name: 'Sem 6', value: 85, progression: 85 },
   ];
 
-  const skillsData = [
-    { name: 'React', value: 75 },
-    { name: 'JavaScript', value: 60 },
-    { name: 'CSS', value: 85 },
-    { name: 'Node.js', value: 40 },
-  ];
-
   const studyTimeData = [
     { name: 'Lun', value: 3 },
     { name: 'Mar', value: 2 },
@@ -81,31 +74,42 @@ export const StudentDashboardHome = () => {
     { name: 'Dim', value: 1 },
   ];
 
+  const skillsData = [
+    { name: 'React', value: 75 },
+    { name: 'JavaScript', value: 60 },
+    { name: 'CSS', value: 85 },
+    { name: 'Node.js', value: 40 },
+  ];
+
   const getEventTypeColor = (type: string) => {
     switch (type) {
-      case 'exam': return 'text-red-600 bg-red-50';
-      case 'review': return 'text-blue-600 bg-blue-50';
-      case 'assignment': return 'text-orange-600 bg-orange-50';
-      default: return 'text-gray-600 bg-gray-50';
+      case 'exam': return 'text-red-600 bg-red-50 border-red-200';
+      case 'review': return 'text-blue-600 bg-blue-50 border-blue-200';
+      case 'assignment': return 'text-orange-600 bg-orange-50 border-orange-200';
+      default: return 'text-gray-600 bg-gray-50 border-gray-200';
     }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="space-y-6 animate-fade-in">
+      {/* Header avec animation */}
       <div className="flex items-center justify-between">
-        <div>
+        <div className="space-y-1">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Bonjour Alice ! 👋
+            Bonjour Alice ! 
+            <span className="inline-block animate-bounce ml-2">👋</span>
           </h1>
           <p className="text-gray-600">Continuez votre apprentissage</p>
         </div>
-        <Button onClick={() => navigate('/cours')}>
+        <Button 
+          onClick={() => navigate('/cours')}
+          className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 transition-all duration-300"
+        >
           Catalogue de formations
         </Button>
       </div>
 
-      {/* Stats rapides */}
+      {/* Stats rapides avec animations */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => (
           <StatsCard
@@ -119,45 +123,51 @@ export const StudentDashboardHome = () => {
         ))}
       </div>
 
-      {/* Graphiques principaux */}
+      {/* Graphiques interactifs */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <DashboardChart
+        <InteractiveChart
           title="Progression hebdomadaire"
           data={progressData}
           type="line"
           dataKey="progression"
           color="#3b82f6"
+          showControls={true}
         />
-        <DashboardChart
+        <InteractiveChart
           title="Temps d'étude quotidien (heures)"
           data={studyTimeData}
           type="bar"
           dataKey="value"
           color="#10b981"
+          showControls={true}
         />
       </div>
 
       {/* Contenu principal */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Cours récents */}
-        <Card>
+        {/* Cours récents améliorés */}
+        <Card className="hover:shadow-lg transition-all duration-300">
           <CardHeader>
             <CardTitle className="flex items-center">
-              <BookOpen className="mr-2 h-5 w-5" />
+              <BookOpen className="mr-2 h-5 w-5 text-pink-600" />
               Cours en cours
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {recentCourses.map((course) => (
-                <div key={course.id} className="space-y-2">
+                <div key={course.id} className="space-y-3 p-4 border rounded-lg hover:bg-gradient-to-r hover:from-pink-50 hover:to-purple-50 hover:shadow-md transition-all duration-300 group">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-medium">{course.title}</h4>
+                      <h4 className="font-medium group-hover:text-pink-700 transition-colors">{course.title}</h4>
                       <p className="text-sm text-gray-600">Prochain: {course.nextLesson}</p>
                       <p className="text-xs text-gray-500">Formateur: {course.instructor}</p>
                     </div>
-                    <Button size="sm" variant="outline">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      className="hover:bg-pink-500 hover:text-white hover:border-pink-500 transition-all duration-300"
+                    >
                       Continuer
                     </Button>
                   </div>
@@ -174,24 +184,24 @@ export const StudentDashboardHome = () => {
           </CardContent>
         </Card>
 
-        {/* Prochaines échéances */}
-        <Card>
+        {/* Prochaines échéances améliorées */}
+        <Card className="hover:shadow-lg transition-all duration-300">
           <CardHeader>
             <CardTitle className="flex items-center">
-              <Calendar className="mr-2 h-5 w-5" />
+              <Calendar className="mr-2 h-5 w-5 text-pink-600" />
               Prochaines échéances
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {upcomingEvents.map((event) => (
-                <div key={event.id} className={`p-3 rounded-lg border ${getEventTypeColor(event.type)}`}>
+                <div key={event.id} className={`p-4 rounded-lg border-2 ${getEventTypeColor(event.type)} hover:shadow-md transition-all duration-300 cursor-pointer group`}>
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-medium">{event.title}</h4>
+                      <h4 className="font-medium group-hover:opacity-80 transition-opacity">{event.title}</h4>
                       <p className="text-sm">{event.date} à {event.time}</p>
                     </div>
-                    <Target className="h-4 w-4" />
+                    <Target className="h-4 w-4 group-hover:scale-110 transition-transform" />
                   </div>
                 </div>
               ))}
@@ -202,18 +212,18 @@ export const StudentDashboardHome = () => {
 
       {/* Compétences et Actions rapides */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Compétences */}
-        <Card>
+        {/* Compétences améliorées */}
+        <Card className="hover:shadow-lg transition-all duration-300">
           <CardHeader>
             <CardTitle className="flex items-center">
-              <TrendingUp className="mr-2 h-5 w-5" />
+              <TrendingUp className="mr-2 h-5 w-5 text-pink-600" />
               Mes compétences
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {skillsData.map((skill) => (
-                <div key={skill.name} className="space-y-2">
+                <div key={skill.name} className="space-y-2 p-3 rounded-lg hover:bg-gradient-to-r hover:from-pink-50 hover:to-purple-50 transition-all duration-300">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">{skill.name}</span>
                     <span className="text-sm text-gray-600">{skill.value}%</span>
@@ -225,42 +235,45 @@ export const StudentDashboardHome = () => {
           </CardContent>
         </Card>
 
-        {/* Actions rapides */}
-        <Card>
+        {/* Actions rapides améliorées */}
+        <Card className="hover:shadow-lg transition-all duration-300">
           <CardHeader>
-            <CardTitle>Actions rapides</CardTitle>
+            <CardTitle className="flex items-center">
+              <div className="h-2 w-2 bg-pink-500 rounded-full mr-2 animate-pulse"></div>
+              Actions rapides
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <Button 
-              className="w-full justify-start" 
+              className="w-full justify-start hover:bg-gradient-to-r hover:from-pink-500 hover:to-purple-500 hover:text-white transition-all duration-300 group" 
               variant="outline"
               onClick={() => navigate('/dashboard/etudiant/tests')}
             >
-              <TestTube className="h-4 w-4 mr-2" />
+              <TestTube className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
               Passer un test de positionnement
             </Button>
             <Button 
-              className="w-full justify-start" 
+              className="w-full justify-start hover:bg-gradient-to-r hover:from-blue-500 hover:to-cyan-500 hover:text-white transition-all duration-300 group" 
               variant="outline"
               onClick={() => navigate('/dashboard/etudiant/video')}
             >
-              <Video className="h-4 w-4 mr-2" />
+              <Video className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
               Rejoindre une session
             </Button>
             <Button 
-              className="w-full justify-start" 
+              className="w-full justify-start hover:bg-gradient-to-r hover:from-purple-500 hover:to-indigo-500 hover:text-white transition-all duration-300 group" 
               variant="outline"
               onClick={() => navigate('/dashboard/etudiant/chat')}
             >
-              <Brain className="h-4 w-4 mr-2" />
+              <Brain className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
               Chat avec l'IA
             </Button>
             <Button 
-              className="w-full justify-start" 
+              className="w-full justify-start hover:bg-gradient-to-r hover:from-green-500 hover:to-teal-500 hover:text-white transition-all duration-300 group" 
               variant="outline"
               onClick={() => navigate('/dashboard/etudiant/messages')}
             >
-              <MessageSquare className="h-4 w-4 mr-2" />
+              <MessageSquare className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
               Messages
             </Button>
           </CardContent>

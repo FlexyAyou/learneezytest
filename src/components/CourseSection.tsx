@@ -148,8 +148,8 @@ const CourseSection = () => {
                   </Badge>
                 </div>
                 <div className="absolute top-2 right-2">
-                  <Badge variant="secondary" className="bg-white/90 text-gray-800 text-xs">
-                    {course.category}
+                  <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-bold text-xs px-2 py-1">
+                    {course.price}
                   </Badge>
                 </div>
               </div>
@@ -179,23 +179,18 @@ const CourseSection = () => {
                   </div>
                 </div>
 
-                {/* Price and CTA */}
-                <div className="flex items-center justify-between">
-                  <div className="text-lg font-bold text-pink-600">
-                    {course.price}
-                  </div>
-                  <div className="flex gap-2">
-                    <Link to={`/cours/${course.id}`}>
-                      <Button size="sm" variant="outline" className="text-xs px-2 py-1">
-                        Voir
-                      </Button>
-                    </Link>
-                    <Link to="/inscription">
-                      <Button size="sm" className="bg-pink-600 hover:bg-pink-700 text-xs px-2 py-1">
-                        S'inscrire
-                      </Button>
-                    </Link>
-                  </div>
+                {/* CTA Buttons */}
+                <div className="flex justify-end gap-2">
+                  <Link to={`/cours/${course.id}`}>
+                    <Button size="sm" variant="outline" className="text-xs px-2 py-1">
+                      Voir
+                    </Button>
+                  </Link>
+                  <Link to="/inscription">
+                    <Button size="sm" className="bg-pink-600 hover:bg-pink-700 text-xs px-2 py-1">
+                      S'inscrire
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </div>

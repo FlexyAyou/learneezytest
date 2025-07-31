@@ -140,7 +140,7 @@ const StudentInscriptions = () => {
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Mes Inscriptions</h1>
-        <Button>
+        <Button onClick={() => window.location.href = '/cours'}>
           Nouvelle inscription
         </Button>
       </div>
@@ -173,10 +173,10 @@ const StudentInscriptions = () => {
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-gray-600">
-              {inscriptions.reduce((sum, i) => sum + i.price, 0)}€
+            <p className="text-2xl font-bold text-purple-600">
+              {inscriptions.length}
             </p>
-            <p className="text-sm text-gray-600">Total investissement</p>
+            <p className="text-sm text-gray-600">Total formations</p>
           </CardContent>
         </Card>
       </div>
@@ -329,7 +329,7 @@ const StudentInscriptions = () => {
             <p className="text-gray-600 mb-4">
               Vous n'avez pas encore d'inscription à nos formations.
             </p>
-            <Button>
+            <Button onClick={() => window.location.href = '/cours'}>
               Découvrir nos formations
             </Button>
           </CardContent>

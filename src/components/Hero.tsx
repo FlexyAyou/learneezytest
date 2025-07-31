@@ -13,7 +13,7 @@ const Hero = () => {
       highlight: "compétences", 
       subtitle: "avec Learneezy",
       description: "Accédez à plus de 1000 cours en ligne créés par des experts. Apprenez à votre rythme et obtenez des certifications reconnues.",
-      image: "/lovable-uploads/35025812-1694-4fb2-aa20-1b03dae12929.png",
+      image: "/lovable-uploads/hero-white-man-professional.png",
       gradient: "from-pink-600 to-orange-600",
       bgGradient: "from-pink-50 via-white to-orange-50"
     },
@@ -116,15 +116,15 @@ const Hero = () => {
             
             {/* CTA Buttons */}
             <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-fade-in delay-700">
-              <Link to="/inscription">
+              <Link to="/offres">
                 <Button size="lg" className="bg-pink-600 hover:bg-pink-700 text-lg px-8 py-3 transform hover:scale-105 transition-all duration-300 hover:shadow-lg">
-                  Commencer gratuitement
+                  Voir nos offres
                 </Button>
               </Link>
-              <Link to="/cours">
+              <Link to="/nos-formations">
                 <Button variant="outline" size="lg" className="text-lg px-8 py-3 transform hover:scale-105 transition-all duration-300 hover:shadow-md">
                   <Play className="h-5 w-5 mr-2" />
-                  Voir nos cours
+                  Voir nos formations
                 </Button>
               </Link>
             </div>

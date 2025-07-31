@@ -1,104 +1,90 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import Courses from "./pages/Courses";
-import CourseDetail from "./pages/CourseDetail";
-import CourseDetailStudent from "./pages/CourseDetailStudent";
-import SearchCourses from "./pages/SearchCourses";
-import Lesson from "./pages/Lesson";
-import Quiz from "./pages/Quiz";
-import UserProfile from "./pages/UserProfile";
-import About from "./pages/About";
-import Contact from "./pages/Contact";
-import Profile from "./pages/Profile";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import StudentDashboard from "./pages/StudentDashboard";
-import StudentCourses from "./pages/StudentCourses";
-import StudentProgress from "./pages/StudentProgress";
-import StudentCertificates from "./pages/StudentCertificates";
-import StudentSettings from "./pages/StudentSettings";
-import StudentMessaging from "./pages/StudentMessaging";
-import InternalTrainerDashboard from "./pages/InternalTrainerDashboard";
-import ExternalTrainerDashboard from "./pages/ExternalTrainerDashboard";
-import ManagerDashboard from "./pages/ManagerDashboard";
-import ParentDashboard from "./pages/ParentDashboard";
-import TutorDashboard from "./pages/TutorDashboard";
-import ContentCreatorDashboard from "./pages/ContentCreatorDashboard";
-import CreateCourse from "./pages/CreateCourse";
-import EditCourse from "./pages/EditCourse";
-import AdminDashboard from "./pages/AdminDashboard";
-import OFDashboard from "./pages/OFDashboard";
-import TechnicianDashboard from "./pages/TechnicianDashboard";
-import InstructorDashboard from "./pages/InstructorDashboard";
-import InstructorCourses from "./pages/InstructorCourses";
-import InstructorAnalytics from "./pages/InstructorAnalytics";
-import InstructorOFDocuments from "./pages/InstructorOFDocuments";
-import BookingCalendar from "./pages/BookingCalendar";
-import BookingHistory from "./pages/BookingHistory";
-import Payment from "./pages/Payment";
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import Index from '@/pages/Index';
+import Courses from '@/pages/Courses';
+import CourseDetail from '@/pages/CourseDetail';
+import Contact from '@/pages/Contact';
+import Login from '@/pages/Login';
+import Register from '@/pages/Register';
+import ForgotPassword from '@/pages/ForgotPassword';
+import Profile from '@/pages/Profile';
+import AdminDashboard from '@/pages/AdminDashboard';
+import InstructorDashboard from '@/pages/InstructorDashboard';
+import InstructorCourses from '@/pages/InstructorCourses';
+import StudentDashboard from '@/pages/StudentDashboard';
+import StudentCourses from '@/pages/StudentCourses';
+import UserProfile from '@/pages/UserProfile';
+import PublicInscription from '@/pages/PublicInscription';
+import Offers from '@/pages/Offers';
+import OFDashboard from '@/pages/OFDashboard';
+import TutorDashboard from '@/pages/TutorDashboard';
+import ParentDashboard from '@/pages/ParentDashboard';
+import ManagerDashboard from '@/pages/ManagerDashboard';
+import InternalTrainerDashboard from '@/pages/InternalTrainerDashboard';
+import ExternalTrainerDashboard from '@/pages/ExternalTrainerDashboard';
+import ContentCreatorDashboard from '@/pages/ContentCreatorDashboard';
+import TechnicianDashboard from '@/pages/TechnicianDashboard';
+import { Toaster } from '@/components/ui/toaster';
+import DownloadAppButton from '@/components/common/DownloadAppButton';
+import AIChatButton from '@/components/common/AIChatButton';
+import { LanguageProvider } from '@/contexts/LanguageContext';
 
-const queryClient = new QueryClient();
+function App() {
+  return (
+    <LanguageProvider>
+      <Router>
+        <div className="min-h-screen bg-gray-50">
+          <Routes>
+            <Route path="/" element={<Index />} />
+            {/* Redirection de l'ancienne URL vers la nouvelle */}
+            <Route path="/cours" element={<Navigate to="/nos-formations" replace />} />
+            <Route path="/nos-formations" element={<Courses />} />
+            <Route path="/cours/:id" element={<Navigate to="/nos-formations/:id" replace />} />
+            <Route path="/nos-formations/:id" element={<CourseDetail />} />
+            <Route path="/tarifs" element={<Contact />} />
+            <Route path="/offres" element={<Offers />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/connexion" element={<Login />} />
+            <Route path="/inscription" element={<Register />} />
+            <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
+            <Route path="/profil" element={<Profile />} />
+            
+            {/* Admin Routes */}
+            <Route path="/admin/tableau-de-bord" element={<AdminDashboard />} />
+            
+            {/* Instructor Routes */}
+            <Route path="/instructor/tableau-de-bord" element={<InstructorDashboard />} />
+            <Route path="/instructor/cours" element={<InstructorCourses />} />
+            
+            {/* Student Routes */}
+            <Route path="/student/tableau-de-bord" element={<StudentDashboard />} />
+            <Route path="/student/cours" element={<StudentCourses />} />
+            <Route path="/student/profil" element={<UserProfile />} />
+            <Route path="/dashboard/etudiant/*" element={<StudentDashboard />} />
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/cours" element={<Courses />} />
-          <Route path="/cours/:id" element={<CourseDetailStudent />} />
-          <Route path="/cours/:courseId/reservation" element={<BookingCalendar />} />
-          <Route path="/cours/:courseId/paiement/:slotId" element={<Payment />} />
-          <Route path="/reservations" element={<BookingHistory />} />
-          <Route path="/course/:id" element={<CourseDetail />} />
-          <Route path="/rechercher" element={<SearchCourses />} />
-          <Route path="/lesson/:id" element={<Lesson />} />
-          <Route path="/quiz/:id" element={<Quiz />} />
-          <Route path="/user-profile" element={<UserProfile />} />
-          <Route path="/apropos" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/profil" element={<Profile />} />
-          <Route path="/connexion" element={<Login />} />
-          <Route path="/inscription" element={<Register />} />
+            {/* Dashboard Routes */}
+            <Route path="/dashboard/organisme-formation/*" element={<OFDashboard />} />
+            <Route path="/dashboard/tuteur/*" element={<TutorDashboard />} />
+            <Route path="/dashboard/parent/*" element={<ParentDashboard />} />
+            <Route path="/dashboard/gestionnaire/*" element={<ManagerDashboard />} />
+            <Route path="/dashboard/formateur-interne/*" element={<InternalTrainerDashboard />} />
+            <Route path="/dashboard/formateur-externe/*" element={<ExternalTrainerDashboard />} />
+            <Route path="/dashboard/createur-contenu/*" element={<ContentCreatorDashboard />} />
+            <Route path="/dashboard/technicien/*" element={<TechnicianDashboard />} />
+
+            {/* Public Inscription */}
+            <Route path="/inscription-formation" element={<PublicInscription />} />
+          </Routes>
+          <Toaster />
           
-          {/* Student routes */}
-          <Route path="/dashboard/etudiant/*" element={<StudentDashboard />} />
-          
-          {/* Instructor routes */}
-          <Route path="/dashboard/instructeur" element={<InstructorDashboard />} />
-          <Route path="/dashboard/instructeur/courses" element={<InstructorCourses />} />
-          <Route path="/dashboard/instructeur/analytics" element={<InstructorAnalytics />} />
-          <Route path="/dashboard/instructeur/of-documents" element={<InstructorOFDocuments />} />
-          
-          {/* New Dashboard routes */}
-          <Route path="/dashboard/gestionnaire/*" element={<ManagerDashboard />} />
-          <Route path="/formateur-interne/*" element={<InternalTrainerDashboard />} />
-          <Route path="/formateur-externe/*" element={<ExternalTrainerDashboard />} />
-          <Route path="/parent/*" element={<ParentDashboard />} />
-          <Route path="/dashboard/tuteur/*" element={<TutorDashboard />} />
-          <Route path="/createur-de-contenu" element={<ContentCreatorDashboard />} />
-          <Route path="/create-course" element={<CreateCourse />} />
-          <Route path="/edit-course/:id" element={<EditCourse />} />
-          
-          {/* Admin routes - all under /dashboard/admin */}
-          <Route path="/dashboard/admin/*" element={<AdminDashboard />} />
-          
-          {/* Organisme de Formation routes */}
-          <Route path="/dashboard/organisme-formation/*" element={<OFDashboard />} />
-          
-          {/* Technician dashboard */}
-          <Route path="/technicien" element={<TechnicianDashboard />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+          {/* Global floating buttons */}
+          <DownloadAppButton />
+          <AIChatButton />
+        </div>
+      </Router>
+    </LanguageProvider>
+  );
+}
 
 export default App;
