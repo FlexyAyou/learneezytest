@@ -1,22 +1,20 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Home from '@/pages/Home';
+import Index from '@/pages/Index';
 import Courses from '@/pages/Courses';
-import CourseDetails from '@/pages/CourseDetails';
-import Pricing from '@/pages/Pricing';
+import CourseDetail from '@/pages/CourseDetail';
 import Contact from '@/pages/Contact';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
 import Profile from '@/pages/Profile';
-import Dashboard from '@/pages/admin/Dashboard';
-import AdminCourses from '@/pages/admin/Courses';
-import AdminUsers from '@/pages/admin/Users';
-import InstructorDashboard from '@/pages/instructor/Dashboard';
-import InstructorCourses from '@/pages/instructor/Courses';
-import StudentDashboard from '@/pages/student/Dashboard';
-import StudentCourses from '@/pages/student/Courses';
-import StudentProfile from '@/pages/student/Profile';
+import AdminDashboard from '@/pages/AdminDashboard';
+import InstructorDashboard from '@/pages/InstructorDashboard';
+import InstructorCourses from '@/pages/InstructorCourses';
+import StudentDashboard from '@/pages/StudentDashboard';
+import StudentCourses from '@/pages/StudentCourses';
+import UserProfile from '@/pages/UserProfile';
 import PublicInscription from '@/pages/PublicInscription';
 import { Toaster } from '@/components/ui/toaster';
 import DownloadAppButton from '@/components/common/DownloadAppButton';
@@ -27,10 +25,10 @@ function App() {
     <Router>
       <div className="min-h-screen bg-gray-50">
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Index />} />
           <Route path="/cours" element={<Courses />} />
-          <Route path="/cours/:id" element={<CourseDetails />} />
-          <Route path="/tarifs" element={<Pricing />} />
+          <Route path="/cours/:id" element={<CourseDetail />} />
+          <Route path="/tarifs" element={<Contact />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/connexion" element={<Login />} />
           <Route path="/inscription" element={<Register />} />
@@ -38,9 +36,7 @@ function App() {
           <Route path="/profil" element={<Profile />} />
           
           {/* Admin Routes */}
-          <Route path="/admin/tableau-de-bord" element={<Dashboard />} />
-          <Route path="/admin/cours" element={<AdminCourses />} />
-          <Route path="/admin/utilisateurs" element={<AdminUsers />} />
+          <Route path="/admin/tableau-de-bord" element={<AdminDashboard />} />
           
           {/* Instructor Routes */}
           <Route path="/instructor/tableau-de-bord" element={<InstructorDashboard />} />
@@ -49,7 +45,7 @@ function App() {
           {/* Student Routes */}
           <Route path="/student/tableau-de-bord" element={<StudentDashboard />} />
           <Route path="/student/cours" element={<StudentCourses />} />
-          <Route path="/student/profil" element={<StudentProfile />} />
+          <Route path="/student/profil" element={<UserProfile />} />
 
           {/* Public Inscription */}
           <Route path="/inscription-formation" element={<PublicInscription />} />
