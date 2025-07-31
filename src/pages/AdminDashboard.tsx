@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { Users, BookOpen, DollarSign, Settings, BarChart3, Shield, Key, FileText, MessageSquare, Video, Download, Brain, TestTube, Home, UserCheck, PenTool, Mail, FileSignature, Building } from 'lucide-react';
+import { Users, BookOpen, DollarSign, Settings, BarChart3, Shield, Key, FileText, MessageSquare, Video, Download, Brain, TestTube, Home, UserCheck, PenTool, Mail, FileSignature, Building, CreditCard } from 'lucide-react';
 import AdminInscriptions from './admin/AdminInscriptions';
 import AdminDocumentsOF from './admin/AdminDocumentsOF';
 import AdminAutomaticMailings from './admin/AdminAutomaticMailings';
@@ -16,8 +15,6 @@ import AdminSettings from '@/components/admin/AdminSettings';
 import AdminSupport from '@/components/admin/AdminSupport';
 import { LicenseManagement } from '@/components/admin/LicenseManagement';
 import { IdentityVerification } from '@/components/admin/IdentityVerification';
-import { DocumentDownload } from '@/components/common/DocumentDownload';
-import AIChat from '@/components/common/AIChat';
 import VideoConference from '@/components/common/VideoConference';
 import { PositioningTest } from '@/components/common/PositioningTest';
 import { AddUser } from '@/components/admin/AddUser';
@@ -25,6 +22,8 @@ import { GroupEnrollment } from '@/components/admin/GroupEnrollment';
 import AdminEmargements from '@/components/admin/AdminEmargements';
 import { OFDashboard } from '@/components/admin/OFDashboard';
 import AdminOrganisations from '@/components/admin/AdminOrganisations';
+import AdminLibrary from '@/components/admin/AdminLibrary';
+import AdminSubscriptions from '@/components/admin/AdminSubscriptions';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -47,8 +46,8 @@ const AdminDashboard = () => {
     { title: "Vérification identité", href: "/dashboard/admin/identity", icon: Shield, isActive: currentPath === "/dashboard/admin/identity" },
     { title: "Tests positionnement", href: "/dashboard/admin/tests", icon: TestTube, isActive: currentPath === "/dashboard/admin/tests" },
     { title: "Visioconférence", href: "/dashboard/admin/video", icon: Video, isActive: currentPath === "/dashboard/admin/video" },
-    { title: "Chat IA", href: "/dashboard/admin/chat", icon: Brain, isActive: currentPath === "/dashboard/admin/chat" },
-    { title: "Tous les documents", href: "/dashboard/admin/documents", icon: Download, isActive: currentPath === "/dashboard/admin/documents" },
+    { title: "Bibliothèque", href: "/dashboard/admin/library", icon: Download, isActive: currentPath === "/dashboard/admin/library" },
+    { title: "Abonnements", href: "/dashboard/admin/subscriptions", icon: CreditCard, isActive: currentPath === "/dashboard/admin/subscriptions" },
     { title: "Paiements", href: "/dashboard/admin/payments", icon: DollarSign, isActive: currentPath === "/dashboard/admin/payments" },
     { title: "Sécurité", href: "/dashboard/admin/security", icon: Shield, isActive: currentPath === "/dashboard/admin/security" },
     { title: "Support", href: "/dashboard/admin/support", icon: MessageSquare, isActive: currentPath === "/dashboard/admin/support" },
@@ -95,8 +94,8 @@ const AdminDashboard = () => {
             <Route path="/mailings" element={<AdminAutomaticMailings />} />
             <Route path="/emargements" element={<AdminEmargements />} />
             <Route path="/video" element={<VideoConference isHost={true} />} />
-            <Route path="/chat" element={<AIChat />} />
-            <Route path="/documents" element={<DocumentDownload documents={mockAllDocuments} userRole="admin" />} />
+            <Route path="/library" element={<AdminLibrary />} />
+            <Route path="/subscriptions" element={<AdminSubscriptions />} />
             <Route path="/payments" element={<AdminPayments />} />
             <Route path="/security" element={<AdminSecurity />} />
             <Route path="/support" element={<AdminSupport />} />
