@@ -52,9 +52,9 @@ function App() {
             <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
             <Route path="/profil" element={<Profile />} />
             
-            {/* Admin Routes */}
+            {/* Admin Routes - Routes originales restaurées */}
             <Route path="/admin/tableau-de-bord" element={<AdminDashboard />} />
-            <Route path="/dashboard/admin" element={<Navigate to="/admin/tableau-de-bord" replace />} />
+            <Route path="/dashboard/admin/*" element={<AdminDashboard />} />
             
             {/* Instructor Routes */}
             <Route path="/instructor/tableau-de-bord" element={<InstructorDashboard />} />
@@ -71,14 +71,12 @@ function App() {
             <Route path="/dashboard/tuteur/*" element={<TutorDashboard />} />
             <Route path="/dashboard/parent/*" element={<ParentDashboard />} />
             <Route path="/dashboard/gestionnaire/*" element={<ManagerDashboard />} />
-            <Route path="/dashboard/formateur-interne/*" element={<InternalTrainerDashboard />} />
-            <Route path="/dashboard/formateur-externe/*" element={<ExternalTrainerDashboard />} />
             <Route path="/dashboard/createur-contenu/*" element={<ContentCreatorDashboard />} />
             <Route path="/dashboard/technicien/*" element={<TechnicianDashboard />} />
 
-            {/* Trainer routes redirects */}
-            <Route path="/formateur-interne" element={<Navigate to="/dashboard/formateur-interne" replace />} />
-            <Route path="/formateur-externe" element={<Navigate to="/dashboard/formateur-externe" replace />} />
+            {/* Trainer routes - Routes originales restaurées */}
+            <Route path="/formateur-interne/*" element={<InternalTrainerDashboard />} />
+            <Route path="/formateur-externe/*" element={<ExternalTrainerDashboard />} />
 
             {/* Public Inscription */}
             <Route path="/inscription-formation" element={<PublicInscription />} />
