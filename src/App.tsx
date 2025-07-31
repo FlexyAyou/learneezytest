@@ -54,6 +54,7 @@ function App() {
             
             {/* Admin Routes */}
             <Route path="/admin/tableau-de-bord" element={<AdminDashboard />} />
+            <Route path="/dashboard/admin" element={<Navigate to="/admin/tableau-de-bord" replace />} />
             
             {/* Instructor Routes */}
             <Route path="/instructor/tableau-de-bord" element={<InstructorDashboard />} />
@@ -74,6 +75,10 @@ function App() {
             <Route path="/dashboard/formateur-externe/*" element={<ExternalTrainerDashboard />} />
             <Route path="/dashboard/createur-contenu/*" element={<ContentCreatorDashboard />} />
             <Route path="/dashboard/technicien/*" element={<TechnicianDashboard />} />
+
+            {/* Trainer routes redirects */}
+            <Route path="/formateur-interne" element={<Navigate to="/dashboard/formateur-interne" replace />} />
+            <Route path="/formateur-externe" element={<Navigate to="/dashboard/formateur-externe" replace />} />
 
             {/* Public Inscription */}
             <Route path="/inscription-formation" element={<PublicInscription />} />

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -241,19 +242,16 @@ export const TutorStudentTrackingActions = () => {
                   <TableCell>{student.lastActivity}</TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
-                      <Button size="sm" variant="outline" onClick={() => handleView(student)}>
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => handleDetailedView(student)}>
+                      <Button size="sm" variant="outline" onClick={() => handleDetailedView(student)} title="Voir les détails complets">
                         <User className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="outline" onClick={() => handleEdit(student)}>
+                      <Button size="sm" variant="outline" onClick={() => handleEdit(student)} title="Modifier">
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="outline" onClick={() => handleContactParent(student)}>
+                      <Button size="sm" variant="outline" onClick={() => handleContactParent(student)} title="Contacter le parent">
                         <MessageSquare className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="outline" onClick={() => handleCallStudent(student)}>
+                      <Button size="sm" variant="outline" onClick={() => handleCallStudent(student)} title="Appeler l'étudiant">
                         <Phone className="h-4 w-4" />
                       </Button>
                     </div>
@@ -265,13 +263,7 @@ export const TutorStudentTrackingActions = () => {
         </CardContent>
       </Card>
 
-      <TutorStudentDetail
-        student={selectedStudent}
-        isOpen={showDetail}
-        onClose={() => setShowDetail(false)}
-        onEdit={handleEdit}
-      />
-
+      {/* Modals */}
       <TutorStudentDetailedView
         student={selectedStudent}
         isOpen={showDetailedView}
