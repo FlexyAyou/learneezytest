@@ -1,21 +1,25 @@
-
 import React, { useState } from 'react';
-import { Search, Award, Users as UsersIcon } from 'lucide-react';
+import { Search, Award, Users as UsersIcon, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import CourseCard from '@/components/CourseCard';
 import TrainerCard from '@/components/TrainerCard';
 import TrainerBookingModal from '@/components/TrainerBookingModal';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const Courses = () => {
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedStudyLevel, setSelectedStudyLevel] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedLevel, setSelectedLevel] = useState('all');
   const [selectedCycle, setSelectedCycle] = useState('all');
+  const [priceType, setPriceType] = useState('tokens'); // tokens or credits
   const [showAllCourses, setShowAllCourses] = useState(false);
   
   // États pour la section formateurs
@@ -35,11 +39,14 @@ const Courses = () => {
       duration: "1h",
       students: 45,
       rating: 4.8,
-      price: "25€",
-      originalPrice: "35€",
+      tokens: 150,
+      credits: 12,
+      originalTokens: 200,
+      originalCredits: 16,
       level: "CM1",
       category: "Mathématiques",
       cycle: "élémentaire",
+      studyLevel: "primaire",
       availableSlots: 12,
       description: "Comprenez les fractions avec des exemples concrets et des exercices ludiques adaptés au niveau CM1."
     },
@@ -51,11 +58,14 @@ const Courses = () => {
       duration: "1h30",
       students: 38,
       rating: 4.9,
-      price: "30€",
-      originalPrice: "40€",
+      tokens: 180,
+      credits: 15,
+      originalTokens: 240,
+      originalCredits: 20,
       level: "6ème",
       category: "Français",
       cycle: "secondaire",
+      studyLevel: "college",
       availableSlots: 8,
       description: "Apprenez à analyser un texte littéraire et à identifier les figures de style au niveau collège."
     },
@@ -67,11 +77,14 @@ const Courses = () => {
       duration: "1h",
       students: 52,
       rating: 4.7,
-      price: "28€",
-      originalPrice: "38€",
+      tokens: 140,
+      credits: 11,
+      originalTokens: 190,
+      originalCredits: 15,
       level: "CE2",
       category: "Sciences",
       cycle: "élémentaire",
+      studyLevel: "primaire",
       availableSlots: 15,
       description: "Découvrez les différents états de la matière à travers des expériences simples et amusantes."
     },
@@ -83,11 +96,14 @@ const Courses = () => {
       duration: "1h15",
       students: 41,
       rating: 4.6,
-      price: "32€",
-      originalPrice: "42€",
+      tokens: 120,
+      credits: 9,
+      originalTokens: 160,
+      originalCredits: 12,
       level: "4ème",
       category: "Histoire-Géographie",
       cycle: "secondaire",
+      studyLevel: "college",
       availableSlots: 6,
       description: "Plongez dans l'histoire de la Révolution française et comprenez ses enjeux politiques et sociaux."
     },
@@ -99,11 +115,14 @@ const Courses = () => {
       duration: "1h",
       students: 67,
       rating: 4.8,
-      price: "26€",
-      originalPrice: "36€",
+      tokens: 160,
+      credits: 13,
+      originalTokens: 220,
+      originalCredits: 18,
       level: "5ème",
       category: "Anglais",
       cycle: "secondaire",
+      studyLevel: "college",
       availableSlots: 10,
       description: "Maîtrisez l'utilisation du preterit et du present perfect en anglais avec des exercices pratiques."
     },
@@ -115,11 +134,14 @@ const Courses = () => {
       duration: "1h30",
       students: 29,
       rating: 4.9,
-      price: "35€",
-      originalPrice: "45€",
+      tokens: 130,
+      credits: 10,
+      originalTokens: 180,
+      originalCredits: 14,
       level: "3ème",
       category: "Physique-Chimie",
       cycle: "secondaire",
+      studyLevel: "college",
       availableSlots: 5,
       description: "Explorez les réactions chimiques fondamentales et leurs applications dans la vie quotidienne."
     },
@@ -131,11 +153,14 @@ const Courses = () => {
       duration: "1h15",
       students: 33,
       rating: 4.7,
-      price: "30€",
-      originalPrice: "40€",
+      tokens: 110,
+      credits: 8,
+      originalTokens: 160,
+      originalCredits: 12,
       level: "2nde",
       category: "Mathématiques",
       cycle: "secondaire",
+      studyLevel: "college",
       availableSlots: 7,
       description: "Développez vos compétences en calcul littéral et résolution d'équations au niveau seconde."
     },
@@ -147,11 +172,14 @@ const Courses = () => {
       duration: "1h30",
       students: 24,
       rating: 4.6,
-      price: "38€",
-      originalPrice: "48€",
+      tokens: 100,
+      credits: 7,
+      originalTokens: 150,
+      originalCredits: 11,
       level: "1ère",
       category: "SVT",
       cycle: "secondaire",
+      studyLevel: "college",
       availableSlots: 4,
       description: "Comprenez les bases de la génétique et de l'hérédité avec des exemples concrets et actuels."
     },
@@ -163,11 +191,14 @@ const Courses = () => {
       duration: "45min",
       students: 78,
       rating: 4.9,
-      price: "20€",
-      originalPrice: "28€",
+      tokens: 80,
+      credits: 5,
+      originalTokens: 120,
+      originalCredits: 7,
       level: "CP",
       category: "Français",
       cycle: "élémentaire",
+      studyLevel: "maternelle",
       availableSlots: 20,
       description: "Améliorez la compréhension de lecture avec des textes adaptés au niveau CP."
     },
@@ -179,11 +210,14 @@ const Courses = () => {
       duration: "2h",
       students: 15,
       rating: 4.8,
-      price: "45€",
-      originalPrice: "55€",
+      tokens: 90,
+      credits: 6,
+      originalTokens: 140,
+      originalCredits: 10,
       level: "Terminale",
       category: "Arts",
       cycle: "secondaire",
+      studyLevel: "lycee",
       availableSlots: 3,
       description: "Perfectionnez vos techniques de dessin et explorez différents styles artistiques."
     }
@@ -278,6 +312,16 @@ const Courses = () => {
     }
   ];
 
+  // Nouveaux niveaux d'étude pour le filtre en entonnoir
+  const studyLevels = [
+    { value: 'all', label: t('courses.level') },
+    { value: 'maternelle', label: 'Maternelle' },
+    { value: 'primaire', label: 'Primaire (CP-CM2)' },
+    { value: 'college', label: 'Collège (6ème-3ème)' },
+    { value: 'lycee', label: 'Lycée (2nde-Terminale)' },
+    { value: 'superieur', label: 'Supérieur' }
+  ];
+
   const categories = [
     { value: 'all', label: 'Toutes les matières' },
     { value: 'Mathématiques', label: 'Mathématiques' },
@@ -347,11 +391,12 @@ const Courses = () => {
   const filteredCourses = courses.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          course.instructor.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStudyLevel = selectedStudyLevel === 'all' || course.studyLevel === selectedStudyLevel;
     const matchesCategory = selectedCategory === 'all' || course.category === selectedCategory;
     const matchesLevel = selectedLevel === 'all' || course.level === selectedLevel;
     const matchesCycle = selectedCycle === 'all' || course.cycle === selectedCycle;
     
-    return matchesSearch && matchesCategory && matchesLevel && matchesCycle;
+    return matchesSearch && matchesStudyLevel && matchesCategory && matchesLevel && matchesCycle;
   });
 
   const filteredTrainers = trainers.filter(trainer => {
@@ -371,10 +416,10 @@ const Courses = () => {
       <section className="bg-gradient-to-r from-pink-600 to-purple-700 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-5xl font-bold text-white mb-6">
-            Catalogue de Formations & Réservation de Cours
+            {t('courses.title')}
           </h1>
           <p className="text-xl text-blue-100 max-w-3xl mx-auto">
-            Découvrez nos cours personnalisés du primaire au lycée. Réservez directement vos créneaux avec nos formateurs qualifiés.
+            {t('courses.subtitle')}
           </p>
         </div>
       </section>
@@ -389,7 +434,7 @@ const Courses = () => {
               <CardHeader className="pb-4">
                 <CardTitle className="text-2xl font-bold text-pink-600 flex items-center">
                   <Award className="h-6 w-6 mr-2" />
-                  Catalogue de formations disponibles
+                  {t('courses.catalog')}
                 </CardTitle>
                 <CardDescription>
                   Explorez nos formations en ligne et choisissez celle qui vous convient
@@ -397,22 +442,66 @@ const Courses = () => {
               </CardHeader>
               
               <CardContent>
-                {/* Filtres pour les formations */}
+                {/* Sélecteur de type de prix */}
+                <div className="mb-4 flex items-center gap-4">
+                  <span className="text-sm font-medium">Afficher les prix en :</span>
+                  <div className="flex gap-2">
+                    <Button
+                      variant={priceType === 'tokens' ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setPriceType('tokens')}
+                      className="flex items-center gap-2"
+                    >
+                      💰 {t('courses.tokens')}
+                    </Button>
+                    <Button
+                      variant={priceType === 'credits' ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setPriceType('credits')}
+                      className="flex items-center gap-2"
+                    >
+                      🎯 {t('courses.credits')}
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Filtres pour les formations - Filtre en entonnoir */}
                 <div className="mb-6 space-y-4">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <Input
-                      placeholder="Rechercher une formation..."
+                      placeholder={t('courses.search')}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-10"
                     />
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                  {/* Filtre principal - Niveau d'étude */}
+                  <div className="flex items-center gap-2 mb-3">
+                    <Filter className="h-4 w-4 text-pink-600" />
+                    <Badge variant="outline" className="text-pink-600 border-pink-300">
+                      Filtre principal
+                    </Badge>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+                    <Select value={selectedStudyLevel} onValueChange={setSelectedStudyLevel}>
+                      <SelectTrigger className="border-2 border-pink-200">
+                        <SelectValue placeholder={t('courses.level')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {studyLevels.map(level => (
+                          <SelectItem key={level.value} value={level.value}>
+                            {level.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
                     <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Thème" />
+                        <SelectValue placeholder={t('courses.theme')} />
                       </SelectTrigger>
                       <SelectContent>
                         {categories.map(category => (
@@ -425,7 +514,7 @@ const Courses = () => {
 
                     <Select value={selectedLevel} onValueChange={setSelectedLevel}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Niveau" />
+                        <SelectValue placeholder="Niveau précis" />
                       </SelectTrigger>
                       <SelectContent>
                         {levels.map(level => (
@@ -438,7 +527,7 @@ const Courses = () => {
 
                     <Select value={selectedCycle} onValueChange={setSelectedCycle}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Durée" />
+                        <SelectValue placeholder={t('courses.duration')} />
                       </SelectTrigger>
                       <SelectContent>
                         {cycles.map(cycle => (
@@ -453,12 +542,12 @@ const Courses = () => {
 
                 {/* Résultats formations - Grille de cartes */}
                 <div className="mb-4 text-sm text-gray-600">
-                  {filteredCourses.length} formation{filteredCourses.length > 1 ? 's' : ''} trouvée{filteredCourses.length > 1 ? 's' : ''}
+                  {filteredCourses.length} {t('courses.found')}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {(showAllCourses ? filteredCourses : filteredCourses.slice(0, 12)).map((course) => (
-                    <CourseCard key={course.id} course={course} />
+                    <CourseCard key={course.id} course={course} priceType={priceType} />
                   ))}
                 </div>
 
@@ -469,7 +558,7 @@ const Courses = () => {
                       className="w-full"
                       onClick={() => setShowAllCourses(true)}
                     >
-                      Voir toutes les formations ({filteredCourses.length})
+                      {t('courses.viewAll')} ({filteredCourses.length})
                     </Button>
                   </div>
                 )}

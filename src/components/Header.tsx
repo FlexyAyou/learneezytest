@@ -1,79 +1,107 @@
+
 import React, { useState } from 'react';
-import { Menu, X, BookOpen, User, Search } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { Menu, X, User, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
+import LanguageSelector from '@/components/common/LanguageSelector';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const Header = () => {
+  const { t } = useLanguage();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const location = useLocation();
+
+  const navigation = [
+    { name: t('nav.home'), href: '/', current: location.pathname === '/' },
+    { name: t('nav.courses'), href: '/nos-formations', current: location.pathname === '/nos-formations' },
+    { name: t('nav.pricing'), href: '/tarifs', current: location.pathname === '/tarifs' },
+    { name: t('nav.contact'), href: '/contact', current: location.pathname === '/contact' },
+  ];
 
   return (
-    <header className="bg-white shadow-lg fixed w-full top-0 z-50">
+    <header className="bg-white shadow-lg sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center py-4">
           {/* Logo */}
-          <Link to="/" className="flex items-center">
-            <img src="/lovable-uploads/52aaa383-7635-46d0-ac37-eb3ee6b878d1.png" alt="Learneezy" className="h-20 w-auto" />
-          </Link>
+          <div className="flex items-center">
+            <Link to="/" className="flex items-center space-x-2">
+              <img 
+                src="/lovable-uploads/learneezy-white-logo.png" 
+                alt="Learneezy" 
+                className="h-8 w-auto"
+              />
+              <span className="text-2xl font-bold text-pink-600">Learneezy</span>
+            </Link>
+          </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link to="/" className="text-gray-700 hover:text-pink-600 transition-colors">Accueil</Link>
-            <Link to="/cours" className="text-gray-700 hover:text-pink-600 transition-colors">Cours</Link>
-            <Link to="/apropos" className="text-gray-700 hover:text-pink-600 transition-colors">À propos</Link>
-            <Link to="/contact" className="text-gray-700 hover:text-pink-600 transition-colors">Contact</Link>
+          {/* Navigation Desktop */}
+          <nav className="hidden md:flex space-x-8">
+            {navigation.map((item) => (
+              <Link
+                key={item.name}
+                to={item.href}
+                className={`text-sm font-medium transition-colors hover:text-pink-600 ${
+                  item.current ? 'text-pink-600' : 'text-gray-700'
+                }`}
+              >
+                {item.name}
+              </Link>
+            ))}
           </nav>
 
-          {/* Search and Auth */}
+          {/* Actions Desktop */}
           <div className="hidden md:flex items-center space-x-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <input
-                type="text"
-                placeholder="Rechercher un cours..."
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-              />
-            </div>
+            <LanguageSelector />
             <Link to="/connexion">
-              <Button variant="outline" size="sm">
-                <User className="h-4 w-4 mr-2" />
-                Connexion
+              <Button variant="ghost" size="sm">
+                {t('nav.login')}
               </Button>
             </Link>
             <Link to="/inscription">
               <Button size="sm" className="bg-pink-600 hover:bg-pink-700">
-                S'inscrire
+                {t('nav.register')}
               </Button>
             </Link>
           </div>
 
           {/* Mobile menu button */}
-          <div className="md:hidden">
-            <button
+          <div className="md:hidden flex items-center space-x-2">
+            <LanguageSelector />
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-gray-700 hover:text-pink-600"
             >
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
+            </Button>
           </div>
         </div>
 
-        {/* Mobile Navigation */}
+        {/* Navigation Mobile */}
         {isMenuOpen && (
-          <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 bg-white border-t">
-              <Link to="/" className="block px-3 py-2 text-gray-700 hover:text-pink-600">Accueil</Link>
-              <Link to="/cours" className="block px-3 py-2 text-gray-700 hover:text-pink-600">Cours</Link>
-              <Link to="/apropos" className="block px-3 py-2 text-gray-700 hover:text-pink-600">À propos</Link>
-              <Link to="/contact" className="block px-3 py-2 text-gray-700 hover:text-pink-600">Contact</Link>
-              <div className="pt-4 border-t">
-                <Link to="/connexion">
-                  <Button variant="outline" size="sm" className="w-full mb-2">
-                    Connexion
+          <div className="md:hidden border-t border-gray-200 py-4">
+            <div className="space-y-4">
+              {navigation.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`block text-sm font-medium transition-colors hover:text-pink-600 ${
+                    item.current ? 'text-pink-600' : 'text-gray-700'
+                  }`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {item.name}
+                </Link>
+              ))}
+              <div className="pt-4 border-t border-gray-200 space-y-2">
+                <Link to="/connexion" onClick={() => setIsMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start">
+                    {t('nav.login')}
                   </Button>
                 </Link>
-                <Link to="/inscription">
+                <Link to="/inscription" onClick={() => setIsMenuOpen(false)}>
                   <Button size="sm" className="w-full bg-pink-600 hover:bg-pink-700">
-                    S'inscrire
+                    {t('nav.register')}
                   </Button>
                 </Link>
               </div>
