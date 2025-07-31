@@ -5,6 +5,7 @@ import Index from '@/pages/Index';
 import Courses from '@/pages/Courses';
 import CourseDetail from '@/pages/CourseDetail';
 import Contact from '@/pages/Contact';
+import About from '@/pages/About';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
@@ -37,6 +38,7 @@ function App() {
         <div className="min-h-screen bg-gray-50">
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/apropos" element={<About />} />
             {/* Redirection de l'ancienne URL vers la nouvelle */}
             <Route path="/cours" element={<Navigate to="/nos-formations" replace />} />
             <Route path="/nos-formations" element={<Courses />} />
