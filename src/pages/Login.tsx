@@ -6,15 +6,20 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookOpen, Mail, Lock, Eye, EyeOff, ArrowRight, CheckCircle } from 'lucide-react';
+import { useAuthForm } from '@/hooks/useAuthForm';
+import { useLanguage } from '@/contexts/LanguageContext';
+import LanguageSelector from '@/components/common/LanguageSelector';
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const { handleLogin, isSubmitting } = useAuthForm();
+  const { t } = useLanguage();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Connexion:', { email, password });
+    await handleLogin(email, password);
   };
 
   const features = [
@@ -29,26 +34,31 @@ const Login = () => {
       {/* Left Side - Form */}
       <div className="flex-1 flex items-center justify-center p-8 bg-white">
         <div className="w-full max-w-md">
-          {/* Logo */}
+          {/* Language Selector - positioned at top right of form */}
+          <div className="flex justify-end mb-4">
+            <LanguageSelector />
+          </div>
+
+          {/* Logo - made larger */}
           <div className="text-center mb-8">
             <Link to="/" className="inline-flex items-center">
-              <img src="/lovable-uploads/52aaa383-7635-46d0-ac37-eb3ee6b878d1.png" alt="Learneezy" className="h-20 w-auto" />
+              <img src="/lovable-uploads/52aaa383-7635-46d0-ac37-eb3ee6b878d1.png" alt="Learneezy" className="h-28 w-auto" />
             </Link>
-            <p className="text-gray-600 mt-2">Bienvenue ! Connectez-vous à votre compte</p>
+            <p className="text-gray-600 mt-2">{t('welcome')}</p>
           </div>
 
           <Card className="border-0 shadow-none">
             <CardHeader className="px-0">
-              <CardTitle className="text-2xl font-bold text-gray-900">Se connecter</CardTitle>
+              <CardTitle className="text-2xl font-bold text-gray-900">{t('login')}</CardTitle>
               <CardDescription>
-                Entrez vos informations pour accéder à votre espace d'apprentissage
+                {t('enterInfo')}
               </CardDescription>
             </CardHeader>
             <CardContent className="px-0">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-                    Adresse email
+                    {t('email')}
                   </Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -66,7 +76,7 @@ const Login = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="password" className="text-sm font-medium text-gray-700">
-                    Mot de passe
+                    {t('password')}
                   </Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -97,25 +107,38 @@ const Login = () => {
                       className="rounded border-gray-300 text-pink-600 focus:ring-pink-500"
                     />
                     <Label htmlFor="remember" className="text-sm text-gray-600">
-                      Se souvenir de moi
+                      {t('rememberMe')}
                     </Label>
                   </div>
                   <Link to="/mot-de-passe-oublie" className="text-sm text-pink-600 hover:underline font-medium">
-                    Mot de passe oublié ?
+                    {t('forgotPassword')}
                   </Link>
                 </div>
 
-                <Button type="submit" className="w-full h-12 bg-pink-600 hover:bg-pink-700 text-white font-medium">
-                  Se connecter
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                <Button 
+                  type="submit" 
+                  className="w-full h-12 bg-pink-600 hover:bg-pink-700 text-white font-medium"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <div className="flex items-center">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                      Connexion...
+                    </div>
+                  ) : (
+                    <>
+                      {t('login')}
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </>
+                  )}
                 </Button>
               </form>
 
               <div className="mt-8 text-center">
                 <p className="text-sm text-gray-600">
-                  Vous n'avez pas de compte ?{' '}
+                  {t('noAccount')}{' '}
                   <Link to="/inscription" className="text-pink-600 hover:underline font-medium">
-                    Créer un compte
+                    {t('createAccount')}
                   </Link>
                 </p>
               </div>
@@ -127,7 +150,7 @@ const Login = () => {
                     <div className="w-full border-t border-gray-200" />
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-white text-gray-500">Ou continuer avec</span>
+                    <span className="px-2 bg-white text-gray-500">{t('continueWith')}</span>
                   </div>
                 </div>
                 <div className="mt-6 grid grid-cols-2 gap-3">
