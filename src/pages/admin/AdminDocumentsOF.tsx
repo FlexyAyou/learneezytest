@@ -38,6 +38,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { OFDocumentEditor } from '@/components/admin/OFDocumentEditor';
 
 interface GeneratedDocument {
   id: string;
@@ -50,6 +51,40 @@ interface GeneratedDocument {
   uniqueCode: string;
   signedBy?: string;
   sentAt?: string;
+  content?: string;
+}
+
+interface TemplateDocument {
+  id: string;
+  type: 'attestation' | 'certificat' | 'emargement' | 'convention' | 'planning' | 'evaluation';
+  title: string;
+  description?: string;
+  content: string;
+  isActive: boolean;
+  lastModified: string;
+  modifiedBy: string;
+}
+
+interface TrackingRecord {
+  id: string;
+  documentId: string;
+  documentTitle: string;
+  recipient: string;
+  sentAt: string;
+  method: 'email' | 'platform' | 'sms';
+  status: 'sent' | 'opened' | 'downloaded' | 'signed';
+  openedAt?: string;
+  downloadedAt?: string;
+  signedAt?: string;
+}
+
+interface AutomationRule {
+  id: string;
+  name: string;
+  trigger: 'formation_complete' | 'enrollment' | 'session_end' | 'evaluation_complete';
+  documentType: string;
+  isActive: boolean;
+  conditions?: any;
 }
 
 const AdminDocumentsOF = () => {
@@ -58,7 +93,10 @@ const AdminDocumentsOF = () => {
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [showGenerateDialog, setShowGenerateDialog] = useState(false);
   const [showSendDialog, setShowSendDialog] = useState(false);
+  const [showViewDialog, setShowViewDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<GeneratedDocument | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateDocument | null>(null);
 
   // Documents générés automatiquement
   const generatedDocuments: GeneratedDocument[] = [
@@ -71,7 +109,8 @@ const AdminDocumentsOF = () => {
       status: 'sent',
       createdAt: '2024-01-15',
       uniqueCode: 'ATT-2024-001',
-      sentAt: '2024-01-15'
+      sentAt: '2024-01-15',
+      content: 'Nous certifions que Mme Marie Dupont a suivi avec assiduité la formation "React Avancé" du 10 au 15 janvier 2024...'
     },
     {
       id: '2',
@@ -82,7 +121,8 @@ const AdminDocumentsOF = () => {
       status: 'signed',
       createdAt: '2024-01-12',
       uniqueCode: 'CERT-2024-002',
-      signedBy: 'Jean Martin'
+      signedBy: 'Jean Martin',
+      content: 'Il est certifié que M. Jean Martin a terminé avec succès la formation "JavaScript ES6"...'
     },
     {
       id: '3',
@@ -92,7 +132,8 @@ const AdminDocumentsOF = () => {
       apprenant: 'Sophie Laurent',
       status: 'generated',
       createdAt: '2024-01-18',
-      uniqueCode: 'EMG-2024-003'
+      uniqueCode: 'EMG-2024-003',
+      content: 'Feuille de présence pour la formation Python Full-Stack...'
     },
     {
       id: '4',
@@ -103,7 +144,87 @@ const AdminDocumentsOF = () => {
       status: 'signed',
       createdAt: '2024-01-10',
       uniqueCode: 'CONV-2024-004',
-      signedBy: 'Pierre Moreau'
+      signedBy: 'Pierre Moreau',
+      content: 'Convention de formation professionnelle entre l\'organisme et Pierre Moreau...'
+    }
+  ];
+
+  // Templates de documents
+  const templateDocuments: TemplateDocument[] = [
+    {
+      id: 'tpl-1',
+      type: 'attestation',
+      title: 'Modèle d\'attestation de fin de formation',
+      description: 'Template standard pour les attestations de fin de formation',
+      content: 'Nous certifions que {APPRENANT} a suivi avec assiduité la formation "{FORMATION}" du {DATE_DEBUT} au {DATE_FIN}...',
+      isActive: true,
+      lastModified: '2024-01-10',
+      modifiedBy: 'Admin'
+    },
+    {
+      id: 'tpl-2',
+      type: 'certificat',
+      title: 'Modèle de certificat de réalisation',
+      description: 'Template pour les certificats de réalisation',
+      content: 'Il est certifié que {APPRENANT} a terminé avec succès la formation "{FORMATION}"...',
+      isActive: true,
+      lastModified: '2024-01-08',
+      modifiedBy: 'Admin'
+    },
+    {
+      id: 'tpl-3',
+      type: 'convention',
+      title: 'Modèle de convention de formation',
+      description: 'Template standard pour les conventions',
+      content: 'Convention de formation professionnelle entre l\'organisme et {APPRENANT}...',
+      isActive: true,
+      lastModified: '2024-01-05',
+      modifiedBy: 'Admin'
+    }
+  ];
+
+  // Suivi des envois
+  const trackingRecords: TrackingRecord[] = [
+    {
+      id: 'tr-1',
+      documentId: '1',
+      documentTitle: 'Attestation de fin de formation - Marie Dupont',
+      recipient: 'marie.dupont@email.com',
+      sentAt: '2024-01-15 14:30',
+      method: 'email',
+      status: 'signed',
+      openedAt: '2024-01-15 14:35',
+      downloadedAt: '2024-01-15 14:40',
+      signedAt: '2024-01-15 15:20'
+    },
+    {
+      id: 'tr-2',
+      documentId: '2',
+      documentTitle: 'Certificat de réalisation - Jean Martin',
+      recipient: 'jean.martin@email.com',
+      sentAt: '2024-01-12 10:15',
+      method: 'platform',
+      status: 'downloaded',
+      openedAt: '2024-01-12 10:20',
+      downloadedAt: '2024-01-12 10:25'
+    }
+  ];
+
+  // Règles d'automatisation
+  const automationRules: AutomationRule[] = [
+    {
+      id: 'auto-1',
+      name: 'Envoi automatique attestation fin de formation',
+      trigger: 'formation_complete',
+      documentType: 'attestation',
+      isActive: true
+    },
+    {
+      id: 'auto-2',
+      name: 'Envoi convention à l\'inscription',
+      trigger: 'enrollment',
+      documentType: 'convention',
+      isActive: true
     }
   ];
 
@@ -142,6 +263,16 @@ const AdminDocumentsOF = () => {
     return statuses.find(s => s.value === status) || statuses[0];
   };
 
+  const handleViewDocument = (document: GeneratedDocument) => {
+    setSelectedDocument(document);
+    setShowViewDialog(true);
+  };
+
+  const handleEditTemplate = (template: TemplateDocument) => {
+    setSelectedTemplate(template);
+    setShowEditDialog(true);
+  };
+
   const handleSendDocument = (document: GeneratedDocument) => {
     setSelectedDocument(document);
     setShowSendDialog(true);
@@ -149,7 +280,7 @@ const AdminDocumentsOF = () => {
 
   const totalDocuments = generatedDocuments.length;
   const signedDocuments = generatedDocuments.filter(d => d.status === 'signed').length;
-  const libraryDocuments = 3; // From the library/templates
+  const libraryDocuments = templateDocuments.length;
   const sentThisMonth = generatedDocuments.filter(d => d.status === 'sent').length;
 
   return (
@@ -359,19 +490,6 @@ const AdminDocumentsOF = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="lg:w-32">
-                  <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Toutes" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Toutes</SelectItem>
-                      <SelectItem value="react">React</SelectItem>
-                      <SelectItem value="js">JavaScript</SelectItem>
-                      <SelectItem value="python">Python</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
               </div>
 
               {/* Tableau des documents */}
@@ -422,7 +540,12 @@ const AdminDocumentsOF = () => {
                           </TableCell>
                           <TableCell>
                             <div className="flex space-x-1">
-                              <Button size="sm" variant="ghost" className="p-1">
+                              <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                className="p-1"
+                                onClick={() => handleViewDocument(doc)}
+                              >
                                 <Eye className="h-3 w-3" />
                               </Button>
                               <Button size="sm" variant="ghost" className="p-1">
@@ -451,23 +574,61 @@ const AdminDocumentsOF = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="library">
+        <TabsContent value="library" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Bibliothèque OF</CardTitle>
+              <CardTitle>Bibliothèque OF - Templates</CardTitle>
               <CardDescription>
                 Templates et modèles de documents pour l'organisme de formation
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-500 text-center py-8">
-                Contenu de la bibliothèque OF à venir...
-              </p>
+              <div className="grid gap-4">
+                {templateDocuments.map((template) => {
+                  const typeInfo = getTypeInfo(template.type);
+                  return (
+                    <Card key={template.id} className="border-l-4 border-l-blue-500">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <Badge className={typeInfo.color}>
+                              {typeInfo.label.slice(0, -1)}
+                            </Badge>
+                            <div>
+                              <h3 className="font-medium">{template.title}</h3>
+                              <p className="text-sm text-gray-600">{template.description}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Badge variant={template.isActive ? "default" : "secondary"}>
+                              {template.isActive ? "Actif" : "Inactif"}
+                            </Badge>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleEditTemplate(template)}
+                            >
+                              <Edit className="h-3 w-3 mr-1" />
+                              Modifier
+                            </Button>
+                            <Button size="sm" variant="ghost">
+                              <Eye className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="mt-2 text-xs text-gray-500">
+                          Modifié le {template.lastModified} par {template.modifiedBy}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="tracking">
+        <TabsContent value="tracking" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Suivi des envois</CardTitle>
@@ -476,14 +637,64 @@ const AdminDocumentsOF = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-500 text-center py-8">
-                Suivi des envois à venir...
-              </p>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Document</TableHead>
+                      <TableHead>Destinataire</TableHead>
+                      <TableHead>Envoyé le</TableHead>
+                      <TableHead>Méthode</TableHead>
+                      <TableHead>Statut</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {trackingRecords.map((record) => (
+                      <TableRow key={record.id}>
+                        <TableCell>
+                          <div className="font-medium">{record.documentTitle}</div>
+                        </TableCell>
+                        <TableCell>{record.recipient}</TableCell>
+                        <TableCell>{record.sentAt}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline">
+                            {record.method === 'email' && <Mail className="h-3 w-3 mr-1" />}
+                            {record.method}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <Badge className="bg-green-100 text-green-800">
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              {record.status}
+                            </Badge>
+                            {record.openedAt && (
+                              <div className="text-xs text-gray-500">Ouvert: {record.openedAt}</div>
+                            )}
+                            {record.downloadedAt && (
+                              <div className="text-xs text-gray-500">Téléchargé: {record.downloadedAt}</div>
+                            )}
+                            {record.signedAt && (
+                              <div className="text-xs text-gray-500">Signé: {record.signedAt}</div>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Button size="sm" variant="ghost">
+                            <Eye className="h-3 w-3" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="automation">
+        <TabsContent value="automation" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Automatisation</CardTitle>
@@ -492,13 +703,99 @@ const AdminDocumentsOF = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-500 text-center py-8">
-                Paramètres d'automatisation à venir...
-              </p>
+              <div className="grid gap-4">
+                {automationRules.map((rule) => (
+                  <Card key={rule.id} className="border-l-4 border-l-orange-500">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-medium">{rule.name}</h3>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <Badge variant="outline">
+                              Déclencheur: {rule.trigger}
+                            </Badge>
+                            <Badge variant="outline">
+                              Document: {rule.documentType}
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Badge variant={rule.isActive ? "default" : "secondary"}>
+                            {rule.isActive ? "Actif" : "Inactif"}
+                          </Badge>
+                          <Button size="sm" variant="outline">
+                            <Settings className="h-3 w-3 mr-1" />
+                            Configurer
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+              <div className="mt-6">
+                <Button className="bg-gradient-to-r from-orange-500 to-red-600">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Créer une nouvelle règle
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Dialog de visualisation */}
+      <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Visualisation du document</DialogTitle>
+            <DialogDescription>
+              {selectedDocument?.title}
+            </DialogDescription>
+          </DialogHeader>
+          {selectedDocument && (
+            <div className="space-y-4">
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <Label>Type</Label>
+                    <div className="font-medium">{selectedDocument.type}</div>
+                  </div>
+                  <div>
+                    <Label>Formation</Label>
+                    <div className="font-medium">{selectedDocument.formation}</div>
+                  </div>
+                  <div>
+                    <Label>Apprenant</Label>
+                    <div className="font-medium">{selectedDocument.apprenant}</div>
+                  </div>
+                  <div>
+                    <Label>Code unique</Label>
+                    <div className="font-mono text-sm bg-white px-2 py-1 rounded border">
+                      {selectedDocument.uniqueCode}
+                    </div>
+                  </div>
+                </div>
+                <div className="border-t pt-4">
+                  <Label>Contenu du document</Label>
+                  <div className="bg-white p-4 rounded border mt-2 min-h-[200px] whitespace-pre-wrap">
+                    {selectedDocument.content || 'Contenu du document à afficher ici...'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog d'édition des templates */}
+      {selectedTemplate && (
+        <OFDocumentEditor
+          document={selectedTemplate}
+          isOpen={showEditDialog}
+          onClose={() => setShowEditDialog(false)}
+        />
+      )}
 
       {/* Dialog d'envoi */}
       <Dialog open={showSendDialog} onOpenChange={setShowSendDialog}>
