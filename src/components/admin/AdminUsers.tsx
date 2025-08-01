@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -115,6 +114,12 @@ const AdminUsers = () => {
   const handleViewDocuments = (user: any) => {
     setSelectedUser(user);
     setShowDocumentProgress(true);
+  };
+
+  const handleViewUser = (user: any) => {
+    // Créer un slug à partir du nom de l'utilisateur
+    const userSlug = `${user.name.toLowerCase().replace(/\s+/g, '-')}-${user.id}`;
+    navigate(`/dashboard/admin/users/${userSlug}`);
   };
 
   return (
@@ -297,7 +302,12 @@ const AdminUsers = () => {
                       >
                         <FileText className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="outline" title="Voir les détails">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleViewUser(user)}
+                        title="Voir les détails"
+                      >
                         <Eye className="h-4 w-4" />
                       </Button>
                       <Button size="sm" variant="outline" title="Modifier">
