@@ -2,6 +2,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Index from './pages/Index';
+import About from './pages/About';
 import Courses from './pages/Courses';
 import CourseDetail from './pages/CourseDetail';
 import Offers from './pages/Offers';
@@ -31,15 +32,22 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/apropos" element={<About />} />
           <Route path="/cours" element={<Courses />} />
+          <Route path="/nos-formations" element={<Courses />} />
           <Route path="/cours/:id" element={<CourseDetail />} />
           <Route path="/tarifs" element={<Offers />} />
+          <Route path="/offres" element={<Offers />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/tableau-de-bord" element={<StudentDashboard />} />
           <Route path="/dashboard/etudiant/*" element={<StudentDashboard />} />
           <Route path="/profil" element={<Profile />} />
           <Route path="/connexion" element={<Login />} />
           <Route path="/inscription" element={<Register />} />
+          
+          {/* Public Trainer Pages */}
+          <Route path="/formateur-externe" element={<ExternalTrainerDashboard />} />
+          <Route path="/formateur-interne" element={<InternalTrainerDashboard />} />
           
           {/* Admin Routes */}
           <Route path="/dashboard/admin/*" element={<AdminDashboard />} />
