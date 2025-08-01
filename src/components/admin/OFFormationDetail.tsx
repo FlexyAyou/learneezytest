@@ -47,23 +47,30 @@ export const OFFormationDetail: React.FC<OFFormationDetailProps> = ({
   const etapesExample = [
     {
       id: '1',
-      titre: 'Entraînement - Rehaussement de cils',
-      description: 'PROGRAMME Formation : Individuelle Idéal : Accès à la plateforme e-learning, 11 jours-type basé/consigné pour une durée de 24...',
-      duree: '8h',
+      titre: 'Fondamentaux du Développement Web',
+      description: 'Introduction aux technologies web : HTML5, CSS3, JavaScript ES6+. Comprendre l\'architecture client-serveur et les bonnes pratiques de développement.',
+      duree: '24h',
       completed: true,
     },
     {
       id: '2',
-      titre: 'Module - Rehaussement de cils',
-      description: 'PROGRAMME Formation : Individuelle Idéal : Accès à la plateforme e-learning, 11 jours-type basé/consigné pour une durée de 24...',
-      duree: '6h',
+      titre: 'Framework React - Composants et State Management',
+      description: 'Maîtrise de React : JSX, composants, hooks, gestion d\'état avec Redux. Création d\'applications interactives et performantes.',
+      duree: '32h',
       completed: false,
     },
     {
       id: '3',
-      titre: 'Devoir - Rehaussement de cils',
-      description: 'PROGRAMME Formation : Individuelle Idéal : Accès à la plateforme e-learning, 11 jours-type basé/consigné pour une durée de 24...',
-      duree: '2h',
+      titre: 'Backend Node.js et APIs REST',
+      description: 'Développement côté serveur avec Node.js, Express.js. Création d\'APIs REST, authentification JWT et intégration de bases de données.',
+      duree: '28h',
+      completed: false,
+    },
+    {
+      id: '4',
+      titre: 'Projet Final - Application Full Stack',
+      description: 'Réalisation d\'un projet complet intégrant frontend React et backend Node.js. Déploiement sur cloud et optimisations.',
+      duree: '36h',
       completed: false,
     },
   ];
@@ -94,12 +101,12 @@ export const OFFormationDetail: React.FC<OFFormationDetailProps> = ({
           {/* Image et informations principales */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-2">
-              <div className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg flex items-center justify-center mb-4">
+              <div className="aspect-video bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg flex items-center justify-center mb-4">
                 <div className="text-center">
                   <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-2">
-                    <span className="text-2xl font-bold text-purple-600">M</span>
+                    <span className="text-2xl font-bold text-blue-600">💻</span>
                   </div>
-                  <p className="text-sm text-gray-600">Image de la formation</p>
+                  <p className="text-sm text-gray-600">Formation Technologique</p>
                 </div>
               </div>
               
@@ -141,8 +148,8 @@ export const OFFormationDetail: React.FC<OFFormationDetailProps> = ({
                   <CardTitle className="text-sm">Participants</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold mb-2">{formation.nbInscrits}/{formation.capaciteMax}</div>
-                  <Progress value={(formation.nbInscrits / formation.capaciteMax) * 100} className="mb-2" />
+                  <div className="text-2xl font-bold mb-2">{formation.participants}/{formation.capaciteMax}</div>
+                  <Progress value={(formation.participants / formation.capaciteMax) * 100} className="mb-2" />
                   <p className="text-xs text-muted-foreground">Places occupées</p>
                 </CardContent>
               </Card>
@@ -166,19 +173,20 @@ export const OFFormationDetail: React.FC<OFFormationDetailProps> = ({
                 <FileText className="h-5 w-5 mr-2" />
                 PROGRAMME
               </CardTitle>
-              <p className="text-sm text-gray-600">Formation : Individuelle</p>
+              <p className="text-sm text-gray-600">Formation : Technologique - Développement</p>
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2 mb-4">
-                <Badge variant="secondary" className="bg-blue-100 text-blue-800">Beauté</Badge>
-                <Badge variant="secondary" className="bg-purple-100 text-purple-800">Rehaussement de cil</Badge>
-                <Badge variant="secondary" className="bg-pink-100 text-pink-800">Extension de cils - Cil à cil</Badge>
-                <Badge variant="secondary" className="bg-green-100 text-green-800">Extension de cils - Volume Russe</Badge>
+                <Badge variant="secondary" className="bg-blue-100 text-blue-800">Développement Web</Badge>
+                <Badge variant="secondary" className="bg-purple-100 text-purple-800">React</Badge>
+                <Badge variant="secondary" className="bg-green-100 text-green-800">Node.js</Badge>
+                <Badge variant="secondary" className="bg-orange-100 text-orange-800">JavaScript</Badge>
+                <Badge variant="secondary" className="bg-red-100 text-red-800">Full Stack</Badge>
               </div>
               
               <div className="space-y-2">
                 <Button variant="outline" size="sm">
-                  Afficher le sujet
+                  Afficher le curriculum complet
                 </Button>
               </div>
             </CardContent>
@@ -187,7 +195,7 @@ export const OFFormationDetail: React.FC<OFFormationDetailProps> = ({
           {/* Section Étapes */}
           <Card>
             <CardHeader>
-              <CardTitle>Étapes</CardTitle>
+              <CardTitle>Modules de Formation</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -208,7 +216,7 @@ export const OFFormationDetail: React.FC<OFFormationDetailProps> = ({
                         </div>
                         <p className="text-sm text-gray-600 mb-3">{etape.description}</p>
                         <Button variant="outline" size="sm">
-                          Parcourir catégorie
+                          Accéder au module
                         </Button>
                       </div>
                     </div>

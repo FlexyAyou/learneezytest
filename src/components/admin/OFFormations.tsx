@@ -5,105 +5,119 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BookOpen, Eye, Edit, Plus, Search, Filter, BarChart3, Users, Clock } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { BookOpen, Eye, Edit, Plus, Search, Filter, BarChart3, Users, Clock, UserPlus, Check } from 'lucide-react';
 import { OFFormationDetail } from './OFFormationDetail';
 
 export const OFFormations = () => {
   const [selectedFormation, setSelectedFormation] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [selectedFormationForAssign, setSelectedFormationForAssign] = useState<any>(null);
 
   const formations = [
     { 
       id: '1', 
-      titre: 'MODULAGE - Pack Complet - Rehaussement de cils & Extensions de cils : Cil à cil & Volume Russe', 
-      description: 'Formation complète en beauté des cils avec techniques avancées',
-      formateur: 'Par...', 
-      niveau: 'Professionnel',
-      duree: '40h',
-      dateDebut: '27 mars 2025',
-      dateFin: '15 avril 2025', 
-      participants: 8, 
-      capaciteMax: 15,
-      inscrits: 0,
-      termines: 1,
-      status: 'planned',
-      progression: 0,
-      vues: 245,
-      stats: '1.2k'
-    },
-    { 
-      id: '2', 
-      titre: 'MASQUILLES - Pack Complet - Rehaussement de cils & Extensions de cils : Cil à cil & Volume Russe', 
-      description: 'Techniques professionnelles de maquillage et extension de cils',
-      formateur: 'Par...', 
-      niveau: 'Avancé',
-      duree: '35h',
-      dateDebut: '27 mars 2025',
-      dateFin: '10 avril 2025', 
-      participants: 8, 
-      capaciteMax: 12,
-      inscrits: 0,
-      termines: 1,
-      status: 'planned',
-      progression: 0,
-      vues: 189,
-      stats: '890'
-    },
-    { 
-      id: '3', 
-      titre: 'OPEN FORMA - Rehaussement de cils & Extensions de cils : Cil à cil & Volume Russe', 
-      description: 'Formation ouverte aux débutants en extensions de cils',
-      formateur: 'Par...', 
-      niveau: 'Débutant',
-      duree: '25h',
-      dateDebut: '27 mars 2025',
-      dateFin: '05 avril 2025', 
-      participants: 8, 
-      capaciteMax: 20,
-      inscrits: 0,
-      termines: 0,
-      status: 'planned',
-      progression: 0,
-      vues: 156,
-      stats: '652'
-    },
-    { 
-      id: '4', 
-      titre: 'Aurelie Academie : Esthétique Cosmétique Parfumerie - BC01...', 
-      description: 'Formation complète en esthétique et cosmétique',
-      formateur: 'Pa...', 
+      titre: 'Développement Web Full Stack - React & Node.js', 
+      description: 'Formation complète en développement web moderne avec React, Node.js et bases de données',
+      formateur: 'Jean Dupont', 
       niveau: 'Professionnel',
       duree: '120h',
-      dateDebut: '23 janv. 2025',
-      dateFin: '15 mars 2025', 
-      participants: 1, 
-      capaciteMax: 8,
-      inscrits: 3,
+      dateDebut: '27 mars 2025',
+      dateFin: '15 mai 2025', 
+      participants: 12, 
+      capaciteMax: 20,
+      inscrits: 8,
       termines: 1,
-      status: 'active',
-      progression: 67,
-      vues: 423,
+      status: 'planned',
+      progression: 0,
+      vues: 345,
       stats: '2.1k'
     },
     { 
-      id: '5', 
-      titre: 'CCP1 - Employé technicien vendeur en matériel de sport', 
-      description: 'Formation professionnalisante dans le secteur sportif',
-      formateur: 'Expert Sport', 
-      niveau: 'Professionnel',
+      id: '2', 
+      titre: 'Intelligence Artificielle et Machine Learning avec Python', 
+      description: 'Maîtrisez les techniques d\'IA et ML avec Python, TensorFlow et scikit-learn',
+      formateur: 'Marie Martin', 
+      niveau: 'Avancé',
       duree: '80h',
+      dateDebut: '10 avril 2025',
+      dateFin: '20 mai 2025', 
+      participants: 15, 
+      capaciteMax: 18,
+      inscrits: 5,
+      termines: 2,
+      status: 'planned',
+      progression: 0,
+      vues: 289,
+      stats: '1.8k'
+    },
+    { 
+      id: '3', 
+      titre: 'DevOps et Cloud Computing - AWS & Docker', 
+      description: 'Formation aux pratiques DevOps modernes avec AWS, Docker et Kubernetes',
+      formateur: 'Pierre Bernard', 
+      niveau: 'Intermédiaire',
+      duree: '60h',
+      dateDebut: '05 avril 2025',
+      dateFin: '25 avril 2025', 
+      participants: 10, 
+      capaciteMax: 16,
+      inscrits: 3,
+      termines: 0,
+      status: 'planned',
+      progression: 0,
+      vues: 456,
+      stats: '3.2k'
+    },
+    { 
+      id: '4', 
+      titre: 'Cybersécurité et Tests de Pénétration', 
+      description: 'Formation complète en cybersécurité avec pratiques de pentesting',
+      formateur: 'Sophie Dubois', 
+      niveau: 'Professionnel',
+      duree: '100h',
+      dateDebut: '23 janv. 2025',
+      dateFin: '15 mars 2025', 
+      participants: 8, 
+      capaciteMax: 12,
+      inscrits: 6,
+      termines: 1,
+      status: 'active',
+      progression: 67,
+      vues: 523,
+      stats: '4.1k'
+    },
+    { 
+      id: '5', 
+      titre: 'Développement Mobile - Flutter & React Native', 
+      description: 'Créez des applications mobiles multiplateformes avec Flutter et React Native',
+      formateur: 'Alexandre Petit', 
+      niveau: 'Intermédiaire',
+      duree: '90h',
       dateDebut: '10 janv. 2025',
       dateFin: '28 février 2025', 
       participants: 14, 
       capaciteMax: 20,
-      inscrits: 2,
+      inscrits: 4,
       termines: 1,
       status: 'active',
       progression: 50,
-      vues: 834,
-      stats: '3.2k'
+      vues: 634,
+      stats: '2.9k'
     },
+  ];
+
+  const apprenants = [
+    { id: '1', nom: 'Durand', prenom: 'Thomas', email: 'thomas.durand@email.com', isAssigned: false },
+    { id: '2', nom: 'Lefebvre', prenom: 'Julie', email: 'julie.lefebvre@email.com', isAssigned: true },
+    { id: '3', nom: 'Moreau', prenom: 'Nicolas', email: 'nicolas.moreau@email.com', isAssigned: false },
+    { id: '4', nom: 'Simon', prenom: 'Emma', email: 'emma.simon@email.com', isAssigned: false },
+    { id: '5', nom: 'Michel', prenom: 'Lucas', email: 'lucas.michel@email.com', isAssigned: true },
+    { id: '6', nom: 'Garcia', prenom: 'Léa', email: 'lea.garcia@email.com', isAssigned: false },
+    { id: '7', nom: 'Roux', prenom: 'Hugo', email: 'hugo.roux@email.com', isAssigned: false },
+    { id: '8', nom: 'Blanc', prenom: 'Chloé', email: 'chloe.blanc@email.com', isAssigned: false },
   ];
 
   const getStatusBadge = (status: string) => {
@@ -126,6 +140,16 @@ export const OFFormations = () => {
 
   const handleViewFormation = (formation: any) => {
     setSelectedFormation(formation);
+  };
+
+  const handleAssignFormation = (formation: any) => {
+    setSelectedFormationForAssign(formation);
+    setShowAssignModal(true);
+  };
+
+  const handleAssignLearner = (learnerId: string) => {
+    console.log(`Assigning learner ${learnerId} to formation ${selectedFormationForAssign?.id}`);
+    // Logique d'assignation ici
   };
 
   return (
@@ -192,8 +216,8 @@ export const OFFormations = () => {
               <div key={formation.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
                 <div className="flex items-start space-x-4">
                   {/* Avatar/Image */}
-                  <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg flex items-center justify-center">
-                    <span className="text-lg font-bold text-purple-600">
+                  <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg flex items-center justify-center">
+                    <span className="text-lg font-bold text-blue-600">
                       {formation.titre.charAt(0)}
                     </span>
                   </div>
@@ -256,9 +280,13 @@ export const OFFormations = () => {
                           <Edit className="h-4 w-4 mr-1" />
                           Éditer
                         </Button>
-                        <Button size="sm" variant="outline">
-                          <BarChart3 className="h-4 w-4 mr-1" />
-                          Stats
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleAssignFormation(formation)}
+                        >
+                          <UserPlus className="h-4 w-4 mr-1" />
+                          Assigner
                         </Button>
                       </div>
                     </div>
@@ -276,6 +304,64 @@ export const OFFormations = () => {
         isOpen={!!selectedFormation}
         onClose={() => setSelectedFormation(null)}
       />
+
+      {/* Modal d'assignation */}
+      <Dialog open={showAssignModal} onOpenChange={setShowAssignModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Assigner des apprenants à la formation</DialogTitle>
+            <p className="text-sm text-gray-600">
+              {selectedFormationForAssign?.titre}
+            </p>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Rechercher un apprenant..."
+                className="pl-10"
+              />
+            </div>
+            
+            <div className="max-h-96 overflow-y-auto space-y-2">
+              {apprenants.map((apprenant) => (
+                <div key={apprenant.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                      <span className="text-sm font-medium text-blue-600">
+                        {apprenant.prenom.charAt(0)}{apprenant.nom.charAt(0)}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm">
+                        {apprenant.prenom} {apprenant.nom}
+                      </p>
+                      <p className="text-xs text-gray-500">{apprenant.email}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    {apprenant.isAssigned && (
+                      <Badge variant="secondary" className="text-xs">
+                        <Check className="h-3 w-3 mr-1" />
+                        Assigné
+                      </Badge>
+                    )}
+                    <Button
+                      size="sm"
+                      variant={apprenant.isAssigned ? "outline" : "default"}
+                      onClick={() => handleAssignLearner(apprenant.id)}
+                    >
+                      {apprenant.isAssigned ? 'Retirer' : 'Assigner'}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
