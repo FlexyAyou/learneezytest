@@ -19,6 +19,7 @@ import VideoConference from '@/components/common/VideoConference';
 import { PositioningTest } from '@/components/common/PositioningTest';
 import { AddUser } from '@/components/admin/AddUser';
 import { GroupEnrollment } from '@/components/admin/GroupEnrollment';
+import UserDetailPage from '@/components/admin/UserDetailPage';
 import AdminEmargements from '@/components/admin/AdminEmargements';
 import { OFDashboard } from '@/components/admin/OFDashboard';
 import AdminOrganisations from '@/components/admin/AdminOrganisations';
@@ -81,6 +82,7 @@ const AdminDashboard = () => {
           <Routes>
             <Route path="/" element={<OFDashboard />} />
             <Route path="/users" element={<AdminUsers />} />
+            <Route path="/users/:userSlug" element={<UserDetailPage />} />
             <Route path="/users/add" element={<AddUser />} />
             <Route path="/users/group-enrollment" element={<GroupEnrollment />} />
             <Route path="/organisations" element={<AdminOrganisations />} />
