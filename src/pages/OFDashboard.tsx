@@ -11,6 +11,7 @@ import { OFEnvois } from '@/components/admin/OFEnvois';
 import { OFIntegrations } from '@/components/admin/OFIntegrations';
 import { OFLogs } from '@/components/admin/OFLogs';
 import { OFSettings } from '@/components/admin/OFSettings';
+import AdminDocumentsOF from '@/pages/admin/AdminDocumentsOF';
 import { 
   LayoutDashboard, 
   Users, 
@@ -44,6 +45,12 @@ const OFDashboard = () => {
       href: '/dashboard/organisme-formation/formations',
       icon: BookOpen,
       isActive: location.pathname === '/dashboard/organisme-formation/formations'
+    },
+    {
+      title: 'Documents OF',
+      href: '/dashboard/organisme-formation/documents-of',
+      icon: FileText,
+      isActive: location.pathname === '/dashboard/organisme-formation/documents-of'
     },
     {
       title: 'Licences',
@@ -101,6 +108,7 @@ const OFDashboard = () => {
             <Route index element={<OFDashboardHome />} />
             <Route path="utilisateurs" element={<OFUtilisateurs />} />
             <Route path="formations" element={<OFFormations />} />
+            <Route path="documents-of" element={<AdminDocumentsOF />} />
             <Route path="licences" element={<OFLicences />} />
             <Route path="suivi-pedagogique" element={<OFSuiviPedagogique />} />
             <Route path="envois" element={<OFEnvois />} />
