@@ -9,6 +9,15 @@ import Contact from './pages/Contact';
 import StudentDashboard from './pages/StudentDashboard';
 import Profile from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
+import OFDashboard from './pages/OFDashboard';
+import InstructorDashboard from './pages/InstructorDashboard';
+import ManagerDashboard from './pages/ManagerDashboard';
+import TutorDashboard from './pages/TutorDashboard';
+import ParentDashboard from './pages/ParentDashboard';
+import ExternalTrainerDashboard from './pages/ExternalTrainerDashboard';
+import InternalTrainerDashboard from './pages/InternalTrainerDashboard';
+import ContentCreatorDashboard from './pages/ContentCreatorDashboard';
+import TechnicianDashboard from './pages/TechnicianDashboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import { Toaster } from '@/components/ui/toaster';
@@ -35,6 +44,33 @@ function App() {
           <Route path="/dashboard/admin/*" element={<AdminDashboard />} />
           <Route path="/dashboard/admin/users" element={<AdminUsers />} />
           <Route path="/dashboard/admin/users/:userSlug" element={<UserDetailPage />} />
+          
+          {/* Organisme de Formation Routes */}
+          <Route path="/dashboard/organisme-formation/*" element={<OFDashboard />} />
+          
+          {/* Instructor Routes */}
+          <Route path="/dashboard/instructor/*" element={<InstructorDashboard />} />
+          
+          {/* Manager Routes */}
+          <Route path="/dashboard/gestionnaire/*" element={<ManagerDashboard />} />
+          
+          {/* Tutor Routes */}
+          <Route path="/dashboard/tuteur/*" element={<TutorDashboard />} />
+          
+          {/* Parent Routes */}
+          <Route path="/dashboard/parent/*" element={<ParentDashboard />} />
+          
+          {/* External Trainer Routes */}
+          <Route path="/dashboard/formateur-externe/*" element={<ExternalTrainerDashboard />} />
+          
+          {/* Internal Trainer Routes */}
+          <Route path="/dashboard/formateur-interne/*" element={<InternalTrainerDashboard />} />
+          
+          {/* Content Creator Routes */}
+          <Route path="/dashboard/createur-contenu/*" element={<ContentCreatorDashboard />} />
+          
+          {/* Technician Routes */}
+          <Route path="/dashboard/technicien/*" element={<TechnicianDashboard />} />
           
         </Routes>
         <Toaster />
