@@ -65,7 +65,7 @@ const About = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="text-center">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
-              À propos de
+              À propos d'
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-orange-600">
                 Learneezy
               </span>
@@ -76,7 +76,7 @@ const About = () => {
             </p>
             <div className="flex justify-center">
               <img
-                src="/lovable-uploads/35025812-1694-4fb   2-aa20-1b03dae12929.png"
+                src="/lovable-uploads/35025812-1694-4fb2-aa20-1b03dae12929.png"
                 alt="Notre équipe Learneezy"
                 className="rounded-2xl shadow-xl max-w-md w-full"
               />
@@ -92,7 +92,7 @@ const About = () => {
             <div>
               <h2 className="text-3xl font-bold text-gray-900 mb-6">Notre Histoire</h2>
               <p className="text-lg text-gray-600 leading-relaxed mb-6">
-                Learneezy est née en 2025 d'une vision simple mais puissante : rendre l'éducation 
+                Learneezy est née en 2020 d'une vision simple mais puissante : rendre l'éducation 
                 de qualité accessible à tous, peu importe la localisation ou les circonstances.
               </p>
               <p className="text-lg text-gray-600 leading-relaxed mb-6">
