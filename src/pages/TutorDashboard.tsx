@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
@@ -12,6 +13,7 @@ import { TutorAddStudent } from '@/components/tutor/TutorAddStudent';
 import { TutorSettings } from '@/components/tutor/TutorSettings';
 import { TutorSubscription } from '@/components/tutor/TutorSubscription';
 import { TutorDocuments } from '@/components/tutor/TutorDocuments';
+import { TutorStudentDetailedView } from '@/components/tutor/TutorStudentDetailedView';
 import { 
   Users, 
   MessageSquare, 
@@ -32,10 +34,40 @@ import { useToast } from '@/hooks/use-toast';
 const TutorDashboardHome = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [selectedStudent, setSelectedStudent] = React.useState(null);
+  const [showDetailedView, setShowDetailedView] = React.useState(false);
 
   const students = [
-    { id: 1, name: 'Emma Martin', age: 16, courses: 3, avgScore: 85, status: 'active' },
-    { id: 2, name: 'Lucas Dubois', age: 14, courses: 2, avgScore: 92, status: 'active' },
+    { 
+      id: '1', 
+      name: 'Emma Martin', 
+      age: 16, 
+      courses: 3, 
+      avgScore: 85, 
+      status: 'active',
+      email: 'emma.martin@email.com',
+      phone: '06 12 34 56 78',
+      course: 'Mathématiques',
+      progress: 85,
+      lastActivity: '2024-01-20',
+      parentContact: 'parent.martin@email.com',
+      notes: 'Très motivée, excellente participation'
+    },
+    { 
+      id: '2', 
+      name: 'Lucas Dubois', 
+      age: 14, 
+      courses: 2, 
+      avgScore: 92, 
+      status: 'active',
+      email: 'lucas.dubois@email.com',
+      phone: '06 87 65 43 21',
+      course: 'Sciences',
+      progress: 92,
+      lastActivity: '2024-01-19',
+      parentContact: 'parent.dubois@email.com',
+      notes: 'Très bon niveau, autonome'
+    }
   ];
 
   const recentActivity = [
@@ -78,10 +110,11 @@ const TutorDashboardHome = () => {
   ];
 
   const handleViewDetails = (studentName: string) => {
-    toast({
-      title: "Détails de l'élève",
-      description: `Ouverture des détails pour ${studentName}`,
-    });
+    const student = students.find(s => s.name === studentName);
+    if (student) {
+      setSelectedStudent(student);
+      setShowDetailedView(true);
+    }
   };
 
   const handleViewCatalog = () => {
@@ -313,6 +346,13 @@ const TutorDashboardHome = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Student Detail Modal */}
+      <TutorStudentDetailedView
+        student={selectedStudent}
+        isOpen={showDetailedView}
+        onClose={() => setShowDetailedView(false)}
+      />
     </div>
   );
 };

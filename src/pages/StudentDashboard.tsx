@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { BookOpen, User, Award, MessageSquare, Settings, Home, Video, Download, Brain, TestTube, FileText, PenTool, TrendingUp } from 'lucide-react';
+import { BookOpen, User, Award, MessageSquare, Settings, Home, Video, Download, FileText, PenTool, TrendingUp, CreditCard } from 'lucide-react';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
 import StudentCourses from './StudentCourses';
 import StudentProgress from './StudentProgress';
@@ -14,10 +14,9 @@ import StudentEvaluations from './student/StudentEvaluations';
 import EvaluationDetail from './student/EvaluationDetail';
 import TakeEvaluation from './student/TakeEvaluation';
 import CourseViewer from './student/CourseViewer';
-import { DocumentDownload } from '@/components/common/DocumentDownload';
-import AIChat from '@/components/common/AIChat';
+import { StudentDocuments } from '@/components/student/StudentDocuments';
+import { StudentSubscription } from '@/components/student/StudentSubscription';
 import VideoConference from '@/components/common/VideoConference';
-import { PositioningTest } from '@/components/common/PositioningTest';
 import { StudentDashboardHome } from '@/components/student/StudentDashboardHome';
 
 const StudentDashboard = () => {
@@ -29,18 +28,17 @@ const StudentDashboard = () => {
     { title: "Tableau de bord", href: "/dashboard/etudiant", icon: Home, isActive: currentPath === "/dashboard/etudiant" },
     { title: "Catalogue de formations", href: "/cours", icon: BookOpen, isActive: currentPath === "/cours" },
     { title: "Mes cours", href: "/dashboard/etudiant/courses", icon: BookOpen, isActive: currentPath === "/dashboard/etudiant/courses" },
-    { title: "Mon progrès", href: "/dashboard/etudiant/progress", icon: Award, isActive: currentPath === "/dashboard/etudiant/progress" },
+    { title: "Mon parcours", href: "/dashboard/etudiant/progress", icon: Award, isActive: currentPath === "/dashboard/etudiant/progress" },
     { title: "Certificats", href: "/dashboard/etudiant/certificates", icon: Award, isActive: currentPath === "/dashboard/etudiant/certificates" },
     // === SECTION OF COMPLÈTE ===
     { title: "Mes inscriptions", href: "/dashboard/etudiant/inscriptions", icon: FileText, isActive: currentPath === "/dashboard/etudiant/inscriptions" },
     { title: "Émargement", href: "/dashboard/etudiant/emargements", icon: PenTool, isActive: currentPath === "/dashboard/etudiant/emargements" },
     { title: "Évaluations", href: "/dashboard/etudiant/evaluations", icon: TrendingUp, isActive: currentPath === "/dashboard/etudiant/evaluations" },
     // === SECTION OUTILS ===
-    { title: "Tests de positionnement", href: "/dashboard/etudiant/tests", icon: TestTube, isActive: currentPath === "/dashboard/etudiant/tests" },
     { title: "Mes documents", href: "/dashboard/etudiant/documents", icon: Download, isActive: currentPath === "/dashboard/etudiant/documents" },
+    { title: "Abonnements", href: "/dashboard/etudiant/subscription", icon: CreditCard, isActive: currentPath === "/dashboard/etudiant/subscription" },
     { title: "Messages", href: "/dashboard/etudiant/messages", icon: MessageSquare, badge: "3", isActive: currentPath === "/dashboard/etudiant/messages" },
     { title: "Visioconférence", href: "/dashboard/etudiant/video", icon: Video, isActive: currentPath === "/dashboard/etudiant/video" },
-    { title: "Chat IA", href: "/dashboard/etudiant/chat", icon: Brain, isActive: currentPath === "/dashboard/etudiant/chat" },
     { title: "Paramètres", href: "/dashboard/etudiant/settings", icon: Settings, isActive: currentPath === "/dashboard/etudiant/settings" },
   ];
 
@@ -48,11 +46,6 @@ const StudentDashboard = () => {
     name: "Alice Martin",
     email: "alice.martin@email.com"
   };
-
-  const mockDocuments = [
-    { id: '1', name: 'Certificat React.pdf', type: 'PDF', date: '2024-01-20', size: '2.3 MB' },
-    { id: '2', name: 'Notes de cours JS.pdf', type: 'PDF', date: '2024-01-18', size: '1.8 MB' }
-  ];
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -80,10 +73,9 @@ const StudentDashboard = () => {
             <Route path="/evaluations/:id/results" element={<EvaluationDetail />} />
             <Route path="/evaluations/:id/take" element={<TakeEvaluation />} />
             {/* === ROUTES OUTILS === */}
-            <Route path="/tests" element={<PositioningTest userRole="student" />} />
             <Route path="/video" element={<VideoConference />} />
-            <Route path="/chat" element={<AIChat />} />
-            <Route path="/documents" element={<DocumentDownload documents={mockDocuments} userRole="student" />} />
+            <Route path="/documents" element={<StudentDocuments />} />
+            <Route path="/subscription" element={<StudentSubscription />} />
             <Route path="/messages" element={<StudentMessaging />} />
             <Route path="/settings" element={<StudentSettings />} />
           </Routes>
