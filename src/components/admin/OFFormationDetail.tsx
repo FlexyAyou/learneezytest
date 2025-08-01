@@ -148,8 +148,8 @@ export const OFFormationDetail: React.FC<OFFormationDetailProps> = ({
                   <CardTitle className="text-sm">Participants</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold mb-2">{formation.participants}/{formation.capaciteMax}</div>
-                  <Progress value={(formation.participants / formation.capaciteMax) * 100} className="mb-2" />
+                  <div className="text-2xl font-bold mb-2">{formation.nbInscrits}/{formation.capaciteMax}</div>
+                  <Progress value={(formation.nbInscrits / formation.capaciteMax) * 100} className="mb-2" />
                   <p className="text-xs text-muted-foreground">Places occupées</p>
                 </CardContent>
               </Card>
