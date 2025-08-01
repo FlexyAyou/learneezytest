@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { BookOpen, Eye, Check, X, AlertTriangle, Clock, Star, Download } from 'lucide-react';
+import { BookOpen, Eye, Check, X, AlertTriangle, Clock, Star, Download, Plus, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -64,6 +63,13 @@ const AdminCourses = () => {
     });
   };
 
+  const handleCreateCourse = () => {
+    toast({
+      title: "Création de cours avec IA",
+      description: "L'assistant IA pour la création de cours sera bientôt disponible",
+    });
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'En révision': return 'bg-orange-100 text-orange-800';
@@ -76,9 +82,16 @@ const AdminCourses = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900">Modération des cours</h2>
-        <p className="text-gray-600">Examinez et approuvez les nouveaux cours</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Modération des cours</h2>
+          <p className="text-gray-600">Examinez et approuvez les nouveaux cours</p>
+        </div>
+        <Button onClick={handleCreateCourse} className="bg-pink-600 hover:bg-pink-700">
+          <Plus className="h-4 w-4 mr-2" />
+          <Sparkles className="h-4 w-4 mr-2" />
+          Créer un cours avec IA
+        </Button>
       </div>
 
       {/* Statistiques de modération */}
