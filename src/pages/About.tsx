@@ -76,7 +76,7 @@ const About = () => {
             </p>
             <div className="flex justify-center">
               <img
-                src="/lovable-uploads/35025812-1694-4fb2-aa20-1b03dae12929.png"
+                src="/lovable-uploads/35025812-1694-4fb   2-aa20-1b03dae12929.png"
                 alt="Notre équipe Learneezy"
                 className="rounded-2xl shadow-xl max-w-md w-full"
               />
