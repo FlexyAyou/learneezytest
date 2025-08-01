@@ -46,8 +46,8 @@ function App() {
           <Route path="/inscription" element={<Register />} />
           
           {/* Public Trainer Pages */}
-          <Route path="/formateur-externe" element={<ExternalTrainerDashboard />} />
-          <Route path="/formateur-interne" element={<InternalTrainerDashboard />} />
+          <Route path="/formateur-externe/*" element={<ExternalTrainerDashboard />} />
+          <Route path="/formateur-interne/*" element={<InternalTrainerDashboard />} />
           
           {/* Admin Routes */}
           <Route path="/dashboard/admin/*" element={<AdminDashboard />} />
