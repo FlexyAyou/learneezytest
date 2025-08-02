@@ -13,9 +13,10 @@ import TrainerBookingModal from '@/components/TrainerBookingModal';
 
 const Courses = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedEducationLevel, setSelectedEducationLevel] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedLevel, setSelectedLevel] = useState('all');
-  const [selectedCycle, setSelectedCycle] = useState('all');
+  const [selectedDifficulty, setSelectedDifficulty] = useState('all');
+  const [selectedDuration, setSelectedDuration] = useState('all');
   const [showAllCourses, setShowAllCourses] = useState(false);
   
   // États pour la section formateurs
@@ -278,39 +279,49 @@ const Courses = () => {
     }
   ];
 
+  // Filtre en entonnoir - Niveau d'études principal
+  const educationLevels = [
+    { value: 'all', label: 'Tous les niveaux d\'études' },
+    { value: 'scolaire', label: 'Formation Scolaire (Primaire - Lycée)' },
+    { value: 'superieur', label: 'Enseignement Supérieur' },
+    { value: 'professionnel', label: 'Formation Professionnelle' },
+    { value: 'continue', label: 'Formation Continue / Reconversion' }
+  ];
+
   const categories = [
-    { value: 'all', label: 'Toutes les matières' },
+    { value: 'all', label: 'Tous les domaines' },
+    // Scolaire
     { value: 'Mathématiques', label: 'Mathématiques' },
     { value: 'Français', label: 'Français' },
-    { value: 'Anglais', label: 'Anglais' },
-    { value: 'Histoire-Géographie', label: 'Histoire-Géographie' },
-    { value: 'Sciences', label: 'Sciences' },
-    { value: 'Physique-Chimie', label: 'Physique-Chimie' },
-    { value: 'SVT', label: 'SVT' },
-    { value: 'Arts', label: 'Arts' },
-    { value: 'Sport', label: 'Sport' }
+    { value: 'Anglais', label: 'Langues Étrangères' },
+    { value: 'Sciences', label: 'Sciences et Recherche' },
+    { value: 'Histoire-Géographie', label: 'Sciences Humaines' },
+    { value: 'Arts', label: 'Arts et Créativité' },
+    // Professionnel
+    { value: 'Informatique', label: 'Informatique et Digital' },
+    { value: 'IA', label: 'Intelligence Artificielle' },
+    { value: 'Data', label: 'Data Science et Analyse' },
+    { value: 'Marketing', label: 'Marketing et Communication' },
+    { value: 'Management', label: 'Management et Leadership' },
+    { value: 'Finance', label: 'Finance et Comptabilité' },
+    { value: 'Santé', label: 'Santé et Bien-être' },
+    { value: 'Design', label: 'Design et UX/UI' }
   ];
 
-  const levels = [
-    { value: 'all', label: 'Tous les niveaux' },
-    { value: 'CP', label: 'CP' },
-    { value: 'CE1', label: 'CE1' },
-    { value: 'CE2', label: 'CE2' },
-    { value: 'CM1', label: 'CM1' },
-    { value: 'CM2', label: 'CM2' },
-    { value: '6ème', label: '6ème' },
-    { value: '5ème', label: '5ème' },
-    { value: '4ème', label: '4ème' },
-    { value: '3ème', label: '3ème' },
-    { value: '2nde', label: '2nde' },
-    { value: '1ère', label: '1ère' },
-    { value: 'Terminale', label: 'Terminale' }
+  const difficulties = [
+    { value: 'all', label: 'Toutes les difficultés' },
+    { value: 'debutant', label: 'Débutant' },
+    { value: 'intermediaire', label: 'Intermédiaire' },
+    { value: 'avance', label: 'Avancé' },
+    { value: 'expert', label: 'Expert' }
   ];
 
-  const cycles = [
-    { value: 'all', label: 'Tous les cycles' },
-    { value: 'élémentaire', label: 'Élémentaire' },
-    { value: 'secondaire', label: 'Secondaire' }
+  const durations = [
+    { value: 'all', label: 'Toutes les durées' },
+    { value: 'court', label: 'Formation courte (< 10h)' },
+    { value: 'moyen', label: 'Formation moyenne (10-50h)' },
+    { value: 'long', label: 'Formation longue (50h+)' },
+    { value: 'diplome', label: 'Parcours diplômant' }
   ];
 
   const specialties = [
@@ -348,10 +359,12 @@ const Courses = () => {
     const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          course.instructor.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || course.category === selectedCategory;
-    const matchesLevel = selectedLevel === 'all' || course.level === selectedLevel;
-    const matchesCycle = selectedCycle === 'all' || course.cycle === selectedCycle;
+    const matchesEducationLevel = selectedEducationLevel === 'all' || 
+      (selectedEducationLevel === 'scolaire' && course.cycle === 'élémentaire' || course.cycle === 'secondaire') ||
+      (selectedEducationLevel === 'superieur' && course.category === 'Informatique') ||
+      (selectedEducationLevel === 'professionnel' && ['IA', 'Data', 'Marketing'].includes(course.category));
     
-    return matchesSearch && matchesCategory && matchesLevel && matchesCycle;
+    return matchesSearch && matchesCategory && matchesEducationLevel;
   });
 
   const filteredTrainers = trainers.filter(trainer => {
@@ -409,45 +422,83 @@ const Courses = () => {
                     />
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Thème" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map(category => (
-                          <SelectItem key={category.value} value={category.value}>
-                            {category.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  {/* Filtre en entonnoir */}
+                  <div className="space-y-4">
+                    {/* 1er niveau : Type d'études */}
+                    <div className="w-full">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        1. Quel type de formation recherchez-vous ?
+                      </label>
+                      <Select value={selectedEducationLevel} onValueChange={setSelectedEducationLevel}>
+                        <SelectTrigger className="bg-white border-2 border-pink-300">
+                          <SelectValue placeholder="Choisissez votre niveau d'études" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {educationLevels.map(level => (
+                            <SelectItem key={level.value} value={level.value}>
+                              {level.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                    <Select value={selectedLevel} onValueChange={setSelectedLevel}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Niveau" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {levels.map(level => (
-                          <SelectItem key={level.value} value={level.value}>
-                            {level.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    {/* 2ème niveau : Domaine */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          2. Domaine d'expertise
+                        </label>
+                        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Domaine" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {categories.map(category => (
+                              <SelectItem key={category.value} value={category.value}>
+                                {category.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                    <Select value={selectedCycle} onValueChange={setSelectedCycle}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Durée" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {cycles.map(cycle => (
-                          <SelectItem key={cycle.value} value={cycle.value}>
-                            {cycle.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          3. Niveau de difficulté
+                        </label>
+                        <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Difficulté" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {difficulties.map(difficulty => (
+                              <SelectItem key={difficulty.value} value={difficulty.value}>
+                                {difficulty.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          4. Durée souhaitée
+                        </label>
+                        <Select value={selectedDuration} onValueChange={setSelectedDuration}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Durée" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {durations.map(duration => (
+                              <SelectItem key={duration.value} value={duration.value}>
+                                {duration.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
