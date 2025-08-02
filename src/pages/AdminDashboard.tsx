@@ -25,6 +25,7 @@ import { OFDashboard } from '@/components/admin/OFDashboard';
 import AdminOrganisations from '@/components/admin/AdminOrganisations';
 import AdminLibrary from '@/components/admin/AdminLibrary';
 import AdminSubscriptions from '@/components/admin/AdminSubscriptions';
+import AdminDocuments from '@/components/admin/AdminDocuments';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -36,6 +37,7 @@ const AdminDashboard = () => {
     { title: "Utilisateurs", href: "/dashboard/admin/users", icon: Users, isActive: currentPath === "/dashboard/admin/users" },
     { title: "Organismes de formations", href: "/dashboard/admin/organisations", icon: Building, isActive: currentPath === "/dashboard/admin/organisations" },
     { title: "Cours", href: "/dashboard/admin/courses", icon: BookOpen, isActive: currentPath === "/dashboard/admin/courses" },
+    { title: "Documents", href: "/dashboard/admin/documents", icon: FileText, isActive: currentPath === "/dashboard/admin/documents" },
     // === SECTION OF COMPLÈTE ===
     { title: "Inscriptions", href: "/dashboard/admin/inscriptions", icon: UserCheck, isActive: currentPath === "/dashboard/admin/inscriptions" },
     { title: "Documents OF", href: "/dashboard/admin/of-documents", icon: FileText, isActive: currentPath === "/dashboard/admin/of-documents" },
@@ -87,6 +89,7 @@ const AdminDashboard = () => {
             <Route path="/users/group-enrollment" element={<GroupEnrollment />} />
             <Route path="/organisations" element={<AdminOrganisations />} />
             <Route path="/courses" element={<AdminCourses />} />
+            <Route path="/documents" element={<AdminDocuments />} />
             <Route path="/licenses" element={<LicenseManagement />} />
             <Route path="/identity" element={<IdentityVerification />} />
             <Route path="/tests" element={<PositioningTest userRole="admin" />} />
