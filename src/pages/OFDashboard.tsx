@@ -12,6 +12,7 @@ import { OFIntegrations } from '@/components/admin/OFIntegrations';
 import { OFLogs } from '@/components/admin/OFLogs';
 import { OFSettings } from '@/components/admin/OFSettings';
 import AdminDocumentsOF from '@/pages/admin/AdminDocumentsOF';
+import OFDocuments from '@/components/admin/OFDocuments';
 import { 
   LayoutDashboard, 
   Users, 
@@ -21,7 +22,8 @@ import {
   Send,
   Plug,
   FileText,
-  Settings
+  Settings,
+  File
 } from 'lucide-react';
 
 const OFDashboard = () => {
@@ -51,6 +53,12 @@ const OFDashboard = () => {
       href: '/dashboard/organisme-formation/documents-of',
       icon: FileText,
       isActive: location.pathname === '/dashboard/organisme-formation/documents-of'
+    },
+    {
+      title: 'Document',
+      href: '/dashboard/organisme-formation/documents',
+      icon: File,
+      isActive: location.pathname === '/dashboard/organisme-formation/documents'
     },
     {
       title: 'Licences',
@@ -109,6 +117,7 @@ const OFDashboard = () => {
             <Route path="utilisateurs" element={<OFUtilisateurs />} />
             <Route path="formations" element={<OFFormations />} />
             <Route path="documents-of" element={<AdminDocumentsOF />} />
+            <Route path="documents" element={<OFDocuments />} />
             <Route path="licences" element={<OFLicences />} />
             <Route path="suivi-pedagogique" element={<OFSuiviPedagogique />} />
             <Route path="envois" element={<OFEnvois />} />
