@@ -21,6 +21,7 @@ import ContentCreatorDashboard from './pages/ContentCreatorDashboard';
 import TechnicianDashboard from './pages/TechnicianDashboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
 import { Toaster } from '@/components/ui/toaster';
 import AdminUsers from './components/admin/AdminUsers';
 import UserDetailPage from './components/admin/UserDetailPage';
@@ -44,15 +45,17 @@ function App() {
           <Route path="/profil" element={<Profile />} />
           <Route path="/connexion" element={<Login />} />
           <Route path="/inscription" element={<Register />} />
+          <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
           
           {/* Public Trainer Pages */}
-          <Route path="/formateur-externe/*" element={<ExternalTrainerDashboard />} />
+          <Route path="/formation-independant/*" element={<ExternalTrainerDashboard />} />
           <Route path="/formateur-interne/*" element={<InternalTrainerDashboard />} />
           
           {/* Admin Routes */}
           <Route path="/dashboard/admin/*" element={<AdminDashboard />} />
           
           {/* Organisme de Formation Routes */}
+          <Route path="/dashboard/organisme-formation" element={<OFDashboard />} />
           <Route path="/dashboard/organisme-formation/*" element={<OFDashboard />} />
           
           {/* Instructor Routes */}
@@ -68,7 +71,7 @@ function App() {
           <Route path="/dashboard/parent/*" element={<ParentDashboard />} />
           
           {/* External Trainer Routes */}
-          <Route path="/dashboard/formateur-externe/*" element={<ExternalTrainerDashboard />} />
+          <Route path="/dashboard/formation-independant/*" element={<ExternalTrainerDashboard />} />
           
           {/* Internal Trainer Routes */}
           <Route path="/dashboard/formateur-interne/*" element={<InternalTrainerDashboard />} />
