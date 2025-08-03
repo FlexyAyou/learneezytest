@@ -5,12 +5,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Search, Plus, Edit, Eye, Building, MapPin, Phone, Mail, FileText, CheckCircle } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Search, Plus, Eye, Building, MapPin, Phone, Mail, FileText, CheckCircle, Power, PowerOff, Calendar, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const AdminOrganisations = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedOrg, setSelectedOrg] = useState(null);
+  const [showOrgDetails, setShowOrgDetails] = useState(false);
+  const [showDocuments, setShowDocuments] = useState(false);
 
   // Mock data for organisations
   const organisations = [
@@ -24,7 +28,18 @@ const AdminOrganisations = () => {
       numeroDeclaration: '11-75-12345-75',
       qualiopiCertified: true,
       usersCount: 145,
-      createdAt: '2023-01-15'
+      createdAt: '2023-01-15',
+      isActive: true,
+      logoUrl: '',
+      description: 'Centre de formation spécialisé dans le digital et les nouvelles technologies',
+      website: 'https://www.cfdigital.fr',
+      legalRepresentative: 'Jean Dupont',
+      documents: [
+        { name: 'Extrait K-bis', type: 'kbis', status: 'validé', uploadDate: '2023-01-10' },
+        { name: 'Déclaration d\'activité', type: 'declaration', status: 'validé', uploadDate: '2023-01-12' },
+        { name: 'Certificat Qualiopi', type: 'qualiopi', status: 'validé', uploadDate: '2023-01-14' },
+        { name: 'Assurance responsabilité civile', type: 'assurance', status: 'en_attente', uploadDate: '2023-01-15' }
+      ]
     },
     {
       id: '2',
@@ -36,7 +51,17 @@ const AdminOrganisations = () => {
       numeroDeclaration: '84-69-98765-69',
       qualiopiCertified: false,
       usersCount: 89,
-      createdAt: '2023-03-22'
+      createdAt: '2023-03-22',
+      isActive: true,
+      logoUrl: '',
+      description: 'Institut de formation technique et technologique',
+      website: 'https://www.technoplus.fr',
+      legalRepresentative: 'Marie Martin',
+      documents: [
+        { name: 'Extrait K-bis', type: 'kbis', status: 'validé', uploadDate: '2023-03-20' },
+        { name: 'Déclaration d\'activité', type: 'declaration', status: 'validé', uploadDate: '2023-03-21' },
+        { name: 'Attestation fiscale', type: 'fiscal', status: 'refusé', uploadDate: '2023-03-22' }
+      ]
     },
     {
       id: '3',
@@ -48,9 +73,26 @@ const AdminOrganisations = () => {
       numeroDeclaration: '93-13-11223-13',
       qualiopiCertified: true,
       usersCount: 67,
-      createdAt: '2023-06-10'
+      createdAt: '2023-06-10',
+      isActive: false,
+      logoUrl: '',
+      description: 'Formation professionnelle continue en région PACA',
+      website: 'https://www.formpro-marseille.fr',
+      legalRepresentative: 'Pierre Durand',
+      documents: [
+        { name: 'Extrait K-bis', type: 'kbis', status: 'validé', uploadDate: '2023-06-08' },
+        { name: 'Déclaration d\'activité', type: 'declaration', status: 'validé', uploadDate: '2023-06-09' },
+        { name: 'Certificat Qualiopi', type: 'qualiopi', status: 'validé', uploadDate: '2023-06-10' }
+      ]
     }
   ];
+
+  const handleToggleStatus = (orgId, currentStatus) => {
+    toast({
+      title: currentStatus ? "Organisme désactivé" : "Organisme activé",
+      description: `L'organisme a été ${currentStatus ? 'désactivé' : 'activé'} avec succès.`,
+    });
+  };
 
   const filteredOrganisations = organisations.filter(org =>
     org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -196,15 +238,136 @@ const AdminOrganisations = () => {
                   </TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
-                      <Button size="sm" variant="outline" title="Voir les détails">
-                        <Eye className="h-4 w-4" />
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            title="Voir les détails"
+                            onClick={() => setSelectedOrg(org)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl">
+                          <DialogHeader>
+                            <DialogTitle>Détails de l'organisme</DialogTitle>
+                          </DialogHeader>
+                          {selectedOrg && (
+                            <div className="space-y-6">
+                              <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <h4 className="font-medium text-gray-900 mb-2">Informations générales</h4>
+                                  <div className="space-y-2 text-sm">
+                                    <div><span className="font-medium">Nom:</span> {selectedOrg.name}</div>
+                                    <div><span className="font-medium">Description:</span> {selectedOrg.description}</div>
+                                    <div><span className="font-medium">Site web:</span> {selectedOrg.website}</div>
+                                    <div><span className="font-medium">Représentant légal:</span> {selectedOrg.legalRepresentative}</div>
+                                  </div>
+                                </div>
+                                <div>
+                                  <h4 className="font-medium text-gray-900 mb-2">Contact</h4>
+                                  <div className="space-y-2 text-sm">
+                                    <div className="flex items-center"><MapPin className="h-3 w-3 mr-1" />{selectedOrg.address}</div>
+                                    <div className="flex items-center"><Phone className="h-3 w-3 mr-1" />{selectedOrg.phone}</div>
+                                    <div className="flex items-center"><Mail className="h-3 w-3 mr-1" />{selectedOrg.email}</div>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <h4 className="font-medium text-gray-900 mb-2">Informations légales</h4>
+                                  <div className="space-y-2 text-sm">
+                                    <div><span className="font-medium">SIRET:</span> {selectedOrg.siret}</div>
+                                    <div><span className="font-medium">N° Déclaration:</span> {selectedOrg.numeroDeclaration}</div>
+                                    <div><span className="font-medium">Qualiopi:</span> {selectedOrg.qualiopiCertified ? 'Certifié' : 'Non certifié'}</div>
+                                  </div>
+                                </div>
+                                <div>
+                                  <h4 className="font-medium text-gray-900 mb-2">Statistiques</h4>
+                                  <div className="space-y-2 text-sm">
+                                    <div className="flex items-center"><Users className="h-3 w-3 mr-1" />{selectedOrg.usersCount} utilisateurs</div>
+                                    <div className="flex items-center"><Calendar className="h-3 w-3 mr-1" />Créé le {new Date(selectedOrg.createdAt).toLocaleDateString()}</div>
+                                    <div><span className="font-medium">Statut:</span> 
+                                      <Badge variant={selectedOrg.isActive ? "default" : "secondary"} className="ml-2">
+                                        {selectedOrg.isActive ? 'Actif' : 'Inactif'}
+                                      </Badge>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </DialogContent>
+                      </Dialog>
+                      
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        title={org.isActive ? "Désactiver" : "Activer"}
+                        onClick={() => handleToggleStatus(org.id, org.isActive)}
+                      >
+                        {org.isActive ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
                       </Button>
-                      <Button size="sm" variant="outline" title="Modifier">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="outline" title="Documents">
-                        <FileText className="h-4 w-4" />
-                      </Button>
+                      
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            title="Documents"
+                            onClick={() => setSelectedOrg(org)}
+                          >
+                            <FileText className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-3xl">
+                          <DialogHeader>
+                            <DialogTitle>Documents de {selectedOrg?.name}</DialogTitle>
+                          </DialogHeader>
+                          {selectedOrg && (
+                            <div className="space-y-4">
+                              <p className="text-sm text-gray-600">
+                                Documents soumis par l'organisme pour son inscription à Learneezy
+                              </p>
+                              <Table>
+                                <TableHeader>
+                                  <TableRow>
+                                    <TableHead>Document</TableHead>
+                                    <TableHead>Type</TableHead>
+                                    <TableHead>Statut</TableHead>
+                                    <TableHead>Date d'upload</TableHead>
+                                  </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                  {selectedOrg.documents?.map((doc, index) => (
+                                    <TableRow key={index}>
+                                      <TableCell className="font-medium">{doc.name}</TableCell>
+                                      <TableCell>
+                                        <Badge variant="outline">{doc.type}</Badge>
+                                      </TableCell>
+                                      <TableCell>
+                                        <Badge 
+                                          variant={
+                                            doc.status === 'validé' ? 'default' : 
+                                            doc.status === 'en_attente' ? 'secondary' : 
+                                            'destructive'
+                                          }
+                                        >
+                                          {doc.status === 'validé' ? 'Validé' : 
+                                           doc.status === 'en_attente' ? 'En attente' : 
+                                           'Refusé'}
+                                        </Badge>
+                                      </TableCell>
+                                      <TableCell>{new Date(doc.uploadDate).toLocaleDateString()}</TableCell>
+                                    </TableRow>
+                                  ))}
+                                </TableBody>
+                              </Table>
+                            </div>
+                          )}
+                        </DialogContent>
+                      </Dialog>
                     </div>
                   </TableCell>
                 </TableRow>
