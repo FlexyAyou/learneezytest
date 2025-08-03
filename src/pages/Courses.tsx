@@ -498,11 +498,29 @@ const Courses = () => {
                           </SelectContent>
                         </Select>
                       </div>
-                    </div>
-                  </div>
-                </div>
+                     </div>
 
-                {/* Résultats formations - Grille de cartes */}
+                     {/* Bouton de réinitialisation des filtres */}
+                     <div className="flex justify-end mt-4">
+                       <Button 
+                         type="button" 
+                         variant="outline" 
+                         onClick={() => {
+                           setSearchTerm('');
+                           setSelectedEducationLevel('all');
+                           setSelectedCategory('all');
+                           setSelectedDifficulty('all');
+                           setSelectedDuration('all');
+                         }}
+                         className="text-sm"
+                       >
+                         Réinitialiser les filtres
+                       </Button>
+                     </div>
+                   </div>
+                 </div>
+
+                 {/* Résultats formations - Grille de cartes */}
                 <div className="mb-4 text-sm text-gray-600">
                   {filteredCourses.length} formation{filteredCourses.length > 1 ? 's' : ''} trouvée{filteredCourses.length > 1 ? 's' : ''}
                 </div>

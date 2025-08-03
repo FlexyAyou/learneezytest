@@ -82,7 +82,7 @@ const Footer = () => {
 
             {/* Newsletter */}
             <div className="mt-8">
-              <h4 className="font-bold mb-3">Newsletter</h4>
+              <h4 className="font-bold mb-3">M'abonner</h4>
               <div className="flex">
                 <input
                   type="email"

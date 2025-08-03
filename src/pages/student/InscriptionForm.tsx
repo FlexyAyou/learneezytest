@@ -168,6 +168,13 @@ const InscriptionForm = () => {
     <div className="max-w-4xl mx-auto p-6">
       <Card>
         <CardHeader>
+          <div className="flex justify-center mb-4">
+            <img 
+              src="/lovable-uploads/learneezy-white-logo.png" 
+              alt="Learneezy Logo" 
+              className="h-16 w-auto"
+            />
+          </div>
           <CardTitle className="text-center">Formulaire d'inscription</CardTitle>
           <CardDescription className="text-center">
             Inscription avec signature électronique intégrée
