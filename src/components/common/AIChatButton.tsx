@@ -60,7 +60,6 @@ const AIChatButton = () => {
           rounded-full w-14 h-14
           transition-all duration-300 ease-in-out
           transform hover:scale-110
-          ${!isOpen ? 'animate-pulse' : ''}
         `}
       >
         {isOpen ? (
