@@ -1,6 +1,6 @@
 
-import React, { useEffect } from 'react';
-import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
 import { OFDashboard as OFDashboardHome } from '@/components/admin/OFDashboard';
 import { OFUtilisateurs } from '@/components/admin/OFUtilisateurs';
@@ -28,13 +28,6 @@ import {
 
 const OFDashboard = () => {
   const location = useLocation();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (location.pathname === '/dashboard/organisme-formation') {
-      navigate('/dashboard/organisme-formation/utilisateurs', { replace: true });
-    }
-  }, [location.pathname, navigate]);
 
   const sidebarItems = [
     {
