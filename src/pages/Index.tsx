@@ -2,6 +2,8 @@
 import React from 'react';
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
+import DownloadAppButton from '@/components/common/DownloadAppButton';
+import AIChatButton from '@/components/common/AIChatButton';
 import CourseCategories from '@/components/CourseCategories';
 import AnimatedSeparator from '@/components/AnimatedSeparator';
 import KeyFigures from '@/components/KeyFigures';
@@ -30,6 +32,8 @@ const Index = () => {
       <PartnersSection />
       <About />
       <Footer />
+      <DownloadAppButton />
+      <AIChatButton />
     </div>
   );
 };
