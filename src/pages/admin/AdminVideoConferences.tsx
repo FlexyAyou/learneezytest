@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
@@ -20,7 +23,6 @@ import {
   Video,
   Mail,
   Bell,
-  RefreshCw,
   UserCheck,
   UserX,
   CheckCircle2,
@@ -28,7 +30,10 @@ import {
   AlertTriangle,
   Filter,
   Search,
-  Eye
+  Eye,
+  Plus,
+  Edit,
+  Trash2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -62,6 +67,9 @@ const AdminVideoConferences = () => {
   const [dateFilter, setDateFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [attendanceFilter, setAttendanceFilter] = useState<string>('all');
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedConference, setSelectedConference] = useState<VideoConference | null>(null);
   const { toast } = useToast();
 
   const videoConferences: VideoConference[] = [
@@ -213,16 +221,171 @@ const AdminVideoConferences = () => {
     });
   };
 
+  const handleCreateSession = () => {
+    toast({
+      title: "Session créée",
+      description: "La nouvelle session a été planifiée avec succès",
+    });
+    setIsCreateDialogOpen(false);
+  };
+
+  const handleEditSession = (conference: VideoConference) => {
+    setSelectedConference(conference);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateSession = () => {
+    toast({
+      title: "Session modifiée",
+      description: "La session a été mise à jour avec succès",
+    });
+    setIsEditDialogOpen(false);
+    setSelectedConference(null);
+  };
+
+  const handleCancelSession = (conference: VideoConference) => {
+    toast({
+      title: "Session annulée",
+      description: `La session "${conference.title}" a été annulée`,
+      variant: "destructive",
+    });
+  };
+
   const scheduledConferences = filteredConferences.filter(c => c.status === 'scheduled');
   const completedConferences = filteredConferences.filter(c => c.status === 'completed' || c.status === 'missed');
 
+  const CreateSessionDialog = () => (
+    <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+      <DialogTrigger asChild>
+        <Button>
+          <Plus className="h-4 w-4 mr-2" />
+          Créer une session
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle>Créer une nouvelle session</DialogTitle>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="title" className="text-right">Titre</Label>
+            <Input id="title" placeholder="Session de formation..." className="col-span-3" />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="course" className="text-right">Cours</Label>
+            <Select>
+              <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="Sélectionner un cours" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="react">Développement React</SelectItem>
+                <SelectItem value="python">Initiation Python</SelectItem>
+                <SelectItem value="javascript">JavaScript ES6+</SelectItem>
+                <SelectItem value="nodejs">Backend Node.js</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="instructor" className="text-right">Formateur</Label>
+            <Select>
+              <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="Sélectionner un formateur" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="marie">Marie Dubois</SelectItem>
+                <SelectItem value="jean">Jean Dupont</SelectItem>
+                <SelectItem value="thomas">Thomas Moreau</SelectItem>
+                <SelectItem value="sarah">Sarah Chen</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="student" className="text-right">Apprenant</Label>
+            <Select>
+              <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="Sélectionner un apprenant" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pierre">Pierre Martin</SelectItem>
+                <SelectItem value="sophie">Sophie Laurent</SelectItem>
+                <SelectItem value="claire">Claire Rousseau</SelectItem>
+                <SelectItem value="marc">Marc Olivier</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="date" className="text-right">Date</Label>
+            <Input id="date" type="date" className="col-span-3" />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="time" className="text-right">Heure</Label>
+            <Input id="time" type="time" className="col-span-3" />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="duration" className="text-right">Durée (min)</Label>
+            <Input id="duration" type="number" placeholder="60" className="col-span-3" />
+          </div>
+        </div>
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+            Annuler
+          </Button>
+          <Button onClick={handleCreateSession}>
+            Créer la session
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
+  const EditSessionDialog = () => (
+    <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle>Modifier la session</DialogTitle>
+        </DialogHeader>
+        {selectedConference && (
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-title" className="text-right">Titre</Label>
+              <Input id="edit-title" defaultValue={selectedConference.title} className="col-span-3" />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-date" className="text-right">Date</Label>
+              <Input id="edit-date" type="date" defaultValue={selectedConference.date} className="col-span-3" />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-time" className="text-right">Heure</Label>
+              <Input id="edit-time" type="time" defaultValue={selectedConference.time} className="col-span-3" />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-duration" className="text-right">Durée (min)</Label>
+              <Input id="edit-duration" type="number" defaultValue={selectedConference.duration} className="col-span-3" />
+            </div>
+          </div>
+        )}
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+            Annuler
+          </Button>
+          <Button onClick={handleUpdateSession}>
+            Mettre à jour
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Gestion des Visioconférences</h1>
-        <p className="text-muted-foreground">
-          Gérez les sessions de visioconférence planifiées et suivez la présence des participants
-        </p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Gestion des Visioconférences</h1>
+          <p className="text-muted-foreground">
+            Gérez les sessions de visioconférence planifiées et suivez la présence des participants
+          </p>
+        </div>
+        <CreateSessionDialog />
       </div>
 
       {/* Filtres */}
@@ -360,6 +523,7 @@ const AdminVideoConferences = () => {
                             variant="outline"
                             size="sm"
                             onClick={() => handleSendReminder(conference, 'both')}
+                            title="Envoyer un rappel"
                           >
                             <Bell className="h-4 w-4" />
                           </Button>
@@ -367,26 +531,25 @@ const AdminVideoConferences = () => {
                             variant="outline"
                             size="sm"
                             onClick={() => handleSendEmail(conference, 'both')}
+                            title="Envoyer un email"
                           >
                             <Mail className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleSendReminder(conference, 'instructor')}
-                            title="Rappeler le formateur"
+                            onClick={() => handleEditSession(conference)}
+                            title="Modifier la session"
                           >
-                            <RefreshCw className="h-4 w-4" />
-                            F
+                            <Edit className="h-4 w-4" />
                           </Button>
                           <Button
-                            variant="outline"
+                            variant="destructive"
                             size="sm"
-                            onClick={() => handleSendReminder(conference, 'student')}
-                            title="Rappeler l'apprenant"
+                            onClick={() => handleCancelSession(conference)}
+                            title="Annuler la session"
                           >
-                            <RefreshCw className="h-4 w-4" />
-                            A
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </TableCell>
@@ -487,6 +650,8 @@ const AdminVideoConferences = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <EditSessionDialog />
     </div>
   );
 };
