@@ -15,7 +15,7 @@ import AdminSettings from '@/components/admin/AdminSettings';
 import AdminSupport from '@/components/admin/AdminSupport';
 import { LicenseManagement } from '@/components/admin/LicenseManagement';
 import { IdentityVerification } from '@/components/admin/IdentityVerification';
-import VideoConference from '@/components/common/VideoConference';
+import AdminVideoConferences from './admin/AdminVideoConferences';
 import { PositioningTest } from '@/components/common/PositioningTest';
 import { AddUser } from '@/components/admin/AddUser';
 import { GroupEnrollment } from '@/components/admin/GroupEnrollment';
@@ -98,7 +98,7 @@ const AdminDashboard = () => {
             <Route path="/conventions" element={<AdminConventionGenerator />} />
             <Route path="/mailings" element={<AdminAutomaticMailings />} />
             <Route path="/emargements" element={<AdminEmargements />} />
-            <Route path="/video" element={<VideoConference isHost={true} />} />
+            <Route path="/video" element={<AdminVideoConferences />} />
             <Route path="/library" element={<AdminLibrary />} />
             <Route path="/subscriptions" element={<AdminSubscriptions />} />
             <Route path="/payments" element={<AdminPayments />} />
