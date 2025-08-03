@@ -21,6 +21,7 @@ import ContentCreatorDashboard from './pages/ContentCreatorDashboard';
 import TechnicianDashboard from './pages/TechnicianDashboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
 import { Toaster } from '@/components/ui/toaster';
 import AdminUsers from './components/admin/AdminUsers';
 import UserDetailPage from './components/admin/UserDetailPage';
@@ -44,6 +45,7 @@ function App() {
           <Route path="/profil" element={<Profile />} />
           <Route path="/connexion" element={<Login />} />
           <Route path="/inscription" element={<Register />} />
+          <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
           
           {/* Public Trainer Pages */}
           <Route path="/formateur-externe/*" element={<ExternalTrainerDashboard />} />
