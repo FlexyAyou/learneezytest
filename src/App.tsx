@@ -27,7 +27,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
           <Route path="/course/:id" element={<CourseDetail />} />
-          <Route path="/tests" element={<PositioningTest />} />
+          <Route path="/tests" element={<PositioningTest userRole="student" />} />
           <Route path="/video" element={<VideoConference />} />
           
           {/* Learner Dashboard */}
@@ -36,7 +36,7 @@ const App = () => (
           {/* Instructor Dashboard */}
           <Route path="/instructor/*" element={<InstructorDashboard />} />
           
-          {/* External Trainer Dashboard */}
+          {/* External Trainer Dashboard - Updated route */}
           <Route path="/formateur-independant/*" element={<ExternalTrainerDashboard />} />
           
           {/* Admin Dashboard */}
