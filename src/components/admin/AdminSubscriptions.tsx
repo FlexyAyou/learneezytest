@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,12 +15,14 @@ import {
   Brain,
   FileText,
   Zap,
-  TrendingUp
+  TrendingUp,
+  Euro
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { SubscriptionMetrics } from './subscriptions/SubscriptionMetrics';
 import { SubscriptionFiltersComponent } from './subscriptions/SubscriptionFilters';
 import { SubscriptionTable } from './subscriptions/SubscriptionTable';
+import { SubscriptionPlansManager } from './subscriptions/SubscriptionPlansManager';
 import { Subscription, SubscriptionPlan, SubscriptionFilters, SubscriptionAnalytics } from '@/types/subscription';
 
 // Données mockées pour la démo
@@ -142,6 +143,13 @@ const AdminSubscriptions = () => {
     });
   };
 
+  const handlePlanUpdate = (plan: SubscriptionPlan) => {
+    toast({
+      title: "Plan mis à jour",
+      description: `Le plan ${plan.name} a été modifié avec succès`,
+    });
+  };
+
   return (
     <div className="space-y-6">
       {/* En-tête */}
@@ -238,22 +246,7 @@ const AdminSubscriptions = () => {
 
         {/* Onglet Plans */}
         <TabsContent value="plans" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Plans d'abonnement</CardTitle>
-              <CardDescription>
-                Configurez et gérez vos offres d'abonnement
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Plans existants - reprise du code existant */}
-                <div className="text-center py-8 text-gray-500">
-                  Plans d'abonnement - Interface à développer
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <SubscriptionPlansManager onPlanUpdate={handlePlanUpdate} />
         </TabsContent>
 
         {/* Onglet Analytics */}
@@ -330,7 +323,7 @@ const AdminSubscriptions = () => {
                 </div>
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center gap-3">
-                    <CreditCard className="h-5 w-5 text-red-500" />
+                    <Euro className="h-5 w-5 text-red-500" />
                     <div>
                       <h4 className="font-medium">Échec de paiement</h4>
                       <p className="text-sm text-gray-600">Immédiatement après échec</p>
