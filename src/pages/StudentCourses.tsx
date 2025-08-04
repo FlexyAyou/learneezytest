@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Book, Play, Clock, Award, Star, Search, Filter } from 'lucide-react';

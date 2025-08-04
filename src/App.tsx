@@ -48,7 +48,7 @@ function App() {
           <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
           
           {/* Public Trainer Pages */}
-          <Route path="/formateur-externe/*" element={<ExternalTrainerDashboard />} />
+          <Route path="/formateur-independant/*" element={<ExternalTrainerDashboard />} />
           <Route path="/formateur-interne/*" element={<InternalTrainerDashboard />} />
           
           {/* Admin Routes */}
@@ -70,7 +70,7 @@ function App() {
           <Route path="/dashboard/parent/*" element={<ParentDashboard />} />
           
           {/* External Trainer Routes */}
-          <Route path="/dashboard/formateur-externe/*" element={<ExternalTrainerDashboard />} />
+          <Route path="/dashboard/formateur-independant/*" element={<ExternalTrainerDashboard />} />
           
           {/* Internal Trainer Routes */}
           <Route path="/dashboard/formateur-interne/*" element={<InternalTrainerDashboard />} />

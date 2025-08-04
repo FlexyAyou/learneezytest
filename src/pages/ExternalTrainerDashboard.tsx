@@ -106,7 +106,7 @@ const ExternalTrainerDashboardHome = () => {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Formateur Externe</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Formateur Independant</h1>
         <p className="text-gray-600">Gérez vos disponibilités et vos tarifs</p>
         <div className="mt-2 text-sm text-gray-500">
           Commission Learneezy: 30% • Vous recevez: 70%
@@ -255,20 +255,20 @@ const ExternalTrainerDashboardHome = () => {
 
 const ExternalTrainerDashboard = () => {
   const sidebarItems = [
-    { title: 'Tableau de bord', href: '/formateur-externe', icon: TrendingUp, isActive: true },
-    { title: 'Mes spécialités', href: '/formateur-externe/specialites', icon: Target },
-    { title: 'Mes disponibilités', href: '/formateur-externe/disponibilites', icon: Calendar },
-    { title: 'Mes tarifs', href: '/formateur-externe/tarifs', icon: DollarSign },
-    { title: 'Mes réservations', href: '/formateur-externe/reservations', icon: BookOpen },
-    { title: 'Historique séances', href: '/formateur-externe/historique', icon: History },
-    { title: 'Mes évaluations', href: '/formateur-externe/evaluations', icon: Star },
-    { title: 'Mes revenus', href: '/formateur-externe/revenus', icon: Award },
-    { title: 'Tests de positionnement', href: '/formateur-externe/tests', icon: TestTube },
-    { title: 'Visioconférence', href: '/formateur-externe/video', icon: Video },
-    { title: 'Chat IA', href: '/formateur-externe/chat', icon: Brain },
-    { title: 'Mes documents', href: '/formateur-externe/documents', icon: Download },
-    { title: 'Support & Assistance', href: '/formateur-externe/support', icon: HelpCircle },
-    { title: 'Profil formateur', href: '/formateur-externe/profil', icon: Settings },
+    { title: 'Tableau de bord', href: '/formateur-independant', icon: TrendingUp, isActive: true },
+    { title: 'Mes spécialités', href: '/formateur-independant/specialites', icon: Target },
+    { title: 'Mes disponibilités', href: '/formateur-independant/disponibilites', icon: Calendar },
+    { title: 'Mes tarifs', href: '/formateur-independant/tarifs', icon: DollarSign },
+    { title: 'Mes réservations', href: '/formateur-independant/reservations', icon: BookOpen },
+    { title: 'Historique séances', href: '/formateur-independant/historique', icon: History },
+    { title: 'Mes évaluations', href: '/formateur-independant/evaluations', icon: Star },
+    { title: 'Mes revenus', href: '/formateur-independant/revenus', icon: Award },
+    { title: 'Tests de positionnement', href: '/formateur-independant/tests', icon: TestTube },
+    { title: 'Visioconférence', href: '/formateur-independant/video', icon: Video },
+    { title: 'Chat IA', href: '/formateur-independant/chat', icon: Brain },
+    { title: 'Mes documents', href: '/formateur-independant/documents', icon: Download },
+    { title: 'Support & Assistance', href: '/formateur-independant/support', icon: HelpCircle },
+    { title: 'Profil formateur', href: '/formateur-independant/profil', icon: Settings },
   ];
 
   const userInfo = {
@@ -284,7 +284,7 @@ const ExternalTrainerDashboard = () => {
   return (
     <div className="flex min-h-screen bg-gray-50">
       <DashboardSidebar
-        title="Formateur Externe"
+        title="Formateur Independant"
         subtitle="Formations à la demande"
         items={sidebarItems}
         userInfo={userInfo}

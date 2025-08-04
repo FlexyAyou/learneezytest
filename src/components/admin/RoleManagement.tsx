@@ -34,7 +34,7 @@ const PREDEFINED_ROLES: Role[] = [
   },
   {
     id: 'external_trainer',
-    name: 'Formateur Externe',
+    name: 'Formateur Independant',
     description: 'Accès limité aux cours assignés',
     permissions: ['courses_view', 'evaluations_view'],
     isActive: true
