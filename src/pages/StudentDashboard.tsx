@@ -17,7 +17,9 @@ import CourseViewer from './student/CourseViewer';
 import { StudentDocuments } from '@/components/student/StudentDocuments';
 import { StudentSubscription } from '@/components/student/StudentSubscription';
 import VideoConference from '@/components/common/VideoConference';
+import StudentVideoConferences from '@/components/student/StudentVideoConferences';
 import { StudentDashboardHome } from '@/components/student/StudentDashboardHome';
+import AIChatButton from '@/components/common/AIChatButton';
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
@@ -73,7 +75,7 @@ const StudentDashboard = () => {
             <Route path="/evaluations/:id/results" element={<EvaluationDetail />} />
             <Route path="/evaluations/:id/take" element={<TakeEvaluation />} />
             {/* === ROUTES OUTILS === */}
-            <Route path="/video" element={<VideoConference />} />
+            <Route path="/video" element={<StudentVideoConferences />} />
             <Route path="/documents" element={<StudentDocuments />} />
             <Route path="/subscription" element={<StudentSubscription />} />
             <Route path="/messages" element={<StudentMessaging />} />
@@ -81,6 +83,7 @@ const StudentDashboard = () => {
           </Routes>
         </main>
       </div>
+      <AIChatButton />
     </div>
   );
 };

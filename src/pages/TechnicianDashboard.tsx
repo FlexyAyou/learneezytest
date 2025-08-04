@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { TechnicalSupport } from "@/components/technician/TechnicalSupport";
 import { MaintenanceUpdates } from "@/components/technician/MaintenanceUpdates";
 import { InfrastructureMonitoring } from "@/components/technician/InfrastructureMonitoring";
+import AIChatButton from '@/components/common/AIChatButton';
 import { 
   AlertTriangle, 
   CheckCircle, 
@@ -271,6 +272,7 @@ const TechnicianDashboard = () => {
           </TabsContent>
         </Tabs>
       </div>
+      <AIChatButton />
     </div>
   );
 };

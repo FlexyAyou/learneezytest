@@ -20,6 +20,7 @@ import {
   Eye
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import AIChatButton from '@/components/common/AIChatButton';
 
 const ParentDashboardHome = () => {
   const { toast } = useToast();
@@ -288,6 +289,7 @@ const ParentDashboard = () => {
           <Route path="/planning" element={<ParentPlanningNotifications />} />
         </Routes>
       </main>
+      <AIChatButton />
     </div>
   );
 };

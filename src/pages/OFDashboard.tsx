@@ -11,6 +11,7 @@ import { OFEnvois } from '@/components/admin/OFEnvois';
 import { OFIntegrations } from '@/components/admin/OFIntegrations';
 import { OFLogs } from '@/components/admin/OFLogs';
 import { OFSettings } from '@/components/admin/OFSettings';
+import AIChatButton from '@/components/common/AIChatButton';
 import AdminDocumentsOF from '@/pages/admin/AdminDocumentsOF';
 import OFDocuments from '@/components/admin/OFDocuments';
 import { 

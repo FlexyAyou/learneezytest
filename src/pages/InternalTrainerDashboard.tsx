@@ -54,6 +54,7 @@ import { DocumentDownload } from '@/components/common/DocumentDownload';
 import AIChat from '@/components/common/AIChat';
 import VideoConference from '@/components/common/VideoConference';
 import { PositioningTest } from '@/components/common/PositioningTest';
+import AIChatButton from '@/components/common/AIChatButton';
 
 const InternalTrainerDashboardHome = () => {
   const { toast } = useToast();

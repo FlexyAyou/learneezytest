@@ -18,6 +18,7 @@ import { IdentityVerification } from '@/components/admin/IdentityVerification';
 import AdminVideoConferences from './admin/AdminVideoConferences';
 import { PositioningTest } from '@/components/common/PositioningTest';
 import { AddUser } from '@/components/admin/AddUser';
+import AIChatButton from '@/components/common/AIChatButton';
 import { GroupEnrollment } from '@/components/admin/GroupEnrollment';
 import UserDetailPage from '@/components/admin/UserDetailPage';
 import AdminEmargements from '@/components/admin/AdminEmargements';
@@ -108,6 +109,7 @@ const AdminDashboard = () => {
           </Routes>
         </main>
       </div>
+      <AIChatButton />
     </div>
   );
 };

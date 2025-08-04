@@ -23,6 +23,7 @@ import ManagerReports from '@/components/manager/ManagerReports';
 import ManagerApprenants from '@/components/manager/ManagerApprenants';
 import ManagerFormations from '@/components/manager/ManagerFormations';
 import { ManagerDashboardHome } from '@/components/manager/ManagerDashboardHome';
+import AIChatButton from '@/components/common/AIChatButton';
 
 const ManagerDashboard = () => {
   const location = useLocation();
@@ -110,6 +111,7 @@ const ManagerDashboard = () => {
           <Route path="parametres" element={<ManagerSettings />} />
         </Routes>
       </main>
+      <AIChatButton />
     </div>
   );
 };

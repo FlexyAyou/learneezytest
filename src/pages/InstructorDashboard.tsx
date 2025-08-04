@@ -10,6 +10,7 @@ import InstructorOFDocuments from './InstructorOFDocuments';
 import AIChat from '@/components/common/AIChat';
 import VideoConference from '@/components/common/VideoConference';
 import { PositioningTest } from '@/components/common/PositioningTest';
+import AIChatButton from '@/components/common/AIChatButton';
 import { DocumentDownload } from '@/components/common/DocumentDownload';
 import { OFDashboard } from '@/components/admin/OFDashboard';
 
@@ -68,6 +69,7 @@ const InstructorDashboard = () => {
           </Routes>
         </main>
       </div>
+      <AIChatButton />
     </div>
   );
 };

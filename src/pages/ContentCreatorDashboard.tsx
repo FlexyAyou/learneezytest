@@ -20,6 +20,7 @@ import { ModuleCreation } from '@/components/content-creator/ModuleCreation';
 import { ResourceManagement } from '@/components/content-creator/ResourceManagement';
 import { TrainerCollaboration } from '@/components/content-creator/TrainerCollaboration';
 import { ContentValidation } from '@/components/content-creator/ContentValidation';
+import AIChatButton from '@/components/common/AIChatButton';
 
 export default function ContentCreatorDashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');

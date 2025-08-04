@@ -12,6 +12,7 @@ import TutorPlanningNotifications from '@/components/tutor/TutorPlanningNotifica
 import { TutorAddStudent } from '@/components/tutor/TutorAddStudent';
 import { TutorSettings } from '@/components/tutor/TutorSettings';
 import { TutorSubscription } from '@/components/tutor/TutorSubscription';
+import AIChatButton from '@/components/common/AIChatButton';
 import { TutorDocuments } from '@/components/tutor/TutorDocuments';
 import { TutorStudentDetailedView } from '@/components/tutor/TutorStudentDetailedView';
 import { 
