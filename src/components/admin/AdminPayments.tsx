@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { DollarSign, TrendingUp, CreditCard, AlertCircle, Download, Eye } from 'lucide-react';
+import { Euro, TrendingUp, CreditCard, AlertCircle, Download, Eye } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -37,7 +37,7 @@ const AdminPayments = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Revenus totaux</CardTitle>
-            <DollarSign className="h-4 w-4 text-green-600" />
+            <Euro className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">€234,567</div>

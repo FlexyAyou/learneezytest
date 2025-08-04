@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { DollarSign, Edit, TrendingUp, Users, Clock, Target } from 'lucide-react';
+import { Euro, Edit, TrendingUp, Users, Clock, Target } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const TrainerRates = () => {
@@ -178,7 +179,7 @@ const TrainerRates = () => {
                 active: true,
               });
             }}>
-              <DollarSign className="mr-2 h-4 w-4" />
+              <Euro className="mr-2 h-4 w-4" />
               Ajouter un tarif
             </Button>
           </DialogTrigger>
@@ -305,7 +306,7 @@ const TrainerRates = () => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
-              <DollarSign className="h-8 w-8 text-green-600" />
+              <Euro className="h-8 w-8 text-green-600" />
               <div className="ml-4">
                 <p className="text-2xl font-bold">{averageRate.toFixed(0)}€</p>
                 <p className="text-muted-foreground text-sm">Tarif moyen/h</p>

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
@@ -8,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { 
   Calendar, 
-  DollarSign, 
+  Euro, 
   Star, 
   Users, 
   Clock,
@@ -50,7 +51,7 @@ const ExternalTrainerDashboardHome = () => {
     {
       title: "Revenus ce mois",
       value: "2,450€",
-      icon: DollarSign,
+      icon: Euro,
       change: "+15% vs mois dernier"
     },
     {
@@ -258,7 +259,7 @@ const ExternalTrainerDashboard = () => {
     { title: 'Tableau de bord', href: '/formateur-independant', icon: TrendingUp, isActive: true },
     { title: 'Mes spécialités', href: '/formateur-independant/specialites', icon: Target },
     { title: 'Mes disponibilités', href: '/formateur-independant/disponibilites', icon: Calendar },
-    { title: 'Mes tarifs', href: '/formateur-independant/tarifs', icon: DollarSign },
+    { title: 'Mes tarifs', href: '/formateur-independant/tarifs', icon: Euro },
     { title: 'Mes réservations', href: '/formateur-independant/reservations', icon: BookOpen },
     { title: 'Historique séances', href: '/formateur-independant/historique', icon: History },
     { title: 'Mes évaluations', href: '/formateur-independant/evaluations', icon: Star },
