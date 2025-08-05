@@ -56,6 +56,7 @@ const AdminDashboard = () => {
     { title: "Sécurité", href: "/dashboard/admin/security", icon: Shield, isActive: currentPath === "/dashboard/admin/security" },
     { title: "Support", href: "/dashboard/admin/support", icon: MessageSquare, isActive: currentPath === "/dashboard/admin/support" },
     { title: "Paramètres", href: "/dashboard/admin/settings", icon: Settings, isActive: currentPath === "/dashboard/admin/settings" },
+    { title: "Babacar", href: "/dashboard/admin/settings", icon: Settings, isActive: currentPath === "/dashboard/admin/settings" },
   ];
 
   const userInfo = {
