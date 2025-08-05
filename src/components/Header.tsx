@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Menu, X, BookOpen, User } from 'lucide-react';
+import { Menu, X, BookOpen, User, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import LanguageSelector from '@/components/common/LanguageSelector';
@@ -22,6 +22,10 @@ const Header = () => {
             <Link to="/" className="text-gray-700 hover:text-pink-600 transition-colors">Accueil</Link>
             <Link to="/nos-formations" className="text-gray-700 hover:text-pink-600 transition-colors">Nos formations</Link>
             <Link to="/apropos" className="text-gray-700 hover:text-pink-600 transition-colors">À propos</Link>
+            <Link to="/documentation" className="text-gray-700 hover:text-pink-600 transition-colors flex items-center">
+              <FileText className="h-4 w-4 mr-1" />
+              Documentation
+            </Link>
             <Link to="/contact" className="text-gray-700 hover:text-pink-600 transition-colors">Contact</Link>
           </nav>
 
@@ -59,6 +63,10 @@ const Header = () => {
               <Link to="/" className="block px-3 py-2 text-gray-700 hover:text-pink-600">Accueil</Link>
               <Link to="/nos-formations" className="block px-3 py-2 text-gray-700 hover:text-pink-600">Nos formations</Link>
               <Link to="/apropos" className="block px-3 py-2 text-gray-700 hover:text-pink-600">À propos</Link>
+              <Link to="/documentation" className="block px-3 py-2 text-gray-700 hover:text-pink-600">
+                <FileText className="h-4 w-4 mr-1 inline" />
+                Documentation
+              </Link>
               <Link to="/contact" className="block px-3 py-2 text-gray-700 hover:text-pink-600">Contact</Link>
               <div className="pt-4 border-t">
                 <div className="px-3 py-2">

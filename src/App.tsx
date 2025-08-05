@@ -7,6 +7,7 @@ import Courses from './pages/Courses';
 import CourseDetail from './pages/CourseDetail';
 import Offers from './pages/Offers';
 import Contact from './pages/Contact';
+import Documentation from './pages/Documentation';
 import StudentDashboard from './pages/StudentDashboard';
 import Profile from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
@@ -40,6 +41,7 @@ function App() {
           <Route path="/tarifs" element={<Offers />} />
           <Route path="/offres" element={<Offers />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/documentation" element={<Documentation />} />
           <Route path="/tableau-de-bord" element={<StudentDashboard />} />
           <Route path="/dashboard/etudiant/*" element={<StudentDashboard />} />
           <Route path="/profil" element={<Profile />} />
