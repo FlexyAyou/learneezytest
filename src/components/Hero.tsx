@@ -74,7 +74,7 @@ const Hero = () => {
       className="pt-20 min-h-screen flex items-center relative overflow-hidden"
     >
       {/* Video Background */}
-      <div className="absolute inset-0 w-full h-full">
+      <div className="absolute inset-0 w-full h-full z-0">
         <video
           autoPlay
           muted
@@ -83,10 +83,9 @@ const Hero = () => {
           className="w-full h-full object-cover"
         >
           <source src="https://player.vimeo.com/external/434045526.sd.mp4?s=c27eed653c1358a2d1d20e97f0b1ea2b6fd74325&profile_id=165&oauth2_token_id=57447761" type="video/mp4" />
-          {/* Fallback for browsers that don't support video */}
         </video>
-        {/* Dark overlay */}
-        <div className="absolute inset-0 bg-black/60"></div>
+        {/* Dark overlay - plus transparent pour voir la vidéo */}
+        <div className="absolute inset-0 bg-black/40"></div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 relative z-10">
@@ -126,7 +125,11 @@ const Hero = () => {
                 </Button>
               </Link>
               <Link to="/nos-formations">
-                <Button variant="outline" size="lg" className="text-lg px-8 py-3 transform hover:scale-105 transition-all duration-300 hover:shadow-md border-white/30 text-white hover:bg-white/10 hover:text-white">
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="text-lg px-8 py-3 transform hover:scale-105 transition-all duration-300 hover:shadow-md border-white text-white hover:bg-white/20 hover:text-white hover:border-white bg-white/10 backdrop-blur-sm"
+                >
                   <Play className="h-5 w-5 mr-2" />
                   Voir nos formations
                 </Button>
