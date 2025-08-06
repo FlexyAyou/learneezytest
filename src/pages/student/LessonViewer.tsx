@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Play, CheckCircle, Clock, Star, MessageSquare, Download, ChevronRight, ChevronLeft, Home } from 'lucide-react';
+import { ArrowLeft, Play, CheckCircle, Clock, Star, MessageSquare, Download, ChevronRight, ChevronLeft, Home, User } from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 const LessonViewer = () => {
   const { courseId, lessonId } = useParams();
@@ -47,7 +48,11 @@ Pouvez-vous voir le pattern ? Chaque dizaine se termine par 0 !
     course: {
       title: "Mathématiques CE2",
       totalLessons: 7,
-      currentLessonIndex: 1
+      currentLessonIndex: 1,
+      instructor: {
+        name: "Marie Dupont",
+        role: "Professeure de Mathématiques"
+      }
     }
   };
 
@@ -105,20 +110,27 @@ Pouvez-vous voir le pattern ? Chaque dizaine se termine par 0 !
         <div className="grid lg:grid-cols-4 gap-6">
           {/* Contenu principal */}
           <div className="lg:col-span-3">
-            {/* En-tête de la leçon */}
+            {/* En-tête de la leçon avec module en premier */}
             <div className="mb-6">
-              <div className="flex items-center gap-3 mb-2">
+              {/* Module title en premier */}
+              <div className="mb-3">
+                <Badge variant="outline" className="text-base px-3 py-1 bg-blue-50 text-blue-700 border-blue-200">
+                  📚 {lesson.moduleTitle}
+                </Badge>
+              </div>
+              
+              {/* Lesson details */}
+              <div className="flex items-center gap-3 mb-3">
                 <Badge variant="secondary">{lesson.type === 'video' ? '🎥' : '📄'} {lesson.type}</Badge>
                 <div className="flex items-center text-sm text-gray-600">
                   <Clock className="w-4 h-4 mr-1" />
                   {lesson.duration}
                 </div>
               </div>
-              <h1 className="text-3xl font-bold mb-2">{lesson.title}</h1>
-              <p className="text-gray-600 mb-4">{lesson.description}</p>
-              <div className="text-sm text-gray-500">
-                Module : {lesson.moduleTitle}
-              </div>
+              
+              {/* Lesson title */}
+              <h1 className="text-3xl font-bold mb-3">{lesson.title}</h1>
+              <p className="text-gray-600 text-lg">{lesson.description}</p>
             </div>
 
             {/* Lecteur vidéo */}
@@ -142,7 +154,7 @@ Pouvez-vous voir le pattern ? Chaque dizaine se termine par 0 !
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="overview">Aperçu</TabsTrigger>
                 <TabsTrigger value="transcript">Transcription</TabsTrigger>
-                <TabsTrigger value="discussion">Discussion</TabsTrigger>
+                <TabsTrigger value="discussion">Discussion avec le formateur</TabsTrigger>
               </TabsList>
               
               <TabsContent value="overview" className="space-y-4">
@@ -183,14 +195,37 @@ Pouvez-vous voir le pattern ? Chaque dizaine se termine par 0 !
               <TabsContent value="discussion" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Discussion</CardTitle>
-                    <CardDescription>Posez vos questions et échangez avec les autres étudiants</CardDescription>
+                    <CardTitle className="flex items-center gap-3">
+                      <MessageSquare className="w-5 h-5" />
+                      Discussion avec votre formateur
+                    </CardTitle>
+                    <CardDescription>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Avatar className="h-6 w-6">
+                          <AvatarFallback className="text-xs">
+                            {lesson.course.instructor.name.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span>{lesson.course.instructor.name} - {lesson.course.instructor.role}</span>
+                      </div>
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="text-center py-8 text-gray-500">
-                      <MessageSquare className="w-12 h-12 mx-auto mb-4" />
-                      <p>Aucune discussion pour le moment.</p>
-                      <p className="text-sm">Soyez le premier à poser une question !</p>
+                      <div className="flex items-center justify-center mb-4">
+                        <div className="relative">
+                          <MessageSquare className="w-12 h-12 mx-auto text-gray-300" />
+                          <User className="w-6 h-6 absolute -bottom-1 -right-1 bg-white rounded-full p-1 text-gray-400" />
+                        </div>
+                      </div>
+                      <p className="font-medium mb-1">Aucune discussion pour le moment</p>
+                      <p className="text-sm text-gray-400 mb-4">
+                        Posez une question à votre formateur sur cette leçon
+                      </p>
+                      <Button variant="outline" className="mt-2">
+                        <MessageSquare className="w-4 h-4 mr-2" />
+                        Poser une question
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -228,6 +263,30 @@ Pouvez-vous voir le pattern ? Chaque dizaine se termine par 0 !
                     </div>
                   )}
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Formateur */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Votre formateur</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-10 w-10">
+                    <AvatarFallback>
+                      {lesson.course.instructor.name.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium">{lesson.course.instructor.name}</p>
+                    <p className="text-sm text-gray-600">{lesson.course.instructor.role}</p>
+                  </div>
+                </div>
+                <Button variant="outline" className="w-full mt-3">
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  Contacter le formateur
+                </Button>
               </CardContent>
             </Card>
 
