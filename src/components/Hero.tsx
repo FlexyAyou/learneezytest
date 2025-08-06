@@ -82,7 +82,7 @@ const Hero = () => {
           playsInline
           className="w-full h-full object-cover"
         >
-          <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4" />
+          <source src="https://videos.pexels.com/video-files/5197626/5197626-uhd_2560_1440_25fps.mp4" type="video/mp4" />
         </video>
       </div>
 
