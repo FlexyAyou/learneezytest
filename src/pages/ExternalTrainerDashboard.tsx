@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
@@ -38,10 +37,10 @@ import TrainerHistory from '@/components/external-trainer/TrainerHistory';
 import TrainerReviews from '@/components/external-trainer/TrainerReviews';
 import TrainerProfile from '@/components/external-trainer/TrainerProfile';
 import TrainerSupport from '@/components/external-trainer/TrainerSupport';
-import { DocumentDownload } from '@/components/common/DocumentDownload';
+import TrainerDocuments from '@/components/external-trainer/TrainerDocuments';
+import TrainerPositioningTests from '@/components/external-trainer/TrainerPositioningTests';
 import AIChat from '@/components/common/AIChat';
 import VideoConference from '@/components/common/VideoConference';
-import { PositioningTest } from '@/components/common/PositioningTest';
 import AIChatButton from '@/components/common/AIChatButton';
 
 const ExternalTrainerDashboardHome = () => {
@@ -262,7 +261,7 @@ const ExternalTrainerDashboard = () => {
     { title: 'Mes tarifs', href: '/formateur-independant/tarifs', icon: Euro },
     { title: 'Mes réservations', href: '/formateur-independant/reservations', icon: BookOpen },
     { title: 'Historique séances', href: '/formateur-independant/historique', icon: History },
-    { title: 'Mes évaluations', href: '/formateur-independant/evaluations', icon: Star },
+    { title: 'Mes avis', href: '/formateur-independant/evaluations', icon: Star },
     { title: 'Mes revenus', href: '/formateur-independant/revenus', icon: Award },
     { title: 'Tests de positionnement', href: '/formateur-independant/tests', icon: TestTube },
     { title: 'Visioconférence', href: '/formateur-independant/video', icon: Video },
@@ -276,11 +275,6 @@ const ExternalTrainerDashboard = () => {
     name: "Jean Martin",
     email: "jean.martin@email.com"
   };
-
-  const mockDocuments = [
-    { id: '1', name: 'Contrat formateur.pdf', type: 'PDF', date: '2024-01-20', size: '2.3 MB' },
-    { id: '2', name: 'Supports de cours.pdf', type: 'PDF', date: '2024-01-18', size: '1.8 MB' }
-  ];
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -300,10 +294,10 @@ const ExternalTrainerDashboard = () => {
           <Route path="/historique" element={<TrainerHistory />} />
           <Route path="/evaluations" element={<TrainerReviews />} />
           <Route path="/revenus" element={<TrainerEarnings />} />
-          <Route path="/tests" element={<PositioningTest userRole="instructor" />} />
+          <Route path="/tests" element={<TrainerPositioningTests />} />
           <Route path="/video" element={<VideoConference />} />
           <Route path="/chat" element={<AIChat />} />
-          <Route path="/documents" element={<DocumentDownload documents={mockDocuments} userRole="instructor" />} />
+          <Route path="/documents" element={<TrainerDocuments />} />
           <Route path="/support" element={<TrainerSupport />} />
           <Route path="/profil" element={<TrainerProfile />} />
         </Routes>
