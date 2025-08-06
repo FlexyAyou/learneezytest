@@ -144,6 +144,19 @@ const CourseViewer = () => {
   const completedCount = completedLessons.length;
   const progressPercentage = Math.round((completedCount / totalLessons) * 100);
 
+  const getNextAvailableLesson = () => {
+    for (let moduleIndex = 0; moduleIndex < course.modules.length; moduleIndex++) {
+      const module = course.modules[moduleIndex];
+      for (let lessonIndex = 0; lessonIndex < module.lessons.length; lessonIndex++) {
+        const lesson = module.lessons[lessonIndex];
+        if (isLessonAvailable(moduleIndex, lessonIndex) && !isLessonCompleted(lesson.id)) {
+          return lesson.id;
+        }
+      }
+    }
+    return course.modules[0].lessons[0].id; // Fallback à la première leçon
+  };
+
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       <div className="flex items-center gap-4 mb-6">
@@ -261,9 +274,7 @@ const CourseViewer = () => {
                                 size="sm"
                                 variant={isCompleted ? "outline" : "default"}
                                 onClick={() => {
-                                  if (!isCompleted) {
-                                    markLessonComplete(lesson.id);
-                                  }
+                                  navigate(`/dashboard/etudiant/courses/${id}/lessons/${lesson.id}`);
                                 }}
                               >
                                 {isCompleted ? 'Revoir' : 'Commencer'}
@@ -340,7 +351,13 @@ const CourseViewer = () => {
               <CardTitle className="text-lg">Actions rapides</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button className="w-full">
+              <Button 
+                className="w-full"
+                onClick={() => {
+                  const nextLesson = getNextAvailableLesson();
+                  navigate(`/dashboard/etudiant/courses/${id}/lessons/${nextLesson}`);
+                }}
+              >
                 <Play className="w-4 h-4 mr-2" />
                 Continuer le cours
               </Button>

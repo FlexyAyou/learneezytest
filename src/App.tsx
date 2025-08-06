@@ -1,92 +1,58 @@
-
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Index from './pages/Index';
-import About from './pages/About';
-import Courses from './pages/Courses';
-import CourseDetail from './pages/CourseDetail';
-import Offers from './pages/Offers';
-import Contact from './pages/Contact';
-import Documentation from './pages/Documentation';
-import StudentDashboard from './pages/StudentDashboard';
-import Profile from './pages/Profile';
-import AdminDashboard from './pages/AdminDashboard';
-import OFDashboard from './pages/OFDashboard';
-import InstructorDashboard from './pages/InstructorDashboard';
-import ManagerDashboard from './pages/ManagerDashboard';
-import TutorDashboard from './pages/TutorDashboard';
-import ParentDashboard from './pages/ParentDashboard';
-import ExternalTrainerDashboard from './pages/ExternalTrainerDashboard';
-import InternalTrainerDashboard from './pages/InternalTrainerDashboard';
-import ContentCreatorDashboard from './pages/ContentCreatorDashboard';
-import TechnicianDashboard from './pages/TechnicianDashboard';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import ForgotPassword from './pages/ForgotPassword';
-import { Toaster } from '@/components/ui/toaster';
-import AdminUsers from './components/admin/AdminUsers';
-import UserDetailPage from './components/admin/UserDetailPage';
-import { LanguageProvider } from './contexts/LanguageContext';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/hooks/useApi';
+import { Layout } from '@/components/Layout';
+import { Login } from '@/pages/Login';
+import { Register } from '@/pages/Register';
+import { Home } from '@/pages/Home';
+import { Courses } from '@/pages/Courses';
+import { CourseDetail } from '@/pages/CourseDetail';
+import { Profile } from '@/pages/Profile';
+import { AdminDashboard } from '@/pages/admin/AdminDashboard';
+import { AdminUsers } from '@/pages/admin/AdminUsers';
+import { AdminCourses } from '@/pages/admin/AdminCourses';
+import { StudentDashboard } from '@/pages/student/StudentDashboard';
+import { InstructorDashboard } from '@/pages/instructor/InstructorDashboard';
+import { StudentCourses } from '@/pages/StudentCourses';
+import { CourseViewer } from '@/pages/student/CourseViewer';
+import { LessonViewer } from '@/pages/student/LessonViewer';
 
 function App() {
   return (
-    <LanguageProvider>
+    <QueryClient>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/apropos" element={<About />} />
+          {/* Public routes */}
+          <Route path="/" element={<Home />} />
           <Route path="/cours" element={<Courses />} />
-          <Route path="/nos-formations" element={<Courses />} />
           <Route path="/cours/:id" element={<CourseDetail />} />
-          <Route path="/tarifs" element={<Offers />} />
-          <Route path="/offres" element={<Offers />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/documentation" element={<Documentation />} />
-          <Route path="/tableau-de-bord" element={<StudentDashboard />} />
-          <Route path="/dashboard/etudiant/*" element={<StudentDashboard />} />
-          <Route path="/profil" element={<Profile />} />
           <Route path="/connexion" element={<Login />} />
           <Route path="/inscription" element={<Register />} />
-          <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
+
+          {/* Auth routes */}
+          <Route element={<Layout />}>
+            <Route path="/profil" element={<Profile />} />
+          </Route>
+
+          {/* Admin routes */}
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/users" element={<AdminUsers />} />
+          <Route path="/admin/courses" element={<AdminCourses />} />
           
-          {/* Public Trainer Pages */}
-          <Route path="/formateur-independant/*" element={<ExternalTrainerDashboard />} />
-          <Route path="/formateur-interne/*" element={<InternalTrainerDashboard />} />
-          
-          {/* Admin Routes */}
-          <Route path="/dashboard/admin/*" element={<AdminDashboard />} />
-          
-          {/* Organisme de Formation Routes */}
-          <Route path="/dashboard/organisme-formation/*" element={<OFDashboard />} />
-          
-          {/* Instructor Routes */}
-          <Route path="/dashboard/instructor/*" element={<InstructorDashboard />} />
-          
-          {/* Manager Routes */}
-          <Route path="/dashboard/gestionnaire/*" element={<ManagerDashboard />} />
-          
-          {/* Tutor Routes */}
-          <Route path="/dashboard/tuteur/*" element={<TutorDashboard />} />
-          
-          {/* Parent Routes */}
-          <Route path="/dashboard/parent/*" element={<ParentDashboard />} />
-          
-          {/* External Trainer Routes */}
-          <Route path="/dashboard/formateur-independant/*" element={<ExternalTrainerDashboard />} />
-          
-          {/* Internal Trainer Routes */}
-          <Route path="/dashboard/formateur-interne/*" element={<InternalTrainerDashboard />} />
-          
-          {/* Content Creator Routes */}
-          <Route path="/dashboard/createur-contenu/*" element={<ContentCreatorDashboard />} />
-          
-          {/* Technician Routes */}
-          <Route path="/dashboard/technicien/*" element={<TechnicianDashboard />} />
-          
+          {/* Student routes */}
+          <Route path="/dashboard/etudiant/courses" element={<StudentCourses />} />
+          <Route path="/dashboard/etudiant/courses/:id" element={<CourseViewer />} />
+          <Route path="/dashboard/etudiant/courses/:courseId/lessons/:lessonId" element={<LessonViewer />} />
+
+          {/* Instructor routes */}
+          <Route path="/dashboard/instructor" element={<InstructorDashboard />} />
+
+          {/* Default route */}
+          <Route path="*" element={<Navigate to="/" />} />
         </Routes>
-        <Toaster />
       </BrowserRouter>
-    </LanguageProvider>
+    </QueryClient>
   );
 }
 
