@@ -84,8 +84,6 @@ const Hero = () => {
         >
           <source src="https://player.vimeo.com/external/434045526.sd.mp4?s=c27eed653c1358a2d1d20e97f0b1ea2b6fd74325&profile_id=165&oauth2_token_id=57447761" type="video/mp4" />
         </video>
-        {/* Dark overlay - plus transparent pour voir la vidéo */}
-        <div className="absolute inset-0 bg-black/40"></div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 relative z-10">
@@ -100,18 +98,18 @@ const Hero = () => {
                     : 'opacity-100 translate-y-0 scale-100'
                 }`}
               >
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight">
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight drop-shadow-lg">
                   <span className="inline-block animate-fade-in">
                     {currentSlideData.title}
                   </span>
-                  <span className={`text-transparent bg-clip-text bg-gradient-to-r ${currentSlideData.gradient} inline-block animate-fade-in delay-150`}>
+                  <span className={`text-transparent bg-clip-text bg-gradient-to-r ${currentSlideData.gradient} inline-block animate-fade-in delay-150 drop-shadow-lg`}>
                     {" "}{currentSlideData.highlight}
                   </span>
                   <span className="inline-block animate-fade-in delay-300">
                     {" "}{currentSlideData.subtitle}
                   </span>
                 </h1>
-                <p className="mt-6 text-xl text-gray-200 max-w-2xl mx-auto lg:mx-0 animate-fade-in delay-500">
+                <p className="mt-6 text-xl text-white max-w-2xl mx-auto lg:mx-0 animate-fade-in delay-500 drop-shadow-md">
                   {currentSlideData.description}
                 </p>
               </div>
@@ -166,21 +164,21 @@ const Hero = () => {
                     <Star key={i} className="h-4 w-4 fill-current animate-pulse" style={{animationDelay: `${i * 0.1}s`}} />
                   ))}
                 </div>
-                <p className="text-sm text-gray-300">4.9/5 étoiles</p>
+                <p className="text-sm text-white drop-shadow-md">4.9/5 étoiles</p>
               </div>
               <div className="flex flex-col items-center lg:items-start transform hover:scale-105 transition-transform duration-300">
                 <div className="flex items-center text-pink-400 mb-1">
                   <Users className="h-5 w-5 mr-1" />
-                  <span className="font-bold text-lg text-white">50k+</span>
+                  <span className="font-bold text-lg text-white drop-shadow-md">50k+</span>
                 </div>
-                <p className="text-sm text-gray-300">Étudiants actifs</p>
+                <p className="text-sm text-white drop-shadow-md">Étudiants actifs</p>
               </div>
               <div className="flex flex-col items-center lg:items-start transform hover:scale-105 transition-transform duration-300">
                 <div className="flex items-center text-orange-400 mb-1">
                   <Award className="h-5 w-5 mr-1" />
-                  <span className="font-bold text-lg text-white">1000+</span>
+                  <span className="font-bold text-lg text-white drop-shadow-md">1000+</span>
                 </div>
-                <p className="text-sm text-gray-300">Cours disponibles</p>
+                <p className="text-sm text-white drop-shadow-md">Cours disponibles</p>
               </div>
             </div>
           </div>
@@ -219,8 +217,8 @@ const Hero = () => {
                       <div className="w-16 h-16 mx-auto mb-4 bg-white/20 rounded-full flex items-center justify-center">
                         <Play className="w-8 h-8 text-white" />
                       </div>
-                      <h3 className="text-lg font-semibold mb-2">Plateforme d'apprentissage</h3>
-                      <p className="text-sm text-gray-200">Interactive et moderne</p>
+                      <h3 className="text-lg font-semibold mb-2 drop-shadow-md">Plateforme d'apprentissage</h3>
+                      <p className="text-sm text-white drop-shadow-md">Interactive et moderne</p>
                     </div>
                   </div>
                 </div>
