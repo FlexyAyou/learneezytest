@@ -176,7 +176,7 @@ const TrainerReviews = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Mes Évaluations</h1>
+        <h1 className="text-3xl font-bold">Mes avis</h1>
         <p className="text-muted-foreground">Consultez les retours et notes de vos élèves</p>
       </div>
 
@@ -187,7 +187,6 @@ const TrainerReviews = () => {
         </TabsList>
         
         <TabsContent value="evaluations" className="space-y-6">
-          {/* Statistiques des évaluations */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <Card>
               <CardContent className="p-6">
@@ -239,7 +238,6 @@ const TrainerReviews = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Répartition des notes */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
@@ -268,7 +266,6 @@ const TrainerReviews = () => {
               </CardContent>
             </Card>
 
-            {/* Filtres */}
             <Card className="lg:col-span-2">
               <CardHeader>
                 <CardTitle className="flex items-center">
@@ -314,7 +311,6 @@ const TrainerReviews = () => {
             </Card>
           </div>
 
-          {/* Liste des évaluations */}
           <div className="space-y-4">
             {filteredReviews.map((review) => (
               <Card key={review.id}>
@@ -395,7 +391,6 @@ const TrainerReviews = () => {
             )}
           </div>
 
-          {/* Dialog pour répondre */}
           <Dialog open={isReplyDialogOpen} onOpenChange={setIsReplyDialogOpen}>
             <DialogContent>
               <DialogHeader>
