@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { FileText, Upload, Download, Eye, Filter, FolderOpen, Certificate, BookOpen, ClipboardList, Users, DollarSign } from 'lucide-react';
+import { FileText, Upload, Download, Eye, Filter, FolderOpen, Award, BookOpen, ClipboardList, Users, DollarSign } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -50,7 +50,7 @@ const TrainerDocuments = () => {
   const categories = [
     { id: 'tous', name: 'Tous les documents', icon: FolderOpen, count: documents.length },
     { id: 'contractuel', name: 'Documents contractuels', icon: FileText, count: documents.filter(d => d.category === 'contractuel').length },
-    { id: 'certification', name: 'Certifications', icon: Certificate, count: documents.filter(d => d.category === 'certification').length },
+    { id: 'certification', name: 'Certifications', icon: Award, count: documents.filter(d => d.category === 'certification').length },
     { id: 'pedagogique', name: 'Supports pédagogiques', icon: BookOpen, count: documents.filter(d => d.category === 'pedagogique').length },
     { id: 'administratif', name: 'Documents administratifs', icon: ClipboardList, count: documents.filter(d => d.category === 'administratif').length },
     { id: 'facture', name: 'Factures', icon: DollarSign, count: documents.filter(d => d.category === 'facture').length },
