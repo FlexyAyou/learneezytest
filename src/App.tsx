@@ -27,6 +27,8 @@ import { Toaster } from '@/components/ui/toaster';
 import AdminUsers from './components/admin/AdminUsers';
 import UserDetailPage from './components/admin/UserDetailPage';
 import { LanguageProvider } from './contexts/LanguageContext';
+import CourseViewer from './pages/student/CourseViewer';
+import LessonViewer from './pages/student/LessonViewer';
 
 function App() {
   return (
@@ -44,6 +46,8 @@ function App() {
           <Route path="/documentation" element={<Documentation />} />
           <Route path="/tableau-de-bord" element={<StudentDashboard />} />
           <Route path="/dashboard/etudiant/*" element={<StudentDashboard />} />
+          <Route path="/dashboard/etudiant/courses/:id" element={<CourseViewer />} />
+          <Route path="/dashboard/etudiant/courses/:courseId/lessons/:lessonId" element={<LessonViewer />} />
           <Route path="/profil" element={<Profile />} />
           <Route path="/connexion" element={<Login />} />
           <Route path="/inscription" element={<Register />} />

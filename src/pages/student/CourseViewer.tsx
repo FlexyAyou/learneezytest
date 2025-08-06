@@ -12,7 +12,6 @@ const CourseViewer = () => {
   const navigate = useNavigate();
   const [completedLessons, setCompletedLessons] = useState<string[]>(['1.1', '1.2', '2.1']);
 
-  // Données d'exemple pour le cours
   const course = {
     id: 1,
     title: "Mathématiques CE2",
@@ -144,6 +143,24 @@ const CourseViewer = () => {
   const completedCount = completedLessons.length;
   const progressPercentage = Math.round((completedCount / totalLessons) * 100);
 
+  const handleContinueCourse = () => {
+    // Trouver la première leçon non terminée
+    for (const module of course.modules) {
+      for (const lesson of module.lessons) {
+        if (!isLessonCompleted(lesson.id)) {
+          navigate(`/dashboard/etudiant/courses/${id}/lessons/${lesson.id}`);
+          return;
+        }
+      }
+    }
+    // Si toutes les leçons sont terminées, aller à la première
+    navigate(`/dashboard/etudiant/courses/${id}/lessons/${course.modules[0].lessons[0].id}`);
+  };
+
+  const handleLessonClick = (lessonId: string) => {
+    navigate(`/dashboard/etudiant/courses/${id}/lessons/${lessonId}`);
+  };
+
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       <div className="flex items-center gap-4 mb-6">
@@ -157,7 +174,6 @@ const CourseViewer = () => {
         </Button>
       </div>
 
-      {/* En-tête du cours */}
       <div className="relative rounded-lg overflow-hidden">
         <img
           src={course.image}
@@ -187,7 +203,6 @@ const CourseViewer = () => {
         </div>
       </div>
 
-      {/* Progression */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -260,11 +275,7 @@ const CourseViewer = () => {
                               <Button
                                 size="sm"
                                 variant={isCompleted ? "outline" : "default"}
-                                onClick={() => {
-                                  if (!isCompleted) {
-                                    markLessonComplete(lesson.id);
-                                  }
-                                }}
+                                onClick={() => handleLessonClick(lesson.id)}
                               >
                                 {isCompleted ? 'Revoir' : 'Commencer'}
                               </Button>
@@ -340,7 +351,7 @@ const CourseViewer = () => {
               <CardTitle className="text-lg">Actions rapides</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button className="w-full">
+              <Button className="w-full" onClick={handleContinueCourse}>
                 <Play className="w-4 h-4 mr-2" />
                 Continuer le cours
               </Button>
