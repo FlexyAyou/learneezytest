@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Book, Play, Clock, Award, Star, Search, Filter } from 'lucide-react';
+import { Book, Play, Clock, Award, Star, Search, Filter, ArrowLeft, User } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -52,100 +52,137 @@ const StudentCourses = () => {
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Mes Cours</h1>
-        <p className="text-gray-600">Gérez et suivez vos cours en ligne</p>
-      </div>
-
-      {/* Filtres et recherche */}
-      <div className="mb-8 flex flex-col sm:flex-row gap-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            placeholder="Rechercher un cours..."
-            className="max-w-md pl-10"
-          />
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <Filter className="h-4 w-4 mr-2" />
-            Tous les cours
-          </Button>
-          <Button variant="outline" size="sm">En cours</Button>
-          <Button variant="outline" size="sm">Terminés</Button>
-        </div>
-      </div>
-
-      {/* Liste des cours */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {courses.map((course) => (
-          <Card key={course.id} className="hover:shadow-lg transition-shadow">
-            <div className="relative">
-              <img
-                src={course.image}
-                alt={course.title}
-                className="w-full h-48 object-cover rounded-t-lg"
-              />
-              <Badge 
-                className={`absolute top-3 right-3 ${
-                  course.status === 'Terminé' ? 'bg-green-500' : 'bg-blue-500'
-                }`}
+    <div className="min-h-screen bg-gray-50">
+      {/* Header Navigation */}
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/dashboard/etudiant')}
+                className="flex items-center"
               >
-                {course.status}
-              </Badge>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Dashboard
+              </Button>
+              <div className="h-6 w-px bg-gray-300" />
+              <h1 className="text-xl font-semibold text-gray-900">Mes Cours</h1>
             </div>
             
-            <CardHeader>
-              <CardTitle className="text-lg">{course.title}</CardTitle>
-              <CardDescription>par {course.instructor}</CardDescription>
-              
-              <div className="flex items-center gap-4 text-sm text-gray-600 mt-2">
-                <div className="flex items-center">
-                  <Star className="h-4 w-4 text-yellow-500 mr-1" />
-                  {course.rating}
-                </div>
-                <div className="flex items-center">
-                  <Clock className="h-4 w-4 mr-1" />
-                  {course.duration}
-                </div>
-                <Badge variant="outline">{course.level}</Badge>
-              </div>
-            </CardHeader>
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/profil')}
+                className="flex items-center"
+              >
+                <User className="h-4 w-4 mr-2" />
+                Profil
+              </Button>
+            </div>
+          </div>
+        </div>
+      </header>
 
-            <CardContent>
-              <div className="mb-4">
-                <div className="flex justify-between text-sm mb-2">
-                  <span>Progression</span>
-                  <span>{course.completedLessons}/{course.totalLessons} leçons</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-pink-600 h-2 rounded-full"
-                    style={{ width: `${course.progress}%` }}
-                  ></div>
-                </div>
-                <p className="text-sm text-gray-600 mt-1">{course.progress}% complété</p>
-              </div>
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="space-y-6">
+          <div className="mb-8">
+            <p className="text-gray-600">Gérez et suivez vos cours en ligne</p>
+          </div>
 
-              <div className="flex gap-2">
-                <Button 
-                  className="flex-1 bg-pink-600 hover:bg-pink-700"
-                  onClick={() => navigate(`/dashboard/etudiant/courses/${course.id}`)}
-                >
-                  <Play className="h-4 w-4 mr-2" />
-                  {course.status === 'Terminé' ? 'Revoir' : 'Continuer'}
-                </Button>
-                {course.status === 'Terminé' && (
-                  <Button variant="outline" size="sm">
-                    <Award className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+          {/* Filtres et recherche */}
+          <div className="mb-8 flex flex-col sm:flex-row gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Rechercher un cours..."
+                className="max-w-md pl-10"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm">
+                <Filter className="h-4 w-4 mr-2" />
+                Tous les cours
+              </Button>
+              <Button variant="outline" size="sm">En cours</Button>
+              <Button variant="outline" size="sm">Terminés</Button>
+            </div>
+          </div>
+
+          {/* Liste des cours */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            {courses.map((course) => (
+              <Card key={course.id} className="hover:shadow-lg transition-shadow">
+                <div className="relative">
+                  <img
+                    src={course.image}
+                    alt={course.title}
+                    className="w-full h-48 object-cover rounded-t-lg"
+                  />
+                  <Badge 
+                    className={`absolute top-3 right-3 ${
+                      course.status === 'Terminé' ? 'bg-green-500' : 'bg-blue-500'
+                    }`}
+                  >
+                    {course.status}
+                  </Badge>
+                </div>
+                
+                <CardHeader>
+                  <CardTitle className="text-lg">{course.title}</CardTitle>
+                  <CardDescription>par {course.instructor}</CardDescription>
+                  
+                  <div className="flex items-center gap-4 text-sm text-gray-600 mt-2">
+                    <div className="flex items-center">
+                      <Star className="h-4 w-4 text-yellow-500 mr-1" />
+                      {course.rating}
+                    </div>
+                    <div className="flex items-center">
+                      <Clock className="h-4 w-4 mr-1" />
+                      {course.duration}
+                    </div>
+                    <Badge variant="outline">{course.level}</Badge>
+                  </div>
+                </CardHeader>
+
+                <CardContent>
+                  <div className="mb-4">
+                    <div className="flex justify-between text-sm mb-2">
+                      <span>Progression</span>
+                      <span>{course.completedLessons}/{course.totalLessons} leçons</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-pink-600 h-2 rounded-full"
+                        style={{ width: `${course.progress}%` }}
+                      ></div>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">{course.progress}% complété</p>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button 
+                      className="flex-1 bg-pink-600 hover:bg-pink-700"
+                      onClick={() => navigate(`/dashboard/etudiant/courses/${course.id}`)}
+                    >
+                      <Play className="h-4 w-4 mr-2" />
+                      {course.status === 'Terminé' ? 'Revoir' : 'Continuer'}
+                    </Button>
+                    {course.status === 'Terminé' && (
+                      <Button variant="outline" size="sm">
+                        <Award className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </main>
     </div>
   );
 };
