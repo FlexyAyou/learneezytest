@@ -65,11 +65,12 @@ const About = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="text-center">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
-              À propos de 
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-orange-600">
-                 Learneezy
-              </span>
-            </h1>
+  À propos de{" "}
+  <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-orange-600">
+    Learneezy
+  </span>
+</h1>
+
             <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
               Nous révolutionnons l'apprentissage en ligne en créant des expériences éducatives 
               exceptionnelles qui transforment des vies et ouvrent de nouveaux horizons.
