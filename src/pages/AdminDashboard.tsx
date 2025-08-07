@@ -23,7 +23,7 @@ import AIChatButton from '@/components/common/AIChatButton';
 import { GroupEnrollment } from '@/components/admin/GroupEnrollment';
 import UserDetailPage from '@/components/admin/UserDetailPage';
 import AdminEmargements from '@/components/admin/AdminEmargements';
-import { OFDashboard } from '@/components/admin/OFDashboard';
+import { SuperAdminDashboard } from '@/components/admin/SuperAdminDashboard';
 import AdminOrganisations from '@/components/admin/AdminOrganisations';
 import AdminLibrary from '@/components/admin/AdminLibrary';
 import AdminSubscriptions from '@/components/admin/AdminSubscriptions';
@@ -64,12 +64,6 @@ const AdminDashboard = () => {
     email: "superadmin@Learneezy.com"
   };
 
-  const mockAllDocuments = [
-    { id: '1', name: 'Rapport_Global_2024.pdf', type: 'PDF', date: '2024-01-20', size: '5.2 MB' },
-    { id: '2', name: 'Logs_Systeme_Jan.zip', type: 'ZIP', date: '2024-01-19', size: '12.1 MB' },
-    { id: '3', name: 'Statistiques_Cours.xlsx', type: 'XLSX', date: '2024-01-18', size: '3.8 MB' }
-  ];
-
   return (
     <div className="flex h-screen bg-gray-50">
       <div className="fixed left-0 top-0 h-full z-30">
@@ -87,10 +81,10 @@ const AdminDashboard = () => {
             <Route path="/" element={
               <div>
                 <div className="mb-6">
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">Super Admin Learneezy</h1>
-                  <p className="text-gray-600">Bienvenue dans l'interface de super administration</p>
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2">Super Administration Learneezy</h1>
+                  <p className="text-gray-600">Tableau de bord global de la plateforme d'apprentissage</p>
                 </div>
-                <OFDashboard />
+                <SuperAdminDashboard />
               </div>
             } />
             <Route path="/users" element={<AdminUsers />} />
