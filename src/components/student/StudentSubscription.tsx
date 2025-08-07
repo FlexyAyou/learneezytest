@@ -77,7 +77,7 @@ export const StudentSubscription = () => {
             </div>
             <div className="text-center p-4 bg-green-50 rounded-lg">
               <div className="text-2xl font-bold text-green-600">{subscription.coursesTotal - subscription.coursesUsed}</div>
-              <p className="text-sm text-gray-600">cours restants</p>
+              <p className="text-sm text-gray-600">Tokens restants</p>
             </div>
             <div className="text-center p-4 bg-purple-50 rounded-lg">
               <div className="text-2xl font-bold text-purple-600">{subscription.renewalDate}</div>
@@ -87,7 +87,7 @@ export const StudentSubscription = () => {
 
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">Cours suivis</span>
+              <span className="text-sm font-medium">Tokens utilisés</span>
               <span className="text-sm text-gray-600">
                 {subscription.coursesUsed}/{subscription.coursesTotal}
               </span>
@@ -98,7 +98,7 @@ export const StudentSubscription = () => {
           <div className="flex gap-3">
             <Button onClick={handleModifySubscription} className="flex-1">
               <Settings className="h-4 w-4 mr-2" />
-              Modifier l'abonnement
+              Changer l'abonnement
             </Button>
             <Button onClick={handleCancelSubscription} variant="outline" className="flex-1">
               <AlertCircle className="h-4 w-4 mr-2" />
