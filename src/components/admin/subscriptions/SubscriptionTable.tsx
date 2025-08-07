@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -19,7 +18,7 @@ import {
 } from 'lucide-react';
 import { Subscription } from '@/types/subscription';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { fr } from 'date-fns/locale/fr';
 
 interface SubscriptionTableProps {
   subscriptions: Subscription[];
