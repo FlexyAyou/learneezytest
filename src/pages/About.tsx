@@ -67,7 +67,7 @@ const About = () => {
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
               À propos de 
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-orange-600">
-                Learneezy
+                 Learneezy
               </span>
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
