@@ -148,7 +148,7 @@ export const AddUser = () => {
       });
 
       // Redirection vers la liste des utilisateurs
-      navigate('/dashboard/admin/users');
+      navigate('/dashboard/superadmin/users');
 
     } catch (error) {
       toast({
@@ -172,7 +172,7 @@ export const AddUser = () => {
     <div className="space-y-6">
       {/* En-tête */}
       <div className="flex items-center space-x-4">
-        <Button variant="ghost" onClick={() => navigate('/dashboard/admin/users')}>
+        <Button variant="ghost" onClick={() => navigate('/dashboard/superadmin/users')}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Retour
         </Button>
@@ -380,7 +380,7 @@ export const AddUser = () => {
 
         {/* Actions */}
         <div className="flex justify-end space-x-4">
-          <Button type="button" variant="outline" onClick={() => navigate('/dashboard/admin/users')}>
+          <Button type="button" variant="outline" onClick={() => navigate('/dashboard/superadmin/users')}>
             Annuler
           </Button>
           <Button type="submit" className="bg-pink-600 hover:bg-pink-700">
