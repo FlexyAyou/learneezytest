@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Play, Star, Users, Award, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -84,9 +83,11 @@ const Hero = () => {
         >
           <source src="https://videos.pexels.com/video-files/5197626/5197626-uhd_2560_1440_25fps.mp4" type="video/mp4" />
         </video>
+        {/* Dark overlay for better text readability */}
+        <div className="absolute inset-0 bg-black bg-opacity-40 z-10"></div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 relative z-20">
         <div className="lg:grid lg:grid-cols-2 lg:gap-12 items-center">
           {/* Content */}
           <div className="text-center lg:text-left relative">
