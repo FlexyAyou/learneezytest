@@ -79,7 +79,6 @@ const Contact = () => {
                 <Headphones className="h-4 w-4 text-green-600 mr-2" />
                 <span className="text-sm text-gray-700">
                   <span className="w-2 h-2 bg-green-500 rounded-full inline-block mr-1"></span>
-                  3 conseillers disponibles maintenant
                 </span>
               </div>
             </div>
