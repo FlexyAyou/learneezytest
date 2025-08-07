@@ -40,7 +40,7 @@ import {
 const UserDetailPage = () => {
   const { userSlug } = useParams();
   const navigate = useNavigate();
-  const currentPath = `/dashboard/superadmin/users/${userSlug}`;
+  const currentPath = `/dashboard/admin/users/${userSlug}`;
 
   // Mock data - normalement récupéré depuis l'API
   const user = {
@@ -103,27 +103,27 @@ const UserDetailPage = () => {
   ];
 
   const sidebarItems = [
-    { title: "Tableau de bord", href: "/dashboard/superadmin", icon: Home, isActive: false },
-    { title: "Utilisateurs", href: "/dashboard/superadmin/users", icon: Users, isActive: currentPath.startsWith("/dashboard/superadmin/users") },
-    { title: "Organismes de formations", href: "/dashboard/superadmin/organisations", icon: Building, isActive: false },
-    { title: "Cours", href: "/dashboard/superadmin/courses", icon: BookOpen, isActive: false },
+    { title: "Tableau de bord", href: "/dashboard/admin", icon: Home, isActive: false },
+    { title: "Utilisateurs", href: "/dashboard/admin/users", icon: Users, isActive: currentPath.startsWith("/dashboard/admin/users") },
+    { title: "Organismes de formations", href: "/dashboard/admin/organisations", icon: Building, isActive: false },
+    { title: "Cours", href: "/dashboard/admin/courses", icon: BookOpen, isActive: false },
     // === SECTION OF COMPLÈTE ===
-    { title: "Inscriptions", href: "/dashboard/superadmin/inscriptions", icon: UserCheck, isActive: false },
-    { title: "Documents OF", href: "/dashboard/superadmin/of-documents", icon: FileText, isActive: false },
-    { title: "Conventions", href: "/dashboard/superadmin/conventions", icon: FileSignature, isActive: false },
-    { title: "Envois automatiques", href: "/dashboard/superadmin/mailings", icon: Mail, isActive: false },
-    { title: "Émargements", href: "/dashboard/superadmin/emargements", icon: PenTool, isActive: false },
+    { title: "Inscriptions", href: "/dashboard/admin/inscriptions", icon: UserCheck, isActive: false },
+    { title: "Documents OF", href: "/dashboard/admin/of-documents", icon: FileText, isActive: false },
+    { title: "Conventions", href: "/dashboard/admin/conventions", icon: FileSignature, isActive: false },
+    { title: "Envois automatiques", href: "/dashboard/admin/mailings", icon: Mail, isActive: false },
+    { title: "Émargements", href: "/dashboard/admin/emargements", icon: PenTool, isActive: false },
     // === SECTION ADMINISTRATION ===
-    { title: "Gestion licences", href: "/dashboard/superadmin/licenses", icon: Key, isActive: false },
-    { title: "Vérification identité", href: "/dashboard/superadmin/identity", icon: Shield, isActive: false },
-    { title: "Tests positionnement", href: "/dashboard/superadmin/tests", icon: TestTube, isActive: false },
-    { title: "Visioconférence", href: "/dashboard/superadmin/video", icon: Video, isActive: false },
-    { title: "Bibliothèque", href: "/dashboard/superadmin/library", icon: Download, isActive: false },
-    { title: "Abonnements", href: "/dashboard/superadmin/subscriptions", icon: CreditCard, isActive: false },
-    { title: "Paiements", href: "/dashboard/superadmin/payments", icon: DollarSign, isActive: false },
-    { title: "Sécurité", href: "/dashboard/superadmin/security", icon: Shield, isActive: false },
-    { title: "Support", href: "/dashboard/superadmin/support", icon: MessageSquare, isActive: false },
-    { title: "Paramètres", href: "/dashboard/superadmin/settings", icon: Settings, isActive: false },
+    { title: "Gestion licences", href: "/dashboard/admin/licenses", icon: Key, isActive: false },
+    { title: "Vérification identité", href: "/dashboard/admin/identity", icon: Shield, isActive: false },
+    { title: "Tests positionnement", href: "/dashboard/admin/tests", icon: TestTube, isActive: false },
+    { title: "Visioconférence", href: "/dashboard/admin/video", icon: Video, isActive: false },
+    { title: "Bibliothèque", href: "/dashboard/admin/library", icon: Download, isActive: false },
+    { title: "Abonnements", href: "/dashboard/admin/subscriptions", icon: CreditCard, isActive: false },
+    { title: "Paiements", href: "/dashboard/admin/payments", icon: DollarSign, isActive: false },
+    { title: "Sécurité", href: "/dashboard/admin/security", icon: Shield, isActive: false },
+    { title: "Support", href: "/dashboard/admin/support", icon: MessageSquare, isActive: false },
+    { title: "Paramètres", href: "/dashboard/admin/settings", icon: Settings, isActive: false },
   ];
 
   const userInfo = {
@@ -168,7 +168,7 @@ const UserDetailPage = () => {
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => navigate('/dashboard/superadmin/users')}
+                onClick={() => navigate('/dashboard/admin/users')}
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Retour

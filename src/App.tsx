@@ -58,7 +58,7 @@ function App() {
           <Route path="/formateur-interne/*" element={<InternalTrainerDashboard />} />
           
           {/* Admin Routes */}
-          <Route path="/dashboard/superadmin/*" element={<AdminDashboard />} />
+          <Route path="/dashboard/admin/*" element={<AdminDashboard />} />
           
           {/* Organisme de Formation Routes */}
           <Route path="/dashboard/organisme-formation/*" element={<OFDashboard />} />

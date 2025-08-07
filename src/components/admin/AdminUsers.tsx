@@ -119,7 +119,7 @@ const AdminUsers = () => {
   const handleViewUser = (user: any) => {
     // Créer un slug à partir du nom de l'utilisateur
     const userSlug = `${user.name.toLowerCase().replace(/\s+/g, '-')}-${user.id}`;
-    navigate(`/dashboard/superadmin/users/${userSlug}`);
+    navigate(`/dashboard/admin/users/${userSlug}`);
   };
 
   return (
@@ -132,13 +132,13 @@ const AdminUsers = () => {
         <div className="flex space-x-3">
           <Button 
             variant="outline" 
-            onClick={() => navigate('/dashboard/superadmin/users/group-enrollment')}
+            onClick={() => navigate('/dashboard/admin/users/group-enrollment')}
             className="flex items-center"
           >
             <Users className="h-4 w-4 mr-2" />
             Inscription groupée
           </Button>
-          <Button onClick={() => navigate('/dashboard/superadmin/users/add')}>
+          <Button onClick={() => navigate('/dashboard/admin/users/add')}>
             <Plus className="h-4 w-4 mr-2" />
             Ajouter un utilisateur
           </Button>
