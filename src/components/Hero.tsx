@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Play, Star, Users, Award, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -81,10 +82,10 @@ const Hero = () => {
           playsInline
           className="w-full h-full object-cover"
         >
-          <source src="https://videos.pexels.com/video-files/5197626/5197626-uhd_2560_1440_25fps.mp4" type="video/mp4" />
+          <source src="https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4" type="video/mp4" />
         </video>
         {/* Dark overlay for better text readability */}
-        <div className="absolute inset-0 bg-black bg-opacity-70 z-10"></div>
+        <div className="absolute inset-0 bg-black bg-opacity-40 z-10"></div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 relative z-20">
@@ -196,14 +197,14 @@ const Hero = () => {
               >
                 <div className="relative group">
                   {/* Floating elements */}
-                  <div className="absolute -top-4 -right-4 bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-lg animate-bounce" style="{{z-index : '100'}}">
+                  <div className="absolute -top-4 -right-4 bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-lg animate-bounce z-30">
                     <div className="flex items-center space-x-2">
                       <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>
                       <span className="text-sm font-medium text-gray-800">12,543 en ligne</span>
                     </div>
                   </div>
                   
-                  <div className="absolute -bottom-4 -left-4 bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-lg transform hover:scale-110 transition-transform duration-300" style="{{z-index: 100}}>
+                  <div className="absolute -bottom-4 -left-4 bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-lg transform hover:scale-110 transition-transform duration-300 z-30">
                     <div className="text-center">
                       <div className={`text-2xl font-bold bg-gradient-to-r ${currentSlideData.gradient} bg-clip-text text-transparent`}>
                         98%
