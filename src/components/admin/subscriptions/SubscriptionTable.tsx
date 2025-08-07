@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -17,8 +18,6 @@ import {
   Pause
 } from 'lucide-react';
 import { Subscription } from '@/types/subscription';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
 
 interface SubscriptionTableProps {
   subscriptions: Subscription[];
@@ -39,6 +38,15 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = ({
   onSuspendSubscription,
   isLoading = false
 }) => {
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
+  };
+
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       active: { label: 'Actif', variant: 'default' as const, icon: CheckCircle, color: 'text-green-600' },
@@ -169,14 +177,14 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = ({
               <TableCell>
                 <div className="text-sm space-y-1">
                   <div>
-                    <span className="text-gray-500">Début:</span> {format(new Date(subscription.startDate), 'dd MMM yyyy', { locale: fr })}
+                    <span className="text-gray-500">Début:</span> {formatDate(subscription.startDate)}
                   </div>
                   <div>
-                    <span className="text-gray-500">Fin:</span> {format(new Date(subscription.endDate), 'dd MMM yyyy', { locale: fr })}
+                    <span className="text-gray-500">Fin:</span> {formatDate(subscription.endDate)}
                   </div>
                   {subscription.trialEndDate && (
                     <div className="text-blue-600">
-                      <span className="text-gray-500">Essai:</span> {format(new Date(subscription.trialEndDate), 'dd MMM yyyy', { locale: fr })}
+                      <span className="text-gray-500">Essai:</span> {formatDate(subscription.trialEndDate)}
                     </div>
                   )}
                 </div>
@@ -202,7 +210,7 @@ export const SubscriptionTable: React.FC<SubscriptionTableProps> = ({
                 <div className="text-sm">
                   {subscription.nextPaymentDate ? (
                     <div className={`${getDaysUntilExpiry(subscription.nextPaymentDate) <= 3 ? 'text-orange-600 font-medium' : 'text-gray-600'}`}>
-                      {format(new Date(subscription.nextPaymentDate), 'dd MMM yyyy', { locale: fr })}
+                      {formatDate(subscription.nextPaymentDate)}
                     </div>
                   ) : (
                     <span className="text-gray-400">-</span>
