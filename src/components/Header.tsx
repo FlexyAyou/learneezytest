@@ -23,6 +23,7 @@ const Header = () => {
             <Link to="/nos-formations" className="text-gray-700 hover:text-pink-600 transition-colors">Nos formations</Link>
             <Link to="/apropos" className="text-gray-700 hover:text-pink-600 transition-colors">À propos</Link>
             <Link to="/contact" className="text-gray-700 hover:text-pink-600 transition-colors">Contact</Link>
+            <Link to="/offres" className="text-gray-700 hover:text-pink-600 transition-colors">Offres</Link>
           </nav>
 
           {/* Language Selector and Auth */}
@@ -60,6 +61,7 @@ const Header = () => {
               <Link to="/nos-formations" className="block px-3 py-2 text-gray-700 hover:text-pink-600">Nos formations</Link>
               <Link to="/apropos" className="block px-3 py-2 text-gray-700 hover:text-pink-600">À propos</Link>
               <Link to="/contact" className="block px-3 py-2 text-gray-700 hover:text-pink-600">Contact</Link>
+              <Link to="/offres" className="block px-3 py-2 text-gray-700 hover:text-pink-600">Offres</Link>
               <div className="pt-4 border-t">
                 <div className="px-3 py-2">
                   <LanguageSelector />
