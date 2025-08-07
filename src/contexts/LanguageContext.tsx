@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-type Language = 'fr' | 'en' | 'es' | 'pt' | 'de' | 'it' | 'nl';
+type Language = 'fr' | 'en' | 'es' | 'pt' | 'de' | 'it' | 'nl' | 'zh' | 'ta' | 'hi';
 
 interface LanguageContextType {
   language: Language;
@@ -95,6 +95,42 @@ const translations = {
     createAccount: 'Account aanmaken',
     continueWith: 'Of doorgaan met',
     enterInfo: 'Voer uw gegevens in om toegang te krijgen tot uw leerruimte'
+  },
+  zh: {
+    welcome: '欢迎！登录您的账户',
+    login: '登录',
+    email: '电子邮件地址',
+    password: '密码',
+    rememberMe: '记住我',
+    forgotPassword: '忘记密码？',
+    noAccount: '没有账户？',
+    createAccount: '创建账户',
+    continueWith: '或继续使用',
+    enterInfo: '输入您的信息以访问您的学习空间'
+  },
+  ta: {
+    welcome: 'வணக்கம்! உங்கள் கணக்கில் உள்நுழையுங்கள்',
+    login: 'உள்நுழையுங்கள்',
+    email: 'மின்னஞ்சல் முகவரி',
+    password: 'கடவுச்சொல்',
+    rememberMe: 'என்னை நினைவில் வைத்துக் கொள்ளுங்கள்',
+    forgotPassword: 'கடவுச்சொல்லை மறந்துவிட்டீர்களா?',
+    noAccount: 'கணக்கு இல்லையா?',
+    createAccount: 'கணக்கை உருவாக்கு',
+    continueWith: 'அல்லது தொடரவும்',
+    enterInfo: 'உங்கள் கற்றல் இடத்தை அணுக உங்கள் தகவல்களை உள்ளிடுங்கள்'
+  },
+  hi: {
+    welcome: 'स्वागत है! अपने खाते में साइन इन करें',
+    login: 'साइन इन करें',
+    email: 'ईमेल पता',
+    password: 'पासवर्ड',
+    rememberMe: 'मुझे याद रखें',
+    forgotPassword: 'पासवर्ड भूल गए?',
+    noAccount: 'खाता नहीं है?',
+    createAccount: 'खाता बनाएं',
+    continueWith: 'या जारी रखें',
+    enterInfo: 'अपनी सीखने की जगह तक पहुंचने के लिए अपनी जानकारी दर्ज करें'
   }
 };
 
