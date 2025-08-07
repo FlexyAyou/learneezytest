@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { Subscription } from '@/types/subscription';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale/fr';
+import { fr } from 'date-fns/locale';
 
 interface SubscriptionTableProps {
   subscriptions: Subscription[];
