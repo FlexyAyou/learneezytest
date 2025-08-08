@@ -1,9 +1,9 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, CheckCircle2, BookOpen, Clock, Target, Users, Star, Wand2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, BookOpen, Clock, Target, Users, Star, Wand2, Eye, FileText } from 'lucide-react';
 import { useAICourseCreation } from '@/hooks/useAICourseCreation';
 
 interface AICourseReviewStepProps {
@@ -13,6 +13,7 @@ interface AICourseReviewStepProps {
 
 export const AICourseReviewStep = ({ onBack, onFinish }: AICourseReviewStepProps) => {
   const { generatedCourse, configData } = useAICourseCreation();
+  const [publishOption, setPublishOption] = useState<'draft' | 'publish' | null>(null);
 
   if (!generatedCourse) {
     return (
@@ -26,6 +27,13 @@ export const AICourseReviewStep = ({ onBack, onFinish }: AICourseReviewStepProps
   const totalExercises = generatedCourse.modules.reduce((acc, mod) => 
     acc + mod.lessons.reduce((lesAcc, les) => lesAcc + (les.exercises?.length || 0), 0), 0
   );
+
+  const handleFinish = (option: 'draft' | 'publish') => {
+    setPublishOption(option);
+    // Ici on pourrait passer l'option à onFinish si nécessaire
+    console.log(`Cours ${option === 'publish' ? 'publié' : 'sauvegardé en brouillon'}`);
+    onFinish();
+  };
 
   return (
     <div className="space-y-6">
@@ -196,33 +204,105 @@ export const AICourseReviewStep = ({ onBack, onFinish }: AICourseReviewStepProps
         </CardContent>
       </Card>
 
-      {/* Next Steps */}
-      <Card>
+      {/* Publication Options */}
+      <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50">
         <CardHeader>
-          <CardTitle>Prochaines étapes</CardTitle>
+          <CardTitle className="text-purple-800">Finaliser votre cours</CardTitle>
           <CardDescription>
-            Que souhaitez-vous faire avec ce cours généré par IA ?
+            Choisissez comment vous souhaitez traiter ce cours généré par IA
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3 text-sm">
-            <div className="flex items-center">
-              <CheckCircle2 className="h-4 w-4 text-green-600 mr-3" />
-              <span>Le cours sera enregistré comme brouillon</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Option Brouillon */}
+            <div 
+              className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                publishOption === 'draft' 
+                  ? 'border-orange-500 bg-orange-50' 
+                  : 'border-gray-200 hover:border-orange-300 bg-white'
+              }`}
+              onClick={() => setPublishOption('draft')}
+            >
+              <div className="flex items-center space-x-3 mb-3">
+                <FileText className="h-6 w-6 text-orange-600" />
+                <h3 className="font-semibold text-gray-800">Sauvegarder en brouillon</h3>
+              </div>
+              <p className="text-sm text-gray-600 mb-3">
+                Le cours sera sauvegardé comme brouillon. Vous pourrez le modifier avant de le publier.
+              </p>
+              <ul className="text-xs text-gray-500 space-y-1">
+                <li>• Cours accessible uniquement par vous</li>
+                <li>• Possibilité de modifications illimitées</li>
+                <li>• Publication ultérieure possible</li>
+                <li>• Aucune validation requise</li>
+              </ul>
             </div>
-            <div className="flex items-center">
-              <CheckCircle2 className="h-4 w-4 text-green-600 mr-3" />
-              <span>Vous pourrez le modifier dans l'éditeur de cours</span>
-            </div>
-            <div className="flex items-center">
-              <CheckCircle2 className="h-4 w-4 text-green-600 mr-3" />
-              <span>Une fois validé, il sera soumis pour approbation</span>
-            </div>
-            <div className="flex items-center">
-              <CheckCircle2 className="h-4 w-4 text-green-600 mr-3" />
-              <span>Les étudiants pourront y accéder après publication</span>
+
+            {/* Option Publication */}
+            <div 
+              className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                publishOption === 'publish' 
+                  ? 'border-green-500 bg-green-50' 
+                  : 'border-gray-200 hover:border-green-300 bg-white'
+              }`}
+              onClick={() => setPublishOption('publish')}
+            >
+              <div className="flex items-center space-x-3 mb-3">
+                <Eye className="h-6 w-6 text-green-600" />
+                <h3 className="font-semibold text-gray-800">Publier immédiatement</h3>
+              </div>
+              <p className="text-sm text-gray-600 mb-3">
+                Le cours sera soumis pour validation et publié après approbation.
+              </p>
+              <ul className="text-xs text-gray-500 space-y-1">
+                <li>• Soumission pour validation administrative</li>
+                <li>• Publication après approbation</li>
+                <li>• Accessible aux étudiants une fois validé</li>
+                <li>• Génération automatique des supports</li>
+              </ul>
             </div>
           </div>
+
+          {publishOption && (
+            <div className="mt-4 p-3 bg-white rounded-lg border border-gray-200">
+              <h5 className="font-semibold text-sm mb-2">
+                {publishOption === 'draft' ? 'Prochaines étapes - Brouillon' : 'Prochaines étapes - Publication'}
+              </h5>
+              <div className="space-y-2 text-sm">
+                {publishOption === 'draft' ? (
+                  <>
+                    <div className="flex items-center text-gray-700">
+                      <CheckCircle2 className="h-4 w-4 text-orange-600 mr-2" />
+                      <span>Le cours sera accessible dans vos brouillons</span>
+                    </div>
+                    <div className="flex items-center text-gray-700">
+                      <CheckCircle2 className="h-4 w-4 text-orange-600 mr-2" />
+                      <span>Vous pourrez le modifier dans l'éditeur</span>
+                    </div>
+                    <div className="flex items-center text-gray-700">
+                      <CheckCircle2 className="h-4 w-4 text-orange-600 mr-2" />
+                      <span>Publication possible à tout moment</span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center text-gray-700">
+                      <CheckCircle2 className="h-4 w-4 text-green-600 mr-2" />
+                      <span>Soumission immédiate pour validation</span>
+                    </div>
+                    <div className="flex items-center text-gray-700">
+                      <CheckCircle2 className="h-4 w-4 text-green-600 mr-2" />
+                      <span>Notification par email du statut</span>
+                    </div>
+                    <div className="flex items-center text-gray-700">
+                      <CheckCircle2 className="h-4 w-4 text-green-600 mr-2" />
+                      <span>Publication automatique après approbation</span>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -232,10 +312,28 @@ export const AICourseReviewStep = ({ onBack, onFinish }: AICourseReviewStepProps
           <ArrowLeft className="h-4 w-4 mr-2" />
           Retour au contenu
         </Button>
-        <Button onClick={onFinish} className="bg-gradient-to-r from-green-600 to-blue-600 text-white">
-          <CheckCircle2 className="h-4 w-4 mr-2" />
-          Créer le cours
-        </Button>
+        <div className="flex space-x-3">
+          <Button 
+            variant="outline" 
+            onClick={() => handleFinish('draft')}
+            disabled={!publishOption}
+            className={publishOption === 'draft' ? 'border-orange-500 text-orange-600' : ''}
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            Sauvegarder en brouillon
+          </Button>
+          <Button 
+            onClick={() => handleFinish('publish')}
+            disabled={!publishOption}
+            className={`${publishOption === 'publish' 
+              ? 'bg-gradient-to-r from-green-600 to-blue-600 text-white' 
+              : 'bg-gradient-to-r from-green-600 to-blue-600 text-white opacity-50'
+            }`}
+          >
+            <Eye className="h-4 w-4 mr-2" />
+            Publier le cours
+          </Button>
+        </div>
       </div>
     </div>
   );
