@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { BookOpen, Eye, Edit, Copy, Archive, Trash2, Search, Filter, Grid, List, Plus, Download, Upload, AlertTriangle, TrendingUp, Users, DollarSign, Star, Clock, BarChart3 } from 'lucide-react';
+import { BookOpen, Eye, Edit, Copy, Archive, Trash2, Search, Filter, Grid, List, Plus, Download, Upload, AlertTriangle, TrendingUp, Users, DollarSign, Star, Clock, BarChart3, Check, X, Wand2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -8,7 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Textarea } from '@/components/ui/textarea';
 import { extendedCoursesData, mockOrganisations, courseCategories, courseLevels, CourseExtended } from '@/data/mockCoursesData';
+import { CourseViewModal } from './CourseViewModal';
 
 const AdminCourses = () => {
   const { toast } = useToast();
@@ -18,6 +20,14 @@ const AdminCourses = () => {
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [organisationFilter, setOrganisationFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('created_date');
+  const [selectedCourse, setSelectedCourse] = useState<CourseExtended | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedCourseForComment, setSelectedCourseForComment] = useState<string | null>(null);
+
+  // Courses needing validation
+  const pendingCourses = extendedCoursesData.filter(course => 
+    course.status === 'pending' || course.status === 'draft'
+  );
 
   // Calculate statistics
   const totalCourses = extendedCoursesData.length;
@@ -62,10 +72,47 @@ const AdminCourses = () => {
   }, [searchTerm, statusFilter, categoryFilter, organisationFilter, sortBy]);
 
   const handleCourseAction = (courseId: string, action: string) => {
+    if (action === 'Voir') {
+      const course = extendedCoursesData.find(c => c.id === courseId);
+      if (course) {
+        setSelectedCourse(course);
+        setIsModalOpen(true);
+      }
+    } else if (action === 'Créer avec IA') {
+      toast({
+        title: "Création de cours avec IA",
+        description: "Redirection vers l'assistant de création de cours...",
+      });
+    } else {
+      toast({
+        title: `Action cours`,
+        description: `${action} pour le cours ${courseId}`,
+      });
+    }
+  };
+
+  const handleApproveCourse = (courseId: string) => {
     toast({
-      title: `Action cours`,
-      description: `${action} pour le cours ${courseId}`,
+      title: "Cours approuvé",
+      description: `Le cours ${courseId} a été approuvé et publié`,
     });
+  };
+
+  const handleRejectCourse = (courseId: string) => {
+    toast({
+      title: "Cours rejeté",
+      description: `Le cours ${courseId} a été rejeté avec commentaires`,
+    });
+  };
+
+  const handleSaveCourse = (updatedCourse: CourseExtended) => {
+    // Update course in mock data (in real app, this would be an API call)
+    const index = extendedCoursesData.findIndex(c => c.id === updatedCourse.id);
+    if (index !== -1) {
+      extendedCoursesData[index] = updatedCourse;
+    }
+    setIsModalOpen(false);
+    setSelectedCourse(null);
   };
 
   const getStatusColor = (status: string) => {
@@ -115,12 +162,82 @@ const AdminCourses = () => {
             <Upload className="h-4 w-4 mr-2" />
             Importer
           </Button>
-          <Button onClick={() => handleCourseAction('', 'Créer')} className="bg-pink-600 hover:bg-pink-700">
-            <Plus className="h-4 w-4 mr-2" />
-            Nouveau cours
+          <Button onClick={() => handleCourseAction('', 'Créer avec IA')} className="bg-pink-600 hover:bg-pink-700">
+            <Wand2 className="h-4 w-4 mr-2" />
+            Créer un cours avec l'IA
           </Button>
         </div>
       </div>
+
+      {/* Courses Needing Validation Section */}
+      {pendingCourses.length > 0 && (
+        <Card className="border-orange-200 bg-orange-50">
+          <CardHeader>
+            <CardTitle className="flex items-center text-orange-800">
+              <AlertTriangle className="h-5 w-5 mr-2" />
+              Cours nécessitant une validation ({pendingCourses.length})
+            </CardTitle>
+            <CardDescription className="text-orange-700">
+              Ces cours nécessitent votre approbation avant publication
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {pendingCourses.map((course) => (
+                <div key={course.id} className="flex items-center justify-between p-4 bg-white rounded-lg border">
+                  <div className="flex items-center space-x-4">
+                    <img 
+                      src={course.thumbnail} 
+                      alt={course.title}
+                      className="w-16 h-12 object-cover rounded"
+                    />
+                    <div>
+                      <h4 className="font-semibold">{course.title}</h4>
+                      <p className="text-sm text-gray-600">par {course.instructor} • {course.organisationName}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge className={getStatusColor(course.status)} size="sm">
+                          {getStatusLabel(course.status)}
+                        </Badge>
+                        <span className="text-xs text-gray-500">Créé le {course.createdDate}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleCourseAction(course.id, 'Voir')}
+                    >
+                      <Eye className="h-4 w-4 mr-1" />
+                      Examiner
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      className="bg-green-600 hover:bg-green-700"
+                      onClick={() => handleApproveCourse(course.id)}
+                    >
+                      <Check className="h-4 w-4 mr-1" />
+                      Approuver
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      className="text-red-600 border-red-600 hover:bg-red-50"
+                      onClick={() => {
+                        setSelectedCourseForComment(course.id);
+                        handleRejectCourse(course.id);
+                      }}
+                    >
+                      <X className="h-4 w-4 mr-1" />
+                      Rejeter
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Statistics Dashboard */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -388,9 +505,9 @@ const AdminCourses = () => {
               <CardTitle className="text-lg">Actions rapides</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button className="w-full bg-pink-600 hover:bg-pink-700" onClick={() => handleCourseAction('', 'Créer')}>
-                <Plus className="h-4 w-4 mr-2" />
-                Nouveau cours
+              <Button className="w-full bg-pink-600 hover:bg-pink-700" onClick={() => handleCourseAction('', 'Créer avec IA')}>
+                <Wand2 className="h-4 w-4 mr-2" />
+                Créer avec l'IA
               </Button>
               <Button variant="outline" className="w-full" onClick={() => handleCourseAction('', 'Template')}>
                 <Copy className="h-4 w-4 mr-2" />
@@ -414,7 +531,7 @@ const AdminCourses = () => {
             <CardContent className="space-y-3">
               <div className="p-3 bg-yellow-50 rounded-lg">
                 <p className="text-sm font-medium text-yellow-800">Cours en attente</p>
-                <p className="text-xs text-yellow-700">2 cours nécessitent une validation</p>
+                <p className="text-xs text-yellow-700">{pendingCourses.length} cours nécessitent une validation</p>
               </div>
               <div className="p-3 bg-red-50 rounded-lg">
                 <p className="text-sm font-medium text-red-800">Problèmes signalés</p>
@@ -468,8 +585,42 @@ const AdminCourses = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Comment section for course rejection */}
+          {selectedCourseForComment && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Commentaires de modération</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Textarea 
+                  placeholder="Ajoutez vos commentaires pour l'instructeur..."
+                  className="mb-4"
+                />
+                <div className="flex space-x-2">
+                  <Button size="sm" variant="outline" className="text-red-600">
+                    Envoyer et rejeter
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setSelectedCourseForComment(null)}>
+                    Annuler
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
+
+      {/* Course View Modal */}
+      <CourseViewModal
+        course={selectedCourse}
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedCourse(null);
+        }}
+        onSave={handleSaveCourse}
+      />
     </div>
   );
 };
