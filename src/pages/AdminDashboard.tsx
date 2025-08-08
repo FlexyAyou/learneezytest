@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { Users, BookOpen, DollarSign, Settings, BarChart3, Shield, Key, FileText, MessageSquare, Video, Download, Brain, TestTube, Home, UserCheck, PenTool, Mail, FileSignature, Building, CreditCard } from 'lucide-react';
+import { Users, BookOpen, DollarSign, Settings, BarChart3, Shield, Key, FileText, MessageSquare, Video, Download, Brain, TestTube, Home, UserCheck, PenTool, Mail, FileSignature, Building, CreditCard, Database } from 'lucide-react';
 import AdminInscriptions from './admin/AdminInscriptions';
 import AdminDocumentsOF from './admin/AdminDocumentsOF';
 import AdminAutomaticMailings from './admin/AdminAutomaticMailings';
@@ -25,7 +25,7 @@ import UserDetailPage from '@/components/admin/UserDetailPage';
 import AdminEmargements from '@/components/admin/AdminEmargements';
 import { SuperAdminDashboard } from '@/components/admin/SuperAdminDashboard';
 import AdminOrganisations from '@/components/admin/AdminOrganisations';
-import AdminLibrary from '@/components/admin/AdminLibrary';
+import AdminRessources from '@/components/admin/AdminRessources';
 import AdminSubscriptions from '@/components/admin/AdminSubscriptions';
 import AdminDocuments from '@/components/admin/AdminDocuments';
 
@@ -51,7 +51,7 @@ const AdminDashboard = () => {
     { title: "Vérification identité", href: "/dashboard/superadmin/identity", icon: Shield, isActive: currentPath === "/dashboard/superadmin/identity" },
     { title: "Tests positionnement", href: "/dashboard/superadmin/tests", icon: TestTube, isActive: currentPath === "/dashboard/superadmin/tests" },
     { title: "Visioconférence", href: "/dashboard/superadmin/video", icon: Video, isActive: currentPath === "/dashboard/superadmin/video" },
-    { title: "Bibliothèque", href: "/dashboard/superadmin/library", icon: Download, isActive: currentPath === "/dashboard/superadmin/library" },
+    { title: "Ressources", href: "/dashboard/superadmin/ressources", icon: Database, isActive: currentPath === "/dashboard/superadmin/ressources" },
     { title: "Abonnements", href: "/dashboard/superadmin/subscriptions", icon: CreditCard, isActive: currentPath === "/dashboard/superadmin/subscriptions" },
     { title: "Paiements", href: "/dashboard/superadmin/payments", icon: DollarSign, isActive: currentPath === "/dashboard/superadmin/payments" },
     { title: "Sécurité", href: "/dashboard/superadmin/security", icon: Shield, isActive: currentPath === "/dashboard/superadmin/security" },
@@ -103,7 +103,7 @@ const AdminDashboard = () => {
             <Route path="/mailings" element={<AdminAutomaticMailings />} />
             <Route path="/emargements" element={<AdminEmargements />} />
             <Route path="/video" element={<AdminVideoConferences />} />
-            <Route path="/library" element={<AdminLibrary />} />
+            <Route path="/ressources" element={<AdminRessources />} />
             <Route path="/subscriptions" element={<AdminSubscriptions />} />
             <Route path="/payments" element={<AdminPayments />} />
             <Route path="/security" element={<AdminSecurity />} />

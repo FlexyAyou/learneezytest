@@ -14,10 +14,6 @@ import {
   Download, 
   Upload, 
   Search, 
-  Filter, 
-  BookOpen, 
-  GraduationCap, 
-  Settings, 
   Shield,
   Plus,
   Edit,
@@ -25,7 +21,17 @@ import {
   Eye,
   Calendar,
   User,
-  Tag
+  Settings,
+  BookOpen,
+  Users,
+  DollarSign,
+  Award,
+  ClipboardCheck,
+  Building,
+  Mail,
+  Database,
+  Lock,
+  Globe
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -33,7 +39,7 @@ interface Document {
   id: string;
   title: string;
   description?: string;
-  category: 'pedagogique' | 'administratif' | 'ressource' | 'guide' | 'template' | 'autre';
+  category: 'technique' | 'juridique' | 'pedagogique' | 'administratif' | 'securite' | 'formation' | 'communication' | 'finance';
   type: string;
   size: string;
   url: string;
@@ -45,60 +51,203 @@ interface Document {
 }
 
 const mockDocuments: Document[] = [
+  // Documents techniques
   {
     id: '1',
-    title: 'Guide pédagogique - Mathématiques CM2',
-    description: 'Guide complet pour l\'enseignement des mathématiques en CM2',
-    category: 'pedagogique',
+    title: 'Architecture système de la plateforme',
+    description: 'Documentation technique complète de l\'architecture',
+    category: 'technique',
     type: 'PDF',
-    size: '2.4 MB',
+    size: '5.2 MB',
     url: '#',
-    isPublic: true,
-    createdBy: 'Marie Dupont',
+    isPublic: false,
+    createdBy: 'Équipe Technique',
     createdAt: '2024-01-15',
-    downloadCount: 145,
-    tags: ['mathématiques', 'cm2', 'guide']
+    downloadCount: 45,
+    tags: ['architecture', 'système', 'technique']
   },
   {
     id: '2',
-    title: 'Modèle de convention de formation',
-    description: 'Template de convention pour les formations professionnelles',
-    category: 'administratif',
-    type: 'DOCX',
-    size: '156 KB',
+    title: 'Guide d\'installation et configuration',
+    description: 'Instructions d\'installation et de configuration du système',
+    category: 'technique',
+    type: 'PDF',
+    size: '3.8 MB',
     url: '#',
     isPublic: false,
     createdBy: 'Admin Système',
-    createdAt: '2024-01-10',
-    downloadCount: 89,
-    tags: ['convention', 'template', 'formation']
+    createdAt: '2024-01-12',
+    downloadCount: 67,
+    tags: ['installation', 'configuration', 'guide']
   },
+  
+  // Documents juridiques
   {
     id: '3',
-    title: 'Ressources interactives - Français',
-    description: 'Collection d\'exercices interactifs en français',
-    category: 'ressource',
-    type: 'ZIP',
-    size: '15.2 MB',
+    title: 'Conditions générales d\'utilisation',
+    description: 'CGU de la plateforme Learneezy',
+    category: 'juridique',
+    type: 'PDF',
+    size: '1.2 MB',
     url: '#',
     isPublic: true,
-    createdBy: 'Jean Martin',
+    createdBy: 'Service Juridique',
+    createdAt: '2024-01-10',
+    downloadCount: 234,
+    tags: ['cgu', 'juridique', 'conditions']
+  },
+  {
+    id: '4',
+    title: 'Politique de confidentialité',
+    description: 'Politique RGPD et protection des données',
+    category: 'juridique',
+    type: 'PDF',
+    size: '980 KB',
+    url: '#',
+    isPublic: true,
+    createdBy: 'DPO',
     createdAt: '2024-01-08',
-    downloadCount: 267,
-    tags: ['français', 'exercices', 'interactif']
+    downloadCount: 189,
+    tags: ['rgpd', 'confidentialité', 'données']
+  },
+  
+  // Documents pédagogiques
+  {
+    id: '5',
+    title: 'Guide de création de contenu pédagogique',
+    description: 'Méthodologie pour créer du contenu de qualité',
+    category: 'pedagogique',
+    type: 'PDF',
+    size: '4.5 MB',
+    url: '#',
+    isPublic: true,
+    createdBy: 'Équipe Pédagogique',
+    createdAt: '2024-01-18',
+    downloadCount: 156,
+    tags: ['pédagogie', 'création', 'contenu']
+  },
+  {
+    id: '6',
+    title: 'Standards qualité des formations',
+    description: 'Référentiel qualité pour les formations',
+    category: 'pedagogique',
+    type: 'PDF',
+    size: '2.1 MB',
+    url: '#',
+    isPublic: false,
+    createdBy: 'Responsable Qualité',
+    createdAt: '2024-01-16',
+    downloadCount: 78,
+    tags: ['qualité', 'standards', 'formation']
+  },
+  
+  // Documents administratifs
+  {
+    id: '7',
+    title: 'Procédures d\'inscription des organismes',
+    description: 'Guide complet pour l\'inscription des OF',
+    category: 'administratif',
+    type: 'PDF',
+    size: '1.8 MB',
+    url: '#',
+    isPublic: false,
+    createdBy: 'Service Admin',
+    createdAt: '2024-01-14',
+    downloadCount: 92,
+    tags: ['inscription', 'organisme', 'procédure']
+  },
+  {
+    id: '8',
+    title: 'Modèles de conventions de formation',
+    description: 'Templates de conventions standardisées',
+    category: 'administratif',
+    type: 'DOCX',
+    size: '756 KB',
+    url: '#',
+    isPublic: false,
+    createdBy: 'Service Juridique',
+    createdAt: '2024-01-12',
+    downloadCount: 134,
+    tags: ['convention', 'template', 'formation']
+  },
+  
+  // Documents sécurité
+  {
+    id: '9',
+    title: 'Politique de sécurité informatique',
+    description: 'Règles et procédures de sécurité',
+    category: 'securite',
+    type: 'PDF',
+    size: '2.3 MB',
+    url: '#',
+    isPublic: false,
+    createdBy: 'RSSI',
+    createdAt: '2024-01-20',
+    downloadCount: 56,
+    tags: ['sécurité', 'politique', 'informatique']
+  },
+  
+  // Documents formation
+  {
+    id: '10',
+    title: 'Catalogue des formations certifiantes',
+    description: 'Liste complète des formations disponibles',
+    category: 'formation',
+    type: 'PDF',
+    size: '6.2 MB',
+    url: '#',
+    isPublic: true,
+    createdBy: 'Équipe Formation',
+    createdAt: '2024-01-22',
+    downloadCount: 312,
+    tags: ['catalogue', 'formations', 'certifications']
+  },
+  
+  // Documents communication
+  {
+    id: '11',
+    title: 'Guide de communication visuelle',
+    description: 'Charte graphique et éléments de communication',
+    category: 'communication',
+    type: 'PDF',
+    size: '8.1 MB',
+    url: '#',
+    isPublic: false,
+    createdBy: 'Service Marketing',
+    createdAt: '2024-01-19',
+    downloadCount: 87,
+    tags: ['communication', 'charte', 'graphique']
+  },
+  
+  // Documents finance
+  {
+    id: '12',
+    title: 'Grilles tarifaires 2024',
+    description: 'Tarification officielle des services',
+    category: 'finance',
+    type: 'XLSX',
+    size: '428 KB',
+    url: '#',
+    isPublic: false,
+    createdBy: 'Direction Financière',
+    createdAt: '2024-01-25',
+    downloadCount: 123,
+    tags: ['tarifs', 'grille', 'finance']
   }
 ];
 
 const categories = [
-  { value: 'pedagogique', label: 'Pédagogique', icon: GraduationCap, color: 'bg-blue-100 text-blue-800' },
-  { value: 'administratif', label: 'Administratif', icon: FileText, color: 'bg-gray-100 text-gray-800' },
-  { value: 'ressource', label: 'Ressource', icon: BookOpen, color: 'bg-green-100 text-green-800' },
-  { value: 'guide', label: 'Guide', icon: Settings, color: 'bg-purple-100 text-purple-800' },
-  { value: 'template', label: 'Template', icon: Settings, color: 'bg-orange-100 text-orange-800' },
-  { value: 'autre', label: 'Autre', icon: FileText, color: 'bg-gray-100 text-gray-800' }
+  { value: 'technique', label: 'Technique', icon: Settings, color: 'bg-blue-100 text-blue-800' },
+  { value: 'juridique', label: 'Juridique', icon: Shield, color: 'bg-red-100 text-red-800' },
+  { value: 'pedagogique', label: 'Pédagogique', icon: BookOpen, color: 'bg-green-100 text-green-800' },
+  { value: 'administratif', label: 'Administratif', icon: ClipboardCheck, color: 'bg-gray-100 text-gray-800' },
+  { value: 'securite', label: 'Sécurité', icon: Lock, color: 'bg-orange-100 text-orange-800' },
+  { value: 'formation', label: 'Formation', icon: Award, color: 'bg-purple-100 text-purple-800' },
+  { value: 'communication', label: 'Communication', icon: Mail, color: 'bg-pink-100 text-pink-800' },
+  { value: 'finance', label: 'Finance', icon: DollarSign, color: 'bg-yellow-100 text-yellow-800' }
 ];
 
-const AdminLibrary = () => {
+const AdminRessources = () => {
   const [documents, setDocuments] = useState<Document[]>(mockDocuments);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('tous');
@@ -131,7 +280,7 @@ const AdminLibrary = () => {
   };
 
   const getCategoryInfo = (category: string) => {
-    return categories.find(cat => cat.value === category) || categories[5];
+    return categories.find(cat => cat.value === category) || categories[3];
   };
 
   return (
@@ -139,33 +288,33 @@ const AdminLibrary = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Bibliothèque</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Ressources</h1>
           <p className="text-gray-600 mt-2">
-            Gestion centralisée de tous les documents et ressources
+            Gestion centralisée de toutes les ressources et documents de la plateforme
           </p>
         </div>
         <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
           <DialogTrigger asChild>
             <Button className="bg-gradient-to-r from-pink-500 to-purple-600">
               <Plus className="h-4 w-4 mr-2" />
-              Ajouter un document
+              Ajouter une ressource
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Ajouter un nouveau document</DialogTitle>
+              <DialogTitle>Ajouter une nouvelle ressource</DialogTitle>
               <DialogDescription>
-                Ajoutez un document à la bibliothèque partagée
+                Ajoutez une ressource à la bibliothèque centralisée
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div>
                 <Label htmlFor="title">Titre</Label>
-                <Input id="title" placeholder="Titre du document" />
+                <Input id="title" placeholder="Titre de la ressource" />
               </div>
               <div>
                 <Label htmlFor="description">Description</Label>
-                <Textarea id="description" placeholder="Description du document" />
+                <Textarea id="description" placeholder="Description de la ressource" />
               </div>
               <div>
                 <Label htmlFor="category">Catégorie</Label>
@@ -203,7 +352,7 @@ const AdminLibrary = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Documents</p>
+                <p className="text-sm text-gray-600">Total Ressources</p>
                 <p className="text-2xl font-bold">{documents.length}</p>
               </div>
               <FileText className="h-8 w-8 text-blue-500" />
@@ -214,10 +363,10 @@ const AdminLibrary = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Publics</p>
+                <p className="text-sm text-gray-600">Publiques</p>
                 <p className="text-2xl font-bold">{documents.filter(d => d.isPublic).length}</p>
               </div>
-              <Eye className="h-8 w-8 text-green-500" />
+              <Globe className="h-8 w-8 text-green-500" />
             </div>
           </CardContent>
         </Card>
@@ -225,10 +374,10 @@ const AdminLibrary = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Privés</p>
+                <p className="text-sm text-gray-600">Confidentielles</p>
                 <p className="text-2xl font-bold">{documents.filter(d => !d.isPublic).length}</p>
               </div>
-              <Shield className="h-8 w-8 text-orange-500" />
+              <Lock className="h-8 w-8 text-orange-500" />
             </div>
           </CardContent>
         </Card>
@@ -253,7 +402,7 @@ const AdminLibrary = () => {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
-                  placeholder="Rechercher des documents..."
+                  placeholder="Rechercher des ressources..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -279,7 +428,7 @@ const AdminLibrary = () => {
         </CardContent>
       </Card>
 
-      {/* Documents par catégorie */}
+      {/* Ressources par catégorie */}
       <Tabs defaultValue="grid" className="space-y-6">
         <TabsList>
           <TabsTrigger value="grid">Vue grille</TabsTrigger>
@@ -303,7 +452,7 @@ const AdminLibrary = () => {
                         </Badge>
                       </div>
                       {!document.isPublic && (
-                        <Shield className="h-4 w-4 text-orange-500" />
+                        <Lock className="h-4 w-4 text-orange-500" />
                       )}
                     </div>
                     <CardTitle className="text-lg">{document.title}</CardTitle>
@@ -378,7 +527,7 @@ const AdminLibrary = () => {
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Document
+                        Ressource
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Catégorie
@@ -411,7 +560,7 @@ const AdminLibrary = () => {
                                     {document.title}
                                   </p>
                                   {!document.isPublic && (
-                                    <Shield className="h-3 w-3 text-orange-500" />
+                                    <Lock className="h-3 w-3 text-orange-500" />
                                   )}
                                 </div>
                                 <p className="text-sm text-gray-500">
@@ -468,10 +617,10 @@ const AdminLibrary = () => {
           <CardContent className="p-12 text-center">
             <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Aucun document trouvé
+              Aucune ressource trouvée
             </h3>
             <p className="text-gray-500 mb-4">
-              Aucun document ne correspond à vos critères de recherche.
+              Aucune ressource ne correspond à vos critères de recherche.
             </p>
             <Button onClick={() => setSearchTerm('')}>
               Effacer les filtres
@@ -483,4 +632,4 @@ const AdminLibrary = () => {
   );
 };
 
-export default AdminLibrary;
+export default AdminRessources;
