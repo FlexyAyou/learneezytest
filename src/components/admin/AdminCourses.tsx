@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { extendedCoursesData, mockOrganisations, courseCategories, courseLevels, CourseExtended } from '@/data/mockCoursesData';
 import { CourseViewModal } from './CourseViewModal';
 import { CourseRejectionModal } from './CourseRejectionModal';
+import { AICourseCreatorModal } from './AICourseCreatorModal';
 
 const AdminCourses = () => {
   const { toast } = useToast();
@@ -27,6 +28,9 @@ const AdminCourses = () => {
     courseId: '',
     courseTitle: ''
   });
+  
+  // Nouvel état pour le modal IA
+  const [aiCreatorModal, setAiCreatorModal] = useState(false);
 
   // Courses needing validation
   const pendingCourses = extendedCoursesData.filter(course => 
@@ -83,10 +87,7 @@ const AdminCourses = () => {
         setIsModalOpen(true);
       }
     } else if (action === 'Créer avec IA') {
-      toast({
-        title: "Création de cours avec IA",
-        description: "Redirection vers l'assistant de création de cours...",
-      });
+      setAiCreatorModal(true);
     } else {
       toast({
         title: `Action cours`,
@@ -122,6 +123,44 @@ const AdminCourses = () => {
     }
     setIsModalOpen(false);
     setSelectedCourse(null);
+  };
+
+  const handleAICourseCreated = (aiCourse: any) => {
+    // Ajouter le cours créé par IA aux données mockées
+    const newCourse: CourseExtended = {
+      id: aiCourse.id,
+      title: aiCourse.title,
+      description: aiCourse.description,
+      thumbnail: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=250&fit=crop",
+      price: "€42",
+      duration: `${Math.floor(aiCourse.estimatedDuration / 60)}h`,
+      level: aiCourse.level,
+      category: aiCourse.category,
+      instructor: "Assistant IA",
+      instructorId: "ai-assistant",
+      instructorType: "internal",
+      organisationId: "learneezy-internal",
+      organisationName: "Learneezy (IA)",
+      status: "draft",
+      totalRevenue: 0,
+      totalStudents: 0,
+      completionRate: 0,
+      averageRating: 0,
+      totalLessons: aiCourse.modules.reduce((acc: number, mod: any) => acc + mod.lessons.length, 0),
+      avgSessionDuration: "30min",
+      feedbackCount: 0,
+      createdDate: new Date().toISOString().split('T')[0],
+      lastUpdated: new Date().toISOString().split('T')[0],
+      views: 0,
+      enrollments: 0
+    };
+
+    extendedCoursesData.unshift(newCourse);
+
+    toast({
+      title: "Cours créé par IA !",
+      description: `Le cours "${aiCourse.title}" a été généré avec succès et sauvegardé en brouillon.`,
+    });
   };
 
   const getStatusColor = (status: string) => {
@@ -171,7 +210,7 @@ const AdminCourses = () => {
             <Upload className="h-4 w-4 mr-2" />
             Importer
           </Button>
-          <Button onClick={() => handleCourseAction('', 'Créer avec IA')} className="bg-pink-600 hover:bg-pink-700">
+          <Button onClick={() => handleCourseAction('', 'Créer avec IA')} className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white">
             <Wand2 className="h-4 w-4 mr-2" />
             Créer un cours avec l'IA
           </Button>
@@ -614,6 +653,13 @@ const AdminCourses = () => {
         onClose={() => setRejectionModal({ isOpen: false, courseId: '', courseTitle: '' })}
         onConfirm={handleConfirmRejection}
         courseTitle={rejectionModal.courseTitle}
+      />
+
+      {/* AI Course Creator Modal */}
+      <AICourseCreatorModal
+        isOpen={aiCreatorModal}
+        onClose={() => setAiCreatorModal(false)}
+        onCourseCreated={handleAICourseCreated}
       />
     </div>
   );
