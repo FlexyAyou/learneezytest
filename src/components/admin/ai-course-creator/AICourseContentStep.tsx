@@ -1,10 +1,10 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, ArrowRight, FileText, Edit2, RefreshCw, CheckCircle2, Clock, Users, Target } from 'lucide-react';
+import { ArrowLeft, ArrowRight, FileText, Edit2, RefreshCw, CheckCircle2, Clock, Target } from 'lucide-react';
 import { useAICourseCreation } from '@/hooks/useAICourseCreation';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
@@ -14,16 +14,18 @@ interface AICourseContentStepProps {
 }
 
 export const AICourseContentStep = ({ onNext, onBack }: AICourseContentStepProps) => {
-  const { generatedCourse, generateContent, isGenerating } = useAICourseCreation();
-  const [editingLesson, setEditingLesson] = useState<string | null>(null);
-  const [contentGenerated, setContentGenerated] = useState(false);
+  const { generatedCourse, generateContent, isGenerating, steps } = useAICourseCreation();
+  
+  // Vérifier si l'étape de contenu est complétée
+  const contentStep = steps.find(step => step.id === 'content');
+  const isContentCompleted = contentStep?.isCompleted || false;
 
   useEffect(() => {
-    if (!contentGenerated && !isGenerating && generatedCourse) {
+    // Si on n'a pas encore de cours généré et qu'on n'est pas en train de générer
+    if (!generatedCourse && !isGenerating) {
       generateContent();
-      setContentGenerated(true);
     }
-  }, [contentGenerated, isGenerating, generatedCourse, generateContent]);
+  }, [generateContent, generatedCourse, isGenerating]);
 
   if (isGenerating) {
     return (
@@ -35,12 +37,6 @@ export const AICourseContentStep = ({ onNext, onBack }: AICourseContentStepProps
         <p className="text-gray-600 mb-4">
           L'IA rédige les leçons, exercices et activités pédagogiques
         </p>
-        <div className="max-w-md mx-auto">
-          <div className="text-sm text-gray-500 mb-2">Progression globale</div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div className="bg-pink-600 h-2 rounded-full animate-pulse" style={{width: '65%'}}></div>
-          </div>
-        </div>
       </div>
     );
   }
@@ -49,6 +45,9 @@ export const AICourseContentStep = ({ onNext, onBack }: AICourseContentStepProps
     return (
       <div className="text-center py-12">
         <p className="text-gray-600">Aucun contenu généré disponible</p>
+        <Button onClick={generateContent} className="mt-4">
+          Générer le contenu
+        </Button>
       </div>
     );
   }
@@ -105,7 +104,7 @@ export const AICourseContentStep = ({ onNext, onBack }: AICourseContentStepProps
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-bold text-gray-800">Contenu des modules</h3>
-          <Button variant="outline" size="sm" onClick={() => generateContent()}>
+          <Button variant="outline" size="sm" onClick={generateContent}>
             <RefreshCw className="h-4 w-4 mr-2" />
             Régénérer tout
           </Button>
@@ -151,51 +150,17 @@ export const AICourseContentStep = ({ onNext, onBack }: AICourseContentStepProps
                               )}
                             </CardDescription>
                           </div>
-                          <div className="flex space-x-2">
-                            <Button variant="ghost" size="sm" onClick={() => setEditingLesson(lesson.id)}>
-                              <Edit2 className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm">
-                              <RefreshCw className="h-4 w-4" />
-                            </Button>
-                          </div>
                         </div>
                       </CardHeader>
                       <CardContent>
-                        {editingLesson === lesson.id ? (
-                          <div className="space-y-4">
-                            <Textarea
-                              defaultValue={lesson.content}
-                              rows={10}
-                              className="font-mono text-sm"
-                            />
-                            <div className="flex space-x-2">
-                              <Button size="sm" onClick={() => setEditingLesson(null)}>
-                                Sauvegarder
-                              </Button>
-                              <Button variant="outline" size="sm" onClick={() => setEditingLesson(null)}>
-                                Annuler
-                              </Button>
-                            </div>
+                        <div className="prose max-w-none text-sm p-4 rounded bg-gray-50">
+                          <div className="whitespace-pre-line">
+                            {lesson.content.length > 300 
+                              ? lesson.content.substring(0, 300) + '...' 
+                              : lesson.content
+                            }
                           </div>
-                        ) : (
-                          <div 
-                            className="prose max-w-none text-sm cursor-pointer hover:bg-gray-50 p-4 rounded"
-                            onClick={() => setEditingLesson(lesson.id)}
-                          >
-                            <div className="whitespace-pre-line">
-                              {lesson.content.length > 500 
-                                ? lesson.content.substring(0, 500) + '...' 
-                                : lesson.content
-                              }
-                            </div>
-                            {lesson.content.length > 500 && (
-                              <p className="text-gray-500 mt-2 italic">
-                                Cliquer pour voir le contenu complet et éditer
-                              </p>
-                            )}
-                          </div>
-                        )}
+                        </div>
 
                         {lesson.exercises && lesson.exercises.length > 0 && (
                           <div className="mt-4 pt-4 border-t">
@@ -204,15 +169,12 @@ export const AICourseContentStep = ({ onNext, onBack }: AICourseContentStepProps
                               Exercices ({lesson.exercises.length})
                             </h5>
                             <div className="space-y-3">
-                              {lesson.exercises.map((exercise, exerciseIndex) => (
+                              {lesson.exercises.slice(0, 2).map((exercise, exerciseIndex) => (
                                 <div key={exercise.id} className="p-3 bg-blue-50 rounded-lg">
                                   <div className="flex items-start justify-between mb-2">
                                     <Badge className="text-xs bg-blue-600 text-white">
                                       Exercice {exerciseIndex + 1} - {exercise.type}
                                     </Badge>
-                                    <Button variant="ghost" size="sm">
-                                      <Edit2 className="h-3 w-3" />
-                                    </Button>
                                   </div>
                                   <p className="text-sm font-medium mb-2">{exercise.question}</p>
                                   {exercise.options && (
@@ -225,29 +187,11 @@ export const AICourseContentStep = ({ onNext, onBack }: AICourseContentStepProps
                                           <span className={option === exercise.correctAnswer ? 'font-semibold text-green-700' : ''}>
                                             {option}
                                           </span>
-                                          {option === exercise.correctAnswer && (
-                                            <Badge className="ml-2 bg-green-600 text-white text-xs">
-                                              Correct
-                                            </Badge>
-                                          )}
                                         </div>
                                       ))}
                                     </div>
                                   )}
                                 </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {lesson.resources && lesson.resources.length > 0 && (
-                          <div className="mt-4 pt-4 border-t">
-                            <h5 className="font-semibold text-sm mb-2">Ressources suggérées</h5>
-                            <div className="flex flex-wrap gap-2">
-                              {lesson.resources.map((resource, resourceIndex) => (
-                                <Badge key={resourceIndex} variant="outline" className="text-xs">
-                                  {resource}
-                                </Badge>
                               ))}
                             </div>
                           </div>
@@ -268,7 +212,11 @@ export const AICourseContentStep = ({ onNext, onBack }: AICourseContentStepProps
           <ArrowLeft className="h-4 w-4 mr-2" />
           Retour à la structure
         </Button>
-        <Button onClick={onNext} className="bg-pink-600 hover:bg-pink-700">
+        <Button 
+          onClick={onNext} 
+          className="bg-pink-600 hover:bg-pink-700"
+          disabled={!isContentCompleted && !generatedCourse}
+        >
           Finaliser le cours
           <ArrowRight className="h-4 w-4 ml-2" />
         </Button>

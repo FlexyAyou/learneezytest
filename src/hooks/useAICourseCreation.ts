@@ -95,17 +95,15 @@ export const useAICourseCreation = () => {
     }
 
     // Simulation de génération réussie
-    setTimeout(() => {
-      setState(prev => ({
-        ...prev,
-        isGenerating: false,
-        generationProgress: 100,
-        generatedCourse: mockAIResponse.mathCP,
-        steps: prev.steps.map(step => 
-          step.id === type ? { ...step, isCompleted: true } : step
-        )
-      }));
-    }, 500);
+    setState(prev => ({
+      ...prev,
+      isGenerating: false,
+      generationProgress: 100,
+      generatedCourse: mockAIResponse.mathCP,
+      steps: prev.steps.map(step => 
+        step.id === type ? { ...step, isCompleted: true } : step
+      )
+    }));
   }, []);
 
   const generateOutline = useCallback(async () => {
