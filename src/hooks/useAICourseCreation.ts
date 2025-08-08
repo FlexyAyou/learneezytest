@@ -94,12 +94,12 @@ export const useAICourseCreation = () => {
       await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 1000));
     }
 
-    // Simulation de génération réussie
+    // Simulation de génération réussie - Le cours est généré dès l'étape outline
     setState(prev => ({
       ...prev,
       isGenerating: false,
       generationProgress: 100,
-      generatedCourse: mockAIResponse.mathCP,
+      generatedCourse: mockAIResponse.mathCP, // Le cours est toujours disponible
       steps: prev.steps.map(step => {
         if (step.id === type) {
           return { ...step, isCompleted: true };
@@ -108,7 +108,7 @@ export const useAICourseCreation = () => {
       })
     }));
 
-    console.log('Course generated:', mockAIResponse.mathCP);
+    console.log('Course generated successfully:', mockAIResponse.mathCP);
   }, []);
 
   const generateOutline = useCallback(async () => {
