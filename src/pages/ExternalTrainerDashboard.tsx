@@ -121,7 +121,7 @@ const ExternalTrainerDashboardHome = () => {
             <Card key={index}>
               <CardContent className="p-6">
                 <div className="flex items-center">
-                  <Icon className="h-8 w-8 text-primary" />
+                  <Icon className="h-8 w-8 text-pink-600" />
                   <div className="ml-4">
                     <p className="text-2xl font-bold">{stat.value}</p>
                     <p className="text-gray-600 text-sm">{stat.title}</p>
@@ -167,7 +167,7 @@ const ExternalTrainerDashboardHome = () => {
                 </div>
               </div>
             ))}
-            <Button className="w-full" onClick={handleSetAvailability}>
+            <Button className="w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700" onClick={handleSetAvailability}>
               Mettre à jour la disponibilité
             </Button>
           </CardContent>
@@ -218,7 +218,7 @@ const ExternalTrainerDashboardHome = () => {
                 <Badge key={index} variant="secondary">{specialty}</Badge>
               ))}
             </div>
-            <Button className="w-full mt-4" variant="outline">
+            <Button className="w-full mt-4 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700" variant="outline">
               Demander nouvelles spécialités
             </Button>
           </CardContent>
