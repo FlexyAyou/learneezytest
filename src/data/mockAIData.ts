@@ -117,7 +117,7 @@ export const mockAIResponse = {
             exercises: [
               {
                 id: "ex1",
-                type: "choice",
+                type: "choice" as const,
                 question: "Combien de pommes vois-tu sur l'image ?",
                 options: ["1", "2", "3"],
                 correctAnswer: "2"
@@ -135,12 +135,13 @@ export const mockAIResponse = {
             exercises: [
               {
                 id: "ex2",
-                type: "quiz",
+                type: "quiz" as const,
                 question: "Quel nombre vient après 5 ?",
                 options: ["4", "6", "7"],
                 correctAnswer: "6"
               }
-            ]
+            ],
+            resources: []
           }
         ]
       },
@@ -157,7 +158,9 @@ export const mockAIResponse = {
             description: "Introduction aux nombres de 11 à 15",
             content: "Maintenant que nous maîtrisons 0-10, découvrons les nombres suivants!\n\n**Les nombres de 11 à 15:**\n- 11 (onze) = 10 + 1\n- 12 (douze) = 10 + 2\n- 13 (treize) = 10 + 3\n- 14 (quatorze) = 10 + 4\n- 15 (quinze) = 10 + 5\n\n**Astuce:**\nTous ces nombres se construisent en ajoutant à 10 !\n\n**Activité: Les collections**\nComptons les objets par groupe de 10 + quelques-uns.",
             duration: 45,
-            order: 1
+            order: 1,
+            exercises: [],
+            resources: []
           }
         ]
       },
@@ -178,15 +181,16 @@ export const mockAIResponse = {
             exercises: [
               {
                 id: "ex3",
-                type: "text",
+                type: "text" as const,
                 question: "Calcule: 2 + 3 = ?"
               }
-            ]
+            ],
+            resources: []
           }
         ]
       }
     ]
-  }
+  } as CourseAIData
 };
 
 export const aiGenerationSteps = [
