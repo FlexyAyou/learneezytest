@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileText, Download, Upload, Filter, PenTool, Clock, CheckCircle } from 'lucide-react';
+import { ElectronicSignature } from '@/components/common/ElectronicSignature';
 import { useToast } from '@/hooks/use-toast';
 
 interface Document {
@@ -22,6 +23,8 @@ interface Document {
 export const TutorDocuments = () => {
   const { toast } = useToast();
   const [filter, setFilter] = useState('all');
+  const [selectedDocument, setSelectedDocument] = useState<string | null>(null);
+  const [signatureData, setSignatureData] = useState<string | null>(null);
   const [documents] = useState<Document[]>([
     { id: '1', name: 'Programme_Mathematiques_2024.pdf', type: 'cours', category: 'Mathématiques', date: '2024-01-20', size: '2.3 MB', status: 'completed' },
     { id: '2', name: 'Exercices_Francais_Niveau_A1.pdf', type: 'exercice', category: 'Français', date: '2024-01-18', size: '1.8 MB', status: 'completed' },
@@ -54,11 +57,26 @@ export const TutorDocuments = () => {
     });
   };
 
-  const handleSign = (document: Document) => {
+  const handleSignatureComplete = (signature: string) => {
+    setSignatureData(signature);
     toast({
-      title: "Signature électronique",
-      description: `Ouverture de la signature pour ${document.name}`,
+      title: "Signature enregistrée",
+      description: "Votre signature a été sauvegardée.",
     });
+  };
+
+  const handleSignDocument = (documentId: string) => {
+    // Simulation de signature de document
+    console.log('Document signé:', documentId);
+    console.log('Signature:', signatureData);
+    
+    toast({
+      title: "Document signé",
+      description: "Votre signature a été enregistrée avec succès.",
+    });
+    
+    setSelectedDocument(null);
+    setSignatureData(null);
   };
 
   const handleUpload = () => {
@@ -158,26 +176,64 @@ export const TutorDocuments = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               {documentsToSign.map((doc) => (
-                <div key={doc.id} className="flex items-center justify-between p-4 border rounded-lg bg-yellow-50">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-yellow-100 rounded-full">
-                      <Clock className="h-4 w-4 text-yellow-600" />
+                <div key={doc.id} className="space-y-4">
+                  <div className="flex items-center justify-between p-4 border rounded-lg bg-yellow-50">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-yellow-100 rounded-full">
+                        <Clock className="h-4 w-4 text-yellow-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium">{doc.name}</p>
+                        <p className="text-sm text-gray-600">{doc.category} • {doc.date}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium">{doc.name}</p>
-                      <p className="text-sm text-gray-600">{doc.category} • {doc.date}</p>
+                    <div className="flex items-center space-x-2">
+                      <Button size="sm" variant="outline" onClick={() => handleDownload(doc)}>
+                        <Download className="h-4 w-4 mr-2" />
+                        Télécharger
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        onClick={() => setSelectedDocument(selectedDocument === doc.id ? null : doc.id)}
+                        className={selectedDocument === doc.id ? "bg-red-600 hover:bg-red-700" : ""}
+                      >
+                        <PenTool className="h-4 w-4 mr-2" />
+                        {selectedDocument === doc.id ? "Annuler" : "Signer"}
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Button size="sm" variant="outline" onClick={() => handleDownload(doc)}>
-                      <Download className="h-4 w-4 mr-2" />
-                      Télécharger
-                    </Button>
-                    <Button size="sm" onClick={() => handleSign(doc)}>
-                      <PenTool className="h-4 w-4 mr-2" />
-                      Signer
-                    </Button>
-                  </div>
+
+                  {selectedDocument === doc.id && (
+                    <div className="space-y-4 border rounded-lg p-4 bg-gray-50">
+                      <h4 className="font-medium">Signature du document</h4>
+                      <p className="text-sm text-gray-600">
+                        En signant ci-dessous, je certifie avoir pris connaissance de ce document et l'accepter.
+                      </p>
+                      
+                      <ElectronicSignature 
+                        onSignatureComplete={handleSignatureComplete}
+                      />
+                      
+                      <div className="flex gap-2 justify-end">
+                        <Button 
+                          variant="outline" 
+                          onClick={() => {
+                            setSelectedDocument(null);
+                            setSignatureData(null);
+                          }}
+                        >
+                          Annuler
+                        </Button>
+                        <Button 
+                          onClick={() => handleSignDocument(doc.id)}
+                          disabled={!signatureData}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          Valider la signature
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
               {documentsToSign.length === 0 && (
