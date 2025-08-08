@@ -14,21 +14,21 @@ const Hero = () => {
       highlight: "compétences", 
       subtitle: "avec Learneezy",
       description: "Accédez à plus de 1000 cours en ligne créés par des experts. Apprenez à votre rythme et obtenez des certifications reconnues.",
-      gradient: "from-pink-600 to-purple-600",
+      gradient: "from-pink-600 to-orange-600",
     },
     {
       title: "Maîtrisez",
       highlight: "l'art du code",
       subtitle: "en toute simplicité",
       description: "Des cours de programmation pour tous les niveaux. JavaScript, Python, React et bien plus encore.",
-      gradient: "from-pink-600 to-purple-600",
+      gradient: "from-blue-600 to-purple-600",
     },
     {
       title: "Rejoignez",
       highlight: "notre communauté",
       subtitle: "d'apprenants",
       description: "Plus de 50 000 étudiants nous font confiance. Échangez, partagez et progressez ensemble.",
-      gradient: "from-pink-600 to-purple-600",
+      gradient: "from-green-600 to-teal-600",
     }
   ];
 
@@ -177,7 +177,7 @@ const Hero = () => {
                 <p className="text-sm text-white drop-shadow-md">Étudiants actifs</p>
               </div>
               <div className="flex flex-col items-center lg:items-start transform hover:scale-105 transition-transform duration-300">
-                <div className="flex items-center text-purple-400 mb-1">
+                <div className="flex items-center text-orange-400 mb-1">
                   <Award className="h-5 w-5 mr-1" />
                   <span className="font-bold text-lg text-white drop-shadow-md">1000+</span>
                 </div>
@@ -200,7 +200,7 @@ const Hero = () => {
                   {/* Floating elements */}
                   <div className="absolute -top-4 -right-4 bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-lg animate-bounce z-30">
                     <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-pink-500 rounded-full animate-pulse"></div>
+                      <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>
                       <span className="text-sm font-medium text-gray-800">12,543 en ligne</span>
                     </div>
                   </div>

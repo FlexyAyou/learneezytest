@@ -65,7 +65,7 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-pink-50 to-purple-50">
+    <div className="flex h-screen bg-gray-50">
       <div className="fixed left-0 top-0 h-full z-30">
         <DashboardSidebar
           title="Super Administration"

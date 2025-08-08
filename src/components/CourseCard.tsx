@@ -27,20 +27,20 @@ interface CourseCardProps {
 const CourseCard = ({ course }: CourseCardProps) => {
   const getBadgeColor = (level: string) => {
     if (['CP', 'CE1', 'CE2', 'CM1', 'CM2'].includes(level)) {
-      return 'bg-pink-100 text-pink-800';
+      return 'bg-green-100 text-green-800';
     } else if (['6ème', '5ème', '4ème', '3ème'].includes(level)) {
-      return 'bg-purple-100 text-purple-800';
+      return 'bg-blue-100 text-blue-800';
     } else if (['2nde', '1ère', 'Terminale'].includes(level)) {
-      return 'bg-pink-100 text-pink-800';
+      return 'bg-purple-100 text-purple-800';
     }
-    return 'bg-purple-100 text-purple-800';
+    return 'bg-gray-100 text-gray-800';
   };
 
   const getCycleColor = (cycle: string) => {
     switch (cycle) {
-      case 'élémentaire': return 'bg-pink-50 text-pink-700 border-pink-200';
-      case 'secondaire': return 'bg-purple-50 text-purple-700 border-purple-200';
-      default: return 'bg-pink-50 text-pink-700 border-pink-200';
+      case 'élémentaire': return 'bg-green-50 text-green-700 border-green-200';
+      case 'secondaire': return 'bg-blue-50 text-blue-700 border-blue-200';
+      default: return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
 
@@ -61,7 +61,7 @@ const CourseCard = ({ course }: CourseCardProps) => {
           </Badge>
         </div>
         <div className="absolute top-3 right-3">
-          <Badge className="bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold text-xs px-2 py-1">
+          <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-bold text-xs px-2 py-1">
             {course.price}
           </Badge>
         </div>
