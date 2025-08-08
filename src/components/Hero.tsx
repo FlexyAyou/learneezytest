@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Play, Star, Users, Award, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,21 +14,21 @@ const Hero = () => {
       highlight: "compétences", 
       subtitle: "avec Learneezy",
       description: "Accédez à plus de 1000 cours en ligne créés par des experts. Apprenez à votre rythme et obtenez des certifications reconnues.",
-      gradient: "from-pink-600 to-purple-600",
+      gradient: "from-pink-600 to-orange-600",
     },
     {
       title: "Maîtrisez",
       highlight: "l'art du code",
       subtitle: "en toute simplicité",
       description: "Des cours de programmation pour tous les niveaux. JavaScript, Python, React et bien plus encore.",
-      gradient: "from-pink-600 to-purple-600",
+      gradient: "from-blue-600 to-purple-600",
     },
     {
       title: "Rejoignez",
       highlight: "notre communauté",
       subtitle: "d'apprenants",
       description: "Plus de 50 000 étudiants nous font confiance. Échangez, partagez et progressez ensemble.",
-      gradient: "from-pink-600 to-purple-600",
+      gradient: "from-green-600 to-teal-600",
     }
   ];
 
@@ -81,6 +82,7 @@ const Hero = () => {
           playsInline
           className="w-full h-full object-cover"
         >
+
           <source src="https://videos.pexels.com/video-files/8061028/8061028-hd_1920_1080_25fps.mp4" type="video/mp4" />
         </video>
         {/* Dark overlay for better text readability */}
@@ -119,7 +121,7 @@ const Hero = () => {
             {/* CTA Buttons */}
             <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-fade-in delay-700">
               <Link to="/offres">
-                <Button size="lg" className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-lg px-8 py-3 transform hover:scale-105 transition-all duration-300 hover:shadow-lg text-white border-0">
+                <Button size="lg" className="bg-pink-600 hover:bg-pink-700 text-lg px-8 py-3 transform hover:scale-105 transition-all duration-300 hover:shadow-lg">
                   Voir nos offres
                 </Button>
               </Link>
@@ -127,7 +129,7 @@ const Hero = () => {
                 <Button 
                   variant="outline" 
                   size="lg" 
-                  className="text-lg px-8 py-3 transform hover:scale-105 transition-all duration-300 hover:shadow-md border-pink-600 text-pink-600 hover:bg-pink-600 hover:text-white bg-white/90 backdrop-blur-sm"
+                  className="text-lg px-8 py-3 transform hover:scale-105 transition-all duration-300 hover:shadow-md border-white text-white hover:bg-white/20 hover:text-white hover:border-white bg-white/10 backdrop-blur-sm"
                 >
                   <Play className="h-5 w-5 mr-2" />
                   Voir nos formations
@@ -150,8 +152,8 @@ const Hero = () => {
                 >
                   <div className={`absolute inset-0 rounded-full transition-all duration-500 ${
                     index === currentSlide 
-                      ? `bg-gradient-to-r from-pink-600 to-purple-600 shadow-lg` 
-                      : 'bg-white/40 hover:bg-pink-400/60'
+                      ? `bg-gradient-to-r ${currentSlideData.gradient} shadow-lg` 
+                      : 'bg-white/40 hover:bg-white/60'
                   }`} />
                 </button>
               ))}
@@ -160,7 +162,7 @@ const Hero = () => {
             {/* Stats */}
             <div className="mt-12 grid grid-cols-3 gap-4 text-center lg:text-left animate-fade-in delay-1000">
               <div className="flex flex-col items-center lg:items-start transform hover:scale-105 transition-transform duration-300">
-                <div className="flex items-center space-x-1 text-pink-400 mb-1">
+                <div className="flex items-center space-x-1 text-yellow-400 mb-1">
                   {[...Array(5)].map((_, i) => (
                     <Star key={i} className="h-4 w-4 fill-current animate-pulse" style={{animationDelay: `${i * 0.1}s`}} />
                   ))}
@@ -175,7 +177,7 @@ const Hero = () => {
                 <p className="text-sm text-white drop-shadow-md">Étudiants actifs</p>
               </div>
               <div className="flex flex-col items-center lg:items-start transform hover:scale-105 transition-transform duration-300">
-                <div className="flex items-center text-pink-400 mb-1">
+                <div className="flex items-center text-orange-400 mb-1">
                   <Award className="h-5 w-5 mr-1" />
                   <span className="font-bold text-lg text-white drop-shadow-md">1000+</span>
                 </div>
@@ -198,14 +200,14 @@ const Hero = () => {
                   {/* Floating elements */}
                   <div className="absolute -top-4 -right-4 bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-lg animate-bounce z-30">
                     <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-pink-500 rounded-full animate-pulse"></div>
+                      <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>
                       <span className="text-sm font-medium text-gray-800">12,543 en ligne</span>
                     </div>
                   </div>
                   
                   <div className="absolute -bottom-4 -left-4 bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-lg transform hover:scale-110 transition-transform duration-300 z-30">
                     <div className="text-center">
-                      <div className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+                      <div className={`text-2xl font-bold bg-gradient-to-r ${currentSlideData.gradient} bg-clip-text text-transparent`}>
                         98%
                       </div>
                       <div className="text-xs text-gray-600">Taux de réussite</div>
@@ -213,9 +215,9 @@ const Hero = () => {
                   </div>
 
                   {/* Central content area with glass effect */}
-                  <div className="w-96 h-64 bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl border border-pink-300/20 flex items-center justify-center">
+                  <div className="w-96 h-64 bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 flex items-center justify-center">
                     <div className="text-center text-white">
-                      <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-pink-600 to-purple-600 rounded-full flex items-center justify-center">
+                      <div className="w-16 h-16 mx-auto mb-4 bg-white/20 rounded-full flex items-center justify-center">
                         <Play className="w-8 h-8 text-white" />
                       </div>
                       <h3 className="text-lg font-semibold mb-2 drop-shadow-md">Plateforme d'apprentissage</h3>
@@ -229,14 +231,14 @@ const Hero = () => {
             {/* Navigation Arrows */}
             <button
               onClick={prevSlide}
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-pink-600/20 backdrop-blur-sm rounded-full p-3 shadow-lg hover:bg-pink-600/30 hover:scale-110 transition-all duration-300 group z-10"
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/20 backdrop-blur-sm rounded-full p-3 shadow-lg hover:bg-white/30 hover:scale-110 transition-all duration-300 group z-10"
               aria-label="Slide précédent"
             >
               <ChevronLeft className="h-6 w-6 text-white group-hover:text-pink-400 transition-colors duration-300" />
             </button>
             <button
               onClick={nextSlide}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-pink-600/20 backdrop-blur-sm rounded-full p-3 shadow-lg hover:bg-pink-600/30 hover:scale-110 transition-all duration-300 group z-10"
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/20 backdrop-blur-sm rounded-full p-3 shadow-lg hover:bg-white/30 hover:scale-110 transition-all duration-300 group z-10"
               aria-label="Slide suivant"
             >
               <ChevronRight className="h-6 w-6 text-white group-hover:text-pink-400 transition-colors duration-300" />
