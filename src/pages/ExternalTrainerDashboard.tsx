@@ -277,7 +277,7 @@ const ExternalTrainerDashboard = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
       <DashboardSidebar
         title="Formateur Independant"
         subtitle="Mon portail"
