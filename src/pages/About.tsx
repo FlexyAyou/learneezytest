@@ -56,6 +56,29 @@ const About = () => {
     }
   ];
 
+  const heroImages = [
+    {
+      src: "/lovable-uploads/35025812-1694-4fb2-aa20-1b03dae12929.png",
+      alt: "Notre équipe Learneezy"
+    },
+    {
+      src: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=500&h=300&fit=crop",
+      alt: "Équipe collaborative travaillant ensemble"
+    },
+    {
+      src: "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=500&h=300&fit=crop",
+      alt: "Innovation technologique et apprentissage"
+    },
+    {
+      src: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=500&h=300&fit=crop",
+      alt: "Étudiants en formation en ligne"
+    },
+    {
+      src: "https://images.unsplash.com/photo-1553028826-f4804a6dba3b?w=500&h=300&fit=crop",
+      alt: "Formation digitale moderne"
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-white">
       <Header />
@@ -65,22 +88,55 @@ const About = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="text-center">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
-  À propos de{" "}
-  <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-orange-600">
-    Learneezy
-  </span>
-</h1>
+              À propos de{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-orange-600">
+                Learneezy
+              </span>
+            </h1>
 
             <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
               Nous révolutionnons l'apprentissage en ligne en créant des expériences éducatives 
               exceptionnelles qui transforment des vies et ouvrent de nouveaux horizons.
             </p>
-            <div className="flex justify-center">
-              <img
-                src="/lovable-uploads/35025812-1694-4fb2-aa20-1b03dae12929.png"
-                alt="Notre équipe Learneezy"
-                className="rounded-2xl shadow-xl max-w-md w-full"
-              />
+            
+            {/* Animated Images Carousel */}
+            <div className="relative overflow-hidden rounded-2xl shadow-xl max-w-2xl mx-auto h-80">
+              <div className="flex animate-slide-in-right">
+                {/* First set of images */}
+                <div className="flex animate-[slide-left_20s_linear_infinite]">
+                  {heroImages.map((image, index) => (
+                    <div
+                      key={index}
+                      className="flex-shrink-0 w-96 h-80 mx-2"
+                    >
+                      <img
+                        src={image.src}
+                        alt={image.alt}
+                        className="w-full h-full object-cover rounded-lg shadow-lg"
+                      />
+                    </div>
+                  ))}
+                </div>
+                {/* Duplicate set for seamless loop */}
+                <div className="flex animate-[slide-left_20s_linear_infinite]">
+                  {heroImages.map((image, index) => (
+                    <div
+                      key={`duplicate-${index}`}
+                      className="flex-shrink-0 w-96 h-80 mx-2"
+                    >
+                      <img
+                        src={image.src}
+                        alt={image.alt}
+                        className="w-full h-full object-cover rounded-lg shadow-lg"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Gradient overlays for smooth edges */}
+              <div className="absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-white to-transparent pointer-events-none z-10"></div>
+              <div className="absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-white to-transparent pointer-events-none z-10"></div>
             </div>
           </div>
         </div>
