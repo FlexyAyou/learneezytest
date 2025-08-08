@@ -74,14 +74,14 @@ const Contact = () => {
               </Card>
             </div>
 
-            {/* <div className="mt-8 text-center">
+            <div className="mt-8 text-center">
               <div className="inline-flex items-center px-4 py-2 bg-white rounded-full border border-gray-200">
                 <Headphones className="h-4 w-4 text-green-600 mr-2" />
                 <span className="text-sm text-gray-700">
                   <span className="w-2 h-2 bg-green-500 rounded-full inline-block mr-1"></span>
                 </span>
               </div>
-            </div> */}
+            </div>
           </Card>
         </div>
 

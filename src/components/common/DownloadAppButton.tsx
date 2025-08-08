@@ -20,8 +20,8 @@ const DownloadAppButton = () => {
       onClick={handleClick}
       className={`
         fixed bottom-4 left-4 z-50 
-        bg-gradient-to-r from-pink-600 to-purple-600 
-        hover:from-pink-700 hover:to-purple-700
+        bg-gradient-to-r from-blue-600 to-purple-600 
+        hover:from-blue-700 hover:to-purple-700
         text-white shadow-lg hover:shadow-xl
         transition-all duration-300 ease-in-out
         transform hover:scale-105

@@ -1,311 +1,326 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, UserPlus, Search, Filter, MoreHorizontal, Edit, Ban, Mail, UserCheck } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/hooks/use-toast';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Plus, Search, Filter, Edit, Eye, Trash2, Users, Mail, Shield, FileText, Building } from 'lucide-react';
+import { UserDocumentProgress } from './UserDocumentProgress';
 
 const AdminUsers = () => {
-  const { toast } = useToast();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedRole, setSelectedRole] = useState('all');
+  const [filterRole, setFilterRole] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterOrganisation, setFilterOrganisation] = useState('all');
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [showDocumentProgress, setShowDocumentProgress] = useState(false);
 
+  // Mock data for users incluant ceux des organismes
   const users = [
     { 
       id: 1, 
-      name: "Marie Dubois", 
-      email: "marie@email.com", 
-      role: "Instructeur", 
-      status: "Actif", 
-      courses: 5, 
-      students: 42, 
-      joinedDate: "2024-01-15",
-      slug: "marie-dubois"
+      name: 'Marie Dupont', 
+      email: 'marie.dupont@email.com', 
+      role: 'Étudiant', 
+      status: 'active', 
+      lastLogin: '2024-01-15',
+      organisation: 'Centre de Formation Digital',
+      documentProgress: 85
     },
     { 
       id: 2, 
-      name: "Pierre Martin", 
-      email: "pierre@email.com", 
-      role: "Étudiant", 
-      status: "Actif", 
-      courses: 12, 
-      progress: "85%", 
-      joinedDate: "2024-02-10",
-      slug: "pierre-martin"
+      name: 'Jean Martin', 
+      email: 'jean.martin@email.com', 
+      role: 'Formateur', 
+      status: 'active', 
+      lastLogin: '2024-01-14',
+      organisation: null,
+      documentProgress: null
     },
     { 
       id: 3, 
-      name: "Sophie Durand", 
-      email: "sophie@email.com", 
-      role: "Instructeur", 
-      status: "Suspendu", 
-      courses: 3, 
-      students: 18, 
-      joinedDate: "2024-01-20",
-      slug: "sophie-durand"
+      name: 'Sophie Bernard', 
+      email: 'sophie.bernard@email.com', 
+      role: 'Gestionnaire', 
+      status: 'inactive', 
+      lastLogin: '2024-01-10',
+      organisation: 'Institut TechnoPlus',
+      documentProgress: 60
     },
     { 
       id: 4, 
-      name: "Jean Dupont", 
-      email: "jean@email.com", 
-      role: "Admin", 
-      status: "Actif", 
-      lastLogin: "2024-03-15", 
-      joinedDate: "2023-12-01",
-      slug: "jean-dupont"
+      name: 'Pierre Durand', 
+      email: 'pierre.durand@email.com', 
+      role: 'Étudiant', 
+      status: 'pending', 
+      lastLogin: 'Jamais',
+      organisation: 'Formation Pro Marseille',
+      documentProgress: 25
     },
     { 
       id: 5, 
-      name: "Lisa Chen", 
-      email: "lisa@email.com", 
-      role: "Étudiant", 
-      status: "Inactif", 
-      courses: 8, 
-      progress: "45%", 
-      joinedDate: "2024-03-01",
-      slug: "lisa-chen"
-    }
+      name: 'Claire Moreau', 
+      email: 'claire.moreau@cfdigital.fr', 
+      role: 'Étudiant', 
+      status: 'active', 
+      lastLogin: '2024-01-20',
+      organisation: 'Centre de Formation Digital',
+      documentProgress: 100
+    },
   ];
 
-  const handleUserAction = (userId: number, action: string) => {
-    toast({
-      title: `Action utilisateur`,
-      description: `${action} appliquée à l'utilisateur ${userId}`,
-    });
+  const organisations = ['Centre de Formation Digital', 'Institut TechnoPlus', 'Formation Pro Marseille'];
+
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      active: { variant: 'default' as const, label: 'Actif' },
+      inactive: { variant: 'secondary' as const, label: 'Inactif' },
+      pending: { variant: 'outline' as const, label: 'En attente' },
+    };
+    
+    const config = statusConfig[status as keyof typeof statusConfig] || { variant: 'outline' as const, label: status };
+    return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
-  const handleBulkAction = (action: string) => {
-    toast({
-      title: "Action groupée",
-      description: `${action} appliquée aux utilisateurs sélectionnés`,
-    });
-  };
-
-  const handleAddUser = () => {
-    navigate('/dashboard/superadmin/users/add');
-  };
-
-  const handleGroupEnrollment = () => {
-    navigate('/dashboard/superadmin/users/group-enrollment');
-  };
-
-  const handleUserDetail = (userSlug: string) => {
-    navigate(`/dashboard/superadmin/users/${userSlug}`);
-  };
-
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'Admin': return 'bg-red-100 text-red-800';
-      case 'Instructeur': return 'bg-blue-100 text-blue-800';
-      case 'Étudiant': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+  const getProgressBadge = (progress: number | null) => {
+    if (progress === null) return null;
+    
+    if (progress === 100) {
+      return <Badge className="bg-green-100 text-green-800">Complet</Badge>;
+    } else if (progress >= 75) {
+      return <Badge className="bg-blue-100 text-blue-800">{progress}%</Badge>;
+    } else if (progress >= 50) {
+      return <Badge className="bg-yellow-100 text-yellow-800">{progress}%</Badge>;
+    } else {
+      return <Badge className="bg-red-100 text-red-800">{progress}%</Badge>;
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Actif': return 'bg-green-100 text-green-800';
-      case 'Inactif': return 'bg-yellow-100 text-yellow-800';
-      case 'Suspendu': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesRole = filterRole === 'all' || user.role === filterRole;
+    const matchesStatus = filterStatus === 'all' || user.status === filterStatus;
+    const matchesOrganisation = filterOrganisation === 'all' || 
+                               (filterOrganisation === 'internal' && !user.organisation) ||
+                               user.organisation === filterOrganisation;
+    
+    return matchesSearch && matchesRole && matchesStatus && matchesOrganisation;
+  });
+
+  const handleViewDocuments = (user: any) => {
+    setSelectedUser(user);
+    setShowDocumentProgress(true);
+  };
+
+  const handleViewUser = (user: any) => {
+    // Créer un slug à partir du nom de l'utilisateur
+    const userSlug = `${user.name.toLowerCase().replace(/\s+/g, '-')}-${user.id}`;
+    navigate(`/dashboard/admin/users/${userSlug}`);
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestion des utilisateurs</h1>
-          <p className="text-gray-600">Gérez tous les utilisateurs de la plateforme</p>
+          <p className="text-gray-600">Gérer tous les utilisateurs de la plateforme, y compris ceux des organismes partenaires</p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={handleGroupEnrollment} variant="outline" className="bg-blue-50 hover:bg-blue-100 text-blue-700">
-            <UserCheck className="h-4 w-4 mr-2" />
+        <div className="flex space-x-3">
+          <Button 
+            variant="outline" 
+            onClick={() => navigate('/dashboard/admin/users/group-enrollment')}
+            className="flex items-center"
+          >
+            <Users className="h-4 w-4 mr-2" />
             Inscription groupée
           </Button>
-          <Button onClick={handleAddUser} className="bg-pink-600 hover:bg-pink-700">
-            <UserPlus className="h-4 w-4 mr-2" />
+          <Button onClick={() => navigate('/dashboard/admin/users/add')}>
+            <Plus className="h-4 w-4 mr-2" />
             Ajouter un utilisateur
           </Button>
         </div>
       </div>
 
-      {/* Statistiques rapides */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      {/* Stats cards */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total utilisateurs</CardTitle>
+            <CardTitle className="text-sm font-medium">Utilisateurs totaux</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">2,847</div>
-            <p className="text-xs text-muted-foreground">+12% ce mois</p>
+            <div className="text-2xl font-bold">{users.length}</div>
+            <p className="text-xs text-muted-foreground">Tous organismes</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Instructeurs</CardTitle>
+            <CardTitle className="text-sm font-medium">Utilisateurs internes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">124</div>
-            <p className="text-xs text-muted-foreground">+3 cette semaine</p>
+            <div className="text-2xl font-bold">{users.filter(u => !u.organisation).length}</div>
+            <p className="text-xs text-muted-foreground">Learneezy direct</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Étudiants actifs</CardTitle>
+            <CardTitle className="text-sm font-medium">Organismes partenaires</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">2,698</div>
-            <p className="text-xs text-muted-foreground">+89% d'engagement</p>
+            <div className="text-2xl font-bold">{users.filter(u => u.organisation).length}</div>
+            <p className="text-xs text-muted-foreground">Centres de formation</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Comptes suspendus</CardTitle>
+            <CardTitle className="text-sm font-medium">Dossiers complets</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">25</div>
-            <p className="text-xs text-muted-foreground">-5 depuis hier</p>
+            <div className="text-2xl font-bold text-green-600">
+              {users.filter(u => u.documentProgress === 100).length}
+            </div>
+            <p className="text-xs text-muted-foreground">100% des documents</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">En cours</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">
+              {users.filter(u => u.documentProgress && u.documentProgress < 100).length}
+            </div>
+            <p className="text-xs text-muted-foreground">Dossiers incomplets</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filtres et recherche */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filtres et actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4 mb-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Rechercher par nom ou email..."
-                  className="pl-10"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-            </div>
-            <select 
-              className="px-3 py-2 border border-gray-300 rounded-md"
-              value={selectedRole}
-              onChange={(e) => setSelectedRole(e.target.value)}
-            >
-              <option value="all">Tous les rôles</option>
-              <option value="admin">Administrateurs</option>
-              <option value="instructor">Instructeurs</option>
-              <option value="student">Étudiants</option>
-            </select>
-            <Button variant="outline">
-              <Filter className="h-4 w-4 mr-2" />
-              Plus de filtres
-            </Button>
-          </div>
-          
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => handleBulkAction('Approuver')}>
-              <UserCheck className="h-4 w-4 mr-2" />
-              Approuver sélection
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => handleBulkAction('Suspendre')}>
-              <Ban className="h-4 w-4 mr-2" />
-              Suspendre sélection
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => handleBulkAction('Envoyer email')}>
-              <Mail className="h-4 w-4 mr-2" />
-              Email groupé
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Table des utilisateurs */}
+      {/* Filters and search */}
       <Card>
         <CardHeader>
           <CardTitle>Liste des utilisateurs</CardTitle>
-          <CardDescription>Gérez tous les comptes utilisateurs</CardDescription>
         </CardHeader>
         <CardContent>
+          <div className="flex items-center space-x-4 mb-6">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Rechercher un utilisateur..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Select value={filterRole} onValueChange={setFilterRole}>
+              <SelectTrigger className="w-40">
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Rôle" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous les rôles</SelectItem>
+                <SelectItem value="Étudiant">Étudiant</SelectItem>
+                <SelectItem value="Formateur">Formateur</SelectItem>
+                <SelectItem value="Gestionnaire">Gestionnaire</SelectItem>
+                <SelectItem value="Administrateur">Administrateur</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Statut" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous les statuts</SelectItem>
+                <SelectItem value="active">Actif</SelectItem>
+                <SelectItem value="inactive">Inactif</SelectItem>
+                <SelectItem value="pending">En attente</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={filterOrganisation} onValueChange={setFilterOrganisation}>
+              <SelectTrigger className="w-48">
+                <Building className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Organisme" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous les organismes</SelectItem>
+                <SelectItem value="internal">Utilisateurs internes</SelectItem>
+                {organisations.map(org => (
+                  <SelectItem key={org} value={org}>{org}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Utilisateur</TableHead>
+                <TableHead>Nom</TableHead>
+                <TableHead>Email</TableHead>
                 <TableHead>Rôle</TableHead>
+                <TableHead>Organisme</TableHead>
                 <TableHead>Statut</TableHead>
-                <TableHead>Activité</TableHead>
-                <TableHead>Date d'inscription</TableHead>
+                <TableHead>Dossier</TableHead>
+                <TableHead>Dernière connexion</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map((user) => (
+              {filteredUsers.map((user) => (
                 <TableRow key={user.id}>
+                  <TableCell className="font-medium">{user.name}</TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>{user.role}</TableCell>
                   <TableCell>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center">
-                        <span className="text-pink-600 font-medium">
-                          {user.name.split(' ').map(n => n[0]).join('')}
-                        </span>
+                    {user.organisation ? (
+                      <Badge variant="outline" className="text-xs">
+                        {user.organisation}
+                      </Badge>
+                    ) : (
+                      <span className="text-gray-500 text-sm">Interne</span>
+                    )}
+                  </TableCell>
+                  <TableCell>{getStatusBadge(user.status)}</TableCell>
+                  <TableCell>
+                    {user.documentProgress !== null ? (
+                      <div className="flex items-center space-x-2">
+                        {getProgressBadge(user.documentProgress)}
                       </div>
-                      <div>
-                        <p className="font-semibold text-gray-900">{user.name}</p>
-                        <p className="text-sm text-gray-600">{user.email}</p>
-                      </div>
-                    </div>
+                    ) : (
+                      <span className="text-gray-400 text-sm">N/A</span>
+                    )}
                   </TableCell>
-                  <TableCell>
-                    <Badge className={getRoleColor(user.role)}>
-                      {user.role}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={getStatusColor(user.status)}>
-                      {user.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm">
-                      {user.role === 'Instructeur' && (
-                        <>
-                          <p>{user.courses} cours</p>
-                          <p className="text-gray-500">{user.students} étudiants</p>
-                        </>
-                      )}
-                      {user.role === 'Étudiant' && (
-                        <>
-                          <p>{user.courses} cours</p>
-                          <p className="text-gray-500">Progression: {user.progress}</p>
-                        </>
-                      )}
-                      {user.role === 'Admin' && (
-                        <p className="text-gray-500">Dernière connexion: {user.lastLogin}</p>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-sm text-gray-600">
-                    {user.joinedDate}
-                  </TableCell>
+                  <TableCell>{user.lastLogin}</TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
                       <Button 
                         size="sm" 
-                        variant="outline" 
-                        onClick={() => handleUserDetail(user.slug)}
+                        variant="outline"
+                        onClick={() => handleViewDocuments(user)}
+                        title="Voir le dossier de formation"
                       >
-                        <Users className="h-4 w-4" />
+                        <FileText className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="outline" onClick={() => handleUserAction(user.id, 'Modifier')}>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleViewUser(user)}
+                        title="Voir les détails"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button size="sm" variant="outline" title="Modifier">
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="outline" onClick={() => handleUserAction(user.id, 'Plus d\'options')}>
-                        <MoreHorizontal className="h-4 w-4" />
+                      <Button size="sm" variant="outline" title="Envoyer un email">
+                        <Mail className="h-4 w-4" />
+                      </Button>
+                      <Button size="sm" variant="outline" title="Gérer les permissions">
+                        <Shield className="h-4 w-4" />
+                      </Button>
+                      <Button size="sm" variant="outline" title="Supprimer">
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </TableCell>
@@ -315,6 +330,16 @@ const AdminUsers = () => {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Modal pour le suivi des documents */}
+      <UserDocumentProgress
+        user={selectedUser}
+        isOpen={showDocumentProgress}
+        onClose={() => {
+          setShowDocumentProgress(false);
+          setSelectedUser(null);
+        }}
+      />
     </div>
   );
 };
