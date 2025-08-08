@@ -280,7 +280,7 @@ const ExternalTrainerDashboard = () => {
     <div className="flex min-h-screen bg-gray-50">
       <DashboardSidebar
         title="Formateur Independant"
-        subtitle="Formations à la demande"
+        subtitle="Mon portail"
         items={sidebarItems}
         userInfo={userInfo}
       />
