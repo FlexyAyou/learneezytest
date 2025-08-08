@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Wand2, Sparkles, Brain, Zap, ArrowLeft, ArrowRight, X } from 'lucide-react';
+import { Wand2, Sparkles, Brain, Zap, ArrowLeft, ArrowRight } from 'lucide-react';
 import { useAICourseCreation } from '@/hooks/useAICourseCreation';
 import { AICourseConfigStep } from './ai-course-creator/AICourseConfigStep';
 import { AICourseOutlineStep } from './ai-course-creator/AICourseOutlineStep';
@@ -71,25 +71,18 @@ export const AICourseCreatorModal = ({ isOpen, onClose, onCourseCreated }: AICou
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader className="border-b pb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-2">
-                <div className="relative">
-                  <Wand2 className="h-6 w-6 text-pink-600" />
-                  <Sparkles className="h-3 w-3 text-yellow-500 absolute -top-1 -right-1 animate-pulse" />
-                </div>
-                <DialogTitle className="text-xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-                  Assistant IA - Création de cours
-                </DialogTitle>
-              </div>
-              <Badge className="bg-gradient-to-r from-pink-100 to-purple-100 text-pink-700 border-pink-200">
-                <Brain className="h-3 w-3 mr-1" />
-                Prototype
-              </Badge>
+          <div className="flex items-center space-x-3">
+            <div className="relative">
+              <Wand2 className="h-6 w-6 text-pink-600" />
+              <Sparkles className="h-3 w-3 text-yellow-500 absolute -top-1 -right-1 animate-pulse" />
             </div>
-            <Button variant="ghost" size="sm" onClick={handleClose}>
-              <X className="h-4 w-4" />
-            </Button>
+            <DialogTitle className="text-xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+              Assistant IA - Création de cours
+            </DialogTitle>
+            <Badge className="bg-gradient-to-r from-pink-100 to-purple-100 text-pink-700 border-pink-200">
+              <Brain className="h-3 w-3 mr-1" />
+              Prototype
+            </Badge>
           </div>
           
           {/* Progress Steps */}

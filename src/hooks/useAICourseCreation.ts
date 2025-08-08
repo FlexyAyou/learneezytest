@@ -100,10 +100,15 @@ export const useAICourseCreation = () => {
       isGenerating: false,
       generationProgress: 100,
       generatedCourse: mockAIResponse.mathCP,
-      steps: prev.steps.map(step => 
-        step.id === type ? { ...step, isCompleted: true } : step
-      )
+      steps: prev.steps.map(step => {
+        if (step.id === type) {
+          return { ...step, isCompleted: true };
+        }
+        return step;
+      })
     }));
+
+    console.log('Course generated:', mockAIResponse.mathCP);
   }, []);
 
   const generateOutline = useCallback(async () => {
