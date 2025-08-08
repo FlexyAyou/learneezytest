@@ -21,7 +21,9 @@ import {
   Edit,
   Save,
   X,
-  Plus
+  Plus,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 import { CourseExtended, courseCategories, courseLevels } from '@/data/mockCoursesData';
 import { useToast } from '@/hooks/use-toast';
@@ -33,10 +35,48 @@ interface CourseViewModalProps {
   onSave: (course: CourseExtended) => void;
 }
 
+// Mock modules and lessons structure like in student course view
+const mockModules = [
+  {
+    id: 1,
+    title: "Module 1: Introduction et bases",
+    description: "Découvrez les concepts fondamentaux",
+    isExpanded: true,
+    lessons: [
+      { id: 1, title: "Introduction générale", duration: "15:30", type: "video", completed: false, isPreview: true },
+      { id: 2, title: "Les concepts de base", duration: "22:45", type: "video", completed: false },
+      { id: 3, title: "Premier exercice pratique", duration: "18:20", type: "document", completed: false },
+    ]
+  },
+  {
+    id: 2,
+    title: "Module 2: Approfondissement",
+    description: "Explorez les aspects avancés",
+    isExpanded: false,
+    lessons: [
+      { id: 4, title: "Techniques avancées", duration: "28:15", type: "video", completed: false },
+      { id: 5, title: "Cas pratiques", duration: "35:40", type: "document", completed: false },
+      { id: 6, title: "Quiz d'évaluation", duration: "10:00", type: "quiz", completed: false },
+    ]
+  },
+  {
+    id: 3,
+    title: "Module 3: Projet final",
+    description: "Mettez en pratique vos connaissances",
+    isExpanded: false,
+    lessons: [
+      { id: 7, title: "Présentation du projet", duration: "12:30", type: "video", completed: false },
+      { id: 8, title: "Réalisation guidée", duration: "45:20", type: "document", completed: false },
+      { id: 9, title: "Évaluation finale", duration: "20:00", type: "quiz", completed: false },
+    ]
+  }
+];
+
 export const CourseViewModal = ({ course, isOpen, onClose, onSave }: CourseViewModalProps) => {
   const { toast } = useToast();
   const [editMode, setEditMode] = useState(false);
   const [editedCourse, setEditedCourse] = useState<CourseExtended | null>(null);
+  const [modules, setModules] = useState(mockModules);
 
   React.useEffect(() => {
     if (course) {
@@ -59,13 +99,11 @@ export const CourseViewModal = ({ course, isOpen, onClose, onSave }: CourseViewM
     setEditedCourse(prev => prev ? { ...prev, [field]: value } : null);
   };
 
-  // Mock lessons data
-  const lessons = [
-    { id: 1, title: "Introduction", duration: "15:30", type: "video", completed: false },
-    { id: 2, title: "Concepts de base", duration: "22:45", type: "video", completed: false },
-    { id: 3, title: "Exercices pratiques", duration: "18:20", type: "document", completed: false },
-    { id: 4, title: "Quiz d'évaluation", duration: "10:00", type: "quiz", completed: false },
-  ];
+  const toggleModule = (moduleId: number) => {
+    setModules(prev => prev.map(module => 
+      module.id === moduleId ? { ...module, isExpanded: !module.isExpanded } : module
+    ));
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -76,6 +114,23 @@ export const CourseViewModal = ({ course, isOpen, onClose, onSave }: CourseViewM
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'video': return <Video className="h-4 w-4" />;
+      case 'document': return <FileText className="h-4 w-4" />;
+      case 'quiz': return <BookOpen className="h-4 w-4" />;
+      default: return <FileText className="h-4 w-4" />;
+    }
+  };
+
+  const totalLessons = modules.reduce((sum, module) => sum + module.lessons.length, 0);
+  const totalDuration = modules.reduce((sum, module) => {
+    return sum + module.lessons.reduce((moduleSum, lesson) => {
+      const [minutes, seconds] = lesson.duration.split(':').map(Number);
+      return moduleSum + minutes + (seconds / 60);
+    }, 0);
+  }, 0);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -127,7 +182,7 @@ export const CourseViewModal = ({ course, isOpen, onClose, onSave }: CourseViewM
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Main content */}
               <div className="lg:col-span-2 space-y-6">
-                {/* Course video/thumbnail */}
+                {/* Course overview */}
                 <Card>
                   <CardContent className="p-0">
                     <div className="relative">
@@ -143,68 +198,111 @@ export const CourseViewModal = ({ course, isOpen, onClose, onSave }: CourseViewM
                         </Button>
                       </div>
                     </div>
+                    <div className="p-6">
+                      {editMode ? (
+                        <Textarea
+                          value={editedCourse.description}
+                          onChange={(e) => handleFieldChange('description', e.target.value)}
+                          rows={3}
+                          className="w-full"
+                        />
+                      ) : (
+                        <p className="text-gray-700">{course.description}</p>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
 
-                {/* Course description */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Description du cours</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {editMode ? (
-                      <Textarea
-                        value={editedCourse.description}
-                        onChange={(e) => handleFieldChange('description', e.target.value)}
-                        rows={4}
-                        className="w-full"
-                      />
-                    ) : (
-                      <p className="text-gray-700">{course.description}</p>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Course lessons */}
+                {/* Course modules structure like student view */}
                 <Card>
                   <CardHeader>
                     <div className="flex justify-between items-center">
-                      <CardTitle>Contenu du cours ({lessons.length} leçons)</CardTitle>
+                      <div>
+                        <CardTitle>Contenu du cours</CardTitle>
+                        <CardDescription>
+                          {totalLessons} leçons • {Math.floor(totalDuration / 60)}h {Math.round(totalDuration % 60)}min
+                        </CardDescription>
+                      </div>
                       {editMode && (
                         <Button size="sm" variant="outline">
                           <Plus className="h-4 w-4 mr-2" />
-                          Ajouter une leçon
+                          Ajouter un module
                         </Button>
                       )}
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-3">
-                      {lessons.map((lesson, index) => (
-                        <div key={lesson.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
-                          <div className="flex items-center space-x-3">
-                            <div className="flex items-center justify-center w-8 h-8 bg-gray-100 rounded-full text-sm font-medium">
-                              {index + 1}
-                            </div>
-                            <div>
-                              <h4 className="font-medium">{lesson.title}</h4>
-                              <div className="flex items-center space-x-2 text-sm text-gray-500">
-                                <Clock className="h-4 w-4" />
-                                <span>{lesson.duration}</span>
-                                {lesson.type === 'video' && <Video className="h-4 w-4" />}
-                                {lesson.type === 'document' && <FileText className="h-4 w-4" />}
-                                {lesson.type === 'quiz' && <BookOpen className="h-4 w-4" />}
+                    <div className="space-y-4">
+                      {modules.map((module) => (
+                        <div key={module.id} className="border rounded-lg">
+                          <div 
+                            className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50"
+                            onClick={() => toggleModule(module.id)}
+                          >
+                            <div className="flex items-center space-x-3">
+                              {module.isExpanded ? 
+                                <ChevronDown className="h-4 w-4" /> : 
+                                <ChevronRight className="h-4 w-4" />
+                              }
+                              <div>
+                                <h4 className="font-semibold">{module.title}</h4>
+                                <p className="text-sm text-gray-500">{module.description}</p>
                               </div>
                             </div>
+                            <div className="flex items-center space-x-2 text-sm text-gray-500">
+                              <span>{module.lessons.length} leçons</span>
+                              {editMode && (
+                                <Button size="sm" variant="ghost">
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
                           </div>
-                          {editMode && (
-                            <div className="flex space-x-2">
-                              <Button size="sm" variant="outline">
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button size="sm" variant="outline">
-                                <Download className="h-4 w-4" />
-                              </Button>
+                          
+                          {module.isExpanded && (
+                            <div className="border-t bg-gray-50">
+                              {module.lessons.map((lesson, lessonIndex) => (
+                                <div key={lesson.id} className="flex items-center justify-between p-4 border-b last:border-b-0 hover:bg-white transition-colors">
+                                  <div className="flex items-center space-x-4">
+                                    <div className="flex items-center justify-center w-8 h-8 bg-white rounded-full border text-sm font-medium">
+                                      {lessonIndex + 1}
+                                    </div>
+                                    <div className="flex items-center space-x-2 text-gray-500">
+                                      {getTypeIcon(lesson.type)}
+                                    </div>
+                                    <div>
+                                      <h5 className="font-medium">{lesson.title}</h5>
+                                      <div className="flex items-center space-x-2 text-sm text-gray-500">
+                                        <Clock className="h-3 w-3" />
+                                        <span>{lesson.duration}</span>
+                                        {lesson.isPreview && (
+                                          <span className="text-blue-600 text-xs bg-blue-100 px-2 py-1 rounded">
+                                            Aperçu
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  {editMode && (
+                                    <div className="flex space-x-2">
+                                      <Button size="sm" variant="ghost">
+                                        <Edit className="h-4 w-4" />
+                                      </Button>
+                                      <Button size="sm" variant="ghost">
+                                        <Download className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                              {editMode && (
+                                <div className="p-4 border-t">
+                                  <Button size="sm" variant="outline" className="w-full">
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Ajouter une leçon
+                                  </Button>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
@@ -236,14 +334,7 @@ export const CourseViewModal = ({ course, isOpen, onClose, onSave }: CourseViewM
                     
                     <div>
                       <Label>Durée</Label>
-                      {editMode ? (
-                        <Input
-                          value={editedCourse.duration}
-                          onChange={(e) => handleFieldChange('duration', e.target.value)}
-                        />
-                      ) : (
-                        <p>{course.duration}</p>
-                      )}
+                      <p>{Math.floor(totalDuration / 60)}h {Math.round(totalDuration % 60)}min</p>
                     </div>
 
                     <div>

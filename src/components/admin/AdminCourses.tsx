@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { BookOpen, Eye, Edit, Copy, Archive, Trash2, Search, Filter, Grid, List, Plus, Download, Upload, AlertTriangle, TrendingUp, Users, DollarSign, Star, Clock, BarChart3, Check, X, Wand2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { extendedCoursesData, mockOrganisations, courseCategories, courseLevels, CourseExtended } from '@/data/mockCoursesData';
 import { CourseViewModal } from './CourseViewModal';
+import { CourseRejectionModal } from './CourseRejectionModal';
 
 const AdminCourses = () => {
   const { toast } = useToast();
@@ -22,7 +22,11 @@ const AdminCourses = () => {
   const [sortBy, setSortBy] = useState<string>('created_date');
   const [selectedCourse, setSelectedCourse] = useState<CourseExtended | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedCourseForComment, setSelectedCourseForComment] = useState<string | null>(null);
+  const [rejectionModal, setRejectionModal] = useState<{ isOpen: boolean; courseId: string; courseTitle: string }>({
+    isOpen: false,
+    courseId: '',
+    courseTitle: ''
+  });
 
   // Courses needing validation
   const pendingCourses = extendedCoursesData.filter(course => 
@@ -98,11 +102,16 @@ const AdminCourses = () => {
     });
   };
 
-  const handleRejectCourse = (courseId: string) => {
+  const handleRejectCourse = (courseId: string, courseTitle: string) => {
+    setRejectionModal({ isOpen: true, courseId, courseTitle });
+  };
+
+  const handleConfirmRejection = (reason: string) => {
     toast({
       title: "Cours rejeté",
-      description: `Le cours ${courseId} a été rejeté avec commentaires`,
+      description: `Le cours a été rejeté. Les commentaires ont été envoyés à l'instructeur.`,
     });
+    setRejectionModal({ isOpen: false, courseId: '', courseTitle: '' });
   };
 
   const handleSaveCourse = (updatedCourse: CourseExtended) => {
@@ -195,7 +204,7 @@ const AdminCourses = () => {
                       <h4 className="font-semibold">{course.title}</h4>
                       <p className="text-sm text-gray-600">par {course.instructor} • {course.organisationName}</p>
                       <div className="flex items-center gap-2 mt-1">
-                        <Badge className={getStatusColor(course.status)} size="sm">
+                        <Badge className={getStatusColor(course.status)}>
                           {getStatusLabel(course.status)}
                         </Badge>
                         <span className="text-xs text-gray-500">Créé le {course.createdDate}</span>
@@ -223,10 +232,7 @@ const AdminCourses = () => {
                       size="sm" 
                       variant="outline"
                       className="text-red-600 border-red-600 hover:bg-red-50"
-                      onClick={() => {
-                        setSelectedCourseForComment(course.id);
-                        handleRejectCourse(course.id);
-                      }}
+                      onClick={() => handleRejectCourse(course.id, course.title)}
                     >
                       <X className="h-4 w-4 mr-1" />
                       Rejeter
@@ -587,27 +593,7 @@ const AdminCourses = () => {
           </Card>
 
           {/* Comment section for course rejection */}
-          {selectedCourseForComment && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Commentaires de modération</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Textarea 
-                  placeholder="Ajoutez vos commentaires pour l'instructeur..."
-                  className="mb-4"
-                />
-                <div className="flex space-x-2">
-                  <Button size="sm" variant="outline" className="text-red-600">
-                    Envoyer et rejeter
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => setSelectedCourseForComment(null)}>
-                    Annuler
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          
         </div>
       </div>
 
@@ -620,6 +606,14 @@ const AdminCourses = () => {
           setSelectedCourse(null);
         }}
         onSave={handleSaveCourse}
+      />
+
+      {/* Course Rejection Modal */}
+      <CourseRejectionModal
+        isOpen={rejectionModal.isOpen}
+        onClose={() => setRejectionModal({ isOpen: false, courseId: '', courseTitle: '' })}
+        onConfirm={handleConfirmRejection}
+        courseTitle={rejectionModal.courseTitle}
       />
     </div>
   );
