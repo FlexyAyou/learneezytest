@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { Check, Star, Zap, Crown, Gift } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +11,7 @@ import Footer from '@/components/Footer';
 const Offers = () => {
   const [isAnnual, setIsAnnual] = useState(false);
   const [isOF, setIsOF] = useState(false); // false = particulier, true = organisme de formation
+  const navigate = useNavigate();
 
   const particulierOffers = [
     {
@@ -27,7 +29,10 @@ const Offers = () => {
         "Support par email",
         "Certificats de base"
       ],
-      gradient: "from-primary to-primary/80"
+      gradient: "from-blue-500 to-blue-600",
+      bgColor: "bg-blue-50",
+      borderColor: "border-blue-200",
+      textColor: "text-blue-700"
     },
     {
       id: 2,
@@ -45,7 +50,10 @@ const Offers = () => {
         "Support prioritaire",
         "Certificats avancés"
       ],
-      gradient: "from-primary to-primary/80"
+      gradient: "from-purple-500 to-purple-600",
+      bgColor: "bg-purple-50",
+      borderColor: "border-purple-200",
+      textColor: "text-purple-700"
     },
     {
       id: 3,
@@ -64,7 +72,10 @@ const Offers = () => {
         "Certificats premium",
         "Support 24/7"
       ],
-      gradient: "from-primary to-primary/80"
+      gradient: "from-amber-500 to-amber-600",
+      bgColor: "bg-amber-50",
+      borderColor: "border-amber-200",
+      textColor: "text-amber-700"
     }
   ];
 
@@ -86,7 +97,10 @@ const Offers = () => {
         "Support par email",
         "Certificats automatiques"
       ],
-      gradient: "from-primary to-primary/80"
+      gradient: "from-green-500 to-green-600",
+      bgColor: "bg-green-50",
+      borderColor: "border-green-200",
+      textColor: "text-green-700"
     },
     {
       id: 2,
@@ -106,7 +120,10 @@ const Offers = () => {
         "Support prioritaire",
         "Formation des formateurs"
       ],
-      gradient: "from-primary to-primary/80"
+      gradient: "from-indigo-500 to-indigo-600",
+      bgColor: "bg-indigo-50",
+      borderColor: "border-indigo-200",
+      textColor: "text-indigo-700"
     },
     {
       id: 3,
@@ -126,7 +143,10 @@ const Offers = () => {
         "Manager dédié",
         "Formation sur-mesure"
       ],
-      gradient: "from-primary to-primary/80"
+      gradient: "from-red-500 to-red-600",
+      bgColor: "bg-red-50",
+      borderColor: "border-red-200",
+      textColor: "text-red-700"
     }
   ];
 
@@ -134,18 +154,51 @@ const Offers = () => {
   
   const calculatePrice = (offer: any) => {
     if (isAnnual) {
-      // Annual pricing is more cost-effective per credit/month
-      return Math.round(offer.annualPrice * 0.83); // 17% discount
+      return Math.round(offer.annualPrice * 0.83);
     }
     return offer.monthlyPrice;
   };
 
   const calculateCredits = (offer: any) => {
-    if (isOF) return null; // OF offers don't use credits
+    if (isOF) return null;
     return isAnnual ? offer.credits * 12 : offer.credits;
   };
 
   const getDiscountPercentage = () => "17%";
+
+  const handleChoosePack = (offerId: number) => {
+    navigate('/payment', { 
+      state: { 
+        offerId, 
+        isAnnual, 
+        isOF,
+        offerType: isOF ? 'organisme' : 'particulier'
+      } 
+    });
+  };
+
+  const ModernToggle = ({ active, onClick, children, badge }: { 
+    active: boolean, 
+    onClick: () => void, 
+    children: React.ReactNode,
+    badge?: string 
+  }) => (
+    <button
+      onClick={onClick}
+      className={`relative px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-300 transform hover:scale-105 ${
+        active 
+          ? 'bg-gradient-to-r from-primary to-primary/80 text-white shadow-lg shadow-primary/30' 
+          : 'bg-white text-muted-foreground hover:bg-gray-50 border border-gray-200 hover:border-gray-300'
+      }`}
+    >
+      {children}
+      {badge && active && (
+        <span className="absolute -top-2 -right-2 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-full">
+          {badge}
+        </span>
+      )}
+    </button>
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -262,68 +315,39 @@ const Offers = () => {
               </p>
             </div>
 
-            {/* Selection Controls */}
+            {/* Modern Selection Controls */}
             <div className="flex flex-col lg:flex-row justify-between items-center gap-6 mb-12">
               {/* Type Selection */}
-              <div className="flex items-center space-x-1 bg-card rounded-lg p-1 shadow-sm">
-                <button
-                  onClick={() => setIsOF(false)}
-                  className={`px-6 py-2 rounded-md font-medium transition-all duration-300 ${
-                    !isOF 
-                      ? 'bg-primary text-primary-foreground shadow-md' 
-                      : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
-                  }`}
-                >
+              <div className="flex items-center gap-2 bg-gray-100 rounded-2xl p-2 shadow-inner">
+                <ModernToggle active={!isOF} onClick={() => setIsOF(false)}>
                   Particulier
-                </button>
-                <button
-                  onClick={() => setIsOF(true)}
-                  className={`px-6 py-2 rounded-md font-medium transition-all duration-300 ${
-                    isOF 
-                      ? 'bg-primary text-primary-foreground shadow-md' 
-                      : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
-                  }`}
-                >
+                </ModernToggle>
+                <ModernToggle active={isOF} onClick={() => setIsOF(true)}>
                   Organisme de Formation
-                </button>
+                </ModernToggle>
               </div>
 
               {/* Billing Period Selection */}
-              <div className="flex items-center space-x-1 bg-card rounded-lg p-1 shadow-sm">
-                <button
-                  onClick={() => setIsAnnual(false)}
-                  className={`px-6 py-2 rounded-md font-medium transition-all duration-300 ${
-                    !isAnnual 
-                      ? 'bg-primary text-primary-foreground shadow-md' 
-                      : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
-                  }`}
-                >
+              <div className="flex items-center gap-2 bg-gray-100 rounded-2xl p-2 shadow-inner">
+                <ModernToggle active={!isAnnual} onClick={() => setIsAnnual(false)}>
                   Mensuel
-                </button>
-                <button
+                </ModernToggle>
+                <ModernToggle 
+                  active={isAnnual} 
                   onClick={() => setIsAnnual(true)}
-                  className={`px-6 py-2 rounded-md font-medium transition-all duration-300 relative ${
-                    isAnnual 
-                      ? 'bg-primary text-primary-foreground shadow-md' 
-                      : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
-                  }`}
+                  badge={isAnnual ? `-${getDiscountPercentage()}` : undefined}
                 >
                   Annuel
-                  {isAnnual && (
-                    <Badge className="absolute -top-2 -right-2 bg-yellow-400 text-yellow-900 font-semibold text-xs px-1 py-0">
-                      -{getDiscountPercentage()}
-                    </Badge>
-                  )}
-                </button>
+                </ModernToggle>
               </div>
             </div>
 
-            <div className={`grid ${isOF ? 'lg:grid-cols-3' : 'lg:grid-cols-3'} md:grid-cols-2 gap-8`}>
+            <div className="grid lg:grid-cols-3 md:grid-cols-2 gap-8">
               {currentOffers.map((offer) => (
                 <Card 
                   key={offer.id} 
-                  className={`relative overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
-                    offer.popular ? 'ring-2 ring-primary shadow-xl' : ''
+                  className={`relative overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl ${offer.bgColor} ${offer.borderColor} border-2 ${
+                    offer.popular ? 'ring-4 ring-primary/20 shadow-xl' : ''
                   }`}
                 >
                   {offer.popular && (
@@ -333,10 +357,10 @@ const Offers = () => {
                   )}
                   
                   <CardHeader className="text-center pb-2">
-                    <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${offer.gradient} flex items-center justify-center text-white mx-auto mb-4`}>
+                    <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${offer.gradient} flex items-center justify-center text-white mx-auto mb-4 shadow-lg`}>
                       {offer.icon}
                     </div>
-                    <CardTitle className="text-2xl font-bold">{offer.name}</CardTitle>
+                    <CardTitle className={`text-2xl font-bold ${offer.textColor}`}>{offer.name}</CardTitle>
                     <CardDescription className="text-muted-foreground">
                       {offer.description}
                     </CardDescription>
@@ -345,13 +369,13 @@ const Offers = () => {
                   <CardContent className="text-center">
                     <div className="mb-6">
                       {!isOF && (
-                        <div className="text-4xl font-bold text-foreground mb-2">
+                        <div className={`text-4xl font-bold ${offer.textColor} mb-2`}>
                           {calculateCredits(offer)}
                           <span className="text-lg text-muted-foreground ml-1">crédits</span>
                         </div>
                       )}
                       {isOF && (
-                        <div className="text-2xl font-bold text-foreground mb-2">
+                        <div className={`text-2xl font-bold ${offer.textColor} mb-2`}>
                           {offer.students}
                         </div>
                       )}
@@ -361,7 +385,7 @@ const Offers = () => {
                             {isOF ? offer.annualPrice : offer.annualPrice}€
                           </span>
                         )}
-                        <div className="text-3xl font-bold text-primary">
+                        <div className={`text-3xl font-bold ${offer.textColor}`}>
                           {calculatePrice(offer)}€
                         </div>
                       </div>
@@ -385,7 +409,8 @@ const Offers = () => {
                     </ul>
                     
                     <Button 
-                      className={`w-full bg-gradient-to-r ${offer.gradient} hover:opacity-90 text-white font-semibold py-3`}
+                      onClick={() => handleChoosePack(offer.id)}
+                      className={`w-full bg-gradient-to-r ${offer.gradient} hover:opacity-90 text-white font-semibold py-3 shadow-lg hover:shadow-xl transition-all duration-300`}
                     >
                       {isOF ? "Démarrer gratuitement" : "Choisir ce pack"}
                     </Button>
