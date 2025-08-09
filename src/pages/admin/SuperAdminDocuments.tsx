@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   FileText,
@@ -52,23 +51,22 @@ const SuperAdminDocuments = () => {
       { id: '3', type: 'convention', title: 'Convention de formation', description: 'Accord contractuel de formation', icon: FileSignature },
     ],
     formation: [
-      { id: '4', type: 'cgv', title: 'Conditions générales de vente', description: 'Conditions commerciales', icon: FileText },
-      { id: '5', type: 'reglement_interieur', title: 'Règlement intérieur', description: 'Règles de fonctionnement', icon: FileText },
-      { id: '6', type: 'programme', title: 'Programme de formation', description: 'Détails du programme pédagogique', icon: BookOpen },
-      { id: '7', type: 'convocation', title: 'Convocation', description: 'Invitation à la formation', icon: Calendar },
-      { id: '8', type: 'emargement', title: 'Feuille d\'émargement', description: 'Suivi de présence', icon: CheckSquare },
+      { id: '4', type: 'cgv', title: 'CGV/RI', description: 'Conditions générales de vente et Règlement intérieur', icon: FileText },
+      { id: '5', type: 'programme', title: 'Programme de formation', description: 'Détails du programme pédagogique', icon: BookOpen },
+      { id: '6', type: 'convocation', title: 'Convocation', description: 'Invitation à la formation', icon: Calendar },
+      { id: '7', type: 'emargement', title: 'Émargement', description: 'Feuille de présence', icon: CheckSquare },
     ],
     postFormation: [
-      { id: '9', type: 'test_fin', title: 'Test de fin de formation', description: 'Évaluation finale', icon: Award },
-      { id: '10', type: 'satisfaction_chaud', title: 'Questionnaire de satisfaction (à chaud)', description: 'Évaluation immédiate de la formation', icon: MessageSquare },
-      { id: '11', type: 'attestation', title: 'Attestation de fin de formation', description: 'Certification de fin de formation', icon: Award },
-      { id: '12', type: 'certificat', title: 'Certificat de réalisation', description: 'Certification de réalisation', icon: Award }
+      { id: '8', type: 'test_fin', title: 'Test de fin de formation', description: 'Évaluation finale', icon: Award },
+      { id: '9', type: 'satisfaction_chaud', title: 'Questionnaire de satisfaction (à chaud)', description: 'Évaluation immédiate de la formation', icon: MessageSquare },
+      { id: '10', type: 'attestation', title: 'Attestation de fin de formation', description: 'Certification de fin de formation', icon: Award },
+      { id: '11', type: 'certificat', title: 'Certificat de réalisation', description: 'Certification de réalisation', icon: Award }
     ],
     plus3Mois: [
-      { id: '13', type: 'satisfaction_froid', title: 'Questionnaire de satisfaction (à froid)', description: 'Évaluation différée de la formation', icon: MessageSquare },
-      { id: '14', type: 'satisfaction_financeur_opco', title: 'Questionnaire satisfaction financeur (OPCO)', description: 'Évaluation pour OPCO', icon: MessageSquare },
-      { id: '15', type: 'satisfaction_financeur_ft', title: 'Questionnaire satisfaction financeur (France Travail)', description: 'Évaluation pour France Travail', icon: MessageSquare },
-      { id: '16', type: 'satisfaction_financeur_faf', title: 'Questionnaire satisfaction financeur (FAF)', description: 'Évaluation pour FAF', icon: MessageSquare },
+      { id: '12', type: 'satisfaction_froid', title: 'Questionnaire de satisfaction (à froid)', description: 'Évaluation différée de la formation', icon: MessageSquare },
+      { id: '13', type: 'satisfaction_financeur_opco', title: 'Questionnaire satisfaction financeur (OPCO)', description: 'Évaluation pour OPCO', icon: MessageSquare },
+      { id: '14', type: 'satisfaction_financeur_ft', title: 'Questionnaire satisfaction financeur (France Travail)', description: 'Évaluation pour France Travail', icon: MessageSquare },
+      { id: '15', type: 'satisfaction_financeur_faf', title: 'Questionnaire satisfaction financeur (FAF)', description: 'Évaluation pour FAF', icon: MessageSquare },
     ]
   };
 
@@ -80,13 +78,43 @@ const SuperAdminDocuments = () => {
     ...documentsByPhase.plus3Mois
   ];
 
-  // Phases de navigation
+  // Phases de navigation avec titres explicites
   const phases = [
-    { id: 'all', name: 'Documents administratifs', icon: FileText, description: 'Tous les documents' },
-    { id: 'inscription', name: 'Phase : Inscription', icon: UserCheck, description: 'Documents d\'inscription' },
-    { id: 'formation', name: 'Phase : Formation', icon: GraduationCap, description: 'Documents de formation' },
-    { id: 'postFormation', name: 'Phase : Post-formation', icon: Trophy, description: 'Documents post-formation' },
-    { id: 'plus3Mois', name: 'Phase : +3 mois', icon: Target, description: 'Évaluations à froid' }
+    { 
+      id: 'all', 
+      name: 'Documents administratifs', 
+      icon: FileText, 
+      description: 'Tous les documents du parcours',
+      category: null
+    },
+    { 
+      id: 'inscription', 
+      name: 'Entrée en formation', 
+      icon: UserCheck, 
+      description: 'Documents d\'inscription et d\'analyse',
+      category: 'Phase 1'
+    },
+    { 
+      id: 'formation', 
+      name: 'En formation', 
+      icon: GraduationCap, 
+      description: 'Documents de déroulement de la formation',
+      category: 'Phase 2'
+    },
+    { 
+      id: 'postFormation', 
+      name: 'Fin de formation', 
+      icon: Trophy, 
+      description: 'Documents de clôture et évaluation',
+      category: 'Phase 3'
+    },
+    { 
+      id: 'plus3Mois', 
+      name: 'Suivi post-formation', 
+      icon: Target, 
+      description: 'Évaluations à froid et satisfaction',
+      category: 'Phase 4'
+    }
   ];
 
   // Liste des utilisateurs
@@ -156,7 +184,6 @@ const SuperAdminDocuments = () => {
       'test_positionnement': { variant: 'outline' as const, label: 'À faire' },
       'convention': { variant: 'default' as const, label: 'Signé' },
       'programme': { variant: 'default' as const, label: 'Envoyé' },
-      'reglement_interieur': { variant: 'default' as const, label: 'Envoyé' },
       'cgv': { variant: 'default' as const, label: 'Envoyé' },
       'convocation': { variant: 'default' as const, label: 'Envoyé' },
       'emargement': { variant: 'default' as const, label: 'Signé' },
@@ -183,7 +210,7 @@ const SuperAdminDocuments = () => {
           <p className="text-sm text-gray-600">Gérer les documents par phase</p>
         </div>
         
-        <nav className="space-y-2">
+        <nav className="space-y-4">
           {phases.map((phase) => {
             const Icon = phase.icon;
             const isActive = activePhase === phase.id;
@@ -192,23 +219,32 @@ const SuperAdminDocuments = () => {
               : (documentsByPhase[phase.id as keyof typeof documentsByPhase] || []).length;
             
             return (
-              <button
-                key={phase.id}
-                onClick={() => setActivePhase(phase.id)}
-                className={`w-full flex items-center p-3 rounded-lg text-left transition-colors ${
-                  isActive 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'hover:bg-gray-100 text-gray-700'
-                }`}
-              >
-                <Icon className="h-5 w-5 mr-3" />
-                <div className="flex-1">
-                  <div className="font-medium">{phase.name}</div>
-                  <div className={`text-xs ${isActive ? 'text-primary-foreground/70' : 'text-gray-500'}`}>
-                    {documentsCount} document{documentsCount > 1 ? 's' : ''}
+              <div key={phase.id}>
+                {phase.category && (
+                  <div className="text-xs font-medium text-primary mb-2 px-3">
+                    {phase.category}
                   </div>
-                </div>
-              </button>
+                )}
+                <button
+                  onClick={() => setActivePhase(phase.id)}
+                  className={`w-full flex items-center p-4 rounded-lg text-left transition-colors ${
+                    isActive 
+                      ? 'bg-primary text-primary-foreground shadow-md' 
+                      : 'hover:bg-gray-100 text-gray-700'
+                  }`}
+                >
+                  <Icon className="h-5 w-5 mr-3" />
+                  <div className="flex-1">
+                    <div className="font-medium">{phase.name}</div>
+                    <div className={`text-xs ${isActive ? 'text-primary-foreground/70' : 'text-gray-500'}`}>
+                      {phase.description}
+                    </div>
+                    <div className={`text-xs mt-1 ${isActive ? 'text-primary-foreground/80' : 'text-gray-600'}`}>
+                      {documentsCount} document{documentsCount > 1 ? 's' : ''}
+                    </div>
+                  </div>
+                </button>
+              </div>
             );
           })}
         </nav>
@@ -225,6 +261,11 @@ const SuperAdminDocuments = () => {
               <p className="text-gray-600">
                 {phases.find(p => p.id === activePhase)?.description}
               </p>
+              {phases.find(p => p.id === activePhase)?.category && (
+                <div className="text-sm font-medium text-primary mt-1">
+                  {phases.find(p => p.id === activePhase)?.category}
+                </div>
+              )}
             </div>
             <div className="flex gap-2">
               <Button variant="outline" onClick={handlePreFill}>
