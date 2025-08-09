@@ -27,7 +27,7 @@ const Offers = () => {
         "Support par email",
         "Certificats de base"
       ],
-      gradient: "from-pink-500 to-purple-500"
+      gradient: "from-primary to-primary/80"
     },
     {
       id: 2,
@@ -45,7 +45,7 @@ const Offers = () => {
         "Support prioritaire",
         "Certificats avancés"
       ],
-      gradient: "from-pink-500 to-purple-500"
+      gradient: "from-primary to-primary/80"
     },
     {
       id: 3,
@@ -64,7 +64,7 @@ const Offers = () => {
         "Certificats premium",
         "Support 24/7"
       ],
-      gradient: "from-pink-500 to-purple-500"
+      gradient: "from-primary to-primary/80"
     }
   ];
 
@@ -84,10 +84,9 @@ const Offers = () => {
         "Suivi pédagogique",
         "Émargements numériques",
         "Support par email",
-        "Certificats automatiques",
-        "Validité : 12 mois"
+        "Certificats automatiques"
       ],
-      gradient: "from-pink-500 to-purple-500"
+      gradient: "from-primary to-primary/80"
     },
     {
       id: 2,
@@ -105,10 +104,9 @@ const Offers = () => {
         "Reporting détaillé",
         "Intégrations CPF/OPCO",
         "Support prioritaire",
-        "Formation des formateurs",
-        "Validité : 12 mois"
+        "Formation des formateurs"
       ],
-      gradient: "from-pink-500 to-purple-500"
+      gradient: "from-primary to-primary/80"
     },
     {
       id: 3,
@@ -126,10 +124,9 @@ const Offers = () => {
         "Intelligence artificielle",
         "Conformité Qualiopi",
         "Manager dédié",
-        "Formation sur-mesure",
-        "Validité : 12 mois"
+        "Formation sur-mesure"
       ],
-      gradient: "from-pink-500 to-purple-500"
+      gradient: "from-primary to-primary/80"
     }
   ];
 
@@ -143,21 +140,26 @@ const Offers = () => {
     return offer.monthlyPrice;
   };
 
+  const calculateCredits = (offer: any) => {
+    if (isOF) return null; // OF offers don't use credits
+    return isAnnual ? offer.credits * 12 : offer.credits;
+  };
+
   const getDiscountPercentage = () => "17%";
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Header />
       
       <div className="pt-20">
         {/* Hero Section */}
-        <div className="bg-gradient-to-br from-pink-600 via-purple-600 to-pink-700 text-white py-20">
+        <div className="bg-gradient-to-br from-primary via-primary/90 to-primary/80 text-primary-foreground py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
               <h1 className="text-4xl md:text-6xl font-bold mb-6">
                 Nos Offres d'Abonnement
               </h1>
-              <p className="text-xl md:text-2xl text-pink-100 max-w-3xl mx-auto">
+              <p className="text-xl md:text-2xl opacity-90 max-w-3xl mx-auto">
                 Choisissez le pack de crédits qui correspond à vos besoins d'apprentissage
               </p>
             </div>
@@ -166,40 +168,40 @@ const Offers = () => {
 
         {/* How it Works - Particulier */}
         {!isOF && (
-          <div className="py-16 bg-white">
+          <div className="py-16 bg-card">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                <h2 className="text-3xl font-bold text-foreground mb-4">
                   Comment fonctionnent les crédits ?
                 </h2>
-                <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
                   Utilisez vos crédits pour accéder aux formations et réserver des créneaux avec nos formateurs
                 </p>
               </div>
               
               <div className="grid md:grid-cols-3 gap-8">
                 <div className="text-center">
-                  <div className="bg-pink-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-                    <Gift className="h-10 w-10 text-pink-600" />
+                  <div className="bg-primary/10 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                    <Gift className="h-10 w-10 text-primary" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Formations</h3>
-                  <p className="text-gray-600">5-20 crédits par cours selon la complexité</p>
+                  <h3 className="text-xl font-semibold text-foreground mb-2">Formations</h3>
+                  <p className="text-muted-foreground">5-20 crédits par cours selon la complexité</p>
                 </div>
                 
                 <div className="text-center">
-                  <div className="bg-purple-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-                    <Zap className="h-10 w-10 text-purple-600" />
+                  <div className="bg-primary/10 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                    <Zap className="h-10 w-10 text-primary" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Coaching</h3>
-                  <p className="text-gray-600">30-50 crédits par séance individuelle</p>
+                  <h3 className="text-xl font-semibold text-foreground mb-2">Coaching</h3>
+                  <p className="text-muted-foreground">30-50 crédits par séance individuelle</p>
                 </div>
                 
                 <div className="text-center">
-                  <div className="bg-pink-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-                    <Crown className="h-10 w-10 text-pink-600" />
+                  <div className="bg-primary/10 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                    <Crown className="h-10 w-10 text-primary" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Ateliers</h3>
-                  <p className="text-gray-600">15-35 crédits par atelier en groupe</p>
+                  <h3 className="text-xl font-semibold text-foreground mb-2">Ateliers</h3>
+                  <p className="text-muted-foreground">15-35 crédits par atelier en groupe</p>
                 </div>
               </div>
             </div>
@@ -208,40 +210,40 @@ const Offers = () => {
 
         {/* How OF Works */}
         {isOF && (
-          <div className="py-16 bg-white">
+          <div className="py-16 bg-card">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                <h2 className="text-3xl font-bold text-foreground mb-4">
                   Pourquoi choisir Learneezy pour votre OF ?
                 </h2>
-                <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
                   Une plateforme complète pour gérer vos formations, apprenants et être conforme aux exigences qualité
                 </p>
               </div>
               
               <div className="grid md:grid-cols-3 gap-8">
                 <div className="text-center">
-                  <div className="bg-pink-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-                    <Gift className="h-10 w-10 text-pink-600" />
+                  <div className="bg-primary/10 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                    <Gift className="h-10 w-10 text-primary" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Gestion LMS</h3>
-                  <p className="text-gray-600">Plateforme d'apprentissage complète avec suivi pédagogique</p>
+                  <h3 className="text-xl font-semibold text-foreground mb-2">Gestion LMS</h3>
+                  <p className="text-muted-foreground">Plateforme d'apprentissage complète avec suivi pédagogique</p>
                 </div>
                 
                 <div className="text-center">
-                  <div className="bg-purple-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-                    <Zap className="h-10 w-10 text-purple-600" />
+                  <div className="bg-primary/10 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                    <Zap className="h-10 w-10 text-primary" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Conformité</h3>
-                  <p className="text-gray-600">Outils pour respecter les exigences Qualiopi et CPF</p>
+                  <h3 className="text-xl font-semibold text-foreground mb-2">Conformité</h3>
+                  <p className="text-muted-foreground">Outils pour respecter les exigences Qualiopi et CPF</p>
                 </div>
                 
                 <div className="text-center">
-                  <div className="bg-pink-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-                    <Crown className="h-10 w-10 text-pink-600" />
+                  <div className="bg-primary/10 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                    <Crown className="h-10 w-10 text-primary" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Automatisation</h3>
-                  <p className="text-gray-600">Émargements, certificats et reporting automatisés</p>
+                  <h3 className="text-xl font-semibold text-foreground mb-2">Automatisation</h3>
+                  <p className="text-muted-foreground">Émargements, certificats et reporting automatisés</p>
                 </div>
               </div>
             </div>
@@ -249,13 +251,13 @@ const Offers = () => {
         )}
 
         {/* Offers Grid */}
-        <div className="py-20 bg-gray-50">
+        <div className="py-20 bg-background">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              <h2 className="text-3xl font-bold text-foreground mb-4">
                 Choisissez votre pack
               </h2>
-              <p className="text-xl text-gray-600 mb-8">
+              <p className="text-xl text-muted-foreground mb-8">
                 Des offres adaptées à tous vos besoins d'apprentissage
               </p>
             </div>
@@ -263,13 +265,13 @@ const Offers = () => {
             {/* Selection Controls */}
             <div className="flex flex-col lg:flex-row justify-between items-center gap-6 mb-12">
               {/* Type Selection */}
-              <div className="flex items-center space-x-1 bg-white rounded-lg p-1 shadow-sm">
+              <div className="flex items-center space-x-1 bg-card rounded-lg p-1 shadow-sm">
                 <button
                   onClick={() => setIsOF(false)}
                   className={`px-6 py-2 rounded-md font-medium transition-all duration-300 ${
                     !isOF 
-                      ? 'bg-pink-600 text-white shadow-md' 
-                      : 'text-gray-600 hover:text-pink-600 hover:bg-pink-50'
+                      ? 'bg-primary text-primary-foreground shadow-md' 
+                      : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
                   }`}
                 >
                   Particulier
@@ -278,8 +280,8 @@ const Offers = () => {
                   onClick={() => setIsOF(true)}
                   className={`px-6 py-2 rounded-md font-medium transition-all duration-300 ${
                     isOF 
-                      ? 'bg-pink-600 text-white shadow-md' 
-                      : 'text-gray-600 hover:text-pink-600 hover:bg-pink-50'
+                      ? 'bg-primary text-primary-foreground shadow-md' 
+                      : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
                   }`}
                 >
                   Organisme de Formation
@@ -287,13 +289,13 @@ const Offers = () => {
               </div>
 
               {/* Billing Period Selection */}
-              <div className="flex items-center space-x-1 bg-white rounded-lg p-1 shadow-sm">
+              <div className="flex items-center space-x-1 bg-card rounded-lg p-1 shadow-sm">
                 <button
                   onClick={() => setIsAnnual(false)}
                   className={`px-6 py-2 rounded-md font-medium transition-all duration-300 ${
                     !isAnnual 
-                      ? 'bg-purple-600 text-white shadow-md' 
-                      : 'text-gray-600 hover:text-purple-600 hover:bg-purple-50'
+                      ? 'bg-primary text-primary-foreground shadow-md' 
+                      : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
                   }`}
                 >
                   Mensuel
@@ -302,8 +304,8 @@ const Offers = () => {
                   onClick={() => setIsAnnual(true)}
                   className={`px-6 py-2 rounded-md font-medium transition-all duration-300 relative ${
                     isAnnual 
-                      ? 'bg-purple-600 text-white shadow-md' 
-                      : 'text-gray-600 hover:text-purple-600 hover:bg-purple-50'
+                      ? 'bg-primary text-primary-foreground shadow-md' 
+                      : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
                   }`}
                 >
                   Annuel
@@ -321,11 +323,11 @@ const Offers = () => {
                 <Card 
                   key={offer.id} 
                   className={`relative overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
-                    offer.popular ? 'ring-2 ring-pink-500 shadow-xl' : ''
+                    offer.popular ? 'ring-2 ring-primary shadow-xl' : ''
                   }`}
                 >
                   {offer.popular && (
-                    <Badge className="absolute top-4 right-4 bg-pink-500 text-white">
+                    <Badge className="absolute top-4 right-4 bg-primary text-primary-foreground">
                       Populaire
                     </Badge>
                   )}
@@ -335,7 +337,7 @@ const Offers = () => {
                       {offer.icon}
                     </div>
                     <CardTitle className="text-2xl font-bold">{offer.name}</CardTitle>
-                    <CardDescription className="text-gray-600">
+                    <CardDescription className="text-muted-foreground">
                       {offer.description}
                     </CardDescription>
                   </CardHeader>
@@ -343,28 +345,28 @@ const Offers = () => {
                   <CardContent className="text-center">
                     <div className="mb-6">
                       {!isOF && (
-                        <div className="text-4xl font-bold text-gray-900 mb-2">
-                          {offer.credits}
-                          <span className="text-lg text-gray-500 ml-1">crédits</span>
+                        <div className="text-4xl font-bold text-foreground mb-2">
+                          {calculateCredits(offer)}
+                          <span className="text-lg text-muted-foreground ml-1">crédits</span>
                         </div>
                       )}
                       {isOF && (
-                        <div className="text-2xl font-bold text-gray-900 mb-2">
+                        <div className="text-2xl font-bold text-foreground mb-2">
                           {offer.students}
                         </div>
                       )}
                       <div className="flex items-center justify-center gap-2 mb-2">
                         {isAnnual && (
-                          <span className="text-xl text-gray-500 line-through">
+                          <span className="text-xl text-muted-foreground line-through">
                             {isOF ? offer.annualPrice : offer.annualPrice}€
                           </span>
                         )}
-                        <div className="text-3xl font-bold text-pink-600">
+                        <div className="text-3xl font-bold text-primary">
                           {calculatePrice(offer)}€
                         </div>
                       </div>
-                      <div className="text-sm text-gray-500">
-                        {isAnnual ? "par an" : "par mois"} {isOF ? "" : `• ${(calculatePrice(offer) / offer.credits).toFixed(2)}€ par crédit`}
+                      <div className="text-sm text-muted-foreground">
+                        {isAnnual ? "par an" : "par mois"} {isOF ? "" : `• ${(calculatePrice(offer) / calculateCredits(offer)).toFixed(3)}€ par crédit`}
                       </div>
                       {isAnnual && (
                         <div className="text-sm text-green-600 font-medium mt-1">
@@ -395,38 +397,38 @@ const Offers = () => {
         </div>
 
         {/* FAQ Section */}
-        <div className="py-16 bg-white">
+        <div className="py-16 bg-card">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              <h2 className="text-3xl font-bold text-foreground mb-4">
                 Questions fréquentes
               </h2>
             </div>
             
             <div className="space-y-8">
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                <h3 className="text-xl font-semibold text-foreground mb-2">
                   Mes crédits expirent-ils ?
                 </h3>
-                <p className="text-gray-600">
-                  {isOF ? "Oui, chaque pack a une durée de validité indiquée. Vous pouvez prolonger vos crédits en achetant un nouveau pack." : "Non, vos crédits n'expirent pas et restent disponibles tant que votre compte est actif."}
+                <p className="text-muted-foreground">
+                  {isOF ? "Non, vos accès à la plateforme sont renouvelés automatiquement selon votre abonnement." : "Non, vos crédits n'expirent pas et restent disponibles tant que votre compte est actif."}
                 </p>
               </div>
               
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                <h3 className="text-xl font-semibold text-foreground mb-2">
                   Puis-je transférer mes crédits ?
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-muted-foreground">
                   Les crédits sont liés à votre compte et ne peuvent pas être transférés à un autre utilisateur.
                 </p>
               </div>
               
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                <h3 className="text-xl font-semibold text-foreground mb-2">
                   Que se passe-t-il si j'annule une réservation ?
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-muted-foreground">
                   Les crédits sont remboursés sur votre compte si vous annulez au moins 24h avant le créneau réservé.
                 </p>
               </div>
