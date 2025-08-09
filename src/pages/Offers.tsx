@@ -25,8 +25,7 @@ const Offers = () => {
         "100 crédits d'apprentissage",
         "Accès aux cours de base",
         "Support par email",
-        "Certificats de base",
-        "Validité : 3 mois"
+        "Certificats de base"
       ],
       gradient: "from-pink-500 to-purple-500"
     },
@@ -44,8 +43,7 @@ const Offers = () => {
         "Accès à tous les cours",
         "Réservation de créneaux formateurs",
         "Support prioritaire",
-        "Certificats avancés",
-        "Validité : 6 mois"
+        "Certificats avancés"
       ],
       gradient: "from-pink-500 to-purple-500"
     },
@@ -64,8 +62,7 @@ const Offers = () => {
         "Réservations prioritaires",
         "Coaching personnalisé",
         "Certificats premium",
-        "Support 24/7",
-        "Validité : 12 mois"
+        "Support 24/7"
       ],
       gradient: "from-pink-500 to-purple-500"
     }
@@ -87,7 +84,8 @@ const Offers = () => {
         "Suivi pédagogique",
         "Émargements numériques",
         "Support par email",
-        "Certificats automatiques"
+        "Certificats automatiques",
+        "Validité : 12 mois"
       ],
       gradient: "from-pink-500 to-purple-500"
     },
@@ -107,7 +105,8 @@ const Offers = () => {
         "Reporting détaillé",
         "Intégrations CPF/OPCO",
         "Support prioritaire",
-        "Formation des formateurs"
+        "Formation des formateurs",
+        "Validité : 12 mois"
       ],
       gradient: "from-pink-500 to-purple-500"
     },
@@ -127,7 +126,8 @@ const Offers = () => {
         "Intelligence artificielle",
         "Conformité Qualiopi",
         "Manager dédié",
-        "Formation sur-mesure"
+        "Formation sur-mesure",
+        "Validité : 12 mois"
       ],
       gradient: "from-pink-500 to-purple-500"
     }
@@ -136,8 +136,11 @@ const Offers = () => {
   const currentOffers = isOF ? ofOffers : particulierOffers;
   
   const calculatePrice = (offer: any) => {
-    const basePrice = isAnnual ? offer.annualPrice : offer.monthlyPrice;
-    return isAnnual ? Math.round(basePrice * 0.83) : basePrice; // 17% de réduction annuelle
+    if (isAnnual) {
+      // Annual pricing is more cost-effective per credit/month
+      return Math.round(offer.annualPrice * 0.83); // 17% discount
+    }
+    return offer.monthlyPrice;
   };
 
   const getDiscountPercentage = () => "17%";
@@ -161,7 +164,7 @@ const Offers = () => {
           </div>
         </div>
 
-        {/* How it Works */}
+        {/* How it Works - Particulier */}
         {!isOF && (
           <div className="py-16 bg-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -353,7 +356,7 @@ const Offers = () => {
                       <div className="flex items-center justify-center gap-2 mb-2">
                         {isAnnual && (
                           <span className="text-xl text-gray-500 line-through">
-                            {isOF ? offer.monthlyPrice : offer.monthlyPrice}€
+                            {isOF ? offer.annualPrice : offer.annualPrice}€
                           </span>
                         )}
                         <div className="text-3xl font-bold text-pink-600">
@@ -406,7 +409,7 @@ const Offers = () => {
                   Mes crédits expirent-ils ?
                 </h3>
                 <p className="text-gray-600">
-                  Oui, chaque pack a une durée de validité indiquée. Vous pouvez prolonger vos crédits en achetant un nouveau pack.
+                  {isOF ? "Oui, chaque pack a une durée de validité indiquée. Vous pouvez prolonger vos crédits en achetant un nouveau pack." : "Non, vos crédits n'expirent pas et restent disponibles tant que votre compte est actif."}
                 </p>
               </div>
               
