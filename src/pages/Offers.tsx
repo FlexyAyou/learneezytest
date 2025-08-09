@@ -1,9 +1,9 @@
+
 import React, { useState } from 'react';
 import { Check, Star, Zap, Crown, Gift } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
@@ -152,52 +152,11 @@ const Offers = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
               <h1 className="text-4xl md:text-6xl font-bold mb-6">
-                {isOF ? "Solutions pour Organismes de Formation" : "Nos Offres d'Abonnement"}
+                Nos Offres d'Abonnement
               </h1>
               <p className="text-xl md:text-2xl text-pink-100 max-w-3xl mx-auto">
-                {isOF 
-                  ? "Gérez vos formations et apprenants avec notre plateforme complète"
-                  : "Choisissez le pack de crédits qui correspond à vos besoins d'apprentissage"
-                }
+                Choisissez le pack de crédits qui correspond à vos besoins d'apprentissage
               </p>
-            </div>
-
-            {/* Toggles */}
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-6 max-w-4xl mx-auto">
-              {/* Toggle Particulier / OF */}
-              <div className="flex items-center space-x-4 bg-white/20 backdrop-blur-sm rounded-full px-6 py-3">
-                <span className={`font-medium transition-colors ${!isOF ? 'text-white' : 'text-white/70'}`}>
-                  Particulier
-                </span>
-                <Switch
-                  checked={isOF}
-                  onCheckedChange={setIsOF}
-                  className="data-[state=checked]:bg-white/30"
-                />
-                <span className={`font-medium transition-colors ${isOF ? 'text-white' : 'text-white/70'}`}>
-                  Organisme de Formation
-                </span>
-              </div>
-
-              {/* Toggle Mensuel / Annuel */}
-              <div className="flex items-center space-x-4 bg-white/20 backdrop-blur-sm rounded-full px-6 py-3">
-                <span className={`font-medium transition-colors ${!isAnnual ? 'text-white' : 'text-white/70'}`}>
-                  Paiement mensuel
-                </span>
-                <Switch
-                  checked={isAnnual}
-                  onCheckedChange={setIsAnnual}
-                  className="data-[state=checked]:bg-white/30"
-                />
-                <span className={`font-medium transition-colors ${isAnnual ? 'text-white' : 'text-white/70'}`}>
-                  Paiement annuel
-                </span>
-                {isAnnual && (
-                  <Badge className="bg-yellow-400 text-yellow-900 font-semibold">
-                    -{getDiscountPercentage()}
-                  </Badge>
-                )}
-              </div>
             </div>
           </div>
         </div>
@@ -289,16 +248,69 @@ const Offers = () => {
         {/* Offers Grid */}
         <div className="py-20 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
+            <div className="text-center mb-8">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                {isOF ? "Choisissez votre solution" : "Choisissez votre pack"}
+                Choisissez votre pack
               </h2>
-              <p className="text-xl text-gray-600">
-                {isOF 
-                  ? "Des solutions adaptées à la taille de votre organisme"
-                  : "Des offres adaptées à tous vos besoins d'apprentissage"
-                }
+              <p className="text-xl text-gray-600 mb-8">
+                Des offres adaptées à tous vos besoins d'apprentissage
               </p>
+            </div>
+
+            {/* Selection Controls */}
+            <div className="flex flex-col lg:flex-row justify-between items-center gap-6 mb-12">
+              {/* Type Selection */}
+              <div className="flex items-center space-x-1 bg-white rounded-lg p-1 shadow-sm">
+                <button
+                  onClick={() => setIsOF(false)}
+                  className={`px-6 py-2 rounded-md font-medium transition-all duration-300 ${
+                    !isOF 
+                      ? 'bg-pink-600 text-white shadow-md' 
+                      : 'text-gray-600 hover:text-pink-600 hover:bg-pink-50'
+                  }`}
+                >
+                  Particulier
+                </button>
+                <button
+                  onClick={() => setIsOF(true)}
+                  className={`px-6 py-2 rounded-md font-medium transition-all duration-300 ${
+                    isOF 
+                      ? 'bg-pink-600 text-white shadow-md' 
+                      : 'text-gray-600 hover:text-pink-600 hover:bg-pink-50'
+                  }`}
+                >
+                  Organisme de Formation
+                </button>
+              </div>
+
+              {/* Billing Period Selection */}
+              <div className="flex items-center space-x-1 bg-white rounded-lg p-1 shadow-sm">
+                <button
+                  onClick={() => setIsAnnual(false)}
+                  className={`px-6 py-2 rounded-md font-medium transition-all duration-300 ${
+                    !isAnnual 
+                      ? 'bg-purple-600 text-white shadow-md' 
+                      : 'text-gray-600 hover:text-purple-600 hover:bg-purple-50'
+                  }`}
+                >
+                  Mensuel
+                </button>
+                <button
+                  onClick={() => setIsAnnual(true)}
+                  className={`px-6 py-2 rounded-md font-medium transition-all duration-300 relative ${
+                    isAnnual 
+                      ? 'bg-purple-600 text-white shadow-md' 
+                      : 'text-gray-600 hover:text-purple-600 hover:bg-purple-50'
+                  }`}
+                >
+                  Annuel
+                  {isAnnual && (
+                    <Badge className="absolute -top-2 -right-2 bg-yellow-400 text-yellow-900 font-semibold text-xs px-1 py-0">
+                      -{getDiscountPercentage()}
+                    </Badge>
+                  )}
+                </button>
+              </div>
             </div>
 
             <div className={`grid ${isOF ? 'lg:grid-cols-3' : 'lg:grid-cols-3'} md:grid-cols-2 gap-8`}>
