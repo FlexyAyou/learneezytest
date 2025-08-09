@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,15 +5,15 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Search, Plus, Eye, Building, MapPin, Phone, Mail, FileText, CheckCircle, Power, PowerOff, Calendar, Users } from 'lucide-react';
+import { Search, Plus, Eye, Building, MapPin, Phone, Mail, FileText, CheckCircle, Power, PowerOff, Calendar, Users, ExternalLink } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 const AdminOrganisations = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedOrg, setSelectedOrg] = useState(null);
-  const [showOrgDetails, setShowOrgDetails] = useState(false);
-  const [showDocuments, setShowDocuments] = useState(false);
 
   // Mock data for organisations
   const organisations = [
@@ -92,6 +91,10 @@ const AdminOrganisations = () => {
       title: currentStatus ? "Organisme désactivé" : "Organisme activé",
       description: `L'organisme a été ${currentStatus ? 'désactivé' : 'activé'} avec succès.`,
     });
+  };
+
+  const handleViewOrganisme = (orgId) => {
+    navigate(`/dashboard/superadmin/organisations/${orgId}`);
   };
 
   const filteredOrganisations = organisations.filter(org =>
@@ -196,7 +199,7 @@ const AdminOrganisations = () => {
             </TableHeader>
             <TableBody>
               {filteredOrganisations.map((org) => (
-                <TableRow key={org.id}>
+                <TableRow key={org.id} className="cursor-pointer hover:bg-gray-50" onClick={() => handleViewOrganisme(org.id)}>
                   <TableCell>
                     <div>
                       <div className="font-medium">{org.name}</div>
@@ -236,22 +239,37 @@ const AdminOrganisations = () => {
                       <div className="text-xs text-gray-500">utilisateurs</div>
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
                     <div className="flex space-x-2">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        title="Voir les détails"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleViewOrganisme(org.id);
+                        }}
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </Button>
+                      
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button 
                             size="sm" 
                             variant="outline" 
-                            title="Voir les détails"
-                            onClick={() => setSelectedOrg(org)}
+                            title="Aperçu rapide"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedOrg(org);
+                            }}
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
                         </DialogTrigger>
                         <DialogContent className="max-w-2xl">
                           <DialogHeader>
-                            <DialogTitle>Détails de l'organisme</DialogTitle>
+                            <DialogTitle>Aperçu de l'organisme</DialogTitle>
                           </DialogHeader>
                           {selectedOrg && (
                             <div className="space-y-6">
@@ -274,27 +292,11 @@ const AdminOrganisations = () => {
                                   </div>
                                 </div>
                               </div>
-                              <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                  <h4 className="font-medium text-gray-900 mb-2">Informations légales</h4>
-                                  <div className="space-y-2 text-sm">
-                                    <div><span className="font-medium">SIRET:</span> {selectedOrg.siret}</div>
-                                    <div><span className="font-medium">N° Déclaration:</span> {selectedOrg.numeroDeclaration}</div>
-                                    <div><span className="font-medium">Qualiopi:</span> {selectedOrg.qualiopiCertified ? 'Certifié' : 'Non certifié'}</div>
-                                  </div>
-                                </div>
-                                <div>
-                                  <h4 className="font-medium text-gray-900 mb-2">Statistiques</h4>
-                                  <div className="space-y-2 text-sm">
-                                    <div className="flex items-center"><Users className="h-3 w-3 mr-1" />{selectedOrg.usersCount} utilisateurs</div>
-                                    <div className="flex items-center"><Calendar className="h-3 w-3 mr-1" />Créé le {new Date(selectedOrg.createdAt).toLocaleDateString()}</div>
-                                    <div><span className="font-medium">Statut:</span> 
-                                      <Badge variant={selectedOrg.isActive ? "default" : "secondary"} className="ml-2">
-                                        {selectedOrg.isActive ? 'Actif' : 'Inactif'}
-                                      </Badge>
-                                    </div>
-                                  </div>
-                                </div>
+                              <div className="flex justify-center">
+                                <Button onClick={() => handleViewOrganisme(selectedOrg.id)}>
+                                  <ExternalLink className="h-4 w-4 mr-2" />
+                                  Voir tous les détails
+                                </Button>
                               </div>
                             </div>
                           )}
@@ -305,7 +307,10 @@ const AdminOrganisations = () => {
                         size="sm" 
                         variant="outline" 
                         title={org.isActive ? "Désactiver" : "Activer"}
-                        onClick={() => handleToggleStatus(org.id, org.isActive)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleStatus(org.id, org.isActive);
+                        }}
                       >
                         {org.isActive ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
                       </Button>
@@ -316,7 +321,10 @@ const AdminOrganisations = () => {
                             size="sm" 
                             variant="outline" 
                             title="Documents"
-                            onClick={() => setSelectedOrg(org)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedOrg(org);
+                            }}
                           >
                             <FileText className="h-4 w-4" />
                           </Button>

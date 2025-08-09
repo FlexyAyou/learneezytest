@@ -27,6 +27,7 @@ import { SuperAdminDashboard } from '@/components/admin/SuperAdminDashboard';
 import AdminOrganisations from '@/components/admin/AdminOrganisations';
 import AdminRessources from '@/components/admin/AdminRessources';
 import AdminSubscriptions from '@/components/admin/AdminSubscriptions';
+import OrganismeDetail from './admin/OrganismeDetail';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -91,6 +92,7 @@ const AdminDashboard = () => {
             <Route path="/users/add" element={<AddUser />} />
             <Route path="/users/group-enrollment" element={<GroupEnrollment />} />
             <Route path="/organisations" element={<AdminOrganisations />} />
+            <Route path="/organisations/:id" element={<OrganismeDetail />} />
             <Route path="/courses" element={<AdminCourses />} />
             <Route path="/documents" element={<SuperAdminDocuments />} />
             <Route path="/licenses" element={<LicenseManagement />} />
