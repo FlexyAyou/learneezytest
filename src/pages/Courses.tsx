@@ -48,7 +48,8 @@ const Courses = () => {
       category: "Mathématiques",
       cycle: "élémentaire",
       availableSlots: 12,
-      description: "Comprenez les fractions avec des exemples concrets et des exercices ludiques adaptés au niveau CM1."
+      description: "Comprenez les fractions avec des exemples concrets et des exercices ludiques adaptés au niveau CM1.",
+      completed: true // Exemple de cours terminé
     },
     {
       id: 2,
@@ -64,7 +65,8 @@ const Courses = () => {
       category: "Français",
       cycle: "secondaire",
       availableSlots: 8,
-      description: "Apprenez à analyser un texte littéraire et à identifier les figures de style au niveau collège."
+      description: "Apprenez à analyser un texte littéraire et à identifier les figures de style au niveau collège.",
+      completed: false
     },
     {
       id: 3,
@@ -80,7 +82,8 @@ const Courses = () => {
       category: "Sciences",
       cycle: "élémentaire",
       availableSlots: 15,
-      description: "Découvrez les différents états de la matière à travers des expériences simples et amusantes."
+      description: "Découvrez les différents états de la matière à travers des expériences simples et amusantes.",
+      completed: true // Exemple de cours terminé
     },
     {
       id: 4,
@@ -96,7 +99,8 @@ const Courses = () => {
       category: "Histoire-Géographie",
       cycle: "secondaire",
       availableSlots: 6,
-      description: "Plongez dans l'histoire de la Révolution française et comprenez ses enjeux politiques et sociaux."
+      description: "Plongez dans l'histoire de la Révolution française et comprenez ses enjeux politiques et sociaux.",
+      completed: false
     },
     {
       id: 5,
@@ -112,7 +116,8 @@ const Courses = () => {
       category: "Anglais",
       cycle: "secondaire",
       availableSlots: 10,
-      description: "Maîtrisez l'utilisation du preterit et du present perfect en anglais avec des exercices pratiques."
+      description: "Maîtrisez l'utilisation du preterit et du present perfect en anglais avec des exercices pratiques.",
+      completed: false
     },
     {
       id: 6,
@@ -128,7 +133,8 @@ const Courses = () => {
       category: "Physique-Chimie",
       cycle: "secondaire",
       availableSlots: 5,
-      description: "Explorez les réactions chimiques fondamentales et leurs applications dans la vie quotidienne."
+      description: "Explorez les réactions chimiques fondamentales et leurs applications dans la vie quotidienne.",
+      completed: false
     },
     {
       id: 7,
@@ -144,7 +150,8 @@ const Courses = () => {
       category: "Mathématiques",
       cycle: "secondaire",
       availableSlots: 7,
-      description: "Développez vos compétences en calcul littéral et résolution d'équations au niveau seconde."
+      description: "Développez vos compétences en calcul littéral et résolution d'équations au niveau seconde.",
+      completed: false
     },
     {
       id: 8,
@@ -160,7 +167,8 @@ const Courses = () => {
       category: "SVT",
       cycle: "secondaire",
       availableSlots: 4,
-      description: "Comprenez les bases de la génétique et de l'hérédité avec des exemples concrets et actuels."
+      description: "Comprenez les bases de la génétique et de l'hérédité avec des exemples concrets et actuels.",
+      completed: true // Exemple de cours terminé
     },
     {
       id: 9,
@@ -176,7 +184,8 @@ const Courses = () => {
       category: "Français",
       cycle: "élémentaire",
       availableSlots: 20,
-      description: "Améliorez la compréhension de lecture avec des textes adaptés au niveau CP."
+      description: "Améliorez la compréhension de lecture avec des textes adaptés au niveau CP.",
+      completed: false
     },
     {
       id: 10,
@@ -192,7 +201,8 @@ const Courses = () => {
       category: "Arts",
       cycle: "secondaire",
       availableSlots: 3,
-      description: "Perfectionnez vos techniques de dessin et explorez différents styles artistiques."
+      description: "Perfectionnez vos techniques de dessin et explorez différents styles artistiques.",
+      completed: false
     }
   ];
 
