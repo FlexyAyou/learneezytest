@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { Users, BookOpen, DollarSign, Settings, BarChart3, Shield, Key, FileText, MessageSquare, Video, Download, Brain, TestTube, Home, UserCheck, PenTool, Mail, FileSignature, Building, CreditCard, Database } from 'lucide-react';
@@ -6,6 +5,7 @@ import AdminInscriptions from './admin/AdminInscriptions';
 import AdminDocumentsOF from './admin/AdminDocumentsOF';
 import AdminAutomaticMailings from './admin/AdminAutomaticMailings';
 import AdminConventionGenerator from './admin/AdminConventionGenerator';
+import SuperAdminDocuments from './admin/SuperAdminDocuments';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
 import AdminStats from '@/components/admin/AdminStats';
 import AdminUsers from '@/components/admin/AdminUsers';
@@ -27,7 +27,6 @@ import { SuperAdminDashboard } from '@/components/admin/SuperAdminDashboard';
 import AdminOrganisations from '@/components/admin/AdminOrganisations';
 import AdminRessources from '@/components/admin/AdminRessources';
 import AdminSubscriptions from '@/components/admin/AdminSubscriptions';
-import AdminDocuments from '@/components/admin/AdminDocuments';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -93,7 +92,7 @@ const AdminDashboard = () => {
             <Route path="/users/group-enrollment" element={<GroupEnrollment />} />
             <Route path="/organisations" element={<AdminOrganisations />} />
             <Route path="/courses" element={<AdminCourses />} />
-            <Route path="/documents" element={<AdminDocuments />} />
+            <Route path="/documents" element={<SuperAdminDocuments />} />
             <Route path="/licenses" element={<LicenseManagement />} />
             <Route path="/identity" element={<IdentityVerification />} />
             <Route path="/tests" element={<PositioningTest userRole="admin" />} />
