@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Search, Award, Users as UsersIcon } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -27,6 +26,13 @@ const Courses = () => {
   const [selectedTrainer, setSelectedTrainer] = useState(null);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
+  // Fonction pour convertir euros en tokens (1 token = 0,3€)
+  const convertToTokens = (euroPrice: string) => {
+    const euroValue = parseFloat(euroPrice.replace('€', ''));
+    const tokens = Math.round(euroValue / 0.3);
+    return `${tokens} tokens`;
+  };
+
   const courses = [
     {
       id: 1,
@@ -36,8 +42,8 @@ const Courses = () => {
       duration: "1h",
       students: 45,
       rating: 4.8,
-      price: "25€",
-      originalPrice: "35€",
+      price: "83 tokens", // 25€ / 0.3 = 83 tokens
+      originalPrice: "117 tokens", // 35€ / 0.3 = 117 tokens
       level: "CM1",
       category: "Mathématiques",
       cycle: "élémentaire",
@@ -52,8 +58,8 @@ const Courses = () => {
       duration: "1h30",
       students: 38,
       rating: 4.9,
-      price: "30€",
-      originalPrice: "40€",
+      price: "100 tokens", // 30€ / 0.3 = 100 tokens
+      originalPrice: "133 tokens", // 40€ / 0.3 = 133 tokens
       level: "6ème",
       category: "Français",
       cycle: "secondaire",
@@ -68,8 +74,8 @@ const Courses = () => {
       duration: "1h",
       students: 52,
       rating: 4.7,
-      price: "28€",
-      originalPrice: "38€",
+      price: "93 tokens", // 28€ / 0.3 = 93 tokens
+      originalPrice: "127 tokens", // 38€ / 0.3 = 127 tokens
       level: "CE2",
       category: "Sciences",
       cycle: "élémentaire",
@@ -84,8 +90,8 @@ const Courses = () => {
       duration: "1h15",
       students: 41,
       rating: 4.6,
-      price: "32€",
-      originalPrice: "42€",
+      price: "107 tokens", // 32€ / 0.3 = 107 tokens
+      originalPrice: "140 tokens", // 42€ / 0.3 = 140 tokens
       level: "4ème",
       category: "Histoire-Géographie",
       cycle: "secondaire",
@@ -100,8 +106,8 @@ const Courses = () => {
       duration: "1h",
       students: 67,
       rating: 4.8,
-      price: "26€",
-      originalPrice: "36€",
+      price: "87 tokens", // 26€ / 0.3 = 87 tokens
+      originalPrice: "120 tokens", // 36€ / 0.3 = 120 tokens
       level: "5ème",
       category: "Anglais",
       cycle: "secondaire",
@@ -116,8 +122,8 @@ const Courses = () => {
       duration: "1h30",
       students: 29,
       rating: 4.9,
-      price: "35€",
-      originalPrice: "45€",
+      price: "117 tokens", // 35€ / 0.3 = 117 tokens
+      originalPrice: "150 tokens", // 45€ / 0.3 = 150 tokens
       level: "3ème",
       category: "Physique-Chimie",
       cycle: "secondaire",
@@ -132,8 +138,8 @@ const Courses = () => {
       duration: "1h15",
       students: 33,
       rating: 4.7,
-      price: "30€",
-      originalPrice: "40€",
+      price: "100 tokens", // 30€ / 0.3 = 100 tokens
+      originalPrice: "133 tokens", // 40€ / 0.3 = 133 tokens
       level: "2nde",
       category: "Mathématiques",
       cycle: "secondaire",
@@ -148,8 +154,8 @@ const Courses = () => {
       duration: "1h30",
       students: 24,
       rating: 4.6,
-      price: "38€",
-      originalPrice: "48€",
+      price: "127 tokens", // 38€ / 0.3 = 127 tokens
+      originalPrice: "160 tokens", // 48€ / 0.3 = 160 tokens
       level: "1ère",
       category: "SVT",
       cycle: "secondaire",
@@ -164,8 +170,8 @@ const Courses = () => {
       duration: "45min",
       students: 78,
       rating: 4.9,
-      price: "20€",
-      originalPrice: "28€",
+      price: "67 tokens", // 20€ / 0.3 = 67 tokens
+      originalPrice: "93 tokens", // 28€ / 0.3 = 93 tokens
       level: "CP",
       category: "Français",
       cycle: "élémentaire",
@@ -180,8 +186,8 @@ const Courses = () => {
       duration: "2h",
       students: 15,
       rating: 4.8,
-      price: "45€",
-      originalPrice: "55€",
+      price: "150 tokens", // 45€ / 0.3 = 150 tokens
+      originalPrice: "183 tokens", // 55€ / 0.3 = 183 tokens
       level: "Terminale",
       category: "Arts",
       cycle: "secondaire",
@@ -190,7 +196,7 @@ const Courses = () => {
     }
   ];
 
-  // Données des formateurs
+  // Données des formateurs - mise à jour des tarifs en tokens
   const trainers = [
     {
       id: 1,
@@ -207,7 +213,7 @@ const Courses = () => {
         { day: "Mercredi", time: "10h-12h" },
         { day: "Vendredi", time: "16h-18h" }
       ],
-      hourlyRate: "35€/h"
+      hourlyRate: "117 tokens/h" // 35€ / 0.3 = 117 tokens
     },
     {
       id: 2,
@@ -224,7 +230,7 @@ const Courses = () => {
         { day: "Jeudi", time: "14h-16h" },
         { day: "Samedi", time: "10h-12h" }
       ],
-      hourlyRate: "32€/h"
+      hourlyRate: "107 tokens/h" // 32€ / 0.3 = 107 tokens
     },
     {
       id: 3,
@@ -241,7 +247,7 @@ const Courses = () => {
         { day: "Mercredi", time: "14h-16h" },
         { day: "Vendredi", time: "9h-11h" }
       ],
-      hourlyRate: "40€/h"
+      hourlyRate: "133 tokens/h" // 40€ / 0.3 = 133 tokens
     },
     {
       id: 4,
@@ -258,7 +264,7 @@ const Courses = () => {
         { day: "Jeudi", time: "10h-12h" },
         { day: "Samedi", time: "14h-16h" }
       ],
-      hourlyRate: "30€/h"
+      hourlyRate: "100 tokens/h" // 30€ / 0.3 = 100 tokens
     },
     {
       id: 5,
@@ -275,11 +281,10 @@ const Courses = () => {
         { day: "Mercredi", time: "9h-11h" },
         { day: "Vendredi", time: "14h-16h" }
       ],
-      hourlyRate: "38€/h"
+      hourlyRate: "127 tokens/h" // 38€ / 0.3 = 127 tokens
     }
   ];
 
-  // Filtre en entonnoir - Niveau d'études principal
   const educationLevels = [
     { value: 'all', label: 'Tous les niveaux d\'études' },
     { value: 'scolaire', label: 'Formation Scolaire (Primaire - Lycée)' },
@@ -389,6 +394,11 @@ const Courses = () => {
           <p className="text-xl text-blue-100 max-w-3xl mx-auto">
             Découvrez nos cours personnalisés du primaire au lycée. Réservez directement vos créneaux avec nos formateurs qualifiés.
           </p>
+          <div className="mt-4 p-4 bg-white/10 rounded-lg max-w-md mx-auto">
+            <p className="text-white text-sm">
+              💡 <strong>Prix en tokens :</strong> 1 token = 0,30€
+            </p>
+          </div>
         </div>
       </section>
 

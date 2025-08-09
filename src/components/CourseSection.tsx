@@ -15,7 +15,7 @@ const CourseSection = () => {
       duration: "40h",
       students: 1250,
       rating: 4.8,
-      price: "99€",
+      price: "330 tokens", // 99€ / 0.3 = 330 tokens
       level: "Débutant",
       category: "Développement"
     },
@@ -27,7 +27,7 @@ const CourseSection = () => {
       duration: "60h",
       students: 890,
       rating: 4.9,
-      price: "149€",
+      price: "497 tokens", // 149€ / 0.3 = 497 tokens
       level: "Intermédiaire",
       category: "IA"
     },
@@ -39,7 +39,7 @@ const CourseSection = () => {
       duration: "25h",
       students: 650,
       rating: 4.7,
-      price: "79€",
+      price: "263 tokens", // 79€ / 0.3 = 263 tokens
       level: "Tous niveaux",
       category: "Design"
     },
@@ -51,7 +51,7 @@ const CourseSection = () => {
       duration: "30h",
       students: 1100,
       rating: 4.6,
-      price: "89€",
+      price: "297 tokens", // 89€ / 0.3 = 297 tokens
       level: "Débutant",
       category: "Marketing"
     },
@@ -63,7 +63,7 @@ const CourseSection = () => {
       duration: "45h",
       students: 780,
       rating: 4.8,
-      price: "129€",
+      price: "430 tokens", // 129€ / 0.3 = 430 tokens
       level: "Avancé",
       category: "Sécurité"
     },
@@ -75,7 +75,7 @@ const CourseSection = () => {
       duration: "20h",
       students: 420,
       rating: 4.9,
-      price: "69€",
+      price: "230 tokens", // 69€ / 0.3 = 230 tokens
       level: "Tous niveaux",
       category: "Créatif"
     },
@@ -87,7 +87,7 @@ const CourseSection = () => {
       duration: "50h",
       students: 950,
       rating: 4.7,
-      price: "119€",
+      price: "397 tokens", // 119€ / 0.3 = 397 tokens
       level: "Intermédiaire",
       category: "Data"
     },
@@ -99,7 +99,7 @@ const CourseSection = () => {
       duration: "35h",
       students: 720,
       rating: 4.6,
-      price: "109€",
+      price: "363 tokens", // 109€ / 0.3 = 363 tokens
       level: "Intermédiaire",
       category: "Mobile"
     }
@@ -126,6 +126,11 @@ const CourseSection = () => {
             Découvrez nos formations les plus demandées, créées par des experts 
             et adaptées aux besoins du marché actuel.
           </p>
+          <div className="mt-6 p-3 bg-gradient-to-r from-pink-100 to-purple-100 rounded-lg max-w-sm mx-auto">
+            <p className="text-gray-700 text-sm font-medium">
+              💰 <strong>Prix en tokens :</strong> 1 token = 0,30€
+            </p>
+          </div>
         </div>
 
         {/* Course Grid - 4 columns on large screens */}
