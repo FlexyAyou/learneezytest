@@ -22,7 +22,7 @@ interface CourseCardProps {
     cycle: string;
     availableSlots: number;
     description: string;
-    completed?: boolean; // Nouveau champ pour savoir si le cours a été suivi
+    completed?: boolean;
   };
 }
 
@@ -58,11 +58,11 @@ const CourseCard = ({ course }: CourseCardProps) => {
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group relative">
-      {/* Badge cours complété */}
+      {/* Badge formation complétée */}
       {course.completed && (
         <div className="absolute top-3 left-3 z-10">
           <Badge className="bg-green-500 text-white font-medium">
-            ✓ Terminé
+            ✅ Formation suivie
           </Badge>
         </div>
       )}
@@ -73,7 +73,7 @@ const CourseCard = ({ course }: CourseCardProps) => {
           alt={course.title}
           className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
         />
-        <div className={`absolute top-3 ${course.completed ? 'left-24' : 'left-3'} flex gap-2`}>
+        <div className={`absolute top-3 ${course.completed ? 'left-40' : 'left-3'} flex gap-2`}>
           <Badge className={`text-xs font-medium ${getBadgeColor(course.level)}`}>
             {course.level}
           </Badge>
@@ -81,17 +81,7 @@ const CourseCard = ({ course }: CourseCardProps) => {
             {course.category}
           </Badge>
         </div>
-        <div className="absolute top-3 right-3 flex gap-2">
-          {/* Bouton de téléchargement du programme */}
-          <Button
-            size="sm"
-            variant="secondary"
-            className="h-8 w-8 p-0 bg-white/90 hover:bg-white"
-            onClick={handleDownloadProgram}
-            title="Télécharger le programme de formation"
-          >
-            <Download className="h-4 w-4 text-gray-700" />
-          </Button>
+        <div className="absolute top-3 right-3">
           <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-bold text-xs px-2 py-1">
             {course.price}
           </Badge>
@@ -126,16 +116,31 @@ const CourseCard = ({ course }: CourseCardProps) => {
           </div>
         </div>
         
-        <div className="flex items-center justify-end gap-2">
-          <Link to={`/cours/${course.id}`}>
-            <Button variant="outline" size="sm">
-              Voir détails
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Link to={`/cours/${course.id}`}>
+              <Button variant="outline" size="sm">
+                Voir détails
+              </Button>
+            </Link>
+            {/* Bouton de téléchargement du programme */}
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-9 w-9 p-0"
+              onClick={handleDownloadProgram}
+              title="Télécharger le programme de formation"
+            >
+              <Download className="h-4 w-4" />
             </Button>
-          </Link>
+          </div>
+          
           {course.completed ? (
-            <Button size="sm" variant="secondary" disabled>
-              Déjà suivi
-            </Button>
+            <Link to="/dashboard/etudiant/courses">
+              <Button size="sm" className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700">
+                Mon parcours
+              </Button>
+            </Link>
           ) : (
             <Link to={`/cours/${course.id}/reservation`}>
               <Button size="sm" className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700">
