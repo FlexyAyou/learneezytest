@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { 
   Plus, 
   Settings, 
@@ -17,7 +19,8 @@ import {
   Zap,
   TrendingUp,
   Euro,
-  Coins
+  Coins,
+  Filter
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { SubscriptionMetrics } from './subscriptions/SubscriptionMetrics';
@@ -126,6 +129,15 @@ const AdminSubscriptions = () => {
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('subscriptions');
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Nouveaux états pour les filtres de plans
+  const [planFilters, setPlanFilters] = useState({
+    showParticulier: true,
+    showOrganisme: true,
+    showMensuel: true,
+    showAnnuel: true
+  });
+  
   const { toast } = useToast();
 
   // Filtrage des abonnements
@@ -189,6 +201,13 @@ const AdminSubscriptions = () => {
       title: "Plan mis à jour",
       description: `Le plan ${plan.name} a été modifié avec succès`,
     });
+  };
+
+  const handlePlanFilterChange = (filterType: string, value: boolean) => {
+    setPlanFilters(prev => ({
+      ...prev,
+      [filterType]: value
+    }));
   };
 
   return (
@@ -338,9 +357,91 @@ const AdminSubscriptions = () => {
           </Card>
         </TabsContent>
 
-        {/* Onglet Plans */}
+        {/* Onglet Plans avec filtres */}
         <TabsContent value="plans" className="space-y-6">
-          <SubscriptionPlansManager onPlanUpdate={handlePlanUpdate} />
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Filter className="h-5 w-5" />
+                Filtres d'affichage des plans
+              </CardTitle>
+              <CardDescription>
+                Sélectionnez les types de plans à afficher pour une gestion optimale
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div className="space-y-4">
+                  <h4 className="font-medium text-sm text-gray-700">Type d'audience</h4>
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="particulier"
+                        checked={planFilters.showParticulier}
+                        onCheckedChange={(checked) => handlePlanFilterChange('showParticulier', checked)}
+                      />
+                      <Label htmlFor="particulier" className="text-sm">Particulier</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="organisme"
+                        checked={planFilters.showOrganisme}
+                        onCheckedChange={(checked) => handlePlanFilterChange('showOrganisme', checked)}
+                      />
+                      <Label htmlFor="organisme" className="text-sm">Organisme de Formation</Label>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="font-medium text-sm text-gray-700">Fréquence de facturation</h4>
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="mensuel"
+                        checked={planFilters.showMensuel}
+                        onCheckedChange={(checked) => handlePlanFilterChange('showMensuel', checked)}
+                      />
+                      <Label htmlFor="mensuel" className="text-sm">Mensuel</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="annuel"
+                        checked={planFilters.showAnnuel}
+                        onCheckedChange={(checked) => handlePlanFilterChange('showAnnuel', checked)}
+                      />
+                      <Label htmlFor="annuel" className="text-sm">Annuel</Label>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="md:col-span-2 flex items-end">
+                  <div className="bg-blue-50 p-4 rounded-lg w-full">
+                    <h5 className="font-medium text-blue-800 mb-2">Filtres actifs</h5>
+                    <div className="flex flex-wrap gap-2">
+                      {planFilters.showParticulier && (
+                        <Badge variant="secondary" className="text-xs">Particulier</Badge>
+                      )}
+                      {planFilters.showOrganisme && (
+                        <Badge variant="secondary" className="text-xs">Organisme</Badge>
+                      )}
+                      {planFilters.showMensuel && (
+                        <Badge variant="outline" className="text-xs">Mensuel</Badge>
+                      )}
+                      {planFilters.showAnnuel && (
+                        <Badge variant="outline" className="text-xs">Annuel</Badge>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <SubscriptionPlansManager 
+            onPlanUpdate={handlePlanUpdate}
+            filters={planFilters}
+          />
         </TabsContent>
 
         {/* Nouvel onglet Tarification */}
