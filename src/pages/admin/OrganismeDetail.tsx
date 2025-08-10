@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,12 +27,14 @@ import {
   Send
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { DeactivateOrganismeModal } from '@/components/admin/DeactivateOrganismeModal';
 
 const OrganismeDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedApprenant, setSelectedApprenant] = useState(null);
+  const [showDeactivateModal, setShowDeactivateModal] = useState(false);
 
   // Mock data pour l'organisme - en réalité viendrait de l'API
   const organisme = {
@@ -155,6 +156,18 @@ const OrganismeDetail = () => {
     });
   };
 
+  const handleDeactivateOrganisme = (organismeId: string, reason: string) => {
+    console.log('Deactivating organisme:', organismeId, 'Reason:', reason);
+    
+    toast({
+      title: organisme.isActive ? "Organisme désactivé" : "Organisme activé",
+      description: `L'organisme a été ${organisme.isActive ? 'désactivé' : 'activé'} avec succès.`,
+    });
+
+    // Ici on mettrait à jour l'état local ou on rechargerait les données
+    // organisme.isActive = !organisme.isActive;
+  };
+
   const tokensAlert = getTokensAlert(organisme.subscription.tokensRemaining, organisme.subscription.tokensTotal);
   const daysAlert = getDaysAlert(organisme.subscription.daysRemaining);
   const tokensPercentage = (organisme.subscription.tokensRemaining / organisme.subscription.tokensTotal) * 100;
@@ -173,6 +186,24 @@ const OrganismeDetail = () => {
             <p className="text-gray-600">{organisme.description}</p>
           </div>
         </div>
+
+        {/* Action de désactivation/activation */}
+        <Button 
+          variant={organisme.isActive ? "destructive" : "default"}
+          onClick={() => setShowDeactivateModal(true)}
+        >
+          {organisme.isActive ? (
+            <>
+              <XCircle className="h-4 w-4 mr-2" />
+              Désactiver l'organisme
+            </>
+          ) : (
+            <>
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Activer l'organisme
+            </>
+          )}
+        </Button>
       </div>
 
       {/* Alertes critiques */}
@@ -465,6 +496,18 @@ const OrganismeDetail = () => {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Modal de désactivation */}
+      <DeactivateOrganismeModal
+        isOpen={showDeactivateModal}
+        onClose={() => setShowDeactivateModal(false)}
+        organisme={{
+          id: organisme.id,
+          name: organisme.name,
+          isActive: organisme.isActive
+        }}
+        onConfirm={handleDeactivateOrganisme}
+      />
     </div>
   );
 };

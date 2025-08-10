@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,15 +5,18 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Search, Plus, Eye, Building, MapPin, Phone, Mail, FileText, CheckCircle, Power, PowerOff, Calendar, Users, ExternalLink, Clock, Coins, AlertTriangle } from 'lucide-react';
+import { Search, Plus, Eye, Building, MapPin, Phone, Mail, FileText, CheckCircle, Power, PowerOff, Calendar, Users, ExternalLink, Clock, Coins, AlertTriangle, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { CommercialReminderModal } from './CommercialReminderModal';
 
 const AdminOrganisations = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedOrg, setSelectedOrg] = useState(null);
+  const [showCommercialModal, setShowCommercialModal] = useState(false);
+  const [selectedOrgForReminder, setSelectedOrgForReminder] = useState(null);
 
   // Mock data for organisations avec les nouvelles données d'abonnement
   const organisations = [
@@ -111,6 +113,11 @@ const AdminOrganisations = () => {
 
   const handleViewOrganisme = (orgId) => {
     navigate(`/dashboard/superadmin/organisations/${orgId}`);
+  };
+
+  const handleSendCommercialReminder = (org) => {
+    setSelectedOrgForReminder(org);
+    setShowCommercialModal(true);
   };
 
   const getSubscriptionStatusBadge = (daysRemaining) => {
@@ -361,13 +368,14 @@ const AdminOrganisations = () => {
                         <Button 
                           size="sm" 
                           variant="outline" 
-                          title={org.isActive ? "Désactiver" : "Activer"}
+                          title="Relance commerciale"
+                          className="bg-orange-50 hover:bg-orange-100 text-orange-700 border-orange-200"
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleToggleStatus(org.id, org.isActive);
+                            handleSendCommercialReminder(org);
                           }}
                         >
-                          {org.isActive ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
+                          <Send className="h-4 w-4" />
                         </Button>
                         
                         <Dialog>
@@ -440,6 +448,18 @@ const AdminOrganisations = () => {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Modal de relance commerciale */}
+      {selectedOrgForReminder && (
+        <CommercialReminderModal
+          isOpen={showCommercialModal}
+          onClose={() => {
+            setShowCommercialModal(false);
+            setSelectedOrgForReminder(null);
+          }}
+          organisme={selectedOrgForReminder}
+        />
+      )}
     </div>
   );
 };
