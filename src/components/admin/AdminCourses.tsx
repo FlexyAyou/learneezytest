@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Search, Plus, Eye, Edit, Trash2, BookOpen, Users, DollarSign, Star, Clock, Wand2, Book } from 'lucide-react';
+import { Search, Plus, Eye, Edit, Trash2, BookOpen, Users, Star, Clock, Wand2, Book } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { AICourseCreatorModal } from './AICourseCreatorModal';
@@ -33,7 +33,7 @@ const AdminCourses = () => {
       status: 'publié',
       duration: '15h',
       createdAt: '2023-10-15',
-      thumbnail: '/api/placeholder/300/200'
+      thumbnail: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80'
     },
     {
       id: '2',
@@ -46,7 +46,7 @@ const AdminCourses = () => {
       status: 'publié',
       duration: '12h',
       createdAt: '2023-11-02',
-      thumbnail: '/api/placeholder/300/200'
+      thumbnail: 'https://images.unsplash.com/photo-1586717791821-3f44a563fa4c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80'
     },
     {
       id: '3',
@@ -59,7 +59,7 @@ const AdminCourses = () => {
       status: 'en_attente',
       duration: '20h',
       createdAt: '2023-11-10',
-      thumbnail: '/api/placeholder/300/200'
+      thumbnail: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80'
     },
     {
       id: '4',
@@ -72,7 +72,7 @@ const AdminCourses = () => {
       status: 'publié',
       duration: '18h',
       createdAt: '2023-09-28',
-      thumbnail: '/api/placeholder/300/200'
+      thumbnail: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80'
     }
   ];
 
@@ -256,12 +256,7 @@ const AdminCourses = () => {
                   <TableCell>
                     <Badge variant="outline">{course.category}</Badge>
                   </TableCell>
-                  <TableCell>
-                    <div className="flex items-center">
-                      <DollarSign className="h-3 w-3 mr-1" />
-                      {course.price}€
-                    </div>
-                  </TableCell>
+                  <TableCell>{course.price}€</TableCell>
                   <TableCell>
                     <div className="flex items-center">
                       <Users className="h-3 w-3 mr-1" />
