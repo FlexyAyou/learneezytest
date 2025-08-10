@@ -37,7 +37,7 @@ interface PromoCode {
 export const CommercialReminderModal = ({ isOpen, onClose, organisme }: CommercialReminderModalProps) => {
   const { toast } = useToast();
   const [emailType, setEmailType] = useState<'renewal' | 'tokens'>('renewal');
-  const [selectedPromoCode, setSelectedPromoCode] = useState<string>('');
+  const [selectedPromoCode, setSelectedPromoCode] = useState<string>('none');
   const [customSubject, setCustomSubject] = useState('');
   const [customMessage, setCustomMessage] = useState('');
 
@@ -58,6 +58,8 @@ export const CommercialReminderModal = ({ isOpen, onClose, organisme }: Commerci
   };
 
   const getDefaultMessage = (type: 'renewal' | 'tokens') => {
+    const selectedPromo = selectedPromoCode !== 'none' ? promoCodes.find(p => p.id === selectedPromoCode) : null;
+    
     if (type === 'renewal') {
       return `Bonjour,
 
@@ -65,7 +67,7 @@ Votre abonnement Learneezy expire dans ${organisme.subscription.daysRemaining} j
 
 Pour assurer la continuité de vos formations, nous vous invitons à renouveler votre abonnement dès maintenant.
 
-${selectedPromoCode ? `Profitez de notre code promo exclusif : ${promoCodes.find(p => p.id === selectedPromoCode)?.code}` : ''}
+${selectedPromo ? `Profitez de notre code promo exclusif : ${selectedPromo.code}` : ''}
 
 Cordialement,
 L'équipe Learneezy`;
@@ -76,7 +78,7 @@ Il ne vous reste plus que ${organisme.subscription.tokensRemaining} tokens sur v
 
 Pour continuer à créer du contenu pédagogique avec l'IA, rechargez vos tokens dès maintenant.
 
-${selectedPromoCode ? `Profitez de notre code promo exclusif : ${promoCodes.find(p => p.id === selectedPromoCode)?.code}` : ''}
+${selectedPromo ? `Profitez de notre code promo exclusif : ${selectedPromo.code}` : ''}
 
 Cordialement,
 L'équipe Learneezy`;
@@ -84,7 +86,7 @@ L'équipe Learneezy`;
   };
 
   const handleSendEmail = () => {
-    const selectedPromo = promoCodes.find(p => p.id === selectedPromoCode);
+    const selectedPromo = selectedPromoCode !== 'none' ? promoCodes.find(p => p.id === selectedPromoCode) : null;
     
     console.log('Sending commercial reminder email:', {
       to: organisme.email,
@@ -150,7 +152,7 @@ L'équipe Learneezy`;
                 <SelectValue placeholder="Sélectionner un code promo" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Aucun code promo</SelectItem>
+                <SelectItem value="none">Aucun code promo</SelectItem>
                 {promoCodes.map((promo) => (
                   <SelectItem key={promo.id} value={promo.id}>
                     <div className="flex items-center space-x-2">
@@ -164,7 +166,7 @@ L'équipe Learneezy`;
                 ))}
               </SelectContent>
             </Select>
-            {selectedPromoCode && (
+            {selectedPromoCode !== 'none' && (
               <div className="mt-2 p-2 bg-green-50 rounded text-sm">
                 <div className="flex items-center text-green-800">
                   <Percent className="h-4 w-4 mr-1" />
