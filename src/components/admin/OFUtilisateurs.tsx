@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Users, Eye, Edit, Plus, Search, Filter, Mail, Phone, UserCheck } from 'lucide-react';
 import { OFApprenantDetail } from './OFApprenantDetail';
-import { OFAddApprenant } from './OFAddApprenant';
+import { OFAddUtilisateur } from './OFAddUtilisateur';
 
 export const OFUtilisateurs = () => {
   const [selectedUser, setSelectedUser] = useState<any>(null);
@@ -61,7 +60,7 @@ export const OFUtilisateurs = () => {
       prenom: 'Pierre', 
       email: 'pierre.durand@email.com', 
       phone: '06 45 67 89 01',
-      role: 'apprenant',
+      role: 'referent',
       status: 'pending', 
       formation: 'Vue.js', 
       progression: 62,
@@ -98,6 +97,7 @@ export const OFUtilisateurs = () => {
       apprenant: { variant: 'default' as const, label: 'Apprenant', color: 'bg-blue-100 text-blue-800' },
       animateur: { variant: 'secondary' as const, label: 'Animateur', color: 'bg-green-100 text-green-800' },
       administrateur: { variant: 'outline' as const, label: 'Administrateur', color: 'bg-purple-100 text-purple-800' },
+      referent: { variant: 'outline' as const, label: 'Référent', color: 'bg-orange-100 text-orange-800' },
       proprietaire: { variant: 'destructive' as const, label: 'Propriétaire', color: 'bg-red-100 text-red-800' },
     };
     
@@ -133,6 +133,7 @@ export const OFUtilisateurs = () => {
     apprenants: utilisateurs.filter(u => u.role === 'apprenant').length,
     animateurs: utilisateurs.filter(u => u.role === 'animateur').length,
     administrateurs: utilisateurs.filter(u => u.role === 'administrateur').length,
+    referents: utilisateurs.filter(u => u.role === 'referent').length,
     proprietaires: utilisateurs.filter(u => u.role === 'proprietaire').length,
   };
 
@@ -150,7 +151,7 @@ export const OFUtilisateurs = () => {
       </div>
 
       {/* Statistiques rapides */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -181,6 +182,17 @@ export const OFUtilisateurs = () => {
                 <p className="text-sm text-muted-foreground">Animateurs</p>
               </div>
               <UserCheck className="h-8 w-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-2xl font-bold">{stats.referents}</p>
+                <p className="text-sm text-muted-foreground">Référents</p>
+              </div>
+              <UserCheck className="h-8 w-8 text-orange-600" />
             </div>
           </CardContent>
         </Card>
@@ -236,6 +248,7 @@ export const OFUtilisateurs = () => {
                 <SelectItem value="apprenant">Apprenants</SelectItem>
                 <SelectItem value="animateur">Animateurs</SelectItem>
                 <SelectItem value="administrateur">Administrateurs</SelectItem>
+                <SelectItem value="referent">Référents</SelectItem>
                 <SelectItem value="proprietaire">Propriétaires</SelectItem>
               </SelectContent>
             </Select>
@@ -356,7 +369,7 @@ export const OFUtilisateurs = () => {
         onClose={() => setIsDetailOpen(false)}
       />
 
-      <OFAddApprenant
+      <OFAddUtilisateur
         isOpen={isAddOpen}
         onClose={() => setIsAddOpen(false)}
         onAdd={handleAddUser}

@@ -14,6 +14,7 @@ import { OFSettings } from '@/components/admin/OFSettings';
 import AIChatButton from '@/components/common/AIChatButton';
 import AdminDocumentsOF from '@/pages/admin/AdminDocumentsOF';
 import OFDocuments from '@/components/admin/OFDocuments';
+import VideoConference from '@/components/common/VideoConference';
 import { 
   LayoutDashboard, 
   Users, 
@@ -24,7 +25,8 @@ import {
   Plug,
   FileText,
   Settings,
-  File
+  File,
+  Video
 } from 'lucide-react';
 
 const OFDashboard = () => {
@@ -74,6 +76,12 @@ const OFDashboard = () => {
       isActive: location.pathname === '/dashboard/organisme-formation/suivi-pedagogique'
     },
     {
+      title: 'Visio',
+      href: '/dashboard/organisme-formation/visio',
+      icon: Video,
+      isActive: location.pathname === '/dashboard/organisme-formation/visio'
+    },
+    {
       title: 'Envois',
       href: '/dashboard/organisme-formation/envois',
       icon: Send,
@@ -121,6 +129,7 @@ const OFDashboard = () => {
             <Route path="documents" element={<OFDocuments />} />
             <Route path="licences" element={<OFLicences />} />
             <Route path="suivi-pedagogique" element={<OFSuiviPedagogique />} />
+            <Route path="visio" element={<VideoConference />} />
             <Route path="envois" element={<OFEnvois />} />
             <Route path="integrations" element={<OFIntegrations />} />
             <Route path="logs" element={<OFLogs />} />
