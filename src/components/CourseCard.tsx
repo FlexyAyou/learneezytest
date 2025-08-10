@@ -96,16 +96,18 @@ const CourseCard = ({ course }: CourseCardProps) => {
                 Voir détails
               </Button>
             </Link>
-            {/* Bouton de téléchargement du programme */}
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-9 w-9 p-0"
-              onClick={handleDownloadProgram}
-              title="Télécharger le programme de formation"
-            >
-              <Download className="h-4 w-4" />
-            </Button>
+            {/* Bouton de téléchargement du programme - seulement pour les formations non complétées */}
+            {!course.completed && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-9 w-9 p-0"
+                onClick={handleDownloadProgram}
+                title="Télécharger le programme de formation"
+              >
+                <Download className="h-4 w-4" />
+              </Button>
+            )}
           </div>
           
           {course.completed ? (
