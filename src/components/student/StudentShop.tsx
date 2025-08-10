@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { ShoppingBag, Coins, CreditCard, PayPal, Smartphone, History, Star, Gift } from 'lucide-react';
+import { ShoppingBag, Coins, CreditCard, Wallet, Smartphone, History, Star, Gift } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const StudentShop = () => {
@@ -221,7 +220,7 @@ export const StudentShop = () => {
                               </SelectItem>
                               <SelectItem value="paypal">
                                 <div className="flex items-center gap-2">
-                                  <PayPal className="h-4 w-4" />
+                                  <Wallet className="h-4 w-4" />
                                   PayPal
                                 </div>
                               </SelectItem>
