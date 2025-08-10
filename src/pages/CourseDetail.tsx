@@ -13,6 +13,16 @@ const CourseDetail = () => {
     { title: "Projet final", duration: "5h 00min", completed: false }
   ];
 
+  const handleDownloadProgram = () => {
+    // Simuler le téléchargement du programme
+    const element = document.createElement('a');
+    element.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(`Programme de formation: Maîtrisez React de A à Z\nFormateur: Jean Dupont\nDurée: 18 heures\nDescription: Ce cours complet vous permettra de maîtriser React, la bibliothèque JavaScript la plus populaire pour créer des interfaces utilisateur interactives.`);
+    element.download = `programme-maitrisez-react-de-a-a-z.txt`;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
@@ -125,6 +135,15 @@ const CourseDetail = () => {
               
               <Button className="w-full bg-pink-600 hover:bg-pink-700 mb-4">
                 S'inscrire maintenant
+              </Button>
+
+              <Button 
+                variant="outline" 
+                className="w-full mb-4"
+                onClick={handleDownloadProgram}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Télécharger le programme
               </Button>
               
               <div className="text-center text-sm text-gray-600 mb-6">
