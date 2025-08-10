@@ -14,6 +14,8 @@ import AdminPayments from '@/components/admin/AdminPayments';
 import AdminSecurity from '@/components/admin/AdminSecurity';
 import AdminSettings from '@/components/admin/AdminSettings';
 import AdminSupport from '@/components/admin/AdminSupport';
+import AdminTrainers from '@/components/admin/AdminTrainers';
+import AdminPromotions from '@/components/admin/AdminPromotions';
 import { LicenseManagement } from '@/components/admin/LicenseManagement';
 import { IdentityVerification } from '@/components/admin/IdentityVerification';
 import AdminVideoConferences from './admin/AdminVideoConferences';
@@ -37,6 +39,7 @@ const AdminDashboard = () => {
   const sidebarItems = [
     { title: "Tableau de bord", href: "/dashboard/superadmin", icon: Home, isActive: currentPath === "/dashboard/superadmin" },
     { title: "Utilisateurs", href: "/dashboard/superadmin/users", icon: Users, isActive: currentPath === "/dashboard/superadmin/users" },
+    { title: "Formateurs", href: "/dashboard/superadmin/trainers", icon: UserCheck, isActive: currentPath === "/dashboard/superadmin/trainers" },
     { title: "Organismes de formations", href: "/dashboard/superadmin/organisations", icon: Building, isActive: currentPath === "/dashboard/superadmin/organisations" },
     { title: "Cours", href: "/dashboard/superadmin/courses", icon: BookOpen, isActive: currentPath === "/dashboard/superadmin/courses" },
     { title: "Documents", href: "/dashboard/superadmin/documents", icon: FileText, isActive: currentPath === "/dashboard/superadmin/documents" },
@@ -47,6 +50,7 @@ const AdminDashboard = () => {
     { title: "Envois automatiques", href: "/dashboard/superadmin/mailings", icon: Mail, isActive: currentPath === "/dashboard/superadmin/mailings" },
     { title: "Émargements", href: "/dashboard/superadmin/emargements", icon: PenTool, isActive: currentPath === "/dashboard/superadmin/emargements" },
     // === SECTION ADMINISTRATION ===
+    { title: "Promotions", href: "/dashboard/superadmin/promotions", icon: TestTube, isActive: currentPath === "/dashboard/superadmin/promotions" },
     { title: "Gestion licences", href: "/dashboard/superadmin/licenses", icon: Key, isActive: currentPath === "/dashboard/superadmin/licenses" },
     { title: "Vérification identité", href: "/dashboard/superadmin/identity", icon: Shield, isActive: currentPath === "/dashboard/superadmin/identity" },
     { title: "Tests positionnement", href: "/dashboard/superadmin/tests", icon: TestTube, isActive: currentPath === "/dashboard/superadmin/tests" },
@@ -91,6 +95,7 @@ const AdminDashboard = () => {
             <Route path="/users/:userSlug" element={<UserDetailPage />} />
             <Route path="/users/add" element={<AddUser />} />
             <Route path="/users/group-enrollment" element={<GroupEnrollment />} />
+            <Route path="/trainers" element={<AdminTrainers />} />
             <Route path="/organisations" element={<AdminOrganisations />} />
             <Route path="/organisations/:id" element={<OrganismeDetail />} />
             <Route path="/courses" element={<AdminCourses />} />
@@ -103,6 +108,7 @@ const AdminDashboard = () => {
             <Route path="/conventions" element={<AdminConventionGenerator />} />
             <Route path="/mailings" element={<AdminAutomaticMailings />} />
             <Route path="/emargements" element={<AdminEmargements />} />
+            <Route path="/promotions" element={<AdminPromotions />} />
             <Route path="/video" element={<AdminVideoConferences />} />
             <Route path="/ressources" element={<AdminRessources />} />
             <Route path="/subscriptions" element={<AdminSubscriptions />} />
