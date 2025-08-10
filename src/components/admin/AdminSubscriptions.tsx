@@ -26,7 +26,7 @@ import { useToast } from '@/hooks/use-toast';
 import { SubscriptionMetrics } from './subscriptions/SubscriptionMetrics';
 import { SubscriptionFiltersComponent } from './subscriptions/SubscriptionFilters';
 import { SubscriptionTable } from './subscriptions/SubscriptionTable';
-import { SubscriptionPlansManager } from './subscriptions/SubscriptionPlansManager';
+import SubscriptionPlansManager from './subscriptions/SubscriptionPlansManager';
 import { Subscription, SubscriptionPlan, SubscriptionFilters, SubscriptionAnalytics } from '@/types/subscription';
 
 // Métriques mises à jour avec les nouvelles données
