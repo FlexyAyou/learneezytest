@@ -316,7 +316,7 @@ const Offers = () => {
             </div>
 
             {/* Modern Selection Controls */}
-            <div className="flex flex-col lg:flex-row justify-between items-center gap-6 mb-12">
+            <div className="flex flex-col lg:flex-row justify-center items-center gap-4 mb-12">
               {/* Type Selection */}
               <div className="flex items-center gap-2 bg-gray-100 rounded-2xl p-2 shadow-inner">
                 <ModernToggle active={!isOF} onClick={() => setIsOF(false)}>
