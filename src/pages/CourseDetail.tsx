@@ -128,9 +128,9 @@ const CourseDetail = () => {
           <div className="lg:col-span-1">
             <Card className="p-6 sticky top-8">
               <div className="text-center mb-6">
-                <div className="text-3xl font-bold text-gray-900 mb-2">89€</div>
-                <div className="text-sm text-gray-500 line-through">129€</div>
-                <div className="text-sm text-green-600 font-medium">Économisez 40€</div>
+                <div className="text-3xl font-bold text-gray-900 mb-2">890 Tokens</div>
+                <div className="text-sm text-gray-500 line-through">1290 Tokens</div>
+                <div className="text-sm text-green-600 font-medium">Économisez 400 Tokens</div>
               </div>
               
               <Button className="w-full bg-pink-600 hover:bg-pink-700 mb-4">
