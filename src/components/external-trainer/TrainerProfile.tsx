@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { User, Mail, Phone, MapPin, Award, Briefcase, Upload, Plus, X, Edit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import TrainerDiplomas from './TrainerDiplomas';
 
 const TrainerProfile = () => {
   const { toast } = useToast();
@@ -377,6 +379,9 @@ const TrainerProfile = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Nouvelle section Diplômes et Certifications */}
+      <TrainerDiplomas />
 
       {/* Certifications */}
       <Card>
