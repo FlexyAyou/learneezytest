@@ -46,7 +46,7 @@ export const OFVideoConferenceModal: React.FC<OFVideoConferenceModalProps> = ({
     endTime: '',
     instructor: '',
     maxParticipants: 20,
-    type: 'course' as const,
+    type: 'course' as 'course' | 'meeting' | 'support' | 'evaluation',
     formation: ''
   });
 
@@ -175,7 +175,7 @@ export const OFVideoConferenceModal: React.FC<OFVideoConferenceModalProps> = ({
 
             <div>
               <Label htmlFor="type">Type de session *</Label>
-              <Select value={formData.type} onValueChange={(value: any) => setFormData(prev => ({ ...prev, type: value }))}>
+              <Select value={formData.type} onValueChange={(value: 'course' | 'meeting' | 'support' | 'evaluation') => setFormData(prev => ({ ...prev, type: value }))}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
