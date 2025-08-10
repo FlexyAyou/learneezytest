@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,8 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { BookOpen, Eye, Edit, Plus, Search, Filter, BarChart3, Users, Clock, UserPlus, Check } from 'lucide-react';
+import { BookOpen, Eye, Edit, Plus, Search, Filter, BarChart3, Users, Clock, UserPlus, Check, ShoppingCart } from 'lucide-react';
 import { OFFormationDetail } from './OFFormationDetail';
+import { LearneezyCourseCatalog } from './LearneezyCourseCatalog';
 
 export const OFFormations = () => {
   const [selectedFormation, setSelectedFormation] = useState<any>(null);
@@ -15,6 +15,7 @@ export const OFFormations = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedFormationForAssign, setSelectedFormationForAssign] = useState<any>(null);
+  const [showCatalogModal, setShowCatalogModal] = useState(false);
 
   const formations = [
     { 
@@ -159,10 +160,20 @@ export const OFFormations = () => {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestion des formations</h1>
           <p className="text-gray-600">Création et suivi des formations</p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Nouvelle formation
-        </Button>
+        <div className="flex space-x-2">
+          <Button 
+            onClick={() => setShowCatalogModal(true)}
+            variant="outline"
+            className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
+          >
+            <ShoppingCart className="h-4 w-4 mr-2" />
+            Voir le catalogue Learneezy
+          </Button>
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            Nouvelle formation
+          </Button>
+        </div>
       </div>
 
       {/* Filtres et recherche */}
@@ -362,6 +373,12 @@ export const OFFormations = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Catalogue Learneezy Modal */}
+      <LearneezyCourseCatalog
+        isOpen={showCatalogModal}
+        onClose={() => setShowCatalogModal(false)}
+      />
     </div>
   );
 };
