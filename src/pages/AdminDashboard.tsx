@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { Users, BookOpen, DollarSign, Settings, BarChart3, Shield, Key, FileText, MessageSquare, Video, Download, Brain, TestTube, Home, UserCheck, PenTool, Mail, FileSignature, Building, CreditCard, Database } from 'lucide-react';
+import { Users, BookOpen, DollarSign, Settings, BarChart3, Shield, Key, FileText, MessageSquare, Video, Download, Brain, TestTube, Home, UserCheck, PenTool, Mail, FileSignature, Building, CreditCard, Database, Coins } from 'lucide-react';
 import AdminInscriptions from './admin/AdminInscriptions';
 import AdminDocumentsOF from './admin/AdminDocumentsOF';
 import AdminAutomaticMailings from './admin/AdminAutomaticMailings';
@@ -30,6 +30,7 @@ import AdminOrganisations from '@/components/admin/AdminOrganisations';
 import AdminRessources from '@/components/admin/AdminRessources';
 import AdminSubscriptions from '@/components/admin/AdminSubscriptions';
 import OrganismeDetail from './admin/OrganismeDetail';
+import AdminTokens from '@/components/admin/AdminTokens';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -51,6 +52,7 @@ const AdminDashboard = () => {
     { title: "Émargements", href: "/dashboard/superadmin/emargements", icon: PenTool, isActive: currentPath === "/dashboard/superadmin/emargements" },
     // === SECTION ADMINISTRATION ===
     { title: "Promotions", href: "/dashboard/superadmin/promotions", icon: TestTube, isActive: currentPath === "/dashboard/superadmin/promotions" },
+    { title: "Gestion des tokens", href: "/dashboard/superadmin/tokens", icon: Coins, isActive: currentPath === "/dashboard/superadmin/tokens" },
     { title: "Gestion licences", href: "/dashboard/superadmin/licenses", icon: Key, isActive: currentPath === "/dashboard/superadmin/licenses" },
     { title: "Vérification identité", href: "/dashboard/superadmin/identity", icon: Shield, isActive: currentPath === "/dashboard/superadmin/identity" },
     { title: "Tests positionnement", href: "/dashboard/superadmin/tests", icon: TestTube, isActive: currentPath === "/dashboard/superadmin/tests" },
@@ -109,6 +111,7 @@ const AdminDashboard = () => {
             <Route path="/mailings" element={<AdminAutomaticMailings />} />
             <Route path="/emargements" element={<AdminEmargements />} />
             <Route path="/promotions" element={<AdminPromotions />} />
+            <Route path="/tokens" element={<AdminTokens />} />
             <Route path="/video" element={<AdminVideoConferences />} />
             <Route path="/ressources" element={<AdminRessources />} />
             <Route path="/subscriptions" element={<AdminSubscriptions />} />
