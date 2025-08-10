@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
@@ -15,6 +14,7 @@ import AIChatButton from '@/components/common/AIChatButton';
 import AdminDocumentsOF from '@/pages/admin/AdminDocumentsOF';
 import OFDocuments from '@/components/admin/OFDocuments';
 import VideoConference from '@/components/common/VideoConference';
+import OFVideoConferences from '@/components/admin/OFVideoConferences';
 import { 
   LayoutDashboard, 
   Users, 
@@ -129,7 +129,7 @@ const OFDashboard = () => {
             <Route path="documents" element={<OFDocuments />} />
             <Route path="licences" element={<OFLicences />} />
             <Route path="suivi-pedagogique" element={<OFSuiviPedagogique />} />
-            <Route path="visio" element={<VideoConference />} />
+            <Route path="visio" element={<OFVideoConferences />} />
             <Route path="envois" element={<OFEnvois />} />
             <Route path="integrations" element={<OFIntegrations />} />
             <Route path="logs" element={<OFLogs />} />
