@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Search, Plus, Eye, Building, MapPin, Phone, Mail, FileText, CheckCircle, Power, PowerOff, Calendar, Users, ExternalLink, Clock, Coins, AlertTriangle, Send } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Search, Plus, Eye, Building, MapPin, Phone, Mail, FileText, CheckCircle, Power, PowerOff, Calendar, Users, ExternalLink, Clock, Coins, AlertTriangle, Send, Filter } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { CommercialReminderModal } from './CommercialReminderModal';
@@ -14,6 +15,7 @@ const AdminOrganisations = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
+  const [tokenFilter, setTokenFilter] = useState<string>('all');
   const [selectedOrg, setSelectedOrg] = useState(null);
   const [showCommercialModal, setShowCommercialModal] = useState(false);
   const [selectedOrgForReminder, setSelectedOrgForReminder] = useState(null);
@@ -141,11 +143,18 @@ const AdminOrganisations = () => {
     }
   };
 
-  const filteredOrganisations = organisations.filter(org =>
-    org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    org.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    org.siret.includes(searchTerm)
-  );
+  const filteredOrganisations = organisations.filter(org => {
+    const matchesSearch = org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      org.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      org.siret.includes(searchTerm);
+    
+    const matchesTokenFilter = tokenFilter === 'all' || 
+      (tokenFilter === 'low' && org.subscription.tokensRemaining < 100) ||
+      (tokenFilter === 'medium' && org.subscription.tokensRemaining >= 100 && org.subscription.tokensRemaining < 300) ||
+      (tokenFilter === 'high' && org.subscription.tokensRemaining >= 300);
+    
+    return matchesSearch && matchesTokenFilter;
+  });
 
   return (
     <div className="space-y-6">
@@ -208,7 +217,7 @@ const AdminOrganisations = () => {
         </Card>
       </div>
 
-      {/* Search and table */}
+      {/* Search and filters */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
@@ -226,6 +235,35 @@ const AdminOrganisations = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
               />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Filter className="h-4 w-4 text-gray-400" />
+              <Select value={tokenFilter} onValueChange={setTokenFilter}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Filtrer par tokens" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les organismes</SelectItem>
+                  <SelectItem value="low">
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
+                      Tokens faibles (&lt; 100)
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="medium">
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-orange-500 rounded-full mr-2"></div>
+                      Tokens moyens (100-299)
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="high">
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                      Tokens élevés (≥ 300)
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
