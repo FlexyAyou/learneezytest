@@ -1,4 +1,3 @@
-
 export interface SubscriptionPlan {
   id: string;
   name: string;
@@ -8,13 +7,15 @@ export interface SubscriptionPlan {
   interval: 'monthly' | 'yearly' | 'quarterly';
   maxUsers?: number;
   maxCourses?: number;
+  credits?: number; // Nombre de crédits/tokens inclus
+  creditPrice?: number; // Prix unitaire d'un crédit/token
   features: string[];
   isActive: boolean;
   isPopular?: boolean;
   trialDays: number;
   setupFee: number;
   discountPercentage: number;
-  targetAudience: 'individual' | 'team' | 'enterprise' | 'education';
+  targetAudience: 'individual' | 'team' | 'enterprise' | 'education' | 'organisme';
   aiRecommendations?: {
     suggestedFor: string[];
     upgradeReasons: string[];

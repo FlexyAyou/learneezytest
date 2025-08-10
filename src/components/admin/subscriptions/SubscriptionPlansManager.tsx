@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -20,22 +20,28 @@ import {
   BookOpen,
   Clock,
   Euro,
-  CheckCircle
+  CheckCircle,
+  Coins,
+  Gift,
+  Zap,
+  Crown
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { SubscriptionPlan } from '@/types/subscription';
 
-// Plans par défaut basés sur votre spécification
+// Plans basés sur les vraies offres de la page /offres
 const defaultPlans: SubscriptionPlan[] = [
+  // Offres Particuliers
   {
-    id: 'starter',
+    id: 'particulier-starter',
     name: 'Pack Starter',
     description: 'Parfait pour débuter votre apprentissage',
     price: 29,
     currency: 'EUR',
-    interval: 'quarterly',
+    interval: 'monthly',
     maxUsers: 1,
-    maxCourses: 100,
+    credits: 100,
+    creditPrice: 0.29,
     features: [
       '100 crédits d\'apprentissage',
       'Accès aux cours de base',
@@ -53,14 +59,15 @@ const defaultPlans: SubscriptionPlan[] = [
     subscribers: 45
   },
   {
-    id: 'growth',
+    id: 'particulier-growth',
     name: 'Pack Growth',
     description: 'Le choix idéal pour progresser rapidement',
     price: 79,
     currency: 'EUR',
     interval: 'monthly',
     maxUsers: 1,
-    maxCourses: 300,
+    credits: 300,
+    creditPrice: 0.26,
     features: [
       '300 crédits d\'apprentissage',
       'Accès à tous les cours',
@@ -79,14 +86,15 @@ const defaultPlans: SubscriptionPlan[] = [
     subscribers: 128
   },
   {
-    id: 'premium',
+    id: 'particulier-premium',
     name: 'Pack Premium',
     description: 'L\'excellence pour les apprenants exigeants',
     price: 120,
     currency: 'EUR',
-    interval: 'yearly',
+    interval: 'monthly',
     maxUsers: 1,
-    maxCourses: 500,
+    credits: 500,
+    creditPrice: 0.24,
     features: [
       '500 crédits d\'apprentissage',
       'Accès illimité à tous les cours',
@@ -105,33 +113,89 @@ const defaultPlans: SubscriptionPlan[] = [
     updatedAt: new Date().toISOString(),
     subscribers: 89
   },
+  // Offres Organismes de Formation
   {
-    id: 'enterprise',
-    name: 'Pack Enterprise',
-    description: 'Solution complète pour les professionnels',
+    id: 'of-starter',
+    name: 'OF Starter',
+    description: 'Idéal pour les petits organismes',
     price: 199,
     currency: 'EUR',
-    interval: 'yearly',
-    maxUsers: 50,
-    maxCourses: 1000,
+    interval: 'monthly',
+    maxUsers: 10,
+    credits: 0, // Les OF n'utilisent pas de crédits mais des licences
     features: [
-      '1000 crédits d\'apprentissage',
-      'Accès illimité premium',
-      'Réservations illimitées',
-      'Coaching individuel',
-      'Parcours personnalisés',
-      'Reporting avancé',
-      'Support dédié'
+      'Gestion de 10 apprenants',
+      'Plateforme LMS intégrée',
+      'Suivi pédagogique',
+      'Émargements numériques',
+      'Support par email',
+      'Certificats automatiques'
+    ],
+    isActive: true,
+    isPopular: false,
+    trialDays: 14,
+    setupFee: 0,
+    discountPercentage: 0,
+    targetAudience: 'organisme',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    subscribers: 23
+  },
+  {
+    id: 'of-business',
+    name: 'OF Business',
+    description: 'Pour les organismes en croissance',
+    price: 449,
+    currency: 'EUR',
+    interval: 'monthly',
+    maxUsers: 50,
+    credits: 0,
+    features: [
+      'Gestion de 50 apprenants',
+      'Plateforme LMS avancée',
+      'Outils de création de contenu',
+      'Reporting détaillé',
+      'Intégrations CPF/OPCO',
+      'Support prioritaire',
+      'Formation des formateurs'
+    ],
+    isActive: true,
+    isPopular: true,
+    trialDays: 14,
+    setupFee: 0,
+    discountPercentage: 0,
+    targetAudience: 'organisme',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    subscribers: 67
+  },
+  {
+    id: 'of-enterprise',
+    name: 'OF Enterprise',
+    description: 'Solution complète pour grands organismes',
+    price: 899,
+    currency: 'EUR',
+    interval: 'monthly',
+    maxUsers: 999999, // Illimité
+    credits: 0,
+    features: [
+      'Apprenants illimités',
+      'Plateforme white-label',
+      'API complète',
+      'Intelligence artificielle',
+      'Conformité Qualiopi',
+      'Manager dédié',
+      'Formation sur-mesure'
     ],
     isActive: true,
     isPopular: false,
     trialDays: 30,
     setupFee: 0,
     discountPercentage: 0,
-    targetAudience: 'enterprise',
+    targetAudience: 'organisme',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    subscribers: 34
+    subscribers: 12
   }
 ];
 
@@ -203,10 +267,10 @@ export const SubscriptionPlansManager: React.FC<SubscriptionPlansManagerProps> =
   };
 
   const getCreditPrice = (plan: SubscriptionPlan) => {
-    if (plan.maxCourses) {
-      return (plan.price / plan.maxCourses).toFixed(2);
+    if (plan.credits && plan.credits > 0) {
+      return plan.creditPrice?.toFixed(3) || (plan.price / plan.credits).toFixed(3);
     }
-    return '0.00';
+    return '0.000';
   };
 
   const getValidityText = (interval: string) => {
@@ -218,13 +282,31 @@ export const SubscriptionPlansManager: React.FC<SubscriptionPlansManagerProps> =
     }
   };
 
+  const getPlanIcon = (plan: SubscriptionPlan) => {
+    if (plan.name.includes('Starter')) return <Gift className="h-6 w-6" />;
+    if (plan.name.includes('Growth') || plan.name.includes('Business')) return <Zap className="h-6 w-6" />;
+    if (plan.name.includes('Premium') || plan.name.includes('Enterprise')) return <Crown className="h-6 w-6" />;
+    return <BookOpen className="h-6 w-6" />;
+  };
+
+  const getAudienceLabel = (audience: string) => {
+    switch (audience) {
+      case 'individual': return 'Particulier';
+      case 'organisme': return 'Organisme de Formation';
+      case 'team': return 'Équipe';
+      case 'enterprise': return 'Entreprise';
+      case 'education': return 'Éducation';
+      default: return audience;
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Gestion des plans d'abonnement</h2>
           <p className="text-gray-600 mt-1">
-            Configurez et gérez vos offres d'abonnement
+            Configurez et gérez vos offres d'abonnement basées sur les vraies offres
           </p>
         </div>
         <Button 
@@ -236,7 +318,17 @@ export const SubscriptionPlansManager: React.FC<SubscriptionPlansManagerProps> =
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      {/* Filtres par type d'audience */}
+      <div className="flex gap-4 mb-6">
+        <Badge variant="outline" className="text-blue-600 border-blue-200">
+          Particuliers: {plans.filter(p => p.targetAudience === 'individual').length}
+        </Badge>
+        <Badge variant="outline" className="text-green-600 border-green-200">
+          Organismes: {plans.filter(p => p.targetAudience === 'organisme').length}
+        </Badge>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {plans.map((plan) => (
           <Card key={plan.id} className={`relative ${!plan.isActive ? 'opacity-60' : ''} ${plan.isPopular ? 'ring-2 ring-purple-500' : ''}`}>
             {plan.isPopular && (
@@ -249,10 +341,16 @@ export const SubscriptionPlansManager: React.FC<SubscriptionPlansManagerProps> =
             <CardHeader className="pb-4">
               <div className="flex justify-between items-start">
                 <div className="flex-1">
-                  <CardTitle className="text-lg">{plan.name}</CardTitle>
-                  <CardDescription className="text-sm mt-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    {getPlanIcon(plan)}
+                    <CardTitle className="text-lg">{plan.name}</CardTitle>
+                  </div>
+                  <CardDescription className="text-sm">
                     {plan.description}
                   </CardDescription>
+                  <Badge variant="secondary" className="mt-2 text-xs">
+                    {getAudienceLabel(plan.targetAudience)}
+                  </Badge>
                 </div>
                 <div className="flex gap-1 ml-2">
                   <Button
@@ -289,9 +387,30 @@ export const SubscriptionPlansManager: React.FC<SubscriptionPlansManagerProps> =
                   {plan.price}€
                 </div>
                 <div className="text-sm text-gray-500">
-                  {getCreditPrice(plan)}€ par crédit
+                  par {getValidityText(plan.interval)}
                 </div>
+                {plan.credits && plan.credits > 0 && (
+                  <div className="text-xs text-gray-500 mt-1">
+                    {getCreditPrice(plan)}€ par crédit
+                  </div>
+                )}
               </div>
+
+              {plan.credits && plan.credits > 0 && (
+                <div className="flex items-center justify-center gap-2 text-sm bg-blue-50 p-2 rounded">
+                  <Coins className="h-4 w-4 text-blue-600" />
+                  <span className="font-medium">{plan.credits} crédits inclus</span>
+                </div>
+              )}
+
+              {plan.maxUsers && (
+                <div className="flex items-center justify-center gap-2 text-sm bg-green-50 p-2 rounded">
+                  <Users className="h-4 w-4 text-green-600" />
+                  <span className="font-medium">
+                    {plan.maxUsers === 999999 ? 'Utilisateurs illimités' : `${plan.maxUsers} utilisateur${plan.maxUsers > 1 ? 's' : ''}`}
+                  </span>
+                </div>
+              )}
 
               <div className="space-y-2">
                 {plan.features.slice(0, 4).map((feature, index) => (
@@ -328,7 +447,7 @@ export const SubscriptionPlansManager: React.FC<SubscriptionPlansManagerProps> =
         ))}
       </div>
 
-      {/* Modal d'édition - Structure simplifiée pour l'exemple */}
+      {/* Modal d'édition */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
@@ -356,6 +475,46 @@ export const SubscriptionPlansManager: React.FC<SubscriptionPlansManagerProps> =
                   />
                 </div>
               </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Nombre de crédits</Label>
+                  <Input 
+                    type="number"
+                    value={selectedPlan.credits || 0} 
+                    onChange={(e) => setSelectedPlan({...selectedPlan, credits: parseInt(e.target.value)})}
+                  />
+                </div>
+                <div>
+                  <Label>Prix unitaire du crédit (€)</Label>
+                  <Input 
+                    type="number"
+                    step="0.001"
+                    value={selectedPlan.creditPrice || 0} 
+                    onChange={(e) => setSelectedPlan({...selectedPlan, creditPrice: parseFloat(e.target.value)})}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label>Type d'audience</Label>
+                <Select 
+                  value={selectedPlan.targetAudience} 
+                  onValueChange={(value) => setSelectedPlan({...selectedPlan, targetAudience: value as any})}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="individual">Particulier</SelectItem>
+                    <SelectItem value="organisme">Organisme de Formation</SelectItem>
+                    <SelectItem value="team">Équipe</SelectItem>
+                    <SelectItem value="enterprise">Entreprise</SelectItem>
+                    <SelectItem value="education">Éducation</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div>
                 <Label>Description</Label>
                 <Textarea 
@@ -363,6 +522,16 @@ export const SubscriptionPlansManager: React.FC<SubscriptionPlansManagerProps> =
                   onChange={(e) => setSelectedPlan({...selectedPlan, description: e.target.value})}
                 />
               </div>
+
+              <div className="flex items-center space-x-2">
+                <Switch 
+                  id="popular"
+                  checked={selectedPlan.isPopular || false}
+                  onCheckedChange={(checked) => setSelectedPlan({...selectedPlan, isPopular: checked})}
+                />
+                <Label htmlFor="popular">Plan populaire</Label>
+              </div>
+
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>
                   Annuler

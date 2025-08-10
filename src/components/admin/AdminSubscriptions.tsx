@@ -16,7 +16,8 @@ import {
   FileText,
   Zap,
   TrendingUp,
-  Euro
+  Euro,
+  Coins
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { SubscriptionMetrics } from './subscriptions/SubscriptionMetrics';
@@ -25,29 +26,30 @@ import { SubscriptionTable } from './subscriptions/SubscriptionTable';
 import { SubscriptionPlansManager } from './subscriptions/SubscriptionPlansManager';
 import { Subscription, SubscriptionPlan, SubscriptionFilters, SubscriptionAnalytics } from '@/types/subscription';
 
-// Données mockées pour la démo
+// Métriques mises à jour avec les nouvelles données
 const mockMetrics = {
-  totalRevenue: 127500,
-  activeSubscriptions: 342,
+  totalRevenue: 187500, // Mis à jour pour refléter les vraies offres
+  activeSubscriptions: 364, // Total des abonnés sur tous les plans
   newSubscriptions: 28,
   churnRate: 3.2,
-  averageRevenuePerUser: 89.5,
+  averageRevenuePerUser: 195.5, // ARPU plus élevé avec les offres OF
   trialConversions: 68.5,
   expiringThisMonth: 15,
   growthRate: 12.5
 };
 
+// Abonnements mockés basés sur les vraies offres
 const mockSubscriptions: Subscription[] = [
   {
     id: '1',
     userId: 'user1',
-    planId: 'plan1',
+    planId: 'particulier-growth',
     status: 'active',
     startDate: '2024-01-15T00:00:00Z',
     endDate: '2024-02-15T00:00:00Z',
     autoRenewal: true,
     paymentMethod: { type: 'card', last4: '4242', expiryDate: '12/25' },
-    totalAmountPaid: 299.99,
+    totalAmountPaid: 79,
     discountApplied: 0,
     nextPaymentDate: '2024-02-15T00:00:00Z',
     user: {
@@ -57,25 +59,64 @@ const mockSubscriptions: Subscription[] = [
       lastName: 'Dupont'
     },
     plan: {
-      id: 'plan1',
-      name: 'Pro',
-      description: 'Plan professionnel',
-      price: 29.99,
+      id: 'particulier-growth',
+      name: 'Pack Growth',
+      description: 'Le choix idéal pour progresser rapidement',
+      price: 79,
       currency: 'EUR',
       interval: 'monthly',
-      features: ['Accès illimité', 'Support prioritaire'],
+      credits: 300,
+      creditPrice: 0.26,
+      features: ['300 crédits d\'apprentissage', 'Accès à tous les cours', 'Support prioritaire'],
       isActive: true,
       isPopular: true,
       trialDays: 14,
       setupFee: 0,
       discountPercentage: 0,
-      targetAudience: 'team',
+      targetAudience: 'individual',
       createdAt: '2024-01-01T00:00:00Z',
       updatedAt: '2024-01-01T00:00:00Z',
-      subscribers: 89
+      subscribers: 128
     }
   },
-  // Ajout d'autres exemples...
+  {
+    id: '2',
+    userId: 'user2',
+    planId: 'of-business',
+    status: 'active',
+    startDate: '2024-01-10T00:00:00Z',
+    endDate: '2024-02-10T00:00:00Z',
+    autoRenewal: true,
+    paymentMethod: { type: 'card', last4: '1234', expiryDate: '11/26' },
+    totalAmountPaid: 449,
+    discountApplied: 0,
+    nextPaymentDate: '2024-02-10T00:00:00Z',
+    user: {
+      id: 'user2',
+      email: 'formation.center@email.com',
+      firstName: 'Jean',
+      lastName: 'Formation'
+    },
+    plan: {
+      id: 'of-business',
+      name: 'OF Business',
+      description: 'Pour les organismes en croissance',
+      price: 449,
+      currency: 'EUR',
+      interval: 'monthly',
+      maxUsers: 50,
+      features: ['Gestion de 50 apprenants', 'Plateforme LMS avancée', 'Reporting détaillé'],
+      isActive: true,
+      isPopular: true,
+      trialDays: 14,
+      setupFee: 0,
+      discountPercentage: 0,
+      targetAudience: 'organisme',
+      createdAt: '2024-01-01T00:00:00Z',
+      updatedAt: '2024-01-01T00:00:00Z',
+      subscribers: 67
+    }
+  }
 ];
 
 const AdminSubscriptions = () => {
@@ -157,7 +198,7 @@ const AdminSubscriptions = () => {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Gestion des abonnements</h1>
           <p className="text-gray-600 mt-2">
-            Interface complète de gestion des abonnements et des revenus récurrents
+            Interface complète de gestion des abonnements basée sur vos vraies offres (Particuliers & Organismes de Formation)
           </p>
         </div>
         <div className="flex gap-2">
@@ -175,6 +216,59 @@ const AdminSubscriptions = () => {
       {/* Métriques principales */}
       <SubscriptionMetrics metrics={mockMetrics} isLoading={isLoading} />
 
+      {/* Résumé des offres */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Coins className="h-5 w-5 text-blue-500" />
+              Offres Particuliers
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Pack Starter (100 crédits)</span>
+                <span className="font-medium">29€/mois</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>Pack Growth (300 crédits)</span>
+                <span className="font-medium">79€/mois</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>Pack Premium (500 crédits)</span>
+                <span className="font-medium">120€/mois</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-green-500" />
+              Offres Organismes de Formation
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>OF Starter (10 apprenants)</span>
+                <span className="font-medium">199€/mois</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>OF Business (50 apprenants)</span>
+                <span className="font-medium">449€/mois</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>OF Enterprise (illimité)</span>
+                <span className="font-medium">899€/mois</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Tabs pour organiser les fonctionnalités */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-6">
@@ -186,6 +280,10 @@ const AdminSubscriptions = () => {
             <CreditCard className="h-4 w-4" />
             Plans
           </TabsTrigger>
+          <TabsTrigger value="pricing" className="flex items-center gap-2">
+            <Coins className="h-4 w-4" />
+            Tarification
+          </TabsTrigger>
           <TabsTrigger value="analytics" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Analytics
@@ -193,10 +291,6 @@ const AdminSubscriptions = () => {
           <TabsTrigger value="notifications" className="flex items-center gap-2">
             <Bell className="h-4 w-4" />
             Notifications
-          </TabsTrigger>
-          <TabsTrigger value="ai-insights" className="flex items-center gap-2">
-            <Brain className="h-4 w-4" />
-            IA Insights
           </TabsTrigger>
           <TabsTrigger value="reports" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
@@ -249,6 +343,94 @@ const AdminSubscriptions = () => {
           <SubscriptionPlansManager onPlanUpdate={handlePlanUpdate} />
         </TabsContent>
 
+        {/* Nouvel onglet Tarification */}
+        <TabsContent value="pricing" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Coins className="h-5 w-5" />
+                Configuration des prix unitaires
+              </CardTitle>
+              <CardDescription>
+                Définissez le prix unitaire de chaque token/crédit pour vos différentes offres
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                <div>
+                  <h4 className="font-medium mb-4">Tarification Particuliers</h4>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Pack Starter</label>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-gray-600">Prix/crédit:</span>
+                        <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">0.290€</span>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Pack Growth</label>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-gray-600">Prix/crédit:</span>
+                        <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">0.263€</span>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Pack Premium</label>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-gray-600">Prix/crédit:</span>
+                        <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">0.240€</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-medium mb-4">Coût des activités</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center p-3 border rounded">
+                        <span>Formations (cours de base)</span>
+                        <span className="font-medium">5-10 crédits</span>
+                      </div>
+                      <div className="flex justify-between items-center p-3 border rounded">
+                        <span>Formations avancées</span>
+                        <span className="font-medium">15-20 crédits</span>
+                      </div>
+                      <div className="flex justify-between items-center p-3 border rounded">
+                        <span>Ateliers en groupe</span>
+                        <span className="font-medium">15-35 crédits</span>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center p-3 border rounded">
+                        <span>Coaching individuel</span>
+                        <span className="font-medium">30-50 crédits</span>
+                      </div>
+                      <div className="flex justify-between items-center p-3 border rounded">
+                        <span>Réservation créneau formateur</span>
+                        <span className="font-medium">25-40 crédits</span>
+                      </div>
+                      <div className="flex justify-between items-center p-3 border rounded">
+                        <span>Évaluations/certifications</span>
+                        <span className="font-medium">5-15 crédits</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h5 className="font-medium text-blue-800 mb-2">Recommandations tarifaires</h5>
+                  <ul className="text-sm text-blue-700 space-y-1">
+                    <li>• Plus le pack est important, plus le prix unitaire du crédit diminue</li>
+                    <li>• Les activités premium (coaching individuel) consomment plus de crédits</li>
+                    <li>• Les organismes de formation ont des tarifs fixes par nombre d'apprenants</li>
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* Onglet Analytics */}
         <TabsContent value="analytics" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -268,21 +450,25 @@ const AdminSubscriptions = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>Taux de conversion</CardTitle>
+                <CardTitle>Taux de conversion par offre</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <span>Essai → Abonnement</span>
+                    <span>Essai → Pack Starter</span>
+                    <Badge variant="default">45.2%</Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Starter → Growth</span>
+                    <Badge variant="secondary">32.1%</Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Growth → Premium</span>
+                    <Badge variant="secondary">18.7%</Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>OF Trial → OF Business</span>
                     <Badge variant="default">68.5%</Badge>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span>Basique → Pro</span>
-                    <Badge variant="secondary">24.3%</Badge>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span>Pro → Entreprise</span>
-                    <Badge variant="secondary">12.1%</Badge>
                   </div>
                 </div>
               </CardContent>
@@ -313,10 +499,10 @@ const AdminSubscriptions = () => {
                 </div>
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center gap-3">
-                    <Bell className="h-5 w-5 text-orange-500" />
+                    <Coins className="h-5 w-5 text-orange-500" />
                     <div>
-                      <h4 className="font-medium">Fin d'essai gratuit</h4>
-                      <p className="text-sm text-gray-600">1 jour avant fin d'essai</p>
+                      <h4 className="font-medium">Crédits faibles</h4>
+                      <p className="text-sm text-gray-600">Moins de 20 crédits restants</p>
                     </div>
                   </div>
                   <Badge variant="default">Actif</Badge>
@@ -330,52 +516,6 @@ const AdminSubscriptions = () => {
                     </div>
                   </div>
                   <Badge variant="default">Actif</Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Onglet IA Insights */}
-        <TabsContent value="ai-insights" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Brain className="h-5 w-5 text-purple-500" />
-                Recommandations IA
-              </CardTitle>
-              <CardDescription>
-                Insights basés sur l'analyse de vos données d'abonnement
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Zap className="h-4 w-4 text-blue-600" />
-                    <span className="font-medium text-blue-800">Opportunité de croissance</span>
-                  </div>
-                  <p className="text-sm text-blue-700">
-                    23% de vos utilisateurs Pro pourraient être intéressés par un upgrade vers Enterprise basé sur leur utilisation.
-                  </p>
-                </div>
-                <div className="p-4 border border-orange-200 rounded-lg bg-orange-50">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Bell className="h-4 w-4 text-orange-600" />
-                    <span className="font-medium text-orange-800">Risque de désabonnement</span>
-                  </div>
-                  <p className="text-sm text-orange-700">
-                    12 utilisateurs montrent des signes de désengagement et risquent d'annuler leur abonnement.
-                  </p>
-                </div>
-                <div className="p-4 border border-green-200 rounded-lg bg-green-50">
-                  <div className="flex items-center gap-2 mb-2">
-                    <TrendingUp className="h-4 w-4 text-green-600" />
-                    <span className="font-medium text-green-800">Optimisation tarifaire</span>
-                  </div>
-                  <p className="text-sm text-green-700">
-                    Une augmentation de 10% du plan Pro pourrait générer +15% de revenus avec un impact minimal sur la rétention.
-                  </p>
                 </div>
               </div>
             </CardContent>
@@ -406,8 +546,8 @@ const AdminSubscriptions = () => {
                   <span>Prévisions de revenus</span>
                 </Button>
                 <Button variant="outline" className="h-20 flex flex-col items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  <span>Segmentation clients</span>
+                  <Coins className="h-5 w-5" />
+                  <span>Consommation crédits</span>
                 </Button>
               </div>
             </CardContent>
@@ -440,6 +580,9 @@ const AdminSubscriptions = () => {
                     <p><span className="font-medium">Plan:</span> {selectedSubscription.plan?.name}</p>
                     <p><span className="font-medium">Prix:</span> {selectedSubscription.plan?.price}€/{selectedSubscription.plan?.interval}</p>
                     <p><span className="font-medium">Statut:</span> {selectedSubscription.status}</p>
+                    {selectedSubscription.plan?.credits && (
+                      <p><span className="font-medium">Crédits:</span> {selectedSubscription.plan.credits}</p>
+                    )}
                   </div>
                 </div>
               </div>
