@@ -404,11 +404,6 @@ const Courses = () => {
           <p className="text-xl text-blue-100 max-w-3xl mx-auto">
             Découvrez nos cours personnalisés du primaire au lycée. Réservez directement vos créneaux avec nos formateurs qualifiés.
           </p>
-          <div className="mt-4 p-4 bg-white/10 rounded-lg max-w-md mx-auto">
-            <p className="text-white text-sm">
-              💡 <strong>Prix en tokens :</strong> 1 token = 0,30€
-            </p>
-          </div>
         </div>
       </section>
 
