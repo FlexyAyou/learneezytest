@@ -12,6 +12,7 @@ import TutorPlanningNotifications from '@/components/tutor/TutorPlanningNotifica
 import { TutorAddStudent } from '@/components/tutor/TutorAddStudent';
 import { TutorSettings } from '@/components/tutor/TutorSettings';
 import { TutorSubscription } from '@/components/tutor/TutorSubscription';
+import { TutorShop } from '@/components/tutor/TutorShop';
 import AIChatButton from '@/components/common/AIChatButton';
 import { TutorDocuments } from '@/components/tutor/TutorDocuments';
 import { TutorStudentDetailedView } from '@/components/tutor/TutorStudentDetailedView';
@@ -28,7 +29,8 @@ import {
   Settings,
   Library,
   CreditCard,
-  FileText
+  FileText,
+  ShoppingBag
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -368,6 +370,7 @@ const TutorDashboard = () => {
     { title: 'Catalogue de formation', href: '/nos-formations', icon: Library, isActive: currentPath === '/nos-formations' },
     { title: 'Suivi des élèves', href: '/dashboard/tuteur/suivi', icon: Users, isActive: currentPath === '/dashboard/tuteur/suivi' },
     { title: 'Ajouter un élève', href: '/dashboard/tuteur/ajouter-eleve', icon: UserPlus, isActive: currentPath === '/dashboard/tuteur/ajouter-eleve' },
+    { title: 'Boutique', href: '/dashboard/tuteur/boutique', icon: ShoppingBag, isActive: currentPath === '/dashboard/tuteur/boutique' },
     { title: 'Abonnements', href: '/dashboard/tuteur/abonnements', icon: CreditCard, isActive: currentPath === '/dashboard/tuteur/abonnements' },
     { title: 'Mes documents', href: '/dashboard/tuteur/documents', icon: FileText, isActive: currentPath === '/dashboard/tuteur/documents' },
     { title: 'Messagerie', href: '/dashboard/tuteur/messagerie', icon: MessageSquare, badge: '3', isActive: currentPath === '/dashboard/tuteur/messagerie' },
@@ -393,6 +396,7 @@ const TutorDashboard = () => {
           <Route path="/" element={<TutorDashboardHome />} />
           <Route path="/suivi" element={<TutorStudentTracking />} />
           <Route path="/ajouter-eleve" element={<TutorAddStudent />} />
+          <Route path="/boutique" element={<TutorShop />} />
           <Route path="/abonnements" element={<TutorSubscription />} />
           <Route path="/documents" element={<TutorDocuments />} />
           <Route path="/messagerie" element={<TutorMessaging />} />

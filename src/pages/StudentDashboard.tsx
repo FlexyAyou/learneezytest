@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { BookOpen, User, Award, MessageSquare, Settings, Home, Video, Download, FileText, PenTool, TrendingUp, CreditCard } from 'lucide-react';
+import { BookOpen, User, Award, MessageSquare, Settings, Home, Video, Download, FileText, PenTool, TrendingUp, CreditCard, ShoppingBag } from 'lucide-react';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
 import StudentCourses from './StudentCourses';
 import StudentProgress from './StudentProgress';
@@ -19,6 +19,7 @@ import { StudentSubscription } from '@/components/student/StudentSubscription';
 import VideoConference from '@/components/common/VideoConference';
 import StudentVideoConferences from '@/components/student/StudentVideoConferences';
 import { StudentDashboardHome } from '@/components/student/StudentDashboardHome';
+import { StudentShop } from '@/components/student/StudentShop';
 import AIChatButton from '@/components/common/AIChatButton';
 
 const StudentDashboard = () => {
@@ -37,6 +38,7 @@ const StudentDashboard = () => {
     { title: "Émargement", href: "/dashboard/etudiant/emargements", icon: PenTool, isActive: currentPath === "/dashboard/etudiant/emargements" },
     { title: "Évaluations", href: "/dashboard/etudiant/evaluations", icon: TrendingUp, isActive: currentPath === "/dashboard/etudiant/evaluations" },
     // === SECTION OUTILS ===
+    { title: "Boutique", href: "/dashboard/etudiant/boutique", icon: ShoppingBag, isActive: currentPath === "/dashboard/etudiant/boutique" },
     { title: "Mes documents", href: "/dashboard/etudiant/documents", icon: Download, isActive: currentPath === "/dashboard/etudiant/documents" },
     { title: "Abonnements", href: "/dashboard/etudiant/subscription", icon: CreditCard, isActive: currentPath === "/dashboard/etudiant/subscription" },
     { title: "Messages", href: "/dashboard/etudiant/messages", icon: MessageSquare, badge: "3", isActive: currentPath === "/dashboard/etudiant/messages" },
@@ -75,6 +77,7 @@ const StudentDashboard = () => {
             <Route path="/evaluations/:id/results" element={<EvaluationDetail />} />
             <Route path="/evaluations/:id/take" element={<TakeEvaluation />} />
             {/* === ROUTES OUTILS === */}
+            <Route path="/boutique" element={<StudentShop />} />
             <Route path="/video" element={<StudentVideoConferences />} />
             <Route path="/documents" element={<StudentDocuments />} />
             <Route path="/subscription" element={<StudentSubscription />} />

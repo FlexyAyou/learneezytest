@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,7 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Coins, Plus, Settings, Send, DollarSign, Users, TrendingUp, History, Euro, Search, Filter } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Coins, Plus, Settings, Send, DollarSign, Users, TrendingUp, History, Euro, Search, Filter, ShoppingBag, Package, Edit, Trash2, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 
 const AdminTokens = () => {
@@ -19,6 +19,19 @@ const AdminTokens = () => {
   const [tokenAmount, setTokenAmount] = useState('');
   const [reason, setReason] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
+
+  // États pour la gestion de la boutique
+  const [newPackage, setNewPackage] = useState({
+    name: '',
+    tokens: '',
+    price: '',
+    discount: '',
+    description: '',
+    targetAudience: 'individual',
+    isActive: true,
+    isPopular: false,
+    features: ['']
+  });
 
   // Données simulées
   const tokenStats = {
@@ -65,6 +78,65 @@ const AdminTokens = () => {
     { id: '4', name: 'Jean Dupont', type: 'trainer', tokens: 300 }
   ];
 
+  // Packages de la boutique
+  const shopPackages = [
+    {
+      id: 1,
+      name: 'Pack Starter',
+      tokens: 50,
+      price: 25,
+      originalPrice: 30,
+      discount: 17,
+      targetAudience: 'individual',
+      isActive: true,
+      isPopular: false,
+      sales: 150,
+      revenue: 3750,
+      features: ['50 tokens', 'Accès formations de base', 'Support email']
+    },
+    {
+      id: 2,
+      name: 'Pack Premium',
+      tokens: 120,
+      price: 55,
+      originalPrice: 65,
+      discount: 15,
+      targetAudience: 'individual',
+      isActive: true,
+      isPopular: true,
+      sales: 300,
+      revenue: 16500,
+      features: ['120 tokens', 'Accès toutes formations', 'Support prioritaire', 'Bonus 20 tokens']
+    },
+    {
+      id: 3,
+      name: 'Pack Tuteur Premium',
+      tokens: 500,
+      price: 200,
+      originalPrice: 250,
+      discount: 20,
+      targetAudience: 'tutor',
+      isActive: true,
+      isPopular: true,
+      sales: 80,
+      revenue: 16000,
+      features: ['500 tokens', 'Gestion illimitée élèves', 'Outils avancés', 'Support prioritaire']
+    }
+  ];
+
+  const paymentMethods = [
+    { id: 'card', name: 'Carte bancaire', isActive: true, fees: 2.9 },
+    { id: 'paypal', name: 'PayPal', isActive: true, fees: 3.4 },
+    { id: 'mobile', name: 'Paiement mobile', isActive: false, fees: 2.5 },
+    { id: 'crypto', name: 'Cryptomonnaie', isActive: false, fees: 1.5 }
+  ];
+
+  const coupons = [
+    { id: 1, code: 'STUDENT20', discount: 20, type: 'percentage', isActive: true, uses: 45, maxUses: 100 },
+    { id: 2, code: 'TUTOR25', discount: 25, type: 'percentage', isActive: true, uses: 12, maxUses: 50 },
+    { id: 3, code: 'WELCOME10', discount: 10, type: 'fixed', isActive: true, uses: 234, maxUses: 500 }
+  ];
+
   const handleDistributeTokens = () => {
     if (!selectedUser || !tokenAmount || !reason) {
       toast.error('Veuillez remplir tous les champs obligatoires');
@@ -84,12 +156,53 @@ const AdminTokens = () => {
     toast.success(`Valeur du token mise à jour : ${tokenValue}€`);
   };
 
+  const handleCreatePackage = () => {
+    if (!newPackage.name || !newPackage.tokens || !newPackage.price) {
+      toast.error('Veuillez remplir tous les champs obligatoires');
+      return;
+    }
+
+    toast.success('Package créé avec succès');
+    setNewPackage({
+      name: '',
+      tokens: '',
+      price: '',
+      discount: '',
+      description: '',
+      targetAudience: 'individual',
+      isActive: true,
+      isPopular: false,
+      features: ['']
+    });
+  };
+
+  const addFeature = () => {
+    setNewPackage(prev => ({
+      ...prev,
+      features: [...prev.features, '']
+    }));
+  };
+
+  const updateFeature = (index: number, value: string) => {
+    setNewPackage(prev => ({
+      ...prev,
+      features: prev.features.map((feature, i) => i === index ? value : feature)
+    }));
+  };
+
+  const removeFeature = (index: number) => {
+    setNewPackage(prev => ({
+      ...prev,
+      features: prev.features.filter((_, i) => i !== index)
+    }));
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gestion des tokens</h1>
-          <p className="text-gray-600">Administration des tokens et crédits de la plateforme</p>
+          <h1 className="text-3xl font-bold text-gray-900">Gestion des tokens & Boutique</h1>
+          <p className="text-gray-600">Administration complète des tokens et de la boutique en ligne</p>
         </div>
       </div>
 
@@ -145,9 +258,12 @@ const AdminTokens = () => {
       </div>
 
       <Tabs defaultValue="distribute" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="distribute">Distribution de tokens</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-7">
+          <TabsTrigger value="distribute">Distribution</TabsTrigger>
           <TabsTrigger value="pricing">Tarification</TabsTrigger>
+          <TabsTrigger value="shop-packages">Packages Boutique</TabsTrigger>
+          <TabsTrigger value="payment-methods">Modes de paiement</TabsTrigger>
+          <TabsTrigger value="coupons">Codes promos</TabsTrigger>
           <TabsTrigger value="transactions">Historique</TabsTrigger>
           <TabsTrigger value="users">Soldes utilisateurs</TabsTrigger>
         </TabsList>
@@ -285,6 +401,313 @@ const AdminTokens = () => {
                   </div>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Gestion des packages de la boutique */}
+        <TabsContent value="shop-packages">
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  Créer un nouveau package
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="packageName">Nom du package *</Label>
+                    <Input
+                      id="packageName"
+                      placeholder="Ex: Pack Premium"
+                      value={newPackage.name}
+                      onChange={(e) => setNewPackage(prev => ({ ...prev, name: e.target.value }))}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="packageTokens">Nombre de tokens *</Label>
+                    <Input
+                      id="packageTokens"
+                      type="number"
+                      placeholder="Ex: 100"
+                      value={newPackage.tokens}
+                      onChange={(e) => setNewPackage(prev => ({ ...prev, tokens: e.target.value }))}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="packagePrice">Prix (€) *</Label>
+                    <Input
+                      id="packagePrice"
+                      type="number"
+                      step="0.01"
+                      placeholder="Ex: 50.00"
+                      value={newPackage.price}
+                      onChange={(e) => setNewPackage(prev => ({ ...prev, price: e.target.value }))}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="packageDiscount">Réduction (%)</Label>
+                    <Input
+                      id="packageDiscount"
+                      type="number"
+                      placeholder="Ex: 15"
+                      value={newPackage.discount}
+                      onChange={(e) => setNewPackage(prev => ({ ...prev, discount: e.target.value }))}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="packageAudience">Public cible</Label>
+                    <Select value={newPackage.targetAudience} onValueChange={(value) => setNewPackage(prev => ({ ...prev, targetAudience: value }))}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="individual">Particuliers</SelectItem>
+                        <SelectItem value="tutor">Tuteurs</SelectItem>
+                        <SelectItem value="organisme">Organismes</SelectItem>
+                        <SelectItem value="enterprise">Entreprises</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="packageDescription">Description</Label>
+                    <Input
+                      id="packageDescription"
+                      placeholder="Ex: Le plus populaire"
+                      value={newPackage.description}
+                      onChange={(e) => setNewPackage(prev => ({ ...prev, description: e.target.value }))}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Fonctionnalités</Label>
+                  {newPackage.features.map((feature, index) => (
+                    <div key={index} className="flex gap-2">
+                      <Input
+                        placeholder="Ex: Accès à toutes les formations"
+                        value={feature}
+                        onChange={(e) => updateFeature(index, e.target.value)}
+                      />
+                      {newPackage.features.length > 1 && (
+                        <Button onClick={() => removeFeature(index)} variant="outline" size="sm">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                  <Button onClick={addFeature} variant="outline" size="sm">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Ajouter une fonctionnalité
+                  </Button>
+                </div>
+
+                <div className="flex gap-4">
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="isActive"
+                      checked={newPackage.isActive}
+                      onCheckedChange={(checked) => setNewPackage(prev => ({ ...prev, isActive: checked }))}
+                    />
+                    <Label htmlFor="isActive">Package actif</Label>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="isPopular"
+                      checked={newPackage.isPopular}
+                      onCheckedChange={(checked) => setNewPackage(prev => ({ ...prev, isPopular: checked }))}
+                    />
+                    <Label htmlFor="isPopular">Package populaire</Label>
+                  </div>
+                </div>
+
+                <Button onClick={handleCreatePackage} className="w-full">
+                  <Package className="h-4 w-4 mr-2" />
+                  Créer le package
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Packages existants</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Package</TableHead>
+                      <TableHead>Tokens</TableHead>
+                      <TableHead>Prix</TableHead>
+                      <TableHead>Public</TableHead>
+                      <TableHead>Ventes</TableHead>
+                      <TableHead>Revenus</TableHead>
+                      <TableHead>Statut</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {shopPackages.map((pkg) => (
+                      <TableRow key={pkg.id}>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{pkg.name}</p>
+                            {pkg.isPopular && <Badge variant="secondary">Populaire</Badge>}
+                          </div>
+                        </TableCell>
+                        <TableCell>{pkg.tokens} tokens</TableCell>
+                        <TableCell>
+                          <div>
+                            <span className="font-bold">{pkg.price}€</span>
+                            {pkg.discount > 0 && (
+                              <div className="text-xs text-gray-500">
+                                <span className="line-through">{pkg.originalPrice}€</span>
+                                <span className="text-red-600 ml-1">(-{pkg.discount}%)</span>
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">
+                            {pkg.targetAudience === 'individual' ? 'Particuliers' :
+                             pkg.targetAudience === 'tutor' ? 'Tuteurs' : 'Organismes'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{pkg.sales}</TableCell>
+                        <TableCell>{pkg.revenue.toLocaleString()}€</TableCell>
+                        <TableCell>
+                          <Badge variant={pkg.isActive ? 'default' : 'secondary'}>
+                            {pkg.isActive ? 'Actif' : 'Inactif'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button variant="outline" size="sm">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button variant="outline" size="sm">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Gestion des modes de paiement */}
+        <TabsContent value="payment-methods">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="h-5 w-5" />
+                Configuration des modes de paiement
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Mode de paiement</TableHead>
+                    <TableHead>Frais (%)</TableHead>
+                    <TableHead>Statut</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paymentMethods.map((method) => (
+                    <TableRow key={method.id}>
+                      <TableCell className="font-medium">{method.name}</TableCell>
+                      <TableCell>{method.fees}%</TableCell>
+                      <TableCell>
+                        <Badge variant={method.isActive ? 'default' : 'secondary'}>
+                          {method.isActive ? 'Actif' : 'Inactif'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Switch checked={method.isActive} />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Gestion des codes promos */}
+        <TabsContent value="coupons">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ShoppingBag className="h-5 w-5" />
+                Codes promotionnels
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Code</TableHead>
+                    <TableHead>Réduction</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Utilisations</TableHead>
+                    <TableHead>Statut</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {coupons.map((coupon) => (
+                    <TableRow key={coupon.id}>
+                      <TableCell className="font-mono font-bold">{coupon.code}</TableCell>
+                      <TableCell>
+                        {coupon.discount}{coupon.type === 'percentage' ? '%' : '€'}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">
+                          {coupon.type === 'percentage' ? 'Pourcentage' : 'Montant fixe'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{coupon.uses} / {coupon.maxUses}</TableCell>
+                      <TableCell>
+                        <Badge variant={coupon.isActive ? 'default' : 'secondary'}>
+                          {coupon.isActive ? 'Actif' : 'Inactif'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="outline" size="sm">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
         </TabsContent>
