@@ -1,265 +1,297 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { ShoppingBag, Coins, CreditCard, Wallet, Smartphone, History, Star, Gift } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { 
+  ShoppingBag, 
+  Coins, 
+  Euro, 
+  CreditCard, 
+  Wallet, 
+  Smartphone, 
+  History, 
+  Zap,
+  TrendingUp
+} from 'lucide-react';
 import { toast } from 'sonner';
+import { TokenConverter } from '@/components/common/TokenConverter';
 
 export const StudentShop = () => {
-  const [selectedPackage, setSelectedPackage] = useState('');
+  const [purchaseMode, setPurchaseMode] = useState<'amount' | 'tokens'>('amount');
+  const [amount, setAmount] = useState(10);
+  const [tokens, setTokens] = useState(20);
   const [paymentMethod, setPaymentMethod] = useState('');
-  const [couponCode, setCouponCode] = useState('');
+  
+  // Configuration boutique (normalement vient de l'admin)
+  const conversionRate = 2; // 1€ = 2 tokens
+  const maxAmount = 500;
+  const maxTokens = 1000;
+  
+  // Calcul des bonus selon le montant
+  const calculateBonus = (amount: number) => {
+    if (amount >= 100) return Math.floor(amount * 0.2); // 20% bonus
+    if (amount >= 50) return Math.floor(amount * 0.15);  // 15% bonus
+    if (amount >= 25) return Math.floor(amount * 0.1);   // 10% bonus
+    return 0;
+  };
+  
+  const bonus = calculateBonus(amount);
+  const userTokens = 85; // Solde actuel
 
-  // Données des packages de tokens
-  const tokenPackages = [
-    {
-      id: 'starter',
-      name: 'Pack Starter',
-      tokens: 50,
-      price: 25,
-      originalPrice: 30,
-      discount: 17,
-      popular: false,
-      description: 'Parfait pour commencer',
-      features: ['50 tokens', 'Accès formations de base', 'Support email']
-    },
-    {
-      id: 'premium',
-      name: 'Pack Premium',
-      tokens: 120,
-      price: 55,
-      originalPrice: 65,
-      discount: 15,
-      popular: true,
-      description: 'Le plus populaire',
-      features: ['120 tokens', 'Accès toutes formations', 'Support prioritaire', 'Bonus 20 tokens']
-    },
-    {
-      id: 'pro',
-      name: 'Pack Pro',
-      tokens: 250,
-      price: 110,
-      originalPrice: 130,
-      discount: 15,
-      popular: false,
-      description: 'Pour les plus actifs',
-      features: ['250 tokens', 'Accès illimité', 'Support VIP', 'Bonus 50 tokens', 'Certificats premium']
-    },
-    {
-      id: 'enterprise',
-      name: 'Pack Entreprise',
-      tokens: 500,
-      price: 200,
-      originalPrice: 250,
-      discount: 20,
-      popular: false,
-      description: 'Solution complète',
-      features: ['500 tokens', 'Accès premium', 'Support dédié', 'Bonus 100 tokens', 'Formations sur mesure']
+  // Montants rapides populaires
+  const quickAmounts = [5, 10, 25, 50, 100];
+  const quickTokens = [10, 25, 50, 100, 200];
+
+  // Synchronisation amount <-> tokens
+  useEffect(() => {
+    if (purchaseMode === 'amount') {
+      setTokens(Math.floor(amount * conversionRate));
+    } else {
+      setAmount(Math.ceil(tokens / conversionRate));
     }
-  ];
+  }, [amount, tokens, purchaseMode, conversionRate]);
 
-  const purchaseHistory = [
-    {
-      id: 1,
-      date: '2024-08-05',
-      package: 'Pack Premium',
-      tokens: 120,
-      amount: 55,
-      status: 'completed',
-      paymentMethod: 'Carte bancaire'
-    },
-    {
-      id: 2,
-      date: '2024-07-20',
-      package: 'Pack Starter',
-      tokens: 50,
-      amount: 25,
-      status: 'completed',
-      paymentMethod: 'PayPal'
-    }
-  ];
-
-  const userTokens = 85; // Solde actuel de l'étudiant
-
-  const handlePurchase = () => {
-    if (!selectedPackage || !paymentMethod) {
-      toast.error('Veuillez sélectionner un package et un mode de paiement');
-      return;
-    }
-
-    // Logique d'achat
-    toast.success('Achat effectué avec succès ! Vos tokens ont été crédités.');
-    setSelectedPackage('');
-    setPaymentMethod('');
-    setCouponCode('');
+  const handleAmountChange = (newAmount: number) => {
+    setAmount(Math.max(1, Math.min(maxAmount, newAmount)));
   };
 
-  const applyCoupon = () => {
-    if (!couponCode) {
-      toast.error('Veuillez saisir un code promo');
+  const handleTokensChange = (newTokens: number) => {
+    setTokens(Math.max(1, Math.min(maxTokens, newTokens)));
+  };
+
+  const handlePurchase = () => {
+    if (!paymentMethod) {
+      toast.error('Veuillez sélectionner un mode de paiement');
       return;
     }
     
-    if (couponCode === 'STUDENT20') {
-      toast.success('Code promo appliqué : -20% sur votre commande !');
-    } else {
-      toast.error('Code promo invalide');
-    }
-    setCouponCode('');
+    toast.success(`Achat de ${tokens + bonus} tokens pour ${amount}€ initié !`);
   };
+
+  const purchaseHistory = [
+    { id: 1, date: '2024-08-05', amount: 25, tokens: 50, bonus: 5, total: 55 },
+    { id: 2, date: '2024-07-20', amount: 10, tokens: 20, bonus: 0, total: 20 },
+    { id: 3, date: '2024-07-15', amount: 50, tokens: 100, bonus: 15, total: 115 },
+  ];
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Boutique de tokens</h1>
-          <p className="text-gray-600">Achetez des tokens pour accéder aux formations premium</p>
+          <h1 className="text-3xl font-bold text-gray-900">Boutique de Tokens</h1>
+          <p className="text-gray-600">Achetez des tokens pour débloquer les formations premium</p>
         </div>
         <div className="text-right">
-          <p className="text-sm text-gray-600">Mon solde actuel</p>
+          <p className="text-sm text-gray-600">Mon solde</p>
           <div className="flex items-center gap-2">
-            <Coins className="h-5 w-5 text-yellow-600" />
-            <span className="text-2xl font-bold text-yellow-600">{userTokens}</span>
-            <span className="text-gray-600">tokens</span>
+            <Coins className="h-6 w-6 text-yellow-600" />
+            <span className="text-3xl font-bold text-yellow-600">{userTokens}</span>
           </div>
         </div>
       </div>
 
-      <Tabs defaultValue="packages" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="packages">Packages de tokens</TabsTrigger>
-          <TabsTrigger value="history">Historique d'achats</TabsTrigger>
+      <Tabs defaultValue="purchase" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="purchase">Acheter des tokens</TabsTrigger>
+          <TabsTrigger value="history">Historique</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="packages" className="space-y-6">
-          {/* Packages de tokens */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {tokenPackages.map((pkg) => (
-              <Card key={pkg.id} className={`relative ${pkg.popular ? 'ring-2 ring-pink-500' : ''}`}>
-                {pkg.popular && (
-                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <Badge className="bg-pink-500 text-white">
-                      <Star className="h-3 w-3 mr-1" />
-                      Populaire
-                    </Badge>
-                  </div>
-                )}
-                
-                {pkg.discount > 0 && (
-                  <div className="absolute top-3 right-3">
-                    <Badge variant="destructive">-{pkg.discount}%</Badge>
-                  </div>
-                )}
+        <TabsContent value="purchase" className="space-y-6">
+          {/* Mode de sélection */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ShoppingBag className="h-5 w-5" />
+                Sélectionnez votre mode d'achat
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-4 mb-6">
+                <Button
+                  variant={purchaseMode === 'amount' ? 'default' : 'outline'}
+                  onClick={() => setPurchaseMode('amount')}
+                  className="flex-1"
+                >
+                  <Euro className="h-4 w-4 mr-2" />
+                  Par montant
+                </Button>
+                <Button
+                  variant={purchaseMode === 'tokens' ? 'default' : 'outline'}
+                  onClick={() => setPurchaseMode('tokens')}
+                  className="flex-1"
+                >
+                  <Coins className="h-4 w-4 mr-2" />
+                  Par tokens
+                </Button>
+              </div>
 
-                <CardHeader className="text-center">
-                  <CardTitle className="text-lg">{pkg.name}</CardTitle>
-                  <p className="text-sm text-gray-600">{pkg.description}</p>
-                  <div className="flex items-center justify-center gap-2 mt-2">
-                    <Coins className="h-5 w-5 text-yellow-600" />
-                    <span className="text-2xl font-bold text-yellow-600">{pkg.tokens}</span>
-                    <span className="text-gray-600">tokens</span>
-                  </div>
-                  <div className="flex items-center justify-center gap-2">
-                    <span className="text-2xl font-bold">{pkg.price}€</span>
-                    {pkg.originalPrice > pkg.price && (
-                      <span className="text-sm text-gray-500 line-through">{pkg.originalPrice}€</span>
-                    )}
-                  </div>
-                </CardHeader>
-
-                <CardContent>
-                  <ul className="space-y-2 mb-4">
-                    {pkg.features.map((feature, index) => (
-                      <li key={index} className="text-sm flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                  
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button 
-                        className="w-full" 
-                        variant={pkg.popular ? 'default' : 'outline'}
-                        onClick={() => setSelectedPackage(pkg.id)}
+              {purchaseMode === 'amount' ? (
+                <div className="space-y-4">
+                  <Label>Montant à dépenser</Label>
+                  <div className="grid grid-cols-5 gap-2 mb-4">
+                    {quickAmounts.map((quickAmount) => (
+                      <Button
+                        key={quickAmount}
+                        variant={amount === quickAmount ? 'default' : 'outline'}
+                        onClick={() => handleAmountChange(quickAmount)}
+                        className="text-sm"
                       >
-                        Acheter
+                        {quickAmount}€
                       </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Finaliser l'achat - {pkg.name}</DialogTitle>
-                      </DialogHeader>
-                      
-                      <div className="space-y-4">
-                        <div className="p-4 bg-gray-50 rounded-lg">
-                          <div className="flex justify-between items-center">
-                            <span>{pkg.tokens} tokens</span>
-                            <span className="font-bold">{pkg.price}€</span>
-                          </div>
-                        </div>
+                    ))}
+                  </div>
+                  <div className="space-y-2">
+                    <Input
+                      type="number"
+                      value={amount}
+                      onChange={(e) => handleAmountChange(Number(e.target.value))}
+                      min={1}
+                      max={maxAmount}
+                      className="text-lg font-bold"
+                    />
+                    <Slider
+                      value={[amount]}
+                      onValueChange={(value) => handleAmountChange(value[0])}
+                      max={maxAmount}
+                      min={1}
+                      step={1}
+                      className="mt-2"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <Label>Nombre de tokens souhaités</Label>
+                  <div className="grid grid-cols-5 gap-2 mb-4">
+                    {quickTokens.map((quickToken) => (
+                      <Button
+                        key={quickToken}
+                        variant={tokens === quickToken ? 'default' : 'outline'}
+                        onClick={() => handleTokensChange(quickToken)}
+                        className="text-sm"
+                      >
+                        {quickToken}
+                      </Button>
+                    ))}
+                  </div>
+                  <div className="space-y-2">
+                    <Input
+                      type="number"
+                      value={tokens}
+                      onChange={(e) => handleTokensChange(Number(e.target.value))}
+                      min={1}
+                      max={maxTokens}
+                      className="text-lg font-bold"
+                    />
+                    <Slider
+                      value={[tokens]}
+                      onValueChange={(value) => handleTokensChange(value[0])}
+                      max={maxTokens}
+                      min={1}
+                      step={1}
+                      className="mt-2"
+                    />
+                  </div>
+                </div>
+              )}
 
-                        <div className="space-y-2">
-                          <Label>Mode de paiement</Label>
-                          <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Choisir un mode de paiement" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="card">
-                                <div className="flex items-center gap-2">
-                                  <CreditCard className="h-4 w-4" />
-                                  Carte bancaire
-                                </div>
-                              </SelectItem>
-                              <SelectItem value="paypal">
-                                <div className="flex items-center gap-2">
-                                  <Wallet className="h-4 w-4" />
-                                  PayPal
-                                </div>
-                              </SelectItem>
-                              <SelectItem value="mobile">
-                                <div className="flex items-center gap-2">
-                                  <Smartphone className="h-4 w-4" />
-                                  Paiement mobile
-                                </div>
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
+              {/* Convertisseur en temps réel */}
+              <div className="mt-6">
+                <TokenConverter
+                  amount={amount}
+                  tokens={tokens}
+                  conversionRate={conversionRate}
+                  bonus={bonus}
+                  onAmountChange={handleAmountChange}
+                  onTokensChange={handleTokensChange}
+                />
+              </div>
 
-                        <div className="space-y-2">
-                          <Label>Code promo (optionnel)</Label>
-                          <div className="flex gap-2">
-                            <Input
-                              placeholder="Entrez votre code"
-                              value={couponCode}
-                              onChange={(e) => setCouponCode(e.target.value)}
-                            />
-                            <Button onClick={applyCoupon} variant="outline">
-                              <Gift className="h-4 w-4 mr-2" />
-                              Appliquer
-                            </Button>
-                          </div>
-                        </div>
+              {/* Informations bonus */}
+              {bonus > 0 && (
+                <div className="mt-4 p-4 bg-gradient-to-r from-orange-50 to-yellow-50 border border-orange-200 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Zap className="h-5 w-5 text-orange-500" />
+                    <span className="font-bold text-orange-700">Bonus actif!</span>
+                  </div>
+                  <p className="text-sm text-orange-600">
+                    Vous recevez {bonus} tokens bonus pour cet achat
+                  </p>
+                </div>
+              )}
 
-                        <Button onClick={handlePurchase} className="w-full">
-                          <ShoppingBag className="h-4 w-4 mr-2" />
-                          Confirmer l'achat
-                        </Button>
+              {/* Paliers de bonus */}
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                <h4 className="font-semibold mb-2 flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4" />
+                  Paliers de bonus
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
+                  <div className="flex justify-between">
+                    <span>25€+</span>
+                    <Badge variant="outline">+10%</Badge>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>50€+</span>
+                    <Badge variant="outline">+15%</Badge>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>100€+</span>
+                    <Badge variant="outline">+20%</Badge>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Paiement */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Finaliser l'achat</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label>Mode de paiement</Label>
+                <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                  <SelectTrigger className="mt-2">
+                    <SelectValue placeholder="Choisir un mode de paiement" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="card">
+                      <div className="flex items-center gap-2">
+                        <CreditCard className="h-4 w-4" />
+                        Carte bancaire
                       </div>
-                    </DialogContent>
-                  </Dialog>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                    </SelectItem>
+                    <SelectItem value="paypal">
+                      <div className="flex items-center gap-2">
+                        <Wallet className="h-4 w-4" />
+                        PayPal
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="mobile">
+                      <div className="flex items-center gap-2">
+                        <Smartphone className="h-4 w-4" />
+                        Paiement mobile
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <Button onClick={handlePurchase} className="w-full" size="lg">
+                <ShoppingBag className="h-4 w-4 mr-2" />
+                Acheter {tokens + bonus} tokens pour {amount}€
+              </Button>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="history">
@@ -273,16 +305,23 @@ export const StudentShop = () => {
             <CardContent>
               <div className="space-y-4">
                 {purchaseHistory.map((purchase) => (
-                  <div key={purchase.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div key={purchase.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
                     <div>
-                      <p className="font-medium">{purchase.package}</p>
+                      <p className="font-medium">{purchase.date}</p>
                       <p className="text-sm text-gray-600">
-                        {purchase.tokens} tokens • {purchase.date}
+                        {purchase.amount}€ → {purchase.tokens} tokens
+                        {purchase.bonus > 0 && (
+                          <span className="text-orange-600 ml-1">
+                            + {purchase.bonus} bonus
+                          </span>
+                        )}
                       </p>
-                      <p className="text-xs text-gray-500">{purchase.paymentMethod}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold">{purchase.amount}€</p>
+                      <div className="flex items-center gap-1">
+                        <Coins className="h-4 w-4 text-yellow-600" />
+                        <span className="font-bold text-yellow-600">{purchase.total}</span>
+                      </div>
                       <Badge variant="outline" className="text-green-600">
                         Complété
                       </Badge>
