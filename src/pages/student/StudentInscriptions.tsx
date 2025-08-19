@@ -181,19 +181,6 @@ const StudentInscriptions = () => {
     }
   };
 
-  const getPaymentStatusBadge = (status: Inscription['paymentStatus']) => {
-    switch (status) {
-      case 'paid':
-        return <Badge variant="default" className="bg-green-100 text-green-800">Payé</Badge>;
-      case 'partial':
-        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Partiel</Badge>;
-      case 'pending':
-        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">En attente</Badge>;
-      default:
-        return <Badge variant="outline">Inconnu</Badge>;
-    }
-  };
-
   const getStatusIcon = (status: Inscription['status']) => {
     switch (status) {
       case 'pending':
@@ -293,9 +280,6 @@ const StudentInscriptions = () => {
                         )}
                         <span className="font-medium">{inscription.price}€</span>
                       </div>
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
-                      {getPaymentStatusBadge(inscription.paymentStatus)}
                     </div>
                   </div>
                 </CardHeader>
