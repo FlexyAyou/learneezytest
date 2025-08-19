@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,12 +5,14 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Search, Plus, Eye, Edit, Trash2, BookOpen, Users, Star, Clock, Wand2, Book, Check, X, AlertTriangle, History } from 'lucide-react';
+import { Search, Plus, Eye, Edit, Trash2, BookOpen, Users, Star, Clock, Wand2, Book, Check, X, AlertTriangle, History, Globe, Lock, Settings, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { AICourseCreatorModal } from './AICourseCreatorModal';
 import { CreateCourseModal } from './CreateCourseModal';
 import { CourseRejectionModal } from './CourseRejectionModal';
+import { CourseViewModal } from './CourseViewModal';
+import { CourseVisibilityModal } from './CourseVisibilityModal';
 
 const AdminCourses = () => {
   const { toast } = useToast();
@@ -23,8 +24,11 @@ const AdminCourses = () => {
   const [showRejectionModal, setShowRejectionModal] = useState(false);
   const [courseToReject, setCourseToReject] = useState(null);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [showCourseViewModal, setShowCourseViewModal] = useState(false);
+  const [showVisibilityModal, setShowVisibilityModal] = useState(false);
+  const [courseForVisibility, setCourseForVisibility] = useState(null);
 
-  // Mock data for published courses
+  // Mock data for published courses - Extended with new properties
   const publishedCourses = [
     {
       id: '1',
@@ -37,7 +41,12 @@ const AdminCourses = () => {
       status: 'publié',
       duration: '15h',
       createdAt: '2023-10-15',
-      thumbnail: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80'
+      thumbnail: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80',
+      isOpenSource: true,
+      subscriptionRestrictions: [],
+      isVisible: true,
+      minorsAllowed: false,
+      organisationAccess: 'all' // 'all', 'restricted', 'none'
     },
     {
       id: '2',
@@ -50,11 +59,16 @@ const AdminCourses = () => {
       status: 'publié',
       duration: '12h',
       createdAt: '2023-11-02',
-      thumbnail: 'https://images.unsplash.com/photo-1586717791821-3f44a563fa4c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80'
+      thumbnail: 'https://images.unsplash.com/photo-1586717791821-3f44a563fa4c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80',
+      isOpenSource: false,
+      subscriptionRestrictions: ['premium', 'enterprise'],
+      isVisible: true,
+      minorsAllowed: true,
+      organisationAccess: 'restricted'
     }
   ];
 
-  // Mock data for pending courses
+  // Mock data for pending courses - Extended
   const pendingCourses = [
     {
       id: '3',
@@ -67,7 +81,12 @@ const AdminCourses = () => {
       status: 'en_attente',
       duration: '20h',
       createdAt: '2024-03-15',
-      thumbnail: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80'
+      thumbnail: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80',
+      isOpenSource: false,
+      subscriptionRestrictions: [],
+      isVisible: false,
+      minorsAllowed: true,
+      organisationAccess: 'none'
     },
     {
       id: '4',
@@ -80,7 +99,12 @@ const AdminCourses = () => {
       status: 'en_attente',
       duration: '10h',
       createdAt: '2024-03-20',
-      thumbnail: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80'
+      thumbnail: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80',
+      isOpenSource: false,
+      subscriptionRestrictions: [],
+      isVisible: false,
+      minorsAllowed: true,
+      organisationAccess: 'none'
     }
   ];
 
@@ -123,6 +147,30 @@ const AdminCourses = () => {
 
   const handleEditCourse = (courseId) => {
     navigate(`/dashboard/superadmin/courses/${courseId}/edit`);
+  };
+
+  const handleViewCourse = (course) => {
+    setSelectedCourse(course);
+    setShowCourseViewModal(true);
+  };
+
+  const handleToggleOpenSource = (courseId) => {
+    toast({
+      title: "Statut Open Source modifié",
+      description: "Le statut Open Source du cours a été mis à jour.",
+    });
+  };
+
+  const handleManageVisibility = (course) => {
+    setCourseForVisibility(course);
+    setShowVisibilityModal(true);
+  };
+
+  const handleVisibilityUpdate = (courseId, settings) => {
+    toast({
+      title: "Visibilité mise à jour",
+      description: "Les paramètres de visibilité du cours ont été mis à jour.",
+    });
   };
 
   const handleApproveCourse = (courseId) => {
@@ -171,6 +219,22 @@ const AdminCourses = () => {
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
+  };
+
+  const getVisibilityBadge = (course) => {
+    if (!course.isVisible) {
+      return <Badge variant="outline" className="bg-red-50 text-red-700">Masqué</Badge>;
+    }
+    
+    if (course.isOpenSource) {
+      return <Badge className="bg-blue-100 text-blue-800">Open Source</Badge>;
+    }
+    
+    if (course.organisationAccess === 'restricted') {
+      return <Badge variant="outline" className="bg-orange-100 text-orange-800">Restreint</Badge>;
+    }
+    
+    return <Badge className="bg-green-100 text-green-800">Public</Badge>;
   };
 
   const filteredCourses = allCourses.filter(course =>
@@ -242,13 +306,13 @@ const AdminCourses = () => {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">En attente</CardTitle>
+            <CardTitle className="text-sm font-medium">Open Source</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">
-              {pendingCourses.length}
+            <div className="text-2xl font-bold text-blue-600">
+              {allCourses.filter(c => c.isOpenSource).length}
             </div>
-            <p className="text-xs text-muted-foreground">Nécessitent validation</p>
+            <p className="text-xs text-muted-foreground">Accessibles aux OF</p>
           </CardContent>
         </Card>
         <Card>
@@ -363,6 +427,7 @@ const AdminCourses = () => {
                 <TableHead>Étudiants</TableHead>
                 <TableHead>Note</TableHead>
                 <TableHead>Statut</TableHead>
+                <TableHead>Visibilité</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -381,6 +446,11 @@ const AdminCourses = () => {
                         <div className="text-sm text-gray-600 flex items-center">
                           <Clock className="h-3 w-3 mr-1" />
                           {course.duration}
+                          {course.minorsAllowed && (
+                            <Badge variant="outline" className="ml-2 text-xs">
+                              -18 ans
+                            </Badge>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -409,43 +479,37 @@ const AdminCourses = () => {
                     {getStatusBadge(course.status)}
                   </TableCell>
                   <TableCell>
+                    {getVisibilityBadge(course)}
+                  </TableCell>
+                  <TableCell>
                     <div className="flex space-x-2">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            title="Voir les détails"
-                            onClick={() => setSelectedCourse(course)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-2xl">
-                          <DialogHeader>
-                            <DialogTitle>Détails du cours</DialogTitle>
-                          </DialogHeader>
-                          {selectedCourse && (
-                            <div className="space-y-4">
-                              <img 
-                                src={selectedCourse.thumbnail} 
-                                alt={selectedCourse.title}
-                                className="w-full h-48 rounded object-cover"
-                              />
-                              <div className="grid grid-cols-2 gap-4 text-sm">
-                                <div><strong>Titre:</strong> {selectedCourse.title}</div>
-                                <div><strong>Instructeur:</strong> {selectedCourse.instructor}</div>
-                                <div><strong>Catégorie:</strong> {selectedCourse.category}</div>
-                                <div><strong>Étudiants:</strong> {selectedCourse.students}</div>
-                                <div><strong>Note:</strong> {selectedCourse.rating > 0 ? `${selectedCourse.rating}/5` : 'Aucune'}</div>
-                                <div><strong>Durée:</strong> {selectedCourse.duration}</div>
-                                <div><strong>Statut:</strong> {selectedCourse.status}</div>
-                                <div><strong>Créé le:</strong> {new Date(selectedCourse.createdAt).toLocaleDateString('fr-FR')}</div>
-                              </div>
-                            </div>
-                          )}
-                        </DialogContent>
-                      </Dialog>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        title="Voir le cours complet"
+                        onClick={() => handleViewCourse(course)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        title="Gérer la visibilité"
+                        onClick={() => handleManageVisibility(course)}
+                      >
+                        <Settings className="h-4 w-4" />
+                      </Button>
+
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        title={course.isOpenSource ? "Retirer de l'Open Source" : "Mettre en Open Source"}
+                        onClick={() => handleToggleOpenSource(course.id)}
+                        className={course.isOpenSource ? "bg-blue-50 text-blue-700" : ""}
+                      >
+                        <Globe className="h-4 w-4" />
+                      </Button>
                       
                       <Button 
                         size="sm" 
@@ -541,6 +605,34 @@ const AdminCourses = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Course View Modal */}
+      <CourseViewModal
+        course={selectedCourse}
+        isOpen={showCourseViewModal}
+        onClose={() => {
+          setShowCourseViewModal(false);
+          setSelectedCourse(null);
+        }}
+        onSave={(updatedCourse) => {
+          // Handle course update logic
+          toast({
+            title: "Cours mis à jour",
+            description: "Le cours a été mis à jour avec succès.",
+          });
+        }}
+      />
+
+      {/* Course Visibility Modal */}
+      <CourseVisibilityModal
+        course={courseForVisibility}
+        isOpen={showVisibilityModal}
+        onClose={() => {
+          setShowVisibilityModal(false);
+          setCourseForVisibility(null);
+        }}
+        onSave={handleVisibilityUpdate}
+      />
     </div>
   );
 };
