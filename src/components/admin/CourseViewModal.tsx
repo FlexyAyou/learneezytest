@@ -132,6 +132,12 @@ export const CourseViewModal = ({ course, isOpen, onClose, onSave }: CourseViewM
     }, 0);
   }, 0);
 
+  // Safe access to properties that might be undefined
+  const totalStudents = course.totalStudents || 0;
+  const averageRating = course.averageRating || 0;
+  const completionRate = course.completionRate || 0;
+  const totalRevenue = course.totalRevenue || 0;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
@@ -386,7 +392,7 @@ export const CourseViewModal = ({ course, isOpen, onClose, onSave }: CourseViewM
                         <Users className="h-4 w-4 text-gray-500" />
                         <span>Étudiants</span>
                       </div>
-                      <span className="font-semibold">{course.totalStudents}</span>
+                      <span className="font-semibold">{totalStudents}</span>
                     </div>
                     
                     <div className="flex items-center justify-between">
@@ -394,17 +400,17 @@ export const CourseViewModal = ({ course, isOpen, onClose, onSave }: CourseViewM
                         <Star className="h-4 w-4 text-yellow-500" />
                         <span>Note moyenne</span>
                       </div>
-                      <span className="font-semibold">{course.averageRating}/5</span>
+                      <span className="font-semibold">{averageRating}/5</span>
                     </div>
 
                     <div className="flex items-center justify-between">
                       <span>Taux de completion</span>
-                      <span className="font-semibold">{course.completionRate}%</span>
+                      <span className="font-semibold">{completionRate}%</span>
                     </div>
 
                     <div className="flex items-center justify-between">
                       <span>Revenus</span>
-                      <span className="font-semibold text-green-600">€{course.totalRevenue.toLocaleString()}</span>
+                      <span className="font-semibold text-green-600">€{totalRevenue.toLocaleString()}</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -463,7 +469,7 @@ export const CourseViewModal = ({ course, isOpen, onClose, onSave }: CourseViewM
           <TabsContent value="students">
             <Card>
               <CardHeader>
-                <CardTitle>Étudiants inscrits ({course.totalStudents})</CardTitle>
+                <CardTitle>Étudiants inscrits ({totalStudents})</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-500">Liste des étudiants à implémenter...</p>
