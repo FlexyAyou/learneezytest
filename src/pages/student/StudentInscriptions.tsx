@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, FileText, Download, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Calendar, Clock, FileText, Download, CheckCircle, AlertCircle, XCircle, User, Video, MapPin, MessageSquare } from 'lucide-react';
 
 interface Inscription {
   id: string;
@@ -23,6 +24,21 @@ interface Inscription {
     cgv: boolean;
     convention: boolean;
   };
+}
+
+interface TeacherBooking {
+  id: string;
+  teacherName: string;
+  teacherPhoto: string;
+  subject: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  status: 'confirmed' | 'pending' | 'cancelled' | 'completed';
+  type: 'online' | 'presential';
+  location?: string;
+  price: number;
+  notes?: string;
 }
 
 const StudentInscriptions = () => {
@@ -91,12 +107,54 @@ const StudentInscriptions = () => {
     }
   ];
 
+  const teacherBookings: TeacherBooking[] = [
+    {
+      id: '1',
+      teacherName: 'Sophie Martin',
+      teacherPhoto: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=64&h=64&fit=crop&crop=face',
+      subject: 'Mathématiques',
+      date: '2024-02-05',
+      startTime: '14:00',
+      endTime: '15:00',
+      status: 'confirmed',
+      type: 'online',
+      price: 35,
+      notes: 'Révision des équations du second degré'
+    },
+    {
+      id: '2',
+      teacherName: 'Pierre Dubois',
+      teacherPhoto: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=64&h=64&fit=crop&crop=face',
+      subject: 'Français',
+      date: '2024-02-07',
+      startTime: '16:30',
+      endTime: '17:30',
+      status: 'pending',
+      type: 'presential',
+      location: 'Salle 12 - Campus Nord',
+      price: 40
+    },
+    {
+      id: '3',
+      teacherName: 'Marie Leroy',
+      teacherPhoto: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=64&h=64&fit=crop&crop=face',
+      subject: 'Anglais',
+      date: '2024-02-03',
+      startTime: '10:00',
+      endTime: '11:00',
+      status: 'completed',
+      type: 'online',
+      price: 30,
+      notes: 'Session terminée - Très bon travail !'
+    }
+  ];
+
   const getStatusBadge = (status: Inscription['status']) => {
     switch (status) {
       case 'pending':
-        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700">En attente</Badge>;
+        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">En attente</Badge>;
       case 'approved':
-        return <Badge variant="outline" className="bg-green-50 text-green-700">Approuvée</Badge>;
+        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Approuvée</Badge>;
       case 'rejected':
         return <Badge variant="destructive">Rejetée</Badge>;
       case 'active':
@@ -108,14 +166,29 @@ const StudentInscriptions = () => {
     }
   };
 
+  const getBookingStatusBadge = (status: TeacherBooking['status']) => {
+    switch (status) {
+      case 'confirmed':
+        return <Badge variant="default" className="bg-green-100 text-green-800">Confirmé</Badge>;
+      case 'pending':
+        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">En attente</Badge>;
+      case 'cancelled':
+        return <Badge variant="destructive">Annulé</Badge>;
+      case 'completed':
+        return <Badge variant="default" className="bg-blue-100 text-blue-800">Terminé</Badge>;
+      default:
+        return <Badge variant="outline">Inconnu</Badge>;
+    }
+  };
+
   const getPaymentStatusBadge = (status: Inscription['paymentStatus']) => {
     switch (status) {
       case 'paid':
         return <Badge variant="default" className="bg-green-100 text-green-800">Payé</Badge>;
       case 'partial':
-        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700">Partiel</Badge>;
+        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Partiel</Badge>;
       case 'pending':
-        return <Badge variant="outline" className="bg-red-50 text-red-700">En attente</Badge>;
+        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">En attente</Badge>;
       default:
         return <Badge variant="outline">Inconnu</Badge>;
     }
@@ -139,202 +212,365 @@ const StudentInscriptions = () => {
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Mes Inscriptions</h1>
-        <Button onClick={() => window.location.href = '/cours'}>
-          Nouvelle inscription
-        </Button>
+        <h1 className="text-3xl font-bold">Mes Inscriptions & Réservations</h1>
+        <div className="flex gap-2">
+          <Button onClick={() => window.location.href = '/cours'}>
+            Nouvelle inscription
+          </Button>
+          <Button variant="outline" onClick={() => window.location.href = '/trainers'}>
+            Réserver un prof
+          </Button>
+        </div>
       </div>
 
-      {/* Statistiques rapides */}
-      <div className="grid md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-blue-600">
-              {inscriptions.filter(i => i.status === 'active').length}
-            </p>
-            <p className="text-sm text-gray-600">Formations actives</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-yellow-600">
-              {inscriptions.filter(i => i.status === 'pending').length}
-            </p>
-            <p className="text-sm text-gray-600">En attente</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-green-600">
-              {inscriptions.filter(i => i.status === 'completed').length}
-            </p>
-            <p className="text-sm text-gray-600">Terminées</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-purple-600">
-              {inscriptions.length}
-            </p>
-            <p className="text-sm text-gray-600">Total formations</p>
-          </CardContent>
-        </Card>
-      </div>
+      <Tabs defaultValue="inscriptions" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="inscriptions">Inscriptions aux formations</TabsTrigger>
+          <TabsTrigger value="bookings">Réservations de professeurs</TabsTrigger>
+        </TabsList>
 
-      {/* Liste des inscriptions */}
-      <div className="grid gap-6">
-        {inscriptions.map((inscription) => (
-          <Card key={inscription.id} className="relative">
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-3">
-                    {getStatusIcon(inscription.status)}
-                    <CardTitle className="text-lg">{inscription.courseTitle}</CardTitle>
-                    {getStatusBadge(inscription.status)}
+        <TabsContent value="inscriptions" className="space-y-6">
+          {/* Statistiques rapides */}
+          <div className="grid md:grid-cols-4 gap-4">
+            <Card>
+              <CardContent className="p-4 text-center">
+                <p className="text-2xl font-bold text-blue-600">
+                  {inscriptions.filter(i => i.status === 'active').length}
+                </p>
+                <p className="text-sm text-gray-600">Formations actives</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <p className="text-2xl font-bold text-yellow-600">
+                  {inscriptions.filter(i => i.status === 'pending').length}
+                </p>
+                <p className="text-sm text-gray-600">En attente</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <p className="text-2xl font-bold text-green-600">
+                  {inscriptions.filter(i => i.status === 'completed').length}
+                </p>
+                <p className="text-sm text-gray-600">Terminées</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <p className="text-2xl font-bold text-purple-600">
+                  {inscriptions.length}
+                </p>
+                <p className="text-sm text-gray-600">Total formations</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Liste des inscriptions */}
+          <div className="grid gap-6">
+            {inscriptions.map((inscription) => (
+              <Card key={inscription.id} className="relative">
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3">
+                        {getStatusIcon(inscription.status)}
+                        <CardTitle className="text-lg">{inscription.courseTitle}</CardTitle>
+                        {getStatusBadge(inscription.status)}
+                      </div>
+                      <CardDescription>{inscription.courseDescription}</CardDescription>
+                      <div className="flex items-center gap-4 text-sm text-gray-500">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-4 h-4" />
+                          Soumise le {new Date(inscription.submittedAt).toLocaleDateString('fr-FR')}
+                        </span>
+                        {inscription.startDate && (
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-4 h-4" />
+                            Du {new Date(inscription.startDate).toLocaleDateString('fr-FR')} 
+                            au {new Date(inscription.endDate!).toLocaleDateString('fr-FR')}
+                          </span>
+                        )}
+                        <span className="font-medium">{inscription.price}€</span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      {getPaymentStatusBadge(inscription.paymentStatus)}
+                    </div>
                   </div>
-                  <CardDescription>{inscription.courseDescription}</CardDescription>
-                  <div className="flex items-center gap-4 text-sm text-gray-500">
-                    <span className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      Soumise le {new Date(inscription.submittedAt).toLocaleDateString('fr-FR')}
-                    </span>
-                    {inscription.startDate && (
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" />
-                        Du {new Date(inscription.startDate).toLocaleDateString('fr-FR')} 
-                        au {new Date(inscription.endDate!).toLocaleDateString('fr-FR')}
-                      </span>
+                </CardHeader>
+
+                <CardContent>
+                  <div className="space-y-4">
+                    {/* Statut et actions selon l'état */}
+                    {inscription.status === 'pending' && (
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <h4 className="font-medium text-yellow-800 mb-2">Inscription en cours de traitement</h4>
+                        <p className="text-sm text-yellow-700">
+                          Votre demande d'inscription est en cours d'examen par notre équipe pédagogique. 
+                          Vous recevrez une réponse dans les 24-48h.
+                        </p>
+                      </div>
                     )}
-                    <span className="font-medium">{inscription.price}€</span>
-                  </div>
-                </div>
-                <div className="flex flex-col items-end gap-2">
-                  {getPaymentStatusBadge(inscription.paymentStatus)}
-                </div>
-              </div>
-            </CardHeader>
 
-            <CardContent>
-              <div className="space-y-4">
-                {/* Statut et actions selon l'état */}
-                {inscription.status === 'pending' && (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                    <h4 className="font-medium text-yellow-800 mb-2">Inscription en cours de traitement</h4>
-                    <p className="text-sm text-yellow-700">
-                      Votre demande d'inscription est en cours d'examen par notre équipe pédagogique. 
-                      Vous recevrez une réponse dans les 24-48h.
-                    </p>
-                  </div>
-                )}
-
-                {inscription.status === 'approved' && !inscription.conventionSigned && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <h4 className="font-medium text-green-800 mb-2">Inscription approuvée !</h4>
-                    <p className="text-sm text-green-700 mb-3">
-                      Votre inscription a été approuvée. Veuillez signer la convention de formation pour finaliser le processus.
-                    </p>
-                    <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                      Signer la convention
-                    </Button>
-                  </div>
-                )}
-
-                {inscription.status === 'active' && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <h4 className="font-medium text-blue-800 mb-2">Formation en cours</h4>
-                    <p className="text-sm text-blue-700">
-                      Votre formation est actuellement active. Accédez à votre espace de cours pour suivre vos modules.
-                    </p>
-                  </div>
-                )}
-
-                {/* Documents */}
-                <div>
-                  <h4 className="font-medium mb-3">Documents</h4>
-                  <div className="grid md:grid-cols-2 gap-2">
-                    <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                      <span className="text-sm">Programme de formation</span>
-                      {inscription.documents.program ? (
-                        <Button size="sm" variant="outline">
-                          <Download className="w-4 h-4 mr-1" />
-                          Télécharger
+                    {inscription.status === 'approved' && !inscription.conventionSigned && (
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <h4 className="font-medium text-green-800 mb-2">Inscription approuvée !</h4>
+                        <p className="text-sm text-green-700 mb-3">
+                          Votre inscription a été approuvée. Veuillez signer la convention de formation pour finaliser le processus.
+                        </p>
+                        <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                          Signer la convention
                         </Button>
-                      ) : (
-                        <Badge variant="outline" className="text-gray-500">Non disponible</Badge>
-                      )}
+                      </div>
+                    )}
+
+                    {inscription.status === 'active' && (
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <h4 className="font-medium text-blue-800 mb-2">Formation en cours</h4>
+                        <p className="text-sm text-blue-700">
+                          Votre formation est actuellement active. Accédez à votre espace de cours pour suivre vos modules.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Documents */}
+                    <div>
+                      <h4 className="font-medium mb-3">Documents</h4>
+                      <div className="grid md:grid-cols-2 gap-2">
+                        <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                          <span className="text-sm">Programme de formation</span>
+                          {inscription.documents.program ? (
+                            <Button size="sm" variant="outline">
+                              <Download className="w-4 h-4 mr-1" />
+                              Télécharger
+                            </Button>
+                          ) : (
+                            <Badge variant="outline" className="text-gray-500">Non disponible</Badge>
+                          )}
+                        </div>
+                        
+                        <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                          <span className="text-sm">Règlement intérieur</span>
+                          {inscription.documents.regulations ? (
+                            <Button size="sm" variant="outline">
+                              <Download className="w-4 h-4 mr-1" />
+                              Télécharger
+                            </Button>
+                          ) : (
+                            <Badge variant="outline" className="text-gray-500">Non disponible</Badge>
+                          )}
+                        </div>
+                        
+                        <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                          <span className="text-sm">Conditions Générales</span>
+                          {inscription.documents.cgv ? (
+                            <Button size="sm" variant="outline">
+                              <Download className="w-4 h-4 mr-1" />
+                              Télécharger
+                            </Button>
+                          ) : (
+                            <Badge variant="outline" className="text-gray-500">Non disponible</Badge>
+                          )}
+                        </div>
+                        
+                        <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                          <span className="text-sm">Convention signée</span>
+                          {inscription.documents.convention ? (
+                            <Button size="sm" variant="outline">
+                              <Download className="w-4 h-4 mr-1" />
+                              Télécharger
+                            </Button>
+                          ) : (
+                            <Badge variant="outline" className="text-gray-500">Non disponible</Badge>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    
-                    <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                      <span className="text-sm">Règlement intérieur</span>
-                      {inscription.documents.regulations ? (
-                        <Button size="sm" variant="outline">
-                          <Download className="w-4 h-4 mr-1" />
-                          Télécharger
+
+                    {/* Actions */}
+                    <div className="flex gap-2 pt-2">
+                      {inscription.status === 'active' && (
+                        <Button>
+                          Accéder à la formation
                         </Button>
-                      ) : (
-                        <Badge variant="outline" className="text-gray-500">Non disponible</Badge>
                       )}
-                    </div>
-                    
-                    <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                      <span className="text-sm">Conditions Générales</span>
-                      {inscription.documents.cgv ? (
-                        <Button size="sm" variant="outline">
-                          <Download className="w-4 h-4 mr-1" />
-                          Télécharger
-                        </Button>
-                      ) : (
-                        <Badge variant="outline" className="text-gray-500">Non disponible</Badge>
-                      )}
-                    </div>
-                    
-                    <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                      <span className="text-sm">Convention signée</span>
-                      {inscription.documents.convention ? (
-                        <Button size="sm" variant="outline">
-                          <Download className="w-4 h-4 mr-1" />
-                          Télécharger
-                        </Button>
-                      ) : (
-                        <Badge variant="outline" className="text-gray-500">Non disponible</Badge>
-                      )}
+                      <Button variant="outline">
+                        <FileText className="w-4 h-4 mr-2" />
+                        Voir les détails
+                      </Button>
                     </div>
                   </div>
-                </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
 
-                {/* Actions */}
-                <div className="flex gap-2 pt-2">
-                  {inscription.status === 'active' && (
-                    <Button>
-                      Accéder à la formation
-                    </Button>
-                  )}
-                  <Button variant="outline">
-                    <FileText className="w-4 h-4 mr-2" />
-                    Voir les détails
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+          {inscriptions.length === 0 && (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium mb-2">Aucune inscription</h3>
+                <p className="text-gray-600 mb-4">
+                  Vous n'avez pas encore d'inscription à nos formations.
+                </p>
+                <Button onClick={() => window.location.href = '/cours'}>
+                  Découvrir nos formations
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
 
-      {inscriptions.length === 0 && (
-        <Card>
-          <CardContent className="p-8 text-center">
-            <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">Aucune inscription</h3>
-            <p className="text-gray-600 mb-4">
-              Vous n'avez pas encore d'inscription à nos formations.
-            </p>
-            <Button onClick={() => window.location.href = '/cours'}>
-              Découvrir nos formations
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+        <TabsContent value="bookings" className="space-y-6">
+          {/* Statistiques des réservations */}
+          <div className="grid md:grid-cols-4 gap-4">
+            <Card>
+              <CardContent className="p-4 text-center">
+                <p className="text-2xl font-bold text-green-600">
+                  {teacherBookings.filter(b => b.status === 'confirmed').length}
+                </p>
+                <p className="text-sm text-gray-600">Confirmées</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <p className="text-2xl font-bold text-yellow-600">
+                  {teacherBookings.filter(b => b.status === 'pending').length}
+                </p>
+                <p className="text-sm text-gray-600">En attente</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <p className="text-2xl font-bold text-blue-600">
+                  {teacherBookings.filter(b => b.status === 'completed').length}
+                </p>
+                <p className="text-sm text-gray-600">Terminées</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <p className="text-2xl font-bold text-purple-600">
+                  {teacherBookings.length}
+                </p>
+                <p className="text-sm text-gray-600">Total réservations</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Liste des réservations */}
+          <div className="grid gap-4">
+            {teacherBookings.map((booking) => (
+              <Card key={booking.id} className="relative">
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-4">
+                      <img 
+                        src={booking.teacherPhoto} 
+                        alt={booking.teacherName}
+                        className="w-12 h-12 rounded-full object-cover"
+                      />
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-3">
+                          <User className="w-5 h-5 text-blue-500" />
+                          <CardTitle className="text-lg">{booking.teacherName}</CardTitle>
+                          {getBookingStatusBadge(booking.status)}
+                        </div>
+                        <CardDescription>
+                          {booking.subject} • {booking.price}€
+                        </CardDescription>
+                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-4 h-4" />
+                            {new Date(booking.date).toLocaleDateString('fr-FR')}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-4 h-4" />
+                            {booking.startTime} - {booking.endTime}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            {booking.type === 'online' ? (
+                              <>
+                                <Video className="w-4 h-4" />
+                                En ligne
+                              </>
+                            ) : (
+                              <>
+                                <MapPin className="w-4 h-4" />
+                                {booking.location || 'Présentiel'}
+                              </>
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardHeader>
+
+                <CardContent>
+                  <div className="space-y-4">
+                    {booking.notes && (
+                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                        <p className="text-sm text-gray-700">{booking.notes}</p>
+                      </div>
+                    )}
+
+                    {/* Actions selon le statut */}
+                    <div className="flex gap-2 pt-2">
+                      {booking.status === 'confirmed' && (
+                        <>
+                          {booking.type === 'online' && (
+                            <Button className="bg-green-600 hover:bg-green-700">
+                              <Video className="w-4 h-4 mr-2" />
+                              Rejoindre la session
+                            </Button>
+                          )}
+                          <Button variant="outline">
+                            <MessageSquare className="w-4 h-4 mr-2" />
+                            Contacter le prof
+                          </Button>
+                        </>
+                      )}
+                      {booking.status === 'pending' && (
+                        <Button variant="outline" className="text-yellow-600 border-yellow-600">
+                          <AlertCircle className="w-4 h-4 mr-2" />
+                          En attente de confirmation
+                        </Button>
+                      )}
+                      {booking.status === 'completed' && (
+                        <Button variant="outline">
+                          <CheckCircle className="w-4 h-4 mr-2" />
+                          Voir les détails
+                        </Button>
+                      )}
+                      <Button variant="outline">
+                        <FileText className="w-4 h-4 mr-2" />
+                        Voir les détails
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {teacherBookings.length === 0 && (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <User className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium mb-2">Aucune réservation</h3>
+                <p className="text-gray-600 mb-4">
+                  Vous n'avez pas encore réservé de créneau avec un professeur.
+                </p>
+                <Button onClick={() => window.location.href = '/trainers'}>
+                  Réserver un professeur
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
