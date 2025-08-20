@@ -1,10 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { Users, BookOpen, Award, TrendingUp } from 'lucide-react';
-import { useLanguage } from '@/contexts/LanguageContext';
 
 const KeyFigures = () => {
-  const { t } = useLanguage();
   const [counts, setCounts] = useState({
     students: 0,
     courses: 0,
@@ -43,7 +41,7 @@ const KeyFigures = () => {
       icon: Users,
       count: counts.students,
       suffix: '+',
-      label: t('keyFigures.students'),
+      label: 'Étudiants formés',
       color: 'text-blue-600',
       bgColor: 'bg-blue-50'
     },
@@ -51,7 +49,7 @@ const KeyFigures = () => {
       icon: BookOpen,
       count: counts.courses,
       suffix: '+',
-      label: t('keyFigures.courses'),
+      label: 'Cours disponibles',
       color: 'text-green-600',
       bgColor: 'bg-green-50'
     },
@@ -59,7 +57,7 @@ const KeyFigures = () => {
       icon: Award,
       count: counts.certificates,
       suffix: '+',
-      label: t('keyFigures.certificates'),
+      label: 'Certificats délivrés',
       color: 'text-purple-600',
       bgColor: 'bg-purple-50'
     },
@@ -67,7 +65,7 @@ const KeyFigures = () => {
       icon: TrendingUp,
       count: counts.satisfaction,
       suffix: '%',
-      label: t('keyFigures.satisfaction'),
+      label: 'Taux de satisfaction',
       color: 'text-pink-600',
       bgColor: 'bg-pink-50'
     }
@@ -78,10 +76,10 @@ const KeyFigures = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            {t('keyFigures.title')}
+            Nos Chiffres Clés
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            {t('keyFigures.subtitle')}
+            Découvrez l'impact de notre plateforme sur la formation professionnelle
           </p>
         </div>
         

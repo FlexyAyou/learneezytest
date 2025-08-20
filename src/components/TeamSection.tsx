@@ -1,16 +1,13 @@
 
 import React from 'react';
 import { Star, Award, Users, BookOpen } from 'lucide-react';
-import { useLanguage } from '../contexts/LanguageContext';
 
 const TeamSection = () => {
-  const { t } = useLanguage();
-
   const instructors = [
     {
       id: 1,
       name: 'Dr. Sarah Chen',
-      specialty: t('teamSection.webDevelopment'),
+      specialty: 'Développement Web',
       experience: '10 ans',
       image: '/placeholder.svg',
       rating: 4.9,
@@ -22,7 +19,7 @@ const TeamSection = () => {
     {
       id: 2,
       name: 'Marc Rodriguez',
-      specialty: t('teamSection.dataScience'),
+      specialty: 'Data Science',
       experience: '8 ans',
       image: '/placeholder.svg',
       rating: 4.8,
@@ -34,7 +31,7 @@ const TeamSection = () => {
     {
       id: 3,
       name: 'Julie Martin',
-      specialty: t('teamSection.uxuiDesign'),
+      specialty: 'UX/UI Design',
       experience: '6 ans',
       image: '/placeholder.svg',
       rating: 4.9,
@@ -46,7 +43,7 @@ const TeamSection = () => {
     {
       id: 4,
       name: 'Thomas Leroy',
-      specialty: t('teamSection.cybersecurity'),
+      specialty: 'Cybersécurité',
       experience: '12 ans',
       image: '/placeholder.svg',
       rating: 4.7,
@@ -62,10 +59,10 @@ const TeamSection = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            {t('teamSection.title')}
+            Notre Équipe Pédagogique
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            {t('teamSection.subtitle')}
+            Apprenez avec des experts reconnus dans leur domaine
           </p>
         </div>
 
@@ -89,7 +86,7 @@ const TeamSection = () => {
                 <div className="text-center space-y-2">
                   <h3 className="text-xl font-semibold text-gray-900">{instructor.name}</h3>
                   <p className="text-primary font-medium">{instructor.specialty}</p>
-                  <p className="text-sm text-gray-500">{instructor.experience} {t('teamSection.experience')}</p>
+                  <p className="text-sm text-gray-500">{instructor.experience} d'expérience</p>
                   
                   {/* Rating */}
                   <div className="flex items-center justify-center space-x-1">
@@ -105,21 +102,21 @@ const TeamSection = () => {
                       <Users className="w-4 h-4 text-blue-600" />
                     </div>
                     <p className="text-sm font-semibold text-gray-900">{instructor.students}</p>
-                    <p className="text-xs text-gray-500">{t('teamSection.students')}</p>
+                    <p className="text-xs text-gray-500">Étudiants</p>
                   </div>
                   <div className="text-center">
                     <div className="flex items-center justify-center mb-1">
                       <BookOpen className="w-4 h-4 text-green-600" />
                     </div>
                     <p className="text-sm font-semibold text-gray-900">{instructor.courses}</p>
-                    <p className="text-xs text-gray-500">{t('teamSection.courses')}</p>
+                    <p className="text-xs text-gray-500">Cours</p>
                   </div>
                   <div className="text-center">
                     <div className="flex items-center justify-center mb-1">
                       <Award className="w-4 h-4 text-purple-600" />
                     </div>
                     <p className="text-sm font-semibold text-gray-900">{instructor.certifications.length}</p>
-                    <p className="text-xs text-gray-500">{t('teamSection.certifications')}</p>
+                    <p className="text-xs text-gray-500">Certifs</p>
                   </div>
                 </div>
 
@@ -151,7 +148,7 @@ const TeamSection = () => {
         {/* CTA */}
         <div className="text-center mt-12">
           <button className="bg-gradient-to-r from-primary to-primary/90 text-white px-8 py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-300 hover:scale-105">
-            {t('teamSection.joinTeam')}
+            Rejoindre notre équipe
           </button>
         </div>
       </div>

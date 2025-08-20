@@ -1,67 +1,64 @@
 
 import React from 'react';
 import { Target, Users, Award, Zap, BookOpen, Globe, Shield, Clock } from 'lucide-react';
-import { useLanguage } from '../contexts/LanguageContext';
 
 const About = () => {
-  const { t } = useLanguage();
-
   const features = [
     {
       icon: Target,
-      title: t('about.targetedTraining'),
-      description: t('about.targetedTrainingDesc'),
+      title: "Formation Ciblée",
+      description: "Des cours conçus pour répondre aux besoins spécifiques du marché du travail actuel.",
       color: "bg-pink-100 text-pink-600"
     },
     {
       icon: Users,
-      title: t('about.recognizedExperts'),
-      description: t('about.recognizedExpertsDesc'),
+      title: "Experts Reconnus",
+      description: "Apprenez avec des professionnels expérimentés et des leaders de l'industrie.",
       color: "bg-orange-100 text-orange-600"
     },
     {
       icon: Award,
-      title: t('about.certifications'),
-      description: t('about.certificationsDesc'),
+      title: "Certifications",
+      description: "Obtenez des certificats reconnus pour valoriser votre profil professionnel.",
       color: "bg-purple-100 text-purple-600"
     },
     {
       icon: Zap,
-      title: t('about.fastLearning'),
-      description: t('about.fastLearningDesc'),
+      title: "Apprentissage Rapide",
+      description: "Méthodes d'apprentissage optimisées pour une progression efficace et durable.",
       color: "bg-blue-100 text-blue-600"
     },
     {
       icon: BookOpen,
-      title: t('about.updatedContent'),
-      description: t('about.updatedContentDesc'),
+      title: "Contenu Actualisé",
+      description: "Nos formations sont constamment mises à jour selon les dernières tendances.",
       color: "bg-green-100 text-green-600"
     },
     {
       icon: Globe,
-      title: t('about.globalAccess'),
-      description: t('about.globalAccessDesc'),
+      title: "Accès Global",
+      description: "Apprenez depuis n'importe où dans le monde, 24h/24 et 7j/7.",
       color: "bg-indigo-100 text-indigo-600"
     },
     {
       icon: Shield,
-      title: t('about.qualityGuarantee'),
-      description: t('about.qualityGuaranteeDesc'),
+      title: "Garantie Qualité",
+      description: "Satisfaction garantie ou remboursé dans les 30 premiers jours.",
       color: "bg-red-100 text-red-600"
     },
     {
       icon: Clock,
-      title: t('about.totalFlexibility'),
-      description: t('about.totalFlexibilityDesc'),
+      title: "Flexibilité Totale",
+      description: "Étudiez à votre rythme avec un accès à vie aux contenus.",
       color: "bg-yellow-100 text-yellow-600"
     }
   ];
 
   const stats = [
-    { number: "50,000+", label: t('about.stats.activeStudents') },
-    { number: "1,200+", label: t('about.stats.availableCourses') },
-    { number: "95%", label: t('about.stats.satisfaction') },
-    { number: "24/7", label: t('about.stats.support') }
+    { number: "50,000+", label: "Étudiants actifs" },
+    { number: "1,200+", label: "Cours disponibles" },
+    { number: "95%", label: "Taux de satisfaction" },
+    { number: "24/7", label: "Support disponible" }
   ];
 
   return (
@@ -70,10 +67,11 @@ const About = () => {
         {/* Header */}
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            {t('about.title')}
+            Pourquoi Choisir <span className="text-pink-600">Learneezy</span> ?
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            {t('about.subtitle')}
+            Nous révolutionnons l'apprentissage en ligne avec une approche moderne, 
+            pratique et axée sur les résultats.
           </p>
         </div>
 
@@ -113,10 +111,13 @@ const About = () => {
         <div className="text-center">
           <div className="max-w-4xl mx-auto bg-gray-50 rounded-3xl p-12">
             <h3 className="text-3xl font-bold text-gray-900 mb-6">
-              {t('about.mission')}
+              Notre Mission
             </h3>
             <p className="text-xl text-gray-600 leading-relaxed">
-              {t('about.missionText')}
+              Chez <span className="text-pink-600 font-semibold">Learneezy</span>, nous croyons que l'éducation est la clé du succès. 
+              Notre mission est de démocratiser l'accès à un apprentissage de qualité 
+              en offrant des formations pratiques, actuelles et accessibles à tous, 
+              partout dans le monde.
             </p>
           </div>
         </div>

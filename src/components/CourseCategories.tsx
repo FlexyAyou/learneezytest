@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   Palette, 
@@ -12,69 +11,66 @@ import {
   Code, 
   Camera 
 } from 'lucide-react';
-import { useLanguage } from '../contexts/LanguageContext';
 
 const CourseCategories = () => {
-  const { t } = useLanguage();
-
   const categories = [
     {
       id: 1,
-      name: t('courseCategories.graphicsDesign'),
+      name: 'Graphics & Design',
       icon: Palette,
       count: 245
     },
     {
       id: 2,
-      name: t('courseCategories.digitalMarketing'),
+      name: 'Digital Marketing',
       icon: TrendingUp,
       count: 180
     },
     {
       id: 3,
-      name: t('courseCategories.writingTranslation'),
+      name: 'Writing & Translation',
       icon: FileText,
       count: 120
     },
     {
       id: 4,
-      name: t('courseCategories.lifestyle'),
+      name: 'Lifestyle',
       icon: Heart,
       count: 95
     },
     {
       id: 5,
-      name: t('courseCategories.videoAnimation'),
+      name: 'Video & Animation',
       icon: Video,
       count: 210
     },
     {
       id: 6,
-      name: t('courseCategories.business'),
+      name: 'Business',
       icon: Briefcase,
       count: 165
     },
     {
       id: 7,
-      name: t('courseCategories.musicAudio'),
+      name: 'Music & Audio',
       icon: Music,
       count: 85
     },
     {
       id: 8,
-      name: t('courseCategories.data'),
+      name: 'Data',
       icon: Database,
       count: 140
     },
     {
       id: 9,
-      name: t('courseCategories.programmingTech'),
+      name: 'Programming & Tech',
       icon: Code,
       count: 320
     },
     {
       id: 10,
-      name: t('courseCategories.photography'),
+      name: 'Photography',
       icon: Camera,
       count: 75
     }
@@ -86,10 +82,10 @@ const CourseCategories = () => {
         {/* Header */}
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-foreground mb-4">
-            {t('courseCategories.title')}
+            Explorez nos Catégories
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            {t('courseCategories.subtitle')}
+            Découvrez une large gamme de compétences adaptées à vos objectifs professionnels
           </p>
         </div>
 
@@ -112,7 +108,7 @@ const CourseCategories = () => {
                       {category.name}
                     </h3>
                     <p className="text-xs text-muted-foreground">
-                      {category.count} {t('courseCategories.courseCount')}
+                      {category.count} cours
                     </p>
                   </div>
                 </div>
@@ -128,7 +124,7 @@ const CourseCategories = () => {
         {/* Bottom CTA */}
         <div className="text-center mt-12">
           <p className="text-muted-foreground text-lg">
-            {t('courseCategories.moreCourses')}
+            Plus de <span className="font-bold text-primary">1,500 cours</span> disponibles dans toutes les catégories
           </p>
         </div>
       </div>

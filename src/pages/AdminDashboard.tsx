@@ -31,38 +31,38 @@ import AdminRessources from '@/components/admin/AdminRessources';
 import AdminSubscriptions from '@/components/admin/AdminSubscriptions';
 import OrganismeDetail from './admin/OrganismeDetail';
 import AdminTokens from '@/components/admin/AdminTokens';
-import { useTranslation } from '@/hooks/useTranslation';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const currentPath = location.pathname;
-  const { t } = useTranslation();
 
   const sidebarItems = [
-    { title: t('dashboard.admin.dashboard'), href: "/dashboard/superadmin", icon: Home, isActive: currentPath === "/dashboard/superadmin" },
-    { title: t('dashboard.admin.users'), href: "/dashboard/superadmin/users", icon: Users, isActive: currentPath === "/dashboard/superadmin/users" },
-    { title: t('dashboard.admin.trainers'), href: "/dashboard/superadmin/trainers", icon: UserCheck, isActive: currentPath === "/dashboard/superadmin/trainers" },
-    { title: t('dashboard.admin.organizations'), href: "/dashboard/superadmin/organisations", icon: Building, isActive: currentPath === "/dashboard/superadmin/organisations" },
-    { title: t('dashboard.admin.courses'), href: "/dashboard/superadmin/courses", icon: BookOpen, isActive: currentPath === "/dashboard/superadmin/courses" },
-    { title: t('dashboard.admin.documents'), href: "/dashboard/superadmin/documents", icon: FileText, isActive: currentPath === "/dashboard/superadmin/documents" },
-    { title: t('dashboard.admin.inscriptions'), href: "/dashboard/superadmin/inscriptions", icon: UserCheck, isActive: currentPath === "/dashboard/superadmin/inscriptions" },
-    { title: t('dashboard.admin.ofDocuments'), href: "/dashboard/superadmin/of-documents", icon: FileText, isActive: currentPath === "/dashboard/superadmin/of-documents" },
-    { title: t('dashboard.admin.conventions'), href: "/dashboard/superadmin/conventions", icon: FileSignature, isActive: currentPath === "/dashboard/superadmin/conventions" },
-    { title: t('dashboard.admin.mailings'), href: "/dashboard/superadmin/mailings", icon: Mail, isActive: currentPath === "/dashboard/superadmin/mailings" },
-    { title: t('dashboard.admin.attendance'), href: "/dashboard/superadmin/emargements", icon: PenTool, isActive: currentPath === "/dashboard/superadmin/emargements" },
-    { title: t('dashboard.admin.promotions'), href: "/dashboard/superadmin/promotions", icon: TestTube, isActive: currentPath === "/dashboard/superadmin/promotions" },
-    { title: t('dashboard.admin.tokens'), href: "/dashboard/superadmin/tokens", icon: Coins, isActive: currentPath === "/dashboard/superadmin/tokens" },
-    { title: t('dashboard.admin.licenses'), href: "/dashboard/superadmin/licenses", icon: Key, isActive: currentPath === "/dashboard/superadmin/licenses" },
-    { title: t('dashboard.admin.identity'), href: "/dashboard/superadmin/identity", icon: Shield, isActive: currentPath === "/dashboard/superadmin/identity" },
-    { title: t('dashboard.admin.tests'), href: "/dashboard/superadmin/tests", icon: TestTube, isActive: currentPath === "/dashboard/superadmin/tests" },
-    { title: t('dashboard.admin.videoConference'), href: "/dashboard/superadmin/video", icon: Video, isActive: currentPath === "/dashboard/superadmin/video" },
-    { title: t('dashboard.admin.resources'), href: "/dashboard/superadmin/ressources", icon: Database, isActive: currentPath === "/dashboard/superadmin/ressources" },
-    { title: t('dashboard.admin.subscriptions'), href: "/dashboard/superadmin/subscriptions", icon: CreditCard, isActive: currentPath === "/dashboard/superadmin/subscriptions" },
-    { title: t('dashboard.admin.payments'), href: "/dashboard/superadmin/payments", icon: DollarSign, isActive: currentPath === "/dashboard/superadmin/payments" },
-    { title: t('dashboard.admin.security'), href: "/dashboard/superadmin/security", icon: Shield, isActive: currentPath === "/dashboard/superadmin/security" },
-    { title: t('dashboard.admin.support'), href: "/dashboard/superadmin/support", icon: MessageSquare, isActive: currentPath === "/dashboard/superadmin/support" },
-    { title: t('dashboard.admin.settings'), href: "/dashboard/superadmin/settings", icon: Settings, isActive: currentPath === "/dashboard/superadmin/settings" },
+    { title: "Tableau de bord", href: "/dashboard/superadmin", icon: Home, isActive: currentPath === "/dashboard/superadmin" },
+    { title: "Utilisateurs", href: "/dashboard/superadmin/users", icon: Users, isActive: currentPath === "/dashboard/superadmin/users" },
+    { title: "Formateurs", href: "/dashboard/superadmin/trainers", icon: UserCheck, isActive: currentPath === "/dashboard/superadmin/trainers" },
+    { title: "Organismes de formations", href: "/dashboard/superadmin/organisations", icon: Building, isActive: currentPath === "/dashboard/superadmin/organisations" },
+    { title: "Cours", href: "/dashboard/superadmin/courses", icon: BookOpen, isActive: currentPath === "/dashboard/superadmin/courses" },
+    { title: "Documents", href: "/dashboard/superadmin/documents", icon: FileText, isActive: currentPath === "/dashboard/superadmin/documents" },
+    // === SECTION OF COMPLÈTE ===
+    { title: "Inscriptions", href: "/dashboard/superadmin/inscriptions", icon: UserCheck, isActive: currentPath === "/dashboard/superadmin/inscriptions" },
+    { title: "Documents OF", href: "/dashboard/superadmin/of-documents", icon: FileText, isActive: currentPath === "/dashboard/superadmin/of-documents" },
+    { title: "Conventions", href: "/dashboard/superadmin/conventions", icon: FileSignature, isActive: currentPath === "/dashboard/superadmin/conventions" },
+    { title: "Envois automatiques", href: "/dashboard/superadmin/mailings", icon: Mail, isActive: currentPath === "/dashboard/superadmin/mailings" },
+    { title: "Émargements", href: "/dashboard/superadmin/emargements", icon: PenTool, isActive: currentPath === "/dashboard/superadmin/emargements" },
+    // === SECTION ADMINISTRATION ===
+    { title: "Promotions", href: "/dashboard/superadmin/promotions", icon: TestTube, isActive: currentPath === "/dashboard/superadmin/promotions" },
+    { title: "Gestion des tokens", href: "/dashboard/superadmin/tokens", icon: Coins, isActive: currentPath === "/dashboard/superadmin/tokens" },
+    { title: "Gestion licences", href: "/dashboard/superadmin/licenses", icon: Key, isActive: currentPath === "/dashboard/superadmin/licenses" },
+    { title: "Vérification identité", href: "/dashboard/superadmin/identity", icon: Shield, isActive: currentPath === "/dashboard/superadmin/identity" },
+    { title: "Tests positionnement", href: "/dashboard/superadmin/tests", icon: TestTube, isActive: currentPath === "/dashboard/superadmin/tests" },
+    { title: "Visioconférence", href: "/dashboard/superadmin/video", icon: Video, isActive: currentPath === "/dashboard/superadmin/video" },
+    { title: "Ressources", href: "/dashboard/superadmin/ressources", icon: Database, isActive: currentPath === "/dashboard/superadmin/ressources" },
+    { title: "Abonnements", href: "/dashboard/superadmin/subscriptions", icon: CreditCard, isActive: currentPath === "/dashboard/superadmin/subscriptions" },
+    { title: "Paiements", href: "/dashboard/superadmin/payments", icon: DollarSign, isActive: currentPath === "/dashboard/superadmin/payments" },
+    { title: "Sécurité", href: "/dashboard/superadmin/security", icon: Shield, isActive: currentPath === "/dashboard/superadmin/security" },
+    { title: "Support", href: "/dashboard/superadmin/support", icon: MessageSquare, isActive: currentPath === "/dashboard/superadmin/support" },
+    { title: "Paramètres", href: "/dashboard/superadmin/settings", icon: Settings, isActive: currentPath === "/dashboard/superadmin/settings" },
   ];
 
   const userInfo = {
@@ -74,8 +74,8 @@ const AdminDashboard = () => {
     <div className="flex h-screen bg-gray-50">
       <div className="fixed left-0 top-0 h-full z-30">
         <DashboardSidebar
-          title={t('dashboard.admin.title')}
-          subtitle={t('dashboard.admin.subtitle')}
+          title="Super Administration"
+          subtitle="Gestion de la plateforme"
           items={sidebarItems}
           userInfo={userInfo}
         />
@@ -87,8 +87,8 @@ const AdminDashboard = () => {
             <Route path="/" element={
               <div>
                 <div className="mb-6">
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('dashboard.admin.welcomeTitle')}</h1>
-                  <p className="text-gray-600">{t('dashboard.admin.welcomeSubtitle')}</p>
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2">Super Administration Learneezy</h1>
+                  <p className="text-gray-600">Tableau de bord global de la plateforme d'apprentissage</p>
                 </div>
                 <SuperAdminDashboard />
               </div>
