@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
-import { Check, Star, Zap, Crown, Gift } from 'lucide-react';
+import { Check, Star, Zap, Crown, Gift, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
@@ -199,6 +199,33 @@ const Offers = () => {
       )}
     </button>
   );
+
+  const faqData = [
+    {
+      question: "Mes crédits expirent-ils ?",
+      answer: isOF ? "Non, vos accès à la plateforme sont renouvelés automatiquement selon votre abonnement." : "Non, vos crédits n'expirent pas et restent disponibles tant que votre compte est actif."
+    },
+    {
+      question: "Puis-je transférer mes crédits ?",
+      answer: "Les crédits sont liés à votre compte et ne peuvent pas être transférés à un autre utilisateur."
+    },
+    {
+      question: "Que se passe-t-il si j'annule une réservation ?",
+      answer: "Les crédits sont remboursés sur votre compte si vous annulez au moins 24h avant le créneau réservé."
+    },
+    {
+      question: "Comment puis-je changer d'offre ?",
+      answer: "Vous pouvez modifier votre abonnement à tout moment depuis votre espace personnel. Les crédits non utilisés seront conservés lors du changement."
+    },
+    {
+      question: "Y a-t-il des frais cachés ?",
+      answer: "Aucun frais caché ! Le prix affiché inclut toutes les fonctionnalités mentionnées dans votre pack."
+    },
+    {
+      question: "Puis-je annuler mon abonnement ?",
+      answer: "Oui, vous pouvez annuler votre abonnement à tout moment. Vos crédits restent disponibles jusqu'à leur utilisation complète."
+    }
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -421,41 +448,63 @@ const Offers = () => {
           </div>
         </div>
 
-        {/* FAQ Section */}
-        <div className="py-16 bg-card">
+        {/* Enhanced FAQ Section */}
+        <div className="py-20 bg-gradient-to-br from-card via-card/95 to-background">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-foreground mb-4">
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-6">
+                <ChevronDown className="h-8 w-8 text-primary" />
+              </div>
+              <h2 className="text-4xl font-bold text-foreground mb-4">
                 Questions fréquentes
               </h2>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                Trouvez rapidement les réponses aux questions les plus posées sur nos offres
+              </p>
             </div>
             
-            <div className="space-y-8">
-              <div>
-                <h3 className="text-xl font-semibold text-foreground mb-2">
-                  Mes crédits expirent-ils ?
+            <Card className="shadow-xl border-0 bg-card/50 backdrop-blur-sm">
+              <CardContent className="p-8">
+                <Accordion type="single" collapsible className="space-y-4">
+                  {faqData.map((faq, index) => (
+                    <AccordionItem 
+                      key={`faq-${index}`} 
+                      value={`item-${index}`}
+                      className="border border-border/50 rounded-lg px-6 py-2 bg-background/30 hover:bg-background/50 transition-colors"
+                    >
+                      <AccordionTrigger className="text-left hover:no-underline group">
+                        <span className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
+                          {faq.question}
+                        </span>
+                      </AccordionTrigger>
+                      <AccordionContent className="pt-4 pb-2">
+                        <p className="text-muted-foreground leading-relaxed text-base">
+                          {faq.answer}
+                        </p>
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              </CardContent>
+            </Card>
+
+            {/* Call to Action */}
+            <div className="text-center mt-12">
+              <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-2xl p-8 border border-primary/20">
+                <h3 className="text-2xl font-bold text-foreground mb-4">
+                  Vous avez d'autres questions ?
                 </h3>
-                <p className="text-muted-foreground">
-                  {isOF ? "Non, vos accès à la plateforme sont renouvelés automatiquement selon votre abonnement." : "Non, vos crédits n'expirent pas et restent disponibles tant que votre compte est actif."}
+                <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
+                  Notre équipe support est disponible pour vous accompagner dans le choix de votre offre
                 </p>
-              </div>
-              
-              <div>
-                <h3 className="text-xl font-semibold text-foreground mb-2">
-                  Puis-je transférer mes crédits ?
-                </h3>
-                <p className="text-muted-foreground">
-                  Les crédits sont liés à votre compte et ne peuvent pas être transférés à un autre utilisateur.
-                </p>
-              </div>
-              
-              <div>
-                <h3 className="text-xl font-semibold text-foreground mb-2">
-                  Que se passe-t-il si j'annule une réservation ?
-                </h3>
-                <p className="text-muted-foreground">
-                  Les crédits sont remboursés sur votre compte si vous annulez au moins 24h avant le créneau réservé.
-                </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Button variant="outline" className="bg-background hover:bg-background/80">
+                    Contactez le support
+                  </Button>
+                  <Button className="bg-gradient-to-r from-primary to-primary/80 hover:opacity-90">
+                    Planifier une démo
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
