@@ -3,31 +3,33 @@ import React, { useState, useEffect } from 'react';
 import { Play, Star, Users, Award, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const Hero = () => {
+  const { t } = useTranslation();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   const slides = [
     {
-      title: "Développez vos",
-      highlight: "compétences", 
-      subtitle: "avec Learneezy",
-      description: "Accédez à plus de 1000 cours en ligne créés par des experts. Apprenez à votre rythme et obtenez des certifications reconnues.",
+      title: t('hero.slide1Title'),
+      highlight: t('hero.slide1Highlight'), 
+      subtitle: t('hero.slide1Subtitle'),
+      description: t('hero.slide1Description'),
       gradient: "from-pink-600 to-orange-600",
     },
     {
-      title: "Maîtrisez",
-      highlight: "l'art du code",
-      subtitle: "en toute simplicité",
-      description: "Des cours de programmation pour tous les niveaux. JavaScript, Python, React et bien plus encore.",
+      title: t('hero.slide2Title'),
+      highlight: t('hero.slide2Highlight'),
+      subtitle: t('hero.slide2Subtitle'),
+      description: t('hero.slide2Description'),
       gradient: "from-blue-600 to-purple-600",
     },
     {
-      title: "Rejoignez",
-      highlight: "notre communauté",
-      subtitle: "d'apprenants",
-      description: "Plus de 50 000 étudiants nous font confiance. Échangez, partagez et progressez ensemble.",
+      title: t('hero.slide3Title'),
+      highlight: t('hero.slide3Highlight'),
+      subtitle: t('hero.slide3Subtitle'),
+      description: t('hero.slide3Description'),
       gradient: "from-green-600 to-teal-600",
     }
   ];
@@ -122,7 +124,7 @@ const Hero = () => {
             <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-fade-in delay-700">
               <Link to="/offres">
                 <Button size="lg" className="bg-pink-600 hover:bg-pink-700 text-lg px-8 py-3 transform hover:scale-105 transition-all duration-300 hover:shadow-lg">
-                  Voir nos offres
+                  {t('hero.seeOffers')}
                 </Button>
               </Link>
               <Link to="/nos-formations">
@@ -132,7 +134,7 @@ const Hero = () => {
                   className="text-lg px-8 py-3 transform hover:scale-105 transition-all duration-300 hover:shadow-md border-white text-white hover:bg-white/20 hover:text-white hover:border-white bg-white/10 backdrop-blur-sm"
                 >
                   <Play className="h-5 w-5 mr-2" />
-                  Voir nos formations
+                  {t('hero.seeTrainings')}
                 </Button>
               </Link>
             </div>
@@ -148,7 +150,7 @@ const Hero = () => {
                       ? 'w-8 h-3' 
                       : 'w-3 h-3 hover:w-4'
                   }`}
-                  aria-label={`Aller au slide ${index + 1}`}
+                  aria-label={`${t('hero.goToSlide')} ${index + 1}`}
                 >
                   <div className={`absolute inset-0 rounded-full transition-all duration-500 ${
                     index === currentSlide 
@@ -167,21 +169,21 @@ const Hero = () => {
                     <Star key={i} className="h-4 w-4 fill-current animate-pulse" style={{animationDelay: `${i * 0.1}s`}} />
                   ))}
                 </div>
-                <p className="text-sm text-white drop-shadow-md">4.9/5 étoiles</p>
+                <p className="text-sm text-white drop-shadow-md">{t('hero.rating')}</p>
               </div>
               <div className="flex flex-col items-center lg:items-start transform hover:scale-105 transition-transform duration-300">
                 <div className="flex items-center text-pink-400 mb-1">
                   <Users className="h-5 w-5 mr-1" />
                   <span className="font-bold text-lg text-white drop-shadow-md">50k+</span>
                 </div>
-                <p className="text-sm text-white drop-shadow-md">Étudiants actifs</p>
+                <p className="text-sm text-white drop-shadow-md">{t('hero.activeStudents')}</p>
               </div>
               <div className="flex flex-col items-center lg:items-start transform hover:scale-105 transition-transform duration-300">
                 <div className="flex items-center text-orange-400 mb-1">
                   <Award className="h-5 w-5 mr-1" />
                   <span className="font-bold text-lg text-white drop-shadow-md">1000+</span>
                 </div>
-                <p className="text-sm text-white drop-shadow-md">Cours disponibles</p>
+                <p className="text-sm text-white drop-shadow-md">{t('hero.availableCourses')}</p>
               </div>
             </div>
           </div>
@@ -201,7 +203,7 @@ const Hero = () => {
                   <div className="absolute -top-4 -right-4 bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-lg animate-bounce z-30">
                     <div className="flex items-center space-x-2">
                       <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>
-                      <span className="text-sm font-medium text-gray-800">12,543 en ligne</span>
+                      <span className="text-sm font-medium text-gray-800">12,543 {t('hero.onlineUsers')}</span>
                     </div>
                   </div>
                   
@@ -210,7 +212,7 @@ const Hero = () => {
                       <div className={`text-2xl font-bold bg-gradient-to-r ${currentSlideData.gradient} bg-clip-text text-transparent`}>
                         98%
                       </div>
-                      <div className="text-xs text-gray-600">Taux de réussite</div>
+                      <div className="text-xs text-gray-600">{t('hero.successRate')}</div>
                     </div>
                   </div>
 
@@ -220,8 +222,8 @@ const Hero = () => {
                       <div className="w-16 h-16 mx-auto mb-4 bg-white/20 rounded-full flex items-center justify-center">
                         <Play className="w-8 h-8 text-white" />
                       </div>
-                      <h3 className="text-lg font-semibold mb-2 drop-shadow-md">Plateforme d'apprentissage</h3>
-                      <p className="text-sm text-white drop-shadow-md">Interactive et moderne</p>
+                      <h3 className="text-lg font-semibold mb-2 drop-shadow-md">{t('hero.learningPlatform')}</h3>
+                      <p className="text-sm text-white drop-shadow-md">{t('hero.interactive')}</p>
                     </div>
                   </div>
                 </div>
@@ -232,14 +234,14 @@ const Hero = () => {
             <button
               onClick={prevSlide}
               className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/20 backdrop-blur-sm rounded-full p-3 shadow-lg hover:bg-white/30 hover:scale-110 transition-all duration-300 group z-10"
-              aria-label="Slide précédent"
+              aria-label={t('hero.previousSlide')}
             >
               <ChevronLeft className="h-6 w-6 text-white group-hover:text-pink-400 transition-colors duration-300" />
             </button>
             <button
               onClick={nextSlide}
               className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/20 backdrop-blur-sm rounded-full p-3 shadow-lg hover:bg-white/30 hover:scale-110 transition-all duration-300 group z-10"
-              aria-label="Slide suivant"
+              aria-label={t('hero.nextSlide')}
             >
               <ChevronRight className="h-6 w-6 text-white group-hover:text-pink-400 transition-colors duration-300" />
             </button>

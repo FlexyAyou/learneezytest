@@ -2,6 +2,7 @@
 import React from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { BookOpen, User, Award, MessageSquare, Settings, Home, Video, Download, FileText, PenTool, TrendingUp, CreditCard, ShoppingBag } from 'lucide-react';
+import { useTranslation } from '@/hooks/useTranslation';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
 import StudentCourses from './StudentCourses';
 import StudentProgress from './StudentProgress';
@@ -23,27 +24,26 @@ import { StudentShop } from '@/components/student/StudentShop';
 import AIChatButton from '@/components/common/AIChatButton';
 
 const StudentDashboard = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const currentPath = location.pathname;
 
   const sidebarItems = [
-    { title: "Tableau de bord", href: "/dashboard/etudiant", icon: Home, isActive: currentPath === "/dashboard/etudiant" },
-    { title: "Catalogue de formations", href: "/cours", icon: BookOpen, isActive: currentPath === "/cours" },
-    { title: "Mes cours", href: "/dashboard/etudiant/courses", icon: BookOpen, isActive: currentPath === "/dashboard/etudiant/courses" },
-    { title: "Mon parcours", href: "/dashboard/etudiant/progress", icon: Award, isActive: currentPath === "/dashboard/etudiant/progress" },
-    { title: "Certificats", href: "/dashboard/etudiant/certificates", icon: Award, isActive: currentPath === "/dashboard/etudiant/certificates" },
-    // === SECTION OF COMPLÈTE ===
-    { title: "Mes inscriptions", href: "/dashboard/etudiant/inscriptions", icon: FileText, isActive: currentPath === "/dashboard/etudiant/inscriptions" },
-    { title: "Émargement", href: "/dashboard/etudiant/emargements", icon: PenTool, isActive: currentPath === "/dashboard/etudiant/emargements" },
-    { title: "Évaluations", href: "/dashboard/etudiant/evaluations", icon: TrendingUp, isActive: currentPath === "/dashboard/etudiant/evaluations" },
-    // === SECTION OUTILS ===
-    { title: "Boutique", href: "/dashboard/etudiant/boutique", icon: ShoppingBag, isActive: currentPath === "/dashboard/etudiant/boutique" },
-    { title: "Mes documents", href: "/dashboard/etudiant/documents", icon: Download, isActive: currentPath === "/dashboard/etudiant/documents" },
-    { title: "Abonnements", href: "/dashboard/etudiant/subscription", icon: CreditCard, isActive: currentPath === "/dashboard/etudiant/subscription" },
-    { title: "Messages", href: "/dashboard/etudiant/messages", icon: MessageSquare, badge: "3", isActive: currentPath === "/dashboard/etudiant/messages" },
-    { title: "Visioconférence", href: "/dashboard/etudiant/video", icon: Video, isActive: currentPath === "/dashboard/etudiant/video" },
-    { title: "Paramètres", href: "/dashboard/etudiant/settings", icon: Settings, isActive: currentPath === "/dashboard/etudiant/settings" },
+    { title: t('dashboard.student.dashboard'), href: "/dashboard/etudiant", icon: Home, isActive: currentPath === "/dashboard/etudiant" },
+    { title: t('dashboard.student.courseCatalog'), href: "/cours", icon: BookOpen, isActive: currentPath === "/cours" },
+    { title: t('dashboard.student.myCourses'), href: "/dashboard/etudiant/courses", icon: BookOpen, isActive: currentPath === "/dashboard/etudiant/courses" },
+    { title: t('dashboard.student.myPath'), href: "/dashboard/etudiant/progress", icon: Award, isActive: currentPath === "/dashboard/etudiant/progress" },
+    { title: t('dashboard.student.certificates'), href: "/dashboard/etudiant/certificates", icon: Award, isActive: currentPath === "/dashboard/etudiant/certificates" },
+    { title: t('dashboard.student.myInscriptions'), href: "/dashboard/etudiant/inscriptions", icon: FileText, isActive: currentPath === "/dashboard/etudiant/inscriptions" },
+    { title: t('dashboard.student.attendance'), href: "/dashboard/etudiant/emargements", icon: PenTool, isActive: currentPath === "/dashboard/etudiant/emargements" },
+    { title: t('dashboard.student.evaluations'), href: "/dashboard/etudiant/evaluations", icon: TrendingUp, isActive: currentPath === "/dashboard/etudiant/evaluations" },
+    { title: t('dashboard.student.shop'), href: "/dashboard/etudiant/boutique", icon: ShoppingBag, isActive: currentPath === "/dashboard/etudiant/boutique" },
+    { title: t('dashboard.student.myDocuments'), href: "/dashboard/etudiant/documents", icon: Download, isActive: currentPath === "/dashboard/etudiant/documents" },
+    { title: t('dashboard.student.subscriptions'), href: "/dashboard/etudiant/subscription", icon: CreditCard, isActive: currentPath === "/dashboard/etudiant/subscription" },
+    { title: t('dashboard.student.messages'), href: "/dashboard/etudiant/messages", icon: MessageSquare, badge: "3", isActive: currentPath === "/dashboard/etudiant/messages" },
+    { title: t('dashboard.student.videoConference'), href: "/dashboard/etudiant/video", icon: Video, isActive: currentPath === "/dashboard/etudiant/video" },
+    { title: t('dashboard.student.settings'), href: "/dashboard/etudiant/settings", icon: Settings, isActive: currentPath === "/dashboard/etudiant/settings" },
   ];
 
   const userInfo = {
@@ -55,8 +55,8 @@ const StudentDashboard = () => {
     <div className="flex h-screen bg-gray-50">
       <div className="fixed left-0 top-0 h-full z-30">
         <DashboardSidebar
-          title="Espace Étudiant"
-          subtitle="Votre parcours d'apprentissage"
+          title={t('dashboard.student.title')}
+          subtitle={t('dashboard.student.subtitle')}
           items={sidebarItems}
           userInfo={userInfo}
         />

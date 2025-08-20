@@ -8,8 +8,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthForm } from '@/hooks/useAuthForm';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const Login = () => {
+  const { t } = useTranslation();
   const { register, handleSubmit, formState: { errors } } = useForm();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -19,14 +21,14 @@ const Login = () => {
     try {
       await handleLogin(data.email, data.password);
       toast({
-        title: "Connexion réussie",
-        description: "Vous êtes maintenant connecté",
+        title: t('auth.connectionSuccess'),
+        description: t('auth.nowConnected'),
       });
       navigate('/dashboard');
     } catch (error) {
       toast({
-        title: "Erreur de connexion",
-        description: "Vérifiez vos identifiants",
+        title: t('auth.connectionError'),
+        description: t('auth.checkCredentials'),
         variant: "destructive",
       });
     }
@@ -38,43 +40,42 @@ const Login = () => {
       <div className="hidden lg:flex flex-1 bg-gradient-to-br from-pink-600 via-orange-700 to-pink-600 items-center justify-center p-8">
         <div className="max-w-md text-white">
           <h2 className="text-4xl font-bold mb-6">
-            Bon retour parmi nous !
+            {t('auth.welcomeBack')}
           </h2>
           <p className="text-pink-100 mb-8 text-lg leading-relaxed">
-            Connectez-vous à votre compte et continuez votre parcours d'apprentissage. 
-            Accédez à vos cours favoris et suivez vos progrès.
+            {t('auth.loginDescription')}
           </p>
           
           <div className="space-y-4 mb-8">
             <div className="flex items-center space-x-3">
               <div className="h-5 w-5 text-pink-200">✓</div>
-              <span className="text-pink-100">Accès instantané à vos cours</span>
+              <span className="text-pink-100">{t('auth.instantAccess')}</span>
             </div>
             <div className="flex items-center space-x-3">
               <div className="h-5 w-5 text-pink-200">✓</div>
-              <span className="text-pink-100">Suivi de vos progrès en temps réel</span>
+              <span className="text-pink-100">{t('auth.progressTracking')}</span>
             </div>
             <div className="flex items-center space-x-3">
               <div className="h-5 w-5 text-pink-200">✓</div>
-              <span className="text-pink-100">Certificats et badges de réussite</span>
+              <span className="text-pink-100">{t('auth.certificates')}</span>
             </div>
             <div className="flex items-center space-x-3">
               <div className="h-5 w-5 text-pink-200">✓</div>
-              <span className="text-pink-100">Communauté d'apprenants actifs</span>
+              <span className="text-pink-100">{t('auth.community')}</span>
             </div>
           </div>
 
           <div className="bg-white/10 rounded-lg p-6 backdrop-blur-sm">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-pink-100">Satisfaction client</span>
+              <span className="text-pink-100">{t('auth.satisfaction')}</span>
               <div className="flex items-center space-x-1">
                 <span className="ml-2 font-semibold text-2xl">98%</span>
               </div>
             </div>
             <p className="text-sm text-pink-200">
-              "Une plateforme exceptionnelle qui a transformé ma carrière !"
+              "{t('auth.testimonial')}"
             </p>
-            <p className="text-xs text-pink-300 mt-2">- Marie, Data Scientist</p>
+            <p className="text-xs text-pink-300 mt-2">- {t('auth.testimonialAuthor')}</p>
           </div>
         </div>
       </div>
@@ -96,10 +97,10 @@ const Login = () => {
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              Bienvenue ! Connectez-vous à votre compte
+              {t('auth.welcome')}
             </h1>
             <p className="text-gray-600">
-              Entrez vos informations pour accéder à votre espace d'apprentissage
+              {t('auth.enterInfo')}
             </p>
           </div>
 
@@ -107,7 +108,7 @@ const Login = () => {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Adresse email
+                {t('auth.email')}
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -116,7 +117,7 @@ const Login = () => {
                   type="email"
                   placeholder="votre@email.com"
                   className="pl-10"
-                  {...register('email', { required: 'L\'email est requis' })}
+                  {...register('email', { required: t('auth.email') + ' requis' })}
                 />
               </div>
               {errors.email && (
@@ -126,15 +127,15 @@ const Login = () => {
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Mot de passe
+                {t('auth.password')}
               </label>
               <div className="relative">
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Votre mot de passe"
+                  placeholder={t('auth.password')}
                   className="pr-10"
-                  {...register('password', { required: 'Le mot de passe est requis' })}
+                  {...register('password', { required: t('auth.password') + ' requis' })}
                 />
                 <button
                   type="button"
@@ -157,11 +158,11 @@ const Login = () => {
               <div className="flex items-center space-x-2">
                 <Checkbox id="remember" />
                 <label htmlFor="remember" className="text-sm text-gray-700">
-                  Se souvenir de moi
+                  {t('auth.rememberMe')}
                 </label>
               </div>
               <Link to="/mot-de-passe-oublie" className="text-sm text-pink-600 hover:text-pink-700">
-                Mot de passe oublié ?
+                {t('auth.forgotPassword')}
               </Link>
             </div>
 
@@ -170,7 +171,7 @@ const Login = () => {
               className="w-full bg-pink-600 hover:bg-pink-700 text-white"
               disabled={isLoading}
             >
-              {isLoading ? 'Connexion...' : 'Se connecter'}
+              {isLoading ? t('auth.connectingText') : t('auth.login')}
             </Button>
           </form>
 
@@ -181,7 +182,7 @@ const Login = () => {
                 <div className="w-full border-t border-gray-300" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Ou continuer avec</span>
+                <span className="px-2 bg-white text-gray-500">{t('auth.continueWith')}</span>
               </div>
             </div>
 
@@ -200,9 +201,9 @@ const Login = () => {
           {/* Register Link */}
           <div className="mt-6 text-center">
             <p className="text-gray-600">
-              Vous n'avez pas de compte ?{' '}
+              {t('auth.noAccount')}{' '}
               <Link to="/inscription" className="text-pink-600 hover:text-pink-700 font-medium">
-                Créer un compte
+                {t('auth.createAccount')}
               </Link>
             </p>
           </div>
