@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { LucideIcon, BookOpen, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useTranslation } from '@/hooks/useTranslation';
 import LanguageSelector from '@/components/common/LanguageSelector';
 
 interface SidebarItem {
@@ -27,7 +27,7 @@ interface DashboardSidebarProps {
 }
 
 export const DashboardSidebar = ({ title, subtitle, items, userInfo }: DashboardSidebarProps) => {
-  const { t } = useLanguage();
+  const { t } = useTranslation();
 
   return (
     <div className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen overflow-hidden">

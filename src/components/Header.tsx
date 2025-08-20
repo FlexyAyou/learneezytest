@@ -3,12 +3,12 @@ import React, { useState } from 'react';
 import { Menu, X, BookOpen, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useTranslation } from '@/hooks/useTranslation';
 import LanguageSelector from '@/components/common/LanguageSelector';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { t } = useLanguage();
+  const { t } = useTranslation();
 
   return (
     <header className="bg-white shadow-lg fixed w-full top-0 z-50">
@@ -16,7 +16,7 @@ const Header = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center">
-            <img src="/lovable-uploads/52aaa383-7635-46d0-ac37-eb3ee6b878d1.png" alt="Leaeezy" className="h-20 w-auto" />
+            <img src="/lovable-uploads/52aaa383-7635-46d0-ac37-eb3ee6b878d1.png" alt="Learneezy" className="h-20 w-auto" />
           </Link>
 
           {/* Desktop Navigation */}

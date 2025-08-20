@@ -33,17 +33,38 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    fallbackLng: 'fr',
-    lng: 'fr', // langue par défaut
+    fallbackLng: ['fr', 'en'],
+    lng: 'fr',
     
     detection: {
-      order: ['localStorage', 'navigator'],
-      caches: ['localStorage']
+      order: ['localStorage', 'navigator', 'htmlTag'],
+      caches: ['localStorage'],
+      lookupLocalStorage: 'i18nextLng',
+      checkWhitelist: true
     },
 
     interpolation: {
       escapeValue: false
-    }
+    },
+
+    react: {
+      useSuspense: false,
+      transSupportBasicHtmlNodes: true,
+      transKeepBasicHtmlNodesFor: ['br', 'strong', 'i', 'em']
+    },
+
+    // Optimisations avancées
+    load: 'languageOnly',
+    preload: ['fr', 'en'],
+    cleanCode: true,
+    
+    // Support des pluriels
+    pluralSeparator: '_',
+    contextSeparator: '_',
+    
+    // Performance
+    partialBundledLanguages: true,
+    saveMissing: false
   });
 
 export default i18n;
