@@ -159,6 +159,46 @@
     "mission": "Our Mission",
     "missionText": "At Learneezy, we believe that education is the key to success. Our mission is to democratize access to quality learning by offering practical, current and accessible training to everyone, everywhere in the world."
   },
+  "offers": {
+    "title": "Our Offers",
+    "subtitle": "Choose the offer that best fits your learning needs",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "save": "Save",
+    "popular": "Popular",
+    "getStarted": "Get Started",
+    "features": "Features included",
+    "unlimited": "Unlimited",
+    "courses": "courses",
+    "certificates": "Certificates",
+    "support": "Support",
+    "community": "Community"
+  },
+  "contact": {
+    "title": "Contact Us",
+    "subtitle": "Have a question? Our team is here to help",
+    "name": "Name",
+    "email": "Email",
+    "subject": "Subject",
+    "message": "Message",
+    "send": "Send",
+    "phone": "Phone",
+    "address": "Address",
+    "hours": "Hours"
+  },
+  "courses": {
+    "title": "Our Courses",
+    "subtitle": "Discover our complete catalog of professional training",
+    "filter": "Filter",
+    "category": "Category",
+    "level": "Level",
+    "price": "Price",
+    "duration": "Duration",
+    "search": "Search...",
+    "results": "results",
+    "noResults": "No results found",
+    "loadMore": "Load more"
+  },
   "footer": {
     "description": "Your online learning platform to develop your skills and boost your career with quality training.",
     "quickLinks": "Quick Links",
