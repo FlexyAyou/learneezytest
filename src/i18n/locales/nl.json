@@ -1,0 +1,63 @@
+
+{
+  "nav": {
+    "home": "Home",
+    "courses": "Onze cursussen",
+    "about": "Over ons",
+    "offers": "Aanbiedingen",
+    "contact": "Contact",
+    "login": "Inloggen",
+    "register": "Registreren",
+    "logout": "Uitloggen"
+  },
+  "auth": {
+    "welcome": "Welkom! Log in op uw account",
+    "login": "Inloggen",
+    "email": "E-mailadres",
+    "password": "Wachtwoord",
+    "rememberMe": "Onthouden",
+    "forgotPassword": "Wachtwoord vergeten?",
+    "noAccount": "Heeft u geen account?",
+    "createAccount": "Account aanmaken",
+    "continueWith": "Of doorgaan met",
+    "enterInfo": "Voer uw gegevens in om toegang te krijgen tot uw leerruimte"
+  },
+  "hero": {
+    "title": "Ontwikkel uw vaardigheden met de beste online training",
+    "subtitle": "Meer dan 1000 cursussen gemaakt door experts om u te begeleiden in uw professionele succes",
+    "cta": "Nu beginnen",
+    "exploreButton": "Cursussen verkennen"
+  },
+  "keyFigures": {
+    "title": "Onze Kerncijfers",
+    "subtitle": "Ontdek de impact van ons platform op professionele training",
+    "students": "Getrainde studenten",
+    "courses": "Beschikbare cursussen",
+    "certificates": "Uitgegeven certificaten",
+    "satisfaction": "Tevredenheidspercentage"
+  },
+  "howItWorks": {
+    "title": "Hoe werkt het?",
+    "subtitle": "Een eenvoudig en effectief proces voor uw leertraject",
+    "discover": "Ontdekken",
+    "discoverDesc": "Verken onze trainingscatalogus en vind degene die overeenkomt met uw professionele behoeften.",
+    "learn": "Leren",
+    "learnDesc": "Volg uw online cursussen met onze experttrainers en krijg toegang tot educatieve bronnen.",
+    "certify": "Certificeren",
+    "certifyDesc": "Valideer uw vaardigheden met onze beoordelingen en behaal uw professionele certificering.",
+    "evolve": "Evolueren",
+    "evolveDesc": "Sluit je aan bij onze leergemeenschap en blijf je vaardigheden ontwikkelen.",
+    "startNow": "Nu beginnen"
+  },
+  "common": {
+    "loading": "Laden...",
+    "error": "Fout",
+    "success": "Succes",
+    "cancel": "Annuleren",
+    "save": "Opslaan",
+    "edit": "Bewerken",
+    "delete": "Verwijderen",
+    "view": "Bekijken",
+    "close": "Sluiten"
+  }
+}

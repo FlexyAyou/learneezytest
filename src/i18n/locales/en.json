@@ -1,0 +1,63 @@
+
+{
+  "nav": {
+    "home": "Home",
+    "courses": "Our Courses",
+    "about": "About",
+    "offers": "Offers",
+    "contact": "Contact",
+    "login": "Login",
+    "register": "Sign up",
+    "logout": "Logout"
+  },
+  "auth": {
+    "welcome": "Welcome! Sign in to your account",
+    "login": "Sign in",
+    "email": "Email address",
+    "password": "Password",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot password?",
+    "noAccount": "Don't have an account?",
+    "createAccount": "Create account",
+    "continueWith": "Or continue with",
+    "enterInfo": "Enter your information to access your learning space"
+  },
+  "hero": {
+    "title": "Develop your skills with the best online training",
+    "subtitle": "More than 1000 courses created by experts to support your professional success",
+    "cta": "Start now",
+    "exploreButton": "Explore courses"
+  },
+  "keyFigures": {
+    "title": "Our Key Figures",
+    "subtitle": "Discover the impact of our platform on professional training",
+    "students": "Students trained",
+    "courses": "Available courses",
+    "certificates": "Certificates issued",
+    "satisfaction": "Satisfaction rate"
+  },
+  "howItWorks": {
+    "title": "How it works?",
+    "subtitle": "A simple and effective process for your learning journey",
+    "discover": "Discover",
+    "discoverDesc": "Explore our training catalog and find the one that matches your professional needs.",
+    "learn": "Learn",
+    "learnDesc": "Follow your online courses with our expert trainers and access educational resources.",
+    "certify": "Certify",
+    "certifyDesc": "Validate your skills with our assessments and get your professional certification.",
+    "evolve": "Evolve",
+    "evolveDesc": "Join our community of learners and continue developing your skills.",
+    "startNow": "Start now"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "view": "View",
+    "close": "Close"
+  }
+}

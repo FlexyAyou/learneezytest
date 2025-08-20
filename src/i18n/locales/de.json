@@ -1,0 +1,63 @@
+
+{
+  "nav": {
+    "home": "Startseite",
+    "courses": "Unsere Kurse",
+    "about": "Über uns",
+    "offers": "Angebote",
+    "contact": "Kontakt",
+    "login": "Anmelden",
+    "register": "Registrieren",
+    "logout": "Abmelden"
+  },
+  "auth": {
+    "welcome": "Willkommen! Melden Sie sich in Ihrem Konto an",
+    "login": "Anmelden",
+    "email": "E-Mail-Adresse",
+    "password": "Passwort",
+    "rememberMe": "Angemeldet bleiben",
+    "forgotPassword": "Passwort vergessen?",
+    "noAccount": "Haben Sie kein Konto?",
+    "createAccount": "Konto erstellen",
+    "continueWith": "Oder fortfahren mit",
+    "enterInfo": "Geben Sie Ihre Informationen ein, um auf Ihren Lernbereich zuzugreifen"
+  },
+  "hero": {
+    "title": "Entwickeln Sie Ihre Fähigkeiten mit der besten Online-Ausbildung",
+    "subtitle": "Mehr als 1000 von Experten erstellte Kurse, um Sie bei Ihrem beruflichen Erfolg zu begleiten",
+    "cta": "Jetzt beginnen",
+    "exploreButton": "Kurse erkunden"
+  },
+  "keyFigures": {
+    "title": "Unsere Kennzahlen",
+    "subtitle": "Entdecken Sie die Auswirkungen unserer Plattform auf die berufliche Bildung",
+    "students": "Ausgebildete Studenten",
+    "courses": "Verfügbare Kurse",
+    "certificates": "Ausgestellte Zertifikate",
+    "satisfaction": "Zufriedenheitsrate"
+  },
+  "howItWorks": {
+    "title": "Wie funktioniert es?",
+    "subtitle": "Ein einfacher und effektiver Prozess für Ihre Lernreise",
+    "discover": "Entdecken",
+    "discoverDesc": "Erkunden Sie unseren Schulungskatalog und finden Sie den, der Ihren beruflichen Bedürfnissen entspricht.",
+    "learn": "Lernen",
+    "learnDesc": "Folgen Sie Ihren Online-Kursen mit unseren Expertenausbildern und greifen Sie auf pädagogische Ressourcen zu.",
+    "certify": "Zertifizieren",
+    "certifyDesc": "Validieren Sie Ihre Fähigkeiten mit unseren Bewertungen und erhalten Sie Ihre berufliche Zertifizierung.",
+    "evolve": "Entwickeln",
+    "evolveDesc": "Treten Sie unserer Lerngemeinschaft bei und entwickeln Sie Ihre Fähigkeiten weiter.",
+    "startNow": "Jetzt beginnen"
+  },
+  "common": {
+    "loading": "Laden...",
+    "error": "Fehler",
+    "success": "Erfolg",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "view": "Ansehen",
+    "close": "Schließen"
+  }
+}

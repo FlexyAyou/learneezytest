@@ -1,0 +1,63 @@
+
+{
+  "nav": {
+    "home": "Inicio",
+    "courses": "Nuestros cursos",
+    "about": "Acerca de",
+    "offers": "Ofertas",
+    "contact": "Contacto",
+    "login": "Iniciar sesión",
+    "register": "Registrarse",
+    "logout": "Cerrar sesión"
+  },
+  "auth": {
+    "welcome": "¡Bienvenido! Inicia sesión en tu cuenta",
+    "login": "Iniciar sesión",
+    "email": "Dirección de correo",
+    "password": "Contraseña",
+    "rememberMe": "Recordarme",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "noAccount": "¿No tienes una cuenta?",
+    "createAccount": "Crear cuenta",
+    "continueWith": "O continuar con",
+    "enterInfo": "Ingresa tu información para acceder a tu espacio de aprendizaje"
+  },
+  "hero": {
+    "title": "Desarrolla tus habilidades con la mejor formación online",
+    "subtitle": "Más de 1000 cursos creados por expertos para acompañarte en tu éxito profesional",
+    "cta": "Empezar ahora",
+    "exploreButton": "Explorar cursos"
+  },
+  "keyFigures": {
+    "title": "Nuestras Cifras Clave",
+    "subtitle": "Descubre el impacto de nuestra plataforma en la formación profesional",
+    "students": "Estudiantes formados",
+    "courses": "Cursos disponibles",
+    "certificates": "Certificados emitidos",
+    "satisfaction": "Tasa de satisfacción"
+  },
+  "howItWorks": {
+    "title": "¿Cómo funciona?",
+    "subtitle": "Un proceso simple y efectivo para tu recorrido de aprendizaje",
+    "discover": "Descubre",
+    "discoverDesc": "Explora nuestro catálogo de formaciones y encuentra la que corresponde a tus necesidades profesionales.",
+    "learn": "Aprende",
+    "learnDesc": "Sigue tus cursos en línea con nuestros formadores expertos y accede a recursos pedagógicos.",
+    "certify": "Certifícate",
+    "certifyDesc": "Valida tus competencias con nuestras evaluaciones y obtén tu certificación profesional.",
+    "evolve": "Evoluciona",
+    "evolveDesc": "Únete a nuestra comunidad de aprendices y continúa desarrollando tus habilidades.",
+    "startNow": "Empezar ahora"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "view": "Ver",
+    "close": "Cerrar"
+  }
+}

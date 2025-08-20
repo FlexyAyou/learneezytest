@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { LucideIcon, BookOpen, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 import LanguageSelector from '@/components/common/LanguageSelector';
 
 interface SidebarItem {
@@ -26,6 +27,8 @@ interface DashboardSidebarProps {
 }
 
 export const DashboardSidebar = ({ title, subtitle, items, userInfo }: DashboardSidebarProps) => {
+  const { t } = useLanguage();
+
   return (
     <div className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen overflow-hidden">
       {/* Header */}
@@ -93,7 +96,7 @@ export const DashboardSidebar = ({ title, subtitle, items, userInfo }: Dashboard
           className="w-full justify-start text-gray-600 hover:text-gray-900 hover:bg-gray-50"
         >
           <LogOut className="mr-3 h-5 w-5" />
-          Se déconnecter
+          {t('nav.logout')}
         </Button>
       </div>
     </div>

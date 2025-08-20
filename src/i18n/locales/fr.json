@@ -1,0 +1,63 @@
+
+{
+  "nav": {
+    "home": "Accueil",
+    "courses": "Nos formations",
+    "about": "À propos",
+    "offers": "Offres",
+    "contact": "Contact",
+    "login": "Connexion",
+    "register": "S'inscrire",
+    "logout": "Se déconnecter"
+  },
+  "auth": {
+    "welcome": "Bienvenue ! Connectez-vous à votre compte",
+    "login": "Se connecter",
+    "email": "Adresse email",
+    "password": "Mot de passe",
+    "rememberMe": "Se souvenir de moi",
+    "forgotPassword": "Mot de passe oublié ?",
+    "noAccount": "Vous n'avez pas de compte ?",
+    "createAccount": "Créer un compte",
+    "continueWith": "Ou continuer avec",
+    "enterInfo": "Entrez vos informations pour accéder à votre espace d'apprentissage"
+  },
+  "hero": {
+    "title": "Développez vos compétences avec les meilleures formations en ligne",
+    "subtitle": "Plus de 1000 cours créés par des experts pour vous accompagner dans votre réussite professionnelle",
+    "cta": "Commencer maintenant",
+    "exploreButton": "Explorer les formations"
+  },
+  "keyFigures": {
+    "title": "Nos Chiffres Clés",
+    "subtitle": "Découvrez l'impact de notre plateforme sur la formation professionnelle",
+    "students": "Étudiants formés",
+    "courses": "Cours disponibles",
+    "certificates": "Certificats délivrés",
+    "satisfaction": "Taux de satisfaction"
+  },
+  "howItWorks": {
+    "title": "Comment ça marche ?",
+    "subtitle": "Un processus simple et efficace pour votre parcours de formation",
+    "discover": "Découvrez",
+    "discoverDesc": "Explorez notre catalogue de formations et trouvez celle qui correspond à vos besoins professionnels.",
+    "learn": "Apprenez",
+    "learnDesc": "Suivez vos cours en ligne avec nos formateurs experts et accédez aux ressources pédagogiques.",
+    "certify": "Certifiez",
+    "certifyDesc": "Validez vos compétences avec nos évaluations et obtenez votre certification professionnelle.",
+    "evolve": "Évoluez",
+    "evolveDesc": "Rejoignez notre communauté d'apprenants et continuez à développer vos compétences.",
+    "startNow": "Commencer maintenant"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "view": "Voir",
+    "close": "Fermer"
+  }
+}

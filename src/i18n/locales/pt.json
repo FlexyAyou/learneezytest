@@ -1,0 +1,63 @@
+
+{
+  "nav": {
+    "home": "Início",
+    "courses": "Nossos cursos",
+    "about": "Sobre",
+    "offers": "Ofertas",
+    "contact": "Contato",
+    "login": "Entrar",
+    "register": "Cadastrar",
+    "logout": "Sair"
+  },
+  "auth": {
+    "welcome": "Bem-vindo! Faça login na sua conta",
+    "login": "Entrar",
+    "email": "Endereço de e-mail",
+    "password": "Senha",
+    "rememberMe": "Lembrar-me",
+    "forgotPassword": "Esqueceu a senha?",
+    "noAccount": "Não tem uma conta?",
+    "createAccount": "Criar conta",
+    "continueWith": "Ou continuar com",
+    "enterInfo": "Digite suas informações para acessar seu espaço de aprendizagem"
+  },
+  "hero": {
+    "title": "Desenvolva suas habilidades com a melhor formação online",
+    "subtitle": "Mais de 1000 cursos criados por especialistas para acompanhar seu sucesso profissional",
+    "cta": "Começar agora",
+    "exploreButton": "Explorar cursos"
+  },
+  "keyFigures": {
+    "title": "Nossos Números Chave",
+    "subtitle": "Descubra o impacto da nossa plataforma na formação profissional",
+    "students": "Estudantes formados",
+    "courses": "Cursos disponíveis",
+    "certificates": "Certificados emitidos",
+    "satisfaction": "Taxa de satisfação"
+  },
+  "howItWorks": {
+    "title": "Como funciona?",
+    "subtitle": "Um processo simples e eficaz para sua jornada de aprendizagem",
+    "discover": "Descubra",
+    "discoverDesc": "Explore nosso catálogo de formações e encontre a que corresponde às suas necessidades profissionais.",
+    "learn": "Aprenda",
+    "learnDesc": "Siga seus cursos online com nossos formadores especialistas e acesse recursos pedagógicos.",
+    "certify": "Certifique-se",
+    "certifyDesc": "Valide suas competências com nossas avaliações e obtenha sua certificação profissional.",
+    "evolve": "Evolua",
+    "evolveDesc": "Junte-se à nossa comunidade de aprendizes e continue desenvolvendo suas habilidades.",
+    "startNow": "Começar agora"
+  },
+  "common": {
+    "loading": "Carregando...",
+    "error": "Erro",
+    "success": "Sucesso",
+    "cancel": "Cancelar",
+    "save": "Salvar",
+    "edit": "Editar",
+    "delete": "Excluir",
+    "view": "Ver",
+    "close": "Fechar"
+  }
+}
