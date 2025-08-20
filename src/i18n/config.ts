@@ -39,8 +39,7 @@ i18n
     detection: {
       order: ['localStorage', 'navigator', 'htmlTag'],
       caches: ['localStorage'],
-      lookupLocalStorage: 'i18nextLng',
-      checkWhitelist: true
+      lookupLocalStorage: 'i18nextLng'
     },
 
     interpolation: {
@@ -53,7 +52,7 @@ i18n
       transKeepBasicHtmlNodesFor: ['br', 'strong', 'i', 'em']
     },
 
-    // Optimisations avancées
+    // Optimisations
     load: 'languageOnly',
     preload: ['fr', 'en'],
     cleanCode: true,
@@ -64,7 +63,12 @@ i18n
     
     // Performance
     partialBundledLanguages: true,
-    saveMissing: false
+    saveMissing: false,
+
+    // Configuration pour éviter les avertissements
+    debug: false,
+    ns: ['translation'],
+    defaultNS: 'translation'
   });
 
 export default i18n;
