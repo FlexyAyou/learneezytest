@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -32,7 +31,7 @@ import StudentInscriptions from '@/pages/student/StudentInscriptions';
 import { StudentDocuments } from '@/components/student/StudentDocuments';
 import { StudentShop } from '@/components/student/StudentShop';
 import { StudentSubscription } from '@/components/student/StudentSubscription';
-import { StudentVideoConferences } from '@/components/student/StudentVideoConferences';
+import StudentVideoConferences from '@/components/student/StudentVideoConferences';
 import StudentTeachers from '@/pages/student/StudentTeachers';
 
 const StudentDashboard = () => {
