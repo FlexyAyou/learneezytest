@@ -1,0 +1,119 @@
+import { TrainerBooking, TrainerProfile } from '@/types/trainer-booking';
+
+export const mockTrainerBookings: TrainerBooking[] = [
+  {
+    id: '1',
+    trainerId: 'trainer-1',
+    trainerName: 'Sophie Dubois',
+    trainerPhoto: '/lovable-uploads/hero-white-man-professional.png',
+    subject: 'Mathématiques',
+    specialty: 'Algèbre et Géométrie',
+    sessionDate: '2024-01-25',
+    sessionTime: '14:00',
+    duration: 60,
+    status: 'upcoming',
+    sessionType: 'online',
+    meetingLink: 'https://meet.google.com/abc-def-ghi',
+    price: 35,
+    notes: 'Révision du chapitre sur les équations du second degré'
+  },
+  {
+    id: '2',
+    trainerId: 'trainer-2',
+    trainerName: 'Marc Lefebvre',
+    trainerPhoto: '/lovable-uploads/hero-white-man-professional.png',
+    subject: 'Physique-Chimie',
+    specialty: 'Mécanique et Thermodynamique',
+    sessionDate: '2024-01-20',
+    sessionTime: '16:30',
+    duration: 90,
+    status: 'completed',
+    sessionType: 'presential',
+    location: 'Salle 203, Campus Central',
+    price: 45,
+    rating: 5,
+    review: 'Excellent professeur ! Très pédagogue et patient. Les explications sont claires.',
+    isAnonymousReview: false,
+    reviewDate: '2024-01-20'
+  },
+  {
+    id: '3',
+    trainerId: 'trainer-3',
+    trainerName: 'Claire Martinez',
+    trainerPhoto: '/lovable-uploads/hero-white-man-professional.png',
+    subject: 'Français',
+    specialty: 'Littérature et Expression Écrite',
+    sessionDate: '2024-01-18',
+    sessionTime: '10:00',
+    duration: 60,
+    status: 'completed',
+    sessionType: 'online',
+    meetingLink: 'https://zoom.us/j/123456789',
+    price: 30,
+    rating: 4,
+    review: 'Très bon accompagnement pour la rédaction. Quelques conseils très utiles.',
+    isAnonymousReview: true,
+    reviewDate: '2024-01-18'
+  },
+  {
+    id: '4',
+    trainerId: 'trainer-1',
+    trainerName: 'Sophie Dubois',
+    trainerPhoto: '/lovable-uploads/hero-white-man-professional.png',
+    subject: 'Mathématiques',
+    specialty: 'Statistiques et Probabilités',
+    sessionDate: '2024-01-30',
+    sessionTime: '15:00',
+    duration: 60,
+    status: 'upcoming',
+    sessionType: 'presential',
+    location: 'Bibliothèque universitaire',
+    price: 35,
+    notes: 'Préparation pour l\'examen de statistiques'
+  }
+];
+
+export const mockTrainerProfiles: TrainerProfile[] = [
+  {
+    id: 'trainer-1',
+    name: 'Sophie Dubois',
+    photo: '/lovable-uploads/hero-white-man-professional.png',
+    subjects: ['Mathématiques'],
+    specialties: ['Algèbre', 'Géométrie', 'Statistiques', 'Probabilités'],
+    experience: 8,
+    rating: 4.8,
+    totalReviews: 127,
+    hourlyRate: 35,
+    languages: ['Français', 'Anglais'],
+    description: 'Professeure certifiée en mathématiques avec une approche personnalisée pour chaque élève.',
+    availability: ['Lundi', 'Mercredi', 'Vendredi']
+  },
+  {
+    id: 'trainer-2',
+    name: 'Marc Lefebvre',
+    photo: '/lovable-uploads/hero-white-man-professional.png',
+    subjects: ['Physique-Chimie'],
+    specialties: ['Mécanique', 'Thermodynamique', 'Chimie Organique'],
+    experience: 12,
+    rating: 4.9,
+    totalReviews: 89,
+    hourlyRate: 45,
+    languages: ['Français'],
+    description: 'Docteur en physique, spécialisé dans l\'accompagnement des étudiants en sciences.',
+    availability: ['Mardi', 'Jeudi', 'Samedi']
+  },
+  {
+    id: 'trainer-3',
+    name: 'Claire Martinez',
+    photo: '/lovable-uploads/hero-white-man-professional.png',
+    subjects: ['Français'],
+    specialties: ['Littérature', 'Expression Écrite', 'Grammaire'],
+    experience: 6,
+    rating: 4.7,
+    totalReviews: 156,
+    hourlyRate: 30,
+    languages: ['Français', 'Espagnol'],
+    description: 'Enseignante passionnée de littérature, aide à développer l\'expression écrite et orale.',
+    availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi']
+  }
+];
