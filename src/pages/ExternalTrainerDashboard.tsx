@@ -42,6 +42,7 @@ import TrainerPositioningTests from '@/components/external-trainer/TrainerPositi
 import AIChat from '@/components/common/AIChat';
 import VideoConference from '@/components/common/VideoConference';
 import AIChatButton from '@/components/common/AIChatButton';
+import TrainerVideoConferences from '@/components/external-trainer/TrainerVideoConferences';
 
 const ExternalTrainerDashboardHome = () => {
   const { toast } = useToast();
@@ -295,7 +296,7 @@ const ExternalTrainerDashboard = () => {
           <Route path="/evaluations" element={<TrainerReviews />} />
           <Route path="/revenus" element={<TrainerEarnings />} />
           <Route path="/tests" element={<TrainerPositioningTests />} />
-          <Route path="/video" element={<VideoConference />} />
+          <Route path="/video" element={<TrainerVideoConferences />} />
           <Route path="/chat" element={<AIChat />} />
           <Route path="/documents" element={<TrainerDocuments />} />
           <Route path="/support" element={<TrainerSupport />} />
