@@ -1,14 +1,14 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Search, Plus, Eye, Edit, Trash2, UserCheck, Users, Mail, Phone, MapPin, Star, Calendar, Clock, Euro } from 'lucide-react';
+import { Search, Plus, Eye, Mail, UserCheck, Users, Phone, MapPin, Calendar, Clock, Euro, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TrainerApplicationModal } from './TrainerApplicationModal';
+import { CustomEmailModal } from './CustomEmailModal';
 import { mockTrainerApplications } from '@/data/mockTrainerApplicationsData';
 import { TrainerApplication } from '@/types/trainer-application';
 
@@ -18,7 +18,12 @@ const AdminTrainers = () => {
   const [selectedApplication, setSelectedApplication] = useState<TrainerApplication | null>(null);
   const [statusFilter, setStatusFilter] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [applications, setApplications] = useState(mockTrainerApplications);
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [selectedTrainerForEmail, setSelectedTrainerForEmail] = useState<TrainerApplication | null>(null);
+  const [applications, setApplications] = useState(mockTrainerApplications.map(app => ({
+    ...app,
+    isVisible: true
+  })));
 
   const handleStatusChange = (trainerId: string, newStatus: string) => {
     toast({
@@ -27,12 +32,25 @@ const AdminTrainers = () => {
     });
   };
 
-  const handleDeleteTrainer = (trainerId: string) => {
+  const handleToggleVisibility = (trainerId: string) => {
+    setApplications(prev => prev.map(app => 
+      app.id === trainerId 
+        ? { ...app, isVisible: !app.isVisible }
+        : app
+    ));
+    
+    const trainer = applications.find(app => app.id === trainerId);
     toast({
-      title: "Formateur supprimé",
-      description: "Le formateur a été supprimé avec succès.",
-      variant: "destructive"
+      title: "Visibilité modifiée",
+      description: `Le profil de ${trainer?.firstName} ${trainer?.lastName} est maintenant ${
+        !trainer?.isVisible ? 'visible' : 'masqué'
+      }.`,
     });
+  };
+
+  const handleSendEmail = (trainer: TrainerApplication) => {
+    setSelectedTrainerForEmail(trainer);
+    setIsEmailModalOpen(true);
   };
 
   const handleViewApplication = (application: TrainerApplication) => {
@@ -112,7 +130,6 @@ const AdminTrainers = () => {
         </Button>
       </div>
 
-      {/* Stats cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="pb-2">
@@ -152,7 +169,6 @@ const AdminTrainers = () => {
         </Card>
       </div>
 
-      {/* Search and filters */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
@@ -281,19 +297,25 @@ const AdminTrainers = () => {
                           <Button 
                             size="sm" 
                             variant="outline" 
-                            title="Modifier"
+                            title={application.isVisible ? "Masquer le profil" : "Afficher le profil"}
+                            onClick={() => handleToggleVisibility(application.id)}
+                            className={application.isVisible ? "hover:bg-red-50 hover:text-red-600" : "hover:bg-green-50 hover:text-green-600"}
                           >
-                            <Edit className="h-4 w-4" />
+                            {application.isVisible ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
                           </Button>
                           
                           <Button 
                             size="sm" 
                             variant="outline" 
-                            title="Supprimer"
-                            onClick={() => handleDeleteTrainer(application.id)}
-                            className="hover:bg-red-50 hover:text-red-600"
+                            title="Envoyer un email personnalisé"
+                            onClick={() => handleSendEmail(application)}
+                            className="hover:bg-blue-50 hover:text-blue-600"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Mail className="h-4 w-4" />
                           </Button>
                         </>
                       )}
@@ -321,6 +343,15 @@ const AdminTrainers = () => {
         }}
         onApprove={handleApproveApplication}
         onReject={handleRejectApplication}
+      />
+
+      <CustomEmailModal
+        trainer={selectedTrainerForEmail}
+        isOpen={isEmailModalOpen}
+        onClose={() => {
+          setIsEmailModalOpen(false);
+          setSelectedTrainerForEmail(null);
+        }}
       />
     </div>
   );
