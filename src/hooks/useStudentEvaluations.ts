@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 interface StudentEvaluation {
@@ -26,41 +25,69 @@ export const useStudentEvaluations = () => {
 
   const fetchEvaluations = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      // Mock data since we're using a placeholder Supabase client
+      const mockEvaluations: StudentEvaluation[] = [
+        {
+          id: '1',
+          type: 'positionnement',
+          courseTitle: 'Mathématiques CE2',
+          title: 'Test de positionnement',
+          score: 18,
+          maxScore: 20,
+          percentage: 90,
+          completedAt: '2024-01-15T10:30:00Z',
+          questions: {}
+        },
+        {
+          id: '2',
+          type: 'quiz',
+          courseTitle: 'Français CM1',
+          title: 'Quiz',
+          score: 15,
+          maxScore: 20,
+          percentage: 75,
+          completedAt: '2024-01-20T14:15:00Z',
+          questions: {}
+        },
+        {
+          id: '3',
+          type: 'exam',
+          courseTitle: 'Sciences 6ème',
+          title: 'Examen',
+          score: 16,
+          maxScore: 20,
+          percentage: 80,
+          completedAt: '2024-02-01T09:00:00Z',
+          questions: {}
+        },
+        {
+          id: '4',
+          type: 'practical',
+          courseTitle: 'Histoire-Géographie 4ème',
+          title: 'Exercice pratique',
+          score: 17,
+          maxScore: 20,
+          percentage: 85,
+          completedAt: '2024-02-10T11:30:00Z',
+          questions: {}
+        },
+        {
+          id: '5',
+          type: 'final',
+          courseTitle: 'Mathématiques CE2',
+          title: 'Évaluation finale',
+          score: 19,
+          maxScore: 20,
+          percentage: 95,
+          completedAt: '2024-02-15T16:00:00Z',
+          questions: {}
+        }
+      ];
 
-      const { data, error } = await supabase
-        .from('evaluations')
-        .select(`
-          id,
-          type,
-          score,
-          max_score,
-          percentage,
-          completed_at,
-          questions,
-          course_id
-        `)
-        .eq('user_id', user.id)
-        .eq('is_completed', true)
-        .order('completed_at', { ascending: false });
-
-      if (error) throw error;
-
-      // Mock course titles for now - in real app, you'd join with courses table
-      const evaluationsWithCourses = data?.map(evaluation => ({
-        id: evaluation.id,
-        type: evaluation.type as StudentEvaluation['type'],
-        courseTitle: getCourseTitle(evaluation.course_id),
-        title: getEvaluationTitle(evaluation.type),
-        score: evaluation.score,
-        maxScore: evaluation.max_score,
-        percentage: evaluation.percentage,
-        completedAt: evaluation.completed_at,
-        questions: evaluation.questions
-      })) || [];
-
-      setEvaluations(evaluationsWithCourses);
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setEvaluations(mockEvaluations);
     } catch (error) {
       console.error('Error fetching evaluations:', error);
       toast({
@@ -71,29 +98,6 @@ export const useStudentEvaluations = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const getCourseTitle = (courseId: string) => {
-    // Mock data - in real app, this would come from a join or separate query
-    const courseTitles: Record<string, string> = {
-      '1': 'Mathématiques CE2',
-      '2': 'Français CM1',
-      '3': 'Sciences 6ème',
-      '4': 'Histoire-Géographie 4ème'
-    };
-    return courseTitles[courseId] || 'Formation';
-  };
-
-  const getEvaluationTitle = (type: string) => {
-    const titles: Record<string, string> = {
-      'positionnement': 'Test de positionnement',
-      'final': 'Évaluation finale',
-      'satisfaction': 'Enquête de satisfaction',
-      'quiz': 'Quiz',
-      'exam': 'Examen',
-      'practical': 'Exercice pratique'
-    };
-    return titles[type] || 'Évaluation';
   };
 
   return { evaluations, loading, refetch: fetchEvaluations };

@@ -4,10 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { BookOpen, Download, FileText, Award, TrendingUp, CheckCircle, Calendar, Clock } from 'lucide-react';
+import { Download, FileText, Award, TrendingUp, CheckCircle, Calendar, Clock } from 'lucide-react';
 import { useStudentEvaluations } from '@/hooks/useStudentEvaluations';
 import { useToast } from '@/hooks/use-toast';
-import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 
 const StudentEvaluations = () => {
   const { evaluations, loading } = useStudentEvaluations();
@@ -68,7 +67,7 @@ const StudentEvaluations = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <LoadingSpinner />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
