@@ -48,16 +48,16 @@ export const useStudentEvaluations = () => {
       if (error) throw error;
 
       // Mock course titles for now - in real app, you'd join with courses table
-      const evaluationsWithCourses = data?.map(eval => ({
-        id: eval.id,
-        type: eval.type as StudentEvaluation['type'],
-        courseTitle: getCourseTitle(eval.course_id),
-        title: getEvaluationTitle(eval.type),
-        score: eval.score,
-        maxScore: eval.max_score,
-        percentage: eval.percentage,
-        completedAt: eval.completed_at,
-        questions: eval.questions
+      const evaluationsWithCourses = data?.map(evaluation => ({
+        id: evaluation.id,
+        type: evaluation.type as StudentEvaluation['type'],
+        courseTitle: getCourseTitle(evaluation.course_id),
+        title: getEvaluationTitle(evaluation.type),
+        score: evaluation.score,
+        maxScore: evaluation.max_score,
+        percentage: evaluation.percentage,
+        completedAt: evaluation.completed_at,
+        questions: evaluation.questions
       })) || [];
 
       setEvaluations(evaluationsWithCourses);
