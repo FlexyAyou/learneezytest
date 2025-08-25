@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
@@ -5,7 +6,7 @@ import { OFDashboard as OFDashboardHome } from '@/components/admin/OFDashboard';
 import { OFUtilisateurs } from '@/components/admin/OFUtilisateurs';
 import { OFFormations } from '@/components/admin/OFFormations';
 import { OFLicences } from '@/components/admin/OFLicences';
-import { OFSuiviPedagogique } from '@/components/admin/OFSuiviPedagogique';
+import { OFSuiviPedagogiqueEnhanced } from '@/components/admin/OFSuiviPedagogiqueEnhanced';
 import { OFEnvois } from '@/components/admin/OFEnvois';
 import { OFIntegrations } from '@/components/admin/OFIntegrations';
 import { OFLogs } from '@/components/admin/OFLogs';
@@ -128,7 +129,7 @@ const OFDashboard = () => {
             <Route path="documents-of" element={<AdminDocumentsOF />} />
             <Route path="documents" element={<OFDocuments />} />
             <Route path="licences" element={<OFLicences />} />
-            <Route path="suivi-pedagogique" element={<OFSuiviPedagogique />} />
+            <Route path="suivi-pedagogique" element={<OFSuiviPedagogiqueEnhanced />} />
             <Route path="visio" element={<OFVideoConferences />} />
             <Route path="envois" element={<OFEnvois />} />
             <Route path="integrations" element={<OFIntegrations />} />
