@@ -292,33 +292,29 @@ const AdminTrainers = () => {
                         <Eye className="h-4 w-4" />
                       </Button>
                       
-                      {application.status === 'approved' && (
-                        <>
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            title={application.isVisible ? "Masquer le profil" : "Afficher le profil"}
-                            onClick={() => handleToggleVisibility(application.id)}
-                            className={application.isVisible ? "hover:bg-red-50 hover:text-red-600" : "hover:bg-green-50 hover:text-green-600"}
-                          >
-                            {application.isVisible ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
-                          </Button>
-                          
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            title="Envoyer un email personnalisé"
-                            onClick={() => handleSendEmail(application)}
-                            className="hover:bg-blue-50 hover:text-blue-600"
-                          >
-                            <Mail className="h-4 w-4" />
-                          </Button>
-                        </>
-                      )}
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        title={application.isVisible ? "Masquer le profil" : "Afficher le profil"}
+                        onClick={() => handleToggleVisibility(application.id)}
+                        className={application.isVisible ? "hover:bg-red-50 hover:text-red-600" : "hover:bg-green-50 hover:text-green-600"}
+                      >
+                        {application.isVisible ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </Button>
+                      
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        title="Envoyer un email personnalisé"
+                        onClick={() => handleSendEmail(application)}
+                        className="hover:bg-blue-50 hover:text-blue-600"
+                      >
+                        <Mail className="h-4 w-4" />
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
