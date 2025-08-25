@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -20,13 +21,13 @@ const TutorStudentTracking = () => {
       age: 16,
       avatar: '/placeholder.svg',
       modules: [
-        { name: 'Mathématiques Niveau 1ère', progress: 75, grade: 'B+', status: 'active' },
-        { name: 'Anglais Conversation', progress: 60, grade: 'A-', status: 'active' },
-        { name: 'Histoire Géographie', progress: 85, grade: 'A', status: 'completed' }
+        { name: 'Mathématiques Niveau 1ère', progress: 75, grade: 15.5, status: 'active' },
+        { name: 'Anglais Conversation', progress: 60, grade: 16.2, status: 'active' },
+        { name: 'Histoire Géographie', progress: 85, grade: 17.8, status: 'completed' }
       ],
       recentResults: [
-        { subject: 'Mathématiques', type: 'Quiz', score: 85, date: '2024-01-12' },
-        { subject: 'Anglais', type: 'Devoir', score: 92, date: '2024-01-10' }
+        { subject: 'Mathématiques', type: 'Quiz', score: 17, date: '2024-01-12' },
+        { subject: 'Anglais', type: 'Devoir', score: 18.4, date: '2024-01-10' }
       ],
       feedback: [
         {
@@ -43,12 +44,12 @@ const TutorStudentTracking = () => {
       age: 14,
       avatar: '/placeholder.svg',
       modules: [
-        { name: 'Sciences Physiques 3ème', progress: 90, grade: 'A', status: 'active' },
-        { name: 'Français', progress: 70, grade: 'B', status: 'active' }
+        { name: 'Sciences Physiques 3ème', progress: 90, grade: 18.0, status: 'active' },
+        { name: 'Français', progress: 70, grade: 14.0, status: 'active' }
       ],
       recentResults: [
-        { subject: 'Sciences', type: 'Contrôle', score: 95, date: '2024-01-11' },
-        { subject: 'Français', type: 'Rédaction', score: 78, date: '2024-01-09' }
+        { subject: 'Sciences', type: 'Contrôle', score: 19, date: '2024-01-11' },
+        { subject: 'Français', type: 'Rédaction', score: 15.6, date: '2024-01-09' }
       ],
       feedback: [
         {
@@ -70,10 +71,10 @@ const TutorStudentTracking = () => {
     }
   };
 
-  const getGradeColor = (grade: string) => {
-    if (grade.startsWith('A')) return 'bg-green-100 text-green-800';
-    if (grade.startsWith('B')) return 'bg-blue-100 text-blue-800';
-    if (grade.startsWith('C')) return 'bg-yellow-100 text-yellow-800';
+  const getGradeColor = (grade: number) => {
+    if (grade >= 16) return 'bg-green-100 text-green-800';
+    if (grade >= 14) return 'bg-blue-100 text-blue-800';
+    if (grade >= 12) return 'bg-yellow-100 text-yellow-800';
     return 'bg-red-100 text-red-800';
   };
 
@@ -114,7 +115,7 @@ const TutorStudentTracking = () => {
                         <span className="text-sm font-medium truncate">{module.name}</span>
                         <div className="flex items-center space-x-2">
                           <Badge className={getGradeColor(module.grade)} variant="secondary">
-                            {module.grade}
+                            {module.grade}/20
                           </Badge>
                           <Badge className={getStatusColor(module.status)} variant="secondary">
                             {module.progress}%
@@ -141,7 +142,7 @@ const TutorStudentTracking = () => {
                         <span className="text-xs text-gray-600 ml-2">({result.type})</span>
                       </div>
                       <div className="text-right">
-                        <span className="font-bold text-green-600">{result.score}%</span>
+                        <span className="font-bold text-green-600">{result.score}/20</span>
                         <p className="text-xs text-gray-500">{result.date}</p>
                       </div>
                     </div>
