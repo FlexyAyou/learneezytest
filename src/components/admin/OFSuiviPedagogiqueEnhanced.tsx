@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -343,13 +342,13 @@ export const OFSuiviPedagogiqueEnhanced = () => {
                     { name: 'Quiz React Hooks', date: '2024-01-14', participants: 23, moyenne: 16.2 },
                     { name: 'TP JavaScript ES6', date: '2024-01-13', participants: 18, moyenne: 14.8 },
                     { name: 'Projet Angular', date: '2024-01-12', participants: 15, moyenne: 15.5 },
-                  ].map((eval, index) => (
+                  ].map((evaluation, index) => (
                     <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                       <div>
-                        <p className="font-medium">{eval.name}</p>
-                        <p className="text-sm text-gray-600">{eval.date} • {eval.participants} participants</p>
+                        <p className="font-medium">{evaluation.name}</p>
+                        <p className="text-sm text-gray-600">{evaluation.date} • {evaluation.participants} participants</p>
                       </div>
-                      <Badge variant="outline">Moy: {eval.moyenne}/20</Badge>
+                      <Badge variant="outline">Moy: {evaluation.moyenne}/20</Badge>
                     </div>
                   ))}
                 </div>
@@ -366,11 +365,11 @@ export const OFSuiviPedagogiqueEnhanced = () => {
                     { name: 'Examen TypeScript', date: '2024-01-20', type: 'Examen final' },
                     { name: 'Quiz CSS Grid', date: '2024-01-18', type: 'Quiz' },
                     { name: 'TP Node.js', date: '2024-01-22', type: 'Travaux pratiques' },
-                  ].map((eval, index) => (
+                  ].map((evaluation, index) => (
                     <div key={index} className="flex justify-between items-center p-3 border rounded-lg">
                       <div>
-                        <p className="font-medium">{eval.name}</p>
-                        <p className="text-sm text-gray-600">{eval.date} • {eval.type}</p>
+                        <p className="font-medium">{evaluation.name}</p>
+                        <p className="text-sm text-gray-600">{evaluation.date} • {evaluation.type}</p>
                       </div>
                       <Button size="sm" variant="outline">Configurer</Button>
                     </div>
