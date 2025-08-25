@@ -1,16 +1,18 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Download, FileText, Award, TrendingUp, CheckCircle, Calendar, Clock } from 'lucide-react';
+import { Download, FileText, Award, TrendingUp, CheckCircle, Calendar, Clock, Eye } from 'lucide-react';
 import { useStudentEvaluations } from '@/hooks/useStudentEvaluations';
 import { useToast } from '@/hooks/use-toast';
+import { EvaluationViewModal } from '@/components/student/EvaluationViewModal';
 
 const StudentEvaluations = () => {
   const { evaluations, loading } = useStudentEvaluations();
   const { toast } = useToast();
+  const [selectedEvaluation, setSelectedEvaluation] = useState(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
   const getTypeBadge = (type: string) => {
     const config = {
@@ -62,6 +64,11 @@ const StudentEvaluations = () => {
     });
     
     // In a real app, this would create a ZIP file with all evaluations
+  };
+
+  const handleViewEvaluation = (evaluation: any) => {
+    setSelectedEvaluation(evaluation);
+    setIsViewModalOpen(true);
   };
 
   if (loading) {
@@ -203,14 +210,24 @@ const StudentEvaluations = () => {
                       <span className="text-sm">Évaluation terminée</span>
                     </div>
                     
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleDownloadEvaluation(evaluation)}
-                    >
-                      <Download className="w-4 h-4 mr-2" />
-                      Télécharger
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleViewEvaluation(evaluation)}
+                      >
+                        <Eye className="w-4 h-4 mr-2" />
+                        Voir
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleDownloadEvaluation(evaluation)}
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Télécharger
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -228,6 +245,12 @@ const StudentEvaluations = () => {
           </CardContent>
         </Card>
       )}
+
+      <EvaluationViewModal
+        evaluation={selectedEvaluation}
+        isOpen={isViewModalOpen}
+        onClose={() => setIsViewModalOpen(false)}
+      />
     </div>
   );
 };
