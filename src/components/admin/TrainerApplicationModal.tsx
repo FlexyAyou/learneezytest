@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   User, Mail, Phone, MapPin, Calendar, Clock, Euro, 
   Languages, Award, FileText, Download, CheckCircle, 
-  XCircle, Eye, MessageSquare 
+  XCircle, Eye, MessageSquare, CreditCard, Building2,
+  Shield, Star, TrendingUp, DollarSign 
 } from 'lucide-react';
 import { TrainerApplication, TrainerDocument } from '@/types/trainer-application';
 import { mockTrainerDocuments } from '@/data/mockTrainerApplicationsData';
@@ -39,6 +39,33 @@ export const TrainerApplicationModal = ({
   const documents = mockTrainerDocuments.filter(
     doc => doc.trainerApplicationId === application.id
   );
+
+  // Mock data for additional trainer information
+  const trainerDetails = {
+    paymentMethod: {
+      type: 'IBAN',
+      details: 'FR76 1234 5678 9012 3456 7890 123',
+      holderName: `${application.firstName} ${application.lastName}`,
+      verified: true
+    },
+    taxInfo: {
+      siret: '12345678901234',
+      tvaNumber: 'FR12345678901',
+      status: 'Auto-entrepreneur'
+    },
+    performance: {
+      totalEarnings: 15420,
+      completedSessions: 142,
+      averageRating: 4.8,
+      totalStudents: 89
+    },
+    compliance: {
+      backgroundCheck: true,
+      insuranceValid: true,
+      certificationStatus: 'Valid',
+      lastVerification: '2024-01-15'
+    }
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -110,15 +137,15 @@ export const TrainerApplicationModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh]">
+      <DialogContent className="max-w-5xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <User className="h-5 w-5" />
-            Candidature de formateur - {application.firstName} {application.lastName}
+            Profil complet du formateur - {application.firstName} {application.lastName}
           </DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="max-h-[70vh] pr-4">
+        <ScrollArea className="max-h-[75vh] pr-4">
           <div className="space-y-6">
             {/* Header avec photo et infos principales */}
             <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
@@ -163,6 +190,44 @@ export const TrainerApplicationModal = ({
               </div>
             </div>
 
+            {/* Performance et statistiques */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="p-4 bg-blue-50 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <DollarSign className="h-5 w-5 text-blue-600" />
+                  <h5 className="font-semibold text-blue-900">Revenus totaux</h5>
+                </div>
+                <p className="text-2xl font-bold text-blue-800">{trainerDetails.performance.totalEarnings}€</p>
+                <p className="text-sm text-blue-600">{trainerDetails.performance.completedSessions} sessions</p>
+              </div>
+              <div className="p-4 bg-green-50 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <Star className="h-5 w-5 text-green-600" />
+                  <h5 className="font-semibold text-green-900">Note moyenne</h5>
+                </div>
+                <p className="text-2xl font-bold text-green-800">{trainerDetails.performance.averageRating}/5</p>
+                <p className="text-sm text-green-600">{trainerDetails.performance.totalStudents} étudiants</p>
+              </div>
+              <div className="p-4 bg-purple-50 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp className="h-5 w-5 text-purple-600" />
+                  <h5 className="font-semibold text-purple-900">Sessions</h5>
+                </div>
+                <p className="text-2xl font-bold text-purple-800">{trainerDetails.performance.completedSessions}</p>
+                <p className="text-sm text-purple-600">Terminées</p>
+              </div>
+              <div className="p-4 bg-orange-50 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <Shield className="h-5 w-5 text-orange-600" />
+                  <h5 className="font-semibold text-orange-900">Conformité</h5>
+                </div>
+                <p className="text-sm font-bold text-orange-800">
+                  {trainerDetails.compliance.backgroundCheck ? '✓ Vérifiée' : '✗ En attente'}
+                </p>
+                <p className="text-sm text-orange-600">Dernier contrôle : {new Date(trainerDetails.compliance.lastVerification).toLocaleDateString()}</p>
+              </div>
+            </div>
+
             {/* Informations détaillées */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -195,6 +260,64 @@ export const TrainerApplicationModal = ({
                       {specialty}
                     </Badge>
                   ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Informations de paiement */}
+            <div>
+              <h4 className="font-semibold mb-4 flex items-center gap-2">
+                <CreditCard className="h-5 w-5" />
+                Moyens de paiement
+              </h4>
+              <div className="p-4 border rounded-lg bg-gray-50">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Type de compte</label>
+                    <p className="font-semibold">{trainerDetails.paymentMethod.type}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Titulaire du compte</label>
+                    <p className="font-semibold">{trainerDetails.paymentMethod.holderName}</p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="text-sm font-medium text-gray-600">Détails du compte</label>
+                    <p className="font-mono text-sm bg-white p-2 rounded border">
+                      {trainerDetails.paymentMethod.details}
+                    </p>
+                  </div>
+                </div>
+                {trainerDetails.paymentMethod.verified && (
+                  <div className="mt-3">
+                    <Badge className="bg-green-100 text-green-800">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Compte vérifié
+                    </Badge>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Informations fiscales */}
+            <div>
+              <h4 className="font-semibold mb-4 flex items-center gap-2">
+                <Building2 className="h-5 w-5" />
+                Informations fiscales
+              </h4>
+              <div className="p-4 border rounded-lg bg-gray-50">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Statut</label>
+                    <p className="font-semibold">{trainerDetails.taxInfo.status}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">SIRET</label>
+                    <p className="font-mono text-sm">{trainerDetails.taxInfo.siret}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">N° TVA</label>
+                    <p className="font-mono text-sm">{trainerDetails.taxInfo.tvaNumber}</p>
+                  </div>
                 </div>
               </div>
             </div>

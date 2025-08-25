@@ -18,6 +18,7 @@ export interface TrainerApplication {
   reviewedAt?: string;
   reviewedBy?: string;
   avatar?: string;
+  isVisible?: boolean;
 }
 
 export interface TrainerDocument {

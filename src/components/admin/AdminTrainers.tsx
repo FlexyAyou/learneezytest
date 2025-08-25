@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -215,16 +216,27 @@ const AdminTrainers = () => {
             </TableHeader>
             <TableBody>
               {filteredApplications.map((application) => (
-                <TableRow key={application.id} className="cursor-pointer hover:bg-gray-50">
+                <TableRow 
+                  key={application.id} 
+                  className={`cursor-pointer hover:bg-gray-50 ${
+                    !application.isVisible 
+                      ? 'bg-gradient-to-r from-red-50 to-red-100 border-l-4 border-red-300' 
+                      : ''
+                  }`}
+                >
                   <TableCell>
                     <div className="flex items-center space-x-3">
                       <img 
                         src={application.avatar} 
                         alt={`${application.firstName} ${application.lastName}`}
-                        className="w-10 h-10 rounded-full object-cover"
+                        className={`w-10 h-10 rounded-full object-cover ${
+                          !application.isVisible ? 'opacity-60 grayscale' : ''
+                        }`}
                       />
                       <div>
-                        <div className="font-medium">{application.firstName} {application.lastName}</div>
+                        <div className={`font-medium ${!application.isVisible ? 'text-red-700' : ''}`}>
+                          {application.firstName} {application.lastName}
+                        </div>
                         <div className="text-sm text-gray-600 flex items-center">
                           <MapPin className="h-3 w-3 mr-1" />
                           {application.location}
