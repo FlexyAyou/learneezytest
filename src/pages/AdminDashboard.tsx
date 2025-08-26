@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
@@ -52,6 +51,7 @@ import {
   Home,
   GraduationCap
 } from 'lucide-react';
+import CreateOrganisme from './admin/CreateOrganisme';
 
 const AdminDashboard = () => {
   const sidebarItems = [
@@ -109,6 +109,7 @@ const AdminDashboard = () => {
                 <Route path="users/admin/:userSlug" element={<AdminDetailPage />} />
                 <Route path="trainers" element={<AdminTrainers />} />
                 <Route path="organisations" element={<AdminOrganisations />} />
+                <Route path="organisations/create" element={<CreateOrganisme />} />
                 <Route path="organisations/:id" element={<OrganismeDetail />} />
                 <Route path="courses" element={<AdminCourses />} />
                 <Route path="inscriptions" element={<AdminInscriptions />} />
