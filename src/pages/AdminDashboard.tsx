@@ -146,7 +146,7 @@ const PositioningTestPage = () => {
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Tests de positionnement</h1>
         <p className="text-gray-600">Gestion des tests de positionnement pour les apprenants</p>
       </div>
-      <PositioningTest />
+      <PositioningTest userRole="admin" />
     </div>
   );
 };
