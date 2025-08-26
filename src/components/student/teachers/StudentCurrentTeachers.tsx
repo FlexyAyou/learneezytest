@@ -36,7 +36,7 @@ export const StudentCurrentTeachers = () => {
 
   const handleContactTeacher = (teacher: any) => {
     // Navigate to messaging page with teacher context
-    navigate('/dashboard/etudiant/messaging', { 
+    navigate('/dashboard/etudiant/messages', { 
       state: { 
         selectedTeacher: teacher 
       } 
