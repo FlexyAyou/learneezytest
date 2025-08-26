@@ -27,6 +27,10 @@ import AdminDocumentsOF from './admin/AdminDocumentsOF';
 import AdminConventionGenerator from './admin/AdminConventionGenerator';
 import AdminAutomaticMailings from './admin/AdminAutomaticMailings';
 import AdminVideoConferences from './admin/AdminVideoConferences';
+import { AdminEmargements } from '@/components/admin/AdminEmargements';
+import { OFLicences } from '@/components/admin/OFLicences';
+import { IdentityVerification } from '@/components/admin/IdentityVerification';
+import { PositioningTest } from '@/components/common/PositioningTest';
 import { 
   Building,
   Users,
@@ -91,7 +95,7 @@ const AdminDashboard = () => {
         />
       </div>
       
-      <div className="flex-1">
+      <div className="flex-1 ml-64">
         <div className="h-full flex flex-col">
           <main className="flex-1 overflow-y-auto">
             <div className="p-6">
@@ -113,10 +117,10 @@ const AdminDashboard = () => {
                 <Route path="of-documents" element={<AdminDocumentsOF />} />
                 <Route path="conventions" element={<AdminConventionGenerator />} />
                 <Route path="mailings" element={<AdminAutomaticMailings />} />
-                <Route path="emargements" element={<div className="p-6"><h1 className="text-2xl font-bold">Émargements</h1><p>Fonctionnalité en développement</p></div>} />
-                <Route path="licenses" element={<div className="p-6"><h1 className="text-2xl font-bold">Gestion des licences</h1><p>Fonctionnalité en développement</p></div>} />
-                <Route path="identity" element={<div className="p-6"><h1 className="text-2xl font-bold">Vérification d'identité</h1><p>Fonctionnalité en développement</p></div>} />
-                <Route path="tests" element={<div className="p-6"><h1 className="text-2xl font-bold">Tests de positionnement</h1><p>Fonctionnalité en développement</p></div>} />
+                <Route path="emargements" element={<AdminEmargements />} />
+                <Route path="licenses" element={<OFLicences />} />
+                <Route path="identity" element={<IdentityVerification />} />
+                <Route path="tests" element={<PositioningTestPage />} />
                 <Route path="video" element={<AdminVideoConferences />} />
                 <Route path="library" element={<SuperAdminDocuments />} />
                 <Route path="stats" element={<AdminStats />} />
@@ -130,6 +134,19 @@ const AdminDashboard = () => {
           </main>
         </div>
       </div>
+    </div>
+  );
+};
+
+// Composant wrapper pour les tests de positionnement
+const PositioningTestPage = () => {
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Tests de positionnement</h1>
+        <p className="text-gray-600">Gestion des tests de positionnement pour les apprenants</p>
+      </div>
+      <PositioningTest />
     </div>
   );
 };
