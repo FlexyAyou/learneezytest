@@ -7,7 +7,6 @@ import { AdminUsers } from '@/components/admin/AdminUsers';
 import AdminTrainers from '@/components/admin/AdminTrainers';
 import AdminOrganisations from '@/components/admin/AdminOrganisations';
 import AdminCourses from '@/components/admin/AdminCourses';
-import AdminStats from '@/components/admin/AdminStats';
 import AdminSettings from '@/components/admin/AdminSettings';
 import AdminSecurity from '@/components/admin/AdminSecurity';
 import AdminPayments from '@/components/admin/AdminPayments';
@@ -71,7 +70,6 @@ const AdminDashboard = () => {
     { title: "Tests positionnement", href: "/dashboard/superadmin/tests", icon: TestTube, isActive: false },
     { title: "Visioconférence", href: "/dashboard/superadmin/video", icon: Video, isActive: false },
     { title: "Bibliothèque", href: "/dashboard/superadmin/library", icon: Download, isActive: false },
-    { title: "Statistiques", href: "/dashboard/superadmin/stats", icon: BarChart3, isActive: false },
     { title: "Abonnements", href: "/dashboard/superadmin/subscriptions", icon: CreditCard, isActive: false },
     { title: "Paiements", href: "/dashboard/superadmin/payments", icon: DollarSign, isActive: false },
     { title: "Sécurité", href: "/dashboard/superadmin/security", icon: Shield, isActive: false },
@@ -123,7 +121,6 @@ const AdminDashboard = () => {
                 <Route path="tests" element={<PositioningTestPage />} />
                 <Route path="video" element={<AdminVideoConferences />} />
                 <Route path="library" element={<SuperAdminDocuments />} />
-                <Route path="stats" element={<AdminStats />} />
                 <Route path="subscriptions" element={<AdminSubscriptions />} />
                 <Route path="payments" element={<AdminPayments />} />
                 <Route path="security" element={<AdminSecurity />} />
