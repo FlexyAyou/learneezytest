@@ -1,8 +1,10 @@
+
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
 import { SuperAdminDashboard } from '@/components/admin/SuperAdminDashboard';
 import { AdminUsers } from '@/components/admin/AdminUsers';
+import AdminTrainers from '@/components/admin/AdminTrainers';
 import AdminOrganisations from '@/components/admin/AdminOrganisations';
 import AdminCourses from '@/components/admin/AdminCourses';
 import AdminStats from '@/components/admin/AdminStats';
@@ -44,13 +46,15 @@ import {
   TestTube,
   Video,
   Download,
-  Home
+  Home,
+  GraduationCap
 } from 'lucide-react';
 
 const AdminDashboard = () => {
   const sidebarItems = [
     { title: "Tableau de bord", href: "/dashboard/superadmin", icon: Home, isActive: false },
     { title: "Utilisateurs", href: "/dashboard/superadmin/users", icon: Users, isActive: false },
+    { title: "Formateurs", href: "/dashboard/superadmin/trainers", icon: GraduationCap, isActive: false },
     { title: "Organismes de formations", href: "/dashboard/superadmin/organisations", icon: Building, isActive: false },
     { title: "Cours", href: "/dashboard/superadmin/courses", icon: BookOpen, isActive: false },
     { title: "Inscriptions", href: "/dashboard/superadmin/inscriptions", icon: UserCheck, isActive: false },
@@ -100,6 +104,7 @@ const AdminDashboard = () => {
                 <Route path="users/manager/:userSlug" element={<ManagerDetailPage />} />
                 <Route path="users/animator/:userSlug" element={<AnimatorDetailPage />} />
                 <Route path="users/admin/:userSlug" element={<AdminDetailPage />} />
+                <Route path="trainers" element={<AdminTrainers />} />
                 <Route path="organisations" element={<AdminOrganisations />} />
                 <Route path="organisations/:id" element={<OrganismeDetail />} />
                 <Route path="courses" element={<AdminCourses />} />
