@@ -3,7 +3,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, Clock, FileText, Download, CheckCircle, AlertCircle, XCircle, User, Video, MapPin, MessageSquare } from 'lucide-react';
+import { Calendar, Clock, FileText, Download, CheckCircle, AlertCircle, XCircle, User, Video, MapPin, MessageSquare, Star } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { StudentCurrentTeachers } from '@/components/student/teachers/StudentCurrentTeachers';
+import { StudentTeacherOverview } from '@/components/student/teachers/StudentTeacherOverview';
+import { StudentSessionHistory } from '@/components/student/teachers/StudentSessionHistory';
 
 interface Inscription {
   id: string;
@@ -42,7 +46,9 @@ interface TeacherBooking {
 }
 
 const StudentInscriptions = () => {
+  const navigate = useNavigate();
   const [selectedInscription, setSelectedInscription] = useState<string | null>(null);
+  const [activeTeachersTab, setActiveTeachersTab] = useState('overview');
 
   // Données d'exemple
   const inscriptions: Inscription[] = [
@@ -213,7 +219,7 @@ const StudentInscriptions = () => {
       <Tabs defaultValue="inscriptions" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="inscriptions">Inscriptions aux formations</TabsTrigger>
-          <TabsTrigger value="bookings">Réservations de professeurs</TabsTrigger>
+          <TabsTrigger value="bookings">Mes professeurs & Réservations</TabsTrigger>
         </TabsList>
 
         <TabsContent value="inscriptions" className="space-y-6">
@@ -407,152 +413,25 @@ const StudentInscriptions = () => {
         </TabsContent>
 
         <TabsContent value="bookings" className="space-y-6">
-          {/* Statistiques des réservations */}
-          <div className="grid md:grid-cols-4 gap-4">
-            <Card>
-              <CardContent className="p-4 text-center">
-                <p className="text-2xl font-bold text-green-600">
-                  {teacherBookings.filter(b => b.status === 'confirmed').length}
-                </p>
-                <p className="text-sm text-gray-600">Confirmées</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <p className="text-2xl font-bold text-yellow-600">
-                  {teacherBookings.filter(b => b.status === 'pending').length}
-                </p>
-                <p className="text-sm text-gray-600">En attente</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <p className="text-2xl font-bold text-blue-600">
-                  {teacherBookings.filter(b => b.status === 'completed').length}
-                </p>
-                <p className="text-sm text-gray-600">Terminées</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <p className="text-2xl font-bold text-purple-600">
-                  {teacherBookings.length}
-                </p>
-                <p className="text-sm text-gray-600">Total réservations</p>
-              </CardContent>
-            </Card>
-          </div>
+          <Tabs value={activeTeachersTab} onValueChange={setActiveTeachersTab} className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
+              <TabsTrigger value="current">Professeurs actuels</TabsTrigger>
+              <TabsTrigger value="history">Historique des séances</TabsTrigger>
+            </TabsList>
 
-          {/* Liste des réservations */}
-          <div className="grid gap-4">
-            {teacherBookings.map((booking) => (
-              <Card key={booking.id} className="relative">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-4">
-                      <img 
-                        src={booking.teacherPhoto} 
-                        alt={booking.teacherName}
-                        className="w-12 h-12 rounded-full object-cover"
-                      />
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-3">
-                          <User className="w-5 h-5 text-blue-500" />
-                          <CardTitle className="text-lg">{booking.teacherName}</CardTitle>
-                          {getBookingStatusBadge(booking.status)}
-                        </div>
-                        <CardDescription>
-                          {booking.subject} • {booking.price}€
-                        </CardDescription>
-                        <div className="flex items-center gap-4 text-sm text-gray-500">
-                          <span className="flex items-center gap-1">
-                            <Calendar className="w-4 h-4" />
-                            {new Date(booking.date).toLocaleDateString('fr-FR')}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-4 h-4" />
-                            {booking.startTime} - {booking.endTime}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            {booking.type === 'online' ? (
-                              <>
-                                <Video className="w-4 h-4" />
-                                En ligne
-                              </>
-                            ) : (
-                              <>
-                                <MapPin className="w-4 h-4" />
-                                {booking.location || 'Présentiel'}
-                              </>
-                            )}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardHeader>
+            <TabsContent value="overview">
+              <StudentTeacherOverview />
+            </TabsContent>
 
-                <CardContent>
-                  <div className="space-y-4">
-                    {booking.notes && (
-                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-                        <p className="text-sm text-gray-700">{booking.notes}</p>
-                      </div>
-                    )}
+            <TabsContent value="current">
+              <StudentCurrentTeachers />
+            </TabsContent>
 
-                    {/* Actions selon le statut */}
-                    <div className="flex gap-2 pt-2">
-                      {booking.status === 'confirmed' && (
-                        <>
-                          {booking.type === 'online' && (
-                            <Button className="bg-green-600 hover:bg-green-700">
-                              <Video className="w-4 h-4 mr-2" />
-                              Rejoindre la session
-                            </Button>
-                          )}
-                          <Button variant="outline">
-                            <MessageSquare className="w-4 h-4 mr-2" />
-                            Contacter le prof
-                          </Button>
-                        </>
-                      )}
-                      {booking.status === 'pending' && (
-                        <Button variant="outline" className="text-yellow-600 border-yellow-600">
-                          <AlertCircle className="w-4 h-4 mr-2" />
-                          En attente de confirmation
-                        </Button>
-                      )}
-                      {booking.status === 'completed' && (
-                        <Button variant="outline">
-                          <CheckCircle className="w-4 h-4 mr-2" />
-                          Voir les détails
-                        </Button>
-                      )}
-                      <Button variant="outline">
-                        <FileText className="w-4 h-4 mr-2" />
-                        Voir les détails
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {teacherBookings.length === 0 && (
-            <Card>
-              <CardContent className="p-8 text-center">
-                <User className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">Aucune réservation</h3>
-                <p className="text-gray-600 mb-4">
-                  Vous n'avez pas encore réservé de créneau avec un professeur.
-                </p>
-                <Button onClick={() => window.location.href = '/trainers'}>
-                  Réserver un professeur
-                </Button>
-              </CardContent>
-            </Card>
-          )}
+            <TabsContent value="history">
+              <StudentSessionHistory />
+            </TabsContent>
+          </Tabs>
         </TabsContent>
       </Tabs>
     </div>
