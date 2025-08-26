@@ -61,7 +61,7 @@ export const OrganismeFormStep3: React.FC<OrganismeFormStep3Props> = ({
             <SelectValue placeholder="Sélectionner un agrément" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Aucun agrément</SelectItem>
+            <SelectItem value="none">Aucun agrément</SelectItem>
             <SelectItem value="Qualiopi">Qualiopi</SelectItem>
             <SelectItem value="OPCO">OPCO</SelectItem>
             <SelectItem value="Datadock">Datadock</SelectItem>
