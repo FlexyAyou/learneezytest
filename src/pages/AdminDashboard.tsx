@@ -1,17 +1,16 @@
-
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
 import { SuperAdminDashboard } from '@/components/admin/SuperAdminDashboard';
 import { AdminUsers } from '@/components/admin/AdminUsers';
-import { AdminOrganisations } from '@/components/admin/AdminOrganisations';
-import { AdminCourses } from '@/components/admin/AdminCourses';
-import { AdminStats } from '@/components/admin/AdminStats';
-import { AdminSettings } from '@/components/admin/AdminSettings';
-import { AdminSecurity } from '@/components/admin/AdminSecurity';
-import { AdminPayments } from '@/components/admin/AdminPayments';
-import { AdminSubscriptions } from '@/components/admin/AdminSubscriptions';
-import { AdminSupport } from '@/components/admin/AdminSupport';
+import AdminOrganisations from '@/components/admin/AdminOrganisations';
+import AdminCourses from '@/components/admin/AdminCourses';
+import AdminStats from '@/components/admin/AdminStats';
+import AdminSettings from '@/components/admin/AdminSettings';
+import AdminSecurity from '@/components/admin/AdminSecurity';
+import AdminPayments from '@/components/admin/AdminPayments';
+import AdminSubscriptions from '@/components/admin/AdminSubscriptions';
+import AdminSupport from '@/components/admin/AdminSupport';
 import { AddUser } from '@/components/admin/AddUser';
 import StudentDetailPage from './admin/StudentDetailPage';
 import TrainerDetailPage from './admin/TrainerDetailPage';

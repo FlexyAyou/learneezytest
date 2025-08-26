@@ -24,7 +24,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import { Toaster } from '@/components/ui/toaster';
-import AdminUsers from './components/admin/AdminUsers';
+import { AdminUsers } from './components/admin/AdminUsers';
 import UserDetailPage from './components/admin/UserDetailPage';
 import { LanguageProvider } from './contexts/LanguageContext';
 import CourseViewer from './pages/student/CourseViewer';
