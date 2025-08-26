@@ -67,6 +67,7 @@ const AdminDashboard = () => {
     { title: "Tests positionnement", href: "/dashboard/superadmin/tests", icon: TestTube, isActive: false },
     { title: "Visioconférence", href: "/dashboard/superadmin/video", icon: Video, isActive: false },
     { title: "Bibliothèque", href: "/dashboard/superadmin/library", icon: Download, isActive: false },
+    { title: "Statistiques", href: "/dashboard/superadmin/stats", icon: BarChart3, isActive: false },
     { title: "Abonnements", href: "/dashboard/superadmin/subscriptions", icon: CreditCard, isActive: false },
     { title: "Paiements", href: "/dashboard/superadmin/payments", icon: DollarSign, isActive: false },
     { title: "Sécurité", href: "/dashboard/superadmin/security", icon: Shield, isActive: false },
@@ -90,7 +91,7 @@ const AdminDashboard = () => {
         />
       </div>
       
-      <div className="flex-1 ml-64">
+      <div className="flex-1">
         <div className="h-full flex flex-col">
           <main className="flex-1 overflow-y-auto">
             <div className="p-6">
@@ -112,8 +113,13 @@ const AdminDashboard = () => {
                 <Route path="of-documents" element={<AdminDocumentsOF />} />
                 <Route path="conventions" element={<AdminConventionGenerator />} />
                 <Route path="mailings" element={<AdminAutomaticMailings />} />
+                <Route path="emargements" element={<div className="p-6"><h1 className="text-2xl font-bold">Émargements</h1><p>Fonctionnalité en développement</p></div>} />
+                <Route path="licenses" element={<div className="p-6"><h1 className="text-2xl font-bold">Gestion des licences</h1><p>Fonctionnalité en développement</p></div>} />
+                <Route path="identity" element={<div className="p-6"><h1 className="text-2xl font-bold">Vérification d'identité</h1><p>Fonctionnalité en développement</p></div>} />
+                <Route path="tests" element={<div className="p-6"><h1 className="text-2xl font-bold">Tests de positionnement</h1><p>Fonctionnalité en développement</p></div>} />
                 <Route path="video" element={<AdminVideoConferences />} />
                 <Route path="library" element={<SuperAdminDocuments />} />
+                <Route path="stats" element={<AdminStats />} />
                 <Route path="subscriptions" element={<AdminSubscriptions />} />
                 <Route path="payments" element={<AdminPayments />} />
                 <Route path="security" element={<AdminSecurity />} />
