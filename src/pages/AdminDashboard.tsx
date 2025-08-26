@@ -1,30 +1,24 @@
+
 import React, { useState } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { Cog, Users, Home, GraduationCap, FileText, Book, Calendar, Coins, Mail, TestTube2, Video, ListChecks, ShieldAlert, MessageSquare, Settings as SettingsIcon, CreditCard, TrendingUp, LayoutDashboard } from 'lucide-react';
 
-import SuperAdminDashboard from '@/components/admin/SuperAdminDashboard';
-import AdminUsers from '@/components/admin/AdminUsers';
+import { SuperAdminDashboard } from '@/components/admin/SuperAdminDashboard';
+import { AdminUsers } from '@/components/admin/AdminUsers';
 import AdminTrainers from '@/components/admin/AdminTrainers';
 import AdminOrganisations from '@/components/admin/AdminOrganisations';
 import AdminCourses from '@/components/admin/AdminCourses';
 import AdminDocuments from '@/components/admin/AdminDocuments';
 import AdminRessources from '@/components/admin/AdminRessources';
 import AdminEmargements from '@/components/admin/AdminEmargements';
-import AdminInscriptions from '@/components/admin/AdminInscriptions';
 import AdminTokens from '@/components/admin/AdminTokens';
 import AdminPromotions from '@/components/admin/AdminPromotions';
-import AdminAutomaticMailings from '@/components/admin/AdminAutomaticMailings';
-import AdminConventionGenerator from '@/components/admin/AdminConventionGenerator';
-import PositioningTestPage from '@/components/admin/PositioningTestPage';
-import AdminVideoConferences from '@/components/admin/AdminVideoConferences';
-import SuperAdminDocuments from '@/components/admin/SuperAdminDocuments';
 import AdminSubscriptions from '@/components/admin/AdminSubscriptions';
 import AdminPayments from '@/components/admin/AdminPayments';
 import AdminSecurity from '@/components/admin/AdminSecurity';
 import AdminSupport from '@/components/admin/AdminSupport';
 import AdminSettings from '@/components/admin/AdminSettings';
 import UserDetailPage from '@/components/admin/UserDetailPage';
-import OrganismeDetail from '@/components/admin/OrganismeDetail';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -122,10 +116,6 @@ const AdminDashboard = () => {
               <ListChecks className="mr-2 h-4 w-4" />
               Emargements
             </Button>
-            <Button variant="ghost" className={`w-full justify-start ${isActive('/inscriptions') ? 'text-blue-600' : ''}`} onClick={() => navigate('/dashboard/superadmin/inscriptions')}>
-              <Calendar className="mr-2 h-4 w-4" />
-              Inscriptions
-            </Button>
             <Button variant="ghost" className={`w-full justify-start ${isActive('/tokens') ? 'text-blue-600' : ''}`} onClick={() => navigate('/dashboard/superadmin/tokens')}>
               <Coins className="mr-2 h-4 w-4" />
               Tokens
@@ -133,26 +123,6 @@ const AdminDashboard = () => {
             <Button variant="ghost" className={`w-full justify-start ${isActive('/promotions') ? 'text-blue-600' : ''}`} onClick={() => navigate('/dashboard/superadmin/promotions')}>
               <TrendingUp className="mr-2 h-4 w-4" />
               Promotions
-            </Button>
-            <Button variant="ghost" className={`w-full justify-start ${isActive('/mailings') ? 'text-blue-600' : ''}`} onClick={() => navigate('/dashboard/superadmin/mailings')}>
-              <Mail className="mr-2 h-4 w-4" />
-              Mailings
-            </Button>
-            <Button variant="ghost" className={`w-full justify-start ${isActive('/generator') ? 'text-blue-600' : ''}`} onClick={() => navigate('/dashboard/superadmin/generator')}>
-              <FileText className="mr-2 h-4 w-4" />
-              Generator
-            </Button>
-            <Button variant="ghost" className={`w-full justify-start ${isActive('/tests') ? 'text-blue-600' : ''}`} onClick={() => navigate('/dashboard/superadmin/tests')}>
-              <TestTube2 className="mr-2 h-4 w-4" />
-              Tests
-            </Button>
-            <Button variant="ghost" className={`w-full justify-start ${isActive('/video') ? 'text-blue-600' : ''}`} onClick={() => navigate('/dashboard/superadmin/video')}>
-              <Video className="mr-2 h-4 w-4" />
-              Video
-            </Button>
-            <Button variant="ghost" className={`w-full justify-start ${isActive('/library') ? 'text-blue-600' : ''}`} onClick={() => navigate('/dashboard/superadmin/library')}>
-              <Book className="mr-2 h-4 w-4" />
-              Library
             </Button>
             <Button variant="ghost" className={`w-full justify-start ${isActive('/subscriptions') ? 'text-blue-600' : ''}`} onClick={() => navigate('/dashboard/superadmin/subscriptions')}>
               <CreditCard className="mr-2 h-4 w-4" />
@@ -188,19 +158,12 @@ const AdminDashboard = () => {
               <Route path="trainers" element={<AdminTrainers />} />
               <Route path="organisations" element={<AdminOrganisations />} />
               <Route path="organisations/create" element={<CreateOrganisme />} />
-              <Route path="organisations/:id" element={<OrganismeDetail />} />
               <Route path="courses" element={<AdminCourses />} />
               <Route path="documents" element={<AdminDocuments />} />
               <Route path="ressources" element={<AdminRessources />} />
               <Route path="emargements" element={<AdminEmargements />} />
-              <Route path="inscriptions" element={<AdminInscriptions />} />
               <Route path="tokens" element={<AdminTokens />} />
               <Route path="promotions" element={<AdminPromotions />} />
-              <Route path="mailings" element={<AdminAutomaticMailings />} />
-              <Route path="generator" element={<AdminConventionGenerator />} />
-              <Route path="tests" element={<PositioningTestPage />} />
-              <Route path="video" element={<AdminVideoConferences />} />
-              <Route path="library" element={<SuperAdminDocuments />} />
               <Route path="subscriptions" element={<AdminSubscriptions />} />
               <Route path="payments" element={<AdminPayments />} />
               <Route path="security" element={<AdminSecurity />} />
