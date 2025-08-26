@@ -112,7 +112,7 @@ const ManagerDetailPage = () => {
         />
       </div>
       
-      <div className="flex-1 ml-64">
+      <div className="flex-1">
         <div className="h-full flex flex-col">
           <main className="flex-1 overflow-y-auto">
             <div className="p-6 space-y-6">
