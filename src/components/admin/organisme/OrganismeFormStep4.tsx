@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { OrganismeFormData } from '@/types/organisme';
-import { Users, Palette, Api, BarChart3 } from 'lucide-react';
+import { Users, Palette, Zap, BarChart3 } from 'lucide-react';
 
 interface OrganismeFormStep4Props {
   formData: OrganismeFormData;
@@ -54,7 +54,7 @@ export const OrganismeFormStep4: React.FC<OrganismeFormStep4Props> = ({
 
         <div className="flex items-center justify-between p-4 border rounded-lg">
           <div className="flex items-center space-x-3">
-            <Api className="w-5 h-5 text-green-500" />
+            <Zap className="w-5 h-5 text-green-500" />
             <div>
               <p className="font-medium">Accès API</p>
               <p className="text-sm text-gray-500">Intégration avec des systèmes externes</p>
