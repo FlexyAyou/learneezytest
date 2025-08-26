@@ -195,7 +195,7 @@ export const AddUser = () => {
                     <SelectValue placeholder="Learneezy (aucun OF)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Learneezy (aucun OF)</SelectItem>
+                    <SelectItem value="none">Learneezy (aucun OF)</SelectItem>
                     <SelectItem value="of1">Formation Excellence</SelectItem>
                     <SelectItem value="of2">Centre Alpha</SelectItem>
                     <SelectItem value="of3">Institut Beta</SelectItem>
