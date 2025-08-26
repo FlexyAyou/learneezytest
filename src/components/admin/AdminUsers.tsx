@@ -1,112 +1,85 @@
+
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Users, UserPlus, Search, Filter, MoreHorizontal, Edit, Ban, Mail, UserCheck, Building, User } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/hooks/use-toast';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { 
+  Users, 
+  Search, 
+  Filter,
+  Plus,
+  Eye
+} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-const AdminUsers = () => {
-  const { toast } = useToast();
+export const AdminUsers = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedRole, setSelectedRole] = useState('all');
-  const [selectedOrganisation, setSelectedOrganisation] = useState('all');
+  const [roleFilter, setRoleFilter] = useState('all');
+  const [orgFilter, setOrgFilter] = useState('all');
 
+  // Mock data - tous les types d'utilisateurs de la plateforme
   const users = [
-    { 
-      id: 1, 
-      name: "Marie Dubois", 
-      email: "marie@email.com", 
-      role: "Formateur", 
-      status: "Actif", 
-      courses: 5, 
-      students: 42, 
-      joinedDate: "2024-01-15",
-      slug: "marie-dubois",
-      organisation: "Formation Excellence",
-      organisationType: "OF"
-    },
-    { 
-      id: 2, 
-      name: "Pierre Martin", 
-      email: "pierre@email.com", 
-      role: "Apprenant", 
-      status: "Actif", 
-      courses: 12, 
-      progress: "85%", 
-      joinedDate: "2024-02-10",
-      slug: "pierre-martin",
-      organisation: "Learneezy",
-      organisationType: "Direct"
-    },
-    { 
-      id: 3, 
-      name: "Sophie Durand", 
-      email: "sophie@email.com", 
-      role: "Formateur indépendant", 
-      status: "Suspendu", 
-      courses: 3, 
-      students: 18, 
-      joinedDate: "2024-01-20",
-      slug: "sophie-durand",
-      organisation: "Learneezy",
-      organisationType: "Direct"
-    },
-    { 
-      id: 4, 
-      name: "Jean Dupont", 
-      email: "jean@email.com", 
-      role: "Administrateur", 
-      status: "Actif", 
-      lastLogin: "2024-03-15", 
-      joinedDate: "2023-12-01",
-      slug: "jean-dupont",
-      organisation: "Learneezy",
-      organisationType: "Admin"
-    },
-    { 
-      id: 5, 
-      name: "Lisa Chen", 
-      email: "lisa@email.com", 
-      role: "Gestionnaire", 
-      status: "Actif", 
-      courses: 8, 
-      progress: "45%", 
-      joinedDate: "2024-03-01",
-      slug: "lisa-chen",
-      organisation: "Centre Alpha",
-      organisationType: "OF"
-    },
-    { 
-      id: 6, 
-      name: "Thomas Bernard", 
-      email: "thomas@email.com", 
-      role: "Animateur", 
-      status: "Actif", 
-      courses: 15, 
-      students: 67, 
-      joinedDate: "2024-02-15",
-      slug: "thomas-bernard",
-      organisation: "Institut Beta",
-      organisationType: "OF"
-    }
+    { id: 1, name: 'Sophie Martin', email: 'sophie.martin@email.com', role: 'Apprenant', organisation: 'Formation Excellence', organisationType: 'OF', status: 'active', lastLogin: '2024-01-15' },
+    { id: 2, name: 'Marc Dubois', email: 'marc.dubois@email.com', role: 'Formateur', organisation: 'Formation Excellence', organisationType: 'OF', status: 'active', lastLogin: '2024-01-20' },
+    { id: 3, name: 'Claire Moreau', email: 'claire.moreau@email.com', role: 'Formateur indépendant', organisation: 'Learneezy Direct', organisationType: 'Direct', status: 'active', lastLogin: '2024-01-18' },
+    { id: 4, name: 'Pierre Lefevre', email: 'pierre.lefevre@email.com', role: 'Gestionnaire', organisation: 'Formation Excellence', organisationType: 'OF', status: 'active', lastLogin: '2024-01-19' },
+    { id: 5, name: 'Julie Rousseau', email: 'julie.rousseau@email.com', role: 'Animateur', organisation: 'Learneezy Direct', organisationType: 'Direct', status: 'active', lastLogin: '2024-01-21' },
+    { id: 6, name: 'Thomas Bernard', email: 'thomas.bernard@learneezy.com', role: 'Administrateur', organisation: 'Learneezy Administration', organisationType: 'Admin', status: 'active', lastLogin: '2024-01-22' },
+    { id: 7, name: 'Marie Dupont', email: 'marie.dupont@email.com', role: 'Apprenant', organisation: 'TechForm Pro', organisationType: 'OF', status: 'inactive', lastLogin: '2024-01-10' },
+    { id: 8, name: 'Antoine Roux', email: 'antoine.roux@email.com', role: 'Formateur indépendant', organisation: 'Learneezy Direct', organisationType: 'Direct', status: 'active', lastLogin: '2024-01-17' },
+    { id: 9, name: 'Camille Blanc', email: 'camille.blanc@email.com', role: 'Gestionnaire', organisation: 'EduSoft Academy', organisationType: 'OF', status: 'active', lastLogin: '2024-01-16' },
+    { id: 10, name: 'Lucas Petit', email: 'lucas.petit@email.com', role: 'Apprenant', organisation: 'Learneezy Direct', organisationType: 'Direct', status: 'active', lastLogin: '2024-01-14' }
   ];
 
-  const handleAddUser = () => {
-    navigate('/dashboard/superadmin/users/add');
+  // Fonction pour obtenir l'URL de détail selon le rôle
+  const getUserDetailUrl = (user: any) => {
+    const slug = user.name.toLowerCase().replace(/\s+/g, '-');
+    
+    switch (user.role) {
+      case 'Apprenant':
+        return `/dashboard/superadmin/users/student/${slug}`;
+      case 'Formateur':
+        return `/dashboard/superadmin/users/trainer/${slug}`;
+      case 'Formateur indépendant':
+        return `/dashboard/superadmin/users/independent-trainer/${slug}`;
+      case 'Gestionnaire':
+        return `/dashboard/superadmin/users/manager/${slug}`;
+      case 'Animateur':
+        return `/dashboard/superadmin/users/animator/${slug}`;
+      case 'Administrateur':
+        return `/dashboard/superadmin/users/admin/${slug}`;
+      default:
+        return `/dashboard/superadmin/users/student/${slug}`;
+    }
   };
 
-  const handleGroupEnrollment = () => {
-    navigate('/dashboard/superadmin/users/group-enrollment');
+  // Statistiques par type d'utilisateur
+  const userStats = {
+    total: users.length,
+    apprenants: users.filter(u => u.role === 'Apprenant').length,
+    formateurs: users.filter(u => u.role === 'Formateur').length,
+    formateursIndep: users.filter(u => u.role === 'Formateur indépendant').length,
+    gestionnaires: users.filter(u => u.role === 'Gestionnaire').length,
+    animateurs: users.filter(u => u.role === 'Animateur').length,
+    administrateurs: users.filter(u => u.role === 'Administrateur').length,
+    of: users.filter(u => u.organisationType === 'OF').length,
+    direct: users.filter(u => u.organisationType === 'Direct').length,
+    admin: users.filter(u => u.organisationType === 'Admin').length
   };
 
-  const handleUserDetail = (userSlug: string) => {
-    navigate(`/dashboard/superadmin/users/${userSlug}`);
-  };
+  // Filtrage des utilisateurs
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesRole = roleFilter === 'all' || user.role === roleFilter;
+    const matchesOrg = orgFilter === 'all' || user.organisationType === orgFilter;
+    
+    return matchesSearch && matchesRole && matchesOrg;
+  });
 
   const getRoleColor = (role: string) => {
     switch (role) {
@@ -120,16 +93,6 @@ const AdminUsers = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Actif': return 'bg-green-100 text-green-800';
-      case 'Inactif': return 'bg-yellow-100 text-yellow-800';
-      case 'Suspendu': return 'bg-red-100 text-red-800';
-      case 'En attente': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   const getOrganisationColor = (organisationType: string) => {
     switch (organisationType) {
       case 'OF': return 'bg-blue-50 text-blue-700';
@@ -139,133 +102,119 @@ const AdminUsers = () => {
     }
   };
 
-  // Filtrer les utilisateurs
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = selectedRole === 'all' || user.role === selectedRole;
-    const matchesOrganisation = selectedOrganisation === 'all' || user.organisationType === selectedOrganisation;
+  const getStatusBadge = (status: string) => {
+    const configs = {
+      active: { variant: 'default' as const, label: 'Actif' },
+      inactive: { variant: 'secondary' as const, label: 'Inactif' },
+      suspended: { variant: 'destructive' as const, label: 'Suspendu' }
+    };
     
-    return matchesSearch && matchesRole && matchesOrganisation;
-  });
-
-  // Statistiques par type
-  const stats = {
-    total: users.length,
-    apprenants: users.filter(u => u.role === 'Apprenant').length,
-    formateurs: users.filter(u => u.role === 'Formateur').length,
-    formateurstIndependants: users.filter(u => u.role === 'Formateur indépendant').length,
-    gestionnaires: users.filter(u => u.role === 'Gestionnaire').length,
-    animateurs: users.filter(u => u.role === 'Animateur').length,
-    admins: users.filter(u => u.role === 'Administrateur').length,
-    affiliesOF: users.filter(u => u.organisationType === 'OF').length,
-    learneezy: users.filter(u => u.organisationType === 'Direct' || u.organisationType === 'Admin').length
+    const config = configs[status as keyof typeof configs] || configs.active;
+    return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestion des utilisateurs</h1>
-          <p className="text-gray-600">Gérez tous les utilisateurs de la plateforme</p>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={handleGroupEnrollment} variant="outline" className="bg-blue-50 hover:bg-blue-100 text-blue-700">
-            <UserCheck className="h-4 w-4 mr-2" />
-            Inscription groupée
-          </Button>
-          <Button onClick={handleAddUser} className="bg-pink-600 hover:bg-pink-700">
-            <UserPlus className="h-4 w-4 mr-2" />
-            Ajouter un utilisateur
-          </Button>
-        </div>
-      </div>
-
-      {/* Statistiques détaillées */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+      {/* Statistiques par type d'utilisateur */}
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total utilisateurs</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
-            <p className="text-xs text-muted-foreground">Tous profils</p>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-gray-900">{userStats.total}</div>
+            <div className="text-sm text-gray-600">Total</div>
           </CardContent>
         </Card>
-        
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Apprenants</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats.apprenants}</div>
-            <p className="text-xs text-muted-foreground">Étudiants</p>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-green-600">{userStats.apprenants}</div>
+            <div className="text-sm text-gray-600">Apprenants</div>
           </CardContent>
         </Card>
-
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Formateurs</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{stats.formateurs}</div>
-            <p className="text-xs text-muted-foreground">Internes</p>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-blue-600">{userStats.formateurs}</div>
+            <div className="text-sm text-gray-600">Formateurs</div>
           </CardContent>
         </Card>
-
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Indépendants</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-purple-600">{stats.formateurstIndependants}</div>
-            <p className="text-xs text-muted-foreground">Externes</p>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-purple-600">{userStats.formateursIndep}</div>
+            <div className="text-sm text-gray-600">F. Indép.</div>
           </CardContent>
         </Card>
-
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Affiliés OF</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{stats.affiliesOF}</div>
-            <p className="text-xs text-muted-foreground">Organismes</p>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-orange-600">{userStats.gestionnaires}</div>
+            <div className="text-sm text-gray-600">Gestionnaires</div>
           </CardContent>
         </Card>
-
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Learneezy</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-pink-600">{stats.learneezy}</div>
-            <p className="text-xs text-muted-foreground">Directs</p>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-yellow-600">{userStats.animateurs}</div>
+            <div className="text-sm text-gray-600">Animateurs</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-red-600">{userStats.administrateurs}</div>
+            <div className="text-sm text-gray-600">Admins</div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filtres et recherche */}
+      {/* Statistiques par affiliation */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-blue-600">{userStats.of}</div>
+            <div className="text-sm text-gray-600">Organismes de Formation</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-pink-600">{userStats.direct}</div>
+            <div className="text-sm text-gray-600">Learneezy Direct</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-gray-600">{userStats.admin}</div>
+            <div className="text-sm text-gray-600">Administration</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Interface de gestion des utilisateurs */}
       <Card>
         <CardHeader>
-          <CardTitle>Filtres et recherche</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Gestion des utilisateurs ({filteredUsers.length})
+            </CardTitle>
+            <Button onClick={() => navigate('/dashboard/superadmin/users/add')}>
+              <Plus className="h-4 w-4 mr-2" />
+              Ajouter un utilisateur
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4 mb-4">
+          {/* Filtres et recherche */}
+          <div className="flex flex-col md:flex-row gap-4 mb-6">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Rechercher par nom ou email..."
-                  className="pl-10"
+                  placeholder="Rechercher un utilisateur..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
                 />
               </div>
             </div>
-            
-            <Select value={selectedRole} onValueChange={setSelectedRole}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Tous les rôles" />
+            <Select value={roleFilter} onValueChange={setRoleFilter}>
+              <SelectTrigger className="w-full md:w-48">
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Filtrer par rôle" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tous les rôles</SelectItem>
@@ -277,121 +226,74 @@ const AdminUsers = () => {
                 <SelectItem value="Administrateur">Administrateurs</SelectItem>
               </SelectContent>
             </Select>
-
-            <Select value={selectedOrganisation} onValueChange={setSelectedOrganisation}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Toutes organisations" />
+            <Select value={orgFilter} onValueChange={setOrgFilter}>
+              <SelectTrigger className="w-full md:w-48">
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Filtrer par organisation" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Toutes organisations</SelectItem>
-                <SelectItem value="OF">Affiliés OF</SelectItem>
+                <SelectItem value="all">Toutes les organisations</SelectItem>
+                <SelectItem value="OF">Organismes de Formation</SelectItem>
                 <SelectItem value="Direct">Learneezy Direct</SelectItem>
-                <SelectItem value="Admin">Learneezy Admin</SelectItem>
+                <SelectItem value="Admin">Administration</SelectItem>
               </SelectContent>
             </Select>
-
-            <Button variant="outline">
-              <Filter className="h-4 w-4 mr-2" />
-              Plus de filtres
-            </Button>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Table des utilisateurs - simplifiée sans actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Liste des utilisateurs ({filteredUsers.length})</CardTitle>
-          <CardDescription>Cliquez sur un utilisateur pour voir ses détails</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Utilisateur</TableHead>
-                <TableHead>Rôle</TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead>Organisation</TableHead>
-                <TableHead>Activité</TableHead>
-                <TableHead>Date d'inscription</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredUsers.map((user) => (
-                <TableRow 
-                  key={user.id} 
-                  className="cursor-pointer hover:bg-gray-50"
-                  onClick={() => handleUserDetail(user.slug)}
-                >
-                  <TableCell>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center">
-                        <span className="text-pink-600 font-medium">
-                          {user.name.split(' ').map(n => n[0]).join('')}
-                        </span>
-                      </div>
-                      <div>
-                        <p className="font-semibold text-gray-900">{user.name}</p>
-                        <p className="text-sm text-gray-600">{user.email}</p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={getRoleColor(user.role)}>
-                      {user.role}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={getStatusColor(user.status)}>
-                      {user.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-2">
+          {/* Tableau des utilisateurs */}
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nom</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Rôle</TableHead>
+                  <TableHead>Organisation</TableHead>
+                  <TableHead>Statut</TableHead>
+                  <TableHead>Dernière connexion</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredUsers.map((user) => (
+                  <TableRow 
+                    key={user.id} 
+                    className="cursor-pointer hover:bg-gray-50"
+                    onClick={() => navigate(getUserDetailUrl(user))}
+                  >
+                    <TableCell className="font-medium">{user.name}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>
+                      <Badge className={getRoleColor(user.role)}>
+                        {user.role}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
                       <Badge className={getOrganisationColor(user.organisationType)}>
-                        {user.organisationType === 'OF' && <Building className="h-3 w-3 mr-1" />}
-                        {user.organisationType === 'Direct' && <User className="h-3 w-3 mr-1" />}
-                        {user.organisationType === 'Admin' && <Users className="h-3 w-3 mr-1" />}
                         {user.organisation}
                       </Badge>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm">
-                      {(user.role === 'Formateur' || user.role === 'Formateur indépendant' || user.role === 'Animateur') && (
-                        <>
-                          <p>{user.courses} cours</p>
-                          <p className="text-gray-500">{user.students} étudiants</p>
-                        </>
-                      )}
-                      {user.role === 'Apprenant' && (
-                        <>
-                          <p>{user.courses} cours</p>
-                          <p className="text-gray-500">Progression: {user.progress}</p>
-                        </>
-                      )}
-                      {user.role === 'Administrateur' && (
-                        <p className="text-gray-500">Dernière connexion: {user.lastLogin}</p>
-                      )}
-                      {user.role === 'Gestionnaire' && (
-                        <>
-                          <p>{user.courses} formations gérées</p>
-                          <p className="text-gray-500">Progression: {user.progress}</p>
-                        </>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-sm text-gray-600">
-                    {user.joinedDate}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                    </TableCell>
+                    <TableCell>{getStatusBadge(user.status)}</TableCell>
+                    <TableCell>{new Date(user.lastLogin).toLocaleDateString()}</TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(getUserDetailUrl(user));
+                        }}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </div>
   );
 };
-
-export default AdminUsers;
