@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Users, UserPlus, Search, Filter, MoreHorizontal, Edit, Ban, Mail, UserCheck, Building, User } from 'lucide-react';
@@ -96,20 +95,6 @@ const AdminUsers = () => {
       organisationType: "OF"
     }
   ];
-
-  const handleUserAction = (userId: number, action: string) => {
-    toast({
-      title: `Action utilisateur`,
-      description: `${action} appliquée à l'utilisateur ${userId}`,
-    });
-  };
-
-  const handleBulkAction = (action: string) => {
-    toast({
-      title: "Action groupée",
-      description: `${action} appliquée aux utilisateurs sélectionnés`,
-    });
-  };
 
   const handleAddUser = () => {
     navigate('/dashboard/superadmin/users/add');
@@ -262,7 +247,7 @@ const AdminUsers = () => {
       {/* Filtres et recherche */}
       <Card>
         <CardHeader>
-          <CardTitle>Filtres et actions</CardTitle>
+          <CardTitle>Filtres et recherche</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row gap-4 mb-4">
@@ -310,29 +295,14 @@ const AdminUsers = () => {
               Plus de filtres
             </Button>
           </div>
-          
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => handleBulkAction('Approuver')}>
-              <UserCheck className="h-4 w-4 mr-2" />
-              Approuver sélection
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => handleBulkAction('Suspendre')}>
-              <Ban className="h-4 w-4 mr-2" />
-              Suspendre sélection
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => handleBulkAction('Envoyer email')}>
-              <Mail className="h-4 w-4 mr-2" />
-              Email groupé
-            </Button>
-          </div>
         </CardContent>
       </Card>
 
-      {/* Table des utilisateurs */}
+      {/* Table des utilisateurs - simplifiée sans actions */}
       <Card>
         <CardHeader>
           <CardTitle>Liste des utilisateurs ({filteredUsers.length})</CardTitle>
-          <CardDescription>Gérez tous les comptes utilisateurs</CardDescription>
+          <CardDescription>Cliquez sur un utilisateur pour voir ses détails</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
@@ -344,12 +314,15 @@ const AdminUsers = () => {
                 <TableHead>Organisation</TableHead>
                 <TableHead>Activité</TableHead>
                 <TableHead>Date d'inscription</TableHead>
-                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredUsers.map((user) => (
-                <TableRow key={user.id}>
+                <TableRow 
+                  key={user.id} 
+                  className="cursor-pointer hover:bg-gray-50"
+                  onClick={() => handleUserDetail(user.slug)}
+                >
                   <TableCell>
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center">
@@ -410,23 +383,6 @@ const AdminUsers = () => {
                   </TableCell>
                   <TableCell className="text-sm text-gray-600">
                     {user.joinedDate}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        onClick={() => handleUserDetail(user.slug)}
-                      >
-                        <Users className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => handleUserAction(user.id, 'Modifier')}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => handleUserAction(user.id, 'Plus d\'options')}>
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </div>
                   </TableCell>
                 </TableRow>
               ))}

@@ -1,118 +1,76 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
 import { 
   ArrowLeft, 
   User, 
-  FileText, 
-  BookOpen, 
+  Mail,
+  Phone,
   Calendar,
-  CheckCircle,
-  Clock,
-  XCircle,
-  Download,
-  Eye,
-  TrendingUp,
+  Building,
+  Home,
   Users,
+  BookOpen,
+  UserCheck,
+  FileText,
+  FileSignature,
+  PenTool,
+  Key,
+  Shield,
+  TestTube,
+  Video,
+  Download,
+  CreditCard,
   DollarSign,
   Settings,
-  BarChart3,
-  Shield,
-  Key,
-  MessageSquare,
-  Video,
-  Brain,
-  TestTube,
-  Home,
-  UserCheck,
-  PenTool,
-  Mail,
-  FileSignature,
-  Building,
-  CreditCard
+  MessageSquare
 } from 'lucide-react';
+
+// Import des composants spécialisés
+import { StudentDetailView } from './user-details/StudentDetailView';
+import { TrainerDetailView } from './user-details/TrainerDetailView';
+import { IndependentTrainerDetailView } from './user-details/IndependentTrainerDetailView';
+import { ManagerDetailView } from './user-details/ManagerDetailView';
+import { AnimatorDetailView } from './user-details/AnimatorDetailView';
+import { AdminDetailView } from './user-details/AdminDetailView';
 
 const UserDetailPage = () => {
   const { userSlug } = useParams();
   const navigate = useNavigate();
   const currentPath = `/dashboard/superadmin/users/${userSlug}`;
 
-  // Mock data - normalement récupéré depuis l'API
+  // Mock data étendu - normalement récupéré depuis l'API
   const user = {
     id: 1,
     name: 'Marie Dupont',
     email: 'marie.dupont@email.com',
-    role: 'Étudiant',
+    phone: '+33 6 12 34 56 78',
+    role: 'Apprenant', // Peut être: Apprenant, Formateur, Formateur indépendant, Gestionnaire, Animateur, Administrateur
     status: 'active',
     lastLogin: '2024-01-15',
     joinDate: '2023-09-15',
+    organisation: 'Formation Excellence',
+    organisationType: 'OF', // OF, Direct, Admin
+    address: '123 Rue de la Formation, 75001 Paris',
     totalCourses: 3,
     completedModules: 12,
     inProgressModules: 5,
     avgScore: 85
   };
 
-  // Documents réels de l'utilisateur selon les spécifications
-  const documents = [
-    { id: 1, name: 'Attestation de fin de formation', type: 'pdf', status: 'validé', uploadDate: '2024-01-10' },
-    { id: 2, name: 'Certificat de réalisation', type: 'pdf', status: 'en_attente', uploadDate: '2024-01-12' },
-    { id: 3, name: 'Feuille d\'émargement', type: 'pdf', status: 'validé', uploadDate: '2024-01-08' },
-    { id: 4, name: 'Convention de formation', type: 'pdf', status: 'validé', uploadDate: '2024-01-05' },
-    { id: 5, name: 'Logs de connexion', type: 'log', status: 'en_attente', uploadDate: '2024-01-14' },
-    { id: 6, name: 'Planning de formation', type: 'pdf', status: 'validé', uploadDate: '2024-01-09' },
-    { id: 7, name: 'Bilan d\'évaluation', type: 'pdf', status: 'en_attente', uploadDate: '2024-01-13' },
-  ];
-
-  // Mock data pour les formations
-  const formations = [
-    { 
-      id: 1, 
-      name: 'React Avancé', 
-      progress: 75, 
-      status: 'en_cours',
-      startDate: '2024-01-01',
-      endDate: '2024-03-01',
-      modules: 8,
-      completedModules: 6
-    },
-    { 
-      id: 2, 
-      name: 'JavaScript ES6+', 
-      progress: 100, 
-      status: 'terminé',
-      startDate: '2023-10-01',
-      endDate: '2023-12-01',
-      modules: 12,
-      completedModules: 12
-    },
-    { 
-      id: 3, 
-      name: 'HTML/CSS', 
-      progress: 30, 
-      status: 'en_cours',
-      startDate: '2024-01-15',
-      endDate: '2024-02-15',
-      modules: 6,
-      completedModules: 2
-    },
-  ];
-
   const sidebarItems = [
     { title: "Tableau de bord", href: "/dashboard/superadmin", icon: Home, isActive: false },
     { title: "Utilisateurs", href: "/dashboard/superadmin/users", icon: Users, isActive: currentPath.startsWith("/dashboard/superadmin/users") },
     { title: "Organismes de formations", href: "/dashboard/superadmin/organisations", icon: Building, isActive: false },
     { title: "Cours", href: "/dashboard/superadmin/courses", icon: BookOpen, isActive: false },
-    // === SECTION OF COMPLÈTE ===
     { title: "Inscriptions", href: "/dashboard/superadmin/inscriptions", icon: UserCheck, isActive: false },
     { title: "Documents OF", href: "/dashboard/superadmin/of-documents", icon: FileText, isActive: false },
     { title: "Conventions", href: "/dashboard/superadmin/conventions", icon: FileSignature, isActive: false },
     { title: "Envois automatiques", href: "/dashboard/superadmin/mailings", icon: Mail, isActive: false },
     { title: "Émargements", href: "/dashboard/superadmin/emargements", icon: PenTool, isActive: false },
-    // === SECTION ADMINISTRATION ===
     { title: "Gestion licences", href: "/dashboard/superadmin/licenses", icon: Key, isActive: false },
     { title: "Vérification identité", href: "/dashboard/superadmin/identity", icon: Shield, isActive: false },
     { title: "Tests positionnement", href: "/dashboard/superadmin/tests", icon: TestTube, isActive: false },
@@ -132,20 +90,54 @@ const UserDetailPage = () => {
 
   const getStatusBadge = (status: string) => {
     const configs = {
-      validé: { variant: 'default' as const, label: 'Validé', icon: CheckCircle, color: 'text-green-600' },
-      en_attente: { variant: 'secondary' as const, label: 'En attente', icon: Clock, color: 'text-yellow-600' },
-      rejeté: { variant: 'destructive' as const, label: 'Rejeté', icon: XCircle, color: 'text-red-600' },
-      en_cours: { variant: 'outline' as const, label: 'En cours', icon: Clock, color: 'text-blue-600' },
-      terminé: { variant: 'default' as const, label: 'Terminé', icon: CheckCircle, color: 'text-green-600' },
+      active: { variant: 'default' as const, label: 'Actif', color: 'text-green-600' },
+      inactive: { variant: 'secondary' as const, label: 'Inactif', color: 'text-yellow-600' },
+      suspended: { variant: 'destructive' as const, label: 'Suspendu', color: 'text-red-600' }
     };
     
-    const config = configs[status as keyof typeof configs] || configs.en_attente;
-    return (
-      <Badge variant={config.variant} className="flex items-center gap-1">
-        <config.icon className={`h-3 w-3 ${config.color}`} />
-        {config.label}
-      </Badge>
-    );
+    const config = configs[status as keyof typeof configs] || configs.active;
+    return <Badge variant={config.variant}>{config.label}</Badge>;
+  };
+
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case 'Administrateur': return 'bg-red-100 text-red-800';
+      case 'Formateur': return 'bg-blue-100 text-blue-800';
+      case 'Formateur indépendant': return 'bg-purple-100 text-purple-800';
+      case 'Gestionnaire': return 'bg-orange-100 text-orange-800';
+      case 'Animateur': return 'bg-yellow-100 text-yellow-800';
+      case 'Apprenant': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getOrganisationColor = (organisationType: string) => {
+    switch (organisationType) {
+      case 'OF': return 'bg-blue-50 text-blue-700';
+      case 'Direct': return 'bg-pink-50 text-pink-700';
+      case 'Admin': return 'bg-gray-50 text-gray-700';
+      default: return 'bg-gray-50 text-gray-700';
+    }
+  };
+
+  // Fonction pour rendre le composant spécialisé selon le rôle
+  const renderUserSpecificContent = () => {
+    switch (user.role) {
+      case 'Apprenant':
+        return <StudentDetailView user={user} />;
+      case 'Formateur':
+        return <TrainerDetailView user={user} />;
+      case 'Formateur indépendant':
+        return <IndependentTrainerDetailView user={user} />;
+      case 'Gestionnaire':
+        return <ManagerDetailView user={user} />;
+      case 'Animateur':
+        return <AnimatorDetailView user={user} />;
+      case 'Administrateur':
+        return <AdminDetailView user={user} />;
+      default:
+        return <StudentDetailView user={user} />; // Fallback
+    }
   };
 
   return (
@@ -174,191 +166,78 @@ const UserDetailPage = () => {
               </Button>
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">{user.name}</h1>
-                <p className="text-gray-600">{user.email} • {user.role}</p>
+                <p className="text-gray-600">{user.email}</p>
               </div>
             </div>
 
-            {/* Métriques en haut */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <div className="text-3xl font-bold text-gray-900 mb-1">
-                    {user.completedModules}
-                  </div>
-                  <div className="text-sm text-gray-600 flex items-center justify-center gap-1">
-                    Modules complétés
-                    <div className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center">
-                      <span className="text-xs">?</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <div className="text-3xl font-bold text-gray-900 mb-1">
-                    {user.totalCourses}
-                  </div>
-                  <div className="text-sm text-gray-600 flex items-center justify-center gap-1">
-                    Formations inscrites
-                    <div className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center">
-                      <span className="text-xs">?</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <div className="text-3xl font-bold text-gray-900 mb-1">
-                    {documents.filter(d => d.status === 'validé').length}
-                  </div>
-                  <div className="text-sm text-gray-600 flex items-center justify-center gap-1">
-                    Documents validés
-                    <div className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center">
-                      <span className="text-xs">?</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <div className="text-3xl font-bold text-gray-900 mb-1">
-                    {user.avgScore}%
-                  </div>
-                  <div className="text-sm text-gray-600 flex items-center justify-center gap-1">
-                    Score moyen
-                    <div className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center">
-                      <span className="text-xs">?</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Section Documents */}
+            {/* Informations générales de l'utilisateur */}
             <Card className="w-full">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Documents de l'utilisateur
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {documents.map((doc) => (
-                    <div key={doc.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-gray-100 rounded-lg">
-                          <FileText className="h-5 w-5 text-gray-600" />
-                        </div>
-                        <div>
-                          <h4 className="font-medium">{doc.name}</h4>
-                          <p className="text-sm text-gray-600">
-                            Généré le {new Date(doc.uploadDate).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        {getStatusBadge(doc.status)}
-                        <div className="flex gap-1">
-                          <Button size="sm" variant="outline">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            <Download className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Section Formations */}
-            <Card className="w-full">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BookOpen className="h-5 w-5" />
-                  Parcours et formations
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  {formations.map((formation) => (
-                    <div key={formation.id} className="p-4 border rounded-lg">
-                      <div className="flex items-start justify-between mb-4">
-                        <div>
-                          <h4 className="font-semibold text-lg">{formation.name}</h4>
-                          <p className="text-sm text-gray-600">
-                            Du {new Date(formation.startDate).toLocaleDateString()} au {new Date(formation.endDate).toLocaleDateString()}
-                          </p>
-                        </div>
-                        {getStatusBadge(formation.status)}
-                      </div>
-                      
-                      <div className="space-y-3">
-                        <div>
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-medium">Progression</span>
-                            <span className="text-sm text-gray-600">{formation.progress}%</span>
-                          </div>
-                          <Progress value={formation.progress} className="w-full" />
-                        </div>
-                        
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <span className="font-medium">Modules complétés :</span> {formation.completedModules}/{formation.modules}
-                          </div>
-                          <div>
-                            <span className="font-medium">Statut :</span> {formation.status}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Section Activité récente */}
-            <Card className="w-full">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  Activité récente
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                    <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-                    <div>
-                      <p className="text-sm font-medium">Module "React Hooks" complété</p>
-                      <p className="text-xs text-gray-600">Il y a 2 heures</p>
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Rôle</label>
+                    <div className="mt-1">
+                      <Badge className={getRoleColor(user.role)}>
+                        {user.role}
+                      </Badge>
                     </div>
                   </div>
                   
-                  <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                    <div>
-                      <p className="text-sm font-medium">Connexion à la plateforme</p>
-                      <p className="text-xs text-gray-600">Hier à 14:30</p>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Statut</label>
+                    <div className="mt-1">
+                      {getStatusBadge(user.status)}
                     </div>
                   </div>
-                  
-                  <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                    <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
-                    <div>
-                      <p className="text-sm font-medium">Document "Attestation de fin de formation" généré</p>
-                      <p className="text-xs text-gray-600">Le 10 janvier 2024</p>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Organisation</label>
+                    <div className="mt-1">
+                      <Badge className={getOrganisationColor(user.organisationType)}>
+                        {user.organisation}
+                      </Badge>
                     </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      Membre depuis
+                    </label>
+                    <p className="font-medium">{new Date(user.joinDate).toLocaleDateString()}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-6 border-t">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      Email
+                    </label>
+                    <p className="font-medium">{user.email}</p>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                      <Phone className="h-4 w-4" />
+                      Téléphone
+                    </label>
+                    <p className="font-medium">{user.phone}</p>
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                      <Building className="h-4 w-4" />
+                      Adresse
+                    </label>
+                    <p className="font-medium">{user.address}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
+
+            {/* Contenu spécialisé selon le rôle */}
+            {renderUserSpecificContent()}
           </div>
         </main>
       </div>
