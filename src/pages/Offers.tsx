@@ -11,8 +11,8 @@ const Offers = () => {
   
   // Vérifier si l'utilisateur vient du dashboard étudiant
   const fromStudentDashboard = location.state?.from === '/dashboard/etudiant' || 
-                               document.referrer.includes('/dashboard/etudiant') ||
-                               location.search.includes('from=dashboard');
+                               location.search.includes('from=dashboard') ||
+                               sessionStorage.getItem('fromStudentDashboard') === 'true';
 
   return (
     <div className="min-h-screen bg-gray-50">

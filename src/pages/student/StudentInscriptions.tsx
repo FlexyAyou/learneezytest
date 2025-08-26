@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -52,6 +53,8 @@ const StudentInscriptions = () => {
 
   // Fonction pour naviguer vers /nos-formations avec l'information de provenance
   const navigateToFormations = () => {
+    // Marquer dans sessionStorage que l'utilisateur vient du dashboard
+    sessionStorage.setItem('fromStudentDashboard', 'true');
     navigate('/nos-formations', { 
       state: { from: '/dashboard/etudiant' }
     });
