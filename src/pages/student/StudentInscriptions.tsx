@@ -50,6 +50,13 @@ const StudentInscriptions = () => {
   const [selectedInscription, setSelectedInscription] = useState<string | null>(null);
   const [activeTeachersTab, setActiveTeachersTab] = useState('overview');
 
+  // Fonction pour naviguer vers /nos-formations avec l'information de provenance
+  const navigateToFormations = () => {
+    navigate('/nos-formations', { 
+      state: { from: '/dashboard/etudiant' }
+    });
+  };
+
   // Données d'exemple
   const inscriptions: Inscription[] = [
     {
@@ -207,10 +214,10 @@ const StudentInscriptions = () => {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Mes Inscriptions & Réservations</h1>
         <div className="flex gap-2">
-          <Button onClick={() => navigate('/nos-formations')}>
+          <Button onClick={navigateToFormations}>
             Nouvelle inscription
           </Button>
-          <Button variant="outline" onClick={() => navigate('/nos-formations')}>
+          <Button variant="outline" onClick={navigateToFormations}>
             Réserver un prof
           </Button>
         </div>
