@@ -207,10 +207,10 @@ const StudentInscriptions = () => {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Mes Inscriptions & Réservations</h1>
         <div className="flex gap-2">
-          <Button onClick={() => window.location.href = '/cours'}>
+          <Button onClick={() => navigate('/nos-formations')}>
             Nouvelle inscription
           </Button>
-          <Button variant="outline" onClick={() => window.location.href = '/trainers'}>
+          <Button variant="outline" onClick={() => navigate('/nos-formations')}>
             Réserver un prof
           </Button>
         </div>
@@ -324,7 +324,6 @@ const StudentInscriptions = () => {
                       </div>
                     )}
 
-                    {/* Documents */}
                     <div>
                       <h4 className="font-medium mb-3">Documents</h4>
                       <div className="grid md:grid-cols-2 gap-2">
@@ -378,7 +377,6 @@ const StudentInscriptions = () => {
                       </div>
                     </div>
 
-                    {/* Actions */}
                     <div className="flex gap-2 pt-2">
                       {inscription.status === 'active' && (
                         <Button>
@@ -404,7 +402,7 @@ const StudentInscriptions = () => {
                 <p className="text-gray-600 mb-4">
                   Vous n'avez pas encore d'inscription à nos formations.
                 </p>
-                <Button onClick={() => window.location.href = '/cours'}>
+                <Button onClick={() => navigate('/nos-formations')}>
                   Découvrir nos formations
                 </Button>
               </CardContent>
