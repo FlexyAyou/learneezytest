@@ -1,12 +1,19 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Star, MessageSquare, Calendar } from 'lucide-react';
+import { Star, MessageSquare, Calendar, Video } from 'lucide-react';
 import { mockTrainerProfiles, mockTrainerBookings } from '@/data/mockTrainerBookingData';
+import { useNavigate } from 'react-router-dom';
+import { StudentVideoBookingModal } from './StudentVideoBookingModal';
 
 export const StudentCurrentTeachers = () => {
+  const navigate = useNavigate();
+  const [selectedTeacher, setSelectedTeacher] = useState<any>(null);
+  const [isVideoBookingOpen, setIsVideoBookingOpen] = useState(false);
+
   // Get unique trainers from bookings
   const uniqueTrainerIds = [...new Set(mockTrainerBookings.map(booking => booking.trainerId))];
   const currentTeachers = mockTrainerProfiles.filter(trainer => 
@@ -25,6 +32,20 @@ export const StudentCurrentTeachers = () => {
       upcomingSessions: upcomingSessions.length,
       totalHours: totalHours.toFixed(1)
     };
+  };
+
+  const handleContactTeacher = (teacher: any) => {
+    // Navigate to messaging page with teacher context
+    navigate('/dashboard/etudiant/messaging', { 
+      state: { 
+        selectedTeacher: teacher 
+      } 
+    });
+  };
+
+  const handleBookVideoSession = (teacher: any) => {
+    setSelectedTeacher(teacher);
+    setIsVideoBookingOpen(true);
   };
 
   return (
@@ -95,11 +116,11 @@ export const StudentCurrentTeachers = () => {
 
                   {/* Actions */}
                   <div className="flex space-x-2">
-                    <Button variant="default" size="sm">
-                      <Calendar className="h-4 w-4 mr-2" />
-                      Réserver une séance
+                    <Button variant="default" size="sm" onClick={() => handleBookVideoSession(teacher)}>
+                      <Video className="h-4 w-4 mr-2" />
+                      Réserver une visio
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={() => handleContactTeacher(teacher)}>
                       <MessageSquare className="h-4 w-4 mr-2" />
                       Contacter
                     </Button>
@@ -110,6 +131,12 @@ export const StudentCurrentTeachers = () => {
           );
         })}
       </div>
+
+      <StudentVideoBookingModal
+        isOpen={isVideoBookingOpen}
+        onClose={() => setIsVideoBookingOpen(false)}
+        teacher={selectedTeacher}
+      />
     </div>
   );
 };

@@ -1,20 +1,34 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Send, Search, Phone, Video, MoreVertical, Paperclip, Smile } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { useLocation } from 'react-router-dom';
 
 const StudentMessaging = () => {
+  const location = useLocation();
   const [selectedConversation, setSelectedConversation] = useState(1);
   const [message, setMessage] = useState('');
+
+  // Check if we have a selected teacher from navigation
+  useEffect(() => {
+    if (location.state?.selectedTeacher) {
+      const teacher = location.state.selectedTeacher;
+      // Find or create conversation with this teacher
+      const teacherConversation = conversations.find(conv => conv.name === teacher.name);
+      if (teacherConversation) {
+        setSelectedConversation(teacherConversation.id);
+      }
+    }
+  }, [location.state]);
 
   const conversations = [
     {
       id: 1,
-      name: "Marie Dubois",
-      role: "Instructeur",
+      name: "Sophie Dubois",
+      role: "Professeur",
       course: "Mathématiques",
       lastMessage: "Avez-vous terminé le chapitre 3 ?",
       time: "14:30",
@@ -23,9 +37,9 @@ const StudentMessaging = () => {
     },
     {
       id: 2,
-      name: "Pierre Martin",
-      role: "Instructeur",
-      course: "SVP",
+      name: "Marc Lefebvre",
+      role: "Professeur",
+      course: "Physique-Chimie",
       lastMessage: "Le projet final est disponible",
       time: "12:15",
       unread: 1,
@@ -33,6 +47,16 @@ const StudentMessaging = () => {
     },
     {
       id: 3,
+      name: "Claire Martinez",
+      role: "Professeur",
+      course: "Français",
+      lastMessage: "Excellent travail sur la dissertation !",
+      time: "Hier",
+      unread: 0,
+      online: true
+    },
+    {
+      id: 4,
       name: "Support Learneezy",
       role: "Admin",
       course: "Support",
@@ -46,8 +70,8 @@ const StudentMessaging = () => {
   const messages = [
     {
       id: 1,
-      sender: "Marie Dubois",
-      content: "Bonjour Jean-Paul ! Comment avancez-vous avec le cours React ?",
+      sender: "Sophie Dubois",
+      content: "Bonjour ! Comment avancez-vous avec le cours de mathématiques ?",
       time: "14:20",
       isMe: false
     },
@@ -60,15 +84,15 @@ const StudentMessaging = () => {
     },
     {
       id: 3,
-      sender: "Marie Dubois",
+      sender: "Sophie Dubois",
       content: "Parfait ! Avez-vous terminé le chapitre 3 ? Il y a quelques exercices pratiques importants.",
       time: "14:30",
       isMe: false
     },
     {
       id: 4,
-      sender: "Marie Dubois",
-      content: "N'hésitez pas si vous avez des questions sur les hooks !",
+      sender: "Sophie Dubois",
+      content: "N'hésitez pas si vous avez des questions sur les équations !",
       time: "14:30",
       isMe: false
     }
