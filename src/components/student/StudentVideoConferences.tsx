@@ -1,10 +1,13 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, Clock, Users, Video, VideoOff, Eye } from 'lucide-react';
+import { Calendar, Clock, Users, Video, VideoOff, Eye, Plus } from 'lucide-react';
 import VideoConference from '@/components/common/VideoConference';
+import TrainerCard from '@/components/TrainerCard';
+import TrainerBookingModal from '@/components/TrainerBookingModal';
 
 interface VideoSession {
   id: string;
@@ -24,6 +27,62 @@ interface VideoSession {
 const StudentVideoConferences = () => {
   const [selectedSession, setSelectedSession] = useState<VideoSession | null>(null);
   const [showVideoCall, setShowVideoCall] = useState(false);
+  const [selectedTrainer, setSelectedTrainer] = useState(null);
+  const [isTrainerModalOpen, setIsTrainerModalOpen] = useState(false);
+
+  // Mock trainers data
+  const mockTrainers = [
+    {
+      id: 1,
+      name: "Dr. Marie Dubois",
+      photo: "https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80",
+      specialty: "Mathématiques Appliquées",
+      description: "Docteure en mathématiques avec 15 ans d'expérience dans l'enseignement supérieur et la recherche appliquée.",
+      experience: "15+ ans d'expérience",
+      rating: 4.9,
+      languages: ["Français", "Anglais", "Espagnol"],
+      supportType: "Tutorat",
+      availableSlots: [
+        { day: "Lundi", time: "14h00-15h30" },
+        { day: "Mercredi", time: "10h00-11h30" },
+        { day: "Vendredi", time: "16h00-17h30" }
+      ],
+      hourlyRate: "45€/h"
+    },
+    {
+      id: 2,
+      name: "Prof. Jean Martin", 
+      photo: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
+      specialty: "Physique Quantique",
+      description: "Professeur agrégé spécialisé en physique quantique et mécanique des fluides.",
+      experience: "12+ ans d'expérience",
+      rating: 4.8,
+      languages: ["Français", "Anglais"],
+      supportType: "Coaching",
+      availableSlots: [
+        { day: "Mardi", time: "09h00-10h30" },
+        { day: "Jeudi", time: "14h00-15h30" }
+      ],
+      hourlyRate: "50€/h"
+    },
+    {
+      id: 3,
+      name: "Dr. Sophie Laurent",
+      photo: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
+      specialty: "Chimie Organique",
+      description: "Docteure en chimie, spécialisée en synthèse organique et chimie médicinale.",
+      experience: "8+ ans d'expérience",
+      rating: 4.7,
+      languages: ["Français", "Italien"],
+      supportType: "Soutien technique",
+      availableSlots: [
+        { day: "Lundi", time: "11h00-12h30" },
+        { day: "Mercredi", time: "15h00-16h30" },
+        { day: "Vendredi", time: "09h00-10h30" }
+      ],
+      hourlyRate: "42€/h"
+    }
+  ];
 
   const upcomingSessions: VideoSession[] = [
     {
@@ -145,6 +204,11 @@ const StudentVideoConferences = () => {
     console.log('Visualisation de l\'enregistrement:', session.id);
   };
 
+  const handleTrainerBooking = (trainer: any) => {
+    setSelectedTrainer(trainer);
+    setIsTrainerModalOpen(true);
+  };
+
   if (showVideoCall && selectedSession) {
     return (
       <VideoConference
@@ -167,9 +231,10 @@ const StudentVideoConferences = () => {
       </div>
 
       <Tabs defaultValue="upcoming" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="upcoming">Sessions à venir</TabsTrigger>
           <TabsTrigger value="past">Sessions passées</TabsTrigger>
+          <TabsTrigger value="booking">Réserver une visio</TabsTrigger>
         </TabsList>
 
         <TabsContent value="upcoming" className="space-y-4">
@@ -333,7 +398,44 @@ const StudentVideoConferences = () => {
             </div>
           )}
         </TabsContent>
+
+        <TabsContent value="booking" className="space-y-4">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold mb-2">Réserver une visioconférence</h2>
+            <p className="text-gray-600">
+              Choisissez un formateur et réservez un créneau personnalisé
+            </p>
+          </div>
+
+          {mockTrainers.length === 0 ? (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <Plus className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium mb-2">Aucun formateur disponible</h3>
+                <p className="text-gray-600">
+                  Les formateurs disponibles pour les réservations apparaîtront ici.
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {mockTrainers.map((trainer) => (
+                <TrainerCard
+                  key={trainer.id}
+                  trainer={trainer}
+                  onBooking={handleTrainerBooking}
+                />
+              ))}
+            </div>
+          )}
+        </TabsContent>
       </Tabs>
+
+      <TrainerBookingModal
+        isOpen={isTrainerModalOpen}
+        onClose={() => setIsTrainerModalOpen(false)}
+        trainer={selectedTrainer}
+      />
     </div>
   );
 };
