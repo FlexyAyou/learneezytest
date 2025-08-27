@@ -1,13 +1,10 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { 
-  Calendar, 
   CreditCard, 
-  Settings, 
   AlertCircle, 
   CheckCircle, 
   Clock, 
@@ -16,7 +13,6 @@ import {
   Package
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
 import {
   Table,
   TableBody,
@@ -26,10 +22,10 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { TutorOffers } from './TutorOffers';
+import { Button } from '@/components/ui/button';
 
 export const TutorSubscription = () => {
   const { toast } = useToast();
-  const navigate = useNavigate();
   const [subscription] = useState({
     plan: 'Premium',
     status: 'active',
@@ -74,18 +70,6 @@ export const TutorSubscription = () => {
       downloadUrl: '/invoices/INV-2023-010.pdf'
     }
   ]);
-
-  const handleModifySubscription = () => {
-    navigate('/offres');
-  };
-
-  const handleCancelSubscription = () => {
-    toast({
-      title: "Résiliation d'abonnement",
-      description: "Un email de confirmation vous sera envoyé.",
-      variant: "destructive"
-    });
-  };
 
   const handleDownloadInvoice = (invoiceId: string) => {
     toast({
@@ -198,17 +182,6 @@ export const TutorSubscription = () => {
               </span>
             </div>
             <Progress value={creditsUsagePercentage} className="h-2" />
-          </div>
-
-          <div className="flex gap-3">
-            <Button onClick={handleModifySubscription} className="flex-1">
-              <Settings className="h-4 w-4 mr-2" />
-              Changer l'abonnement
-            </Button>
-            <Button onClick={handleCancelSubscription} variant="outline" className="flex-1">
-              <AlertCircle className="h-4 w-4 mr-2" />
-              Résilier
-            </Button>
           </div>
         </CardContent>
       </Card>

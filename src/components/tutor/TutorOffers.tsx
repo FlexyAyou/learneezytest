@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Star, Zap, Crown, Gift, ArrowRight } from 'lucide-react';
+import { Check, Star, Zap, Crown, Gift } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
@@ -95,7 +95,7 @@ export const TutorOffers = ({ currentPlan = 'Premium', currentCredits = 342 }: T
   };
 
   const handleChoosePack = (offerId: number) => {
-    navigate('/payment', { 
+    navigate('/dashboard/tuteur/payment', { 
       state: { 
         offerId, 
         isAnnual, 
@@ -103,10 +103,6 @@ export const TutorOffers = ({ currentPlan = 'Premium', currentCredits = 342 }: T
         offerType: 'tuteur'
       } 
     });
-  };
-
-  const handleViewAllOffers = () => {
-    navigate('/offres');
   };
 
   const isCurrentPlan = (offerName: string) => {
@@ -134,20 +130,14 @@ export const TutorOffers = ({ currentPlan = 'Premium', currentCredits = 342 }: T
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center">
-              <Star className="h-5 w-5 mr-2" />
-              Nos offres tuteur
-            </CardTitle>
-            <CardDescription>
-              Choisissez le pack adapté à vos besoins d'accompagnement
-            </CardDescription>
-          </div>
-          <Button onClick={handleViewAllOffers} variant="outline" size="sm">
-            Voir toutes les offres
-            <ArrowRight className="h-4 w-4 ml-2" />
-          </Button>
+        <div>
+          <CardTitle className="flex items-center">
+            <Star className="h-5 w-5 mr-2" />
+            Nos offres tuteur
+          </CardTitle>
+          <CardDescription>
+            Choisissez le pack adapté à vos besoins d'accompagnement
+          </CardDescription>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
