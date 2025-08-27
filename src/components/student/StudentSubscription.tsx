@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,9 +13,11 @@ import {
   BookOpen,
   Download,
   FileText,
-  Package
+  Package,
+  ExternalLink
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 import {
   Table,
   TableBody,
@@ -25,9 +26,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { StudentOffers } from './StudentOffers';
 
 export const StudentSubscription = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [subscription] = useState({
     plan: 'Étudiant Premium',
     status: 'active',
@@ -38,7 +41,6 @@ export const StudentSubscription = () => {
     period: 'mensuel'
   });
 
-  // Factures mockées
   const [invoices] = useState([
     {
       id: 'INV-2024-001',
@@ -75,10 +77,7 @@ export const StudentSubscription = () => {
   ]);
 
   const handleModifySubscription = () => {
-    toast({
-      title: "Modification d'abonnement",
-      description: "Redirection vers la page de gestion d'abonnement...",
-    });
+    navigate('/offres');
   };
 
   const handleCancelSubscription = () => {
@@ -94,7 +93,6 @@ export const StudentSubscription = () => {
       title: "Téléchargement en cours",
       description: `Téléchargement de la facture ${invoiceId}...`,
     });
-    // Simulation du téléchargement
     setTimeout(() => {
       toast({
         title: "Téléchargement terminé",
@@ -215,6 +213,12 @@ export const StudentSubscription = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Student Offers Section */}
+      <StudentOffers 
+        currentPlan={subscription.plan} 
+        currentCredits={subscription.coursesTotal - subscription.coursesUsed}
+      />
 
       {/* Invoices Section */}
       <Card>
