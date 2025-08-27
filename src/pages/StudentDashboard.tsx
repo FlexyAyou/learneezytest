@@ -55,7 +55,7 @@ const StudentDashboard = () => {
     <div className="flex h-screen bg-gray-50">
       <div className="fixed left-0 top-0 h-full z-30">
         <DashboardSidebar
-          title="Espace Étudiant"
+          title="Espace Apprenant"
           subtitle="Votre parcours d'apprentissage"
           items={sidebarItems}
           userInfo={userInfo}
