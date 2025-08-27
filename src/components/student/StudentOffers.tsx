@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Star, Zap, Crown, Gift } from 'lucide-react';
+import { Check, Star, Zap, Crown, Gift, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
@@ -95,14 +95,18 @@ export const StudentOffers = ({ currentPlan = 'Étudiant Premium', currentCredit
   };
 
   const handleChoosePack = (offerId: number) => {
-    navigate('/dashboard/apprenant/payment', { 
+    navigate('/payment', { 
       state: { 
         offerId, 
         isAnnual, 
         isOF: false,
-        offerType: 'etudiant'
+        offerType: 'particulier'
       } 
     });
+  };
+
+  const handleViewAllOffers = () => {
+    navigate('/offres');
   };
 
   const isCurrentPlan = (offerName: string) => {
@@ -124,14 +128,20 @@ export const StudentOffers = ({ currentPlan = 'Étudiant Premium', currentCredit
   return (
     <Card>
       <CardHeader>
-        <div>
-          <CardTitle className="flex items-center">
-            <Star className="h-5 w-5 mr-2" />
-            Découvrir nos offres
-          </CardTitle>
-          <CardDescription>
-            Choisissez le pack qui correspond à vos besoins
-          </CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center">
+              <Star className="h-5 w-5 mr-2" />
+              Découvrir nos offres
+            </CardTitle>
+            <CardDescription>
+              Choisissez le pack qui correspond à vos besoins
+            </CardDescription>
+          </div>
+          <Button onClick={handleViewAllOffers} variant="outline" size="sm">
+            Voir toutes les offres
+            <ArrowRight className="h-4 w-4 ml-2" />
+          </Button>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
