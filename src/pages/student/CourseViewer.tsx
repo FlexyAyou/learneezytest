@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -148,17 +149,17 @@ const CourseViewer = () => {
     for (const module of course.modules) {
       for (const lesson of module.lessons) {
         if (!isLessonCompleted(lesson.id)) {
-          navigate(`/dashboard/etudiant/courses/${id}/lessons/${lesson.id}`);
+          navigate(`/dashboard/apprenant/courses/${id}/lessons/${lesson.id}`);
           return;
         }
       }
     }
     // Si toutes les leçons sont terminées, aller à la première
-    navigate(`/dashboard/etudiant/courses/${id}/lessons/${course.modules[0].lessons[0].id}`);
+    navigate(`/dashboard/apprenant/courses/${id}/lessons/${course.modules[0].lessons[0].id}`);
   };
 
   const handleLessonClick = (lessonId: string) => {
-    navigate(`/dashboard/etudiant/courses/${id}/lessons/${lessonId}`);
+    navigate(`/dashboard/apprenant/courses/${id}/lessons/${lessonId}`);
   };
 
   return (
@@ -167,7 +168,7 @@ const CourseViewer = () => {
         <Button 
           variant="outline" 
           size="sm"
-          onClick={() => navigate('/dashboard/etudiant/courses')}
+          onClick={() => navigate('/dashboard/apprenant/courses')}
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Retour aux cours
