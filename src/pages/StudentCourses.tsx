@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Book, Play, Clock, Award, Star, Search, Filter } from 'lucide-react';
@@ -131,7 +132,7 @@ const StudentCourses = () => {
               <div className="flex gap-2">
                 <Button 
                   className="flex-1 bg-pink-600 hover:bg-pink-700"
-                  onClick={() => navigate(`/dashboard/etudiant/courses/${course.id}`)}
+                  onClick={() => navigate(`/dashboard/apprenant/courses/${course.id}`)}
                 >
                   <Play className="h-4 w-4 mr-2" />
                   {course.status === 'Terminé' ? 'Revoir' : 'Continuer'}
