@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Globe, Lock, Eye, EyeOff, Users, Shield, AlertTriangle } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Globe, Lock, Eye, EyeOff, Users, Shield, AlertTriangle, Coins } from 'lucide-react';
 
 interface CourseVisibilityModalProps {
   course: any;
@@ -28,6 +29,7 @@ export const CourseVisibilityModal = ({ course, isOpen, onClose, onSave }: Cours
   const [settings, setSettings] = useState({
     isVisible: true,
     isOpenSource: false,
+    tokenPrice: 0,
     minorsAllowed: false,
     organisationAccess: 'all', // 'all', 'restricted', 'none'
     subscriptionRestrictions: [] as string[],
@@ -39,6 +41,7 @@ export const CourseVisibilityModal = ({ course, isOpen, onClose, onSave }: Cours
       setSettings({
         isVisible: course.isVisible || false,
         isOpenSource: course.isOpenSource || false,
+        tokenPrice: course.tokenPrice || 0,
         minorsAllowed: course.minorsAllowed || false,
         organisationAccess: course.organisationAccess || 'all',
         subscriptionRestrictions: course.subscriptionRestrictions || [],
@@ -99,16 +102,44 @@ export const CourseVisibilityModal = ({ course, isOpen, onClose, onSave }: Cours
                 <div className="space-y-0.5">
                   <Label className="text-base">Open Source</Label>
                   <div className="text-sm text-gray-500">
-                    Permettre aux OF d'ajouter ce cours à leur catalogue
+                    Permettre aux OF d'ajouter ce cours gratuitement à leur catalogue
                   </div>
                 </div>
                 <Switch
                   checked={settings.isOpenSource}
-                  onCheckedChange={(checked) => 
-                    setSettings(prev => ({ ...prev, isOpenSource: checked }))
-                  }
+                  onCheckedChange={(checked) => {
+                    setSettings(prev => ({ 
+                      ...prev, 
+                      isOpenSource: checked,
+                      tokenPrice: checked ? 0 : prev.tokenPrice
+                    }));
+                  }}
                 />
               </div>
+
+              {!settings.isOpenSource && (
+                <div className="space-y-2">
+                  <Label className="text-base flex items-center">
+                    <Coins className="h-4 w-4 mr-1" />
+                    Prix en tokens
+                  </Label>
+                  <Input
+                    type="number"
+                    placeholder="Nombre de tokens requis"
+                    value={settings.tokenPrice}
+                    onChange={(e) => 
+                      setSettings(prev => ({ 
+                        ...prev, 
+                        tokenPrice: parseInt(e.target.value) || 0 
+                      }))
+                    }
+                    min="0"
+                  />
+                  <div className="text-sm text-gray-500">
+                    Nombre de tokens nécessaires pour accéder au cours
+                  </div>
+                </div>
+              )}
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
@@ -129,9 +160,13 @@ export const CourseVisibilityModal = ({ course, isOpen, onClose, onSave }: Cours
                 <Label>Accès pour les organisations</Label>
                 <Select 
                   value={settings.organisationAccess} 
-                  onValueChange={(value) => 
-                    setSettings(prev => ({ ...prev, organisationAccess: value }))
-                  }
+                  onValueChange={(value) => {
+                    setSettings(prev => ({ 
+                      ...prev, 
+                      organisationAccess: value,
+                      subscriptionRestrictions: value === 'restricted' ? prev.subscriptionRestrictions : []
+                    }));
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -161,47 +196,71 @@ export const CourseVisibilityModal = ({ course, isOpen, onClose, onSave }: Cours
             </CardContent>
           </Card>
 
-          {/* Restrictions d'abonnement */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Restrictions d'abonnement</CardTitle>
-              <p className="text-sm text-gray-500">
-                Limiter l'accès selon le type d'abonnement des organisations
-              </p>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {subscriptionTypes.map((subscription) => (
-                  <div key={subscription.id} className="flex items-center space-x-3">
-                    <Checkbox
-                      id={subscription.id}
-                      checked={settings.subscriptionRestrictions.includes(subscription.id)}
-                      onCheckedChange={(checked) => 
-                        handleSubscriptionChange(subscription.id, checked as boolean)
-                      }
-                    />
-                    <div className="flex-1">
-                      <Label htmlFor={subscription.id} className="font-medium">
-                        {subscription.name}
-                      </Label>
-                      <p className="text-sm text-gray-500">{subscription.description}</p>
+          {/* Restrictions d'abonnement - Affiché seulement si "restricted" */}
+          {settings.organisationAccess === 'restricted' && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Types d'abonnement autorisés</CardTitle>
+                <p className="text-sm text-gray-500">
+                  Sélectionnez les types d'abonnement qui auront accès au cours
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {subscriptionTypes.map((subscription) => (
+                    <div key={subscription.id} className="flex items-center space-x-3">
+                      <Checkbox
+                        id={subscription.id}
+                        checked={settings.subscriptionRestrictions.includes(subscription.id)}
+                        onCheckedChange={(checked) => 
+                          handleSubscriptionChange(subscription.id, checked as boolean)
+                        }
+                      />
+                      <div className="flex-1">
+                        <Label htmlFor={subscription.id} className="font-medium">
+                          {subscription.name}
+                        </Label>
+                        <p className="text-sm text-gray-500">{subscription.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {settings.subscriptionRestrictions.length === 0 && (
+                  <div className="mt-4 p-3 bg-amber-50 rounded-lg">
+                    <div className="flex items-center">
+                      <AlertTriangle className="h-4 w-4 text-amber-600 mr-2" />
+                      <span className="text-sm text-amber-800">
+                        Aucun type d'abonnement sélectionné - Le cours sera inaccessible
+                      </span>
                     </div>
                   </div>
-                ))}
-              </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
-              {settings.subscriptionRestrictions.length === 0 && (
-                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+          {/* Message informatif si pas de restrictions */}
+          {settings.organisationAccess !== 'restricted' && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Accès aux abonnements</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="p-4 bg-blue-50 rounded-lg">
                   <div className="flex items-center">
                     <AlertTriangle className="h-4 w-4 text-blue-600 mr-2" />
                     <span className="text-sm text-blue-800">
-                      Aucune restriction - Accessible à tous les types d'abonnement
+                      {settings.organisationAccess === 'all' 
+                        ? 'Accessible à tous les types d\'abonnement'
+                        : 'Aucune organisation n\'aura accès au cours'
+                      }
                     </span>
                   </div>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Aperçu des paramètres */}
           <Card className="lg:col-span-2">
@@ -209,7 +268,7 @@ export const CourseVisibilityModal = ({ course, isOpen, onClose, onSave }: Cours
               <CardTitle className="text-lg">Aperçu de la configuration</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 <div className="flex flex-col items-center p-3 bg-gray-50 rounded-lg">
                   {settings.isVisible ? (
                     <Eye className="h-6 w-6 text-green-600 mb-2" />
@@ -224,9 +283,18 @@ export const CourseVisibilityModal = ({ course, isOpen, onClose, onSave }: Cours
                 <div className="flex flex-col items-center p-3 bg-gray-50 rounded-lg">
                   <Globe className={`h-6 w-6 mb-2 ${settings.isOpenSource ? 'text-blue-600' : 'text-gray-400'}`} />
                   <span className="text-sm font-medium">
-                    {settings.isOpenSource ? 'Open Source' : 'Privé'}
+                    {settings.isOpenSource ? 'Open Source' : 'Payant'}
                   </span>
                 </div>
+
+                {!settings.isOpenSource && (
+                  <div className="flex flex-col items-center p-3 bg-gray-50 rounded-lg">
+                    <Coins className="h-6 w-6 text-purple-600 mb-2" />
+                    <span className="text-sm font-medium">
+                      {settings.tokenPrice} tokens
+                    </span>
+                  </div>
+                )}
 
                 <div className="flex flex-col items-center p-3 bg-gray-50 rounded-lg">
                   <Users className={`h-6 w-6 mb-2 ${settings.minorsAllowed ? 'text-green-600' : 'text-orange-600'}`} />
@@ -238,14 +306,19 @@ export const CourseVisibilityModal = ({ course, isOpen, onClose, onSave }: Cours
                 <div className="flex flex-col items-center p-3 bg-gray-50 rounded-lg">
                   <Shield className="h-6 w-6 text-purple-600 mb-2" />
                   <span className="text-sm font-medium">
-                    {settings.subscriptionRestrictions.length > 0 ? 'Restreint' : 'Libre'}
+                    {settings.organisationAccess === 'restricted' && settings.subscriptionRestrictions.length > 0 
+                      ? 'Restreint' 
+                      : settings.organisationAccess === 'all' 
+                        ? 'Libre' 
+                        : 'Aucun accès'
+                    }
                   </span>
                 </div>
               </div>
 
-              {settings.subscriptionRestrictions.length > 0 && (
+              {settings.organisationAccess === 'restricted' && settings.subscriptionRestrictions.length > 0 && (
                 <div className="mt-4">
-                  <Label className="text-sm font-medium">Types d'abonnement requis :</Label>
+                  <Label className="text-sm font-medium">Types d'abonnement autorisés :</Label>
                   <div className="flex flex-wrap gap-2 mt-2">
                     {settings.subscriptionRestrictions.map(subId => {
                       const sub = subscriptionTypes.find(s => s.id === subId);
