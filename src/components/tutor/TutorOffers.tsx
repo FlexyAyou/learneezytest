@@ -7,12 +7,12 @@ import { Check, Star, Zap, Crown, Gift } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
-interface StudentOffersProps {
+interface TutorOffersProps {
   currentPlan?: string;
   currentCredits?: number;
 }
 
-export const StudentOffers = ({ currentPlan = 'Étudiant Premium', currentCredits = 38 }: StudentOffersProps) => {
+export const TutorOffers = ({ currentPlan = 'Premium', currentCredits = 342 }: TutorOffersProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isAnnual, setIsAnnual] = useState(false);
@@ -21,17 +21,17 @@ export const StudentOffers = ({ currentPlan = 'Étudiant Premium', currentCredit
     {
       id: 1,
       name: "Pack Starter",
-      credits: 100,
-      monthlyPrice: 29,
-      annualPrice: 290,
+      credits: 200,
+      monthlyPrice: 50,
+      annualPrice: 500,
       popular: false,
       icon: <Gift className="h-6 w-6" />,
-      description: "Parfait pour débuter",
+      description: "Idéal pour débuter l'accompagnement",
       features: [
-        "100 crédits d'apprentissage",
-        "Accès aux cours de base",
+        "200 crédits de tutorat",
+        "Suivi de 5 apprenants max",
         "Support par email",
-        "Certificats de base"
+        "Outils de base"
       ],
       gradient: "from-blue-500 to-blue-600",
       bgColor: "bg-blue-50",
@@ -40,19 +40,19 @@ export const StudentOffers = ({ currentPlan = 'Étudiant Premium', currentCredit
     },
     {
       id: 2,
-      name: "Pack Growth",
-      credits: 300,
-      monthlyPrice: 79,
-      annualPrice: 790,
+      name: "Pack Premium",
+      credits: 500,
+      monthlyPrice: 100,
+      annualPrice: 1000,
       popular: true,
       icon: <Zap className="h-6 w-6" />,
-      description: "Le choix idéal pour progresser",
+      description: "Le choix des tuteurs expérimentés",
       features: [
-        "300 crédits d'apprentissage",
-        "Accès à tous les cours",
-        "Réservation de créneaux formateurs",
+        "500 crédits de tutorat",
+        "Suivi illimité d'apprenants",
+        "Outils avancés de suivi",
         "Support prioritaire",
-        "Certificats avancés"
+        "Rapports détaillés"
       ],
       gradient: "from-purple-500 to-purple-600",
       bgColor: "bg-purple-50",
@@ -61,20 +61,20 @@ export const StudentOffers = ({ currentPlan = 'Étudiant Premium', currentCredit
     },
     {
       id: 3,
-      name: "Pack Premium",
-      credits: 500,
-      monthlyPrice: 120,
-      annualPrice: 1200,
+      name: "Pack Expert",
+      credits: 1000,
+      monthlyPrice: 180,
+      annualPrice: 1800,
       popular: false,
       icon: <Crown className="h-6 w-6" />,
-      description: "L'excellence pour les apprenants exigeants",
+      description: "Pour les tuteurs professionnels",
       features: [
-        "500 crédits d'apprentissage",
-        "Accès illimité à tous les cours",
-        "Réservations prioritaires",
-        "Coaching personnalisé",
-        "Certificats premium",
-        "Support 24/7"
+        "1000 crédits de tutorat",
+        "Suivi illimité d'apprenants",
+        "Outils de gestion avancés",
+        "API d'intégration",
+        "Support 24/7",
+        "Formation personnalisée"
       ],
       gradient: "from-amber-500 to-amber-600",
       bgColor: "bg-amber-50",
@@ -95,25 +95,31 @@ export const StudentOffers = ({ currentPlan = 'Étudiant Premium', currentCredit
   };
 
   const handleChoosePack = (offerId: number) => {
-    navigate('/dashboard/apprenant/payment', { 
+    navigate('/dashboard/tuteur/payment', { 
       state: { 
         offerId, 
         isAnnual, 
         isOF: false,
-        offerType: 'etudiant'
+        offerType: 'tuteur'
       } 
     });
   };
 
   const isCurrentPlan = (offerName: string) => {
-    return offerName.toLowerCase().includes(currentPlan.toLowerCase().split(' ')[1]?.toLowerCase() || '');
+    return offerName.toLowerCase().includes(currentPlan.toLowerCase());
   };
 
   const getRecommendation = () => {
-    if (currentCredits < 20) {
+    if (currentCredits < 50) {
       return {
-        message: "Vos crédits sont presque épuisés. Pensez à renouveler votre abonnement.",
+        message: "Vos crédits sont bientôt épuisés. Pensez à renouveler votre abonnement pour continuer à accompagner vos apprenants.",
         type: "warning"
+      };
+    }
+    if (currentCredits > 400) {
+      return {
+        message: "Vous avez un excellent usage de vos crédits ! Votre plan actuel vous convient parfaitement.",
+        type: "success"
       };
     }
     return null;
@@ -127,20 +133,20 @@ export const StudentOffers = ({ currentPlan = 'Étudiant Premium', currentCredit
         <div>
           <CardTitle className="flex items-center">
             <Star className="h-5 w-5 mr-2" />
-            Découvrir nos offres
+            Nos offres tuteur
           </CardTitle>
           <CardDescription>
-            Choisissez le pack qui correspond à vos besoins
+            Choisissez le pack adapté à vos besoins d'accompagnement
           </CardDescription>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
         {recommendation && (
           <div className={`p-4 rounded-lg border ${
-            recommendation.type === 'warning' ? 'bg-orange-50 border-orange-200' : 'bg-blue-50 border-blue-200'
+            recommendation.type === 'warning' ? 'bg-orange-50 border-orange-200' : 'bg-green-50 border-green-200'
           }`}>
             <p className={`text-sm font-medium ${
-              recommendation.type === 'warning' ? 'text-orange-800' : 'text-blue-800'
+              recommendation.type === 'warning' ? 'text-orange-800' : 'text-green-800'
             }`}>
               {recommendation.message}
             </p>
