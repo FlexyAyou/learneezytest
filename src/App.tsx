@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Index from './pages/Index';
@@ -45,9 +46,9 @@ function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/documentation" element={<Documentation />} />
           <Route path="/tableau-de-bord" element={<StudentDashboard />} />
-          <Route path="/dashboard/etudiant/*" element={<StudentDashboard />} />
-          <Route path="/dashboard/etudiant/courses/:id" element={<CourseViewer />} />
-          <Route path="/dashboard/etudiant/courses/:courseId/lessons/:lessonId" element={<LessonViewer />} />
+          <Route path="/dashboard/apprenant/*" element={<StudentDashboard />} />
+          <Route path="/dashboard/apprenant/courses/:id" element={<CourseViewer />} />
+          <Route path="/dashboard/apprenant/courses/:courseId/lessons/:lessonId" element={<LessonViewer />} />
           <Route path="/profil" element={<Profile />} />
           <Route path="/connexion" element={<Login />} />
           <Route path="/inscription" element={<Register />} />

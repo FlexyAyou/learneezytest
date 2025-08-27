@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { BookOpen, User, Award, MessageSquare, Settings, Home, Video, Download, FileText, PenTool, TrendingUp, CreditCard, ShoppingBag } from 'lucide-react';
@@ -27,22 +28,22 @@ const StudentDashboard = () => {
   const currentPath = location.pathname;
 
   const sidebarItems = [
-    { title: "Tableau de bord", href: "/dashboard/etudiant", icon: Home, isActive: currentPath === "/dashboard/etudiant" },
+    { title: "Tableau de bord", href: "/dashboard/apprenant", icon: Home, isActive: currentPath === "/dashboard/apprenant" },
     { title: "Catalogue de formations", href: "/cours", icon: BookOpen, isActive: currentPath === "/cours" },
-    { title: "Mes cours", href: "/dashboard/etudiant/courses", icon: BookOpen, isActive: currentPath === "/dashboard/etudiant/courses" },
-    { title: "Mon parcours", href: "/dashboard/etudiant/progress", icon: Award, isActive: currentPath === "/dashboard/etudiant/progress" },
-    { title: "Certificats", href: "/dashboard/etudiant/certificates", icon: Award, isActive: currentPath === "/dashboard/etudiant/certificates" },
+    { title: "Mes cours", href: "/dashboard/apprenant/courses", icon: BookOpen, isActive: currentPath === "/dashboard/apprenant/courses" },
+    { title: "Mon parcours", href: "/dashboard/apprenant/progress", icon: Award, isActive: currentPath === "/dashboard/apprenant/progress" },
+    { title: "Certificats", href: "/dashboard/apprenant/certificates", icon: Award, isActive: currentPath === "/dashboard/apprenant/certificates" },
     // === SECTION OF COMPLÈTE ===
-    { title: "Mes inscriptions", href: "/dashboard/etudiant/inscriptions", icon: FileText, isActive: currentPath === "/dashboard/etudiant/inscriptions" },
-    { title: "Émargement", href: "/dashboard/etudiant/emargements", icon: PenTool, isActive: currentPath === "/dashboard/etudiant/emargements" },
-    { title: "Évaluations", href: "/dashboard/etudiant/evaluations", icon: TrendingUp, isActive: currentPath === "/dashboard/etudiant/evaluations" },
+    { title: "Mes inscriptions", href: "/dashboard/apprenant/inscriptions", icon: FileText, isActive: currentPath === "/dashboard/apprenant/inscriptions" },
+    { title: "Émargement", href: "/dashboard/apprenant/emargements", icon: PenTool, isActive: currentPath === "/dashboard/apprenant/emargements" },
+    { title: "Évaluations", href: "/dashboard/apprenant/evaluations", icon: TrendingUp, isActive: currentPath === "/dashboard/apprenant/evaluations" },
     // === SECTION OUTILS ===
-    { title: "Boutique", href: "/dashboard/etudiant/boutique", icon: ShoppingBag, isActive: currentPath === "/dashboard/etudiant/boutique" },
-    { title: "Mes documents", href: "/dashboard/etudiant/documents", icon: Download, isActive: currentPath === "/dashboard/etudiant/documents" },
-    { title: "Abonnements", href: "/dashboard/etudiant/subscription", icon: CreditCard, isActive: currentPath === "/dashboard/etudiant/subscription" },
-    { title: "Messages", href: "/dashboard/etudiant/messages", icon: MessageSquare, badge: "3", isActive: currentPath === "/dashboard/etudiant/messages" },
-    { title: "Visioconférence", href: "/dashboard/etudiant/video", icon: Video, isActive: currentPath === "/dashboard/etudiant/video" },
-    { title: "Paramètres", href: "/dashboard/etudiant/settings", icon: Settings, isActive: currentPath === "/dashboard/etudiant/settings" },
+    { title: "Boutique", href: "/dashboard/apprenant/boutique", icon: ShoppingBag, isActive: currentPath === "/dashboard/apprenant/boutique" },
+    { title: "Mes documents", href: "/dashboard/apprenant/documents", icon: Download, isActive: currentPath === "/dashboard/apprenant/documents" },
+    { title: "Abonnements", href: "/dashboard/apprenant/subscription", icon: CreditCard, isActive: currentPath === "/dashboard/apprenant/subscription" },
+    { title: "Messages", href: "/dashboard/apprenant/messages", icon: MessageSquare, badge: "3", isActive: currentPath === "/dashboard/apprenant/messages" },
+    { title: "Visioconférence", href: "/dashboard/apprenant/video", icon: Video, isActive: currentPath === "/dashboard/apprenant/video" },
+    { title: "Paramètres", href: "/dashboard/apprenant/settings", icon: Settings, isActive: currentPath === "/dashboard/apprenant/settings" },
   ];
 
   const userInfo = {
