@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
@@ -11,7 +12,7 @@ import AdminSecurity from '@/components/admin/AdminSecurity';
 import AdminPayments from '@/components/admin/AdminPayments';
 import AdminSubscriptions from '@/components/admin/AdminSubscriptions';
 import AdminSupport from '@/components/admin/AdminSupport';
-import { AddUser } from '@/components/admin/AddUser';
+import { AddUserPage } from '@/components/admin/AddUserPage';
 import StudentDetailPage from './admin/StudentDetailPage';
 import TrainerDetailPage from './admin/TrainerDetailPage';
 import IndependentTrainerDetailPage from './admin/IndependentTrainerDetailPage';
@@ -100,7 +101,7 @@ const AdminDashboard = () => {
               <Routes>
                 <Route index element={<SuperAdminDashboard />} />
                 <Route path="users" element={<AdminUsers />} />
-                <Route path="users/add" element={<AddUser />} />
+                <Route path="users/add" element={<AddUserPage />} />
                 <Route path="users/student/:userSlug" element={<StudentDetailPage />} />
                 <Route path="users/trainer/:userSlug" element={<TrainerDetailPage />} />
                 <Route path="users/independent-trainer/:userSlug" element={<IndependentTrainerDetailPage />} />
