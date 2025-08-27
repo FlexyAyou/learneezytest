@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Search, Plus, Eye, Edit, Trash2, BookOpen, Users, Star, Clock, Wand2, Book, Check, X, AlertTriangle, History, Globe, Lock, Settings, Shield } from 'lucide-react';
@@ -18,6 +19,8 @@ const AdminCourses = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [visibilityFilter, setVisibilityFilter] = useState('all');
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [showAICourseModal, setShowAICourseModal] = useState(false);
   const [showCreateCourseModal, setShowCreateCourseModal] = useState(false);
@@ -237,11 +240,38 @@ const AdminCourses = () => {
     return <Badge className="bg-green-100 text-green-800">Public</Badge>;
   };
 
-  const filteredCourses = allCourses.filter(course =>
-    course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    course.instructor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    course.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredCourses = allCourses.filter(course => {
+    const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         course.instructor.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         course.category.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all' || course.status === statusFilter;
+    
+    let matchesVisibility = true;
+    if (visibilityFilter !== 'all') {
+      switch (visibilityFilter) {
+        case 'visible':
+          matchesVisibility = course.isVisible;
+          break;
+        case 'hidden':
+          matchesVisibility = !course.isVisible;
+          break;
+        case 'open_source':
+          matchesVisibility = course.isOpenSource;
+          break;
+        case 'public':
+          matchesVisibility = course.isVisible && !course.isOpenSource && course.organisationAccess === 'all';
+          break;
+        case 'restricted':
+          matchesVisibility = course.organisationAccess === 'restricted';
+          break;
+        default:
+          matchesVisibility = true;
+      }
+    }
+    
+    return matchesSearch && matchesStatus && matchesVisibility;
+  });
 
   const filteredPendingCourses = pendingCourses.filter(course =>
     course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -416,6 +446,30 @@ const AdminCourses = () => {
                 className="pl-10"
               />
             </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filtrer par statut" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous les statuts</SelectItem>
+                <SelectItem value="publié">Publié</SelectItem>
+                <SelectItem value="en_attente">En attente</SelectItem>
+                <SelectItem value="brouillon">Brouillon</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={visibilityFilter} onValueChange={setVisibilityFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filtrer par visibilité" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Toutes visibilités</SelectItem>
+                <SelectItem value="visible">Visible</SelectItem>
+                <SelectItem value="hidden">Masqué</SelectItem>
+                <SelectItem value="open_source">Open Source</SelectItem>
+                <SelectItem value="public">Public</SelectItem>
+                <SelectItem value="restricted">Restreint</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <Table>
