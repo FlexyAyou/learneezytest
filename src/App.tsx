@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Index from './pages/Index';
@@ -29,6 +28,7 @@ import UserDetailPage from './components/admin/UserDetailPage';
 import { LanguageProvider } from './contexts/LanguageContext';
 import CourseViewer from './pages/student/CourseViewer';
 import LessonViewer from './pages/student/LessonViewer';
+import CourseReviewPage from '@/pages/admin/CourseReviewPage';
 
 function App() {
   return (
@@ -51,7 +51,7 @@ function App() {
           <Route path="/profil" element={<Profile />} />
           <Route path="/connexion" element={<Login />} />
           <Route path="/inscription" element={<Register />} />
-          <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
+          <Route path="/mot-de-passe-oublié" element={<ForgotPassword />} />
           
           {/* Public Trainer Pages */}
           <Route path="/formateur-independant/*" element={<ExternalTrainerDashboard />} />
@@ -86,6 +86,9 @@ function App() {
           
           {/* Technician Routes */}
           <Route path="/dashboard/technicien/*" element={<TechnicianDashboard />} />
+          
+          {/* Route pour la review des cours */}
+          <Route path="/dashboard/superadmin/courses/:courseId/review" element={<CourseReviewPage />} />
           
         </Routes>
         <Toaster />
