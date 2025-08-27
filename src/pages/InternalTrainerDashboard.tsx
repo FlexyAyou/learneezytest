@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
@@ -52,7 +53,7 @@ import InternalTrainerStudents from '@/components/internal-trainer/InternalTrain
 import InternalTrainerMessaging from '@/components/internal-trainer/InternalTrainerMessaging';
 import { DocumentDownload } from '@/components/common/DocumentDownload';
 import AIChat from '@/components/common/AIChat';
-import VideoConference from '@/components/common/VideoConference';
+import { TrainerVideoConferences } from '@/components/external-trainer/TrainerVideoConferences';
 import { PositioningTest } from '@/components/common/PositioningTest';
 import AIChatButton from '@/components/common/AIChatButton';
 
@@ -307,7 +308,7 @@ const InternalTrainerDashboard = () => {
           <Route path="/apprenants" element={<InternalTrainerStudents />} />
           <Route path="/messagerie" element={<InternalTrainerMessaging />} />
           <Route path="/tests" element={<PositioningTest userRole="instructor" />} />
-          <Route path="/video" element={<VideoConference />} />
+          <Route path="/video" element={<TrainerVideoConferences />} />
           <Route path="/chat" element={<AIChat />} />
           <Route path="/documents" element={<DocumentDownload documents={mockDocuments} userRole="instructor" />} />
         </Routes>
