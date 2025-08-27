@@ -29,6 +29,7 @@ import UserDetailPage from './components/admin/UserDetailPage';
 import { LanguageProvider } from './contexts/LanguageContext';
 import CourseViewer from './pages/student/CourseViewer';
 import LessonViewer from './pages/student/LessonViewer';
+import StudentPayment from './pages/student/StudentPayment';
 import CourseReviewPage from '@/pages/admin/CourseReviewPage';
 
 function App() {
@@ -49,6 +50,7 @@ function App() {
           <Route path="/dashboard/apprenant/*" element={<StudentDashboard />} />
           <Route path="/dashboard/apprenant/courses/:id" element={<CourseViewer />} />
           <Route path="/dashboard/apprenant/courses/:courseId/lessons/:lessonId" element={<LessonViewer />} />
+          <Route path="/dashboard/apprenant/payment" element={<StudentPayment />} />
           <Route path="/profil" element={<Profile />} />
           <Route path="/connexion" element={<Login />} />
           <Route path="/inscription" element={<Register />} />
