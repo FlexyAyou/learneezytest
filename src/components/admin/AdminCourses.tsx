@@ -133,6 +133,10 @@ const AdminCourses = () => {
 
   const allCourses = [...publishedCourses, ...pendingCourses];
 
+  const handleExamineCourse = (courseId) => {
+    navigate(`/dashboard/superadmin/courses/${courseId}/review`);
+  };
+
   const handleStatusChange = (courseId, newStatus) => {
     toast({
       title: "Statut modifié",
@@ -396,7 +400,7 @@ const AdminCourses = () => {
                       <Button 
                         size="sm" 
                         variant="outline"
-                        onClick={() => setSelectedCourse(course)}
+                        onClick={() => handleExamineCourse(course.id)}
                       >
                         <Eye className="h-4 w-4 mr-2" />
                         Examiner
