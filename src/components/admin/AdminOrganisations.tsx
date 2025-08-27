@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,7 +32,7 @@ const AdminOrganisations = () => {
       email: 'contact@cfdigital.fr',
       siret: '12345678901234',
       numeroDeclaration: '11-75-12345-75',
-      agrement: 'Qualiopi',
+      agrements: ['Qualiopi', 'OPCO', 'Datadock', 'RNCP'],
       usersCount: 145,
       userBreakdown: {
         apprenants: 120,
@@ -64,7 +65,7 @@ const AdminOrganisations = () => {
       email: 'info@technoplus.fr',
       siret: '98765432109876',
       numeroDeclaration: '84-69-98765-69',
-      agrement: 'OPCO',
+      agrements: ['OPCO', 'Pôle Emploi'],
       usersCount: 89,
       userBreakdown: {
         apprenants: 75,
@@ -96,7 +97,7 @@ const AdminOrganisations = () => {
       email: 'contact@formpro-marseille.fr',
       siret: '11223344556677',
       numeroDeclaration: '93-13-11223-13',
-      agrement: 'Datadock',
+      agrements: ['Datadock'],
       usersCount: 67,
       userBreakdown: {
         apprenants: 55,
@@ -159,6 +160,43 @@ const AdminOrganisations = () => {
     }
   };
 
+  const renderAgrements = (agrements) => {
+    if (!agrements || agrements.length === 0) {
+      return <Badge variant="outline">Aucun</Badge>;
+    }
+
+    const maxDisplayed = 3;
+    const displayedAgrements = agrements.slice(0, maxDisplayed);
+    const remainingCount = agrements.length - maxDisplayed;
+
+    return (
+      <div className="flex flex-wrap gap-1">
+        {displayedAgrements.map((agrement, index) => (
+          <Badge key={index} variant="default" className="bg-blue-100 text-blue-800 text-xs">
+            {agrement}
+          </Badge>
+        ))}
+        {remainingCount > 0 && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge variant="secondary" className="text-xs cursor-help">
+                +{remainingCount}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>
+              <div className="space-y-1">
+                <div className="font-medium">Autres agréments :</div>
+                {agrements.slice(maxDisplayed).map((agrement, index) => (
+                  <div key={index}>• {agrement}</div>
+                ))}
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        )}
+      </div>
+    );
+  };
+
   const filteredOrganisations = organisations.filter(org => {
     const matchesSearch = org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       org.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -203,10 +241,10 @@ const AdminOrganisations = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-600">
-                {organisations.filter(o => o.agrement).length}
+                {organisations.filter(o => o.agrements && o.agrements.length > 0).length}
               </div>
               <p className="text-xs text-muted-foreground">
-                {Math.round((organisations.filter(o => o.agrement).length / organisations.length) * 100)}% du total
+                {Math.round((organisations.filter(o => o.agrements && o.agrements.length > 0).length / organisations.length) * 100)}% du total
               </p>
             </CardContent>
           </Card>
@@ -342,13 +380,7 @@ const AdminOrganisations = () => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        {org.agrement ? (
-                          <Badge variant="default" className="bg-blue-100 text-blue-800">
-                            {org.agrement}
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline">Aucun</Badge>
-                        )}
+                        {renderAgrements(org.agrements)}
                       </TableCell>
                       <TableCell>
                         <div className="text-center">
