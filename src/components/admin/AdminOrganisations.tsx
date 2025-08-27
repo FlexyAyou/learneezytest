@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -396,7 +395,6 @@ const AdminOrganisations = () => {
                                 <div className="font-medium">Répartition des utilisateurs :</div>
                                 <div>• Apprenants : {org.userBreakdown.apprenants}</div>
                                 <div>• Gestionnaires : {org.userBreakdown.gestionnaires}</div>
-                                <div>• Comptes Pro : {org.userBreakdown.comptesPro}</div>
                               </div>
                             </TooltipContent>
                           </Tooltip>
