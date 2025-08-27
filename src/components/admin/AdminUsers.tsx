@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,15 +10,18 @@ import {
   Search, 
   Filter,
   Plus,
-  Eye
+  Eye,
+  UserPlus
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { AddApprenantModal } from './AddApprenantModal';
 
 export const AdminUsers = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [orgFilter, setOrgFilter] = useState('all');
+  const [isAddApprenantOpen, setIsAddApprenantOpen] = useState(false);
 
   // Mock data - tous les types d'utilisateurs de la plateforme
   const users = [
@@ -113,6 +115,12 @@ export const AdminUsers = () => {
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
+  const handleAddApprenant = (newApprenant: any) => {
+    console.log('Nouvel apprenant ajouté:', newApprenant);
+    // Ici vous pourriez ajouter l'apprenant à votre liste d'utilisateurs
+    // ou faire un appel API pour l'enregistrer
+  };
+
   return (
     <div className="space-y-6">
       {/* Statistiques par type d'utilisateur */}
@@ -191,10 +199,16 @@ export const AdminUsers = () => {
               <Users className="h-5 w-5" />
               Gestion des utilisateurs ({filteredUsers.length})
             </CardTitle>
-            <Button onClick={() => navigate('/dashboard/superadmin/users/add')}>
-              <Plus className="h-4 w-4 mr-2" />
-              Ajouter un utilisateur
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={() => setIsAddApprenantOpen(true)} variant="outline">
+                <UserPlus className="h-4 w-4 mr-2" />
+                Ajouter un apprenant
+              </Button>
+              <Button onClick={() => navigate('/dashboard/superadmin/users/add')}>
+                <Plus className="h-4 w-4 mr-2" />
+                Ajouter un utilisateur
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -294,6 +308,12 @@ export const AdminUsers = () => {
           </div>
         </CardContent>
       </Card>
+
+      <AddApprenantModal
+        isOpen={isAddApprenantOpen}
+        onClose={() => setIsAddApprenantOpen(false)}
+        onAdd={handleAddApprenant}
+      />
     </div>
   );
 };
