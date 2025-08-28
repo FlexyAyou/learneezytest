@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Index from './pages/Index';
@@ -23,6 +22,7 @@ import TechnicianDashboard from './pages/TechnicianDashboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
+import UserManagement from './pages/UserManagement';
 import { Toaster } from '@/components/ui/toaster';
 import { AdminUsers } from './components/admin/AdminUsers';
 import UserDetailPage from './components/admin/UserDetailPage';
@@ -62,6 +62,7 @@ function App() {
           
           {/* Super Admin Routes */}
           <Route path="/dashboard/superadmin/*" element={<AdminDashboard />} />
+          <Route path="/dashboard/superadmin/users" element={<UserManagement />} />
           
           {/* Organisme de Formation Routes */}
           <Route path="/dashboard/organisme-formation/*" element={<OFDashboard />} />
