@@ -1,146 +1,53 @@
 
 import React from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
-import { DashboardSidebar } from '@/components/DashboardSidebar';
-import { OFDashboard as OFDashboardHome } from '@/components/admin/OFDashboard';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { OFDashboard as OFDashboardContent } from '@/components/admin/OFDashboard';
 import { OFUtilisateurs } from '@/components/admin/OFUtilisateurs';
 import { OFFormations } from '@/components/admin/OFFormations';
+import { OFFormationDetail } from '@/components/admin/OFFormationDetail';
+import { OFDocuments } from '@/components/admin/OFDocuments';
 import { OFLicences } from '@/components/admin/OFLicences';
-import { OFSuiviPedagogiqueEnhanced } from '@/components/admin/OFSuiviPedagogiqueEnhanced';
+import { OFLicenceDetail } from '@/components/admin/OFLicenceDetail';
+import { OFLicenceEdit } from '@/components/admin/OFLicenceEdit';
+import { OFSuiviPedagogique } from '@/components/admin/OFSuiviPedagogique';
+import { OFVideoConferences } from '@/components/admin/OFVideoConferences';
 import { OFEnvois } from '@/components/admin/OFEnvois';
+import { OFNouvelEnvoi } from '@/components/admin/OFNouvelEnvoi';
+import { OFEnvoiDetail } from '@/components/admin/OFEnvoiDetail';
 import { OFIntegrations } from '@/components/admin/OFIntegrations';
+import { OFIntegrationDetail } from '@/components/admin/OFIntegrationDetail';
 import { OFLogs } from '@/components/admin/OFLogs';
 import { OFSettings } from '@/components/admin/OFSettings';
-import AIChatButton from '@/components/common/AIChatButton';
-import AdminDocumentsOF from '@/pages/admin/AdminDocumentsOF';
-import OFDocuments from '@/components/admin/OFDocuments';
-import VideoConference from '@/components/common/VideoConference';
-import OFVideoConferences from '@/components/admin/OFVideoConferences';
-import OFUserDetailPage from '@/components/admin/OFUserDetailPage';
-import { 
-  LayoutDashboard, 
-  Users, 
-  BookOpen, 
-  CreditCard, 
-  GraduationCap,
-  Send,
-  Plug,
-  FileText,
-  Settings,
-  File,
-  Video
-} from 'lucide-react';
+import OFStudentDetailPage from '@/pages/admin/OFStudentDetailPage';
+import OFTrainerDetailPage from '@/pages/admin/OFTrainerDetailPage';
+import OFManagerDetailPage from '@/pages/admin/OFManagerDetailPage';
 
 const OFDashboard = () => {
-  const location = useLocation();
-
-  const sidebarItems = [
-    {
-      title: 'Tableau de bord',
-      href: '/dashboard/organisme-formation',
-      icon: LayoutDashboard,
-      isActive: location.pathname === '/dashboard/organisme-formation'
-    },
-    {
-      title: 'Utilisateurs',
-      href: '/dashboard/organisme-formation/utilisateurs',
-      icon: Users,
-      isActive: location.pathname === '/dashboard/organisme-formation/utilisateurs'
-    },
-    {
-      title: 'Formations',
-      href: '/dashboard/organisme-formation/formations',
-      icon: BookOpen,
-      isActive: location.pathname === '/dashboard/organisme-formation/formations'
-    },
-    {
-      title: 'Documents OF',
-      href: '/dashboard/organisme-formation/documents-of',
-      icon: FileText,
-      isActive: location.pathname === '/dashboard/organisme-formation/documents-of'
-    },
-    {
-      title: 'Document',
-      href: '/dashboard/organisme-formation/documents',
-      icon: File,
-      isActive: location.pathname === '/dashboard/organisme-formation/documents'
-    },
-    {
-      title: 'Licences',
-      href: '/dashboard/organisme-formation/licences',
-      icon: CreditCard,
-      isActive: location.pathname === '/dashboard/organisme-formation/licences'
-    },
-    {
-      title: 'Suivi pédagogique',
-      href: '/dashboard/organisme-formation/suivi-pedagogique',
-      icon: GraduationCap,
-      isActive: location.pathname === '/dashboard/organisme-formation/suivi-pedagogique'
-    },
-    {
-      title: 'Visio',
-      href: '/dashboard/organisme-formation/visio',
-      icon: Video,
-      isActive: location.pathname === '/dashboard/organisme-formation/visio'
-    },
-    {
-      title: 'Envois',
-      href: '/dashboard/organisme-formation/envois',
-      icon: Send,
-      isActive: location.pathname === '/dashboard/organisme-formation/envois'
-    },
-    {
-      title: 'Intégrations',
-      href: '/dashboard/organisme-formation/integrations',
-      icon: Plug,
-      isActive: location.pathname === '/dashboard/organisme-formation/integrations'
-    },
-    {
-      title: 'Logs',
-      href: '/dashboard/organisme-formation/logs',
-      icon: FileText,
-      isActive: location.pathname === '/dashboard/organisme-formation/logs'
-    },
-    {
-      title: 'Paramètres',
-      href: '/dashboard/organisme-formation/parametres',
-      icon: Settings,
-      isActive: location.pathname === '/dashboard/organisme-formation/parametres'
-    }
-  ];
-
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <DashboardSidebar
-        title="Organisme de Formation"
-        subtitle="Centre de Formation Digital"
-        items={sidebarItems}
-        userInfo={{
-          name: 'Marie Gestionnaire',
-          email: 'marie@cfdigital.fr'
-        }}
-      />
-      
-      <div className="flex-1 overflow-auto">
-        <div className="p-8">
-          <Routes>
-            <Route index element={<OFDashboardHome />} />
-            <Route path="utilisateurs" element={<OFUtilisateurs />} />
-            <Route path="utilisateurs/:userSlug" element={<OFUserDetailPage />} />
-            <Route path="formations" element={<OFFormations />} />
-            <Route path="documents-of" element={<AdminDocumentsOF />} />
-            <Route path="documents" element={<OFDocuments />} />
-            <Route path="licences" element={<OFLicences />} />
-            <Route path="suivi-pedagogique" element={<OFSuiviPedagogiqueEnhanced />} />
-            <Route path="visio" element={<OFVideoConferences />} />
-            <Route path="envois" element={<OFEnvois />} />
-            <Route path="integrations" element={<OFIntegrations />} />
-            <Route path="logs" element={<OFLogs />} />
-            <Route path="parametres" element={<OFSettings />} />
-          </Routes>
-        </div>
-      </div>
-    </div>
+    <Routes>
+      <Route path="/" element={<Navigate to="/dashboard/organisme-formation/tableau-de-bord" replace />} />
+      <Route path="/tableau-de-bord" element={<OFDashboardContent />} />
+      <Route path="/utilisateurs" element={<OFUtilisateurs />} />
+      <Route path="/utilisateurs/apprenant/:userSlug" element={<OFStudentDetailPage />} />
+      <Route path="/utilisateurs/formateur/:userSlug" element={<OFTrainerDetailPage />} />
+      <Route path="/utilisateurs/gestionnaire/:userSlug" element={<OFManagerDetailPage />} />
+      <Route path="/formations" element={<OFFormations />} />
+      <Route path="/formations/:id" element={<OFFormationDetail />} />
+      <Route path="/documents-of" element={<OFDocuments />} />
+      <Route path="/documents" element={<OFDocuments />} />
+      <Route path="/licences" element={<OFLicences />} />
+      <Route path="/licences/:id" element={<OFLicenceDetail />} />
+      <Route path="/licences/:id/edit" element={<OFLicenceEdit />} />
+      <Route path="/suivi-pedagogique" element={<OFSuiviPedagogique />} />
+      <Route path="/visio" element={<OFVideoConferences />} />
+      <Route path="/envois" element={<OFEnvois />} />
+      <Route path="/envois/nouveau" element={<OFNouvelEnvoi />} />
+      <Route path="/envois/:id" element={<OFEnvoiDetail />} />
+      <Route path="/integrations" element={<OFIntegrations />} />
+      <Route path="/integrations/:id" element={<OFIntegrationDetail />} />
+      <Route path="/logs" element={<OFLogs />} />
+      <Route path="/parametres" element={<OFSettings />} />
+    </Routes>
   );
 };
 

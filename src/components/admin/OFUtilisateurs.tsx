@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -85,9 +84,23 @@ export const OFUtilisateurs = () => {
   };
 
   const handleViewUser = (user: any) => {
-    // Créer un slug à partir du nom et prénom
-    const userSlug = `${user.prenom.toLowerCase()}-${user.nom.toLowerCase()}-${user.id}`;
-    navigate(`/dashboard/organisme-formation/utilisateurs/${userSlug}`);
+    console.log('Viewing user:', user);
+    let userType;
+    switch(user.role) {
+      case 'Apprenant':
+        userType = 'apprenant';
+        break;
+      case 'Formateur':
+        userType = 'formateur';
+        break;
+      case 'Gestionnaire':
+        userType = 'gestionnaire';
+        break;
+      default:
+        userType = 'apprenant';
+    }
+    const userSlug = user.nom.toLowerCase().replace(/\s+/g, '-');
+    navigate(`/dashboard/organisme-formation/utilisateurs/${userType}/${userSlug}`);
   };
 
   const handleAddUser = (newUser: any) => {

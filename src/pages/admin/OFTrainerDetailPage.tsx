@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
+import { TrainerDetailView } from '@/components/admin/user-details/TrainerDetailView';
 import { 
   ArrowLeft, 
   Mail,
@@ -24,33 +25,24 @@ import {
   Video
 } from 'lucide-react';
 
-// Import des composants spécialisés existants
-import { StudentDetailView } from './user-details/StudentDetailView';
-import { TrainerDetailView } from './user-details/TrainerDetailView';
-import { ManagerDetailView } from './user-details/ManagerDetailView';
-
-const OFUserDetailPage = () => {
+const OFTrainerDetailPage = () => {
   const { userSlug } = useParams();
   const navigate = useNavigate();
   const currentPath = `/dashboard/organisme-formation/utilisateurs/${userSlug}`;
 
-  // Mock data étendu - normalement récupéré depuis l'API
+  // Mock data pour le formateur
   const user = {
-    id: 1,
-    name: 'Marie Dupont',
-    email: 'marie.dupont@email.com',
-    phone: '+33 6 12 34 56 78',
-    role: 'Apprenant', // Peut être: Apprenant, Formateur, Gestionnaire
+    id: 2,
+    name: 'Marc Dubois',
+    email: 'marc.dubois@email.com',
+    phone: '+33 6 23 45 67 89',
+    role: 'Formateur',
     status: 'active',
-    lastLogin: '2024-01-15',
-    joinDate: '2023-09-15',
+    lastLogin: '2024-01-20',
+    joinDate: '2023-06-10',
     organisation: 'Centre de Formation Digital',
     organisationType: 'OF',
-    address: '123 Rue de la Formation, 75001 Paris',
-    totalCourses: 3,
-    completedModules: 12,
-    inProgressModules: 5,
-    avgScore: 85
+    address: '456 Avenue des Formateurs, 69000 Lyon'
   };
 
   const sidebarItems = [
@@ -145,26 +137,7 @@ const OFUserDetailPage = () => {
   };
 
   const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'Formateur': return 'bg-blue-100 text-blue-800';
-      case 'Gestionnaire': return 'bg-orange-100 text-orange-800';
-      case 'Apprenant': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  // Fonction pour rendre le composant spécialisé selon le rôle
-  const renderUserSpecificContent = () => {
-    switch (user.role) {
-      case 'Apprenant':
-        return <StudentDetailView user={user} />;
-      case 'Formateur':
-        return <TrainerDetailView user={user} />;
-      case 'Gestionnaire':
-        return <ManagerDetailView user={user} />;
-      default:
-        return <StudentDetailView user={user} />; // Fallback
-    }
+    return 'bg-blue-100 text-blue-800';
   };
 
   return (
@@ -178,8 +151,8 @@ const OFUserDetailPage = () => {
         />
       </div>
       
-      <div className="flex-1 ml-64 flex flex-col overflow-hidden">
-        <main className="flex-1 overflow-x-hidden overflow-y-auto">
+      <div className="flex-1 ml-64">
+        <main className="flex-1 overflow-y-auto">
           <div className="space-y-6 p-6">
             {/* En-tête avec bouton retour */}
             <div className="flex items-center gap-4">
@@ -263,8 +236,8 @@ const OFUserDetailPage = () => {
               </CardContent>
             </Card>
 
-            {/* Contenu spécialisé selon le rôle */}
-            {renderUserSpecificContent()}
+            {/* Contenu spécialisé pour le formateur */}
+            <TrainerDetailView user={user} />
           </div>
         </main>
       </div>
@@ -272,4 +245,4 @@ const OFUserDetailPage = () => {
   );
 };
 
-export default OFUserDetailPage;
+export default OFTrainerDetailPage;

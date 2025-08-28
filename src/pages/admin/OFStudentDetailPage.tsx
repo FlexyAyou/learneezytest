@@ -1,79 +1,132 @@
+
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
-import { TrainerDetailView } from '@/components/admin/user-details/TrainerDetailView';
+import { StudentDetailView } from '@/components/admin/user-details/StudentDetailView';
 import { 
   ArrowLeft, 
   Mail,
   Phone,
   Calendar,
   Building,
-  BookOpen,
+  Home,
   Users,
-  UserCheck,
-  FileText,
-  FileSignature,
-  PenTool,
-  Key,
-  Shield,
-  TestTube,
-  Video,
-  Download,
+  BookOpen,
   CreditCard,
-  DollarSign,
+  GraduationCap,
+  Send,
+  Plug,
+  FileText,
   Settings,
-  MessageSquare,
-  Home
+  File,
+  Video
 } from 'lucide-react';
 
-const TrainerDetailPage = () => {
+const OFStudentDetailPage = () => {
   const { userSlug } = useParams();
   const navigate = useNavigate();
-  const currentPath = `/dashboard/superadmin/users/${userSlug}`;
+  const currentPath = `/dashboard/organisme-formation/utilisateurs/${userSlug}`;
 
-  // Mock data pour le formateur
+  // Mock data pour l'apprenant
   const user = {
-    id: 2,
-    name: 'Marc Dubois',
-    email: 'marc.dubois@email.com',
-    phone: '+33 6 23 45 67 89',
-    role: 'Formateur',
+    id: 1,
+    name: 'Marie Dupont',
+    email: 'marie.dupont@email.com',
+    phone: '+33 6 12 34 56 78',
+    role: 'Apprenant',
     status: 'active',
-    lastLogin: '2024-01-20',
-    joinDate: '2023-06-10',
-    organisation: 'Formation Excellence',
+    lastLogin: '2024-01-15',
+    joinDate: '2023-09-15',
+    organisation: 'Centre de Formation Digital',
     organisationType: 'OF',
-    address: '456 Avenue des Formateurs, 69000 Lyon'
+    address: '123 Rue de la Formation, 75001 Paris',
+    totalCourses: 3,
+    completedModules: 12,
+    inProgressModules: 5,
+    avgScore: 85
   };
 
   const sidebarItems = [
-    { title: "Tableau de bord", href: "/dashboard/superadmin", icon: Home, isActive: false },
-    { title: "Utilisateurs", href: "/dashboard/superadmin/users", icon: Users, isActive: currentPath.startsWith("/dashboard/superadmin/users") },
-    { title: "Organismes de formations", href: "/dashboard/superadmin/organisations", icon: Building, isActive: false },
-    { title: "Cours", href: "/dashboard/superadmin/courses", icon: BookOpen, isActive: false },
-    { title: "Inscriptions", href: "/dashboard/superadmin/inscriptions", icon: UserCheck, isActive: false },
-    { title: "Documents OF", href: "/dashboard/superadmin/of-documents", icon: FileText, isActive: false },
-    { title: "Conventions", href: "/dashboard/superadmin/conventions", icon: FileSignature, isActive: false },
-    { title: "Envois automatiques", href: "/dashboard/superadmin/mailings", icon: Mail, isActive: false },
-    { title: "Émargements", href: "/dashboard/superadmin/emargements", icon: PenTool, isActive: false },
-    { title: "Gestion licences", href: "/dashboard/superadmin/licenses", icon: Key, isActive: false },
-    { title: "Vérification identité", href: "/dashboard/superadmin/identity", icon: Shield, isActive: false },
-    { title: "Tests positionnement", href: "/dashboard/superadmin/tests", icon: TestTube, isActive: false },
-    { title: "Visioconférence", href: "/dashboard/superadmin/video", icon: Video, isActive: false },
-    { title: "Bibliothèque", href: "/dashboard/superadmin/library", icon: Download, isActive: false },
-    { title: "Abonnements", href: "/dashboard/superadmin/subscriptions", icon: CreditCard, isActive: false },
-    { title: "Paiements", href: "/dashboard/superadmin/payments", icon: DollarSign, isActive: false },
-    { title: "Sécurité", href: "/dashboard/superadmin/security", icon: Shield, isActive: false },
-    { title: "Support", href: "/dashboard/superadmin/support", icon: MessageSquare, isActive: false },
-    { title: "Paramètres", href: "/dashboard/superadmin/settings", icon: Settings, isActive: false },
+    {
+      title: 'Tableau de bord',
+      href: '/dashboard/organisme-formation',
+      icon: Home,
+      isActive: false
+    },
+    {
+      title: 'Utilisateurs',
+      href: '/dashboard/organisme-formation/utilisateurs',
+      icon: Users,
+      isActive: currentPath.startsWith("/dashboard/organisme-formation/utilisateurs")
+    },
+    {
+      title: 'Formations',
+      href: '/dashboard/organisme-formation/formations',
+      icon: BookOpen,
+      isActive: false
+    },
+    {
+      title: 'Documents OF',
+      href: '/dashboard/organisme-formation/documents-of',
+      icon: FileText,
+      isActive: false
+    },
+    {
+      title: 'Document',
+      href: '/dashboard/organisme-formation/documents',
+      icon: File,
+      isActive: false
+    },
+    {
+      title: 'Licences',
+      href: '/dashboard/organisme-formation/licences',
+      icon: CreditCard,
+      isActive: false
+    },
+    {
+      title: 'Suivi pédagogique',
+      href: '/dashboard/organisme-formation/suivi-pedagogique',
+      icon: GraduationCap,
+      isActive: false
+    },
+    {
+      title: 'Visio',
+      href: '/dashboard/organisme-formation/visio',
+      icon: Video,
+      isActive: false
+    },
+    {
+      title: 'Envois',
+      href: '/dashboard/organisme-formation/envois',
+      icon: Send,
+      isActive: false
+    },
+    {
+      title: 'Intégrations',
+      href: '/dashboard/organisme-formation/integrations',
+      icon: Plug,
+      isActive: false
+    },
+    {
+      title: 'Logs',
+      href: '/dashboard/organisme-formation/logs',
+      icon: FileText,
+      isActive: false
+    },
+    {
+      title: 'Paramètres',
+      href: '/dashboard/organisme-formation/parametres',
+      icon: Settings,
+      isActive: false
+    }
   ];
 
   const userInfo = {
-    name: "Super Admin",
-    email: "superadmin@Learneezy.com"
+    name: "Marie Gestionnaire",
+    email: "marie@cfdigital.fr"
   };
 
   const getStatusBadge = (status: string) => {
@@ -88,24 +141,15 @@ const TrainerDetailPage = () => {
   };
 
   const getRoleColor = (role: string) => {
-    return 'bg-blue-100 text-blue-800';
-  };
-
-  const getOrganisationColor = (organisationType: string) => {
-    switch (organisationType) {
-      case 'OF': return 'bg-blue-50 text-blue-700';
-      case 'Direct': return 'bg-pink-50 text-pink-700';
-      case 'Admin': return 'bg-gray-50 text-gray-700';
-      default: return 'bg-gray-50 text-gray-700';
-    }
+    return 'bg-green-100 text-green-800';
   };
 
   return (
     <div className="flex h-screen bg-gray-50">
       <div className="fixed left-0 top-0 h-full z-30">
         <DashboardSidebar
-          title="Super Administration"
-          subtitle="Gestion de la plateforme"
+          title="Organisme de Formation"
+          subtitle="Centre de Formation Digital"
           items={sidebarItems}
           userInfo={userInfo}
         />
@@ -113,13 +157,13 @@ const TrainerDetailPage = () => {
       
       <div className="flex-1 ml-64">
         <main className="flex-1 overflow-y-auto">
-          <div className="p-6 space-y-6">
+          <div className="space-y-6 p-6">
             {/* En-tête avec bouton retour */}
             <div className="flex items-center gap-4">
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => navigate('/dashboard/superadmin/users')}
+                onClick={() => navigate('/dashboard/organisme-formation/utilisateurs')}
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Retour
@@ -153,7 +197,7 @@ const TrainerDetailPage = () => {
                   <div>
                     <label className="text-sm font-medium text-gray-600">Organisation</label>
                     <div className="mt-1">
-                      <Badge className={getOrganisationColor(user.organisationType)}>
+                      <Badge className="bg-blue-50 text-blue-700">
                         {user.organisation}
                       </Badge>
                     </div>
@@ -186,24 +230,23 @@ const TrainerDetailPage = () => {
                   </div>
 
                   <div className="md:col-span-2">
-                      <label className="text-sm font-medium text-gray-600 flex items-center gap-2">
-                        <Building className="h-4 w-4" />
-                        Adresse
-                      </label>
-                      <p className="font-medium">{user.address}</p>
-                    </div>
+                    <label className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                      <Building className="h-4 w-4" />
+                      Adresse
+                    </label>
+                    <p className="font-medium">{user.address}</p>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </CardContent>
+            </Card>
 
-              {/* Contenu spécialisé pour le formateur */}
-              <TrainerDetailView user={user} />
-            </div>
-          </main>
-        </div>
+            {/* Contenu spécialisé pour l'apprenant */}
+            <StudentDetailView user={user} />
+          </div>
+        </main>
       </div>
     </div>
   );
 };
 
-export default TrainerDetailPage;
+export default OFStudentDetailPage;
