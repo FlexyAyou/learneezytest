@@ -16,6 +16,7 @@ import AdminDocumentsOF from '@/pages/admin/AdminDocumentsOF';
 import OFDocuments from '@/components/admin/OFDocuments';
 import VideoConference from '@/components/common/VideoConference';
 import OFVideoConferences from '@/components/admin/OFVideoConferences';
+import OFUserDetailPage from '@/components/admin/OFUserDetailPage';
 import { 
   LayoutDashboard, 
   Users, 
@@ -125,6 +126,7 @@ const OFDashboard = () => {
           <Routes>
             <Route index element={<OFDashboardHome />} />
             <Route path="utilisateurs" element={<OFUtilisateurs />} />
+            <Route path="utilisateurs/:userSlug" element={<OFUserDetailPage />} />
             <Route path="formations" element={<OFFormations />} />
             <Route path="documents-of" element={<AdminDocumentsOF />} />
             <Route path="documents" element={<OFDocuments />} />
