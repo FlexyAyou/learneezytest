@@ -111,7 +111,7 @@ const CourseCard = ({ course }: CourseCardProps) => {
           </div>
           
           {course.completed ? (
-            <Link to="/dashboard/etudiant/courses">
+            <Link to="/dashboard/apprenant/courses">
               <Button size="sm" className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700">
                 Mon parcours
               </Button>
