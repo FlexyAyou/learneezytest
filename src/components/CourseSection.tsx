@@ -126,11 +126,6 @@ const CourseSection = () => {
             Découvrez nos formations les plus demandées, créées par des experts 
             et adaptées aux besoins du marché actuel.
           </p>
-          <div className="mt-6 p-3 bg-gradient-to-r from-pink-100 to-purple-100 rounded-lg max-w-sm mx-auto">
-            <p className="text-gray-700 text-sm font-medium">
-              💰 <strong>Prix en tokens :</strong> 1 token = 0,30€
-            </p>
-          </div>
         </div>
 
         {/* Course Grid - 4 columns on large screens */}
