@@ -5,8 +5,6 @@ import Index from './pages/Index';
 import About from './pages/About';
 import Courses from './pages/Courses';
 import CourseDetail from './pages/CourseDetail';
-import BookingCalendar from './pages/BookingCalendar';
-import Payment from './pages/Payment';
 import Offers from './pages/Offers';
 import Contact from './pages/Contact';
 import Documentation from './pages/Documentation';
@@ -44,8 +42,6 @@ function App() {
           <Route path="/cours" element={<Courses />} />
           <Route path="/nos-formations" element={<Courses />} />
           <Route path="/cours/:id" element={<CourseDetail />} />
-          <Route path="/cours/:courseId/reservation" element={<BookingCalendar />} />
-          <Route path="/cours/:courseId/paiement/:slotId" element={<Payment />} />
           <Route path="/tarifs" element={<Offers />} />
           <Route path="/offres" element={<Offers />} />
           <Route path="/contact" element={<Contact />} />
