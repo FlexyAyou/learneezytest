@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -393,7 +394,7 @@ const AdminOrganisations = () => {
                             <TooltipContent>
                               <div className="space-y-1 text-sm">
                                 <div className="font-medium">Répartition des utilisateurs :</div>
-                                <div>• Apprenants : {org.userBreakdown.apprenants}</div>
+                                <div>• Apprenants actifs : {org.userBreakdown.apprenants}</div>
                                 <div>• Gestionnaires : {org.userBreakdown.gestionnaires}</div>
                               </div>
                             </TooltipContent>
