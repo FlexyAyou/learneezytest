@@ -90,12 +90,12 @@ Regardons d'autres exemples :
 
   const handleNextLesson = () => {
     if (lesson.nextLesson) {
-      navigate(`/dashboard/etudiant/courses/${courseId}/lessons/${lesson.nextLesson.id}`);
+      navigate(`/dashboard/apprenant/courses/${courseId}/lessons/${lesson.nextLesson.id}`);
     }
   };
 
   const handleLessonClick = (lessonId: string) => {
-    navigate(`/dashboard/etudiant/courses/${courseId}/lessons/${lessonId}`);
+    navigate(`/dashboard/apprenant/courses/${courseId}/lessons/${lessonId}`);
   };
 
   const progressPercentage = Math.round((lesson.course.currentLessonIndex / lesson.course.totalLessons) * 100);
@@ -465,7 +465,7 @@ Regardons d'autres exemples :
                       <Button 
                         variant="outline" 
                         className="w-full justify-start"
-                        onClick={() => navigate(`/dashboard/etudiant/courses/${courseId}`)}
+                        onClick={() => navigate(`/dashboard/apprenant/courses/${courseId}`)}
                       >
                         <ArrowLeft className="w-4 h-4 mr-2" />
                         Retour au cours
