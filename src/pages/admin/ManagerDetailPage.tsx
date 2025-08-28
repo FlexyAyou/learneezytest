@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
@@ -113,7 +114,7 @@ const ManagerDetailPage = () => {
       
       <div className="flex-1 ml-64">
         <main className="flex-1 overflow-y-auto">
-          <div className="p-6 space-y-6">
+          <div className="space-y-6 p-6">
             {/* En-tête avec bouton retour */}
             <div className="flex items-center gap-4">
               <Button 
@@ -131,76 +132,75 @@ const ManagerDetailPage = () => {
             </div>
 
             {/* Informations générales de l'utilisateur */}
-              <Card className="w-full">
-                <CardContent className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div>
-                      <label className="text-sm font-medium text-gray-600">Rôle</label>
-                      <div className="mt-1">
-                        <Badge className={getRoleColor(user.role)}>
-                          {user.role}
-                        </Badge>
-                      </div>
+            <Card className="w-full">
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Rôle</label>
+                    <div className="mt-1">
+                      <Badge className={getRoleColor(user.role)}>
+                        {user.role}
+                      </Badge>
                     </div>
-                    
-                    <div>
-                      <label className="text-sm font-medium text-gray-600">Statut</label>
-                      <div className="mt-1">
-                        {getStatusBadge(user.status)}
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium text-gray-600">Organisation</label>
-                      <div className="mt-1">
-                        <Badge className={getOrganisationColor(user.organisationType)}>
-                          {user.organisation}
-                        </Badge>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium text-gray-600 flex items-center gap-2">
-                        <Calendar className="h-4 w-4" />
-                        Membre depuis
-                      </label>
-                      <p className="font-medium">{new Date(user.joinDate).toLocaleDateString()}</p>
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Statut</label>
+                    <div className="mt-1">
+                      {getStatusBadge(user.status)}
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-6 border-t">
-                    <div>
-                      <label className="text-sm font-medium text-gray-600 flex items-center gap-2">
-                        <Mail className="h-4 w-4" />
-                        Email
-                      </label>
-                      <p className="font-medium">{user.email}</p>
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium text-gray-600 flex items-center gap-2">
-                        <Phone className="h-4 w-4" />
-                        Téléphone
-                      </label>
-                      <p className="font-medium">{user.phone}</p>
-                    </div>
-
-                    <div className="md:col-span-2">
-                      <label className="text-sm font-medium text-gray-600 flex items-center gap-2">
-                        <Building className="h-4 w-4" />
-                        Adresse
-                      </label>
-                      <p className="font-medium">{user.address}</p>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Organisation</label>
+                    <div className="mt-1">
+                      <Badge className={getOrganisationColor(user.organisationType)}>
+                        {user.organisation}
+                      </Badge>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
 
-              {/* Contenu spécialisé pour le gestionnaire */}
-              <ManagerDetailView user={user} />
-            </div>
-          </main>
-        </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      Membre depuis
+                    </label>
+                    <p className="font-medium">{new Date(user.joinDate).toLocaleDateString()}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-6 border-t">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      Email
+                    </label>
+                    <p className="font-medium">{user.email}</p>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                      <Phone className="h-4 w-4" />
+                      Téléphone
+                    </label>
+                    <p className="font-medium">{user.phone}</p>
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                      <Building className="h-4 w-4" />
+                      Adresse
+                    </label>
+                    <p className="font-medium">{user.address}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Contenu spécialisé pour le gestionnaire */}
+            <ManagerDetailView user={user} />
+          </div>
+        </main>
       </div>
     </div>
   );
