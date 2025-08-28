@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Users, Search, Filter, Plus, Eye, Edit, MoreHorizontal } from 'lucide-react';
-import { OFAddUtilisateur } from './OFAddUtilisateur';
+import { AddApprenantModal } from './AddApprenantModal';
 
 export const OFUtilisateurs = () => {
   const navigate = useNavigate();
@@ -276,7 +276,7 @@ export const OFUtilisateurs = () => {
         </CardContent>
       </Card>
 
-      <OFAddUtilisateur
+      <AddApprenantModal
         isOpen={isAddOpen}
         onClose={() => setIsAddOpen(false)}
         onAdd={handleAddUser}
