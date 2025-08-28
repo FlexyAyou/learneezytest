@@ -155,7 +155,7 @@ const OFStudentDetailPage = () => {
         />
       </div>
       
-      <div className="flex-1 ml-64">
+      <div className="flex-1">
         <main className="flex-1 overflow-y-auto">
           <div className="space-y-6 p-6">
             {/* En-tête avec bouton retour */}
