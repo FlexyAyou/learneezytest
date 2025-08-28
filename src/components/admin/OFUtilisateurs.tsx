@@ -5,14 +5,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Users, Search, Filter, Plus, Eye, Edit, MoreHorizontal } from 'lucide-react';
+import { Users, Search, Filter, Plus, Eye, Edit, MoreHorizontal, UserPlus } from 'lucide-react';
 import { AddApprenantModal } from './AddApprenantModal';
+import { OFAddUtilisateur } from './OFAddUtilisateur';
 
 export const OFUtilisateurs = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('all');
-  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isAddUserOpen, setIsAddUserOpen] = useState(false);
+  const [isAddApprenantOpen, setIsAddApprenantOpen] = useState(false);
 
   // Mock data des utilisateurs
   const [users, setUsers] = useState([
@@ -122,10 +124,16 @@ export const OFUtilisateurs = () => {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestion des utilisateurs</h1>
           <p className="text-gray-600">Gérez les utilisateurs de votre organisme de formation</p>
         </div>
-        <Button onClick={() => setIsAddOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Ajouter un utilisateur
-        </Button>
+        <div className="flex space-x-2">
+          <Button onClick={() => setIsAddApprenantOpen(true)} variant="outline">
+            <UserPlus className="h-4 w-4 mr-2" />
+            Ajouter un apprenant
+          </Button>
+          <Button onClick={() => setIsAddUserOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Ajouter un utilisateur
+          </Button>
+        </div>
       </div>
 
       {/* Statistiques rapides */}
@@ -277,8 +285,14 @@ export const OFUtilisateurs = () => {
       </Card>
 
       <AddApprenantModal
-        isOpen={isAddOpen}
-        onClose={() => setIsAddOpen(false)}
+        isOpen={isAddApprenantOpen}
+        onClose={() => setIsAddApprenantOpen(false)}
+        onAdd={handleAddUser}
+      />
+
+      <OFAddUtilisateur
+        isOpen={isAddUserOpen}
+        onClose={() => setIsAddUserOpen(false)}
         onAdd={handleAddUser}
       />
     </div>
