@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -35,6 +36,7 @@ const AdminOrganisations = () => {
       usersCount: 145,
       userBreakdown: {
         apprenants: 120,
+        apprenantsActifs: 95,
         gestionnaires: 15,
         comptesPro: 10
       },
@@ -68,6 +70,7 @@ const AdminOrganisations = () => {
       usersCount: 89,
       userBreakdown: {
         apprenants: 75,
+        apprenantsActifs: 62,
         gestionnaires: 8,
         comptesPro: 6
       },
@@ -100,6 +103,7 @@ const AdminOrganisations = () => {
       usersCount: 67,
       userBreakdown: {
         apprenants: 55,
+        apprenantsActifs: 41,
         gestionnaires: 7,
         comptesPro: 5
       },
@@ -394,7 +398,7 @@ const AdminOrganisations = () => {
                               <div className="space-y-1 text-sm">
                                 <div className="font-medium">Répartition des utilisateurs :</div>
                                 <div>• Apprenants : {org.userBreakdown.apprenants}</div>
-                                <div>• Apprenants actifs : {org.userBreakdown.apprenants}</div>
+                                <div>• Apprenants actifs : {org.userBreakdown.apprenantsActifs}</div>
                                 <div>• Gestionnaires : {org.userBreakdown.gestionnaires}</div>
                               </div>
                             </TooltipContent>
