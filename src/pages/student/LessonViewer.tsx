@@ -202,7 +202,7 @@ Regardons d'autres exemples :
                 <Button 
                   variant="ghost" 
                   size="sm"
-                  onClick={() => navigate(`/dashboard/etudiant/courses/${courseId}`)}
+                  onClick={() => navigate(`/dashboard/apprenant/courses/${courseId}`)}
                   className="text-sm text-gray-600 hover:text-gray-900"
                 >
                   {lesson.course.title}
