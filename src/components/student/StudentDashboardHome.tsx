@@ -292,7 +292,7 @@ export const StudentDashboardHome = () => {
             <Button 
               className="w-full justify-start hover:bg-gradient-to-r hover:from-pink-500 hover:to-purple-500 hover:text-white transition-all duration-300 group" 
               variant="outline"
-              onClick={() => navigate('/dashboard/etudiant/tests')}
+              onClick={() => navigate('/dashboard/apprenant/tests')}
             >
               <TestTube className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
               Passer un test de positionnement
@@ -300,7 +300,7 @@ export const StudentDashboardHome = () => {
             <Button 
               className="w-full justify-start hover:bg-gradient-to-r hover:from-blue-500 hover:to-cyan-500 hover:text-white transition-all duration-300 group" 
               variant="outline"
-              onClick={() => navigate('/dashboard/etudiant/video')}
+              onClick={() => navigate('/dashboard/apprenant/video')}
             >
               <Video className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
               Rejoindre une session
@@ -308,7 +308,7 @@ export const StudentDashboardHome = () => {
             <Button 
               className="w-full justify-start hover:bg-gradient-to-r hover:from-purple-500 hover:to-indigo-500 hover:text-white transition-all duration-300 group" 
               variant="outline"
-              onClick={() => navigate('/dashboard/etudiant/chat')}
+              onClick={() => navigate('/dashboard/apprenant/chat')}
             >
               <Brain className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
               Chat avec l'IA
@@ -316,7 +316,7 @@ export const StudentDashboardHome = () => {
             <Button 
               className="w-full justify-start hover:bg-gradient-to-r hover:from-green-500 hover:to-teal-500 hover:text-white transition-all duration-300 group" 
               variant="outline"
-              onClick={() => navigate('/dashboard/etudiant/messages')}
+              onClick={() => navigate('/dashboard/apprenant/messages')}
             >
               <MessageSquare className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
               Messages
