@@ -1,15 +1,19 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { BookOpen, Calendar, Award, TrendingUp, Clock, CheckCircle } from 'lucide-react';
+import { BookOpen, Calendar, Award, TrendingUp, Clock, CheckCircle, Star, Trophy, Shield } from 'lucide-react';
+import { BadgeDisplay } from '@/components/common/BadgeDisplay';
+import { useStudentAchievements } from '@/hooks/useStudentAchievements';
 
 interface StudentDetailViewProps {
   user: any;
+  userRole?: string; // Pour gérer les permissions
 }
 
-export const StudentDetailView = ({ user }: StudentDetailViewProps) => {
+export const StudentDetailView = ({ user, userRole = 'admin' }: StudentDetailViewProps) => {
+  const { badges, loading } = useStudentAchievements(user.id);
+
   // Mock data spécifique aux apprenants
   const studentData = {
     courses: [
@@ -41,6 +45,24 @@ export const StudentDetailView = ({ user }: StudentDetailViewProps) => {
     };
     return configs[status as keyof typeof configs] || configs.non_commencé;
   };
+
+  // Logique de visibilité pour les badges de financement
+  const canViewFundingBadges = ['admin', 'manager', 'of_admin', 'of_manager'].includes(userRole);
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="animate-pulse">
+          <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-20 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -80,6 +102,93 @@ export const StudentDetailView = ({ user }: StudentDetailViewProps) => {
         </Card>
       </div>
 
+      {/* Nouvelle section : Badges et Récompenses */}
+      {badges && (
+        <div className="space-y-6">
+          {/* Badges de mérite (visibles par tous) */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Trophy className="h-5 w-5 text-yellow-600" />
+                Badges de mérite
+                <Badge variant="outline" className="ml-2">
+                  {badges.achievementBadges.filter(b => b.earnedAt).length} obtenus
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {badges.achievementBadges.map((badge) => (
+                  <BadgeDisplay
+                    key={badge.id}
+                    badge={badge}
+                    type="achievement"
+                    showProgress={true}
+                  />
+                ))}
+              </div>
+              
+              {badges.stats.totalBadges > 0 && (
+                <div className="mt-6 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border">
+                  <h4 className="font-semibold text-sm mb-3 flex items-center gap-2">
+                    <Star className="h-4 w-4 text-yellow-600" />
+                    Statistiques des badges
+                  </h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                    <div>
+                      <div className="text-2xl font-bold text-gray-600">{badges.stats.raretyBreakdown.common}</div>
+                      <div className="text-xs text-gray-500">Communs</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-blue-600">{badges.stats.raretyBreakdown.rare}</div>
+                      <div className="text-xs text-gray-500">Rares</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-purple-600">{badges.stats.raretyBreakdown.epic}</div>
+                      <div className="text-xs text-gray-500">Épiques</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-yellow-600">{badges.stats.raretyBreakdown.legendary}</div>
+                      <div className="text-xs text-gray-500">Légendaires</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Badges de financement (visibles uniquement par OF, Admin, Manager) */}
+          {canViewFundingBadges && badges.fundingBadges.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-blue-600" />
+                  Badges de financement
+                  <Badge variant="secondary" className="ml-2 bg-blue-100 text-blue-800">
+                    Organisme uniquement
+                  </Badge>
+                </CardTitle>
+                <p className="text-sm text-gray-600 mt-1">
+                  Ces badges concernent le financement et les documents administratifs de l'apprenant.
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {badges.fundingBadges.map((badge) => (
+                    <BadgeDisplay
+                      key={badge.id}
+                      badge={badge}
+                      type="funding"
+                      showProgress={false}
+                    />
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
+
       {/* Formations en cours */}
       <Card>
         <CardHeader>
@@ -96,7 +205,7 @@ export const StudentDetailView = ({ user }: StudentDetailViewProps) => {
                 <div key={course.id} className="p-4 border rounded-lg">
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <h4 className="font-semibold">{course.name}</h4>
+                      <h4 className="font-semibold">{course.title}</h4>
                       <p className="text-sm text-gray-600">Temps passé: {course.timeSpent}</p>
                     </div>
                     <div className="text-right">

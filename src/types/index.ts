@@ -1,4 +1,3 @@
-
 export interface User {
   id: string;
   email: string;
@@ -257,6 +256,56 @@ export interface OrganisationFormation {
   settings?: any; // Paramètres personnalisables en JSONB
   createdAt: string;
   updatedAt: string;
+}
+
+// ============ NOUVEAUX TYPES POUR SYSTÈME DE BADGES ============
+
+export interface AchievementBadge {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  color: string;
+  category: 'progression' | 'excellence' | 'engagement' | 'social';
+  rarity: 'common' | 'rare' | 'epic' | 'legendary';
+  condition: {
+    type: 'courses_completed' | 'average_grade' | 'perfect_scores' | 'study_time' | 'login_streak' | 'categories_completed' | 'help_provided';
+    value: number;
+    operator: '>=' | '>' | '=' | '<' | '<=';
+  };
+  earnedAt?: string;
+  progress?: {
+    current: number;
+    required: number;
+    percentage: number;
+  };
+}
+
+export interface FundingBadge {
+  id: string;
+  type: 'OPCO' | 'FAF' | 'CPF' | 'DPC';
+  name: string;
+  description: string;
+  color: string;
+  documentsRequired: string[];
+  isActive: boolean;
+  addedAt: string;
+  addedBy: string;
+}
+
+export interface StudentBadges {
+  userId: string;
+  achievementBadges: AchievementBadge[];
+  fundingBadges: FundingBadge[];
+  stats: {
+    totalBadges: number;
+    raretyBreakdown: {
+      common: number;
+      rare: number;
+      epic: number;
+      legendary: number;
+    };
+  };
 }
 
 // ============ TYPES EXISTANTS ============
