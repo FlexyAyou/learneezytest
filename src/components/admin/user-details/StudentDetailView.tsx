@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -205,7 +206,7 @@ export const StudentDetailView = ({ user, userRole = 'admin' }: StudentDetailVie
                 <div key={course.id} className="p-4 border rounded-lg">
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <h4 className="font-semibold">{course.title}</h4>
+                      <h4 className="font-semibold">{course.name}</h4>
                       <p className="text-sm text-gray-600">Temps passé: {course.timeSpent}</p>
                     </div>
                     <div className="text-right">
