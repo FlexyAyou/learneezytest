@@ -218,7 +218,7 @@ const CourseDetailStudent = () => {
                     <div>
                       <Badge className="mb-4 bg-green-100 text-green-700">Inscrit</Badge>
                       <Button className="w-full bg-pink-600 hover:bg-pink-700" asChild>
-                        <Link to="/dashboard/etudiant/courses">
+                        <Link to="/dashboard/apprenant/courses">
                           <Play className="h-4 w-4 mr-2" />
                           Continuer le cours
                         </Link>
