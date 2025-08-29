@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,10 +5,13 @@ import { Progress } from '@/components/ui/progress';
 import { BookOpen, Award, TrendingUp, Clock, Video, Brain, TestTube, Target, Calendar, MessageSquare } from 'lucide-react';
 import { StatsCard } from '@/components/common/StatsCard';
 import { InteractiveChart } from '@/components/common/InteractiveChart';
+import { BadgeDisplay } from '@/components/common/BadgeDisplay';
+import { useStudentAchievements } from '@/hooks/useStudentAchievements';
 import { useNavigate } from 'react-router-dom';
 
 export const StudentDashboardHome = () => {
   const navigate = useNavigate();
+  const { badges, loading } = useStudentAchievements('1');
 
   const stats = [
     {
@@ -54,7 +56,6 @@ export const StudentDashboardHome = () => {
     { id: 3, title: 'Remise projet CSS', date: '2024-01-22', time: '23:59', type: 'assignment' },
   ];
 
-  // Données pour les graphiques
   const progressData = [
     { name: 'Sem 1', value: 20, progression: 20 },
     { name: 'Sem 2', value: 35, progression: 35 },
@@ -90,6 +91,12 @@ export const StudentDashboardHome = () => {
     }
   };
 
+  // Get recent earned badges (last 3)
+  const recentBadges = badges?.achievementBadges
+    .filter(badge => badge.earnedAt)
+    .sort((a, b) => new Date(b.earnedAt!).getTime() - new Date(a.earnedAt!).getTime())
+    .slice(0, 3) || [];
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header avec animation */}
@@ -122,6 +129,44 @@ export const StudentDashboardHome = () => {
           />
         ))}
       </div>
+
+      {/* Section Badges de Mérite */}
+      {!loading && recentBadges.length > 0 && (
+        <Card className="hover:shadow-lg transition-all duration-300 border-2 border-yellow-200 bg-gradient-to-r from-yellow-50 to-orange-50">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center">
+                <Award className="mr-2 h-5 w-5 text-yellow-600 animate-pulse" />
+                Mes Badges de Mérite
+              </CardTitle>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => navigate('/dashboard/apprenant/progress')}
+                className="hover:bg-yellow-500 hover:text-white hover:border-yellow-500 transition-all duration-300"
+              >
+                Voir tout
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {recentBadges.map((badge) => (
+                <div key={badge.id} className="transform hover:scale-105 transition-all duration-300">
+                  <BadgeDisplay badge={badge} type="achievement" showProgress={false} />
+                </div>
+              ))}
+            </div>
+            {badges && (
+              <div className="mt-4 p-3 bg-white/50 rounded-lg">
+                <p className="text-sm text-gray-600 text-center">
+                  🏆 <strong>{badges.stats.totalBadges} badges obtenus</strong> sur votre parcours d'apprentissage !
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Graphiques interactifs */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

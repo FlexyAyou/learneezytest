@@ -1,10 +1,15 @@
+
 import React from 'react';
-import { BookOpen, Clock, Award, CheckCircle, Circle, TrendingUp } from 'lucide-react';
+import { BookOpen, Clock, Award, CheckCircle, Circle, TrendingUp, Trophy, Star } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { BadgeDisplay } from '@/components/common/BadgeDisplay';
+import { useStudentAchievements } from '@/hooks/useStudentAchievements';
 
 const StudentProgress = () => {
+  const { badges, loading } = useStudentAchievements('1');
+
   // Mock data pour la progression de l'étudiant
   const studentStats = {
     totalCourses: 5,
@@ -95,6 +100,10 @@ const StudentProgress = () => {
     return 'text-red-600';
   };
 
+  // Séparer les badges obtenus et en cours
+  const earnedBadges = badges?.achievementBadges.filter(badge => badge.earnedAt) || [];
+  const inProgressBadges = badges?.achievementBadges.filter(badge => badge.progress) || [];
+
   return (
     <div className="space-y-6">
       <div className="mb-8">
@@ -146,14 +155,84 @@ const StudentProgress = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Certificats obtenus</p>
-                <div className="text-2xl font-bold text-gray-900">{studentStats.certificates}</div>
+                <p className="text-sm text-gray-600">Badges obtenus</p>
+                <div className="text-2xl font-bold text-gray-900">{earnedBadges.length}</div>
               </div>
               <Award className="h-8 w-8 text-yellow-600" />
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Section Badges et Récompenses */}
+      {!loading && badges && (
+        <Card className="mb-8 border-2 border-yellow-200 bg-gradient-to-r from-yellow-50 to-orange-50">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Trophy className="mr-2 h-6 w-6 text-yellow-600" />
+              Badges et Récompenses
+            </CardTitle>
+            <CardDescription>
+              Vos accomplissements et prochains objectifs
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Statistiques des badges */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-white/50 rounded-lg">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-900">{badges.stats.totalBadges}</div>
+                <p className="text-sm text-gray-600">Total badges</p>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-600">{badges.stats.raretyBreakdown.common}</div>
+                <p className="text-sm text-gray-600">Communs</p>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-600">{badges.stats.raretyBreakdown.rare}</div>
+                <p className="text-sm text-gray-600">Rares</p>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-purple-600">{badges.stats.raretyBreakdown.epic}</div>
+                <p className="text-sm text-gray-600">Épiques</p>
+              </div>
+            </div>
+
+            {/* Badges obtenus */}
+            {earnedBadges.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold mb-4 flex items-center">
+                  <Star className="mr-2 h-5 w-5 text-yellow-500" />
+                  Badges obtenus ({earnedBadges.length})
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {earnedBadges.map((badge) => (
+                    <div key={badge.id} className="transform hover:scale-105 transition-all duration-300">
+                      <BadgeDisplay badge={badge} type="achievement" showProgress={false} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Badges en cours */}
+            {inProgressBadges.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold mb-4 flex items-center">
+                  <TrendingUp className="mr-2 h-5 w-5 text-blue-500" />
+                  Prochains objectifs ({inProgressBadges.length})
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {inProgressBadges.map((badge) => (
+                    <div key={badge.id} className="transform hover:scale-105 transition-all duration-300">
+                      <BadgeDisplay badge={badge} type="achievement" showProgress={true} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Détails des cours */}
       <div className="space-y-6">
@@ -219,31 +298,43 @@ const StudentProgress = () => {
         ))}
       </div>
 
-      {/* Objectifs et recommandations */}
+      {/* Recommandations basées sur les badges */}
       <Card>
         <CardHeader>
-          <CardTitle>Recommandations</CardTitle>
-          <CardDescription>Conseils pour améliorer votre progression</CardDescription>
+          <CardTitle>Conseils pour débloquer vos prochains badges</CardTitle>
+          <CardDescription>Objectifs personnalisés basés sur votre progression</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
             <div className="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
               <TrendingUp className="h-5 w-5 text-blue-600 mt-0.5" />
               <div>
-                <p className="font-medium text-blue-900">Continuez sur votre lancée !</p>
+                <p className="font-medium text-blue-900">Perfectionniste en vue !</p>
                 <p className="text-sm text-blue-700">
-                  Vous avez une progression moyenne de {studentStats.averageProgress}%. 
-                  Essayez de terminer le cours d'Anglais 5ème cette semaine.
+                  Il vous reste 1 note parfaite (20/20) pour débloquer le badge "Perfectionniste". 
+                  Visez l'excellence dans votre prochain examen !
                 </p>
               </div>
             </div>
             
-            <div className="flex items-start space-x-3 p-3 bg-yellow-50 rounded-lg">
-              <Clock className="h-5 w-5 text-yellow-600 mt-0.5" />
+            <div className="flex items-start space-x-3 p-3 bg-purple-50 rounded-lg">
+              <Clock className="h-5 w-5 text-purple-600 mt-0.5" />
               <div>
-                <p className="font-medium text-yellow-900">Planifiez votre temps</p>
-                <p className="text-sm text-yellow-700">
-                  Consacrez 30 minutes par jour à l'Histoire-Géographie pour rattraper le retard.
+                <p className="font-medium text-purple-900">Marathon d'apprentissage</p>
+                <p className="text-sm text-purple-700">
+                  Plus que 14 heures d'étude pour obtenir le badge "Marathon" (50h au total). 
+                  Continuez sur cette lancée !
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start space-x-3 p-3 bg-green-50 rounded-lg">
+              <Award className="h-5 w-5 text-green-600 mt-0.5" />
+              <div>
+                <p className="font-medium text-green-900">Régularité récompensée</p>
+                <p className="text-sm text-green-700">
+                  Vous avez une série de {studentStats.currentStreak} jours de connexion ! 
+                  Continuez pour débloquer le badge "Régulier" à 30 jours.
                 </p>
               </div>
             </div>
