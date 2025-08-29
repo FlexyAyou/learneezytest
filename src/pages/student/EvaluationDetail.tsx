@@ -75,7 +75,7 @@ const EvaluationDetail = () => {
         <Button 
           variant="outline" 
           size="sm"
-          onClick={() => navigate('/dashboard/etudiant/evaluations')}
+          onClick={() => navigate('/dashboard/apprenant/evaluations')}
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Retour
@@ -198,7 +198,7 @@ const EvaluationDetail = () => {
       <div className="flex gap-4">
         <Button 
           variant="outline"
-          onClick={() => navigate('/dashboard/etudiant/evaluations')}
+          onClick={() => navigate('/dashboard/apprenant/evaluations')}
         >
           Retour aux évaluations
         </Button>

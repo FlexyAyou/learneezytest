@@ -100,7 +100,7 @@ export const StudentOffers = ({ currentPlan = 'Étudiant Premium', currentCredit
         offerId, 
         isAnnual, 
         isOF: false,
-        offerType: 'etudiant'
+        offerType: 'apprenant'
       } 
     });
   };

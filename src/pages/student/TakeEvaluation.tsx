@@ -144,11 +144,11 @@ const TakeEvaluation = () => {
             <div className="flex gap-4 justify-center">
               <Button 
                 variant="outline"
-                onClick={() => navigate('/dashboard/etudiant/evaluations')}
+                onClick={() => navigate('/dashboard/apprenant/evaluations')}
               >
                 Retour aux évaluations
               </Button>
-              <Button onClick={() => navigate(`/dashboard/etudiant/evaluations/${id}/results`)}>
+              <Button onClick={() => navigate(`/dashboard/apprenant/evaluations/${id}/results`)}>
                 Voir les résultats détaillés
               </Button>
             </div>

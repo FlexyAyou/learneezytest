@@ -124,7 +124,7 @@ export const TutorStudentTrackingActions = () => {
     
     const element = document.createElement('a');
     element.href = `data:text/csv;charset=utf-8,${encodeURIComponent(csvContent)}`;
-    element.download = 'rapport-etudiants.csv';
+    element.download = 'rapport-apprenants.csv';
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);

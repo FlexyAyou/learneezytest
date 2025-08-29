@@ -150,7 +150,7 @@ const Quiz = () => {
             
             <div className="space-y-3">
               <Button className="w-full bg-pink-600 hover:bg-pink-700" asChild>
-                <Link to="/dashboard/etudiant/courses">
+                <Link to="/dashboard/apprenant/courses">
                   Retourner aux cours
                 </Link>
               </Button>
@@ -174,7 +174,7 @@ const Quiz = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Button variant="ghost" asChild>
-                <Link to="/dashboard/etudiant/courses">
+                <Link to="/dashboard/apprenant/courses">
                   <ChevronLeft className="h-4 w-4 mr-1" />
                   Retour
                 </Link>
