@@ -18,11 +18,23 @@ interface CourseVisibilityModalProps {
   onSave: (courseId: string, settings: any) => void;
 }
 
+// Types d'abonnement OF depuis la page des offres
 const subscriptionTypes = [
-  { id: 'basic', name: 'Basic', description: 'Abonnement de base' },
-  { id: 'premium', name: 'Premium', description: 'Abonnement premium' },
-  { id: 'enterprise', name: 'Enterprise', description: 'Abonnement entreprise' },
-  { id: 'education', name: 'Éducation', description: 'Abonnement éducation' }
+  { 
+    id: 'of_starter', 
+    name: 'OF Starter', 
+    description: 'Idéal pour les petits organismes - Jusqu\'à 10 apprenants' 
+  },
+  { 
+    id: 'of_business', 
+    name: 'OF Business', 
+    description: 'Pour les organismes en croissance - Jusqu\'à 50 apprenants' 
+  },
+  { 
+    id: 'of_enterprise', 
+    name: 'OF Enterprise', 
+    description: 'Solution complète pour grands organismes - Apprenants illimités' 
+  }
 ];
 
 export const CourseVisibilityModal = ({ course, isOpen, onClose, onSave }: CourseVisibilityModalProps) => {
@@ -200,9 +212,9 @@ export const CourseVisibilityModal = ({ course, isOpen, onClose, onSave }: Cours
           {settings.organisationAccess === 'restricted' && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Types d'abonnement autorisés</CardTitle>
+                <CardTitle className="text-lg">Types d'abonnement OF autorisés</CardTitle>
                 <p className="text-sm text-gray-500">
-                  Sélectionnez les types d'abonnement qui auront accès au cours
+                  Sélectionnez les types d'abonnement d'organismes de formation qui auront accès au cours
                 </p>
               </CardHeader>
               <CardContent>
@@ -231,7 +243,7 @@ export const CourseVisibilityModal = ({ course, isOpen, onClose, onSave }: Cours
                     <div className="flex items-center">
                       <AlertTriangle className="h-4 w-4 text-amber-600 mr-2" />
                       <span className="text-sm text-amber-800">
-                        Aucun type d'abonnement sélectionné - Le cours sera inaccessible
+                        Aucun type d'abonnement sélectionné - Le cours sera inaccessible aux OF
                       </span>
                     </div>
                   </div>
@@ -244,7 +256,7 @@ export const CourseVisibilityModal = ({ course, isOpen, onClose, onSave }: Cours
           {settings.organisationAccess !== 'restricted' && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Accès aux abonnements</CardTitle>
+                <CardTitle className="text-lg">Accès aux abonnements OF</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="p-4 bg-blue-50 rounded-lg">
@@ -252,8 +264,8 @@ export const CourseVisibilityModal = ({ course, isOpen, onClose, onSave }: Cours
                     <AlertTriangle className="h-4 w-4 text-blue-600 mr-2" />
                     <span className="text-sm text-blue-800">
                       {settings.organisationAccess === 'all' 
-                        ? 'Accessible à tous les types d\'abonnement'
-                        : 'Aucune organisation n\'aura accès au cours'
+                        ? 'Accessible à tous les types d\'abonnement OF'
+                        : 'Aucun organisme de formation n\'aura accès au cours'
                       }
                     </span>
                   </div>
@@ -318,7 +330,7 @@ export const CourseVisibilityModal = ({ course, isOpen, onClose, onSave }: Cours
 
               {settings.organisationAccess === 'restricted' && settings.subscriptionRestrictions.length > 0 && (
                 <div className="mt-4">
-                  <Label className="text-sm font-medium">Types d'abonnement autorisés :</Label>
+                  <Label className="text-sm font-medium">Types d'abonnement OF autorisés :</Label>
                   <div className="flex flex-wrap gap-2 mt-2">
                     {settings.subscriptionRestrictions.map(subId => {
                       const sub = subscriptionTypes.find(s => s.id === subId);
