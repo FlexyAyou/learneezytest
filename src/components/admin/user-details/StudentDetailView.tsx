@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -18,13 +17,13 @@ export const StudentDetailView = ({ user, userRole = 'admin' }: StudentDetailVie
   // Mock data spécifique aux apprenants
   const studentData = {
     courses: [
-      { id: 1, name: 'React Avancé', progress: 75, status: 'en_cours', grade: 'A-', timeSpent: '24h' },
-      { id: 2, name: 'JavaScript ES6+', progress: 100, status: 'terminé', grade: 'A', timeSpent: '32h' },
-      { id: 3, name: 'HTML/CSS', progress: 30, status: 'en_cours', grade: '-', timeSpent: '8h' }
+      { id: 1, name: 'React Avancé', progress: 75, status: 'en_cours', timeSpent: '24h' },
+      { id: 2, name: 'JavaScript ES6+', progress: 100, status: 'terminé', timeSpent: '32h' },
+      { id: 3, name: 'HTML/CSS', progress: 30, status: 'en_cours', timeSpent: '8h' }
     ],
     certificates: [
-      { id: 1, name: 'Certificat React', date: '2024-01-15', grade: 'A' },
-      { id: 2, name: 'Attestation JavaScript', date: '2024-01-10', grade: 'A-' }
+      { id: 1, name: 'Certificat React', date: '2024-01-15' },
+      { id: 2, name: 'Attestation JavaScript', date: '2024-01-10' }
     ],
     evaluations: [
       { id: 1, course: 'React Avancé', type: 'Quiz', score: '16/20', date: '2024-01-20' },
@@ -211,9 +210,6 @@ export const StudentDetailView = ({ user, userRole = 'admin' }: StudentDetailVie
                     </div>
                     <div className="text-right">
                       <Badge variant={config.variant}>{config.label}</Badge>
-                      {course.grade !== '-' && (
-                        <div className="text-sm font-medium mt-1">Note: {course.grade}</div>
-                      )}
                     </div>
                   </div>
                   <div>
@@ -277,7 +273,6 @@ export const StudentDetailView = ({ user, userRole = 'admin' }: StudentDetailVie
                     Obtenu le {cert.date}
                   </p>
                 </div>
-                <Badge className="bg-green-500">Grade: {cert.grade}</Badge>
               </div>
             ))}
           </div>
