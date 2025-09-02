@@ -100,8 +100,8 @@ Pour une documentation complète, consultez [DOCUMENTATION.md](./DOCUMENTATION.m
 |------|-------------|----------------------------|
 | **Étudiant** | Apprenant principal | Cours, progression, certificats |
 | **Formateur interne** | Créateur de contenu | Création cours, suivi apprenants |
-| **Formateur externe** | Prestataire | Réservations, disponibilités |
-| **Manager** | Superviseur équipe | Rapports, assignations |
+| **Formateur indépendant** | Prestataire | Réservations, disponibilités |
+| **Gestionnaire** | Superviseur équipe | Rapports, assignations |
 | **Administrateur** | Gestionnaire plateforme | Configuration globale |
 | **Organisme de formation** | Client institutionnel | Gestion complète OF |
 
