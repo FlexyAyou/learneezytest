@@ -46,8 +46,8 @@ export const TutorCatalog = () => {
   const filteredCourses = extendedCoursesData.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          course.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = !categoryFilter || course.category === categoryFilter;
-    const matchesLevel = !levelFilter || course.level === levelFilter;
+    const matchesCategory = !categoryFilter || categoryFilter === 'all' || course.category === categoryFilter;
+    const matchesLevel = !levelFilter || levelFilter === 'all' || course.level === levelFilter;
     return matchesSearch && matchesCategory && matchesLevel;
   });
 
@@ -119,7 +119,7 @@ export const TutorCatalog = () => {
                 <SelectValue placeholder="Catégorie" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Toutes les catégories</SelectItem>
+                <SelectItem value="all">Toutes les catégories</SelectItem>
                 <SelectItem value="Mathématiques">Mathématiques</SelectItem>
                 <SelectItem value="Sciences">Sciences</SelectItem>
                 <SelectItem value="Langues">Langues</SelectItem>
@@ -131,7 +131,7 @@ export const TutorCatalog = () => {
                 <SelectValue placeholder="Niveau" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tous les niveaux</SelectItem>
+                <SelectItem value="all">Tous les niveaux</SelectItem>
                 <SelectItem value="Débutant">Débutant</SelectItem>
                 <SelectItem value="Intermédiaire">Intermédiaire</SelectItem>
                 <SelectItem value="Avancé">Avancé</SelectItem>
