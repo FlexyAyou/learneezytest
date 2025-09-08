@@ -20,6 +20,7 @@ import VideoConference from '@/components/common/VideoConference';
 import StudentVideoConferences from '@/components/student/StudentVideoConferences';
 import { StudentDashboardHome } from '@/components/student/StudentDashboardHome';
 import { StudentShop } from '@/components/student/StudentShop';
+import StudentCatalog from '@/components/student/StudentCatalog';
 import AIChatButton from '@/components/common/AIChatButton';
 
 const StudentDashboard = () => {
@@ -29,7 +30,7 @@ const StudentDashboard = () => {
 
   const sidebarItems = [
     { title: "Tableau de bord", href: "/dashboard/apprenant", icon: Home, isActive: currentPath === "/dashboard/apprenant" },
-    { title: "Catalogue de formations", href: "/cours", icon: BookOpen, isActive: currentPath === "/cours" },
+    { title: "Catalogue", href: "/dashboard/apprenant/catalogue", icon: BookOpen, isActive: currentPath === "/dashboard/apprenant/catalogue" },
     { title: "Mes cours", href: "/dashboard/apprenant/courses", icon: BookOpen, isActive: currentPath === "/dashboard/apprenant/courses" },
     { title: "Mon parcours", href: "/dashboard/apprenant/progress", icon: Award, isActive: currentPath === "/dashboard/apprenant/progress" },
     { title: "Certificats", href: "/dashboard/apprenant/certificates", icon: Award, isActive: currentPath === "/dashboard/apprenant/certificates" },
@@ -66,6 +67,7 @@ const StudentDashboard = () => {
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-6">
           <Routes>
             <Route path="/" element={<StudentDashboardHome />} />
+            <Route path="/catalogue" element={<StudentCatalog />} />
             <Route path="/courses" element={<StudentCourses />} />
             <Route path="/courses/:id" element={<CourseViewer />} />
             <Route path="/progress" element={<StudentProgress />} />
