@@ -55,6 +55,7 @@ function App() {
           <Route path="/connexion" element={<Login />} />
           <Route path="/inscription" element={<Register />} />
           <Route path="/mot-de-passe-oublié" element={<ForgotPassword />} />
+          <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
           
           {/* Public Trainer Pages */}
           <Route path="/formateur-independant/*" element={<ExternalTrainerDashboard />} />
