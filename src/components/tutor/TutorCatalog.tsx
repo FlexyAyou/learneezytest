@@ -1,280 +1,793 @@
 import React, { useState } from 'react';
+import { Search, Award, Users as UsersIcon, Clock, Star, Calendar, Languages as LanguagesIcon, Download } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { 
-  BookOpen, 
-  Clock, 
-  Star, 
-  Users, 
-  Play, 
-  UserPlus,
-  Calendar,
-  Search,
-  Filter,
-  GraduationCap,
-  Trophy,
-  Heart,
-  User
-} from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { extendedCoursesData } from '@/data/mockCoursesData';
-import { mockTrainerProfiles } from '@/data/mockTrainerBookingData';
 
 export const TutorCatalog = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('');
-  const [levelFilter, setLevelFilter] = useState('');
-  const [selectedStudent, setSelectedStudent] = useState('');
+  const [selectedEducationLevel, setSelectedEducationLevel] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedDifficulty, setSelectedDifficulty] = useState('all');
+  const [selectedDuration, setSelectedDuration] = useState('all');
+  const [showAllCourses, setShowAllCourses] = useState(false);
+  
+  // États pour la section formateurs
+  const [trainerSearchTerm, setTrainerSearchTerm] = useState('');
+  const [selectedSpecialty, setSelectedSpecialty] = useState('all');
+  const [selectedLanguage, setSelectedLanguage] = useState('all');
+  const [showAllTrainers, setShowAllTrainers] = useState(false);
   const [selectedTrainer, setSelectedTrainer] = useState(null);
-  const [showEnrollModal, setShowEnrollModal] = useState(false);
-  const [showBookingModal, setShowBookingModal] = useState(false);
-  const [selectedCourse, setSelectedCourse] = useState(null);
+  
+  // États pour les modales
+  const [selectedStudent, setSelectedStudent] = useState('');
+  const [selectedCourse, setSelectedCourse] = useState<any>(null);
+  const [isEnrollmentModalOpen, setIsEnrollmentModalOpen] = useState(false);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
   // Mock students data
   const students = [
-    { id: '1', name: 'Emma Martin', age: 16 },
-    { id: '2', name: 'Lucas Dubois', age: 14 }
+    { id: 1, name: "Alice Martin" },
+    { id: 2, name: "Lucas Dubois" },
+    { id: 3, name: "Emma Leroy" },
+    { id: 4, name: "Noah Petit" }
   ];
 
-  const filteredCourses = extendedCoursesData.filter(course => {
-    const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         course.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = !categoryFilter || categoryFilter === 'all' || course.category === categoryFilter;
-    const matchesLevel = !levelFilter || levelFilter === 'all' || course.level === levelFilter;
-    return matchesSearch && matchesCategory && matchesLevel;
-  });
-
-  const filteredTrainers = mockTrainerProfiles.filter(trainer => {
-    const matchesSearch = trainer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         trainer.specialties.some(s => s.toLowerCase().includes(searchTerm.toLowerCase()));
-    return matchesSearch;
-  });
-
-  const handleEnrollStudent = (course) => {
-    setSelectedCourse(course);
-    setShowEnrollModal(true);
+  // Fonction pour convertir euros en tokens (1 token = 0,3€)
+  const convertToTokens = (euroPrice: string) => {
+    const euroValue = parseFloat(euroPrice.replace('€', ''));
+    const tokens = Math.round(euroValue / 0.3);
+    return `${tokens} tokens`;
   };
 
-  const handleBookTrainer = (trainer) => {
+  const courses = [
+    {
+      id: 1,
+      title: "Mathématiques - Les Fractions",
+      instructor: "Marie Dubois",
+      image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=250&fit=crop",
+      duration: "1h",
+      students: 45,
+      rating: 4.8,
+      price: "83 tokens", // 25€ / 0.3 = 83 tokens
+      originalPrice: "117 tokens", // 35€ / 0.3 = 117 tokens
+      level: "CM1",
+      category: "Mathématiques",
+      cycle: "élémentaire",
+      availableSlots: 12,
+      description: "Comprenez les fractions avec des exemples concrets et des exercices ludiques adaptés au niveau CM1.",
+      completed: false
+    },
+    {
+      id: 2,
+      title: "Français - Analyse de Texte",
+      instructor: "Paul Martin",
+      image: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=250&fit=crop",
+      duration: "1h30",
+      students: 38,
+      rating: 4.9,
+      price: "100 tokens", // 30€ / 0.3 = 100 tokens
+      originalPrice: "133 tokens", // 40€ / 0.3 = 133 tokens
+      level: "6ème",
+      category: "Français",
+      cycle: "secondaire",
+      availableSlots: 8,
+      description: "Apprenez à analyser un texte littéraire et à identifier les figures de style au niveau collège.",
+      completed: false
+    },
+    {
+      id: 3,
+      title: "Sciences - Les États de la Matière",
+      instructor: "Sophie Laurent",
+      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=250&fit=crop",
+      duration: "1h",
+      students: 52,
+      rating: 4.7,
+      price: "93 tokens", // 28€ / 0.3 = 93 tokens
+      originalPrice: "127 tokens", // 38€ / 0.3 = 127 tokens
+      level: "CE2",
+      category: "Sciences",
+      cycle: "élémentaire",
+      availableSlots: 15,
+      description: "Découvrez les différents états de la matière à travers des expériences simples et amusantes.",
+      completed: false
+    },
+    {
+      id: 4,
+      title: "Histoire-Géographie - La Révolution Française",
+      instructor: "Lucas Petit",
+      image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=250&fit=crop",
+      duration: "1h15",
+      students: 41,
+      rating: 4.6,
+      price: "107 tokens", // 32€ / 0.3 = 107 tokens
+      originalPrice: "140 tokens", // 42€ / 0.3 = 140 tokens
+      level: "4ème",
+      category: "Histoire-Géographie",
+      cycle: "secondaire",
+      availableSlots: 6,
+      description: "Plongez dans l'histoire de la Révolution française et comprenez ses enjeux politiques et sociaux.",
+      completed: false
+    },
+    {
+      id: 5,
+      title: "Anglais - Les Temps du Passé",
+      instructor: "Emma Wilson",
+      image: "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=400&h=250&fit=crop",
+      duration: "1h",
+      students: 67,
+      rating: 4.8,
+      price: "87 tokens", // 26€ / 0.3 = 87 tokens
+      originalPrice: "120 tokens", // 36€ / 0.3 = 120 tokens
+      level: "5ème",
+      category: "Anglais",
+      cycle: "secondaire",
+      availableSlots: 10,
+      description: "Maîtrisez l'utilisation du preterit et du present perfect en anglais avec des exercices pratiques.",
+      completed: false
+    },
+    {
+      id: 6,
+      title: "Physique-Chimie - Les Réactions Chimiques",
+      instructor: "Thomas Roux",
+      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=250&fit=crop",
+      duration: "1h30",
+      students: 29,
+      rating: 4.9,
+      price: "117 tokens", // 35€ / 0.3 = 117 tokens
+      originalPrice: "150 tokens", // 45€ / 0.3 = 150 tokens
+      level: "3ème",
+      category: "Physique-Chimie",
+      cycle: "secondaire",
+      availableSlots: 5,
+      description: "Explorez les réactions chimiques fondamentales et leurs applications dans la vie quotidienne.",
+      completed: false
+    },
+    {
+      id: 7,
+      title: "Mathématiques - Calcul Littéral",
+      instructor: "Alex Durand", 
+      image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=250&fit=crop",
+      duration: "1h15",
+      students: 33,
+      rating: 4.7,
+      price: "100 tokens", // 30€ / 0.3 = 100 tokens
+      originalPrice: "133 tokens", // 40€ / 0.3 = 133 tokens
+      level: "2nde",
+      category: "Mathématiques",
+      cycle: "secondaire",
+      availableSlots: 7,
+      description: "Développez vos compétences en calcul littéral et résolution d'équations au niveau seconde.",
+      completed: false
+    },
+    {
+      id: 8,
+      title: "SVT - La Génétique",
+      instructor: "Julie Bernard",
+      image: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=250&fit=crop",
+      duration: "1h30",
+      students: 24,
+      rating: 4.6,
+      price: "127 tokens", // 38€ / 0.3 = 127 tokens
+      originalPrice: "160 tokens", // 48€ / 0.3 = 160 tokens
+      level: "1ère",
+      category: "SVT",
+      cycle: "secondaire",
+      availableSlots: 4,
+      description: "Comprenez les bases de la génétique et de l'hérédité avec des exemples concrets et actuels.",
+      completed: false
+    },
+    {
+      id: 9,
+      title: "Lecture - Compréhension de Texte",
+      instructor: "Camille Moreau",
+      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=250&fit=crop",
+      duration: "45min",
+      students: 78,
+      rating: 4.9,
+      price: "67 tokens", // 20€ / 0.3 = 67 tokens
+      originalPrice: "93 tokens", // 28€ / 0.3 = 93 tokens
+      level: "CP",
+      category: "Français",
+      cycle: "élémentaire",
+      availableSlots: 20,
+      description: "Améliorez la compréhension de lecture avec des textes adaptés au niveau CP.",
+      completed: false
+    },
+    {
+      id: 10,
+      title: "Arts Plastiques - Techniques de Dessin",
+      instructor: "Pierre Dubois",
+      image: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=250&fit=crop",
+      duration: "2h",
+      students: 15,
+      rating: 4.8,
+      price: "150 tokens", // 45€ / 0.3 = 150 tokens
+      originalPrice: "183 tokens", // 55€ / 0.3 = 183 tokens
+      level: "Terminale",
+      category: "Arts",
+      cycle: "secondaire",
+      availableSlots: 3,
+      description: "Perfectionnez vos techniques de dessin et explorez différents styles artistiques.",
+      completed: false
+    }
+  ];
+
+  // Données des formateurs - mise à jour des tarifs en tokens
+  const trainers = [
+    {
+      id: 1,
+      name: "Marie Dubois",
+      photo: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
+      specialty: "Mathématiques",
+      description: "Formatrice experte en mathématiques avec 10 ans d'expérience dans l'enseignement personnalisé.",
+      experience: "10 ans",
+      rating: 4.9,
+      languages: ["Français", "Anglais"],
+      supportType: "Tutorat",
+      availableSlots: [
+        { day: "Lundi", time: "14h-16h" },
+        { day: "Mercredi", time: "10h-12h" },
+        { day: "Vendredi", time: "16h-18h" }
+      ],
+      hourlyRate: "117 tokens/h" // 35€ / 0.3 = 117 tokens
+    },
+    {
+      id: 2,
+      name: "Paul Martin",
+      photo: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+      specialty: "Français",
+      description: "Spécialiste en littérature française et techniques de rédaction pour tous niveaux.",
+      experience: "8 ans",
+      rating: 4.8,
+      languages: ["Français"],
+      supportType: "Coaching",
+      availableSlots: [
+        { day: "Mardi", time: "9h-11h" },
+        { day: "Jeudi", time: "14h-16h" },
+        { day: "Samedi", time: "10h-12h" }
+      ],
+      hourlyRate: "107 tokens/h" // 32€ / 0.3 = 107 tokens
+    },
+    {
+      id: 3,
+      name: "Sophie Laurent",
+      photo: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
+      specialty: "Sciences",
+      description: "Docteure en biologie, passionnée par la transmission des sciences naturelles.",
+      experience: "12 ans",
+      rating: 4.9,
+      languages: ["Français", "Anglais", "Espagnol"],
+      supportType: "Soutien technique",
+      availableSlots: [
+        { day: "Lundi", time: "10h-12h" },
+        { day: "Mercredi", time: "14h-16h" },
+        { day: "Vendredi", time: "9h-11h" }
+      ],
+      hourlyRate: "133 tokens/h" // 40€ / 0.3 = 133 tokens
+    },
+    {
+      id: 4,
+      name: "Lucas Petit",
+      photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
+      specialty: "Histoire-Géographie",
+      description: "Historien passionné avec une approche interactive de l'enseignement.",
+      experience: "6 ans",
+      rating: 4.7,
+      languages: ["Français", "Italien"],
+      supportType: "Tutorat",
+      availableSlots: [
+        { day: "Mardi", time: "15h-17h" },
+        { day: "Jeudi", time: "10h-12h" },
+        { day: "Samedi", time: "14h-16h" }
+      ],
+      hourlyRate: "100 tokens/h" // 30€ / 0.3 = 100 tokens
+    },
+    {
+      id: 5,
+      name: "Emma Wilson",
+      photo: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face",
+      specialty: "Anglais",
+      description: "Native speaker britannique spécialisée dans l'anglais conversationnel et académique.",
+      experience: "9 ans",
+      rating: 4.9,
+      languages: ["Anglais", "Français"],
+      supportType: "Coaching",
+      availableSlots: [
+        { day: "Lundi", time: "16h-18h" },
+        { day: "Mercredi", time: "9h-11h" },
+        { day: "Vendredi", time: "14h-16h" }
+      ],
+      hourlyRate: "127 tokens/h" // 38€ / 0.3 = 127 tokens
+    }
+  ];
+
+  const educationLevels = [
+    { value: 'all', label: 'Tous les niveaux d\'études' },
+    { value: 'scolaire', label: 'Formation Scolaire (Primaire - Lycée)' },
+    { value: 'superieur', label: 'Enseignement Supérieur' },
+    { value: 'professionnel', label: 'Formation Professionnelle' },
+    { value: 'continue', label: 'Formation Continue / Reconversion' }
+  ];
+
+  const categories = [
+    { value: 'all', label: 'Tous les domaines' },
+    // Scolaire
+    { value: 'Mathématiques', label: 'Mathématiques' },
+    { value: 'Français', label: 'Français' },
+    { value: 'Anglais', label: 'Langues Étrangères' },
+    { value: 'Sciences', label: 'Sciences et Recherche' },
+    { value: 'Histoire-Géographie', label: 'Sciences Humaines' },
+    { value: 'Arts', label: 'Arts et Créativité' },
+    // Professionnel
+    { value: 'Informatique', label: 'Informatique et Digital' },
+    { value: 'IA', label: 'Intelligence Artificielle' },
+    { value: 'Data', label: 'Data Science et Analyse' },
+    { value: 'Marketing', label: 'Marketing et Communication' },
+    { value: 'Management', label: 'Management et Leadership' },
+    { value: 'Finance', label: 'Finance et Comptabilité' },
+    { value: 'Santé', label: 'Santé et Bien-être' },
+    { value: 'Design', label: 'Design et UX/UI' }
+  ];
+
+  const difficulties = [
+    { value: 'all', label: 'Toutes les difficultés' },
+    { value: 'debutant', label: 'Débutant' },
+    { value: 'intermediaire', label: 'Intermédiaire' },
+    { value: 'avance', label: 'Avancé' },
+    { value: 'expert', label: 'Expert' }
+  ];
+
+  const durations = [
+    { value: 'all', label: 'Toutes les durées' },
+    { value: 'court', label: 'Formation courte (< 10h)' },
+    { value: 'moyen', label: 'Formation moyenne (10-50h)' },
+    { value: 'long', label: 'Formation longue (50h+)' },
+    { value: 'diplome', label: 'Parcours diplômant' }
+  ];
+
+  const specialties = [
+    { value: 'all', label: 'Toutes les spécialités' },
+    { value: 'Mathématiques', label: 'Mathématiques' },
+    { value: 'Français', label: 'Français' },
+    { value: 'Anglais', label: 'Anglais' },
+    { value: 'Histoire-Géographie', label: 'Histoire-Géographie' },
+    { value: 'Sciences', label: 'Sciences' },
+    { value: 'Physique-Chimie', label: 'Physique-Chimie' },
+    { value: 'SVT', label: 'SVT' }
+  ];
+
+  const languages = [
+    { value: 'all', label: 'Toutes les langues' },
+    { value: 'Français', label: 'Français' },
+    { value: 'Anglais', label: 'Anglais' },
+    { value: 'Espagnol', label: 'Espagnol' },
+    { value: 'Italien', label: 'Italien' }
+  ];
+
+  const supportTypes = [
+    { value: 'all', label: 'Tous les types' },
+    { value: 'Tutorat', label: 'Tutorat' },
+    { value: 'Coaching', label: 'Coaching' },
+    { value: 'Soutien technique', label: 'Soutien technique' }
+  ];
+
+  const handleTrainerBooking = (trainer: any) => {
     setSelectedTrainer(trainer);
-    setShowBookingModal(true);
+    setIsBookingModalOpen(true);
+  };
+
+  const handleEnrollStudent = (course: any) => {
+    setSelectedCourse(course);
+    setIsEnrollmentModalOpen(true);
   };
 
   const confirmEnrollment = () => {
-    const student = students.find(s => s.id === selectedStudent);
-    if (student && selectedCourse) {
+    if (selectedStudent && selectedCourse) {
       toast({
         title: "Inscription confirmée",
-        description: `${student.name} a été inscrit(e) au cours "${selectedCourse.title}"`,
+        description: `L'étudiant a été inscrit au cours "${selectedCourse.title}".`,
       });
-      setShowEnrollModal(false);
+      setIsEnrollmentModalOpen(false);
       setSelectedStudent('');
       setSelectedCourse(null);
     }
   };
 
   const confirmBooking = () => {
-    const student = students.find(s => s.id === selectedStudent);
-    if (student && selectedTrainer) {
+    if (selectedStudent && selectedTrainer) {
       toast({
-        title: "Réservation confirmée",
-        description: `Session avec ${selectedTrainer.name} réservée pour ${student.name}`,
+        title: "Réservation confirmée", 
+        description: `Une session avec ${selectedTrainer.name} a été réservée pour l'étudiant.`,
       });
-      setShowBookingModal(false);
+      setIsBookingModalOpen(false);
       setSelectedStudent('');
       setSelectedTrainer(null);
     }
   };
 
+  const filteredCourses = courses.filter(course => {
+    const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         course.instructor.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || course.category === selectedCategory;
+    const matchesEducationLevel = selectedEducationLevel === 'all' || 
+      (selectedEducationLevel === 'scolaire' && course.cycle === 'élémentaire' || course.cycle === 'secondaire') ||
+      (selectedEducationLevel === 'superieur' && course.category === 'Informatique') ||
+      (selectedEducationLevel === 'professionnel' && ['IA', 'Data', 'Marketing'].includes(course.category));
+    
+    return matchesSearch && matchesCategory && matchesEducationLevel;
+  });
+
+  const filteredTrainers = trainers.filter(trainer => {
+    const matchesSearch = trainer.name.toLowerCase().includes(trainerSearchTerm.toLowerCase()) ||
+                         trainer.specialty.toLowerCase().includes(trainerSearchTerm.toLowerCase());
+    const matchesSpecialty = selectedSpecialty === 'all' || trainer.specialty === selectedSpecialty;
+    const matchesLanguage = selectedLanguage === 'all' || trainer.languages.includes(selectedLanguage);
+    
+    return matchesSearch && matchesSpecialty && matchesLanguage;
+  });
+
+  const handleDownloadProgram = (course: any) => {
+    // Simuler le téléchargement du programme
+    const element = document.createElement('a');
+    element.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(`Programme de formation: ${course.title}\nFormateur: ${course.instructor}\nDurée: ${course.duration}\nDescription: ${course.description}`);
+    element.download = `programme-${course.title.toLowerCase().replace(/\s+/g, '-')}.txt`;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  };
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Catalogue de Formation</h1>
-        <p className="text-gray-600">Découvrez nos formations et réservez des sessions pour vos élèves</p>
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Catalogue de formations & Réservation de Cours</h1>
+          <p className="text-gray-600 mt-2">Découvrez nos cours personnalisés du primaire au lycée. Réservez directement vos créneaux avec nos formateurs qualifiés.</p>
+        </div>
       </div>
 
-      {/* Search and Filters */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Rechercher..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+      {/* Contenu principal - Sections verticales */}
+      <div className="space-y-12">
+        
+        {/* Section 1 - Catalogue de Formations */}
+        <Card className="p-6 border-2 border-pink-200 bg-gradient-to-br from-pink-50 to-purple-50">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-2xl font-bold text-pink-600 flex items-center">
+              <Award className="h-6 w-6 mr-2" />
+              Catalogue de formations disponibles
+            </CardTitle>
+            <CardDescription>
+              Explorez nos formations en ligne et choisissez celle qui vous convient
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent>
+            {/* Filtres pour les formations */}
+            <div className="mb-6 space-y-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  placeholder="Rechercher une formation..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <Select value={selectedEducationLevel} onValueChange={setSelectedEducationLevel}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Niveau d'études" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {educationLevels.map((level) => (
+                      <SelectItem key={level.value} value={level.value}>
+                        {level.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Domaine" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category.value} value={category.value}>
+                        {category.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Difficulté" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {difficulties.map((difficulty) => (
+                      <SelectItem key={difficulty.value} value={difficulty.value}>
+                        {difficulty.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={selectedDuration} onValueChange={setSelectedDuration}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Durée" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {durations.map((duration) => (
+                      <SelectItem key={duration.value} value={duration.value}>
+                        {duration.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Catégorie" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Toutes les catégories</SelectItem>
-                <SelectItem value="Mathématiques">Mathématiques</SelectItem>
-                <SelectItem value="Sciences">Sciences</SelectItem>
-                <SelectItem value="Langues">Langues</SelectItem>
-                <SelectItem value="Informatique">Informatique</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={levelFilter} onValueChange={setLevelFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Niveau" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tous les niveaux</SelectItem>
-                <SelectItem value="Débutant">Débutant</SelectItem>
-                <SelectItem value="Intermédiaire">Intermédiaire</SelectItem>
-                <SelectItem value="Avancé">Avancé</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="outline">
-              <Filter className="mr-2 h-4 w-4" />
-              Plus de filtres
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* Tabs for Courses and Trainers */}
-      <Tabs defaultValue="courses" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="courses">Formations</TabsTrigger>
-          <TabsTrigger value="trainers">Formateurs</TabsTrigger>
-        </TabsList>
-
-        {/* Courses Tab */}
-        <TabsContent value="courses" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCourses.map((course) => (
-              <Card key={course.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-lg line-clamp-2">{course.title}</CardTitle>
-                      <CardDescription className="mt-2">{course.instructor}</CardDescription>
+            {/* Grille des cours */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {(showAllCourses ? filteredCourses : filteredCourses.slice(0, 6)).map((course) => (
+                <Card key={course.id} className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group relative">
+                  <div className="relative">
+                    <img 
+                      src={course.image} 
+                      alt={course.title}
+                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute top-3 right-3">
+                      <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-bold text-xs px-2 py-1">
+                        {course.price}
+                      </Badge>
                     </div>
-                    <Badge variant="secondary">{course.level}</Badge>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <p className="text-sm text-gray-600 line-clamp-3">{course.description}</p>
+                  
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold text-lg mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                      {course.title}
+                    </h3>
                     
-                    <div className="flex items-center justify-between text-sm text-gray-600">
-                      <div className="flex items-center">
-                        <Clock className="mr-1 h-4 w-4" />
-                        {course.duration}
-                      </div>
-                      <div className="flex items-center">
-                        <Users className="mr-1 h-4 w-4" />
-                        {course.totalStudents} élèves
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <Star className="h-4 w-4 text-yellow-400 mr-1" />
-                        <span className="text-sm font-medium">{course.averageRating}</span>
-                        <span className="text-sm text-gray-600 ml-1">({course.feedbackCount})</span>
-                      </div>
-                      <div className="text-lg font-bold text-primary">{course.price}</div>
-                    </div>
-
-                    <Button 
-                      onClick={() => handleEnrollStudent(course)}
-                      className="w-full"
-                    >
-                      <UserPlus className="mr-2 h-4 w-4" />
-                      Inscrire un élève
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        {/* Trainers Tab */}
-        <TabsContent value="trainers" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredTrainers.map((trainer) => (
-              <Card key={trainer.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex items-center space-x-4">
-                    <Avatar className="h-16 w-16">
-                      <AvatarImage src={trainer.photo} alt={trainer.name} />
-                      <AvatarFallback>
-                        <User className="h-8 w-8" />
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <CardTitle className="text-lg">{trainer.name}</CardTitle>
-                      <div className="flex items-center mt-1">
-                        <Star className="h-4 w-4 text-yellow-400 mr-1" />
-                        <span className="text-sm font-medium">{trainer.rating}</span>
-                        <span className="text-sm text-gray-600 ml-1">({trainer.totalReviews} avis)</span>
+                    <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                      {course.description}
+                    </p>
+                    
+                    <p className="text-sm text-gray-600 mb-3">Par {course.instructor}</p>
+                    
+                    <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-4 w-4" />
+                          <span>{course.duration}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <UsersIcon className="h-4 w-4" />
+                          <span>{course.students}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                          <span>{course.rating}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <p className="text-sm font-medium mb-2">Spécialités:</p>
-                      <div className="flex flex-wrap gap-1">
-                        {trainer.specialties.slice(0, 3).map((specialty, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {specialty}
+                    
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-9 w-9 p-0"
+                          onClick={() => handleDownloadProgram(course)}
+                          title="Télécharger le programme de formation"
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      
+                      <Button 
+                        size="sm" 
+                        className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
+                        onClick={() => handleEnrollStudent(course)}
+                      >
+                        Inscrire un élève
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {filteredCourses.length > 6 && (
+              <div className="mt-6 text-center">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowAllCourses(!showAllCourses)}
+                  className="px-8"
+                >
+                  {showAllCourses ? 'Voir moins' : `Voir toutes les formations (${filteredCourses.length})`}
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Section 2 - Réservation de Formateurs */}
+        <Card className="p-6 border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-blue-50">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-2xl font-bold text-purple-600 flex items-center">
+              <UsersIcon className="h-6 w-6 mr-2" />
+              Réservation de formateurs
+            </CardTitle>
+            <CardDescription>
+              Trouvez le formateur idéal pour un accompagnement personnalisé
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent>
+            {/* Filtres pour les formateurs */}
+            <div className="mb-6 space-y-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  placeholder="Rechercher un formateur..."
+                  value={trainerSearchTerm}
+                  onChange={(e) => setTrainerSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Select value={selectedSpecialty} onValueChange={setSelectedSpecialty}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Spécialité" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {specialties.map((specialty) => (
+                      <SelectItem key={specialty.value} value={specialty.value}>
+                        {specialty.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Langue" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {languages.map((language) => (
+                      <SelectItem key={language.value} value={language.value}>
+                        {language.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Type de support" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {supportTypes.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Grille des formateurs */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {(showAllTrainers ? filteredTrainers : filteredTrainers.slice(0, 6)).map((trainer) => (
+                <Card key={trainer.id} className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group">
+                  <CardContent className="p-6">
+                    <div className="flex items-start gap-4 mb-4">
+                      <div className="relative">
+                        <img 
+                          src={trainer.photo} 
+                          alt={trainer.name}
+                          className="w-16 h-16 rounded-full object-cover border-2 border-primary/20 group-hover:border-primary/40 transition-colors"
+                        />
+                        <div className="absolute -bottom-1 -right-1 bg-green-500 w-5 h-5 rounded-full border-2 border-white"></div>
+                      </div>
+                      
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg text-gray-900 group-hover:text-primary transition-colors">
+                          {trainer.name}
+                        </h3>
+                        <p className="text-primary font-medium mb-1">{trainer.specialty}</p>
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="flex items-center gap-1">
+                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                            <span className="text-sm font-medium">{trainer.rating}</span>
+                          </div>
+                          <span className="text-sm text-gray-500">• {trainer.experience}</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                      {trainer.description}
+                    </p>
+                    
+                    <div className="space-y-3 mb-4">
+                      <div className="flex items-center gap-2">
+                        <Badge className={`text-xs ${trainer.supportType === 'Tutorat' ? 'bg-blue-100 text-blue-800' : 
+                          trainer.supportType === 'Coaching' ? 'bg-green-100 text-green-800' : 'bg-purple-100 text-purple-800'}`}>
+                          {trainer.supportType}
+                        </Badge>
+                        <Badge variant="outline" className="text-xs">
+                          {trainer.hourlyRate}
+                        </Badge>
+                      </div>
+                      
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <LanguagesIcon className="h-4 w-4 text-gray-500" />
+                        {trainer.languages.map((lang: string, index: number) => (
+                          <Badge key={index} variant="secondary" className="text-xs">
+                            {lang}
                           </Badge>
                         ))}
                       </div>
-                    </div>
-
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center text-gray-600">
-                        <GraduationCap className="mr-1 h-4 w-4" />
-                        {trainer.experience} ans d'exp.
+                      
+                      <div className="flex items-start gap-2">
+                        <Calendar className="h-4 w-4 text-gray-500 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-xs text-gray-600 mb-1">Créneaux disponibles :</p>
+                          <div className="flex flex-wrap gap-1">
+                            {trainer.availableSlots.slice(0, 3).map((slot: any, index: number) => (
+                              <Badge key={index} variant="outline" className="text-xs">
+                                {slot.day} {slot.time}
+                              </Badge>
+                            ))}
+                            {trainer.availableSlots.length > 3 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{trainer.availableSlots.length - 3} autres
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-lg font-bold text-primary">
-                        {trainer.hourlyRate}€/h
-                      </div>
                     </div>
-
-                    <div className="flex flex-wrap gap-1">
-                      {trainer.languages.map((language, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs">
-                          {language}
-                        </Badge>
-                      ))}
-                    </div>
-
+                    
                     <Button 
-                      onClick={() => handleBookTrainer(trainer)}
-                      className="w-full"
+                      onClick={() => handleTrainerBooking(trainer)}
+                      className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
                     >
-                      <Calendar className="mr-2 h-4 w-4" />
-                      Réserver une session
+                      Réserver un créneau
                     </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-      </Tabs>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
 
-      {/* Enrollment Modal */}
-      <Dialog open={showEnrollModal} onOpenChange={setShowEnrollModal}>
+            {filteredTrainers.length > 6 && (
+              <div className="mt-6 text-center">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowAllTrainers(!showAllTrainers)}
+                  className="px-8"
+                >
+                  {showAllTrainers ? 'Voir moins' : `Voir tous les formateurs (${filteredTrainers.length})`}
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Modal d'inscription */}
+      <Dialog open={isEnrollmentModalOpen} onOpenChange={setIsEnrollmentModalOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Inscrire un élève</DialogTitle>
@@ -282,70 +795,68 @@ export const TutorCatalog = () => {
               Sélectionnez l'élève à inscrire au cours "{selectedCourse?.title}"
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          
+          <div className="py-4">
             <Select value={selectedStudent} onValueChange={setSelectedStudent}>
               <SelectTrigger>
                 <SelectValue placeholder="Choisir un élève" />
               </SelectTrigger>
               <SelectContent>
                 {students.map((student) => (
-                  <SelectItem key={student.id} value={student.id}>
-                    {student.name} ({student.age} ans)
+                  <SelectItem key={student.id} value={student.id.toString()}>
+                    {student.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <div className="flex space-x-2">
-              <Button variant="outline" onClick={() => setShowEnrollModal(false)} className="flex-1">
-                Annuler
-              </Button>
-              <Button 
-                onClick={confirmEnrollment} 
-                disabled={!selectedStudent}
-                className="flex-1"
-              >
-                Confirmer l'inscription
-              </Button>
-            </div>
           </div>
+
+          <DialogFooter>
+            <Button 
+              onClick={confirmEnrollment}
+              disabled={!selectedStudent}
+              className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
+            >
+              Confirmer l'inscription
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Booking Modal */}
-      <Dialog open={showBookingModal} onOpenChange={setShowBookingModal}>
+      {/* Modal de réservation */}
+      <Dialog open={isBookingModalOpen} onOpenChange={setIsBookingModalOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Réserver une session</DialogTitle>
             <DialogDescription>
-              Réserver une session avec {selectedTrainer?.name} pour un de vos élèves
+              Sélectionnez l'élève pour la session avec {selectedTrainer?.name}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          
+          <div className="py-4">
             <Select value={selectedStudent} onValueChange={setSelectedStudent}>
               <SelectTrigger>
                 <SelectValue placeholder="Choisir un élève" />
               </SelectTrigger>
               <SelectContent>
                 {students.map((student) => (
-                  <SelectItem key={student.id} value={student.id}>
-                    {student.name} ({student.age} ans)
+                  <SelectItem key={student.id} value={student.id.toString()}>
+                    {student.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <div className="flex space-x-2">
-              <Button variant="outline" onClick={() => setShowBookingModal(false)} className="flex-1">
-                Annuler
-              </Button>
-              <Button 
-                onClick={confirmBooking} 
-                disabled={!selectedStudent}
-                className="flex-1"
-              >
-                Confirmer la réservation
-              </Button>
-            </div>
           </div>
+
+          <DialogFooter>
+            <Button 
+              onClick={confirmBooking}
+              disabled={!selectedStudent}
+              className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
+            >
+              Confirmer la réservation
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
