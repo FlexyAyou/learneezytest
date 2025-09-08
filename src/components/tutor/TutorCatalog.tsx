@@ -45,6 +45,12 @@ export const TutorCatalog = () => {
     return `${tokens} tokens`;
   };
 
+  // Mock tuteur subscription data - you can modify this based on actual subscription
+  const tutorSubscription = {
+    plan: "premium", // "basic", "standard", "premium"
+    hasAccess: true
+  };
+
   const courses = [
     {
       id: 1,
@@ -54,14 +60,16 @@ export const TutorCatalog = () => {
       duration: "1h",
       students: 45,
       rating: 4.8,
-      price: "83 tokens", // 25€ / 0.3 = 83 tokens
-      originalPrice: "117 tokens", // 35€ / 0.3 = 117 tokens
+      price: "83 tokens",
+      originalPrice: "117 tokens",
       level: "CM1",
       category: "Mathématiques",
       cycle: "élémentaire",
       availableSlots: 12,
       description: "Comprenez les fractions avec des exemples concrets et des exercices ludiques adaptés au niveau CM1.",
-      completed: false
+      completed: false,
+      type: "paid", // "free", "paid", "subscription"
+      requiredPlan: null // null, "basic", "standard", "premium"
     },
     {
       id: 2,
@@ -71,14 +79,16 @@ export const TutorCatalog = () => {
       duration: "1h30",
       students: 38,
       rating: 4.9,
-      price: "100 tokens", // 30€ / 0.3 = 100 tokens
-      originalPrice: "133 tokens", // 40€ / 0.3 = 133 tokens
+      price: "Gratuit",
+      originalPrice: null,
       level: "6ème",
       category: "Français",
       cycle: "secondaire",
       availableSlots: 8,
       description: "Apprenez à analyser un texte littéraire et à identifier les figures de style au niveau collège.",
-      completed: false
+      completed: false,
+      type: "free",
+      requiredPlan: null
     },
     {
       id: 3,
@@ -88,14 +98,16 @@ export const TutorCatalog = () => {
       duration: "1h",
       students: 52,
       rating: 4.7,
-      price: "93 tokens", // 28€ / 0.3 = 93 tokens
-      originalPrice: "127 tokens", // 38€ / 0.3 = 127 tokens
+      price: "Abonnement Standard",
+      originalPrice: null,
       level: "CE2",
       category: "Sciences",
       cycle: "élémentaire",
       availableSlots: 15,
       description: "Découvrez les différents états de la matière à travers des expériences simples et amusantes.",
-      completed: false
+      completed: false,
+      type: "subscription",
+      requiredPlan: "standard"
     },
     {
       id: 4,
@@ -105,14 +117,16 @@ export const TutorCatalog = () => {
       duration: "1h15",
       students: 41,
       rating: 4.6,
-      price: "107 tokens", // 32€ / 0.3 = 107 tokens
-      originalPrice: "140 tokens", // 42€ / 0.3 = 140 tokens
+      price: "Abonnement Premium",
+      originalPrice: null,
       level: "4ème",
       category: "Histoire-Géographie",
       cycle: "secondaire",
       availableSlots: 6,
       description: "Plongez dans l'histoire de la Révolution française et comprenez ses enjeux politiques et sociaux.",
-      completed: false
+      completed: false,
+      type: "subscription",
+      requiredPlan: "premium"
     },
     {
       id: 5,
@@ -122,14 +136,16 @@ export const TutorCatalog = () => {
       duration: "1h",
       students: 67,
       rating: 4.8,
-      price: "87 tokens", // 26€ / 0.3 = 87 tokens
-      originalPrice: "120 tokens", // 36€ / 0.3 = 120 tokens
+      price: "87 tokens",
+      originalPrice: "120 tokens",
       level: "5ème",
       category: "Anglais",
       cycle: "secondaire",
       availableSlots: 10,
       description: "Maîtrisez l'utilisation du preterit et du present perfect en anglais avec des exercices pratiques.",
-      completed: false
+      completed: false,
+      type: "paid",
+      requiredPlan: null
     },
     {
       id: 6,
@@ -139,14 +155,16 @@ export const TutorCatalog = () => {
       duration: "1h30",
       students: 29,
       rating: 4.9,
-      price: "117 tokens", // 35€ / 0.3 = 117 tokens
-      originalPrice: "150 tokens", // 45€ / 0.3 = 150 tokens
+      price: "Gratuit",
+      originalPrice: null,
       level: "3ème",
       category: "Physique-Chimie",
       cycle: "secondaire",
       availableSlots: 5,
       description: "Explorez les réactions chimiques fondamentales et leurs applications dans la vie quotidienne.",
-      completed: false
+      completed: false,
+      type: "free",
+      requiredPlan: null
     },
     {
       id: 7,
@@ -156,14 +174,16 @@ export const TutorCatalog = () => {
       duration: "1h15",
       students: 33,
       rating: 4.7,
-      price: "100 tokens", // 30€ / 0.3 = 100 tokens
-      originalPrice: "133 tokens", // 40€ / 0.3 = 133 tokens
+      price: "Abonnement Basic",
+      originalPrice: null,
       level: "2nde",
       category: "Mathématiques",
       cycle: "secondaire",
       availableSlots: 7,
       description: "Développez vos compétences en calcul littéral et résolution d'équations au niveau seconde.",
-      completed: false
+      completed: false,
+      type: "subscription",
+      requiredPlan: "basic"
     },
     {
       id: 8,
@@ -173,14 +193,16 @@ export const TutorCatalog = () => {
       duration: "1h30",
       students: 24,
       rating: 4.6,
-      price: "127 tokens", // 38€ / 0.3 = 127 tokens
-      originalPrice: "160 tokens", // 48€ / 0.3 = 160 tokens
+      price: "127 tokens",
+      originalPrice: "160 tokens",
       level: "1ère",
       category: "SVT",
       cycle: "secondaire",
       availableSlots: 4,
       description: "Comprenez les bases de la génétique et de l'hérédité avec des exemples concrets et actuels.",
-      completed: false
+      completed: false,
+      type: "paid",
+      requiredPlan: null
     },
     {
       id: 9,
@@ -190,14 +212,16 @@ export const TutorCatalog = () => {
       duration: "45min",
       students: 78,
       rating: 4.9,
-      price: "67 tokens", // 20€ / 0.3 = 67 tokens
-      originalPrice: "93 tokens", // 28€ / 0.3 = 93 tokens
+      price: "Gratuit",
+      originalPrice: null,
       level: "CP",
       category: "Français",
       cycle: "élémentaire",
       availableSlots: 20,
       description: "Améliorez la compréhension de lecture avec des textes adaptés au niveau CP.",
-      completed: false
+      completed: false,
+      type: "free",
+      requiredPlan: null
     },
     {
       id: 10,
@@ -207,14 +231,16 @@ export const TutorCatalog = () => {
       duration: "2h",
       students: 15,
       rating: 4.8,
-      price: "150 tokens", // 45€ / 0.3 = 150 tokens
-      originalPrice: "183 tokens", // 55€ / 0.3 = 183 tokens
+      price: "150 tokens",
+      originalPrice: "183 tokens",
       level: "Terminale",
       category: "Arts",
       cycle: "secondaire",
       availableSlots: 3,
       description: "Perfectionnez vos techniques de dessin et explorez différents styles artistiques.",
-      completed: false
+      completed: false,
+      type: "paid",
+      requiredPlan: null
     }
   ];
 
@@ -411,6 +437,84 @@ export const TutorCatalog = () => {
     }
   };
 
+  // Check if tutor has access to a course
+  const hasAccessToCourse = (course: any) => {
+    if (course.type === 'free') return true;
+    if (course.type === 'paid') return true; // Can always attempt to buy
+    if (course.type === 'subscription') {
+      if (!course.requiredPlan) return true;
+      const planLevels = { basic: 1, standard: 2, premium: 3 };
+      const currentLevel = planLevels[tutorSubscription.plan as keyof typeof planLevels] || 0;
+      const requiredLevel = planLevels[course.requiredPlan as keyof typeof planLevels] || 0;
+      return currentLevel >= requiredLevel;
+    }
+    return false;
+  };
+
+  // Get course type badge
+  const getCourseTypeBadge = (course: any) => {
+    switch (course.type) {
+      case 'free':
+        return <Badge className="bg-green-500 text-white text-xs">Gratuit</Badge>;
+      case 'paid':
+        return <Badge className="bg-blue-500 text-white text-xs">Payant</Badge>;
+      case 'subscription':
+        return <Badge className="bg-purple-500 text-white text-xs">Abonnement</Badge>;
+      default:
+        return null;
+    }
+  };
+
+  // Get action button for course
+  const getCourseActionButton = (course: any) => {
+    const hasAccess = hasAccessToCourse(course);
+    
+    if (course.type === 'free') {
+      return (
+        <Button 
+          size="sm" 
+          className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
+          onClick={() => handleEnrollStudent(course)}
+        >
+          Inscrire gratuitement
+        </Button>
+      );
+    } else if (course.type === 'paid') {
+      return (
+        <Button 
+          size="sm" 
+          className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+          onClick={() => handleEnrollStudent(course)}
+        >
+          Acheter & Inscrire
+        </Button>
+      );
+    } else if (course.type === 'subscription') {
+      if (hasAccess) {
+        return (
+          <Button 
+            size="sm" 
+            className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700"
+            onClick={() => handleEnrollStudent(course)}
+          >
+            Inscrire un élève
+          </Button>
+        );
+      } else {
+        return (
+          <Button 
+            size="sm" 
+            variant="outline"
+            disabled
+            className="cursor-not-allowed opacity-50"
+          >
+            Abonnement requis
+          </Button>
+        );
+      }
+    }
+  };
+
   const filteredCourses = courses.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          course.instructor.toLowerCase().includes(searchTerm.toLowerCase());
@@ -537,14 +641,17 @@ export const TutorCatalog = () => {
             {/* Grille des cours */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {(showAllCourses ? filteredCourses : filteredCourses.slice(0, 6)).map((course) => (
-                <Card key={course.id} className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group relative">
+                <Card key={course.id} className={`overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group relative ${!hasAccessToCourse(course) ? 'opacity-75' : ''}`}>
                   <div className="relative">
                     <img 
                       src={course.image} 
                       alt={course.title}
                       className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                     />
-                    <div className="absolute top-3 right-3">
+                    <div className="absolute top-3 right-3 flex gap-2">
+                      {getCourseTypeBadge(course)}
+                    </div>
+                    <div className="absolute top-3 left-3">
                       <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-bold text-xs px-2 py-1">
                         {course.price}
                       </Badge>
@@ -552,9 +659,16 @@ export const TutorCatalog = () => {
                   </div>
                   
                   <CardContent className="p-4">
-                    <h3 className="font-semibold text-lg mb-2 line-clamp-2 group-hover:text-primary transition-colors">
-                      {course.title}
-                    </h3>
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="font-semibold text-lg line-clamp-2 group-hover:text-primary transition-colors flex-1">
+                        {course.title}
+                      </h3>
+                      {!hasAccessToCourse(course) && (
+                        <Badge variant="outline" className="text-xs ml-2 text-orange-600 border-orange-600">
+                          Accès limité
+                        </Badge>
+                      )}
+                    </div>
                     
                     <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
                       {course.description}
@@ -592,13 +706,7 @@ export const TutorCatalog = () => {
                         </Button>
                       </div>
                       
-                      <Button 
-                        size="sm" 
-                        className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
-                        onClick={() => handleEnrollStudent(course)}
-                      >
-                        Inscrire un élève
-                      </Button>
+                      {getCourseActionButton(course)}
                     </div>
                   </CardContent>
                 </Card>
