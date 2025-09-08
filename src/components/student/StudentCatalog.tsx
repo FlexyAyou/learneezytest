@@ -1,429 +1,467 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Search, Filter, Coins, Star, Clock, Users, BookOpen, Award, Heart, ShoppingCart } from 'lucide-react';
+import { Search, Award, Users as UsersIcon, Coins, Star, Clock, Users, BookOpen, Heart, ShoppingCart } from 'lucide-react';
 import { toast } from 'sonner';
+import CourseCard from '@/components/CourseCard';
+import TrainerCard from '@/components/TrainerCard';
+import TrainerBookingModal from '@/components/TrainerBookingModal';
 
-interface Course {
-  id: number;
-  title: string;
-  description: string;
-  instructor: string;
-  image: string;
-  duration: string;
-  students: number;
-  rating: number;
-  category: string;
-  level: string;
-  type: 'free' | 'paid' | 'subscription';
-  price?: number; // en tokens pour les cours payants
-  requiredPlan?: 'basic' | 'premium' | 'enterprise';
-  tags: string[];
-}
-
-// Données mockées
-const mockCourses: Course[] = [
+// Données mockées adaptées de /nos-formations
+const courses = [
   {
     id: 1,
-    title: "Introduction à React",
-    description: "Apprenez les bases de React et créez vos premières applications",
+    title: "Mathématiques - Les Fractions",
     instructor: "Marie Dubois",
-    image: "/lovable-uploads/52aaa383-7635-46d0-ac37-eb3ee6b878d1.png",
-    duration: "4h 30min",
-    students: 1250,
+    image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=250&fit=crop",
+    duration: "1h",
+    students: 45,
     rating: 4.8,
-    category: "Développement",
-    level: "Débutant",
-    type: "free",
-    tags: ["React", "JavaScript", "Frontend"]
+    price: "83 tokens",
+    originalPrice: "117 tokens",
+    level: "CM1",
+    category: "Mathématiques",
+    cycle: "élémentaire",
+    availableSlots: 12,
+    description: "Comprenez les fractions avec des exemples concrets et des exercices ludiques adaptés au niveau CM1.",
+    completed: true
   },
   {
     id: 2,
-    title: "JavaScript Avancé",
-    description: "Maîtrisez les concepts avancés de JavaScript",
+    title: "Français - Analyse de Texte",
     instructor: "Paul Martin",
-    image: "/lovable-uploads/a2af7b26-415f-4b76-ad63-bb8cbc351c0c.png",
-    duration: "8h 45min",
-    students: 890,
+    image: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=250&fit=crop",
+    duration: "1h30",
+    students: 38,
     rating: 4.9,
-    category: "Développement",
-    level: "Avancé",
-    type: "paid",
-    price: 150,
-    tags: ["JavaScript", "ES6+", "Async"]
+    price: "100 tokens",
+    originalPrice: "133 tokens",
+    level: "6ème",
+    category: "Français",
+    cycle: "secondaire",
+    availableSlots: 8,
+    description: "Apprenez à analyser un texte littéraire et à identifier les figures de style au niveau collège.",
+    completed: false
   },
   {
     id: 3,
-    title: "Design UX/UI Professionnel",
-    description: "Créez des interfaces utilisateur exceptionnelles",
-    instructor: "Sophie Legrand",
-    image: "/lovable-uploads/a9b8c406-3405-4199-a624-50e2fac8b945.png",
-    duration: "12h 20min",
-    students: 650,
+    title: "Sciences - Les États de la Matière",
+    instructor: "Sophie Laurent",
+    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=250&fit=crop",
+    duration: "1h",
+    students: 52,
     rating: 4.7,
-    category: "Design",
-    level: "Intermédiaire",
-    type: "subscription",
-    requiredPlan: "premium",
-    tags: ["UX", "UI", "Figma", "Design"]
+    price: "93 tokens",
+    originalPrice: "127 tokens",
+    level: "CE2",
+    category: "Sciences",
+    cycle: "élémentaire",
+    availableSlots: 15,
+    description: "Découvrez les différents états de la matière à travers des expériences simples et amusantes.",
+    completed: true
   },
   {
     id: 4,
-    title: "Python pour la Data Science",
-    description: "Analysez vos données avec Python et pandas",
-    instructor: "Thomas Bernard",
-    image: "/lovable-uploads/35025812-1694-4fb2-aa20-1b03dae12929.png",
-    duration: "15h 10min",
-    students: 420,
+    title: "Histoire-Géographie - La Révolution Française",
+    instructor: "Lucas Petit",
+    image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=250&fit=crop",
+    duration: "1h15",
+    students: 41,
     rating: 4.6,
-    category: "Data Science",
-    level: "Intermédiaire",
-    type: "paid",
-    price: 200,
-    tags: ["Python", "Pandas", "Data Analysis"]
+    price: "107 tokens",
+    originalPrice: "140 tokens",
+    level: "4ème",
+    category: "Histoire-Géographie",
+    cycle: "secondaire",
+    availableSlots: 6,
+    description: "Plongez dans l'histoire de la Révolution française et comprenez ses enjeux politiques et sociaux.",
+    completed: false
+  },
+  {
+    id: 5,
+    title: "Anglais - Les Temps du Passé",
+    instructor: "Emma Wilson",
+    image: "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=400&h=250&fit=crop",
+    duration: "1h",
+    students: 67,
+    rating: 4.8,
+    price: "87 tokens",
+    originalPrice: "120 tokens",
+    level: "5ème",
+    category: "Anglais",
+    cycle: "secondaire",
+    availableSlots: 10,
+    description: "Maîtrisez l'utilisation du preterit et du present perfect en anglais avec des exercices pratiques.",
+    completed: false
+  }
+];
+
+// Données des formateurs
+const trainers = [
+  {
+    id: 1,
+    name: "Marie Dubois",
+    photo: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
+    specialty: "Mathématiques",
+    description: "Formatrice experte en mathématiques avec 10 ans d'expérience dans l'enseignement personnalisé.",
+    experience: "10 ans",
+    rating: 4.9,
+    languages: ["Français", "Anglais"],
+    supportType: "Tutorat",
+    availableSlots: [
+      { day: "Lundi", time: "14h-16h" },
+      { day: "Mercredi", time: "10h-12h" },
+      { day: "Vendredi", time: "16h-18h" }
+    ],
+    hourlyRate: "117 tokens/h"
+  },
+  {
+    id: 2,
+    name: "Paul Martin",
+    photo: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+    specialty: "Français",
+    description: "Spécialiste en littérature française et techniques de rédaction pour tous niveaux.",
+    experience: "8 ans",
+    rating: 4.8,
+    languages: ["Français"],
+    supportType: "Coaching",
+    availableSlots: [
+      { day: "Mardi", time: "9h-11h" },
+      { day: "Jeudi", time: "14h-16h" },
+      { day: "Samedi", time: "10h-12h" }
+    ],
+    hourlyRate: "107 tokens/h"
+  },
+  {
+    id: 3,
+    name: "Sophie Laurent",
+    photo: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
+    specialty: "Sciences",
+    description: "Docteure en biologie, passionnée par la transmission des sciences naturelles.",
+    experience: "12 ans",
+    rating: 4.9,
+    languages: ["Français", "Anglais", "Espagnol"],
+    supportType: "Soutien technique",
+    availableSlots: [
+      { day: "Lundi", time: "10h-12h" },
+      { day: "Mercredi", time: "14h-16h" },
+      { day: "Vendredi", time: "9h-11h" }
+    ],
+    hourlyRate: "133 tokens/h"
   }
 ];
 
 const StudentCatalog = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('Tous');
-  const [selectedLevel, setSelectedLevel] = useState('Tous');
-  const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
-  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedEducationLevel, setSelectedEducationLevel] = useState('all');
+  const [showAllCourses, setShowAllCourses] = useState(false);
+  
+  // États pour la section formateurs
+  const [trainerSearchTerm, setTrainerSearchTerm] = useState('');
+  const [selectedSpecialty, setSelectedSpecialty] = useState('all');
+  const [selectedLanguage, setSelectedLanguage] = useState('all');
+  const [showAllTrainers, setShowAllTrainers] = useState(false);
+  const [selectedTrainer, setSelectedTrainer] = useState(null);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   
   // Données mockées pour l'utilisateur
   const [tokenBalance, setTokenBalance] = useState(1250);
   const [purchasedCourses, setPurchasedCourses] = useState<number[]>([]);
-  const studentPlan = 'premium'; // basic, premium, enterprise
 
-  const categories = ['Tous', 'Développement', 'Design', 'Data Science', 'Marketing', 'Business'];
-  const levels = ['Tous', 'Débutant', 'Intermédiaire', 'Avancé'];
+  const educationLevels = [
+    { value: 'all', label: 'Tous les niveaux d\'études' },
+    { value: 'scolaire', label: 'Formation Scolaire (Primaire - Lycée)' },
+    { value: 'superieur', label: 'Enseignement Supérieur' },
+    { value: 'professionnel', label: 'Formation Professionnelle' },
+    { value: 'continue', label: 'Formation Continue / Reconversion' }
+  ];
 
-  const filteredCourses = mockCourses.filter(course => {
+  const categories = [
+    { value: 'all', label: 'Tous les domaines' },
+    { value: 'Mathématiques', label: 'Mathématiques' },
+    { value: 'Français', label: 'Français' },
+    { value: 'Anglais', label: 'Langues Étrangères' },
+    { value: 'Sciences', label: 'Sciences et Recherche' },
+    { value: 'Histoire-Géographie', label: 'Sciences Humaines' },
+    { value: 'Arts', label: 'Arts et Créativité' }
+  ];
+
+  const specialties = [
+    { value: 'all', label: 'Toutes les spécialités' },
+    { value: 'Mathématiques', label: 'Mathématiques' },
+    { value: 'Français', label: 'Français' },
+    { value: 'Anglais', label: 'Anglais' },
+    { value: 'Histoire-Géographie', label: 'Histoire-Géographie' },
+    { value: 'Sciences', label: 'Sciences' }
+  ];
+
+  const languages = [
+    { value: 'all', label: 'Toutes les langues' },
+    { value: 'Français', label: 'Français' },
+    { value: 'Anglais', label: 'Anglais' },
+    { value: 'Espagnol', label: 'Espagnol' }
+  ];
+
+  const handleTrainerBooking = (trainer: any) => {
+    setSelectedTrainer(trainer);
+    setIsBookingModalOpen(true);
+  };
+
+  const filteredCourses = courses.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         course.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          course.instructor.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'Tous' || course.category === selectedCategory;
-    const matchesLevel = selectedLevel === 'Tous' || course.level === selectedLevel;
+    const matchesCategory = selectedCategory === 'all' || course.category === selectedCategory;
+    const matchesEducationLevel = selectedEducationLevel === 'all' || 
+      (selectedEducationLevel === 'scolaire' && (course.cycle === 'élémentaire' || course.cycle === 'secondaire'));
     
-    return matchesSearch && matchesCategory && matchesLevel;
+    return matchesSearch && matchesCategory && matchesEducationLevel;
   });
 
-  const getCourseTypeColor = (type: Course['type']) => {
-    switch (type) {
-      case 'free': return 'bg-green-500 text-white';
-      case 'paid': return 'bg-blue-500 text-white';
-      case 'subscription': return 'bg-purple-500 text-white';
-      default: return 'bg-gray-500 text-white';
-    }
+  const filteredTrainers = trainers.filter(trainer => {
+    const matchesSearch = trainer.name.toLowerCase().includes(trainerSearchTerm.toLowerCase()) ||
+                         trainer.specialty.toLowerCase().includes(trainerSearchTerm.toLowerCase());
+    const matchesSpecialty = selectedSpecialty === 'all' || trainer.specialty === selectedSpecialty;
+    const matchesLanguage = selectedLanguage === 'all' || trainer.languages.includes(selectedLanguage);
+    
+    return matchesSearch && matchesSpecialty && matchesLanguage;
+  });
+
+  // Convertir le prix en tokens pour affichage
+  const extractTokenPrice = (priceString: string) => {
+    return parseInt(priceString.replace(' tokens', ''));
   };
 
-  const getCourseTypeLabel = (course: Course) => {
-    switch (course.type) {
-      case 'free': return 'Gratuit';
-      case 'paid': return `${course.price} tokens`;
-      case 'subscription': return `Plan ${course.requiredPlan}`;
-      default: return '';
+  const handleCoursePurchase = (course: any) => {
+    const tokenPrice = extractTokenPrice(course.price);
+    if (tokenBalance >= tokenPrice) {
+      setTokenBalance(prev => prev - tokenPrice);
+      setPurchasedCourses(prev => [...prev, course.id]);
+      toast.success(`Cours "${course.title}" acheté avec succès !`);
+    } else {
+      toast.error('Solde de tokens insuffisant');
     }
-  };
-
-  const canAccessCourse = (course: Course) => {
-    if (course.type === 'free') return true;
-    if (course.type === 'paid') return purchasedCourses.includes(course.id) || tokenBalance >= (course.price || 0);
-    if (course.type === 'subscription') {
-      const plans = ['basic', 'premium', 'enterprise'];
-      const userPlanIndex = plans.indexOf(studentPlan);
-      const requiredPlanIndex = plans.indexOf(course.requiredPlan || 'basic');
-      return userPlanIndex >= requiredPlanIndex;
-    }
-    return false;
-  };
-
-  const handleCoursePurchase = (course: Course) => {
-    if (course.type === 'paid' && course.price) {
-      setSelectedCourse(course);
-      setIsPurchaseModalOpen(true);
-    }
-  };
-
-  const confirmCoursePurchase = () => {
-    if (selectedCourse && selectedCourse.price) {
-      if (tokenBalance >= selectedCourse.price) {
-        setTokenBalance(prev => prev - selectedCourse.price!);
-        setPurchasedCourses(prev => [...prev, selectedCourse.id]);
-        setIsPurchaseModalOpen(false);
-        toast.success(`Cours "${selectedCourse.title}" acheté avec succès !`);
-      } else {
-        toast.error('Solde de tokens insuffisant');
-      }
-    }
-  };
-
-  const getActionButton = (course: Course) => {
-    if (course.type === 'free') {
-      return (
-        <Button size="sm" className="w-full">
-          <BookOpen className="h-4 w-4 mr-2" />
-          Commencer
-        </Button>
-      );
-    }
-
-    if (course.type === 'paid') {
-      if (purchasedCourses.includes(course.id)) {
-        return (
-          <Button size="sm" className="w-full bg-green-500 hover:bg-green-600">
-            <BookOpen className="h-4 w-4 mr-2" />
-            Accéder au cours
-          </Button>
-        );
-      } else {
-        return (
-          <Button 
-            size="sm" 
-            className="w-full"
-            onClick={() => handleCoursePurchase(course)}
-            disabled={tokenBalance < (course.price || 0)}
-          >
-            <Coins className="h-4 w-4 mr-2" />
-            Acheter avec tokens
-          </Button>
-        );
-      }
-    }
-
-    if (course.type === 'subscription') {
-      if (canAccessCourse(course)) {
-        return (
-          <Button size="sm" className="w-full bg-purple-500 hover:bg-purple-600">
-            <BookOpen className="h-4 w-4 mr-2" />
-            Accéder au cours
-          </Button>
-        );
-      } else {
-        return (
-          <Button size="sm" variant="outline" className="w-full" disabled>
-            <Award className="h-4 w-4 mr-2" />
-            Upgrade requis
-          </Button>
-        );
-      }
-    }
-
-    return null;
   };
 
   return (
-    <div className="space-y-6">
-      {/* En-tête avec solde de tokens */}
-      <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg p-6 text-white">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Catalogue de Formation</h1>
-            <p className="text-blue-100">Découvrez notre sélection de cours</p>
-          </div>
-          <div className="text-right">
-            <div className="flex items-center gap-2 text-2xl font-bold">
-              <Coins className="h-8 w-8" />
-              {tokenBalance}
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Section */}
+      <section className="bg-gradient-to-r from-pink-600 to-purple-700 py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-5xl font-bold text-white mb-6">
+            Catalogue de Formations & Réservation de Cours
+          </h1>
+          <p className="text-xl text-blue-100 max-w-3xl mx-auto">
+            Découvrez nos cours personnalisés du primaire au lycée. Réservez directement vos créneaux avec nos formateurs qualifiés.
+          </p>
+          <div className="mt-6 flex justify-center">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg px-6 py-3">
+              <div className="flex items-center gap-2 text-2xl font-bold text-white">
+                <Coins className="h-8 w-8" />
+                {tokenBalance}
+              </div>
+              <p className="text-blue-100 text-sm">Tokens disponibles</p>
             </div>
-            <p className="text-blue-100 text-sm">Tokens disponibles</p>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Filtres */}
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col lg:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Rechercher un cours..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="px-3 py-2 border rounded-md text-sm"
-              >
-                {categories.map(category => (
-                  <option key={category} value={category}>{category}</option>
-                ))}
-              </select>
-              <select
-                value={selectedLevel}
-                onChange={(e) => setSelectedLevel(e.target.value)}
-                className="px-3 py-2 border rounded-md text-sm"
-              >
-                {levels.map(level => (
-                  <option key={level} value={level}>{level}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </CardHeader>
-      </Card>
-
-      {/* Grille des cours */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredCourses.map((course) => (
-          <Card key={course.id} className="group hover:shadow-lg transition-all duration-300">
-            <div className="relative">
-              <img
-                src={course.image}
-                alt={course.title}
-                className="w-full h-48 object-cover rounded-t-lg"
-              />
-              <div className="absolute top-3 left-3">
-                <Badge className={getCourseTypeColor(course.type)}>
-                  {getCourseTypeLabel(course)}
-                </Badge>
-              </div>
-              {!canAccessCourse(course) && course.type === 'subscription' && (
-                <div className="absolute inset-0 bg-black bg-opacity-50 rounded-t-lg flex items-center justify-center">
-                  <div className="text-white text-center">
-                    <Award className="h-8 w-8 mx-auto mb-2" />
-                    <p className="text-sm">Plan {course.requiredPlan} requis</p>
+      {/* Contenu principal - Sections verticales */}
+      <section className="py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="space-y-12">
+            
+            {/* Section 1 - Catalogue de Formations */}
+            <Card className="p-6 border-2 border-pink-200 bg-gradient-to-br from-pink-50 to-purple-50">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-2xl font-bold text-pink-600 flex items-center">
+                  <Award className="h-6 w-6 mr-2" />
+                  Catalogue de formations disponibles
+                </CardTitle>
+                <CardDescription>
+                  Explorez nos formations en ligne et choisissez celle qui vous convient
+                </CardDescription>
+              </CardHeader>
+              
+              <CardContent>
+                {/* Filtres pour les formations */}
+                <div className="mb-6 space-y-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Input
+                      placeholder="Rechercher une formation..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-4">
+                    <Select value={selectedEducationLevel} onValueChange={setSelectedEducationLevel}>
+                      <SelectTrigger className="w-[250px]">
+                        <SelectValue placeholder="Niveau d'études" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {educationLevels.map((level) => (
+                          <SelectItem key={level.value} value={level.value}>
+                            {level.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    
+                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                      <SelectTrigger className="w-[200px]">
+                        <SelectValue placeholder="Domaine" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((category) => (
+                          <SelectItem key={category.value} value={category.value}>
+                            {category.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
-              )}
-            </div>
-            
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between mb-2">
-                <Badge variant="outline" className="text-xs">
-                  {course.category}
-                </Badge>
-                <Badge variant="secondary" className="text-xs">
-                  {course.level}
-                </Badge>
-              </div>
-              
-              <h3 className="font-semibold text-lg mb-2 line-clamp-2">
-                {course.title}
-              </h3>
-              
-              <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                {course.description}
-              </p>
-              
-              <p className="text-sm font-medium mb-3">Par {course.instructor}</p>
-              
-              <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
-                <div className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
-                  <span>{course.duration}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Users className="h-4 w-4" />
-                  <span>{course.students}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  <span>{course.rating}</span>
-                </div>
-              </div>
-              
-              <div className="flex flex-wrap gap-1 mb-4">
-                {course.tags.slice(0, 3).map((tag, index) => (
-                  <Badge key={index} variant="outline" className="text-xs">
-                    {tag}
-                  </Badge>
-                ))}
-              </div>
-              
-              {getActionButton(course)}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
 
-      {filteredCourses.length === 0 && (
-        <div className="text-center py-12">
-          <BookOpen className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Aucun cours trouvé
-          </h3>
-          <p className="text-gray-500">
-            Essayez de modifier vos critères de recherche
-          </p>
+                {/* Grille des formations */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {(showAllCourses ? filteredCourses : filteredCourses.slice(0, 6)).map((course) => (
+                    <CourseCard key={course.id} course={course} />
+                  ))}
+                </div>
+
+                {filteredCourses.length > 6 && (
+                  <div className="text-center mt-6">
+                    <Button 
+                      onClick={() => setShowAllCourses(!showAllCourses)}
+                      variant="outline"
+                    >
+                      {showAllCourses ? 'Voir moins' : `Voir toutes les formations (${filteredCourses.length})`}
+                    </Button>
+                  </div>
+                )}
+
+                {filteredCourses.length === 0 && (
+                  <div className="text-center py-12">
+                    <BookOpen className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      Aucune formation trouvée
+                    </h3>
+                    <p className="text-gray-500">
+                      Essayez de modifier vos critères de recherche
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Section 2 - Réservation de Cours avec Formateurs */}
+            <Card className="p-6 border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-blue-50">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-2xl font-bold text-purple-600 flex items-center">
+                  <UsersIcon className="h-6 w-6 mr-2" />
+                  Réservation de cours individuels
+                </CardTitle>
+                <CardDescription>
+                  Réservez des créneaux personnalisés avec nos formateurs qualifiés
+                </CardDescription>
+              </CardHeader>
+              
+              <CardContent>
+                {/* Filtres pour les formateurs */}
+                <div className="mb-6 space-y-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Input
+                      placeholder="Rechercher un formateur..."
+                      value={trainerSearchTerm}
+                      onChange={(e) => setTrainerSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-4">
+                    <Select value={selectedSpecialty} onValueChange={setSelectedSpecialty}>
+                      <SelectTrigger className="w-[200px]">
+                        <SelectValue placeholder="Spécialité" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {specialties.map((specialty) => (
+                          <SelectItem key={specialty.value} value={specialty.value}>
+                            {specialty.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    
+                    <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Langue" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {languages.map((language) => (
+                          <SelectItem key={language.value} value={language.value}>
+                            {language.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Grille des formateurs */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {(showAllTrainers ? filteredTrainers : filteredTrainers.slice(0, 6)).map((trainer) => (
+                    <TrainerCard 
+                      key={trainer.id} 
+                      trainer={trainer} 
+                      onBooking={handleTrainerBooking}
+                    />
+                  ))}
+                </div>
+
+                {filteredTrainers.length > 6 && (
+                  <div className="text-center mt-6">
+                    <Button 
+                      onClick={() => setShowAllTrainers(!showAllTrainers)}
+                      variant="outline"
+                    >
+                      {showAllTrainers ? 'Voir moins' : `Voir tous les formateurs (${filteredTrainers.length})`}
+                    </Button>
+                  </div>
+                )}
+
+                {filteredTrainers.length === 0 && (
+                  <div className="text-center py-12">
+                    <UsersIcon className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      Aucun formateur trouvé
+                    </h3>
+                    <p className="text-gray-500">
+                      Essayez de modifier vos critères de recherche
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
-      )}
+      </section>
 
-      {/* Modal de confirmation d'achat */}
-      <Dialog open={isPurchaseModalOpen} onOpenChange={setIsPurchaseModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirmer l'achat</DialogTitle>
-            <DialogDescription>
-              Vous êtes sur le point d'acheter ce cours avec vos tokens.
-            </DialogDescription>
-          </DialogHeader>
-          
-          {selectedCourse && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <img
-                  src={selectedCourse.image}
-                  alt={selectedCourse.title}
-                  className="w-16 h-16 object-cover rounded"
-                />
-                <div>
-                  <h3 className="font-semibold">{selectedCourse.title}</h3>
-                  <p className="text-sm text-muted-foreground">Par {selectedCourse.instructor}</p>
-                </div>
-              </div>
-              
-              <div className="border-t pt-4">
-                <div className="flex justify-between items-center mb-2">
-                  <span>Prix du cours:</span>
-                  <span className="font-semibold">{selectedCourse.price} tokens</span>
-                </div>
-                <div className="flex justify-between items-center mb-2">
-                  <span>Solde actuel:</span>
-                  <span>{tokenBalance} tokens</span>
-                </div>
-                <div className="flex justify-between items-center font-semibold text-lg">
-                  <span>Solde après achat:</span>
-                  <span>{tokenBalance - (selectedCourse.price || 0)} tokens</span>
-                </div>
-              </div>
-              
-              {tokenBalance < (selectedCourse.price || 0) && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                  <p className="text-red-600 text-sm">
-                    Solde insuffisant. Vous avez besoin de {(selectedCourse.price || 0) - tokenBalance} tokens supplémentaires.
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsPurchaseModalOpen(false)}>
-              Annuler
-            </Button>
-            <Button 
-              onClick={confirmCoursePurchase}
-              disabled={!selectedCourse || tokenBalance < (selectedCourse.price || 0)}
-            >
-              <Coins className="h-4 w-4 mr-2" />
-              Confirmer l'achat
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Modal de réservation */}
+      {selectedTrainer && (
+        <TrainerBookingModal
+          trainer={selectedTrainer}
+          isOpen={isBookingModalOpen}
+          onClose={() => setIsBookingModalOpen(false)}
+        />
+      )}
     </div>
   );
 };
