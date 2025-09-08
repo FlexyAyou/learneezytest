@@ -29,6 +29,11 @@ export const TutorCatalog = () => {
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
   const [isEnrollmentModalOpen, setIsEnrollmentModalOpen] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
+  
+  // Mock token wallet data
+  const [tokenBalance, setTokenBalance] = useState(1250);
+  const [purchasedCourses, setPurchasedCourses] = useState<string[]>(['1', '3']); // Mock purchased course IDs
 
   // Mock students data
   const students = [
@@ -465,9 +470,53 @@ export const TutorCatalog = () => {
     }
   };
 
+  // Handle course purchase with tokens
+  const handleCoursePurchase = (course: any) => {
+    setSelectedCourse(course);
+    setIsPurchaseModalOpen(true);
+  };
+
+  const confirmCoursePurchase = () => {
+    if (selectedCourse) {
+      const tokenPrice = parseInt(selectedCourse.price.replace(' tokens', ''));
+      
+      if (tokenBalance >= tokenPrice) {
+        setTokenBalance(prev => prev - tokenPrice);
+        setPurchasedCourses(prev => [...prev, selectedCourse.id.toString()]);
+        
+        toast({
+          title: "Achat confirmé",
+          description: `Vous avez acheté "${selectedCourse.title}" pour ${tokenPrice} tokens.`,
+        });
+        
+        setIsPurchaseModalOpen(false);
+        setSelectedCourse(null);
+      } else {
+        toast({
+          title: "Solde insuffisant",
+          description: "Vous n'avez pas assez de tokens pour cet achat.",
+          variant: "destructive"
+        });
+      }
+    }
+  };
+
   // Get action button for course
   const getCourseActionButton = (course: any) => {
     const hasAccess = hasAccessToCourse(course);
+    const isPurchased = purchasedCourses.includes(course.id.toString());
+    
+    if (isPurchased) {
+      return (
+        <Button 
+          size="sm" 
+          className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
+          onClick={() => handleEnrollStudent(course)}
+        >
+          Inscrire l'étudiant
+        </Button>
+      );
+    }
     
     if (course.type === 'free') {
       return (
@@ -482,11 +531,11 @@ export const TutorCatalog = () => {
     } else if (course.type === 'paid') {
       return (
         <Button 
-          size="sm" 
+          size="sm"
           className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
-          onClick={() => handleEnrollStudent(course)}
+          onClick={() => handleCoursePurchase(course)}
         >
-          Acheter & Inscrire
+          Acheter avec tokens
         </Button>
       );
     } else if (course.type === 'subscription') {
@@ -552,6 +601,10 @@ export const TutorCatalog = () => {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Catalogue de formations & Réservation de Cours</h1>
           <p className="text-gray-600 mt-2">Découvrez nos cours personnalisés du primaire au lycée. Réservez directement vos créneaux avec nos formateurs qualifiés.</p>
+        </div>
+        <div className="bg-white p-4 rounded-lg border shadow-sm">
+          <div className="text-sm text-gray-600">Solde tokens</div>
+          <div className="text-2xl font-bold text-blue-600">{tokenBalance} tokens</div>
         </div>
       </div>
 
@@ -963,6 +1016,60 @@ export const TutorCatalog = () => {
               className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
             >
               Confirmer la réservation
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal d'achat de cours */}
+      <Dialog open={isPurchaseModalOpen} onOpenChange={setIsPurchaseModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Acheter le cours</DialogTitle>
+            <DialogDescription>
+              Confirmer l'achat du cours "{selectedCourse?.title}"
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4 space-y-4">
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="flex justify-between items-center mb-2">
+                <span>Prix du cours:</span>
+                <span className="font-semibold">{selectedCourse?.price}</span>
+              </div>
+              <div className="flex justify-between items-center mb-2">
+                <span>Votre solde actuel:</span>
+                <span className="font-semibold text-blue-600">{tokenBalance} tokens</span>
+              </div>
+              <hr className="my-2" />
+              <div className="flex justify-between items-center">
+                <span>Solde après achat:</span>
+                <span className="font-semibold">
+                  {tokenBalance - parseInt(selectedCourse?.price?.replace(' tokens', '') || '0')} tokens
+                </span>
+              </div>
+            </div>
+            
+            {tokenBalance < parseInt(selectedCourse?.price?.replace(' tokens', '') || '0') && (
+              <div className="bg-red-50 text-red-700 p-3 rounded-lg">
+                Solde insuffisant pour cet achat
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button 
+              variant="outline"
+              onClick={() => setIsPurchaseModalOpen(false)}
+            >
+              Annuler
+            </Button>
+            <Button 
+              onClick={confirmCoursePurchase}
+              disabled={tokenBalance < parseInt(selectedCourse?.price?.replace(' tokens', '') || '0')}
+              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+            >
+              Confirmer l'achat
             </Button>
           </DialogFooter>
         </DialogContent>
