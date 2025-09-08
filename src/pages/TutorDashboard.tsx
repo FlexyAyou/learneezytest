@@ -16,6 +16,7 @@ import { TutorShop } from '@/components/tutor/TutorShop';
 import AIChatButton from '@/components/common/AIChatButton';
 import { TutorDocuments } from '@/components/tutor/TutorDocuments';
 import { TutorStudentDetailedView } from '@/components/tutor/TutorStudentDetailedView';
+import { TutorCatalog } from '@/components/tutor/TutorCatalog';
 import { 
   Users, 
   MessageSquare, 
@@ -367,7 +368,7 @@ const TutorDashboard = () => {
 
   const sidebarItems = [
     { title: 'Vue d\'ensemble', href: '/dashboard/tuteur', icon: TrendingUp, isActive: currentPath === '/dashboard/tuteur' },
-    { title: 'Catalogue de formation', href: '/nos-formations', icon: Library, isActive: currentPath === '/nos-formations' },
+    { title: 'Catalogue de formation', href: '/dashboard/tuteur/catalogue', icon: Library, isActive: currentPath === '/dashboard/tuteur/catalogue' },
     { title: 'Suivi des élèves', href: '/dashboard/tuteur/suivi', icon: Users, isActive: currentPath === '/dashboard/tuteur/suivi' },
     { title: 'Ajouter un élève', href: '/dashboard/tuteur/ajouter-eleve', icon: UserPlus, isActive: currentPath === '/dashboard/tuteur/ajouter-eleve' },
     { title: 'Boutique', href: '/dashboard/tuteur/boutique', icon: ShoppingBag, isActive: currentPath === '/dashboard/tuteur/boutique' },
@@ -394,6 +395,7 @@ const TutorDashboard = () => {
       <main className="flex-1 p-8">
         <Routes>
           <Route path="/" element={<TutorDashboardHome />} />
+          <Route path="/catalogue" element={<TutorCatalog />} />
           <Route path="/suivi" element={<TutorStudentTracking />} />
           <Route path="/ajouter-eleve" element={<TutorAddStudent />} />
           <Route path="/boutique" element={<TutorShop />} />
