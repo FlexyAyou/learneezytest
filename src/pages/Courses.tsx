@@ -9,8 +9,6 @@ import Footer from '@/components/Footer';
 import CourseCard from '@/components/CourseCard';
 import TrainerCard from '@/components/TrainerCard';
 import TrainerBookingModal from '@/components/TrainerBookingModal';
-import { extendedCoursesData } from '@/data/mockCoursesData';
-import { mockTrainerProfiles } from '@/data/mockTrainerBookingData';
 
 const Courses = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -28,50 +26,274 @@ const Courses = () => {
   const [selectedTrainer, setSelectedTrainer] = useState(null);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
-
-  // Fonction pour convertir euros en tokens
+  // Fonction pour convertir euros en tokens (1 token = 0,3€)
   const convertToTokens = (euroPrice: string) => {
     const euroValue = parseFloat(euroPrice.replace('€', ''));
     const tokens = Math.round(euroValue / 0.3);
     return `${tokens} tokens`;
   };
 
-  // Utiliser les données du mockCoursesData
-  const courses = extendedCoursesData.map(course => ({
-    id: parseInt(course.id),
-    title: course.title,
-    instructor: course.instructor,
-    image: course.thumbnail,
-    duration: course.duration,
-    students: course.totalStudents,
-    rating: course.averageRating,
-    price: convertToTokens(course.price),
-    originalPrice: convertToTokens(course.price),
-    level: course.level,
-    category: course.category,
-    cycle: ['CP', 'CE1', 'CE2', 'CM1', 'CM2'].includes(course.level) ? 'élémentaire' : 'secondaire',
-    availableSlots: Math.floor(Math.random() * 20) + 1,
-    description: course.description,
-    completed: Math.random() > 0.7
-  }));
+  const courses = [
+    {
+      id: 1,
+      title: "Mathématiques - Les Fractions",
+      instructor: "Marie Dubois",
+      image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=250&fit=crop",
+      duration: "1h",
+      students: 45,
+      rating: 4.8,
+      price: "83 tokens", // 25€ / 0.3 = 83 tokens
+      originalPrice: "117 tokens", // 35€ / 0.3 = 117 tokens
+      level: "CM1",
+      category: "Mathématiques",
+      cycle: "élémentaire",
+      availableSlots: 12,
+      description: "Comprenez les fractions avec des exemples concrets et des exercices ludiques adaptés au niveau CM1.",
+      completed: true // Exemple de cours terminé
+    },
+    {
+      id: 2,
+      title: "Français - Analyse de Texte",
+      instructor: "Paul Martin",
+      image: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=250&fit=crop",
+      duration: "1h30",
+      students: 38,
+      rating: 4.9,
+      price: "100 tokens", // 30€ / 0.3 = 100 tokens
+      originalPrice: "133 tokens", // 40€ / 0.3 = 133 tokens
+      level: "6ème",
+      category: "Français",
+      cycle: "secondaire",
+      availableSlots: 8,
+      description: "Apprenez à analyser un texte littéraire et à identifier les figures de style au niveau collège.",
+      completed: false
+    },
+    {
+      id: 3,
+      title: "Sciences - Les États de la Matière",
+      instructor: "Sophie Laurent",
+      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=250&fit=crop",
+      duration: "1h",
+      students: 52,
+      rating: 4.7,
+      price: "93 tokens", // 28€ / 0.3 = 93 tokens
+      originalPrice: "127 tokens", // 38€ / 0.3 = 127 tokens
+      level: "CE2",
+      category: "Sciences",
+      cycle: "élémentaire",
+      availableSlots: 15,
+      description: "Découvrez les différents états de la matière à travers des expériences simples et amusantes.",
+      completed: true // Exemple de cours terminé
+    },
+    {
+      id: 4,
+      title: "Histoire-Géographie - La Révolution Française",
+      instructor: "Lucas Petit",
+      image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=250&fit=crop",
+      duration: "1h15",
+      students: 41,
+      rating: 4.6,
+      price: "107 tokens", // 32€ / 0.3 = 107 tokens
+      originalPrice: "140 tokens", // 42€ / 0.3 = 140 tokens
+      level: "4ème",
+      category: "Histoire-Géographie",
+      cycle: "secondaire",
+      availableSlots: 6,
+      description: "Plongez dans l'histoire de la Révolution française et comprenez ses enjeux politiques et sociaux.",
+      completed: false
+    },
+    {
+      id: 5,
+      title: "Anglais - Les Temps du Passé",
+      instructor: "Emma Wilson",
+      image: "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=400&h=250&fit=crop",
+      duration: "1h",
+      students: 67,
+      rating: 4.8,
+      price: "87 tokens", // 26€ / 0.3 = 87 tokens
+      originalPrice: "120 tokens", // 36€ / 0.3 = 120 tokens
+      level: "5ème",
+      category: "Anglais",
+      cycle: "secondaire",
+      availableSlots: 10,
+      description: "Maîtrisez l'utilisation du preterit et du present perfect en anglais avec des exercices pratiques.",
+      completed: false
+    },
+    {
+      id: 6,
+      title: "Physique-Chimie - Les Réactions Chimiques",
+      instructor: "Thomas Roux",
+      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=250&fit=crop",
+      duration: "1h30",
+      students: 29,
+      rating: 4.9,
+      price: "117 tokens", // 35€ / 0.3 = 117 tokens
+      originalPrice: "150 tokens", // 45€ / 0.3 = 150 tokens
+      level: "3ème",
+      category: "Physique-Chimie",
+      cycle: "secondaire",
+      availableSlots: 5,
+      description: "Explorez les réactions chimiques fondamentales et leurs applications dans la vie quotidienne.",
+      completed: false
+    },
+    {
+      id: 7,
+      title: "Mathématiques - Calcul Littéral",
+      instructor: "Alex Durand", 
+      image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=250&fit=crop",
+      duration: "1h15",
+      students: 33,
+      rating: 4.7,
+      price: "100 tokens", // 30€ / 0.3 = 100 tokens
+      originalPrice: "133 tokens", // 40€ / 0.3 = 133 tokens
+      level: "2nde",
+      category: "Mathématiques",
+      cycle: "secondaire",
+      availableSlots: 7,
+      description: "Développez vos compétences en calcul littéral et résolution d'équations au niveau seconde.",
+      completed: false
+    },
+    {
+      id: 8,
+      title: "SVT - La Génétique",
+      instructor: "Julie Bernard",
+      image: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=250&fit=crop",
+      duration: "1h30",
+      students: 24,
+      rating: 4.6,
+      price: "127 tokens", // 38€ / 0.3 = 127 tokens
+      originalPrice: "160 tokens", // 48€ / 0.3 = 160 tokens
+      level: "1ère",
+      category: "SVT",
+      cycle: "secondaire",
+      availableSlots: 4,
+      description: "Comprenez les bases de la génétique et de l'hérédité avec des exemples concrets et actuels.",
+      completed: true // Exemple de cours terminé
+    },
+    {
+      id: 9,
+      title: "Lecture - Compréhension de Texte",
+      instructor: "Camille Moreau",
+      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=250&fit=crop",
+      duration: "45min",
+      students: 78,
+      rating: 4.9,
+      price: "67 tokens", // 20€ / 0.3 = 67 tokens
+      originalPrice: "93 tokens", // 28€ / 0.3 = 93 tokens
+      level: "CP",
+      category: "Français",
+      cycle: "élémentaire",
+      availableSlots: 20,
+      description: "Améliorez la compréhension de lecture avec des textes adaptés au niveau CP.",
+      completed: false
+    },
+    {
+      id: 10,
+      title: "Arts Plastiques - Techniques de Dessin",
+      instructor: "Pierre Dubois",
+      image: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=250&fit=crop",
+      duration: "2h",
+      students: 15,
+      rating: 4.8,
+      price: "150 tokens", // 45€ / 0.3 = 150 tokens
+      originalPrice: "183 tokens", // 55€ / 0.3 = 183 tokens
+      level: "Terminale",
+      category: "Arts",
+      cycle: "secondaire",
+      availableSlots: 3,
+      description: "Perfectionnez vos techniques de dessin et explorez différents styles artistiques.",
+      completed: false
+    }
+  ];
 
-  // Utiliser les données du mockTrainerProfiles
-  const trainers = mockTrainerProfiles.map((trainer, index) => ({
-    id: index + 1,
-    name: trainer.name,
-    photo: trainer.photo || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-    specialty: trainer.specialties[0] || "Généraliste", // Prendre la première spécialité
-    description: trainer.description || `Formateur expert avec ${trainer.experience} ans d'expérience.`,
-    experience: `${trainer.experience} ans`,
-    rating: trainer.rating,
-    languages: trainer.languages,
-    supportType: "Tutorat", // Type par défaut
-    availableSlots: trainer.availability.slice(0, 3).map(time => ({
-      day: time.split(' ')[0] || "Lundi",
-      time: time.split(' ').slice(1).join(' ') || "10h-12h"
-    })),
-    hourlyRate: convertToTokens(`€${trainer.hourlyRate}`) + "/h"
-  }));
+  // Données des formateurs - mise à jour des tarifs en tokens
+  const trainers = [
+    {
+      id: 1,
+      name: "Marie Dubois",
+      photo: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
+      specialty: "Mathématiques",
+      description: "Formatrice experte en mathématiques avec 10 ans d'expérience dans l'enseignement personnalisé.",
+      experience: "10 ans",
+      rating: 4.9,
+      languages: ["Français", "Anglais"],
+      supportType: "Tutorat",
+      availableSlots: [
+        { day: "Lundi", time: "14h-16h" },
+        { day: "Mercredi", time: "10h-12h" },
+        { day: "Vendredi", time: "16h-18h" }
+      ],
+      hourlyRate: "117 tokens/h" // 35€ / 0.3 = 117 tokens
+    },
+    {
+      id: 2,
+      name: "Paul Martin",
+      photo: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+      specialty: "Français",
+      description: "Spécialiste en littérature française et techniques de rédaction pour tous niveaux.",
+      experience: "8 ans",
+      rating: 4.8,
+      languages: ["Français"],
+      supportType: "Coaching",
+      availableSlots: [
+        { day: "Mardi", time: "9h-11h" },
+        { day: "Jeudi", time: "14h-16h" },
+        { day: "Samedi", time: "10h-12h" }
+      ],
+      hourlyRate: "107 tokens/h" // 32€ / 0.3 = 107 tokens
+    },
+    {
+      id: 3,
+      name: "Sophie Laurent",
+      photo: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
+      specialty: "Sciences",
+      description: "Docteure en biologie, passionnée par la transmission des sciences naturelles.",
+      experience: "12 ans",
+      rating: 4.9,
+      languages: ["Français", "Anglais", "Espagnol"],
+      supportType: "Soutien technique",
+      availableSlots: [
+        { day: "Lundi", time: "10h-12h" },
+        { day: "Mercredi", time: "14h-16h" },
+        { day: "Vendredi", time: "9h-11h" }
+      ],
+      hourlyRate: "133 tokens/h" // 40€ / 0.3 = 133 tokens
+    },
+    {
+      id: 4,
+      name: "Lucas Petit",
+      photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
+      specialty: "Histoire-Géographie",
+      description: "Historien passionné avec une approche interactive de l'enseignement.",
+      experience: "6 ans",
+      rating: 4.7,
+      languages: ["Français", "Italien"],
+      supportType: "Tutorat",
+      availableSlots: [
+        { day: "Mardi", time: "15h-17h" },
+        { day: "Jeudi", time: "10h-12h" },
+        { day: "Samedi", time: "14h-16h" }
+      ],
+      hourlyRate: "100 tokens/h" // 30€ / 0.3 = 100 tokens
+    },
+    {
+      id: 5,
+      name: "Emma Wilson",
+      photo: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face",
+      specialty: "Anglais",
+      description: "Native speaker britannique spécialisée dans l'anglais conversationnel et académique.",
+      experience: "9 ans",
+      rating: 4.9,
+      languages: ["Anglais", "Français"],
+      supportType: "Coaching",
+      availableSlots: [
+        { day: "Lundi", time: "16h-18h" },
+        { day: "Mercredi", time: "9h-11h" },
+        { day: "Vendredi", time: "14h-16h" }
+      ],
+      hourlyRate: "127 tokens/h" // 38€ / 0.3 = 127 tokens
+    }
+  ];
 
   const educationLevels = [
     { value: 'all', label: 'Tous les niveaux d\'études' },
