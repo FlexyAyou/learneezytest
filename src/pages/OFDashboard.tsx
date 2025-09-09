@@ -13,6 +13,7 @@ import { OFEnvois } from '@/components/admin/OFEnvois';
 import { OFIntegrations } from '@/components/admin/OFIntegrations';
 import { OFLogs } from '@/components/admin/OFLogs';
 import { OFSettings } from '@/components/admin/OFSettings';
+import { OFSubscription } from '@/components/admin/OFSubscription';
 import OFStudentDetailPage from '@/pages/admin/OFStudentDetailPage';
 import OFTrainerDetailPage from '@/pages/admin/OFTrainerDetailPage';
 import OFManagerDetailPage from '@/pages/admin/OFManagerDetailPage';
@@ -28,7 +29,8 @@ import {
   Mail,
   Puzzle,
   FileArchive,
-  Home
+  Home,
+  CreditCard
 } from 'lucide-react';
 
 const OFDashboard = () => {
@@ -41,6 +43,7 @@ const OFDashboard = () => {
     { title: "Suivi pédagogique", href: "/dashboard/organisme-formation/suivi-pedagogique", icon: BarChart3, isActive: false },
     { title: "Visioconférence", href: "/dashboard/organisme-formation/visio", icon: Video, isActive: false },
     { title: "Envois", href: "/dashboard/organisme-formation/envois", icon: Mail, isActive: false },
+    { title: "Abonnement", href: "/dashboard/organisme-formation/abonnement", icon: CreditCard, isActive: false },
     { title: "Intégrations", href: "/dashboard/organisme-formation/integrations", icon: Puzzle, isActive: false },
     { title: "Logs", href: "/dashboard/organisme-formation/logs", icon: FileArchive, isActive: false },
     { title: "Paramètres", href: "/dashboard/organisme-formation/parametres", icon: Settings, isActive: false },
@@ -80,6 +83,7 @@ const OFDashboard = () => {
                 <Route path="/suivi-pedagogique" element={<OFSuiviPedagogique />} />
                 <Route path="/visio" element={<OFVideoConferences />} />
                 <Route path="/envois" element={<OFEnvois />} />
+                <Route path="/abonnement" element={<OFSubscription />} />
                 <Route path="/integrations" element={<OFIntegrations />} />
                 <Route path="/logs" element={<OFLogs />} />
                 <Route path="/parametres" element={<OFSettings />} />
