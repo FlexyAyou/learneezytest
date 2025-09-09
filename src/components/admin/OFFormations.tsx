@@ -9,6 +9,7 @@ import { BookOpen, Eye, Edit, Plus, Search, Filter, BarChart3, Users, Clock, Use
 import { OFFormationDetail } from './OFFormationDetail';
 import { LearneezyCourseCatalog } from './LearneezyCourseCatalog';
 import { EditFormationModal } from './EditFormationModal';
+import { CreateFormationModal } from './CreateFormationModal';
 
 export const OFFormations = () => {
   const [selectedFormation, setSelectedFormation] = useState<any>(null);
@@ -19,6 +20,7 @@ export const OFFormations = () => {
   const [showCatalogModal, setShowCatalogModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedFormationForEdit, setSelectedFormationForEdit] = useState<any>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [formations, setFormations] = useState([
     { 
       id: '1', 
@@ -164,6 +166,10 @@ export const OFFormations = () => {
     setFormations(prev => prev.map(f => f.id === updatedFormation.id ? updatedFormation : f));
   };
 
+  const handleCreateFormation = (newFormation: any) => {
+    setFormations(prev => [...prev, newFormation]);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -180,7 +186,7 @@ export const OFFormations = () => {
             <ShoppingCart className="h-4 w-4 mr-2" />
             Voir le catalogue Learneezy
           </Button>
-          <Button>
+          <Button onClick={() => setShowCreateModal(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Nouvelle formation
           </Button>
@@ -404,6 +410,13 @@ export const OFFormations = () => {
           setSelectedFormationForEdit(null);
         }}
         onSave={handleSaveFormation}
+      />
+
+      {/* Modal de création */}
+      <CreateFormationModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onFormationCreated={handleCreateFormation}
       />
     </div>
   );
