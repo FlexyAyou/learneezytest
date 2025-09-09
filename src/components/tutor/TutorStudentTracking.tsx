@@ -105,7 +105,7 @@ const TutorStudentTracking = () => {
   };
 
   const handleContactTeacher = () => {
-    navigate('/dashboard/tuteur/messaging');
+    navigate('/dashboard/tuteur/messagerie');
   };
 
   return (
