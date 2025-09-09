@@ -1,9 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { TutorStudentDetailedView } from '@/components/tutor/TutorStudentDetailedView';
+import { useNavigate } from 'react-router-dom';
 import { 
   User, 
   BookOpen, 
@@ -14,10 +16,21 @@ import {
 } from 'lucide-react';
 
 const TutorStudentTracking = () => {
+  const navigate = useNavigate();
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const students = [
     {
       id: 1,
       name: 'Emma Martin',
+      email: 'emma.martin@email.com',
+      phone: '06 12 34 56 78',
+      course: 'Mathématiques Niveau 1ère',
+      progress: 75,
+      lastActivity: '2024-01-15',
+      status: 'active',
+      parentContact: 'parents.martin@email.com',
+      notes: 'Élève très motivée',
       age: 16,
       avatar: '/placeholder.svg',
       modules: [
@@ -41,6 +54,14 @@ const TutorStudentTracking = () => {
     {
       id: 2,
       name: 'Lucas Dubois',
+      email: 'lucas.dubois@email.com',
+      phone: '06 98 76 54 32',
+      course: 'Sciences Physiques 3ème',
+      progress: 90,
+      lastActivity: '2024-01-14',
+      status: 'active',
+      parentContact: 'parents.dubois@email.com',
+      notes: 'Très bon élève en sciences',
       age: 14,
       avatar: '/placeholder.svg',
       modules: [
@@ -76,6 +97,15 @@ const TutorStudentTracking = () => {
     if (grade >= 14) return 'bg-blue-100 text-blue-800';
     if (grade >= 12) return 'bg-yellow-100 text-yellow-800';
     return 'bg-red-100 text-red-800';
+  };
+
+  const handleViewDetails = (student: any) => {
+    setSelectedStudent(student);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleContactTeacher = () => {
+    navigate('/dashboard/tuteur/messaging');
   };
 
   return (
@@ -172,11 +202,21 @@ const TutorStudentTracking = () => {
 
               {/* Action Buttons */}
               <div className="flex space-x-2 pt-2">
-                <Button size="sm" variant="outline" className="flex-1">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => handleViewDetails(student)}
+                >
                   <Eye className="mr-2 h-4 w-4" />
                   Détails
                 </Button>
-                <Button size="sm" variant="outline" className="flex-1">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={handleContactTeacher}
+                >
                   <MessageCircle className="mr-2 h-4 w-4" />
                   Contacter
                 </Button>
@@ -185,6 +225,16 @@ const TutorStudentTracking = () => {
           </Card>
         ))}
       </div>
+
+      {/* Modal de détails de l'élève */}
+      <TutorStudentDetailedView
+        student={selectedStudent}
+        isOpen={isDetailModalOpen}
+        onClose={() => {
+          setIsDetailModalOpen(false);
+          setSelectedStudent(null);
+        }}
+      />
     </div>
   );
 };
