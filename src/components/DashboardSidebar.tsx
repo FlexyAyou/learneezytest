@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { LucideIcon, BookOpen, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -26,6 +26,11 @@ interface DashboardSidebarProps {
 }
 
 export const DashboardSidebar = ({ title, subtitle, items, userInfo }: DashboardSidebarProps) => {
+  const location = useLocation();
+  
+  const isActiveRoute = (href: string) => {
+    return location.pathname === href;
+  };
   return (
     <div className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen overflow-hidden">
       {/* Header */}
@@ -62,21 +67,27 @@ export const DashboardSidebar = ({ title, subtitle, items, userInfo }: Dashboard
         <div className="p-4 space-y-1">
           {items.map((item, index) => {
             const Icon = item.icon;
+            const isActive = isActiveRoute(item.href);
             return (
               <Link
                 key={index}
                 to={item.href}
                 className={cn(
-                  "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
-                  item.isActive
-                    ? "bg-pink-50 text-pink-700 border-r-2 border-pink-600"
+                  "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200",
+                  isActive
+                    ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-md"
                     : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                 )}
               >
                 <Icon className="mr-3 h-5 w-5 flex-shrink-0" />
                 <span className="flex-1 truncate">{item.title}</span>
                 {item.badge && (
-                  <span className="ml-2 px-2 py-1 text-xs bg-pink-100 text-pink-700 rounded-full flex-shrink-0">
+                  <span className={cn(
+                    "ml-2 px-2 py-1 text-xs rounded-full flex-shrink-0",
+                    isActive 
+                      ? "bg-white/20 text-white" 
+                      : "bg-pink-100 text-pink-700"
+                  )}>
                     {item.badge}
                   </span>
                 )}
