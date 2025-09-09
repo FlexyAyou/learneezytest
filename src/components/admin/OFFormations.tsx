@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { BookOpen, Eye, Edit, Plus, Search, Filter, BarChart3, Users, Clock, UserPlus, Check, ShoppingCart } from 'lucide-react';
 import { OFFormationDetail } from './OFFormationDetail';
 import { LearneezyCourseCatalog } from './LearneezyCourseCatalog';
+import { EditFormationModal } from './EditFormationModal';
 
 export const OFFormations = () => {
   const [selectedFormation, setSelectedFormation] = useState<any>(null);
@@ -16,8 +17,9 @@ export const OFFormations = () => {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedFormationForAssign, setSelectedFormationForAssign] = useState<any>(null);
   const [showCatalogModal, setShowCatalogModal] = useState(false);
-
-  const formations = [
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedFormationForEdit, setSelectedFormationForEdit] = useState<any>(null);
+  const [formations, setFormations] = useState([
     { 
       id: '1', 
       titre: 'Développement Web Full Stack - React & Node.js', 
@@ -108,7 +110,7 @@ export const OFFormations = () => {
       vues: 634,
       stats: '2.9k'
     },
-  ];
+  ]);
 
   const apprenants = [
     { id: '1', nom: 'Durand', prenom: 'Thomas', email: 'thomas.durand@email.com', isAssigned: false },
@@ -151,6 +153,15 @@ export const OFFormations = () => {
   const handleAssignLearner = (learnerId: string) => {
     console.log(`Assigning learner ${learnerId} to formation ${selectedFormationForAssign?.id}`);
     // Logique d'assignation ici
+  };
+
+  const handleEditFormation = (formation: any) => {
+    setSelectedFormationForEdit(formation);
+    setShowEditModal(true);
+  };
+
+  const handleSaveFormation = (updatedFormation: any) => {
+    setFormations(prev => prev.map(f => f.id === updatedFormation.id ? updatedFormation : f));
   };
 
   return (
@@ -287,7 +298,11 @@ export const OFFormations = () => {
                           <Eye className="h-4 w-4 mr-1" />
                           Voir
                         </Button>
-                        <Button size="sm" variant="outline">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleEditFormation(formation)}
+                        >
                           <Edit className="h-4 w-4 mr-1" />
                           Éditer
                         </Button>
@@ -378,6 +393,17 @@ export const OFFormations = () => {
       <LearneezyCourseCatalog
         isOpen={showCatalogModal}
         onClose={() => setShowCatalogModal(false)}
+      />
+
+      {/* Modal d'édition */}
+      <EditFormationModal
+        formation={selectedFormationForEdit}
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setSelectedFormationForEdit(null);
+        }}
+        onSave={handleSaveFormation}
       />
     </div>
   );
