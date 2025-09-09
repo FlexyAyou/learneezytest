@@ -266,7 +266,6 @@ const ExternalTrainerDashboard = () => {
     { title: 'Mes revenus', href: '/formateur-independant/revenus', icon: Award },
     { title: 'Tests de positionnement', href: '/formateur-independant/tests', icon: TestTube },
     { title: 'Visioconférence', href: '/formateur-independant/video', icon: Video },
-    { title: 'Chat IA', href: '/formateur-independant/chat', icon: Brain },
     { title: 'Mes documents', href: '/formateur-independant/documents', icon: Download },
     { title: 'Support & Assistance', href: '/formateur-independant/support', icon: HelpCircle },
     { title: 'Profil formateur', href: '/formateur-independant/profil', icon: Settings },
@@ -297,12 +296,12 @@ const ExternalTrainerDashboard = () => {
           <Route path="/revenus" element={<TrainerEarnings />} />
           <Route path="/tests" element={<TrainerPositioningTests />} />
           <Route path="/video" element={<TrainerVideoConferences />} />
-          <Route path="/chat" element={<AIChat />} />
           <Route path="/documents" element={<TrainerDocuments />} />
           <Route path="/support" element={<TrainerSupport />} />
           <Route path="/profil" element={<TrainerProfile />} />
         </Routes>
       </main>
+      <AIChatButton />
     </div>
   );
 };

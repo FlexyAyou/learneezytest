@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
+import CreateTestModal from './CreateTestModal';
 
 interface Test {
   id: string;
@@ -33,8 +34,7 @@ interface NeedsAnalysis {
 
 const TrainerPositioningTests = () => {
   const [activeTab, setActiveTab] = useState('tests');
-
-  const tests: Test[] = [
+  const [tests, setTests] = useState<Test[]>([
     {
       id: '1',
       title: 'Test de positionnement JavaScript',
@@ -68,7 +68,9 @@ const TrainerPositioningTests = () => {
       created: '2024-01-22',
       status: 'Brouillon'
     }
-  ];
+  ]);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
 
   const needsAnalyses: NeedsAnalysis[] = [
     {
@@ -119,6 +121,10 @@ const TrainerPositioningTests = () => {
       case 'Avancé': return 'bg-red-100 text-red-800 border-red-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
+  };
+
+  const handleCreateTest = (newTest: Test) => {
+    setTests(prev => [...prev, newTest]);
   };
 
   const getStatusBadge = (status: string) => {
@@ -196,7 +202,7 @@ const TrainerPositioningTests = () => {
               </Card>
             </div>
 
-            <Button>
+            <Button onClick={() => setIsCreateModalOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Créer un test
             </Button>
@@ -368,6 +374,12 @@ const TrainerPositioningTests = () => {
           </div>
         </TabsContent>
       </Tabs>
+
+      <CreateTestModal 
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onTestCreated={handleCreateTest}
+      />
     </div>
   );
 };
