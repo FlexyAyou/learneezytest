@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import CourseCard from '@/components/CourseCard';
 import TrainerCard from '@/components/TrainerCard';
 import TrainerBookingModal from '@/components/TrainerBookingModal';
+import CoursePurchaseConfirmModal from '@/components/student/CoursePurchaseConfirmModal';
 
 // Données mockées adaptées de /nos-formations
 const courses = [
@@ -169,6 +170,10 @@ const StudentCatalog = () => {
   const [selectedTrainer, setSelectedTrainer] = useState(null);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   
+  // États pour l'achat de cours
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
+  
   // Données mockées pour l'utilisateur
   const [tokenBalance, setTokenBalance] = useState(1250);
   const [purchasedCourses, setPurchasedCourses] = useState<number[]>([]);
@@ -237,6 +242,11 @@ const StudentCatalog = () => {
   };
 
   const handleCoursePurchase = (course: any) => {
+    setSelectedCourse(course);
+    setIsPurchaseModalOpen(true);
+  };
+
+  const handleConfirmCoursePurchase = (course: any) => {
     const tokenPrice = extractTokenPrice(course.price);
     if (tokenBalance >= tokenPrice) {
       setTokenBalance(prev => prev - tokenPrice);
@@ -487,6 +497,18 @@ const StudentCatalog = () => {
           userTokenBalance={tokenBalance}
         />
       )}
+
+      {/* Modal de confirmation d'achat de cours */}
+      <CoursePurchaseConfirmModal
+        isOpen={isPurchaseModalOpen}
+        onClose={() => {
+          setIsPurchaseModalOpen(false);
+          setSelectedCourse(null);
+        }}
+        course={selectedCourse}
+        onConfirmPurchase={handleConfirmCoursePurchase}
+        userTokenBalance={tokenBalance}
+      />
     </div>
   );
 };
