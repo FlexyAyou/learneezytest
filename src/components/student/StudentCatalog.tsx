@@ -241,7 +241,21 @@ const StudentCatalog = () => {
     if (tokenBalance >= tokenPrice) {
       setTokenBalance(prev => prev - tokenPrice);
       setPurchasedCourses(prev => [...prev, course.id]);
-      toast.success(`Cours "${course.title}" acheté avec succès !`);
+      toast.success(`Cours "${course.title}" acheté avec succès pour ${tokenPrice} tokens !`);
+    } else {
+      toast.error('Solde de tokens insuffisant');
+    }
+  };
+
+  const handleTrainerBookingConfirm = (trainer: any, slot: any, notes: string = '') => {
+    const hourlyRate = parseInt(trainer.hourlyRate.replace(' tokens/h', ''));
+    const sessionCost = hourlyRate; // 1 heure par défaut
+    
+    if (tokenBalance >= sessionCost) {
+      setTokenBalance(prev => prev - sessionCost);
+      toast.success(`Séance réservée avec ${trainer.name} pour ${sessionCost} tokens !`);
+      setIsBookingModalOpen(false);
+      setSelectedTrainer(null);
     } else {
       toast.error('Solde de tokens insuffisant');
     }
@@ -329,10 +343,16 @@ const StudentCatalog = () => {
                   </div>
                 </div>
 
-                {/* Grille des formations */}
+                 {/* Grille des formations */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {(showAllCourses ? filteredCourses : filteredCourses.slice(0, 6)).map((course) => (
-                    <CourseCard key={course.id} course={course} />
+                    <CourseCard 
+                      key={course.id} 
+                      course={course}
+                      onPurchase={() => handleCoursePurchase(course)}
+                      isPurchased={purchasedCourses.includes(course.id)}
+                      userTokenBalance={tokenBalance}
+                    />
                   ))}
                 </div>
 
@@ -459,7 +479,12 @@ const StudentCatalog = () => {
         <TrainerBookingModal
           trainer={selectedTrainer}
           isOpen={isBookingModalOpen}
-          onClose={() => setIsBookingModalOpen(false)}
+          onClose={() => {
+            setIsBookingModalOpen(false);
+            setSelectedTrainer(null);
+          }}
+          onBookingConfirm={handleTrainerBookingConfirm}
+          userTokenBalance={tokenBalance}
         />
       )}
     </div>

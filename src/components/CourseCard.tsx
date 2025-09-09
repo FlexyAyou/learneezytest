@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Clock, Users, Star, Download } from 'lucide-react';
+import { Clock, Users, Star, Download, ShoppingCart, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -24,9 +24,12 @@ interface CourseCardProps {
     description: string;
     completed?: boolean;
   };
+  onPurchase?: () => void;
+  isPurchased?: boolean;
+  userTokenBalance?: number;
 }
 
-const CourseCard = ({ course }: CourseCardProps) => {
+const CourseCard = ({ course, onPurchase, isPurchased = false, userTokenBalance = 0 }: CourseCardProps) => {
   const handleDownloadProgram = () => {
     // Simuler le téléchargement du programme
     const element = document.createElement('a');
@@ -36,6 +39,12 @@ const CourseCard = ({ course }: CourseCardProps) => {
     element.click();
     document.body.removeChild(element);
   };
+
+  const extractTokenPrice = (priceString: string) => {
+    return parseInt(priceString.replace(' tokens', ''));
+  };
+
+  const canAffordCourse = userTokenBalance >= extractTokenPrice(course.price);
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group relative">
@@ -116,12 +125,24 @@ const CourseCard = ({ course }: CourseCardProps) => {
                 Mon parcours
               </Button>
             </Link>
+          ) : isPurchased ? (
+            <Button size="sm" className="bg-green-600 hover:bg-green-700" disabled>
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Acheté
+            </Button>
           ) : (
-            <Link to={`/cours/${course.id}/reservation`}>
-              <Button size="sm" className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700">
-                S'inscrire
-              </Button>
-            </Link>
+            <Button 
+              size="sm" 
+              className={`${canAffordCourse 
+                ? 'bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700' 
+                : 'bg-gray-400 cursor-not-allowed'
+              }`}
+              onClick={onPurchase}
+              disabled={!canAffordCourse}
+            >
+              <ShoppingCart className="h-4 w-4 mr-2" />
+              Acheter ({extractTokenPrice(course.price)} tokens)
+            </Button>
           )}
         </div>
       </CardContent>

@@ -24,9 +24,11 @@ interface TrainerBookingModalProps {
     availableSlots: Array<{ day: string; time: string }>;
     hourlyRate: string;
   } | null;
+  onBookingConfirm?: (trainer: any, slot: any, notes: string) => void;
+  userTokenBalance?: number;
 }
 
-const TrainerBookingModal = ({ isOpen, onClose, trainer }: TrainerBookingModalProps) => {
+const TrainerBookingModal = ({ isOpen, onClose, trainer, onBookingConfirm, userTokenBalance = 0 }: TrainerBookingModalProps) => {
   const [selectedSlot, setSelectedSlot] = useState<{ day: string; time: string } | null>(null);
   const [notes, setNotes] = useState('');
   const navigate = useNavigate();
@@ -34,27 +36,35 @@ const TrainerBookingModal = ({ isOpen, onClose, trainer }: TrainerBookingModalPr
   if (!trainer) return null;
 
   const handleBooking = () => {
-    if (!selectedSlot) return;
+    if (!selectedSlot || !trainer) return;
     
-    // Simuler la réservation - en réalité, cela devrait appeler une API
-    console.log('Réservation:', {
-      trainerId: trainer.id,
-      slot: selectedSlot,
-      notes
-    });
-    
-    // Redirection vers la page de confirmation
-    navigate('/trainer-booking-confirmation', { 
-      state: { 
-        type: 'trainer-booking',
-        trainer: trainer,
+    if (onBookingConfirm) {
+      onBookingConfirm(trainer, selectedSlot, notes);
+    } else {
+      console.log('Réservation confirmée:', {
+        trainer: trainer.name,
         slot: selectedSlot,
         notes: notes
-      }
-    });
-    
-    onClose();
+      });
+      
+      navigate('/trainer-booking-confirmation', { 
+        state: { 
+          type: 'trainer-booking',
+          trainer: trainer,
+          slot: selectedSlot,
+          notes: notes
+        }
+      });
+      onClose();
+    }
   };
+
+  const extractTokenPrice = (hourlyRate: string) => {
+    return parseInt(hourlyRate.replace(' tokens/h', ''));
+  };
+
+  const sessionCost = trainer ? extractTokenPrice(trainer.hourlyRate) : 0;
+  const canAffordSession = userTokenBalance >= sessionCost;
 
   const getSupportTypeColor = (type: string) => {
     switch (type) {
@@ -100,6 +110,11 @@ const TrainerBookingModal = ({ isOpen, onClose, trainer }: TrainerBookingModalPr
                     <Badge variant="outline" className="text-xs">
                       {trainer.hourlyRate}
                     </Badge>
+                    {userTokenBalance > 0 && (
+                      <Badge variant={canAffordSession ? "default" : "destructive"} className="text-xs">
+                        Solde: {userTokenBalance} tokens
+                      </Badge>
+                    )}
                     <Badge variant="secondary" className="text-xs">
                       {trainer.experience}
                     </Badge>
@@ -179,10 +194,13 @@ const TrainerBookingModal = ({ isOpen, onClose, trainer }: TrainerBookingModalPr
             </Button>
             <Button 
               onClick={handleBooking}
-              disabled={!selectedSlot}
-              className="flex-1 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
+              disabled={!selectedSlot || !canAffordSession}
+              className={`flex-1 ${!canAffordSession ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700'}`}
             >
-              Confirmer la réservation
+              {canAffordSession 
+                ? `Confirmer (${sessionCost} tokens)` 
+                : 'Tokens insuffisants'
+              }
             </Button>
           </div>
         </div>
