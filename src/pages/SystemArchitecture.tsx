@@ -119,82 +119,15 @@ export default function SystemArchitecture() {
         +timestamp updated_at
     }
     
-    class DocumentAdministratif {
-        +UUID id
-        +UUID user_id
-        +string document_type
-        +string document_url
-        +boolean is_signed
-        +boolean is_validated
-        +timestamp signed_at
-        +timestamp validated_at
-        +timestamp created_at
-        +timestamp updated_at
-    }
-    
-    class DocumentOF {
-        +UUID id
-        +string type
-        +string title
-        +text content
-        +string file_url
-        +boolean is_template
-        +boolean is_active
-        +timestamp created_at
-        +timestamp updated_at
-    }
-    
-    class AutomaticMailing {
-        +UUID id
-        +UUID inscription_id
-        +string type
-        +string status
-        +string recipient_email
-        +text content
-        +string error_message
-        +timestamp sent_at
-        +timestamp created_at
-    }
-
     OrganisationFormation ||--o{ Profile : "appartient à"
     Profile ||--o{ Course : "enseigne"
     Profile ||--o{ Inscription : "s'inscrit"
     Profile ||--o{ Evaluation : "passe"
     Profile ||--o{ Emargement : "signe"
-    Profile ||--o{ DocumentAdministratif : "possède"
     
     Course ||--o{ Inscription : "concerne"
     Course ||--o{ Evaluation : "évalue"
-    Course ||--o{ Emargement : "suivi dans"
-    
-    Inscription ||--o{ AutomaticMailing : "déclenche"
-    
-    class UserRole {
-        <<enumeration>>
-        student
-        instructor
-        admin
-        manager
-        tutor
-        parent
-        external_trainer
-        internal_trainer
-        content_creator
-        technician
-        animator
-        independent_trainer
-    }
-    
-    class UserStatus {
-        <<enumeration>>
-        active
-        inactive
-        suspended
-        pending
-    }
-    
-    Profile --> UserRole
-    Profile --> UserStatus`}
+    Course ||--o{ Emargement : "suivi dans"`}
                   </lov-mermaid>
                 </div>
               </CardContent>
@@ -239,12 +172,7 @@ export default function SystemArchitecture() {
     Q -->|Non| O
     Q -->|Oui| R[Évaluation finale]
     R --> S[Génération certificat]
-    S --> T[Archivage dossier]
-    
-    F --> F1[Mailing bienvenue]
-    G --> G1[Mailing rappel signature]
-    M --> M1[Mailing confirmation]
-    S --> S1[Mailing certificat]`}
+    S --> T[Archivage dossier]`}
                   </lov-mermaid>
                 </div>
               </CardContent>
@@ -324,15 +252,9 @@ export default function SystemArchitecture() {
         S3 --> S4[Mes Évaluations]
     end
     
-    subgraph "Tuteur/Parent"
-        T1[Suivi Apprenant] --> T2[Communication]
-        T2 --> T3[Planning]
-    end
-    
     A1 -.-> M1
     M1 -.-> F1
-    F1 -.-> S1
-    T1 -.-> S1`}
+    F1 -.-> S1`}
                   </lov-mermaid>
                 </div>
               </CardContent>
@@ -362,13 +284,7 @@ export default function SystemArchitecture() {
     
     Rejete --> Soumis : Nouvelle soumission
     Valide --> Archive : Traitement terminé
-    Archive --> [*]
-    
-    note right of EnRevision
-        Validation par un humain
-        selon le type de document
-        et les permissions
-    end note`}
+    Archive --> [*]`}
                   </lov-mermaid>
                 </div>
               </CardContent>
