@@ -31,6 +31,7 @@ import CourseViewer from './pages/student/CourseViewer';
 import LessonViewer from './pages/student/LessonViewer';
 import StudentPayment from './pages/student/StudentPayment';
 import CourseReviewPage from '@/pages/admin/CourseReviewPage';
+import SystemArchitecture from './pages/SystemArchitecture';
 
 function App() {
   return (
@@ -93,6 +94,9 @@ function App() {
           
           {/* Route pour la review des cours */}
           <Route path="/dashboard/superadmin/courses/:courseId/review" element={<CourseReviewPage />} />
+          
+          {/* Route pour l'architecture système */}
+          <Route path="/architecture" element={<SystemArchitecture />} />
           
         </Routes>
         <Toaster />
