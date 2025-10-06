@@ -21,7 +21,7 @@ import InternalTrainerDashboard from './pages/InternalTrainerDashboard';
 import ContentCreatorDashboard from './pages/ContentCreatorDashboard';
 import TechnicianDashboard from './pages/TechnicianDashboard';
 import Login from './pages/Login';
-import Register from './pages/Register';
+
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import { Toaster } from '@/components/ui/toaster';
@@ -55,7 +55,6 @@ function App() {
           <Route path="/dashboard/apprenant/payment" element={<StudentPayment />} />
           <Route path="/profil" element={<Profile />} />
           <Route path="/connexion" element={<Login />} />
-          <Route path="/inscription" element={<Register />} />
           <Route path="/mot-de-passe-oublié" element={<ForgotPassword />} />
           <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
           <Route path="/reinitialiser-mot-de-passe" element={<ResetPassword />} />
