@@ -1,16 +1,19 @@
-
-import React from 'react';
-import { useForm } from 'react-hook-form';
-import { Eye, EyeOff, Mail } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuthForm } from '@/hooks/useAuthForm';
-import { useToast } from '@/hooks/use-toast';
+import React from "react";
+import { useForm } from "react-hook-form";
+import { Eye, EyeOff, Mail } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuthForm } from "@/hooks/useAuthForm";
+import { useToast } from "@/hooks/use-toast";
 
 const Login = () => {
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { showPassword, setShowPassword, isLoading, handleLogin } = useAuthForm();
@@ -22,7 +25,7 @@ const Login = () => {
         title: "Connexion réussie",
         description: "Vous êtes maintenant connecté",
       });
-      navigate('/dashboard');
+      navigate("/dashboard");
     } catch (error) {
       toast({
         title: "Erreur de connexion",
@@ -37,14 +40,12 @@ const Login = () => {
       {/* Left Side - Marketing */}
       <div className="hidden lg:flex flex-1 bg-gradient-to-br from-pink-600 via-orange-700 to-pink-600 items-center justify-center p-8">
         <div className="max-w-md text-white">
-          <h2 className="text-4xl font-bold mb-6">
-            Bon retour parmi nous !
-          </h2>
+          <h2 className="text-4xl font-bold mb-6">Bon retour parmi nous !</h2>
           <p className="text-pink-100 mb-8 text-lg leading-relaxed">
-            Connectez-vous à votre compte et continuez votre parcours d'apprentissage. 
-            Accédez à vos cours favoris et suivez vos progrès.
+            Connectez-vous à votre compte et continuez votre parcours d'apprentissage. Accédez à vos cours favoris et
+            suivez vos progrès.
           </p>
-          
+
           <div className="space-y-4 mb-8">
             <div className="flex items-center space-x-3">
               <div className="h-5 w-5 text-pink-200">✓</div>
@@ -71,9 +72,7 @@ const Login = () => {
                 <span className="ml-2 font-semibold text-2xl">98%</span>
               </div>
             </div>
-            <p className="text-sm text-pink-200">
-              "Une plateforme exceptionnelle qui a transformé ma carrière !"
-            </p>
+            <p className="text-sm text-pink-200">"Une plateforme exceptionnelle qui a transformé ma carrière !"</p>
             <p className="text-xs text-pink-300 mt-2">- Marie, Data Scientist</p>
           </div>
         </div>
@@ -85,9 +84,9 @@ const Login = () => {
           {/* Logo */}
           <div className="flex justify-center mb-8">
             <Link to="/">
-              <img 
-                src="/lovable-uploads/52aaa383-7635-46d0-ac37-eb3ee6b878d1.png" 
-                alt="Learneezy" 
+              <img
+                src="/lovable-uploads/52aaa383-7635-46d0-ac37-eb3ee6b878d1.png"
+                alt="Learneezy"
                 className="h-24 w-auto"
               />
             </Link>
@@ -95,12 +94,8 @@ const Login = () => {
 
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              Bienvenue ! Connectez-vous à votre compte
-            </h1>
-            <p className="text-gray-600">
-              Entrez vos informations pour accéder à votre espace d'apprentissage
-            </p>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Bienvenue ! Connectez-vous à votre compte</h1>
+            <p className="text-gray-600">Entrez vos informations pour accéder à votre espace d'apprentissage</p>
           </div>
 
           {/* Form */}
@@ -116,12 +111,10 @@ const Login = () => {
                   type="email"
                   placeholder="votre@email.com"
                   className="pl-10"
-                  {...register('email', { required: 'L\'email est requis' })}
+                  {...register("email", { required: "L'email est requis" })}
                 />
               </div>
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email.message as string}</p>
-              )}
+              {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message as string}</p>}
             </div>
 
             <div>
@@ -131,10 +124,10 @@ const Login = () => {
               <div className="relative">
                 <Input
                   id="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   placeholder="Votre mot de passe"
                   className="pr-10"
-                  {...register('password', { required: 'Le mot de passe est requis' })}
+                  {...register("password", { required: "Le mot de passe est requis" })}
                 />
                 <button
                   type="button"
@@ -148,9 +141,7 @@ const Login = () => {
                   )}
                 </button>
               </div>
-              {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password.message as string}</p>
-              )}
+              {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password.message as string}</p>}
             </div>
 
             <div className="flex items-center justify-between">
@@ -165,42 +156,15 @@ const Login = () => {
               </Link>
             </div>
 
-            <Button
-              type="submit"
-              className="w-full bg-pink-600 hover:bg-pink-700 text-white"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Connexion...' : 'Se connecter'}
+            <Button type="submit" className="w-full bg-pink-600 hover:bg-pink-700 text-white" disabled={isLoading}>
+              {isLoading ? "Connexion..." : "Se connecter"}
             </Button>
           </form>
-
-          {/* Social Login */}
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Ou continuer avec</span>
-              </div>
-            </div>
-
-            <div className="mt-6 grid grid-cols-2 gap-3">
-              <Button variant="outline" className="w-full">
-                <img src="/lovable-uploads/google-logo.png" alt="Google" className="w-5 h-5 mr-2" />
-                Google
-              </Button>
-              <Button variant="outline" className="w-full">
-                <img src="/lovable-uploads/microsoft-logo.png" alt="Microsoft" className="w-5 h-5 mr-2" />
-                Microsoft
-              </Button>
-            </div>
-          </div>
 
           {/* Register Link */}
           <div className="mt-6 text-center">
             <p className="text-gray-600">
-              Vous n'avez pas de compte ?{' '}
+              Vous n'avez pas de compte ?{" "}
               <Link to="/inscription" className="text-pink-600 hover:text-pink-700 font-medium">
                 Créer un compte
               </Link>
