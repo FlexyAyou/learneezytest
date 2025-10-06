@@ -23,6 +23,7 @@ import TechnicianDashboard from './pages/TechnicianDashboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import { Toaster } from '@/components/ui/toaster';
 import { AdminUsers } from './components/admin/AdminUsers';
 import UserDetailPage from './components/admin/UserDetailPage';
@@ -57,6 +58,7 @@ function App() {
           <Route path="/inscription" element={<Register />} />
           <Route path="/mot-de-passe-oublié" element={<ForgotPassword />} />
           <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
+          <Route path="/reinitialiser-mot-de-passe" element={<ResetPassword />} />
           
           {/* Public Trainer Pages */}
           <Route path="/formateur-independant/*" element={<ExternalTrainerDashboard />} />
