@@ -174,6 +174,38 @@ const Login = () => {
             </Button>
           </form>
 
+          {/* Social Login */}
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">Ou continuer avec</span>
+              </div>
+            </div>
+
+            <div className="mt-6 grid grid-cols-2 gap-3">
+              <Button variant="outline" className="w-full">
+                <img src="/lovable-uploads/google-logo.png" alt="Google" className="w-5 h-5 mr-2" />
+                Google
+              </Button>
+              <Button variant="outline" className="w-full">
+                <img src="/lovable-uploads/microsoft-logo.png" alt="Microsoft" className="w-5 h-5 mr-2" />
+                Microsoft
+              </Button>
+            </div>
+          </div>
+
+          {/* Register Link */}
+          <div className="mt-6 text-center">
+            <p className="text-gray-600">
+              Vous n'avez pas de compte ?{' '}
+              <Link to="/inscription" className="text-pink-600 hover:text-pink-700 font-medium">
+                Créer un compte
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>
