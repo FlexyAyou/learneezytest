@@ -154,7 +154,7 @@ const Register = () => {
                       <SelectItem value="instructor">
                         <div className="flex items-center space-x-2">
                           <UserCheck className="h-4 w-4" />
-                          <span>Profil Professeur</span>
+                          <span>Profil formateur</span>
                         </div>
                       </SelectItem>
                     </SelectContent>
