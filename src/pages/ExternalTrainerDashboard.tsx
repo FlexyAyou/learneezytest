@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { DashboardSidebar } from '@/components/DashboardSidebar';
+import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
+import { ExternalTrainerSidebar } from '@/components/external-trainer/ExternalTrainerSidebar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -255,54 +256,39 @@ const ExternalTrainerDashboardHome = () => {
 };
 
 const ExternalTrainerDashboard = () => {
-  const sidebarItems = [
-    { title: 'Tableau de bord', href: '/formateur-independant', icon: TrendingUp, isActive: true },
-    { title: 'Mes spécialités', href: '/formateur-independant/specialites', icon: Target },
-    { title: 'Mes disponibilités', href: '/formateur-independant/disponibilites', icon: Calendar },
-    { title: 'Mes tarifs', href: '/formateur-independant/tarifs', icon: Euro },
-    { title: 'Mes réservations', href: '/formateur-independant/reservations', icon: BookOpen },
-    { title: 'Historique séances', href: '/formateur-independant/historique', icon: History },
-    { title: 'Mes avis', href: '/formateur-independant/evaluations', icon: Star },
-    { title: 'Mes revenus', href: '/formateur-independant/revenus', icon: Award },
-    { title: 'Tests de positionnement', href: '/formateur-independant/tests', icon: TestTube },
-    { title: 'Visioconférence', href: '/formateur-independant/video', icon: Video },
-    { title: 'Mes documents', href: '/formateur-independant/documents', icon: Download },
-    { title: 'Support & Assistance', href: '/formateur-independant/support', icon: HelpCircle },
-    { title: 'Profil formateur', href: '/formateur-independant/profil', icon: Settings },
-  ];
-
-  const userInfo = {
-    name: "Jean Martin",
-    email: "jean.martin@email.com"
-  };
-
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <DashboardSidebar
-        title="Formateur Independant"
-        subtitle="Mon portail"
-        items={sidebarItems}
-        userInfo={userInfo}
-      />
-      <main className="flex-1 p-8">
-        <Routes>
-          <Route path="/" element={<ExternalTrainerDashboardHome />} />
-          <Route path="/specialites" element={<TrainerSpecialties />} />
-          <Route path="/disponibilites" element={<TrainerAvailabilities />} />
-          <Route path="/tarifs" element={<TrainerRates />} />
-          <Route path="/reservations" element={<TrainerBookings />} />
-          <Route path="/historique" element={<TrainerHistory />} />
-          <Route path="/evaluations" element={<TrainerReviews />} />
-          <Route path="/revenus" element={<TrainerEarnings />} />
-          <Route path="/tests" element={<TrainerPositioningTests />} />
-          <Route path="/video" element={<TrainerVideoConferences />} />
-          <Route path="/documents" element={<TrainerDocuments />} />
-          <Route path="/support" element={<TrainerSupport />} />
-          <Route path="/profil" element={<TrainerProfile />} />
-        </Routes>
-      </main>
-      <AIChatButton />
-    </div>
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full">
+        <ExternalTrainerSidebar />
+        
+        <SidebarInset className="flex-1">
+          <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4">
+            <SidebarTrigger />
+            <div className="flex-1" />
+          </header>
+          
+          <main className="flex-1 p-8">
+            <Routes>
+              <Route path="/" element={<ExternalTrainerDashboardHome />} />
+              <Route path="/specialites" element={<TrainerSpecialties />} />
+              <Route path="/disponibilites" element={<TrainerAvailabilities />} />
+              <Route path="/tarifs" element={<TrainerRates />} />
+              <Route path="/reservations" element={<TrainerBookings />} />
+              <Route path="/historique" element={<TrainerHistory />} />
+              <Route path="/evaluations" element={<TrainerReviews />} />
+              <Route path="/revenus" element={<TrainerEarnings />} />
+              <Route path="/tests" element={<TrainerPositioningTests />} />
+              <Route path="/video" element={<TrainerVideoConferences />} />
+              <Route path="/documents" element={<TrainerDocuments />} />
+              <Route path="/support" element={<TrainerSupport />} />
+              <Route path="/profil" element={<TrainerProfile />} />
+            </Routes>
+          </main>
+        </SidebarInset>
+        
+        <AIChatButton />
+      </div>
+    </SidebarProvider>
   );
 };
 

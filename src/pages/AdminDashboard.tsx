@@ -1,7 +1,7 @@
-
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { DashboardSidebar } from '@/components/DashboardSidebar';
+import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
+import { SuperAdminSidebar } from '@/components/admin/SuperAdminSidebar';
 import { SuperAdminDashboard } from '@/components/admin/SuperAdminDashboard';
 import { AdminUsers } from '@/components/admin/AdminUsers';
 import AdminTrainers from '@/components/admin/AdminTrainers';
@@ -55,85 +55,53 @@ import {
 import CreateOrganisme from './admin/CreateOrganisme';
 
 const AdminDashboard = () => {
-  const sidebarItems = [
-    { title: "Tableau de bord", href: "/dashboard/superadmin", icon: Home, isActive: false },
-    { title: "Utilisateurs", href: "/dashboard/superadmin/users", icon: Users, isActive: false },
-    { title: "Formateurs", href: "/dashboard/superadmin/trainers", icon: GraduationCap, isActive: false },
-    { title: "Organismes de formations", href: "/dashboard/superadmin/organisations", icon: Building, isActive: false },
-    { title: "Cours", href: "/dashboard/superadmin/courses", icon: BookOpen, isActive: false },
-    { title: "Inscriptions", href: "/dashboard/superadmin/inscriptions", icon: UserCheck, isActive: false },
-    { title: "Documents OF", href: "/dashboard/superadmin/of-documents", icon: FileText, isActive: false },
-    { title: "Conventions", href: "/dashboard/superadmin/conventions", icon: FileSignature, isActive: false },
-    { title: "Envois automatiques", href: "/dashboard/superadmin/mailings", icon: Mail, isActive: false },
-    { title: "Émargements", href: "/dashboard/superadmin/emargements", icon: PenTool, isActive: false },
-    { title: "Gestion licences", href: "/dashboard/superadmin/licenses", icon: Key, isActive: false },
-    { title: "Vérification identité", href: "/dashboard/superadmin/identity", icon: Shield, isActive: false },
-    { title: "Tests positionnement", href: "/dashboard/superadmin/tests", icon: TestTube, isActive: false },
-    { title: "Visioconférence", href: "/dashboard/superadmin/video", icon: Video, isActive: false },
-    { title: "Bibliothèque", href: "/dashboard/superadmin/library", icon: Download, isActive: false },
-    { title: "Abonnements", href: "/dashboard/superadmin/subscriptions", icon: CreditCard, isActive: false },
-    { title: "Paiements", href: "/dashboard/superadmin/payments", icon: DollarSign, isActive: false },
-    { title: "Sécurité", href: "/dashboard/superadmin/security", icon: Shield, isActive: false },
-    { title: "Support", href: "/dashboard/superadmin/support", icon: MessageSquare, isActive: false },
-    { title: "Paramètres", href: "/dashboard/superadmin/settings", icon: Settings, isActive: false },
-  ];
-
-  const userInfo = {
-    name: "Super Admin",
-    email: "superadmin@Learneezy.com"
-  };
-
   return (
-    <div className="flex h-screen bg-gray-50">
-      <div className="fixed left-0 top-0 h-full z-30">
-        <DashboardSidebar
-          title="Super Administration"
-          subtitle="Gestion de la plateforme"
-          items={sidebarItems}
-          userInfo={userInfo}
-        />
-      </div>
-      
-      <div className="flex-1 ml-64">
-        <div className="h-full flex flex-col">
-          <main className="flex-1 overflow-y-auto">
-            <div className="p-6">
-              <Routes>
-                <Route index element={<SuperAdminDashboard />} />
-                <Route path="users" element={<AdminUsers />} />
-                <Route path="users/add" element={<AddUserPage />} />
-                <Route path="users/student/:userSlug" element={<StudentDetailPage />} />
-                <Route path="users/trainer/:userSlug" element={<TrainerDetailPage />} />
-                <Route path="users/independent-trainer/:userSlug" element={<IndependentTrainerDetailPage />} />
-                <Route path="users/manager/:userSlug" element={<ManagerDetailPage />} />
-                <Route path="users/animator/:userSlug" element={<AnimatorDetailPage />} />
-                <Route path="users/admin/:userSlug" element={<AdminDetailPage />} />
-                <Route path="trainers" element={<AdminTrainers />} />
-                <Route path="organisations" element={<AdminOrganisations />} />
-                <Route path="organisations/create" element={<CreateOrganisme />} />
-                <Route path="organisations/:id" element={<OrganismeDetail />} />
-                <Route path="courses" element={<AdminCourses />} />
-                <Route path="inscriptions" element={<AdminInscriptions />} />
-                <Route path="of-documents" element={<AdminDocumentsOF />} />
-                <Route path="conventions" element={<AdminConventionGenerator />} />
-                <Route path="mailings" element={<AdminAutomaticMailings />} />
-                <Route path="emargements" element={<AdminEmargements />} />
-                <Route path="licenses" element={<OFLicences />} />
-                <Route path="identity" element={<IdentityVerification />} />
-                <Route path="tests" element={<PositioningTestPage />} />
-                <Route path="video" element={<AdminVideoConferences />} />
-                <Route path="library" element={<SuperAdminDocuments />} />
-                <Route path="subscriptions" element={<AdminSubscriptions />} />
-                <Route path="payments" element={<AdminPayments />} />
-                <Route path="security" element={<AdminSecurity />} />
-                <Route path="support" element={<AdminSupport />} />
-                <Route path="settings" element={<AdminSettings />} />
-              </Routes>
-            </div>
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full">
+        <SuperAdminSidebar />
+        
+        <SidebarInset className="flex-1">
+          <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4">
+            <SidebarTrigger />
+            <div className="flex-1" />
+          </header>
+          
+          <main className="flex-1 p-6">
+            <Routes>
+              <Route index element={<SuperAdminDashboard />} />
+              <Route path="users" element={<AdminUsers />} />
+              <Route path="users/add" element={<AddUserPage />} />
+              <Route path="users/student/:userSlug" element={<StudentDetailPage />} />
+              <Route path="users/trainer/:userSlug" element={<TrainerDetailPage />} />
+              <Route path="users/independent-trainer/:userSlug" element={<IndependentTrainerDetailPage />} />
+              <Route path="users/manager/:userSlug" element={<ManagerDetailPage />} />
+              <Route path="users/animator/:userSlug" element={<AnimatorDetailPage />} />
+              <Route path="users/admin/:userSlug" element={<AdminDetailPage />} />
+              <Route path="trainers" element={<AdminTrainers />} />
+              <Route path="organisations" element={<AdminOrganisations />} />
+              <Route path="organisations/create" element={<CreateOrganisme />} />
+              <Route path="organisations/:id" element={<OrganismeDetail />} />
+              <Route path="courses" element={<AdminCourses />} />
+              <Route path="inscriptions" element={<AdminInscriptions />} />
+              <Route path="of-documents" element={<AdminDocumentsOF />} />
+              <Route path="conventions" element={<AdminConventionGenerator />} />
+              <Route path="mailings" element={<AdminAutomaticMailings />} />
+              <Route path="emargements" element={<AdminEmargements />} />
+              <Route path="licenses" element={<OFLicences />} />
+              <Route path="identity" element={<IdentityVerification />} />
+              <Route path="tests" element={<PositioningTestPage />} />
+              <Route path="video" element={<AdminVideoConferences />} />
+              <Route path="library" element={<SuperAdminDocuments />} />
+              <Route path="subscriptions" element={<AdminSubscriptions />} />
+              <Route path="payments" element={<AdminPayments />} />
+              <Route path="security" element={<AdminSecurity />} />
+              <Route path="support" element={<AdminSupport />} />
+              <Route path="settings" element={<AdminSettings />} />
+            </Routes>
           </main>
-        </div>
+        </SidebarInset>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 
