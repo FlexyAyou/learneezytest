@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { BookOpen, User, Award, MessageSquare, Settings, Home, Video, Download, FileText, PenTool, TrendingUp, CreditCard, ShoppingBag } from 'lucide-react';
-import { DashboardSidebar } from '@/components/DashboardSidebar';
+import { Routes, Route } from 'react-router-dom';
+import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
+import { StudentSidebar } from '@/components/student/StudentSidebar';
 import StudentCourses from './StudentCourses';
 import StudentProgress from './StudentProgress';
 import StudentCertificates from './StudentCertificates';
@@ -24,72 +24,43 @@ import StudentCatalog from '@/components/student/StudentCatalog';
 import AIChatButton from '@/components/common/AIChatButton';
 
 const StudentDashboard = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const currentPath = location.pathname;
-
-  const sidebarItems = [
-    { title: "Tableau de bord", href: "/dashboard/apprenant", icon: Home, isActive: currentPath === "/dashboard/apprenant" },
-    { title: "Catalogue", href: "/dashboard/apprenant/catalogue", icon: BookOpen, isActive: currentPath === "/dashboard/apprenant/catalogue" },
-    { title: "Mes cours", href: "/dashboard/apprenant/courses", icon: BookOpen, isActive: currentPath === "/dashboard/apprenant/courses" },
-    { title: "Mon parcours", href: "/dashboard/apprenant/progress", icon: Award, isActive: currentPath === "/dashboard/apprenant/progress" },
-    { title: "Certificats", href: "/dashboard/apprenant/certificates", icon: Award, isActive: currentPath === "/dashboard/apprenant/certificates" },
-    // === SECTION OF COMPLÈTE ===
-    { title: "Mes inscriptions", href: "/dashboard/apprenant/inscriptions", icon: FileText, isActive: currentPath === "/dashboard/apprenant/inscriptions" },
-    { title: "Émargement", href: "/dashboard/apprenant/emargements", icon: PenTool, isActive: currentPath === "/dashboard/apprenant/emargements" },
-    { title: "Évaluations", href: "/dashboard/apprenant/evaluations", icon: TrendingUp, isActive: currentPath === "/dashboard/apprenant/evaluations" },
-    // === SECTION OUTILS ===
-    { title: "Boutique", href: "/dashboard/apprenant/boutique", icon: ShoppingBag, isActive: currentPath === "/dashboard/apprenant/boutique" },
-    { title: "Mes documents", href: "/dashboard/apprenant/documents", icon: Download, isActive: currentPath === "/dashboard/apprenant/documents" },
-    { title: "Abonnements", href: "/dashboard/apprenant/subscription", icon: CreditCard, isActive: currentPath === "/dashboard/apprenant/subscription" },
-    { title: "Messages", href: "/dashboard/apprenant/messages", icon: MessageSquare, badge: "3", isActive: currentPath === "/dashboard/apprenant/messages" },
-    { title: "Visioconférence", href: "/dashboard/apprenant/video", icon: Video, isActive: currentPath === "/dashboard/apprenant/video" },
-    { title: "Paramètres", href: "/dashboard/apprenant/settings", icon: Settings, isActive: currentPath === "/dashboard/apprenant/settings" },
-  ];
-
-  const userInfo = {
-    name: "Alice Martin",
-    email: "alice.martin@email.com"
-  };
-
   return (
-    <div className="flex h-screen bg-gray-50">
-      <div className="fixed left-0 top-0 h-full z-30">
-        <DashboardSidebar
-          title="Espace Apprenant"
-          subtitle="Votre parcours d'apprentissage"
-          items={sidebarItems}
-          userInfo={userInfo}
-        />
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full">
+        <StudentSidebar />
+        
+        <SidebarInset className="flex-1">
+          <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4">
+            <SidebarTrigger />
+            <div className="flex-1" />
+          </header>
+          
+          <main className="flex-1 p-6">
+            <Routes>
+              <Route path="/" element={<StudentDashboardHome />} />
+              <Route path="/catalogue" element={<StudentCatalog />} />
+              <Route path="/courses" element={<StudentCourses />} />
+              <Route path="/courses/:id" element={<CourseViewer />} />
+              <Route path="/progress" element={<StudentProgress />} />
+              <Route path="/certificates" element={<StudentCertificates />} />
+              <Route path="/inscriptions" element={<StudentInscriptions />} />
+              <Route path="/emargements" element={<StudentEmargements />} />
+              <Route path="/evaluations" element={<StudentEvaluations />} />
+              <Route path="/evaluations/:id/results" element={<EvaluationDetail />} />
+              <Route path="/evaluations/:id/take" element={<TakeEvaluation />} />
+              <Route path="/boutique" element={<StudentShop />} />
+              <Route path="/video" element={<StudentVideoConferences />} />
+              <Route path="/documents" element={<StudentDocuments />} />
+              <Route path="/subscription" element={<StudentSubscription />} />
+              <Route path="/messages" element={<StudentMessaging />} />
+              <Route path="/settings" element={<StudentSettings />} />
+            </Routes>
+          </main>
+        </SidebarInset>
+        
+        <AIChatButton />
       </div>
-      
-      <div className="flex-1 ml-64 flex flex-col overflow-hidden">
-        <main className="flex-1 overflow-x-hidden overflow-y-auto p-6">
-          <Routes>
-            <Route path="/" element={<StudentDashboardHome />} />
-            <Route path="/catalogue" element={<StudentCatalog />} />
-            <Route path="/courses" element={<StudentCourses />} />
-            <Route path="/courses/:id" element={<CourseViewer />} />
-            <Route path="/progress" element={<StudentProgress />} />
-            <Route path="/certificates" element={<StudentCertificates />} />
-            {/* === ROUTES OF COMPLÈTES === */}
-            <Route path="/inscriptions" element={<StudentInscriptions />} />
-            <Route path="/emargements" element={<StudentEmargements />} />
-            <Route path="/evaluations" element={<StudentEvaluations />} />
-            <Route path="/evaluations/:id/results" element={<EvaluationDetail />} />
-            <Route path="/evaluations/:id/take" element={<TakeEvaluation />} />
-            {/* === ROUTES OUTILS === */}
-            <Route path="/boutique" element={<StudentShop />} />
-            <Route path="/video" element={<StudentVideoConferences />} />
-            <Route path="/documents" element={<StudentDocuments />} />
-            <Route path="/subscription" element={<StudentSubscription />} />
-            <Route path="/messages" element={<StudentMessaging />} />
-            <Route path="/settings" element={<StudentSettings />} />
-          </Routes>
-        </main>
-      </div>
-      <AIChatButton />
-    </div>
+    </SidebarProvider>
   );
 };
 
