@@ -1,7 +1,7 @@
-
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { DashboardSidebar } from '@/components/DashboardSidebar';
+import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
+import { InternalTrainerSidebar } from '@/components/internal-trainer/InternalTrainerSidebar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -269,51 +269,40 @@ const InternalTrainerDashboardHome = () => {
 };
 
 const InternalTrainerDashboard = () => {
-  const sidebarItems = [
-    { title: 'Tableau de bord', href: '/formateur-interne', icon: Home, isActive: true },
-    { title: 'Contenus pédagogiques', href: '/formateur-interne/contenus', icon: BookOpen },
-    { title: 'Sessions de formation', href: '/formateur-interne/sessions', icon: Calendar },
-    { title: 'Suivi des apprenants', href: '/formateur-interne/apprenants', icon: Users },
-    { title: 'Messagerie interne', href: '/formateur-interne/messagerie', icon: MessageSquare },
-    { title: 'Tests de positionnement', href: '/formateur-interne/tests', icon: TestTube },
-    { title: 'Visioconférence', href: '/formateur-interne/video', icon: Video },
-    { title: 'Chat IA', href: '/formateur-interne/chat', icon: Brain },
-    { title: 'Mes documents', href: '/formateur-interne/documents', icon: Download },
-    { title: 'Paramètres', href: '/formateur-interne/parametres', icon: Settings },
-  ];
-
-  const userInfo = {
-    name: "Sophie Moreau",
-    email: "sophie.moreau@learneezy.com"
-  };
-
   const mockDocuments = [
     { id: '1', name: 'Plan de formation.pdf', type: 'PDF', date: '2024-01-20', size: '2.3 MB' },
     { id: '2', name: 'Guide formateur.pdf', type: 'PDF', date: '2024-01-18', size: '1.8 MB' }
   ];
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <DashboardSidebar
-        title="Formateur Interne"
-        subtitle="Formation continue"
-        items={sidebarItems}
-        userInfo={userInfo}
-      />
-      <main className="flex-1 p-8">
-        <Routes>
-          <Route path="/" element={<InternalTrainerDashboardHome />} />
-          <Route path="/contenus" element={<InternalTrainerContent />} />
-          <Route path="/sessions" element={<InternalTrainerSessions />} />
-          <Route path="/apprenants" element={<InternalTrainerStudents />} />
-          <Route path="/messagerie" element={<InternalTrainerMessaging />} />
-          <Route path="/tests" element={<PositioningTest userRole="instructor" />} />
-          <Route path="/video" element={<TrainerVideoConferences />} />
-          <Route path="/chat" element={<AIChat />} />
-          <Route path="/documents" element={<DocumentDownload documents={mockDocuments} userRole="instructor" />} />
-        </Routes>
-      </main>
-    </div>
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full">
+        <InternalTrainerSidebar />
+        
+        <SidebarInset className="flex-1">
+          <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4">
+            <SidebarTrigger />
+            <div className="flex-1" />
+          </header>
+          
+          <main className="flex-1 p-8">
+            <Routes>
+              <Route path="/" element={<InternalTrainerDashboardHome />} />
+              <Route path="/contenus" element={<InternalTrainerContent />} />
+              <Route path="/sessions" element={<InternalTrainerSessions />} />
+              <Route path="/apprenants" element={<InternalTrainerStudents />} />
+              <Route path="/messagerie" element={<InternalTrainerMessaging />} />
+              <Route path="/tests" element={<PositioningTest userRole="instructor" />} />
+              <Route path="/video" element={<TrainerVideoConferences />} />
+              <Route path="/chat" element={<AIChat />} />
+              <Route path="/documents" element={<DocumentDownload documents={mockDocuments} userRole="instructor" />} />
+            </Routes>
+          </main>
+        </SidebarInset>
+        
+        <AIChatButton />
+      </div>
+    </SidebarProvider>
   );
 };
 

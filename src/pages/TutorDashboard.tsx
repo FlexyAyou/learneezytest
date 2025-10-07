@@ -1,7 +1,7 @@
-
 import React from 'react';
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { DashboardSidebar } from '@/components/DashboardSidebar';
+import { Routes, Route, useNavigate } from 'react-router-dom';
+import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
+import { TutorSidebar } from '@/components/tutor/TutorSidebar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -362,51 +362,36 @@ const TutorDashboardHome = () => {
 };
 
 const TutorDashboard = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const currentPath = location.pathname;
-
-  const sidebarItems = [
-    { title: 'Vue d\'ensemble', href: '/dashboard/tuteur', icon: TrendingUp, isActive: currentPath === '/dashboard/tuteur' },
-    { title: 'Catalogue de formation', href: '/dashboard/tuteur/catalogue', icon: Library, isActive: currentPath === '/dashboard/tuteur/catalogue' },
-    { title: 'Suivi des élèves', href: '/dashboard/tuteur/suivi', icon: Users, isActive: currentPath === '/dashboard/tuteur/suivi' },
-    { title: 'Ajouter un élève', href: '/dashboard/tuteur/ajouter-eleve', icon: UserPlus, isActive: currentPath === '/dashboard/tuteur/ajouter-eleve' },
-    { title: 'Boutique', href: '/dashboard/tuteur/boutique', icon: ShoppingBag, isActive: currentPath === '/dashboard/tuteur/boutique' },
-    { title: 'Abonnements', href: '/dashboard/tuteur/abonnements', icon: CreditCard, isActive: currentPath === '/dashboard/tuteur/abonnements' },
-    { title: 'Mes documents', href: '/dashboard/tuteur/documents', icon: FileText, isActive: currentPath === '/dashboard/tuteur/documents' },
-    { title: 'Messagerie', href: '/dashboard/tuteur/messagerie', icon: MessageSquare, badge: '3', isActive: currentPath === '/dashboard/tuteur/messagerie' },
-    { title: 'Planning & Notifications', href: '/dashboard/tuteur/planning', icon: Calendar, isActive: currentPath === '/dashboard/tuteur/planning' },
-    { title: 'Paramètres', href: '/dashboard/tuteur/parametres', icon: Settings, isActive: currentPath === '/dashboard/tuteur/parametres' },
-  ];
-
-  const userInfo = {
-    name: "Claire Durand",
-    email: "claire.durand@email.com"
-  };
-
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <DashboardSidebar
-        title="Tuteur"
-        subtitle="Suivi pédagogique"
-        items={sidebarItems}
-        userInfo={userInfo}
-      />
-      <main className="flex-1 p-8">
-        <Routes>
-          <Route path="/" element={<TutorDashboardHome />} />
-          <Route path="/catalogue" element={<TutorCatalog />} />
-          <Route path="/suivi" element={<TutorStudentTracking />} />
-          <Route path="/ajouter-eleve" element={<TutorAddStudent />} />
-          <Route path="/boutique" element={<TutorShop />} />
-          <Route path="/abonnements" element={<TutorSubscription />} />
-          <Route path="/documents" element={<TutorDocuments />} />
-          <Route path="/messagerie" element={<TutorMessaging />} />
-          <Route path="/planning" element={<TutorPlanningNotifications />} />
-          <Route path="/parametres" element={<TutorSettings />} />
-        </Routes>
-      </main>
-    </div>
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full">
+        <TutorSidebar />
+        
+        <SidebarInset className="flex-1">
+          <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4">
+            <SidebarTrigger />
+            <div className="flex-1" />
+          </header>
+          
+          <main className="flex-1 p-8">
+            <Routes>
+              <Route path="/" element={<TutorDashboardHome />} />
+              <Route path="/catalogue" element={<TutorCatalog />} />
+              <Route path="/suivi" element={<TutorStudentTracking />} />
+              <Route path="/ajouter-eleve" element={<TutorAddStudent />} />
+              <Route path="/boutique" element={<TutorShop />} />
+              <Route path="/abonnements" element={<TutorSubscription />} />
+              <Route path="/documents" element={<TutorDocuments />} />
+              <Route path="/messagerie" element={<TutorMessaging />} />
+              <Route path="/planning" element={<TutorPlanningNotifications />} />
+              <Route path="/parametres" element={<TutorSettings />} />
+            </Routes>
+          </main>
+        </SidebarInset>
+        
+        <AIChatButton />
+      </div>
+    </SidebarProvider>
   );
 };
 
