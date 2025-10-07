@@ -1,5 +1,7 @@
 import React from "react";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { Eye, EyeOff, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,28 +10,35 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuthForm } from "@/hooks/useAuthForm";
 import { useToast } from "@/hooks/use-toast";
 
+const loginSchema = z.object({
+  email: z.string().email({ message: "Veuillez entrer une adresse email valide." }),
+  password: z.string().min(1, { message: "Le mot de passe est requis." }),
+});
+
 const Login = () => {
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm();
+  } = useForm({
+    resolver: zodResolver(loginSchema),
+  });
   const navigate = useNavigate();
   const { toast } = useToast();
   const { showPassword, setShowPassword, isLoading, handleLogin } = useAuthForm();
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: z.infer<typeof loginSchema>) => {
     try {
       await handleLogin(data.email, data.password);
       toast({
         title: "Connexion réussie",
-        description: "Vous êtes maintenant connecté",
+        description: "Redirection vers votre tableau de bord",
       });
       navigate("/dashboard");
     } catch (error) {
       toast({
         title: "Erreur de connexion",
-        description: "Vérifiez vos identifiants",
+        description: "Email ou mot de passe incorrect.",
         variant: "destructive",
       });
     }
@@ -111,7 +120,7 @@ const Login = () => {
                   type="email"
                   placeholder="votre@email.com"
                   className="pl-10"
-                  {...register("email", { required: "L'email est requis" })}
+                  {...register("email")}
                 />
               </div>
               {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message as string}</p>}
@@ -127,7 +136,7 @@ const Login = () => {
                   type={showPassword ? "text" : "password"}
                   placeholder="Votre mot de passe"
                   className="pr-10"
-                  {...register("password", { required: "Le mot de passe est requis" })}
+                  {...register("password")}
                 />
                 <button
                   type="button"

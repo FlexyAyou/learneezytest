@@ -1,11 +1,15 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast";
 import {
   BookOpen,
   Mail,
@@ -22,44 +26,74 @@ import {
   Users,
 } from "lucide-react";
 
+const registerSchema = z.object({
+  firstName: z.string().min(1, { message: "Le prénom est requis." }),
+  lastName: z.string().min(1, { message: "Le nom est requis." }),
+  email: z.string().email({ message: "Veuillez entrer une adresse email valide." }),
+  password: z.string().min(6, { message: "Le mot de passe doit contenir au moins 6 caractères." }),
+  confirmPassword: z.string().min(1, { message: "Veuillez confirmer votre mot de passe." }),
+  userType: z.string().min(1, { message: "Veuillez sélectionner un type de profil." }),
+  ageStatus: z.string().optional(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Les mots de passe ne correspondent pas.",
+  path: ["confirmPassword"],
+});
+
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showMinorError, setShowMinorError] = useState(false);
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    userType: "",
-    ageStatus: "",
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const {
+    register: registerField,
+    handleSubmit,
+    formState: { errors },
+    watch,
+    setValue,
+  } = useForm({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      userType: "",
+      ageStatus: "",
+    },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const userType = watch("userType");
+  const ageStatus = watch("ageStatus");
 
-    // Validation des mots de passe
-    if (formData.password !== formData.confirmPassword) {
-      alert("Les mots de passe ne correspondent pas");
-      return;
+  const onSubmit = async (data: z.infer<typeof registerSchema>) => {
+    try {
+      // Logique d'inscription ici
+      console.log("Inscription:", data);
+      toast({
+        title: "Inscription réussie",
+        description: "Votre compte a été créé avec succès.",
+      });
+      navigate("/connexion");
+    } catch (error) {
+      toast({
+        title: "Erreur d'inscription",
+        description: "Une erreur s'est produite lors de la création du compte.",
+        variant: "destructive",
+      });
     }
-
-    console.log("Inscription:", formData);
   };
 
-  const handleChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const handleUserTypeChange = (value: string) => {
+    setValue("userType", value);
+    setShowMinorError(false);
+  };
 
-    // Réinitialiser l'erreur mineur si l'utilisateur change ses choix
-    if (field === "userType" || field === "ageStatus") {
-      setShowMinorError(false);
-    }
-
-    // Afficher l'erreur si mineur
-    if (field === "ageStatus" && value === "minor") {
-      setShowMinorError(true);
-    }
+  const handleAgeStatusChange = (value: string) => {
+    setValue("ageStatus", value);
+    setShowMinorError(value === "minor");
   };
 
   const benefits = [
@@ -128,13 +162,13 @@ const Register = () => {
               <CardDescription>Rejoignez notre communauté d'apprentissage dès aujourd'hui</CardDescription>
             </CardHeader>
             <CardContent className="px-0">
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 {/* Choix du type de profil */}
                 <div className="space-y-2">
                   <Label htmlFor="userType" className="text-sm font-medium text-gray-700">
                     Type de profil
                   </Label>
-                  <Select value={formData.userType} onValueChange={(value) => handleChange("userType", value)}>
+                  <Select value={userType} onValueChange={handleUserTypeChange}>
                     <SelectTrigger className="h-12 border-gray-200 focus:border-pink-500 focus:ring-pink-500">
                       <SelectValue placeholder="Choisissez votre profil" />
                     </SelectTrigger>
@@ -159,15 +193,16 @@ const Register = () => {
                       </SelectItem>
                     </SelectContent>
                   </Select>
+                  {errors.userType && <p className="mt-1 text-sm text-red-600">{errors.userType.message}</p>}
                 </div>
 
                 {/* Champ spécifique pour les étudiants : statut d'âge */}
-                {formData.userType === "student" && (
+                {userType === "student" && (
                   <div className="space-y-2">
                     <Label htmlFor="ageStatus" className="text-sm font-medium text-gray-700">
                       Êtes-vous majeur ?
                     </Label>
-                    <Select value={formData.ageStatus} onValueChange={(value) => handleChange("ageStatus", value)}>
+                    <Select value={ageStatus} onValueChange={handleAgeStatusChange}>
                       <SelectTrigger className="h-12 border-gray-200 focus:border-pink-500 focus:ring-pink-500">
                         <SelectValue placeholder="Sélectionnez votre statut" />
                       </SelectTrigger>
@@ -191,9 +226,9 @@ const Register = () => {
                 )}
 
                 {/* Informations personnelles - affichées pour les profils valides */}
-                {(formData.userType === "instructor" ||
-                  formData.userType === "tutor" ||
-                  (formData.userType === "student" && formData.ageStatus === "adult")) && (
+                {(userType === "instructor" ||
+                  userType === "tutor" ||
+                  (userType === "student" && ageStatus === "adult")) && (
                   <>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
@@ -206,12 +241,11 @@ const Register = () => {
                             id="firstName"
                             type="text"
                             placeholder="Prénom"
-                            value={formData.firstName}
-                            onChange={(e) => handleChange("firstName", e.target.value)}
                             className="pl-12 h-12 border-gray-200 focus:border-pink-500 focus:ring-pink-500"
-                            required
+                            {...registerField("firstName")}
                           />
                         </div>
+                        {errors.firstName && <p className="mt-1 text-sm text-red-600">{errors.firstName.message}</p>}
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">
@@ -221,11 +255,10 @@ const Register = () => {
                           id="lastName"
                           type="text"
                           placeholder="Nom"
-                          value={formData.lastName}
-                          onChange={(e) => handleChange("lastName", e.target.value)}
                           className="h-12 border-gray-200 focus:border-pink-500 focus:ring-pink-500"
-                          required
+                          {...registerField("lastName")}
                         />
+                        {errors.lastName && <p className="mt-1 text-sm text-red-600">{errors.lastName.message}</p>}
                       </div>
                     </div>
 
@@ -239,12 +272,11 @@ const Register = () => {
                           id="email"
                           type="email"
                           placeholder="votre@email.com"
-                          value={formData.email}
-                          onChange={(e) => handleChange("email", e.target.value)}
                           className="pl-12 h-12 border-gray-200 focus:border-pink-500 focus:ring-pink-500"
-                          required
+                          {...registerField("email")}
                         />
                       </div>
+                      {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>}
                     </div>
 
                     <div className="space-y-2">
@@ -257,10 +289,8 @@ const Register = () => {
                           id="password"
                           type={showPassword ? "text" : "password"}
                           placeholder="••••••••"
-                          value={formData.password}
-                          onChange={(e) => handleChange("password", e.target.value)}
                           className="pl-12 pr-12 h-12 border-gray-200 focus:border-pink-500 focus:ring-pink-500"
-                          required
+                          {...registerField("password")}
                         />
                         <button
                           type="button"
@@ -270,6 +300,7 @@ const Register = () => {
                           {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                         </button>
                       </div>
+                      {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>}
                     </div>
 
                     <div className="space-y-2">
@@ -282,10 +313,8 @@ const Register = () => {
                           id="confirmPassword"
                           type={showConfirmPassword ? "text" : "password"}
                           placeholder="••••••••"
-                          value={formData.confirmPassword}
-                          onChange={(e) => handleChange("confirmPassword", e.target.value)}
                           className="pl-12 pr-12 h-12 border-gray-200 focus:border-pink-500 focus:ring-pink-500"
-                          required
+                          {...registerField("confirmPassword")}
                         />
                         <button
                           type="button"
@@ -295,6 +324,7 @@ const Register = () => {
                           {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                         </button>
                       </div>
+                      {errors.confirmPassword && <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>}
                     </div>
 
                     {/* Conditions d'utilisation et bouton de soumission */}
