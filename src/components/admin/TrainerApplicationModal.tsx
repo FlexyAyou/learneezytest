@@ -478,7 +478,7 @@ export const TrainerApplicationModal = ({
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-600">Statut juridique</label>
-                      <p className="font-semibold">{fiscalInfo.legalStatus || "Non renseigné"}</p>
+                      <p className="font-mono text-sm">{fiscalInfo.legalStatus || "Non renseigné"}</p>
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-600">SIRET</label>
