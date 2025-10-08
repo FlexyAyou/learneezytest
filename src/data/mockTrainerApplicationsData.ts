@@ -1,5 +1,5 @@
 
-import { TrainerApplication, TrainerDocument } from '@/types/trainer-application';
+import { TrainerApplication, TrainerDocument, TrainerSpecialtyRequest } from '@/types/trainer-application';
 
 export const mockTrainerApplications: TrainerApplication[] = [
   {
@@ -216,3 +216,83 @@ export const mockTrainerFiscalInfo: Record<string, import('@/types/trainer-appli
     completedAt: null
   }
 };
+
+export const mockTrainerSpecialtyRequests: TrainerSpecialtyRequest[] = [
+  // Demandes de Jean Dupont (user-1)
+  {
+    id: 'spec-1',
+    trainerId: 'user-1',
+    name: 'Vue.js',
+    level: 'Avancé',
+    motivation: 'J\'ai 3 ans d\'expérience avec Vue.js sur plusieurs projets clients. J\'ai développé des applications SPA complexes et je suis certifié Vue.js.',
+    status: 'pending',
+    submittedAt: '2024-01-22T10:00:00Z'
+  },
+  {
+    id: 'spec-2',
+    trainerId: 'user-1',
+    name: 'Docker',
+    level: 'Intermédiaire',
+    motivation: 'J\'utilise Docker quotidiennement depuis 2 ans pour conteneuriser mes applications. J\'ai formé mon équipe actuelle sur Docker.',
+    status: 'pending',
+    submittedAt: '2024-01-22T10:15:00Z'
+  },
+  
+  // Demandes de Marie Martin (user-2)
+  {
+    id: 'spec-3',
+    trainerId: 'user-2',
+    name: 'Webflow',
+    level: 'Expert',
+    motivation: 'Expert Webflow depuis 4 ans. J\'ai créé plus de 50 sites avec cet outil et je suis certifiée Webflow Expert.',
+    status: 'approved',
+    submittedAt: '2024-01-18T14:00:00Z',
+    reviewedAt: '2024-01-19T09:30:00Z',
+    reviewedBy: 'admin-1'
+  },
+  {
+    id: 'spec-4',
+    trainerId: 'user-2',
+    name: 'Animation Web',
+    level: 'Avancé',
+    motivation: 'Spécialisée en animations web (GSAP, Framer Motion). Portfolio disponible avec +30 projets animés.',
+    status: 'pending',
+    submittedAt: '2024-01-20T11:00:00Z'
+  },
+  
+  // Demandes de Pierre Durand (user-3)
+  {
+    id: 'spec-5',
+    trainerId: 'user-3',
+    name: 'TikTok Ads',
+    level: 'Expert',
+    motivation: '5 ans d\'expérience en publicité TikTok. J\'ai géré des budgets de +500k€ et obtenu des ROI moyens de 400%.',
+    status: 'approved',
+    submittedAt: '2023-12-10T10:00:00Z',
+    reviewedAt: '2023-12-11T15:00:00Z',
+    reviewedBy: 'admin-1'
+  },
+  
+  // Demandes de Sophie Laurent (user-4)
+  {
+    id: 'spec-6',
+    trainerId: 'user-4',
+    name: 'Blockchain',
+    level: 'Expert',
+    motivation: 'J\'aimerais enseigner la blockchain mais je n\'ai que des connaissances théoriques sans projets concrets.',
+    status: 'rejected',
+    rejectionReason: 'Manque d\'expérience pratique et de projets concrets en blockchain. Nous recommandons d\'acquérir au moins 2 ans d\'expérience professionnelle dans ce domaine avant de pouvoir l\'enseigner.',
+    submittedAt: '2024-01-15T09:00:00Z',
+    reviewedAt: '2024-01-16T14:00:00Z',
+    reviewedBy: 'admin-1'
+  },
+  {
+    id: 'spec-7',
+    trainerId: 'user-4',
+    name: 'Deep Learning',
+    level: 'Avancé',
+    motivation: 'Doctorat en statistiques avec spécialisation en Deep Learning. 4 publications dans des conférences internationales (NeurIPS, ICML). Expérience de 3 ans en recherche appliquée.',
+    status: 'pending',
+    submittedAt: '2024-01-23T16:00:00Z'
+  }
+];

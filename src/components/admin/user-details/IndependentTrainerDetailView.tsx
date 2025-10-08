@@ -1,15 +1,27 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { DollarSign, FileText, Calendar, Clock, CreditCard, User, CheckCircle, XCircle } from 'lucide-react';
-import { mockTrainerFiscalInfo } from '@/data/mockTrainerApplicationsData';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { DollarSign, FileText, Calendar, Clock, CreditCard, User, CheckCircle, XCircle, Award, AlertCircle } from 'lucide-react';
+import { mockTrainerFiscalInfo, mockTrainerSpecialtyRequests } from '@/data/mockTrainerApplicationsData';
+import { useToast } from '@/hooks/use-toast';
 
 interface IndependentTrainerDetailViewProps {
   user: any;
 }
 
 export const IndependentTrainerDetailView = ({ user }: IndependentTrainerDetailViewProps) => {
+  const { toast } = useToast();
+  const [specialtyRequests, setSpecialtyRequests] = useState(
+    mockTrainerSpecialtyRequests.filter(req => req.trainerId === user.userId)
+  );
+  const [rejectionModalOpen, setRejectionModalOpen] = useState(false);
+  const [selectedSpecialty, setSelectedSpecialty] = useState<string | null>(null);
+  const [rejectionReason, setRejectionReason] = useState('');
+
   // Récupérer les vraies données fiscales
   const fiscalInfo = mockTrainerFiscalInfo[user.userId];
 
@@ -54,6 +66,69 @@ export const IndependentTrainerDetailView = ({ user }: IndependentTrainerDetailV
       overdue: { variant: 'destructive' as const, label: 'En retard', color: 'text-red-600' }
     };
     return configs[status as keyof typeof configs] || configs.pending;
+  };
+
+  const handleApproveSpecialty = (specialtyId: string) => {
+    setSpecialtyRequests(prev => prev.map(spec =>
+      spec.id === specialtyId
+        ? { ...spec, status: 'approved' as const, reviewedAt: new Date().toISOString(), reviewedBy: 'admin-1' }
+        : spec
+    ));
+    
+    toast({
+      title: "Spécialité approuvée",
+      description: "La demande de spécialité a été approuvée avec succès.",
+    });
+  };
+
+  const handleRejectSpecialty = () => {
+    if (!selectedSpecialty || !rejectionReason.trim()) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez fournir une raison de rejet.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setSpecialtyRequests(prev => prev.map(spec =>
+      spec.id === selectedSpecialty
+        ? { 
+            ...spec, 
+            status: 'rejected' as const, 
+            rejectionReason: rejectionReason,
+            reviewedAt: new Date().toISOString(), 
+            reviewedBy: 'admin-1' 
+          }
+        : spec
+    ));
+    
+    toast({
+      title: "Spécialité rejetée",
+      description: "La demande a été rejetée. Le formateur recevra la raison du rejet.",
+    });
+
+    setRejectionModalOpen(false);
+    setSelectedSpecialty(null);
+    setRejectionReason('');
+  };
+
+  const openRejectionModal = (specialtyId: string) => {
+    setSelectedSpecialty(specialtyId);
+    setRejectionModalOpen(true);
+  };
+
+  const getSpecialtyStatusBadge = (status: string) => {
+    switch (status) {
+      case 'approved':
+        return <Badge className="bg-green-100 text-green-800">Approuvé</Badge>;
+      case 'pending':
+        return <Badge className="bg-yellow-100 text-yellow-800">En attente</Badge>;
+      case 'rejected':
+        return <Badge variant="destructive">Refusé</Badge>;
+      default:
+        return <Badge variant="outline">Inconnu</Badge>;
+    }
   };
 
   return (
@@ -233,6 +308,133 @@ export const IndependentTrainerDetailView = ({ user }: IndependentTrainerDetailV
           </div>
         </CardContent>
       </Card>
+
+      {/* Demandes de spécialités */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Award className="h-5 w-5" />
+            Demandes de spécialités
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {specialtyRequests.length === 0 ? (
+            <p className="text-sm text-gray-500 italic">Aucune demande de spécialité</p>
+          ) : (
+            <div className="space-y-4">
+              {specialtyRequests.map((specialty) => (
+                <div key={specialty.id} className="p-4 border rounded-lg">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h4 className="font-semibold text-lg">{specialty.name}</h4>
+                        {getSpecialtyStatusBadge(specialty.status)}
+                      </div>
+                      <div className="grid grid-cols-2 gap-3 text-sm mb-3">
+                        <div>
+                          <span className="text-gray-600">Niveau:</span>
+                          <span className="ml-2 font-medium">{specialty.level}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">Soumis le:</span>
+                          <span className="ml-2 font-medium">
+                            {new Date(specialty.submittedAt).toLocaleDateString('fr-FR')}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-md mb-3">
+                        <p className="text-sm text-gray-600 font-medium mb-1">Motivation:</p>
+                        <p className="text-sm">{specialty.motivation}</p>
+                      </div>
+                      
+                      {specialty.status === 'rejected' && specialty.rejectionReason && (
+                        <div className="bg-red-50 border border-red-200 p-3 rounded-md flex items-start gap-2">
+                          <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <p className="text-sm font-medium text-red-800 mb-1">Raison du rejet:</p>
+                            <p className="text-sm text-red-700">{specialty.rejectionReason}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {specialty.status === 'approved' && specialty.reviewedAt && (
+                        <div className="text-xs text-gray-500">
+                          Approuvé le {new Date(specialty.reviewedAt).toLocaleDateString('fr-FR')}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {specialty.status === 'pending' && (
+                    <div className="flex gap-2 justify-end">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openRejectionModal(specialty.id)}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <XCircle className="h-4 w-4 mr-1" />
+                        Rejeter
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => handleApproveSpecialty(specialty.id)}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        <CheckCircle className="h-4 w-4 mr-1" />
+                        Approuver
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Modal de rejet */}
+      <Dialog open={rejectionModalOpen} onOpenChange={setRejectionModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rejeter la demande de spécialité</DialogTitle>
+            <DialogDescription>
+              Veuillez fournir une raison détaillée du rejet. Le formateur recevra cette explication.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Raison du rejet</label>
+              <Textarea
+                placeholder="Ex: Manque d'expérience pratique dans ce domaine. Nous recommandons d'acquérir au moins 2 ans d'expérience professionnelle..."
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                rows={5}
+                className="w-full"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setRejectionModalOpen(false);
+                setSelectedSpecialty(null);
+                setRejectionReason('');
+              }}
+            >
+              Annuler
+            </Button>
+            <Button 
+              variant="destructive"
+              onClick={handleRejectSpecialty}
+              disabled={!rejectionReason.trim()}
+            >
+              Confirmer le rejet
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

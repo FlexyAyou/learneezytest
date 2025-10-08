@@ -41,3 +41,16 @@ export interface TrainerDocument {
   isVerified: boolean;
   uploadedAt: string;
 }
+
+export interface TrainerSpecialtyRequest {
+  id: string;
+  trainerId: string;
+  name: string;
+  level: 'Débutant' | 'Intermédiaire' | 'Avancé' | 'Expert';
+  motivation: string;
+  status: 'pending' | 'approved' | 'rejected';
+  rejectionReason?: string;
+  submittedAt: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+}
