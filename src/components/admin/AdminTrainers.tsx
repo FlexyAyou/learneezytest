@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Search, Plus, Eye, Mail, UserCheck, Users, Phone, MapPin, Calendar, Clock, Euro, EyeOff } from 'lucide-react';
+import { Search, Plus, Eye, Mail, UserCheck, Users, Phone, MapPin, Calendar, Clock, Euro, EyeOff, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TrainerApplicationModal } from './TrainerApplicationModal';
-import { CustomEmailModal } from './CustomEmailModal';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { mockTrainerApplications, mockTrainerFiscalInfo } from '@/data/mockTrainerApplicationsData';
 import { TrainerApplication } from '@/types/trainer-application';
 
@@ -19,8 +20,10 @@ const AdminTrainers = () => {
   const [selectedApplication, setSelectedApplication] = useState<TrainerApplication | null>(null);
   const [statusFilter, setStatusFilter] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
-  const [selectedTrainerForEmail, setSelectedTrainerForEmail] = useState<TrainerApplication | null>(null);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteFirstName, setInviteFirstName] = useState('');
+  const [inviteLastName, setInviteLastName] = useState('');
   const [applications, setApplications] = useState(mockTrainerApplications.map(app => ({
     ...app,
     isVisible: true
@@ -49,9 +52,27 @@ const AdminTrainers = () => {
     });
   };
 
-  const handleSendEmail = (trainer: TrainerApplication) => {
-    setSelectedTrainerForEmail(trainer);
-    setIsEmailModalOpen(true);
+  const handleInviteTrainer = () => {
+    if (!inviteEmail || !inviteFirstName || !inviteLastName) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez remplir tous les champs.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Logique d'envoi d'invitation
+    toast({
+      title: "Invitation envoyée",
+      description: `Une invitation a été envoyée à ${inviteFirstName} ${inviteLastName} (${inviteEmail}).`,
+    });
+
+    // Réinitialiser le formulaire
+    setInviteEmail('');
+    setInviteFirstName('');
+    setInviteLastName('');
+    setIsInviteModalOpen(false);
   };
 
   const handleViewApplication = (application: TrainerApplication) => {
@@ -148,7 +169,7 @@ const AdminTrainers = () => {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Candidatures de formateurs</h1>
           <p className="text-gray-600">Gérer les candidatures et valider les formateurs</p>
         </div>
-        <Button>
+        <Button onClick={() => setIsInviteModalOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
           Inviter un formateur
         </Button>
@@ -340,16 +361,6 @@ const AdminTrainers = () => {
                           <Eye className="h-4 w-4" />
                         )}
                       </Button>
-                      
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        title="Envoyer un email personnalisé"
-                        onClick={() => handleSendEmail(application)}
-                        className="hover:bg-blue-50 hover:text-blue-600"
-                      >
-                        <Mail className="h-4 w-4" />
-                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -376,14 +387,55 @@ const AdminTrainers = () => {
         onReject={handleRejectApplication}
       />
 
-      <CustomEmailModal
-        trainer={selectedTrainerForEmail}
-        isOpen={isEmailModalOpen}
-        onClose={() => {
-          setIsEmailModalOpen(false);
-          setSelectedTrainerForEmail(null);
-        }}
-      />
+      <Dialog open={isInviteModalOpen} onOpenChange={setIsInviteModalOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Inviter un formateur</DialogTitle>
+            <DialogDescription>
+              Envoyez une invitation par email à un nouveau formateur pour rejoindre la plateforme.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="invite-firstname">Prénom</Label>
+              <Input
+                id="invite-firstname"
+                placeholder="Jean"
+                value={inviteFirstName}
+                onChange={(e) => setInviteFirstName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="invite-lastname">Nom</Label>
+              <Input
+                id="invite-lastname"
+                placeholder="Dupont"
+                value={inviteLastName}
+                onChange={(e) => setInviteLastName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="invite-email">Email</Label>
+              <Input
+                id="invite-email"
+                type="email"
+                placeholder="formateur@example.com"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsInviteModalOpen(false)}>
+              Annuler
+            </Button>
+            <Button onClick={handleInviteTrainer}>
+              <Send className="h-4 w-4 mr-2" />
+              Envoyer l'invitation
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
