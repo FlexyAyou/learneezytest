@@ -1,5 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useTrainerActivation } from '@/hooks/useTrainerActivation';
+import { TrainerActivationAlert } from '@/components/external-trainer/TrainerActivationAlert';
 import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { ExternalTrainerSidebar } from '@/components/external-trainer/ExternalTrainerSidebar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -256,6 +259,17 @@ const ExternalTrainerDashboardHome = () => {
 };
 
 const ExternalTrainerDashboard = () => {
+  // TODO: Replace with actual auth when Supabase is properly configured
+  const [userId] = useState<string>('mock-trainer-id');
+  const { shouldShowAlert, isFirstLogin } = useTrainerActivation(userId);
+
+  // Example implementation for when Supabase auth is configured:
+  // useEffect(() => {
+  //   supabase.auth.getUser().then(({ data }) => {
+  //     setUserId(data?.user?.id);
+  //   });
+  // }, []);
+
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
@@ -268,6 +282,10 @@ const ExternalTrainerDashboard = () => {
           </header>
           
           <main className="flex-1 p-8">
+            {shouldShowAlert && (
+              <TrainerActivationAlert isFirstLogin={isFirstLogin} />
+            )}
+            
             <Routes>
               <Route path="/" element={<ExternalTrainerDashboardHome />} />
               <Route path="/specialites" element={<TrainerSpecialties />} />

@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,16 +8,39 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { User, Mail, Phone, MapPin, Award, Briefcase, Upload, Plus, X, Edit } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Award, Briefcase, Upload, Plus, X, Edit, FileText, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import TrainerDiplomas from './TrainerDiplomas';
+import { useTrainerActivation } from '@/hooks/useTrainerActivation';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
 
 const TrainerProfile = () => {
   const { toast } = useToast();
+  // TODO: Replace with actual user ID when auth is configured
+  const userId = 'mock-trainer-id';
+  const { fiscalInfo, updateFiscalInfo, isLoading: fiscalLoading } = useTrainerActivation(userId);
+  
   const [isEditingBasic, setIsEditingBasic] = useState(false);
   const [isEditingBio, setIsEditingBio] = useState(false);
   const [isAddingCertification, setIsAddingCertification] = useState(false);
   const [isAddingExperience, setIsAddingExperience] = useState(false);
+  
+  // Fiscal form state
+  const [ndaNumber, setNdaNumber] = useState('');
+  const [legalStatus, setLegalStatus] = useState('');
+  const [siret, setSiret] = useState('');
+  const [tvaNumber, setTvaNumber] = useState('');
+  const [isSavingFiscal, setIsSavingFiscal] = useState(false);
+
+  useEffect(() => {
+    if (fiscalInfo) {
+      setNdaNumber(fiscalInfo.nda_number || '');
+      setLegalStatus(fiscalInfo.status || '');
+      setSiret(fiscalInfo.siret || '');
+      setTvaNumber(fiscalInfo.tva_number || '');
+    }
+  }, [fiscalInfo]);
 
   const [profile, setProfile] = useState({
     name: 'Jean Martin',
@@ -189,12 +211,133 @@ const TrainerProfile = () => {
     return date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
   };
 
+  const handleSaveFiscalInfo = async () => {
+    setIsSavingFiscal(true);
+    await updateFiscalInfo({
+      nda_number: ndaNumber,
+      status: legalStatus,
+      siret: siret,
+      tva_number: tvaNumber,
+      user_id: userId,
+      is_complete: false,
+    });
+    setIsSavingFiscal(false);
+  };
+
+  const validateSiret = (value: string) => {
+    return /^\d{14}$/.test(value);
+  };
+
+  if (fiscalLoading) {
+    return <LoadingSpinner size="lg" className="min-h-screen" />;
+  }
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Mon Profil Formateur</h1>
         <p className="text-muted-foreground">Gérez vos informations professionnelles</p>
       </div>
+
+      {/* Alerte profil incomplet */}
+      {!fiscalInfo?.is_complete && (
+        <Alert className="border-pink-300 bg-pink-50">
+          <AlertCircle className="h-5 w-5 text-pink-600" />
+          <AlertDescription className="text-pink-900">
+            Complétez vos informations fiscales ci-dessous pour activer votre compte formateur.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Informations Fiscales */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <FileText className="h-6 w-6 text-primary" />
+              <div>
+                <h2 className="text-xl">Informations Fiscales</h2>
+                <p className="text-sm text-muted-foreground font-normal">
+                  Informations obligatoires pour l'activation de votre compte
+                </p>
+              </div>
+            </div>
+            {fiscalInfo?.is_complete && (
+              <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Profil complet</Badge>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="nda">N° NDA (Numéro de Déclaration d'Activité) *</Label>
+              <Input
+                id="nda"
+                value={ndaNumber}
+                onChange={(e) => setNdaNumber(e.target.value)}
+                placeholder="Ex: 11754876543"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="status">Statut juridique *</Label>
+              <Select value={legalStatus} onValueChange={setLegalStatus}>
+                <SelectTrigger id="status">
+                  <SelectValue placeholder="Sélectionnez un statut" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="auto-entrepreneur">Auto-entrepreneur</SelectItem>
+                  <SelectItem value="eurl">EURL</SelectItem>
+                  <SelectItem value="sasu">SASU</SelectItem>
+                  <SelectItem value="sas">SAS</SelectItem>
+                  <SelectItem value="sarl">SARL</SelectItem>
+                  <SelectItem value="ei">Entreprise individuelle</SelectItem>
+                  <SelectItem value="autre">Autre</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="siret">N° SIRET *</Label>
+              <Input
+                id="siret"
+                value={siret}
+                onChange={(e) => setSiret(e.target.value.replace(/\D/g, '').slice(0, 14))}
+                placeholder="14 chiffres"
+                maxLength={14}
+              />
+              {siret && !validateSiret(siret) && (
+                <p className="text-sm text-destructive">Le SIRET doit contenir exactement 14 chiffres</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="tva">N° TVA intracommunautaire</Label>
+              <Input
+                id="tva"
+                value={tvaNumber}
+                onChange={(e) => setTvaNumber(e.target.value.toUpperCase())}
+                placeholder="Ex: FR12345678901"
+              />
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-col sm:flex-row gap-3">
+            <Button
+              onClick={handleSaveFiscalInfo}
+              disabled={isSavingFiscal || !ndaNumber || !legalStatus || !siret || !validateSiret(siret)}
+              className="bg-pink-600 hover:bg-pink-700"
+            >
+              {isSavingFiscal ? 'Enregistrement...' : 'Sauvegarder les informations fiscales'}
+            </Button>
+            {!fiscalInfo?.is_complete && ndaNumber && legalStatus && siret && (
+              <p className="text-sm text-muted-foreground self-center">
+                * Champs obligatoires
+              </p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Photo et informations de base */}
