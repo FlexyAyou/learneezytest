@@ -12,7 +12,7 @@ import {
   Shield, Star, TrendingUp, DollarSign 
 } from 'lucide-react';
 import { TrainerApplication, TrainerDocument } from '@/types/trainer-application';
-import { mockTrainerDocuments } from '@/data/mockTrainerApplicationsData';
+import { mockTrainerDocuments, mockTrainerFiscalInfo } from '@/data/mockTrainerApplicationsData';
 import { useToast } from '@/hooks/use-toast';
 
 interface TrainerApplicationModalProps {
@@ -40,6 +40,9 @@ export const TrainerApplicationModal = ({
     doc => doc.trainerApplicationId === application.id
   );
 
+  // Récupérer les infos fiscales
+  const fiscalInfo = mockTrainerFiscalInfo[application.userId];
+
   // Mock data for additional trainer information
   const trainerDetails = {
     paymentMethod: {
@@ -48,10 +51,11 @@ export const TrainerApplicationModal = ({
       holderName: `${application.firstName} ${application.lastName}`,
       verified: true
     },
-    taxInfo: {
-      siret: '12345678901234',
-      tvaNumber: 'FR12345678901',
-      status: 'Auto-entrepreneur'
+    taxInfo: fiscalInfo || {
+      siret: null,
+      tvaNumber: null,
+      status: null,
+      ndaNumber: null
     },
     performance: {
       totalEarnings: 15420,
@@ -305,20 +309,28 @@ export const TrainerApplicationModal = ({
                 Informations fiscales
               </h4>
               <div className="p-4 border rounded-lg bg-gray-50">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Statut</label>
-                    <p className="font-semibold">{trainerDetails.taxInfo.status}</p>
+                {!fiscalInfo ? (
+                  <p className="text-sm text-gray-500 italic">Informations non renseignées</p>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium text-gray-600">N° NDA</label>
+                      <p className="font-mono text-sm">{fiscalInfo.ndaNumber || 'Non renseigné'}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-600">Statut juridique</label>
+                      <p className="font-semibold">{fiscalInfo.legalStatus || 'Non renseigné'}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-600">SIRET</label>
+                      <p className="font-mono text-sm">{fiscalInfo.siret || 'Non renseigné'}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-600">N° TVA</label>
+                      <p className="font-mono text-sm">{fiscalInfo.tvaNumber || 'Non renseigné'}</p>
+                    </div>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">SIRET</label>
-                    <p className="font-mono text-sm">{trainerDetails.taxInfo.siret}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">N° TVA</label>
-                    <p className="font-mono text-sm">{trainerDetails.taxInfo.tvaNumber}</p>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
 
@@ -408,6 +420,39 @@ export const TrainerApplicationModal = ({
                     </p>
                   )}
                 </div>
+              </div>
+            )}
+
+            {/* État du profil fiscal */}
+            {application.status === 'pending' && (
+              <div className="mb-4 p-4 border rounded-lg">
+                <h5 className="font-semibold mb-3">État du profil fiscal</h5>
+                {fiscalInfo?.isComplete ? (
+                  <div className="flex items-start gap-3">
+                    <Badge className="bg-green-100 text-green-800">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Profil fiscal complet
+                    </Badge>
+                    <p className="text-sm text-gray-600">
+                      Le formateur a complété toutes les informations fiscales requises. Vous pouvez approuver sa candidature.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex items-start gap-3">
+                    <Badge className="bg-red-100 text-red-800">
+                      <XCircle className="h-3 w-3 mr-1" />
+                      Profil fiscal incomplet
+                    </Badge>
+                    <div className="text-sm text-gray-600">
+                      <p className="mb-1">Le formateur doit compléter ses informations fiscales avant validation :</p>
+                      <ul className="list-disc list-inside text-xs text-gray-500">
+                        {!fiscalInfo?.ndaNumber && <li>N° NDA manquant</li>}
+                        {!fiscalInfo?.legalStatus && <li>Statut juridique manquant</li>}
+                        {!fiscalInfo?.siret && <li>N° SIRET manquant</li>}
+                      </ul>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

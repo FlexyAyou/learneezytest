@@ -19,6 +19,17 @@ export interface TrainerApplication {
   reviewedBy?: string;
   avatar?: string;
   isVisible?: boolean;
+  isActive?: boolean;
+}
+
+export interface TrainerFiscalInfo {
+  userId: string;
+  ndaNumber: string | null;
+  legalStatus: 'Auto-entrepreneur' | 'EURL' | 'SASU' | 'SAS' | 'SARL' | null;
+  siret: string | null;
+  tvaNumber: string | null;
+  isComplete: boolean;
+  completedAt: string | null;
 }
 
 export interface TrainerDocument {

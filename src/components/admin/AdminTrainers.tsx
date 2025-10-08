@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TrainerApplicationModal } from './TrainerApplicationModal';
 import { CustomEmailModal } from './CustomEmailModal';
-import { mockTrainerApplications } from '@/data/mockTrainerApplicationsData';
+import { mockTrainerApplications, mockTrainerFiscalInfo } from '@/data/mockTrainerApplicationsData';
 import { TrainerApplication } from '@/types/trainer-application';
 
 const AdminTrainers = () => {
@@ -60,17 +60,40 @@ const AdminTrainers = () => {
   };
 
   const handleApproveApplication = (id: string, notes?: string) => {
+    // 1. Trouver l'application
+    const application = applications.find(app => app.id === id);
+    if (!application) return;
+
+    // 2. Vérifier les infos fiscales
+    const fiscalInfo = mockTrainerFiscalInfo[application.userId];
+    
+    if (!fiscalInfo || !fiscalInfo.isComplete) {
+      toast({
+        title: "Impossible d'approuver",
+        description: "Le formateur doit d'abord compléter ses informations fiscales (N° NDA, Statut juridique, SIRET).",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // 3. Approuver et activer
     setApplications(prev => prev.map(app => 
       app.id === id 
         ? { 
             ...app, 
-            status: 'approved' as const, 
+            status: 'approved' as const,
+            isActive: true,
             adminNotes: notes,
             reviewedAt: new Date().toISOString(),
             reviewedBy: 'current-admin'
           }
         : app
     ));
+
+    toast({
+      title: "Formateur approuvé et activé",
+      description: `${application.firstName} ${application.lastName} peut maintenant accéder à la plateforme.`,
+    });
   };
 
   const handleRejectApplication = (id: string, notes: string) => {

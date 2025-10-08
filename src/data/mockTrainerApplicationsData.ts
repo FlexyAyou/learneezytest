@@ -17,7 +17,8 @@ export const mockTrainerApplications: TrainerApplication[] = [
     languages: ['Français', 'Anglais'],
     status: 'pending',
     submittedAt: '2024-01-15T10:00:00Z',
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80'
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
+    isActive: false
   },
   {
     id: '2',
@@ -34,7 +35,8 @@ export const mockTrainerApplications: TrainerApplication[] = [
     languages: ['Français', 'Anglais', 'Espagnol'],
     status: 'pending',
     submittedAt: '2024-01-20T14:30:00Z',
-    avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80'
+    avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
+    isActive: false
   },
   {
     id: '3',
@@ -53,7 +55,8 @@ export const mockTrainerApplications: TrainerApplication[] = [
     submittedAt: '2022-11-10T09:15:00Z',
     reviewedAt: '2022-11-12T16:20:00Z',
     reviewedBy: 'admin-1',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80'
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
+    isActive: true
   },
   {
     id: '4',
@@ -73,7 +76,8 @@ export const mockTrainerApplications: TrainerApplication[] = [
     submittedAt: '2023-06-05T11:45:00Z',
     reviewedAt: '2023-06-10T14:30:00Z',
     reviewedBy: 'admin-1',
-    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80'
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
+    isActive: false
   }
 ];
 
@@ -173,3 +177,42 @@ export const mockTrainerDocuments: TrainerDocument[] = [
     uploadedAt: '2023-06-05T11:50:00Z'
   }
 ];
+
+export const mockTrainerFiscalInfo: Record<string, import('@/types/trainer-application').TrainerFiscalInfo> = {
+  'user-1': { // Jean Dupont - INCOMPLET
+    userId: 'user-1',
+    ndaNumber: null,
+    legalStatus: null,
+    siret: null,
+    tvaNumber: null,
+    isComplete: false,
+    completedAt: null
+  },
+  'user-2': { // Marie Martin - COMPLET mais pas actif
+    userId: 'user-2',
+    ndaNumber: '12345678901',
+    legalStatus: 'Auto-entrepreneur',
+    siret: '123 456 789 01234',
+    tvaNumber: 'FR12345678901',
+    isComplete: true,
+    completedAt: '2024-01-21T10:00:00Z'
+  },
+  'user-3': { // Pierre Durand - COMPLET et actif
+    userId: 'user-3',
+    ndaNumber: '98765432109',
+    legalStatus: 'EURL',
+    siret: '987 654 321 09876',
+    tvaNumber: 'FR98765432109',
+    isComplete: true,
+    completedAt: '2022-11-11T08:00:00Z'
+  },
+  'user-4': { // Sophie Laurent - INCOMPLET
+    userId: 'user-4',
+    ndaNumber: '11111111111',
+    legalStatus: 'Auto-entrepreneur',
+    siret: null,
+    tvaNumber: null,
+    isComplete: false,
+    completedAt: null
+  }
+};

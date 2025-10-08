@@ -2,13 +2,17 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { DollarSign, FileText, Calendar, Clock, CreditCard, User } from 'lucide-react';
+import { DollarSign, FileText, Calendar, Clock, CreditCard, User, CheckCircle, XCircle } from 'lucide-react';
+import { mockTrainerFiscalInfo } from '@/data/mockTrainerApplicationsData';
 
 interface IndependentTrainerDetailViewProps {
   user: any;
 }
 
 export const IndependentTrainerDetailView = ({ user }: IndependentTrainerDetailViewProps) => {
+  // Récupérer les vraies données fiscales
+  const fiscalInfo = mockTrainerFiscalInfo[user.userId];
+
   // Mock data spécifique aux formateurs indépendants
   const independentTrainerData = {
     contracts: [
@@ -31,11 +35,6 @@ export const IndependentTrainerDetailView = ({ user }: IndependentTrainerDetailV
       activeContracts: 1,
       pendingPayments: 2000,
       hourlyRate: 75
-    },
-    fiscalInfo: {
-      siret: '12345678901234',
-      status: 'Auto-entrepreneur',
-      tvaNumber: 'FR12345678901'
     }
   };
 
@@ -101,23 +100,46 @@ export const IndependentTrainerDetailView = ({ user }: IndependentTrainerDetailV
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
             Informations fiscales
+            {fiscalInfo && (
+              <Badge className={fiscalInfo.isComplete ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
+                {fiscalInfo.isComplete ? (
+                  <>
+                    <CheckCircle className="h-3 w-3 mr-1" />
+                    Profil complet
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="h-3 w-3 mr-1" />
+                    Profil incomplet
+                  </>
+                )}
+              </Badge>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium text-gray-600">Statut</label>
-              <p className="font-semibold">{independentTrainerData.fiscalInfo.status}</p>
+          {!fiscalInfo ? (
+            <p className="text-sm text-gray-500 italic">Informations fiscales non renseignées</p>
+          ) : (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-600">N° NDA</label>
+                <p className="font-semibold">{fiscalInfo.ndaNumber || 'Non renseigné'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-600">Statut juridique</label>
+                <p className="font-semibold">{fiscalInfo.legalStatus || 'Non renseigné'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-600">N° SIRET</label>
+                <p className="font-semibold">{fiscalInfo.siret || 'Non renseigné'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-600">N° TVA intracommunautaire</label>
+                <p className="font-semibold">{fiscalInfo.tvaNumber || 'Non renseigné'}</p>
+              </div>
             </div>
-            <div>
-              <label className="text-sm font-medium text-gray-600">SIRET</label>
-              <p className="font-semibold">{independentTrainerData.fiscalInfo.siret}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-600">N° TVA</label>
-              <p className="font-semibold">{independentTrainerData.fiscalInfo.tvaNumber}</p>
-            </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
