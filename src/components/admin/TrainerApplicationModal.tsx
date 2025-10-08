@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -34,12 +34,19 @@ export const TrainerApplicationModal = ({
   const { toast } = useToast();
   const [adminNotes, setAdminNotes] = useState('');
   const [selectedAction, setSelectedAction] = useState<'approve' | 'reject' | null>(null);
-  const [specialtyRequests, setSpecialtyRequests] = useState(
-    mockTrainerSpecialtyRequests.filter(req => req.trainerId === application?.userId)
-  );
+  const [specialtyRequests, setSpecialtyRequests] = useState<any[]>([]);
   const [rejectionModalOpen, setRejectionModalOpen] = useState(false);
   const [selectedSpecialty, setSelectedSpecialty] = useState<string | null>(null);
   const [specialtyRejectionReason, setSpecialtyRejectionReason] = useState('');
+
+  useEffect(() => {
+    if (application) {
+      const requests = mockTrainerSpecialtyRequests.filter(
+        req => req.trainerId === application.userId
+      );
+      setSpecialtyRequests(requests);
+    }
+  }, [application]);
 
   if (!application) return null;
 
