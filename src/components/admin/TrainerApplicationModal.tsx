@@ -1,20 +1,41 @@
-import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import { Separator } from '@/components/ui/separator';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { 
-  User, Mail, Phone, MapPin, Calendar, Clock, Euro, 
-  Languages, Award, FileText, Download, CheckCircle, 
-  XCircle, Eye, MessageSquare, CreditCard, Building2,
-  Shield, Star, TrendingUp, DollarSign 
-} from 'lucide-react';
-import { TrainerApplication, TrainerDocument } from '@/types/trainer-application';
-import { mockTrainerDocuments, mockTrainerFiscalInfo, mockTrainerSpecialtyRequests } from '@/data/mockTrainerApplicationsData';
-import { useToast } from '@/hooks/use-toast';
-import { AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Calendar,
+  Clock,
+  Euro,
+  Languages,
+  Award,
+  FileText,
+  Download,
+  CheckCircle,
+  XCircle,
+  Eye,
+  MessageSquare,
+  CreditCard,
+  Building2,
+  Shield,
+  Star,
+  TrendingUp,
+  DollarSign,
+} from "lucide-react";
+import { TrainerApplication, TrainerDocument } from "@/types/trainer-application";
+import {
+  mockTrainerDocuments,
+  mockTrainerFiscalInfo,
+  mockTrainerSpecialtyRequests,
+} from "@/data/mockTrainerApplicationsData";
+import { useToast } from "@/hooks/use-toast";
+import { AlertCircle } from "lucide-react";
 
 interface TrainerApplicationModalProps {
   application: TrainerApplication | null;
@@ -29,30 +50,26 @@ export const TrainerApplicationModal = ({
   isOpen,
   onClose,
   onApprove,
-  onReject
+  onReject,
 }: TrainerApplicationModalProps) => {
   const { toast } = useToast();
-  const [adminNotes, setAdminNotes] = useState('');
-  const [selectedAction, setSelectedAction] = useState<'approve' | 'reject' | null>(null);
+  const [adminNotes, setAdminNotes] = useState("");
+  const [selectedAction, setSelectedAction] = useState<"approve" | "reject" | null>(null);
   const [specialtyRequests, setSpecialtyRequests] = useState<any[]>([]);
   const [rejectionModalOpen, setRejectionModalOpen] = useState(false);
   const [selectedSpecialty, setSelectedSpecialty] = useState<string | null>(null);
-  const [specialtyRejectionReason, setSpecialtyRejectionReason] = useState('');
+  const [specialtyRejectionReason, setSpecialtyRejectionReason] = useState("");
 
   useEffect(() => {
     if (application) {
-      const requests = mockTrainerSpecialtyRequests.filter(
-        req => req.trainerId === application.userId
-      );
+      const requests = mockTrainerSpecialtyRequests.filter((req) => req.trainerId === application.userId);
       setSpecialtyRequests(requests);
     }
   }, [application]);
 
   if (!application) return null;
 
-  const documents = mockTrainerDocuments.filter(
-    doc => doc.trainerApplicationId === application.id
-  );
+  const documents = mockTrainerDocuments.filter((doc) => doc.trainerApplicationId === application.id);
 
   // Récupérer les infos fiscales
   const fiscalInfo = mockTrainerFiscalInfo[application.userId];
@@ -60,38 +77,38 @@ export const TrainerApplicationModal = ({
   // Mock data for additional trainer information
   const trainerDetails = {
     paymentMethod: {
-      type: 'IBAN',
-      details: 'FR76 1234 5678 9012 3456 7890 123',
+      type: "IBAN",
+      details: "FR76 1234 5678 9012 3456 7890 123",
       holderName: `${application.firstName} ${application.lastName}`,
-      verified: true
+      verified: true,
     },
     taxInfo: fiscalInfo || {
       siret: null,
       tvaNumber: null,
       status: null,
-      ndaNumber: null
+      ndaNumber: null,
     },
     performance: {
       totalEarnings: 15420,
       completedSessions: 142,
       averageRating: 4.8,
-      totalStudents: 89
+      totalStudents: 89,
     },
     compliance: {
       backgroundCheck: true,
       insuranceValid: true,
-      certificationStatus: 'Valid',
-      lastVerification: '2024-01-15'
-    }
+      certificationStatus: "Valid",
+      lastVerification: "2024-01-15",
+    },
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'pending':
+      case "pending":
         return <Badge className="bg-yellow-100 text-yellow-800">En attente</Badge>;
-      case 'approved':
+      case "approved":
         return <Badge className="bg-green-100 text-green-800">Approuvé</Badge>;
-      case 'rejected':
+      case "rejected":
         return <Badge className="bg-red-100 text-red-800">Rejeté</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
@@ -100,32 +117,45 @@ export const TrainerApplicationModal = ({
 
   const getDocumentTypeLabel = (type: string) => {
     switch (type) {
-      case 'diploma': return 'Diplôme';
-      case 'certification': return 'Certification';
-      case 'cv': return 'CV';
-      case 'identity': 'Pièce d\'identité';
-      case 'other': return 'Autre';
-      default: return type;
+      case "diploma":
+        return "Diplôme";
+      case "certification":
+        return "Certification";
+      case "cv":
+        return "CV";
+      case "identity":
+        "Pièce d'identité";
+      case "other":
+        return "Autre";
+      default:
+        return type;
     }
   };
 
   const getDocumentIcon = (type: string) => {
     switch (type) {
-      case 'diploma': return Award;
-      case 'certification': return Award;
-      case 'cv': return FileText;
-      case 'identity': return User;
-      default: return FileText;
+      case "diploma":
+        return Award;
+      case "certification":
+        return Award;
+      case "cv":
+        return FileText;
+      case "identity":
+        return User;
+      default:
+        return FileText;
     }
   };
 
   const handleApproveSpecialty = (specialtyId: string) => {
-    setSpecialtyRequests(prev => prev.map(spec =>
-      spec.id === specialtyId
-        ? { ...spec, status: 'approved' as const, reviewedAt: new Date().toISOString(), reviewedBy: 'admin-1' }
-        : spec
-    ));
-    
+    setSpecialtyRequests((prev) =>
+      prev.map((spec) =>
+        spec.id === specialtyId
+          ? { ...spec, status: "approved" as const, reviewedAt: new Date().toISOString(), reviewedBy: "admin-1" }
+          : spec,
+      ),
+    );
+
     toast({
       title: "Spécialité approuvée",
       description: "La demande de spécialité a été approuvée avec succès.",
@@ -137,23 +167,25 @@ export const TrainerApplicationModal = ({
       toast({
         title: "Erreur",
         description: "Veuillez fournir une raison de rejet.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
 
-    setSpecialtyRequests(prev => prev.map(spec =>
-      spec.id === selectedSpecialty
-        ? { 
-            ...spec, 
-            status: 'rejected' as const, 
-            rejectionReason: specialtyRejectionReason,
-            reviewedAt: new Date().toISOString(), 
-            reviewedBy: 'admin-1' 
-          }
-        : spec
-    ));
-    
+    setSpecialtyRequests((prev) =>
+      prev.map((spec) =>
+        spec.id === selectedSpecialty
+          ? {
+              ...spec,
+              status: "rejected" as const,
+              rejectionReason: specialtyRejectionReason,
+              reviewedAt: new Date().toISOString(),
+              reviewedBy: "admin-1",
+            }
+          : spec,
+      ),
+    );
+
     toast({
       title: "Spécialité rejetée",
       description: "La demande a été rejetée. Le formateur recevra la raison du rejet.",
@@ -161,7 +193,7 @@ export const TrainerApplicationModal = ({
 
     setRejectionModalOpen(false);
     setSelectedSpecialty(null);
-    setSpecialtyRejectionReason('');
+    setSpecialtyRejectionReason("");
   };
 
   const openRejectionModal = (specialtyId: string) => {
@@ -171,11 +203,11 @@ export const TrainerApplicationModal = ({
 
   const getSpecialtyStatusBadge = (status: string) => {
     switch (status) {
-      case 'approved':
+      case "approved":
         return <Badge className="bg-green-100 text-green-800">Approuvé</Badge>;
-      case 'pending':
+      case "pending":
         return <Badge className="bg-yellow-100 text-yellow-800">En attente</Badge>;
-      case 'rejected':
+      case "rejected":
         return <Badge variant="destructive">Refusé</Badge>;
       default:
         return <Badge variant="outline">Inconnu</Badge>;
@@ -183,18 +215,18 @@ export const TrainerApplicationModal = ({
   };
 
   const handleAction = () => {
-    if (selectedAction === 'approve') {
+    if (selectedAction === "approve") {
       onApprove(application.id, adminNotes);
       toast({
         title: "Candidature approuvée",
         description: `La candidature de ${application.firstName} ${application.lastName} a été approuvée.`,
       });
-    } else if (selectedAction === 'reject') {
+    } else if (selectedAction === "reject") {
       if (!adminNotes.trim()) {
         toast({
           title: "Notes requises",
           description: "Veuillez préciser les raisons du rejet.",
-          variant: "destructive"
+          variant: "destructive",
         });
         return;
       }
@@ -202,11 +234,11 @@ export const TrainerApplicationModal = ({
       toast({
         title: "Candidature rejetée",
         description: `La candidature de ${application.firstName} ${application.lastName} a été rejetée.`,
-        variant: "destructive"
+        variant: "destructive",
       });
     }
     setSelectedAction(null);
-    setAdminNotes('');
+    setAdminNotes("");
     onClose();
   };
 
@@ -231,8 +263,8 @@ export const TrainerApplicationModal = ({
           <div className="space-y-6">
             {/* Header avec photo et infos principales */}
             <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
-              <img 
-                src={application.avatar} 
+              <img
+                src={application.avatar}
                 alt={`${application.firstName} ${application.lastName}`}
                 className="w-20 h-20 rounded-full object-cover border-2 border-white shadow-md"
               />
@@ -304,9 +336,11 @@ export const TrainerApplicationModal = ({
                   <h5 className="font-semibold text-orange-900">Conformité</h5>
                 </div>
                 <p className="text-sm font-bold text-orange-800">
-                  {trainerDetails.compliance.backgroundCheck ? '✓ Vérifiée' : '✗ En attente'}
+                  {trainerDetails.compliance.backgroundCheck ? "✓ Vérifiée" : "✗ En attente"}
                 </p>
-                <p className="text-sm text-orange-600">Dernier contrôle : {new Date(trainerDetails.compliance.lastVerification).toLocaleDateString()}</p>
+                <p className="text-sm text-orange-600">
+                  Dernier contrôle : {new Date(trainerDetails.compliance.lastVerification).toLocaleDateString()}
+                </p>
               </div>
             </div>
 
@@ -352,7 +386,7 @@ export const TrainerApplicationModal = ({
                 <Award className="h-5 w-5" />
                 Demandes de spécialités
               </h4>
-              
+
               {specialtyRequests.length === 0 ? (
                 <p className="text-sm text-gray-500 italic">Aucune demande de spécialité</p>
               ) : (
@@ -373,7 +407,7 @@ export const TrainerApplicationModal = ({
                             <div>
                               <span className="text-gray-600">Soumis le:</span>
                               <span className="ml-2 font-medium">
-                                {new Date(specialty.submittedAt).toLocaleDateString('fr-FR')}
+                                {new Date(specialty.submittedAt).toLocaleDateString("fr-FR")}
                               </span>
                             </div>
                           </div>
@@ -381,8 +415,8 @@ export const TrainerApplicationModal = ({
                             <p className="text-sm text-gray-600 font-medium mb-1">Motivation:</p>
                             <p className="text-sm">{specialty.motivation}</p>
                           </div>
-                          
-                          {specialty.status === 'rejected' && specialty.rejectionReason && (
+
+                          {specialty.status === "rejected" && specialty.rejectionReason && (
                             <div className="bg-red-50 border border-red-200 p-3 rounded-md flex items-start gap-2">
                               <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
                               <div>
@@ -392,15 +426,15 @@ export const TrainerApplicationModal = ({
                             </div>
                           )}
 
-                          {specialty.status === 'approved' && specialty.reviewedAt && (
+                          {specialty.status === "approved" && specialty.reviewedAt && (
                             <div className="text-xs text-gray-500">
-                              Approuvé le {new Date(specialty.reviewedAt).toLocaleDateString('fr-FR')}
+                              Approuvé le {new Date(specialty.reviewedAt).toLocaleDateString("fr-FR")}
                             </div>
                           )}
                         </div>
                       </div>
 
-                      {specialty.status === 'pending' && (
+                      {specialty.status === "pending" && (
                         <div className="flex gap-2 justify-end">
                           <Button
                             variant="outline"
@@ -427,40 +461,6 @@ export const TrainerApplicationModal = ({
               )}
             </div>
 
-            {/* Informations de paiement */}
-            <div>
-              <h4 className="font-semibold mb-4 flex items-center gap-2">
-                <CreditCard className="h-5 w-5" />
-                Moyens de paiement
-              </h4>
-              <div className="p-4 border rounded-lg bg-gray-50">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Type de compte</label>
-                    <p className="font-semibold">{trainerDetails.paymentMethod.type}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Titulaire du compte</label>
-                    <p className="font-semibold">{trainerDetails.paymentMethod.holderName}</p>
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="text-sm font-medium text-gray-600">Détails du compte</label>
-                    <p className="font-mono text-sm bg-white p-2 rounded border">
-                      {trainerDetails.paymentMethod.details}
-                    </p>
-                  </div>
-                </div>
-                {trainerDetails.paymentMethod.verified && (
-                  <div className="mt-3">
-                    <Badge className="bg-green-100 text-green-800">
-                      <CheckCircle className="h-3 w-3 mr-1" />
-                      Compte vérifié
-                    </Badge>
-                  </div>
-                )}
-              </div>
-            </div>
-
             {/* Informations fiscales */}
             <div>
               <h4 className="font-semibold mb-4 flex items-center gap-2">
@@ -474,19 +474,19 @@ export const TrainerApplicationModal = ({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm font-medium text-gray-600">N° NDA</label>
-                      <p className="font-mono text-sm">{fiscalInfo.ndaNumber || 'Non renseigné'}</p>
+                      <p className="font-mono text-sm">{fiscalInfo.ndaNumber || "Non renseigné"}</p>
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-600">Statut juridique</label>
-                      <p className="font-semibold">{fiscalInfo.legalStatus || 'Non renseigné'}</p>
+                      <p className="font-semibold">{fiscalInfo.legalStatus || "Non renseigné"}</p>
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-600">SIRET</label>
-                      <p className="font-mono text-sm">{fiscalInfo.siret || 'Non renseigné'}</p>
+                      <p className="font-mono text-sm">{fiscalInfo.siret || "Non renseigné"}</p>
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-600">N° TVA</label>
-                      <p className="font-mono text-sm">{fiscalInfo.tvaNumber || 'Non renseigné'}</p>
+                      <p className="font-mono text-sm">{fiscalInfo.tvaNumber || "Non renseigné"}</p>
                     </div>
                   </div>
                 )}
@@ -497,9 +497,7 @@ export const TrainerApplicationModal = ({
             {application.bio && (
               <div>
                 <h4 className="font-semibold mb-3">Présentation</h4>
-                <p className="text-sm text-gray-700 leading-relaxed p-3 bg-gray-50 rounded-lg">
-                  {application.bio}
-                </p>
+                <p className="text-sm text-gray-700 leading-relaxed p-3 bg-gray-50 rounded-lg">{application.bio}</p>
               </div>
             )}
 
@@ -511,7 +509,7 @@ export const TrainerApplicationModal = ({
                 <FileText className="h-5 w-5" />
                 Documents soumis ({documents.length})
               </h4>
-              
+
               {documents.length === 0 ? (
                 <p className="text-sm text-gray-500 italic">Aucun document soumis</p>
               ) : (
@@ -519,16 +517,16 @@ export const TrainerApplicationModal = ({
                   {documents.map((document) => {
                     const IconComponent = getDocumentIcon(document.documentType);
                     return (
-                      <div key={document.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+                      <div
+                        key={document.id}
+                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50"
+                      >
                         <div className="flex items-center gap-3">
                           <IconComponent className="h-5 w-5 text-gray-500" />
                           <div>
                             <div className="font-medium text-sm">{document.documentName}</div>
                             <div className="flex items-center gap-2 mt-1">
-                              <Badge 
-                                variant="outline" 
-                                className="text-xs"
-                              >
+                              <Badge variant="outline" className="text-xs">
                                 {getDocumentTypeLabel(document.documentType)}
                               </Badge>
                               {document.isVerified && (
@@ -541,18 +539,11 @@ export const TrainerApplicationModal = ({
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => handleDocumentDownload(document)}
-                          >
+                          <Button size="sm" variant="outline" onClick={() => handleDocumentDownload(document)}>
                             <Download className="h-4 w-4 mr-1" />
                             Télécharger
                           </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                          >
+                          <Button size="sm" variant="outline">
                             <Eye className="h-4 w-4 mr-1" />
                             Voir
                           </Button>
@@ -583,7 +574,7 @@ export const TrainerApplicationModal = ({
             )}
 
             {/* État du profil fiscal */}
-            {application.status === 'pending' && (
+            {application.status === "pending" && (
               <div className="mb-4 p-4 border rounded-lg">
                 <h5 className="font-semibold mb-3">État du profil fiscal</h5>
                 {fiscalInfo?.isComplete ? (
@@ -593,7 +584,8 @@ export const TrainerApplicationModal = ({
                       Profil fiscal complet
                     </Badge>
                     <p className="text-sm text-gray-600">
-                      Le formateur a complété toutes les informations fiscales requises. Vous pouvez approuver sa candidature.
+                      Le formateur a complété toutes les informations fiscales requises. Vous pouvez approuver sa
+                      candidature.
                     </p>
                   </div>
                 ) : (
@@ -616,19 +608,19 @@ export const TrainerApplicationModal = ({
             )}
 
             {/* Actions administratives */}
-            {application.status === 'pending' && (
+            {application.status === "pending" && (
               <div className="border-t pt-4">
                 <h4 className="font-semibold mb-3">Actions administratives</h4>
-                
+
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium mb-2">
-                      Notes administratives {selectedAction === 'reject' && <span className="text-red-500">*</span>}
+                      Notes administratives {selectedAction === "reject" && <span className="text-red-500">*</span>}
                     </label>
                     <Textarea
                       placeholder={
-                        selectedAction === 'reject' 
-                          ? "Précisez les raisons du rejet (obligatoire)" 
+                        selectedAction === "reject"
+                          ? "Précisez les raisons du rejet (obligatoire)"
                           : "Ajoutez des notes pour cette candidature (optionnel)"
                       }
                       value={adminNotes}
@@ -639,16 +631,16 @@ export const TrainerApplicationModal = ({
 
                   <div className="flex items-center gap-3">
                     <Button
-                      onClick={() => setSelectedAction('approve')}
+                      onClick={() => setSelectedAction("approve")}
                       className="bg-green-600 hover:bg-green-700 text-white"
                       disabled={selectedAction !== null}
                     >
                       <CheckCircle className="h-4 w-4 mr-2" />
                       Approuver la candidature
                     </Button>
-                    
+
                     <Button
-                      onClick={() => setSelectedAction('reject')}
+                      onClick={() => setSelectedAction("reject")}
                       variant="destructive"
                       disabled={selectedAction !== null}
                     >
@@ -660,15 +652,15 @@ export const TrainerApplicationModal = ({
                       <>
                         <Button
                           onClick={handleAction}
-                          variant={selectedAction === 'approve' ? 'default' : 'destructive'}
+                          variant={selectedAction === "approve" ? "default" : "destructive"}
                         >
-                          Confirmer {selectedAction === 'approve' ? 'l\'approbation' : 'le rejet'}
+                          Confirmer {selectedAction === "approve" ? "l'approbation" : "le rejet"}
                         </Button>
                         <Button
                           variant="outline"
                           onClick={() => {
                             setSelectedAction(null);
-                            setAdminNotes('');
+                            setAdminNotes("");
                           }}
                         >
                           Annuler
@@ -704,21 +696,17 @@ export const TrainerApplicationModal = ({
               </div>
             </div>
             <div className="flex justify-end gap-2 mt-4">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => {
                   setRejectionModalOpen(false);
                   setSelectedSpecialty(null);
-                  setSpecialtyRejectionReason('');
+                  setSpecialtyRejectionReason("");
                 }}
               >
                 Annuler
               </Button>
-              <Button 
-                variant="destructive"
-                onClick={handleRejectSpecialty}
-                disabled={!specialtyRejectionReason.trim()}
-              >
+              <Button variant="destructive" onClick={handleRejectSpecialty} disabled={!specialtyRejectionReason.trim()}>
                 Confirmer le rejet
               </Button>
             </div>
