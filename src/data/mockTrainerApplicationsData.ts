@@ -218,7 +218,7 @@ export const mockTrainerFiscalInfo: Record<string, import('@/types/trainer-appli
 };
 
 export const mockTrainerSpecialtyRequests: TrainerSpecialtyRequest[] = [
-  // Demandes de Jean Dupont (user-1)
+  // Demandes de Jean Dupont (user-1) - 4 demandes avec différents statuts
   {
     id: 'spec-1',
     trainerId: 'user-1',
@@ -234,8 +234,31 @@ export const mockTrainerSpecialtyRequests: TrainerSpecialtyRequest[] = [
     name: 'Docker',
     level: 'Intermédiaire',
     motivation: 'J\'utilise Docker quotidiennement depuis 2 ans pour conteneuriser mes applications. J\'ai formé mon équipe actuelle sur Docker.',
+    status: 'approved',
+    submittedAt: '2024-01-20T10:15:00Z',
+    reviewedAt: '2024-01-21T14:00:00Z',
+    reviewedBy: 'admin-1'
+  },
+  {
+    id: 'spec-2b',
+    trainerId: 'user-1',
+    name: 'GraphQL',
+    level: 'Avancé',
+    motivation: 'Expert GraphQL depuis 4 ans. J\'ai implémenté GraphQL dans plus de 15 projets d\'entreprise et j\'ai donné plusieurs conférences sur le sujet.',
     status: 'pending',
-    submittedAt: '2024-01-22T10:15:00Z'
+    submittedAt: '2024-01-23T09:00:00Z'
+  },
+  {
+    id: 'spec-2c',
+    trainerId: 'user-1',
+    name: 'Flutter',
+    level: 'Intermédiaire',
+    motivation: 'J\'ai commencé Flutter il y a 6 mois et j\'ai développé 2 applications mobiles.',
+    status: 'rejected',
+    rejectionReason: 'Expérience insuffisante en Flutter. Nous exigeons au moins 2 ans d\'expérience et minimum 5 applications publiées pour enseigner le développement mobile.',
+    submittedAt: '2024-01-19T11:00:00Z',
+    reviewedAt: '2024-01-20T16:30:00Z',
+    reviewedBy: 'admin-2'
   },
   
   // Demandes de Marie Martin (user-2)
