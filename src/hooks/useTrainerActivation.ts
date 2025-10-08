@@ -109,9 +109,7 @@ export const useTrainerActivation = (userId: string | undefined) => {
   };
 
   const shouldShowAlert = 
-    userStatus !== 'active' || 
-    !fiscalInfo?.is_complete || 
-    isFirstLogin;
+    userStatus !== 'active' && !fiscalInfo?.is_complete;
 
   return {
     isActive: userStatus === 'active',
