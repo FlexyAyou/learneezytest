@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { TrainerApplicationModal } from './TrainerApplicationModal';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { mockTrainerApplications, mockTrainerFiscalInfo } from '@/data/mockTrainerApplicationsData';
 import { TrainerApplication } from '@/types/trainer-application';
 
@@ -348,19 +349,27 @@ const AdminTrainers = () => {
                         <Eye className="h-4 w-4" />
                       </Button>
                       
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        title={application.isVisible ? "Masquer le profil" : "Afficher le profil"}
-                        onClick={() => handleToggleVisibility(application.id)}
-                        className={application.isVisible ? "hover:bg-red-50 hover:text-red-600" : "hover:bg-green-50 hover:text-green-600"}
-                      >
-                        {application.isVisible ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
-                      </Button>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              onClick={() => handleToggleVisibility(application.id)}
+                              className={application.isVisible ? "hover:bg-red-50 hover:text-red-600" : "hover:bg-green-50 hover:text-green-600"}
+                            >
+                              {application.isVisible ? (
+                                <EyeOff className="h-4 w-4" />
+                              ) : (
+                                <Eye className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent className="bg-red-600 text-white border-red-700">
+                            <p>Masquer ou rendre visible le formateur dans le catalogue</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                   </TableCell>
                 </TableRow>
