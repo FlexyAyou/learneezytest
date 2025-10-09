@@ -228,7 +228,7 @@ const Register = () => {
                 )}
 
                 {/* Informations personnelles - affichées pour les profils valides */}
-                {(userType === "instructor" ||
+                {(userType === "independant_trainer" ||
                   userType === "tutor" ||
                   (userType === "student" && ageStatus === "adult")) && (
                   <>
