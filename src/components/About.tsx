@@ -70,7 +70,7 @@ const About = () => {
             Pourquoi Choisir <span className="text-pink-600">Learneezy</span> ?
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Nous révolutionnons l'apprentissage en ligne avec une approche moderne, 
+            Nous révolutionnnons l'apprentissage en ligne avec une approche moderne, 
             pratique et axée sur les résultats.
           </p>
         </div>
