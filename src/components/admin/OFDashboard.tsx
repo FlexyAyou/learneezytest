@@ -171,7 +171,7 @@ export const OFDashboard = () => {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center">
               <Calendar className="h-4 w-4 mr-2 text-purple-600" />
-              Prochaines sessions
+              Prochaines session
             </CardTitle>
           </CardHeader>
           <CardContent>
