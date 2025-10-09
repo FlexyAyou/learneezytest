@@ -77,7 +77,7 @@ const Register = () => {
 
   // Mapping des rôles frontend -> backend
   const roleMapping: Record<string, UserRole> = {
-    student: 'apprenant',
+    student: 'student',
     tutor: 'tutor',
     independant_trainer: 'independent_trainer',
   };
