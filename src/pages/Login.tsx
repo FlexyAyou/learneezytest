@@ -30,17 +30,9 @@ const Login = () => {
   const onSubmit = async (data: z.infer<typeof loginSchema>) => {
     try {
       await handleLogin(data.email, data.password);
-      toast({
-        title: "Connexion réussie",
-        description: "Redirection vers votre tableau de bord",
-      });
-      navigate("/dashboard");
+      // La redirection est gérée par handleLogin via redirectByRole
     } catch (error) {
-      toast({
-        title: "Erreur de connexion",
-        description: "Email ou mot de passe incorrect.",
-        variant: "destructive",
-      });
+      // L'erreur est déjà gérée par handleLogin
     }
   };
 

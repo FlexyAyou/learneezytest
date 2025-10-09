@@ -1,10 +1,10 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
+import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { FileText, Users, BookOpen, TrendingUp, Calendar, Award, Clock, Mail, UserPlus, Eye } from 'lucide-react';
+import { FileText, Users, BookOpen, TrendingUp, Calendar, Award, AlertTriangle, CheckCircle, Clock, Mail, ArrowUp, ArrowDown, UserPlus, Eye, Edit } from 'lucide-react';
 import { DashboardChart } from '@/components/common/DashboardChart';
 import { StatsCard } from '@/components/common/StatsCard';
 import { useNavigate } from 'react-router-dom';
@@ -26,6 +26,12 @@ export const OFDashboard = () => {
     { title: 'Suivi pédagogique', date: '22 février', time: '16:00', participants: 25, formateur: 'Alex Rousseau' },
   ];
 
+  const alertes = [
+    { type: 'warning', message: '5 apprenants en retard sur leur formation', priority: 'high' },
+    { type: 'info', message: '3 nouvelles demandes d\'inscription', priority: 'medium' },
+    { type: 'success', message: 'Taux de réussite en hausse ce mois', priority: 'low' },
+    { type: 'error', message: '2 documents en attente de signature', priority: 'high' },
+  ];
 
   // Données pour les graphiques spécifiques à l'OF
   const inscriptionsData = [
@@ -53,6 +59,15 @@ export const OFDashboard = () => {
     { name: 'Jun', value: 89 },
   ];
 
+  const getAlertColor = (type: string) => {
+    const colors = {
+      warning: 'border-orange-200 bg-orange-50 text-orange-800',
+      info: 'border-blue-200 bg-blue-50 text-blue-800',
+      success: 'border-green-200 bg-green-50 text-green-800',
+      error: 'border-red-200 bg-red-50 text-red-800',
+    };
+    return colors[type as keyof typeof colors] || colors.info;
+  };
 
   return (
     <div className="space-y-6">
@@ -140,7 +155,7 @@ export const OFDashboard = () => {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Activité récente */}
         <Card>
           <CardHeader className="pb-3">
@@ -171,7 +186,7 @@ export const OFDashboard = () => {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center">
               <Calendar className="h-4 w-4 mr-2 text-purple-600" />
-              Prochaines session
+              Prochaines sessions
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -200,6 +215,32 @@ export const OFDashboard = () => {
           </CardContent>
         </Card>
 
+        {/* Alertes et notifications */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium flex items-center">
+              <AlertTriangle className="h-4 w-4 mr-2 text-orange-600" />
+              Alertes & Notifications
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {alertes.map((alert, index) => (
+                <div key={index} className={`p-3 rounded-lg border ${getAlertColor(alert.type)}`}>
+                  <div className="flex items-start justify-between">
+                    <p className="text-sm font-medium">{alert.message}</p>
+                    <Badge 
+                      variant={alert.priority === 'high' ? 'destructive' : alert.priority === 'medium' ? 'default' : 'outline'}
+                      className="text-xs"
+                    >
+                      {alert.priority}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

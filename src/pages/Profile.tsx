@@ -9,7 +9,8 @@ import ErrorMessage from '@/components/common/ErrorMessage';
 
 const Profile = () => {
   const { user, isLoading: authLoading } = useAuth();
-  const { data: enrollments, isLoading: enrollmentsLoading } = useUserEnrollments(user?.id || '');
+  const userId = user?.id ? String(user.id) : '';
+  const { data: enrollments, isLoading: enrollmentsLoading } = useUserEnrollments(userId);
 
   if (authLoading) {
     return (
@@ -52,14 +53,10 @@ const Profile = () => {
             <Card className="p-6">
               <div className="text-center">
                 <div className="w-24 h-24 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  {user.avatar ? (
-                    <img src={user.avatar} alt="Avatar" className="w-24 h-24 rounded-full object-cover" />
-                  ) : (
-                    <User className="h-12 w-12 text-pink-600" />
-                  )}
+                  <User className="h-12 w-12 text-pink-600" />
                 </div>
                 <h2 className="text-xl font-bold text-gray-900 mb-2">
-                  {user.firstName} {user.lastName}
+                  {user.first_name} {user.last_name}
                 </h2>
                 <p className="text-gray-600 mb-4 capitalize">{user.role}</p>
                 <Button className="w-full bg-pink-600 hover:bg-pink-700">
@@ -76,21 +73,9 @@ const Profile = () => {
                   <Mail className="h-4 w-4 mr-3" />
                   <span>{user.email}</span>
                 </div>
-                {user.profile?.phone && (
-                  <div className="flex items-center text-gray-600">
-                    <Phone className="h-4 w-4 mr-3" />
-                    <span>{user.profile.phone}</span>
-                  </div>
-                )}
-                {user.profile?.city && (
-                  <div className="flex items-center text-gray-600">
-                    <MapPin className="h-4 w-4 mr-3" />
-                    <span>{user.profile.city}</span>
-                  </div>
-                )}
                 <div className="flex items-center text-gray-600">
                   <Calendar className="h-4 w-4 mr-3" />
-                  <span>Inscrit le {new Date(user.createdAt).toLocaleDateString('fr-FR')}</span>
+                  <span>Membre depuis {new Date().toLocaleDateString('fr-FR')}</span>
                 </div>
               </div>
             </Card>
