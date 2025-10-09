@@ -1,0 +1,152 @@
+/**
+ * Types TypeScript générés depuis le schéma OpenAPI FastAPI
+ */
+
+// ============= RÔLES =============
+export type UserRole =
+  | 'superadmin'
+  | 'administrator'
+  | 'of_admin'
+  | 'gestionnaire'
+  | 'formateur_interne'
+  | 'createur_contenu'
+  | 'student'
+  | 'apprenant'
+  | 'tutor'
+  | 'trainer'
+  | 'independent_trainer'
+  | 'facilitator'
+  | 'manager';
+
+// ============= AUTHENTIFICATION =============
+export interface Token {
+  access_token: string;
+  refresh_token: string;
+  token_type: string;
+}
+
+export interface UserLogin {
+  email: string;
+  password: string;
+}
+
+export interface UserCreate {
+  email: string;
+  password: string;
+  role: UserRole;
+  first_name: string;
+  last_name: string;
+  is_major?: boolean;
+  accept_terms: boolean;
+  of_id?: number | null;
+  accessible_catalogues?: string[];
+}
+
+export interface UserResponse {
+  id?: number;
+  email: string;
+  role: string;
+  first_name?: string;
+  last_name?: string;
+  is_major?: boolean;
+  of_id?: number | null;
+  accessible_catalogues?: string[];
+}
+
+export interface RefreshRequest {
+  refresh_token: string;
+}
+
+export interface UserResetPassword {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  new_password: string;
+}
+
+// ============= TOKENS (BOUTIQUE) =============
+export interface TokenBalanceResponse {
+  balance: number;
+  purchase_history: Array<Record<string, any>>;
+}
+
+export interface TokenBuyRequest {
+  amount: number;
+}
+
+export interface TokenBuyResponse {
+  new_balance: number;
+  tokens_added: number;
+  transaction_id: string;
+}
+
+// ============= ORGANISATIONS =============
+export type SubscriptionType = 'starter' | 'gold' | 'premium';
+
+export interface OrganizationCreate {
+  name: string;
+  subdomain: string;
+  subscription_type: SubscriptionType;
+  contact_email: string;
+}
+
+export interface OrganizationResponse {
+  id: number;
+  name: string;
+  subdomain: string;
+  subscription_type: SubscriptionType;
+  contact_email: string;
+  created_at: string;
+  created_by: number;
+}
+
+export interface OrganizationUpdate {
+  subscription_type?: SubscriptionType;
+}
+
+// ============= CATALOGUES =============
+export interface CatalogueResponse {
+  id: number;
+  name: string;
+  courses: string[];
+  type_: string;
+  of_id?: number;
+}
+
+export interface AssignCatalogueRequest {
+  catalogue_ids: string[];
+}
+
+export interface SubscriptionCreate {
+  type_: SubscriptionType;
+}
+
+export interface SubscriptionResponse {
+  id: number;
+  of_id: number;
+  type_: SubscriptionType;
+  start_date: string;
+  end_date?: string;
+  status: string;
+}
+
+// ============= JWT PAYLOAD =============
+export interface JWTPayload {
+  user_id: number;
+  role: UserRole;
+  email: string;
+  exp: number;
+  sub: string;
+}
+
+// ============= ERREURS =============
+export interface ValidationError {
+  loc: string[];
+  msg: string;
+  type: string;
+}
+
+export interface HTTPValidationError {
+  detail?: ValidationError[];
+}
