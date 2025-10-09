@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Search, Plus, Eye, Mail, UserCheck, Users, Phone, MapPin, Calendar, Clock, Euro, EyeOff, Send } from 'lucide-react';
+import { Search, Plus, Eye, Mail, UserCheck, Users, Phone, MapPin, Calendar, Clock, Euro, EyeOff, Send, UserCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TrainerApplicationModal } from './TrainerApplicationModal';
@@ -346,7 +346,7 @@ const AdminTrainers = () => {
                         title="Voir la candidature complète"
                         onClick={() => handleViewApplication(application)}
                       >
-                        <Eye className="h-4 w-4" />
+                        <UserCircle className="h-4 w-4" />
                       </Button>
                       
                       <TooltipProvider>
