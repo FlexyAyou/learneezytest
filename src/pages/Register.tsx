@@ -9,7 +9,10 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
+import { useAuthForm } from "@/hooks/useAuthForm";
+import { UserRole } from "@/types/fastapi";
 import {
   BookOpen,
   Mail,
@@ -31,10 +34,13 @@ const registerSchema = z
     firstName: z.string().min(1, { message: "Le prénom est requis." }),
     lastName: z.string().min(1, { message: "Le nom est requis." }),
     email: z.string().email({ message: "Veuillez entrer une adresse email valide." }),
-    password: z.string().min(6, { message: "Le mot de passe doit contenir au moins 6 caractères." }),
+    password: z.string().min(8, { message: "Le mot de passe doit contenir au moins 8 caractères." }),
     confirmPassword: z.string().min(1, { message: "Veuillez confirmer votre mot de passe." }),
     userType: z.string().min(1, { message: "Veuillez sélectionner un type de profil." }),
     ageStatus: z.string().optional(),
+    acceptTerms: z.boolean().refine((val) => val === true, {
+      message: "Vous devez accepter les conditions d'utilisation.",
+    }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Les mots de passe ne correspondent pas.",
@@ -47,6 +53,7 @@ const Register = () => {
   const [showMinorError, setShowMinorError] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { handleRegister, isLoading } = useAuthForm();
 
   const {
     register: registerField,
@@ -64,27 +71,43 @@ const Register = () => {
       confirmPassword: "",
       userType: "",
       ageStatus: "",
+      acceptTerms: false,
     },
   });
+
+  // Mapping des rôles frontend -> backend
+  const roleMapping: Record<string, UserRole> = {
+    student: 'apprenant',
+    tutor: 'tutor',
+    independant_trainer: 'independent_trainer',
+  };
 
   const userType = watch("userType");
   const ageStatus = watch("ageStatus");
 
   const onSubmit = async (data: z.infer<typeof registerSchema>) => {
     try {
-      // Logique d'inscription ici
-      console.log("Inscription:", data);
-      toast({
-        title: "Inscription réussie",
-        description: "Votre compte a été créé avec succès.",
-      });
+      // Calculer is_major depuis ageStatus
+      const isMajor = data.userType === 'student' ? data.ageStatus === 'adult' : undefined;
+      
+      // Construire le payload pour FastAPI
+      const userData = {
+        email: data.email,
+        password: data.password,
+        role: roleMapping[data.userType],
+        first_name: data.firstName,
+        last_name: data.lastName,
+        is_major: isMajor,
+        accept_terms: data.acceptTerms,
+        of_id: null, // Utilisateur Learneezy global
+        accessible_catalogues: [],
+      };
+
+      await handleRegister(userData);
       navigate("/connexion");
     } catch (error) {
-      toast({
-        title: "Erreur d'inscription",
-        description: "Une erreur s'est produite lors de la création du compte.",
-        variant: "destructive",
-      });
+      // L'erreur est déjà gérée par handleRegister
+      console.error("Erreur d'inscription:", error);
     }
   };
 
@@ -333,11 +356,10 @@ const Register = () => {
 
                     {/* Conditions d'utilisation et bouton de soumission */}
                     <div className="flex items-center space-x-2">
-                      <input
+                      <Checkbox
                         id="terms"
-                        type="checkbox"
-                        className="rounded border-gray-300 text-pink-600 focus:ring-pink-500"
-                        required
+                        checked={watch("acceptTerms")}
+                        onCheckedChange={(checked) => setValue("acceptTerms", !!checked)}
                       />
                       <Label htmlFor="terms" className="text-sm text-gray-600">
                         J'accepte les{" "}
@@ -350,9 +372,16 @@ const Register = () => {
                         </Link>
                       </Label>
                     </div>
+                    {errors.acceptTerms && (
+                      <p className="mt-1 text-sm text-red-600">{errors.acceptTerms.message}</p>
+                    )}
 
-                    <Button type="submit" className="w-full h-12 bg-pink-600 hover:bg-pink-700 text-white font-medium">
-                      Créer mon compte
+                    <Button 
+                      type="submit" 
+                      className="w-full h-12 bg-pink-600 hover:bg-pink-700 text-white font-medium"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? "Création en cours..." : "Créer mon compte"}
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </>
