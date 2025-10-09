@@ -26,18 +26,20 @@ import {
   Users,
 } from "lucide-react";
 
-const registerSchema = z.object({
-  firstName: z.string().min(1, { message: "Le prénom est requis." }),
-  lastName: z.string().min(1, { message: "Le nom est requis." }),
-  email: z.string().email({ message: "Veuillez entrer une adresse email valide." }),
-  password: z.string().min(6, { message: "Le mot de passe doit contenir au moins 6 caractères." }),
-  confirmPassword: z.string().min(1, { message: "Veuillez confirmer votre mot de passe." }),
-  userType: z.string().min(1, { message: "Veuillez sélectionner un type de profil." }),
-  ageStatus: z.string().optional(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Les mots de passe ne correspondent pas.",
-  path: ["confirmPassword"],
-});
+const registerSchema = z
+  .object({
+    firstName: z.string().min(1, { message: "Le prénom est requis." }),
+    lastName: z.string().min(1, { message: "Le nom est requis." }),
+    email: z.string().email({ message: "Veuillez entrer une adresse email valide." }),
+    password: z.string().min(6, { message: "Le mot de passe doit contenir au moins 6 caractères." }),
+    confirmPassword: z.string().min(1, { message: "Veuillez confirmer votre mot de passe." }),
+    userType: z.string().min(1, { message: "Veuillez sélectionner un type de profil." }),
+    ageStatus: z.string().optional(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Les mots de passe ne correspondent pas.",
+    path: ["confirmPassword"],
+  });
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -176,7 +178,7 @@ const Register = () => {
                       <SelectItem value="student">
                         <div className="flex items-center space-x-2">
                           <GraduationCap className="h-4 w-4" />
-                          <span>Profil Élève</span>
+                          <span>Profil Apprenant</span>
                         </div>
                       </SelectItem>
                       <SelectItem value="tutor">
@@ -185,7 +187,7 @@ const Register = () => {
                           <span>Profil Tuteur</span>
                         </div>
                       </SelectItem>
-                      <SelectItem value="instructor">
+                      <SelectItem value="independant_trainer">
                         <div className="flex items-center space-x-2">
                           <UserCheck className="h-4 w-4" />
                           <span>Profil formateur</span>
@@ -324,7 +326,9 @@ const Register = () => {
                           {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                         </button>
                       </div>
-                      {errors.confirmPassword && <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>}
+                      {errors.confirmPassword && (
+                        <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
+                      )}
                     </div>
 
                     {/* Conditions d'utilisation et bouton de soumission */}
