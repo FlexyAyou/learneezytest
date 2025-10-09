@@ -486,7 +486,7 @@ export const TrainerApplicationModal = ({
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-600">N° TVA</label>
-                      <p className="font-semi-bold text-sm">{fiscalInfo.tvaNumber || "Non renseigné"}</p>
+                      <p className="font-mono text-gray">{fiscalInfo.tvaNumber || "Non renseigné"}</p>
                     </div>
                   </div>
                 )}
