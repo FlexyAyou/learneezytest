@@ -34,7 +34,7 @@ export const useAuthForm = () => {
     lastName: string;
     email: string;
     password: string;
-    role?: 'student' | 'instructor';
+    role?: 'student' | 'independant_trainer' | 'tutor';
   }) => {
     setIsSubmitting(true);
     try {
