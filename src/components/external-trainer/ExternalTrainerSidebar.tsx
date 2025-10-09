@@ -30,7 +30,6 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import LanguageSelector from "@/components/common/LanguageSelector";
-import { useFastAPIAuth } from "@/hooks/useFastAPIAuth";
 
 const navigationItems = [
   { title: "Tableau de bord", href: "/formateur-independant", icon: TrendingUp },
@@ -51,20 +50,15 @@ const toolsItems = [
   { title: "Profil formateur", href: "/formateur-independant/profil", icon: Settings },
 ];
 
+const userInfo = {
+  name: "Jean Martin",
+  email: "jean.martin@email.com"
+};
+
 export function ExternalTrainerSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
-  const { user, logout } = useFastAPIAuth();
-  
-  // Informations utilisateur dynamiques
-  const userInfo = {
-    name: user ? `${user.first_name || ''} ${user.last_name || ''}`.trim() : "Formateur",
-    email: user?.email || "",
-    initials: user 
-      ? `${user.first_name?.[0] || ''}${user.last_name?.[0] || ''}`.toUpperCase()
-      : "F"
-  };
 
   const isActive = (path: string) => currentPath === path;
   const isCollapsed = state === "collapsed";
@@ -92,7 +86,7 @@ export function ExternalTrainerSidebar() {
           <div className="flex items-center space-x-3 mb-3">
             <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-pink-600 font-medium text-sm">
-                {userInfo.initials}
+                {userInfo.name.split(' ').map(n => n[0]).join('')}
               </span>
             </div>
             <div className="flex-1 min-w-0">
@@ -146,7 +140,6 @@ export function ExternalTrainerSidebar() {
         <Button
           variant="ghost"
           className="w-full justify-start"
-          onClick={logout}
         >
           <LogOut className="h-4 w-4" />
           {!isCollapsed && <span>Se déconnecter</span>}
