@@ -69,7 +69,7 @@ export const useCourse = (id: string) => {
 };
 
 // Hook stub pour enrollments (à implémenter plus tard)
-export const useUserEnrollments = (userId: string) => {
+export const useUserEnrollments = (userId: string | number) => {
   return useQuery({
     queryKey: ['userEnrollments', userId],
     queryFn: () => Promise.resolve([]),
@@ -81,7 +81,14 @@ export const useUserEnrollments = (userId: string) => {
 export const useAdminStats = () => {
   return useQuery({
     queryKey: ['adminStats'],
-    queryFn: () => Promise.resolve({}),
+    queryFn: () => Promise.resolve({
+      totalUsers: 0,
+      totalCourses: 0,
+      totalEnrollments: 0,
+      totalRevenue: 0,
+      monthlyGrowth: { users: 0, courses: 0, revenue: 0 },
+      topCourses: []
+    }),
     enabled: false, // Désactivé pour l'instant
   });
 };
