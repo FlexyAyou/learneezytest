@@ -35,76 +35,80 @@ import CourseReviewPage from '@/pages/admin/CourseReviewPage';
 import SystemArchitecture from './pages/SystemArchitecture';
 
 function App() {
+  // return (
+  //   <LanguageProvider>
+  //     <BrowserRouter>
+  //       <Routes>
+  //         <Route path="/" element={<Index />} />
+  //         <Route path="/apropos" element={<About />} />
+  //         <Route path="/cours" element={<Courses />} />
+  //         <Route path="/nos-formations" element={<Courses />} />
+  //         <Route path="/cours/:id" element={<CourseDetail />} />
+  //         <Route path="/tarifs" element={<Offers />} />
+  //         <Route path="/offres" element={<Offers />} />
+  //         <Route path="/contact" element={<Contact />} />
+  //         <Route path="/documentation" element={<Documentation />} />
+  //         <Route path="/tableau-de-bord" element={<StudentDashboard />} />
+  //         <Route path="/dashboard/apprenant/*" element={<StudentDashboard />} />
+  //         <Route path="/dashboard/apprenant/courses/:id" element={<CourseViewer />} />
+  //         <Route path="/dashboard/apprenant/courses/:courseId/lessons/:lessonId" element={<LessonViewer />} />
+  //         <Route path="/dashboard/apprenant/payment" element={<StudentPayment />} />
+  //         <Route path="/profil" element={<Profile />} />
+  //         <Route path="/connexion" element={<Login />} />
+  //         <Route path="/inscription" element={<Register />} />
+  //         <Route path="/mot-de-passe-oublié" element={<ForgotPassword />} />
+  //         <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
+  //         <Route path="/reinitialiser-mot-de-passe" element={<ResetPassword />} />
+          
+  //         {/* Public Trainer Pages */}
+  //         <Route path="/formateur-independant/*" element={<ExternalTrainerDashboard />} />
+  //         <Route path="/formateur-interne/*" element={<InternalTrainerDashboard />} />
+          
+  //         {/* Super Admin Routes */}
+  //         <Route path="/dashboard/superadmin/*" element={<AdminDashboard />} />
+          
+  //         {/* Organisme de Formation Routes */}
+  //         <Route path="/dashboard/organisme-formation/*" element={<OFDashboard />} />
+          
+  //         {/* Instructor Routes */}
+  //         <Route path="/dashboard/instructor/*" element={<InstructorDashboard />} />
+          
+  //         {/* Manager Routes */}
+  //         <Route path="/dashboard/gestionnaire/*" element={<ManagerDashboard />} />
+          
+  //         {/* Tutor Routes */}
+  //         <Route path="/dashboard/tuteur/*" element={<TutorDashboard />} />
+          
+  //         {/* Parent Routes */}
+  //         <Route path="/dashboard/parent/*" element={<ParentDashboard />} />
+          
+  //         {/* External Trainer Routes */}
+  //         <Route path="/dashboard/formateur-independant/*" element={<ExternalTrainerDashboard />} />
+          
+  //         {/* Internal Trainer Routes */}
+  //         <Route path="/dashboard/formateur-interne/*" element={<InternalTrainerDashboard />} />
+          
+  //         {/* Content Creator Routes */}
+  //         <Route path="/dashboard/createur-contenu/*" element={<ContentCreatorDashboard />} />
+          
+  //         {/* Technician Routes */}
+  //         <Route path="/dashboard/technicien/*" element={<TechnicianDashboard />} />
+          
+  //         {/* Route pour la review des cours */}
+  //         <Route path="/dashboard/superadmin/courses/:courseId/review" element={<CourseReviewPage />} />
+          
+  //         {/* Route pour l'architecture système */}
+  //         <Route path="/architecture" element={<SystemArchitecture />} />
+          
+  //       </Routes>
+  //       <Toaster />
+  //     </BrowserRouter>
+  //   </LanguageProvider>
+  // );
   return (
-    <LanguageProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/apropos" element={<About />} />
-          <Route path="/cours" element={<Courses />} />
-          <Route path="/nos-formations" element={<Courses />} />
-          <Route path="/cours/:id" element={<CourseDetail />} />
-          <Route path="/tarifs" element={<Offers />} />
-          <Route path="/offres" element={<Offers />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/documentation" element={<Documentation />} />
-          <Route path="/tableau-de-bord" element={<StudentDashboard />} />
-          <Route path="/dashboard/apprenant/*" element={<StudentDashboard />} />
-          <Route path="/dashboard/apprenant/courses/:id" element={<CourseViewer />} />
-          <Route path="/dashboard/apprenant/courses/:courseId/lessons/:lessonId" element={<LessonViewer />} />
-          <Route path="/dashboard/apprenant/payment" element={<StudentPayment />} />
-          <Route path="/profil" element={<Profile />} />
-          <Route path="/connexion" element={<Login />} />
-          <Route path="/inscription" element={<Register />} />
-          <Route path="/mot-de-passe-oublié" element={<ForgotPassword />} />
-          <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
-          <Route path="/reinitialiser-mot-de-passe" element={<ResetPassword />} />
-          
-          {/* Public Trainer Pages */}
-          <Route path="/formateur-independant/*" element={<ExternalTrainerDashboard />} />
-          <Route path="/formateur-interne/*" element={<InternalTrainerDashboard />} />
-          
-          {/* Super Admin Routes */}
-          <Route path="/dashboard/superadmin/*" element={<AdminDashboard />} />
-          
-          {/* Organisme de Formation Routes */}
-          <Route path="/dashboard/organisme-formation/*" element={<OFDashboard />} />
-          
-          {/* Instructor Routes */}
-          <Route path="/dashboard/instructor/*" element={<InstructorDashboard />} />
-          
-          {/* Manager Routes */}
-          <Route path="/dashboard/gestionnaire/*" element={<ManagerDashboard />} />
-          
-          {/* Tutor Routes */}
-          <Route path="/dashboard/tuteur/*" element={<TutorDashboard />} />
-          
-          {/* Parent Routes */}
-          <Route path="/dashboard/parent/*" element={<ParentDashboard />} />
-          
-          {/* External Trainer Routes */}
-          <Route path="/dashboard/formateur-independant/*" element={<ExternalTrainerDashboard />} />
-          
-          {/* Internal Trainer Routes */}
-          <Route path="/dashboard/formateur-interne/*" element={<InternalTrainerDashboard />} />
-          
-          {/* Content Creator Routes */}
-          <Route path="/dashboard/createur-contenu/*" element={<ContentCreatorDashboard />} />
-          
-          {/* Technician Routes */}
-          <Route path="/dashboard/technicien/*" element={<TechnicianDashboard />} />
-          
-          {/* Route pour la review des cours */}
-          <Route path="/dashboard/superadmin/courses/:courseId/review" element={<CourseReviewPage />} />
-          
-          {/* Route pour l'architecture système */}
-          <Route path="/architecture" element={<SystemArchitecture />} />
-          
-        </Routes>
-        <Toaster />
-      </BrowserRouter>
-    </LanguageProvider>
-  );
+     <div>
+    <div/>
+  )
 }
 
 export default App;
