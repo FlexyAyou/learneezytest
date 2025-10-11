@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import LanguageSelector from "@/components/common/LanguageSelector";
+import { useFastAPIAuth } from "@/hooks/useFastAPIAuth";
 
 const mainNavigationItems = [
   { title: "Tableau de bord", href: "/dashboard/superadmin", icon: Home },
@@ -75,6 +76,7 @@ export function SuperAdminSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
+  const { logout } = useFastAPIAuth();
 
   const isActive = (path: string) => currentPath === path;
   const isCollapsed = state === "collapsed";
@@ -174,6 +176,7 @@ export function SuperAdminSidebar() {
         <Button
           variant="ghost"
           className="w-full justify-start"
+          onClick={logout}
         >
           <LogOut className="h-4 w-4" />
           {!isCollapsed && <span>Se déconnecter</span>}
