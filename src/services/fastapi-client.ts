@@ -215,7 +215,7 @@ class FastAPIClient {
    * Mot de passe oublié
    */
   async forgotPassword(email: UserResetPassword): Promise<void> {
-    await this.post('/api/auth/forgot-password', email);
+    await this.post('/api/auth/reset-password-request', email);
   }
 
   /**
