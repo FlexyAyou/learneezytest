@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import LanguageSelector from "@/components/common/LanguageSelector";
+import { useFastAPIAuth } from "@/hooks/useFastAPIAuth";
 
 const sidebarItems = [
   { title: "Tableau de bord", href: "/dashboard/organisme-formation/tableau-de-bord", icon: Home },
@@ -55,6 +56,7 @@ export function OFSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
+  const { logout } = useFastAPIAuth();
 
   const isActive = (path: string) => currentPath === path;
   const isCollapsed = state === "collapsed";
@@ -118,6 +120,7 @@ export function OFSidebar() {
         <Button
           variant="ghost"
           className="w-full justify-start"
+          onClick={logout}
         >
           <LogOut className="h-4 w-4" />
           {!isCollapsed && <span>Se déconnecter</span>}
