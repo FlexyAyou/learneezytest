@@ -13,6 +13,8 @@ import { User, Mail, Phone, Building, Settings, Shield } from 'lucide-react';
 import { useSuperadminRegister } from '@/hooks/useApi';
 import { UserRole } from '@/types/fastapi';
 import { useToast } from '@/hooks/use-toast';
+import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
+import { DialogDescription } from '@/components/ui/dialog';
 
 interface AddUserProps {
   isOpen: boolean;
@@ -22,6 +24,7 @@ interface AddUserProps {
 
 export const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose, onAdd }) => {
   const { toast } = useToast();
+  const { getUserRole } = useFastAPIAuth();
   const superadminRegister = useSuperadminRegister();
   
   const [formData, setFormData] = useState({
@@ -141,8 +144,18 @@ export const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose, onAdd }) => {
       setUserPermissions([]);
       
       onClose();
-    } catch (error) {
-      // Les erreurs sont déjà gérées par le hook
+    } catch (error: any) {
+      const currentRole = getUserRole();
+      
+      if (error?.response?.status === 403) {
+        toast({
+          title: "Accès refusé",
+          description: `Seuls les superadmins peuvent créer des utilisateurs. Votre rôle actuel: ${currentRole || 'inconnu'}`,
+          variant: "destructive",
+          duration: 8000,
+        });
+      }
+      
       console.error('Erreur lors de la création:', error);
     }
   };
@@ -176,6 +189,9 @@ export const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose, onAdd }) => {
               <User className="h-5 w-5" />
               Ajouter un utilisateur
             </DialogTitle>
+            <DialogDescription>
+              Créer un nouveau compte utilisateur avec les informations ci-dessous. Un mot de passe temporaire sera généré automatiquement.
+            </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-6">
