@@ -7,12 +7,15 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ArrowLeft, Mail, CheckCircle, Star, Lock, Shield } from 'lucide-react';
+import { fastAPIClient } from '@/services/fastapi-client';
+import { useToast } from '@/hooks/use-toast';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isEmailSent, setIsEmailSent] = useState(false);
   const [error, setError] = useState('');
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,11 +30,20 @@ const ForgotPassword = () => {
     }
 
     try {
-      // Simulation d'envoi d'email
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await fastAPIClient.forgotPassword({ email });
       setIsEmailSent(true);
-    } catch (err) {
-      setError('Une erreur est survenue. Veuillez réessayer.');
+      toast({
+        title: "Email envoyé",
+        description: "Vérifiez votre boîte de réception pour réinitialiser votre mot de passe.",
+      });
+    } catch (err: any) {
+      const errorMessage = err?.response?.data?.detail || 'Une erreur est survenue. Veuillez réessayer.';
+      setError(errorMessage);
+      toast({
+        title: "Erreur",
+        description: errorMessage,
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }

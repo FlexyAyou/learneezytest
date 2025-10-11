@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ArrowLeft, Lock, CheckCircle, Eye, EyeOff, AlertTriangle } from 'lucide-react';
+import { fastAPIClient } from '@/services/fastapi-client';
+import { useToast } from '@/hooks/use-toast';
 
 const ResetPassword = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -15,6 +18,22 @@ const ResetPassword = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [passwordStrength, setPasswordStrength] = useState<'weak' | 'medium' | 'strong' | null>(null);
+  const [token, setToken] = useState<string>('');
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const tokenParam = searchParams.get('token');
+    if (!tokenParam) {
+      setError('Token de réinitialisation manquant ou invalide');
+      toast({
+        title: "Erreur",
+        description: "Le lien de réinitialisation est invalide ou a expiré.",
+        variant: "destructive"
+      });
+    } else {
+      setToken(tokenParam);
+    }
+  }, [searchParams, toast]);
 
   const securityFeatures = [
     "Cryptage de bout en bout",
@@ -47,6 +66,12 @@ const ResetPassword = () => {
     setIsLoading(true);
     setError('');
 
+    if (!token) {
+      setError('Token de réinitialisation invalide');
+      setIsLoading(false);
+      return;
+    }
+
     // Validation du mot de passe
     if (password.length < 8) {
       setError('Le mot de passe doit contenir au moins 8 caractères');
@@ -62,18 +87,25 @@ const ResetPassword = () => {
     }
 
     try {
-      // TODO: Intégrer avec le back-end
-      // const response = await apiClient.resetPassword({ password, token: tokenFromUrl });
+      await fastAPIClient.resetPassword(token, { new_password: password });
       
-      // Simulation d'appel API
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      toast({
+        title: "Succès",
+        description: "Votre mot de passe a été réinitialisé avec succès.",
+      });
       
       // Redirection vers la page de connexion après succès
       navigate('/connexion', { 
         state: { message: 'Mot de passe réinitialisé avec succès. Vous pouvez maintenant vous connecter.' }
       });
-    } catch (err) {
-      setError('Une erreur est survenue. Veuillez réessayer.');
+    } catch (err: any) {
+      const errorMessage = err?.response?.data?.detail || 'Une erreur est survenue. Le lien a peut-être expiré.';
+      setError(errorMessage);
+      toast({
+        title: "Erreur",
+        description: errorMessage,
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
