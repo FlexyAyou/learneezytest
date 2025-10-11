@@ -10,6 +10,9 @@ import { Badge } from '@/components/ui/badge';
 import { UserRolePermissionModal } from './UserRolePermissionModal';
 import { Role } from '@/types/permissions';
 import { User, Mail, Phone, Building, Settings, Shield } from 'lucide-react';
+import { useSuperadminRegister } from '@/hooks/useApi';
+import { UserRole } from '@/types/fastapi';
+import { useToast } from '@/hooks/use-toast';
 
 interface AddUserProps {
   isOpen: boolean;
@@ -18,6 +21,9 @@ interface AddUserProps {
 }
 
 export const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose, onAdd }) => {
+  const { toast } = useToast();
+  const superadminRegister = useSuperadminRegister();
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -57,33 +63,88 @@ export const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose, onAdd }) => {
     setUserPermissions(permissions);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Mapper les rôles frontend vers les rôles backend
+  const mapRoleToBackend = (frontendRole: string): UserRole => {
+    const roleMap: Record<string, UserRole> = {
+      'Formateur': 'formateur_interne',
+      'Formateur indépendant': 'independent_trainer',
+      'Gestionnaire': 'gestionnaire',
+      'Animateur': 'facilitator',
+      'Administrateur': 'administrator'
+    };
+    return roleMap[frontendRole] || 'student';
+  };
+
+  // Générer un mot de passe aléatoire
+  const generatePassword = (): string => {
+    const length = 12;
+    const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+    let password = "";
+    for (let i = 0; i < length; i++) {
+      password += charset.charAt(Math.floor(Math.random() * charset.length));
+    }
+    return password;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const userData = {
-      ...formData,
-      roles: userRoles,
-      permissions: userPermissions,
-      id: Date.now(), // Mock ID
-      status: 'active',
-      joinDate: new Date().toISOString().split('T')[0],
-      lastLogin: new Date().toISOString().split('T')[0]
+    // Splitter le nom en prénom et nom
+    const nameParts = formData.name.trim().split(' ');
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts.slice(1).join(' ') || nameParts[0] || '';
+    
+    // Générer un mot de passe temporaire
+    const tempPassword = generatePassword();
+    
+    // Préparer les données pour le backend
+    const backendUserData = {
+      email: formData.email,
+      password: tempPassword,
+      role: mapRoleToBackend(formData.role),
+      first_name: firstName,
+      last_name: lastName,
+      accept_terms: true,
+      of_id: null,
+      accessible_catalogues: []
     };
 
-    onAdd(userData);
-    
-    // Reset form
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      role: '',
-      organisation: '',
-      organisationType: 'OF',
-      address: ''
-    });
-    setUserRoles([]);
-    setUserPermissions([]);
+    try {
+      const result = await superadminRegister.mutateAsync(backendUserData);
+      
+      // Afficher le mot de passe temporaire
+      toast({
+        title: "Utilisateur créé avec succès",
+        description: `Mot de passe temporaire: ${tempPassword}`,
+        duration: 10000,
+      });
+      
+      // Notifier le parent
+      onAdd({
+        ...formData,
+        id: result.id,
+        status: 'active',
+        joinDate: new Date().toISOString().split('T')[0],
+      });
+      
+      // Reset form
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        role: '',
+        organisation: '',
+        organisationType: 'OF',
+        address: ''
+      });
+      setUserRoles([]);
+      setUserPermissions([]);
+      
+      onClose();
+    } catch (error) {
+      // Les erreurs sont déjà gérées par le hook
+      console.error('Erreur lors de la création:', error);
+    }
   };
 
   const getRoleColor = (role: string) => {
@@ -306,8 +367,8 @@ export const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose, onAdd }) => {
               <Button type="button" variant="outline" onClick={onClose}>
                 Annuler
               </Button>
-              <Button type="submit">
-                Ajouter l'utilisateur
+              <Button type="submit" disabled={superadminRegister.isPending}>
+                {superadminRegister.isPending ? 'Création en cours...' : "Ajouter l'utilisateur"}
               </Button>
             </div>
           </form>

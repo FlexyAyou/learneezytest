@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fastAPIClient } from '@/services/fastapi-client';
 import { UserLogin, UserCreate, UserResponse, UserRole } from '@/types/fastapi';
+import { toast } from '@/hooks/use-toast';
 
 // Re-export pour compatibilité
 export { fastAPIClient as apiClient };
@@ -90,5 +91,30 @@ export const useAdminStats = () => {
       topCourses: []
     }),
     enabled: false, // Désactivé pour l'instant
+  });
+};
+
+// Hook pour la création d'utilisateurs par le superadmin
+export const useSuperadminRegister = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (userData: UserCreate) =>
+      fastAPIClient.post<UserResponse>('/api/auth/superadmin/register', userData),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      toast({
+        title: "Utilisateur créé avec succès",
+        description: `${data.email} a été ajouté à la plateforme`,
+      });
+    },
+    onError: (error: any) => {
+      const errorMessage = error.response?.data?.detail || "Une erreur est survenue lors de la création";
+      toast({
+        title: "Erreur de création",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    },
   });
 };
