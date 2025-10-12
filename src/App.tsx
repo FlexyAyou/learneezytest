@@ -39,7 +39,6 @@ function App() {
     <LanguageProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
           <Route path="/apropos" element={<About />} />
           <Route path="/cours" element={<Courses />} />
           <Route path="/nos-formations" element={<Courses />} />
@@ -55,121 +54,178 @@ function App() {
           <Route path="/reinitialiser-mot-de-passe" element={<ResetPassword />} />
 
           {/* Protected Routes - Student */}
-          <Route path="/tableau-de-bord" element={
-            <FastAPIProtectedRoute requiredRole={['student', 'apprenant']}>
-              <StudentDashboard />
-            </FastAPIProtectedRoute>
-          } />
-          <Route path="/dashboard/apprenant/*" element={
-            <FastAPIProtectedRoute requiredRole={['student', 'apprenant']}>
-              <StudentDashboard />
-            </FastAPIProtectedRoute>
-          } />
-          <Route path="/dashboard/apprenant/courses/:id" element={
-            <FastAPIProtectedRoute requiredRole={['student', 'apprenant']}>
-              <CourseViewer />
-            </FastAPIProtectedRoute>
-          } />
-          <Route path="/dashboard/apprenant/courses/:courseId/lessons/:lessonId" element={
-            <FastAPIProtectedRoute requiredRole={['student', 'apprenant']}>
-              <LessonViewer />
-            </FastAPIProtectedRoute>
-          } />
-          <Route path="/dashboard/apprenant/payment" element={
-            <FastAPIProtectedRoute requiredRole={['student', 'apprenant']}>
-              <StudentPayment />
-            </FastAPIProtectedRoute>
-          } />
-          <Route path="/profil" element={
-            <FastAPIProtectedRoute>
-              <Profile />
-            </FastAPIProtectedRoute>
-          } />
+          <Route
+            path="/tableau-de-bord"
+            element={
+              <FastAPIProtectedRoute requiredRole={["student", "apprenant"]}>
+                <StudentDashboard />
+              </FastAPIProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/apprenant/*"
+            element={
+              <FastAPIProtectedRoute requiredRole={["student", "apprenant"]}>
+                <StudentDashboard />
+              </FastAPIProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/apprenant/courses/:id"
+            element={
+              <FastAPIProtectedRoute requiredRole={["student", "apprenant"]}>
+                <CourseViewer />
+              </FastAPIProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/apprenant/courses/:courseId/lessons/:lessonId"
+            element={
+              <FastAPIProtectedRoute requiredRole={["student", "apprenant"]}>
+                <LessonViewer />
+              </FastAPIProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/apprenant/payment"
+            element={
+              <FastAPIProtectedRoute requiredRole={["student", "apprenant"]}>
+                <StudentPayment />
+              </FastAPIProtectedRoute>
+            }
+          />
+          <Route
+            path="/profil"
+            element={
+              <FastAPIProtectedRoute>
+                <Profile />
+              </FastAPIProtectedRoute>
+            }
+          />
 
           {/* Protected Routes - External Trainer */}
-          <Route path="/formateur-independant/*" element={
-            <FastAPIProtectedRoute requiredRole={['independent_trainer', 'trainer']}>
-              <ExternalTrainerDashboard />
-            </FastAPIProtectedRoute>
-          } />
-          <Route path="/dashboard/formateur-independant/*" element={
-            <FastAPIProtectedRoute requiredRole={['independent_trainer', 'trainer']}>
-              <ExternalTrainerDashboard />
-            </FastAPIProtectedRoute>
-          } />
+          <Route
+            path="/formateur-independant/*"
+            element={
+              <FastAPIProtectedRoute requiredRole={["independent_trainer", "trainer"]}>
+                <ExternalTrainerDashboard />
+              </FastAPIProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/formateur-independant/*"
+            element={
+              <FastAPIProtectedRoute requiredRole={["independent_trainer", "trainer"]}>
+                <ExternalTrainerDashboard />
+              </FastAPIProtectedRoute>
+            }
+          />
 
           {/* Protected Routes - Internal Trainer */}
-          <Route path="/formateur-interne/*" element={
-            <FastAPIProtectedRoute requiredRole="formateur_interne">
-              <InternalTrainerDashboard />
-            </FastAPIProtectedRoute>
-          } />
-          <Route path="/dashboard/formateur-interne/*" element={
-            <FastAPIProtectedRoute requiredRole="formateur_interne">
-              <InternalTrainerDashboard />
-            </FastAPIProtectedRoute>
-          } />
+          <Route
+            path="/formateur-interne/*"
+            element={
+              <FastAPIProtectedRoute requiredRole="formateur_interne">
+                <InternalTrainerDashboard />
+              </FastAPIProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/formateur-interne/*"
+            element={
+              <FastAPIProtectedRoute requiredRole="formateur_interne">
+                <InternalTrainerDashboard />
+              </FastAPIProtectedRoute>
+            }
+          />
 
           {/* Protected Routes - Super Admin */}
-          <Route path="/dashboard/superadmin/*" element={
-            <FastAPIProtectedRoute requiredRole="superadmin">
-              <AdminDashboard />
-            </FastAPIProtectedRoute>
-          } />
-          <Route path="/dashboard/superadmin/courses/:courseId/review" element={
-            <FastAPIProtectedRoute requiredRole="superadmin">
-              <CourseReviewPage />
-            </FastAPIProtectedRoute>
-          } />
+          <Route
+            path="/dashboard/superadmin/*"
+            element={
+              <FastAPIProtectedRoute requiredRole="superadmin">
+                <AdminDashboard />
+              </FastAPIProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/superadmin/courses/:courseId/review"
+            element={
+              <FastAPIProtectedRoute requiredRole="superadmin">
+                <CourseReviewPage />
+              </FastAPIProtectedRoute>
+            }
+          />
 
           {/* Protected Routes - Organisme de Formation */}
-          <Route path="/dashboard/organisme-formation/*" element={
-            <FastAPIProtectedRoute requiredRole="of_admin">
-              <OFDashboard />
-            </FastAPIProtectedRoute>
-          } />
+          <Route
+            path="/dashboard/organisme-formation/*"
+            element={
+              <FastAPIProtectedRoute requiredRole="of_admin">
+                <OFDashboard />
+              </FastAPIProtectedRoute>
+            }
+          />
 
           {/* Protected Routes - Instructor */}
-          <Route path="/dashboard/instructor/*" element={
-            <FastAPIProtectedRoute requiredRole="administrator">
-              <InstructorDashboard />
-            </FastAPIProtectedRoute>
-          } />
+          <Route
+            path="/dashboard/instructor/*"
+            element={
+              <FastAPIProtectedRoute requiredRole="administrator">
+                <InstructorDashboard />
+              </FastAPIProtectedRoute>
+            }
+          />
 
           {/* Protected Routes - Manager */}
-          <Route path="/dashboard/gestionnaire/*" element={
-            <FastAPIProtectedRoute requiredRole={['manager', 'gestionnaire']}>
-              <ManagerDashboard />
-            </FastAPIProtectedRoute>
-          } />
+          <Route
+            path="/dashboard/gestionnaire/*"
+            element={
+              <FastAPIProtectedRoute requiredRole={["manager", "gestionnaire"]}>
+                <ManagerDashboard />
+              </FastAPIProtectedRoute>
+            }
+          />
 
           {/* Protected Routes - Tutor */}
-          <Route path="/dashboard/tuteur/*" element={
-            <FastAPIProtectedRoute requiredRole="tutor">
-              <TutorDashboard />
-            </FastAPIProtectedRoute>
-          } />
+          <Route
+            path="/dashboard/tuteur/*"
+            element={
+              <FastAPIProtectedRoute requiredRole="tutor">
+                <TutorDashboard />
+              </FastAPIProtectedRoute>
+            }
+          />
 
           {/* Protected Routes - Parent */}
-          <Route path="/dashboard/parent/*" element={
-            <FastAPIProtectedRoute requiredRole="tutor">
-              <ParentDashboard />
-            </FastAPIProtectedRoute>
-          } />
+          <Route
+            path="/dashboard/parent/*"
+            element={
+              <FastAPIProtectedRoute requiredRole="tutor">
+                <ParentDashboard />
+              </FastAPIProtectedRoute>
+            }
+          />
 
           {/* Protected Routes - Content Creator */}
-          <Route path="/dashboard/createur-contenu/*" element={
-            <FastAPIProtectedRoute requiredRole="createur_contenu">
-              <ContentCreatorDashboard />
-            </FastAPIProtectedRoute>
-          } />
+          <Route
+            path="/dashboard/createur-contenu/*"
+            element={
+              <FastAPIProtectedRoute requiredRole="createur_contenu">
+                <ContentCreatorDashboard />
+              </FastAPIProtectedRoute>
+            }
+          />
 
           {/* Protected Routes - Technician */}
-          <Route path="/dashboard/technicien/*" element={
-            <FastAPIProtectedRoute requiredRole="administrator">
-              <TechnicianDashboard />
-            </FastAPIProtectedRoute>
-          } />
+          <Route
+            path="/dashboard/technicien/*"
+            element={
+              <FastAPIProtectedRoute requiredRole="administrator">
+                <TechnicianDashboard />
+              </FastAPIProtectedRoute>
+            }
+          />
 
           {/* Route pour l'architecture système */}
           <Route path="/architecture" element={<SystemArchitecture />} />
