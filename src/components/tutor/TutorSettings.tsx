@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,10 +20,13 @@ import {
   EyeOff,
   Shield,
   Clock,
-  Mail
+  Mail,
+  Upload,
+  X
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
+import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 
 interface ProfileFormData {
   firstName: string;
@@ -43,6 +46,9 @@ interface PasswordFormData {
 
 export const TutorSettings = () => {
   const { toast } = useToast();
+  const { user } = useFastAPIAuth();
+  const inputFileRef = useRef<HTMLInputElement>(null);
+  const [avatar, setAvatar] = useState('');
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -61,11 +67,19 @@ export const TutorSettings = () => {
     marketingEmails: false
   });
 
+  // Charger l'avatar depuis localStorage au montage
+  useEffect(() => {
+    const savedAvatar = localStorage.getItem('tutor-avatar');
+    if (savedAvatar) {
+      setAvatar(savedAvatar);
+    }
+  }, []);
+
   const profileForm = useForm<ProfileFormData>({
     defaultValues: {
-      firstName: 'Claire',
-      lastName: 'Durand',
-      email: 'claire.durand@email.com',
+      firstName: user?.first_name || 'Claire',
+      lastName: user?.last_name || 'Durand',
+      email: user?.email || 'claire.durand@email.com',
       phone: '06 12 34 56 78',
       bio: 'Tutrice expérimentée spécialisée dans l\'accompagnement personnalisé des élèves du primaire au lycée.',
       specialties: 'Mathématiques, Sciences, Français',
@@ -142,6 +156,57 @@ export const TutorSettings = () => {
     }
   };
 
+  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validation du type
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      toast({
+        title: "Format non supporté",
+        description: "Veuillez choisir une image JPG, PNG ou WEBP",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validation de la taille (5 MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Fichier trop volumineux",
+        description: "La taille maximale est de 5 MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Conversion en base64
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      setAvatar(base64String);
+      
+      // Sauvegarde dans localStorage pour persistance
+      localStorage.setItem('tutor-avatar', base64String);
+      
+      toast({
+        title: "Photo mise à jour",
+        description: "Votre photo de profil a été changée avec succès",
+      });
+    };
+    
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemovePhoto = () => {
+    setAvatar('');
+    localStorage.removeItem('tutor-avatar');
+    toast({
+      title: "Photo supprimée",
+      description: "Votre photo de profil a été supprimée",
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -178,13 +243,43 @@ export const TutorSettings = () => {
               <CardContent className="space-y-4">
                 <div className="flex flex-col items-center">
                   <Avatar className="h-24 w-24 mb-4">
-                    <AvatarImage src="/placeholder.svg" />
-                    <AvatarFallback className="text-lg">CD</AvatarFallback>
+                    {avatar ? (
+                      <AvatarImage src={avatar} alt={`${user?.first_name} ${user?.last_name}`} />
+                    ) : (
+                      <AvatarFallback className="text-lg bg-gradient-to-br from-pink-500 to-purple-600 text-white">
+                        {user?.first_name?.[0]}{user?.last_name?.[0]}
+                      </AvatarFallback>
+                    )}
                   </Avatar>
-                  <Button variant="outline" size="sm">
-                    <Camera className="h-4 w-4 mr-2" />
-                    Changer la photo
-                  </Button>
+                  
+                  <input
+                    ref={inputFileRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={handlePhotoUpload}
+                    className="hidden"
+                  />
+                  
+                  <div className="flex gap-2 justify-center">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => inputFileRef.current?.click()}
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      {avatar ? 'Changer' : 'Ajouter'}
+                    </Button>
+                    
+                    {avatar && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={handleRemovePhoto}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Badge variant="secondary" className="w-full justify-center">
