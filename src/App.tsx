@@ -38,6 +38,7 @@ function App() {
     <LanguageProvider>
       <BrowserRouter>
         <Routes>
+          <Route path="/" element={<Index />} />
           <Route path="/apropos" element={<About />} />
           <Route path="/cours" element={<Courses />} />
           <Route path="/nos-formations" element={<Courses />} />
