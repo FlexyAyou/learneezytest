@@ -1,16 +1,80 @@
 
-import React from 'react';
-import { User, Mail, Phone, MapPin, Calendar, Award, BookOpen, Clock, Edit } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { User, Mail, Phone, MapPin, Calendar, Award, BookOpen, Clock, Edit, Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth, useUserEnrollments } from '@/hooks/useApi';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import ErrorMessage from '@/components/common/ErrorMessage';
+import { useToast } from '@/hooks/use-toast';
 
 const Profile = () => {
+  const { toast } = useToast();
   const { user, isLoading: authLoading } = useAuth();
   const userId = user?.id ? String(user.id) : '';
   const { data: enrollments, isLoading: enrollmentsLoading } = useUserEnrollments(userId);
+  const inputFileRef = useRef<HTMLInputElement>(null);
+  const [avatar, setAvatar] = useState('');
+
+  // Charger la photo depuis localStorage au montage
+  useEffect(() => {
+    const savedAvatar = localStorage.getItem('student-avatar');
+    if (savedAvatar) {
+      setAvatar(savedAvatar);
+    }
+  }, []);
+
+  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validation du type
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      toast({
+        title: "Format non supporté",
+        description: "Veuillez choisir une image JPG, PNG ou WEBP",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validation de la taille (5 MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Fichier trop volumineux",
+        description: "La taille maximale est de 5 MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Conversion en base64
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      setAvatar(base64String);
+      
+      // Sauvegarde dans localStorage pour persistance
+      localStorage.setItem('student-avatar', base64String);
+      
+      toast({
+        title: "Photo mise à jour",
+        description: "Votre photo de profil a été changée avec succès",
+      });
+    };
+    
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemovePhoto = () => {
+    setAvatar('');
+    localStorage.removeItem('student-avatar');
+    toast({
+      title: "Photo supprimée",
+      description: "Votre photo de profil a été supprimée",
+    });
+  };
 
   if (authLoading) {
     return (
@@ -52,9 +116,45 @@ const Profile = () => {
           <div className="lg:col-span-1">
             <Card className="p-6">
               <div className="text-center">
-                <div className="w-24 h-24 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <User className="h-12 w-12 text-pink-600" />
+                <Avatar className="w-24 h-24 mx-auto mb-4">
+                  {avatar ? (
+                    <AvatarImage src={avatar} alt={`${user.first_name} ${user.last_name}`} />
+                  ) : (
+                    <AvatarFallback className="text-2xl bg-gradient-to-br from-pink-500 to-purple-600 text-white">
+                      {user.first_name?.[0]}{user.last_name?.[0]}
+                    </AvatarFallback>
+                  )}
+                </Avatar>
+                
+                <input
+                  ref={inputFileRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handlePhotoUpload}
+                  className="hidden"
+                />
+                
+                <div className="flex gap-2 justify-center mb-4">
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => inputFileRef.current?.click()}
+                  >
+                    <Upload className="mr-2 h-4 w-4" />
+                    {avatar ? 'Changer' : 'Ajouter'}
+                  </Button>
+                  
+                  {avatar && (
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={handleRemovePhoto}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
+                
                 <h2 className="text-xl font-bold text-gray-900 mb-2">
                   {user.first_name} {user.last_name}
                 </h2>
