@@ -8,21 +8,23 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { User, Mail, Phone, MapPin, Award, Briefcase, Upload, Plus, X, Edit, FileText, AlertCircle } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Award, Briefcase, Upload, Plus, X, Edit, FileText, AlertCircle, Languages } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import TrainerDiplomas from './TrainerDiplomas';
 import { useTrainerActivation } from '@/hooks/useTrainerActivation';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
+import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 
 const TrainerProfile = () => {
   const { toast } = useToast();
-  // TODO: Replace with actual user ID when auth is configured
-  const userId = 'mock-trainer-id';
+  const { user, isLoading: authLoading } = useFastAPIAuth();
+  const userId = user?.id?.toString() || 'mock-trainer-id';
   const { fiscalInfo, updateFiscalInfo, isLoading: fiscalLoading } = useTrainerActivation(userId);
   
   const [isEditingBasic, setIsEditingBasic] = useState(false);
   const [isEditingBio, setIsEditingBio] = useState(false);
+  const [isEditingLanguages, setIsEditingLanguages] = useState(false);
   const [isAddingCertification, setIsAddingCertification] = useState(false);
   const [isAddingExperience, setIsAddingExperience] = useState(false);
   
@@ -43,8 +45,8 @@ const TrainerProfile = () => {
   }, [fiscalInfo]);
 
   const [profile, setProfile] = useState({
-    name: 'Jean Martin',
-    email: 'jean.martin@email.com',
+    name: user ? `${user.first_name || ''} ${user.last_name || ''}`.trim() : 'Jean Martin',
+    email: user?.email || 'jean.martin@email.com',
     phone: '+33 6 12 34 56 78',
     location: 'Paris, France',
     bio: 'Développeur Full-Stack avec plus de 8 ans d\'expérience dans les technologies web modernes. Passionné par l\'enseignement et le partage de connaissances, j\'ai formé plus de 150 étudiants dans divers domaines du développement web.',
@@ -54,6 +56,24 @@ const TrainerProfile = () => {
     availableDays: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'],
     timeZone: 'Europe/Paris'
   });
+
+  // Liste des langues disponibles
+  const availableLanguages = [
+    'Français', 'Anglais', 'Espagnol', 'Allemand', 'Italien', 
+    'Portugais', 'Arabe', 'Chinois', 'Japonais', 'Russe', 
+    'Néerlandais', 'Suédois', 'Polonais', 'Turc', 'Coréen'
+  ];
+
+  // Mettre à jour le profil avec les données de l'utilisateur connecté
+  useEffect(() => {
+    if (user) {
+      setProfile(prev => ({
+        ...prev,
+        name: `${user.first_name || ''} ${user.last_name || ''}`.trim(),
+        email: user.email || prev.email
+      }));
+    }
+  }, [user]);
 
   const [certifications, setCertifications] = useState([
     {
@@ -228,7 +248,36 @@ const TrainerProfile = () => {
     return /^\d{14}$/.test(value);
   };
 
-  if (fiscalLoading) {
+  const handleAddLanguage = (language: string) => {
+    if (!profile.languages.includes(language)) {
+      setProfile({ ...profile, languages: [...profile.languages, language] });
+      toast({
+        title: "Langue ajoutée",
+        description: `${language} a été ajouté à votre profil`,
+      });
+    }
+  };
+
+  const handleRemoveLanguage = (language: string) => {
+    if (profile.languages.length > 1) {
+      setProfile({ 
+        ...profile, 
+        languages: profile.languages.filter(l => l !== language) 
+      });
+      toast({
+        title: "Langue supprimée",
+        description: `${language} a été retiré de votre profil`,
+      });
+    } else {
+      toast({
+        title: "Action impossible",
+        description: "Vous devez avoir au moins une langue",
+        variant: "destructive"
+      });
+    }
+  };
+
+  if (fiscalLoading || authLoading) {
     return <LoadingSpinner size="lg" className="min-h-screen" />;
   }
 
@@ -435,16 +484,66 @@ const TrainerProfile = () => {
         {/* Langues et disponibilités */}
         <Card>
           <CardHeader>
-            <CardTitle>Langues & Disponibilités</CardTitle>
+            <CardTitle className="flex items-center justify-between">
+              <span className="flex items-center">
+                <Languages className="mr-2 h-5 w-5" />
+                Langues & Disponibilités
+              </span>
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={() => setIsEditingLanguages(!isEditingLanguages)}
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
               <Label className="text-sm font-medium">Langues parlées</Label>
               <div className="flex flex-wrap gap-2 mt-2">
                 {profile.languages.map((lang, index) => (
-                  <Badge key={index} variant="secondary">{lang}</Badge>
+                  <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                    {lang}
+                    {isEditingLanguages && (
+                      <X 
+                        className="h-3 w-3 cursor-pointer hover:text-destructive" 
+                        onClick={() => handleRemoveLanguage(lang)}
+                      />
+                    )}
+                  </Badge>
                 ))}
               </div>
+              
+              {isEditingLanguages && (
+                <div className="mt-4 space-y-2">
+                  <Label className="text-sm">Ajouter une langue</Label>
+                  <Select onValueChange={handleAddLanguage}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionnez une langue" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableLanguages
+                        .filter(lang => !profile.languages.includes(lang))
+                        .map((lang) => (
+                          <SelectItem key={lang} value={lang}>
+                            {lang}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                  <Button 
+                    size="sm" 
+                    className="w-full mt-2" 
+                    onClick={() => {
+                      setIsEditingLanguages(false);
+                      handleSaveProfile();
+                    }}
+                  >
+                    Sauvegarder les langues
+                  </Button>
+                </div>
+              )}
             </div>
             
             <div>
