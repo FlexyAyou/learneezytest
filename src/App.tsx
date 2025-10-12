@@ -32,12 +32,14 @@ import LessonViewer from "./pages/student/LessonViewer";
 import StudentPayment from "./pages/student/StudentPayment";
 import CourseReviewPage from "@/pages/admin/CourseReviewPage";
 import SystemArchitecture from "./pages/SystemArchitecture";
+import FastAPIProtectedRoute from "./components/common/FastAPIProtectedRoute";
 
 function App() {
   return (
     <LanguageProvider>
       <BrowserRouter>
         <Routes>
+          <Route path="/" element={<Index />} />
           <Route path="/apropos" element={<About />} />
           <Route path="/cours" element={<Courses />} />
           <Route path="/nos-formations" element={<Courses />} />
@@ -46,54 +48,128 @@ function App() {
           <Route path="/offres" element={<Offers />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/documentation" element={<Documentation />} />
-          <Route path="/tableau-de-bord" element={<StudentDashboard />} />
-          <Route path="/dashboard/apprenant/*" element={<StudentDashboard />} />
-          <Route path="/dashboard/apprenant/courses/:id" element={<CourseViewer />} />
-          <Route path="/dashboard/apprenant/courses/:courseId/lessons/:lessonId" element={<LessonViewer />} />
-          <Route path="/dashboard/apprenant/payment" element={<StudentPayment />} />
-          <Route path="/profil" element={<Profile />} />
           <Route path="/connexion" element={<Login />} />
           <Route path="/inscription" element={<Register />} />
           <Route path="/mot-de-passe-oublié" element={<ForgotPassword />} />
           <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
           <Route path="/reinitialiser-mot-de-passe" element={<ResetPassword />} />
 
-          {/* Public Trainer Pages */}
-          <Route path="/formateur-independant/*" element={<ExternalTrainerDashboard />} />
-          <Route path="/formateur-interne/*" element={<InternalTrainerDashboard />} />
+          {/* Protected Routes - Student */}
+          <Route path="/tableau-de-bord" element={
+            <FastAPIProtectedRoute requiredRole={['student', 'apprenant']}>
+              <StudentDashboard />
+            </FastAPIProtectedRoute>
+          } />
+          <Route path="/dashboard/apprenant/*" element={
+            <FastAPIProtectedRoute requiredRole={['student', 'apprenant']}>
+              <StudentDashboard />
+            </FastAPIProtectedRoute>
+          } />
+          <Route path="/dashboard/apprenant/courses/:id" element={
+            <FastAPIProtectedRoute requiredRole={['student', 'apprenant']}>
+              <CourseViewer />
+            </FastAPIProtectedRoute>
+          } />
+          <Route path="/dashboard/apprenant/courses/:courseId/lessons/:lessonId" element={
+            <FastAPIProtectedRoute requiredRole={['student', 'apprenant']}>
+              <LessonViewer />
+            </FastAPIProtectedRoute>
+          } />
+          <Route path="/dashboard/apprenant/payment" element={
+            <FastAPIProtectedRoute requiredRole={['student', 'apprenant']}>
+              <StudentPayment />
+            </FastAPIProtectedRoute>
+          } />
+          <Route path="/profil" element={
+            <FastAPIProtectedRoute>
+              <Profile />
+            </FastAPIProtectedRoute>
+          } />
 
-          {/* Super Admin Routes */}
-          <Route path="/dashboard/superadmin/*" element={<AdminDashboard />} />
+          {/* Protected Routes - External Trainer */}
+          <Route path="/formateur-independant/*" element={
+            <FastAPIProtectedRoute requiredRole={['independent_trainer', 'trainer']}>
+              <ExternalTrainerDashboard />
+            </FastAPIProtectedRoute>
+          } />
+          <Route path="/dashboard/formateur-independant/*" element={
+            <FastAPIProtectedRoute requiredRole={['independent_trainer', 'trainer']}>
+              <ExternalTrainerDashboard />
+            </FastAPIProtectedRoute>
+          } />
 
-          {/* Organisme de Formation Routes */}
-          <Route path="/dashboard/organisme-formation/*" element={<OFDashboard />} />
+          {/* Protected Routes - Internal Trainer */}
+          <Route path="/formateur-interne/*" element={
+            <FastAPIProtectedRoute requiredRole="formateur_interne">
+              <InternalTrainerDashboard />
+            </FastAPIProtectedRoute>
+          } />
+          <Route path="/dashboard/formateur-interne/*" element={
+            <FastAPIProtectedRoute requiredRole="formateur_interne">
+              <InternalTrainerDashboard />
+            </FastAPIProtectedRoute>
+          } />
 
-          {/* Instructor Routes */}
-          <Route path="/dashboard/instructor/*" element={<InstructorDashboard />} />
+          {/* Protected Routes - Super Admin */}
+          <Route path="/dashboard/superadmin/*" element={
+            <FastAPIProtectedRoute requiredRole="superadmin">
+              <AdminDashboard />
+            </FastAPIProtectedRoute>
+          } />
+          <Route path="/dashboard/superadmin/courses/:courseId/review" element={
+            <FastAPIProtectedRoute requiredRole="superadmin">
+              <CourseReviewPage />
+            </FastAPIProtectedRoute>
+          } />
 
-          {/* Manager Routes */}
-          <Route path="/dashboard/gestionnaire/*" element={<ManagerDashboard />} />
+          {/* Protected Routes - Organisme de Formation */}
+          <Route path="/dashboard/organisme-formation/*" element={
+            <FastAPIProtectedRoute requiredRole="of_admin">
+              <OFDashboard />
+            </FastAPIProtectedRoute>
+          } />
 
-          {/* Tutor Routes */}
-          <Route path="/dashboard/tuteur/*" element={<TutorDashboard />} />
+          {/* Protected Routes - Instructor */}
+          <Route path="/dashboard/instructor/*" element={
+            <FastAPIProtectedRoute requiredRole="administrator">
+              <InstructorDashboard />
+            </FastAPIProtectedRoute>
+          } />
 
-          {/* Parent Routes */}
-          <Route path="/dashboard/parent/*" element={<ParentDashboard />} />
+          {/* Protected Routes - Manager */}
+          <Route path="/dashboard/gestionnaire/*" element={
+            <FastAPIProtectedRoute requiredRole={['manager', 'gestionnaire']}>
+              <ManagerDashboard />
+            </FastAPIProtectedRoute>
+          } />
 
-          {/* External Trainer Routes */}
-          <Route path="/dashboard/formateur-independant/*" element={<ExternalTrainerDashboard />} />
+          {/* Protected Routes - Tutor */}
+          <Route path="/dashboard/tuteur/*" element={
+            <FastAPIProtectedRoute requiredRole="tutor">
+              <TutorDashboard />
+            </FastAPIProtectedRoute>
+          } />
 
-          {/* Internal Trainer Routes */}
-          <Route path="/dashboard/formateur-interne/*" element={<InternalTrainerDashboard />} />
+          {/* Protected Routes - Parent */}
+          <Route path="/dashboard/parent/*" element={
+            <FastAPIProtectedRoute requiredRole="tutor">
+              <ParentDashboard />
+            </FastAPIProtectedRoute>
+          } />
 
-          {/* Content Creator Routes */}
-          <Route path="/dashboard/createur-contenu/*" element={<ContentCreatorDashboard />} />
+          {/* Protected Routes - Content Creator */}
+          <Route path="/dashboard/createur-contenu/*" element={
+            <FastAPIProtectedRoute requiredRole="createur_contenu">
+              <ContentCreatorDashboard />
+            </FastAPIProtectedRoute>
+          } />
 
-          {/* Technician Routes */}
-          <Route path="/dashboard/technicien/*" element={<TechnicianDashboard />} />
-
-          {/* Route pour la review des cours */}
-          <Route path="/dashboard/superadmin/courses/:courseId/review" element={<CourseReviewPage />} />
+          {/* Protected Routes - Technician */}
+          <Route path="/dashboard/technicien/*" element={
+            <FastAPIProtectedRoute requiredRole="administrator">
+              <TechnicianDashboard />
+            </FastAPIProtectedRoute>
+          } />
 
           {/* Route pour l'architecture système */}
           <Route path="/architecture" element={<SystemArchitecture />} />
