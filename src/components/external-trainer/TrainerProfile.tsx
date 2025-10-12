@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +27,8 @@ const TrainerProfile = () => {
   const [isEditingLanguages, setIsEditingLanguages] = useState(false);
   const [isAddingCertification, setIsAddingCertification] = useState(false);
   const [isAddingExperience, setIsAddingExperience] = useState(false);
+  
+  const inputFileRef = useRef<HTMLInputElement>(null);
   
   // Fiscal form state
   const [ndaNumber, setNdaNumber] = useState('');
@@ -74,6 +76,14 @@ const TrainerProfile = () => {
       }));
     }
   }, [user]);
+
+  // Charger la photo depuis localStorage au montage
+  useEffect(() => {
+    const savedAvatar = localStorage.getItem('trainer-avatar');
+    if (savedAvatar) {
+      setProfile(prev => ({ ...prev, avatar: savedAvatar }));
+    }
+  }, []);
 
   const [certifications, setCertifications] = useState([
     {
@@ -277,6 +287,57 @@ const TrainerProfile = () => {
     }
   };
 
+  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validation du type
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      toast({
+        title: "Format non supporté",
+        description: "Veuillez choisir une image JPG, PNG ou WEBP",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validation de la taille (5 MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Fichier trop volumineux",
+        description: "La taille maximale est de 5 MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Conversion en base64
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      setProfile({ ...profile, avatar: base64String });
+      
+      // Sauvegarde dans localStorage pour persistance
+      localStorage.setItem('trainer-avatar', base64String);
+      
+      toast({
+        title: "Photo mise à jour",
+        description: "Votre photo de profil a été changée avec succès",
+      });
+    };
+    
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemovePhoto = () => {
+    setProfile({ ...profile, avatar: '' });
+    localStorage.removeItem('trainer-avatar');
+    toast({
+      title: "Photo supprimée",
+      description: "Votre photo de profil a été supprimée",
+    });
+  };
+
   if (fiscalLoading || authLoading) {
     return <LoadingSpinner size="lg" className="min-h-screen" />;
   }
@@ -409,14 +470,43 @@ const TrainerProfile = () => {
           <CardContent className="space-y-4">
             <div className="text-center">
               <Avatar className="w-24 h-24 mx-auto mb-4">
-                <AvatarFallback className="text-2xl">
-                  {profile.name.split(' ').map(n => n[0]).join('')}
-                </AvatarFallback>
+                {profile.avatar ? (
+                  <AvatarImage src={profile.avatar} alt={profile.name} />
+                ) : (
+                  <AvatarFallback className="text-2xl bg-gradient-to-br from-pink-500 to-purple-600 text-white">
+                    {profile.name.split(' ').map(n => n[0]).join('')}
+                  </AvatarFallback>
+                )}
               </Avatar>
-              <Button size="sm" variant="outline">
-                <Upload className="mr-2 h-4 w-4" />
-                Changer la photo
-              </Button>
+              
+              <input
+                ref={inputFileRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handlePhotoUpload}
+                className="hidden"
+              />
+              
+              <div className="flex gap-2 justify-center">
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => inputFileRef.current?.click()}
+                >
+                  <Upload className="mr-2 h-4 w-4" />
+                  {profile.avatar ? 'Changer' : 'Ajouter'}
+                </Button>
+                
+                {profile.avatar && (
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={handleRemovePhoto}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
             </div>
 
             {isEditingBasic ? (
