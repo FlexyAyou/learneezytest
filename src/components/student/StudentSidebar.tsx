@@ -1,4 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { BookOpen, User, Award, MessageSquare, Settings, Home, Video, Download, FileText, PenTool, TrendingUp, CreditCard, ShoppingBag, LogOut } from 'lucide-react';
 import {
   Sidebar,
@@ -13,6 +14,7 @@ import {
   SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import LanguageSelector from "@/components/common/LanguageSelector";
 import { useFastAPIAuth } from "@/hooks/useFastAPIAuth";
@@ -45,6 +47,24 @@ export function StudentSidebar() {
   const location = useLocation();
   const currentPath = location.pathname;
   const { user, logout } = useFastAPIAuth();
+  const [avatar, setAvatar] = useState<string>('');
+  
+  // Charger l'avatar depuis localStorage
+  useEffect(() => {
+    const savedAvatar = localStorage.getItem('student-avatar');
+    if (savedAvatar) {
+      setAvatar(savedAvatar);
+    }
+
+    // Écouter les changements de localStorage
+    const handleStorageChange = () => {
+      const updatedAvatar = localStorage.getItem('student-avatar');
+      setAvatar(updatedAvatar || '');
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
   
   // Informations utilisateur dynamiques
   const userInfo = {
@@ -79,11 +99,12 @@ export function StudentSidebar() {
       {!isCollapsed && (
         <div className="border-b border-border p-4">
           <div className="flex items-center space-x-3 mb-3">
-            <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center flex-shrink-0">
-              <span className="text-pink-600 font-medium text-sm">
+            <Avatar className="w-10 h-10 flex-shrink-0">
+              {avatar && <AvatarImage src={avatar} alt={userInfo.name} />}
+              <AvatarFallback className="bg-pink-100 text-pink-600 font-medium text-sm">
                 {userInfo.initials}
-              </span>
-            </div>
+              </AvatarFallback>
+            </Avatar>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate">{userInfo.name}</p>
               <p className="text-xs text-muted-foreground truncate">{userInfo.email}</p>

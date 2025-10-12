@@ -1,4 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { 
   Building,
   Users,
@@ -34,6 +35,7 @@ import {
   SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import LanguageSelector from "@/components/common/LanguageSelector";
 import { useFastAPIAuth } from "@/hooks/useFastAPIAuth";
@@ -67,16 +69,38 @@ const toolsItems = [
   { title: "Paramètres", href: "/dashboard/superadmin/settings", icon: Settings },
 ];
 
-const userInfo = {
-  name: "Super Admin",
-  email: "superadmin@Learneezy.com"
-};
-
 export function SuperAdminSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
-  const { logout } = useFastAPIAuth();
+  const { user, logout } = useFastAPIAuth();
+  const [avatar, setAvatar] = useState<string>('');
+  
+  // Charger l'avatar depuis localStorage
+  useEffect(() => {
+    const savedAvatar = localStorage.getItem('admin-avatar');
+    if (savedAvatar) {
+      setAvatar(savedAvatar);
+    }
+
+    // Écouter les changements de localStorage
+    const handleStorageChange = () => {
+      const updatedAvatar = localStorage.getItem('admin-avatar');
+      setAvatar(updatedAvatar || '');
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+  
+  // Informations utilisateur dynamiques
+  const userInfo = {
+    name: user ? `${user.first_name || ''} ${user.last_name || ''}`.trim() || "Super Admin" : "Super Admin",
+    email: user?.email || "superadmin@Learneezy.com",
+    initials: user 
+      ? `${user.first_name?.[0] || ''}${user.last_name?.[0] || ''}`.toUpperCase() || "SA"
+      : "SA"
+  };
 
   const isActive = (path: string) => currentPath === path;
   const isCollapsed = state === "collapsed";
@@ -102,11 +126,12 @@ export function SuperAdminSidebar() {
       {!isCollapsed && (
         <div className="border-b border-border p-4">
           <div className="flex items-center space-x-3 mb-3">
-            <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center flex-shrink-0">
-              <span className="text-pink-600 font-medium text-sm">
-                {userInfo.name.split(' ').map(n => n[0]).join('')}
-              </span>
-            </div>
+            <Avatar className="w-10 h-10 flex-shrink-0">
+              {avatar && <AvatarImage src={avatar} alt={userInfo.name} />}
+              <AvatarFallback className="bg-pink-100 text-pink-600 font-medium text-sm">
+                {userInfo.initials}
+              </AvatarFallback>
+            </Avatar>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate">{userInfo.name}</p>
               <p className="text-xs text-muted-foreground truncate">{userInfo.email}</p>
