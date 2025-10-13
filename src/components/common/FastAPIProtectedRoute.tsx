@@ -18,6 +18,14 @@ const FastAPIProtectedRoute = ({
   const { user, isLoading, isAuthenticated, getUserRole } = useFastAPIAuth();
   const location = useLocation();
 
+  // Vérification supplémentaire : si pas de token, forcer la redirection
+  useEffect(() => {
+    const token = localStorage.getItem('access_token');
+    if (!token && !isLoading) {
+      window.location.replace(redirectTo);
+    }
+  }, [isLoading, redirectTo]);
+
   // Afficher le spinner pendant le chargement
   if (isLoading) {
     return (

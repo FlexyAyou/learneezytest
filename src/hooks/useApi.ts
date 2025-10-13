@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fastAPIClient } from '@/services/fastapi-client';
-import { UserLogin, UserCreate, UserResponse, UserRole } from '@/types/fastapi';
+import { UserLogin, UserCreate, UserResponse, UserRole, SuperAdminUserCreate, ListAllUsersResponse } from '@/types/fastapi';
 import { toast } from '@/hooks/use-toast';
 
 // Re-export pour compatibilité
@@ -94,15 +94,15 @@ export const useAdminStats = () => {
   });
 };
 
-// Hook pour la création d'utilisateurs par le superadmin
+// Hook pour la création d'utilisateurs par le superadmin (sans mot de passe)
 export const useSuperadminRegister = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (userData: UserCreate) =>
+    mutationFn: (userData: SuperAdminUserCreate) =>
       fastAPIClient.post<UserResponse>('/api/auth/superadmin/register', userData),
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['superadmin-users'] });
       toast({
         title: "Utilisateur créé avec succès",
         description: `${data.email} a été ajouté à la plateforme`,
@@ -116,5 +116,13 @@ export const useSuperadminRegister = () => {
         variant: "destructive",
       });
     },
+  });
+};
+
+// Hook pour récupérer tous les utilisateurs (superadmin)
+export const useSuperadminUsers = () => {
+  return useQuery({
+    queryKey: ['superadmin-users'],
+    queryFn: () => fastAPIClient.get<ListAllUsersResponse[]>('/api/auth/superadmin/users'),
   });
 };

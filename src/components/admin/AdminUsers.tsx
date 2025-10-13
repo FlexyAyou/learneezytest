@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,10 +11,12 @@ import {
   Filter,
   Plus,
   Eye,
-  UserPlus
+  UserPlus,
+  Loader2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { AddApprenantModal } from './AddApprenantModal';
+import { useSuperadminUsers } from '@/hooks/useApi';
 
 export const AdminUsers = () => {
   const navigate = useNavigate();
@@ -23,19 +25,62 @@ export const AdminUsers = () => {
   const [orgFilter, setOrgFilter] = useState('all');
   const [isAddApprenantOpen, setIsAddApprenantOpen] = useState(false);
 
-  // Mock data - tous les types d'utilisateurs de la plateforme
-  const users = [
-    { id: 1, name: 'Sophie Martin', email: 'sophie.martin@email.com', role: 'Apprenant', organisation: 'Formation Excellence', organisationType: 'OF', status: 'active', lastLogin: '2024-01-15' },
-    { id: 2, name: 'Marc Dubois', email: 'marc.dubois@email.com', role: 'Formateur', organisation: 'Formation Excellence', organisationType: 'OF', status: 'active', lastLogin: '2024-01-20' },
-    { id: 3, name: 'Claire Moreau', email: 'claire.moreau@email.com', role: 'Formateur indépendant', organisation: 'Learneezy Direct', organisationType: 'Direct', status: 'active', lastLogin: '2024-01-18' },
-    { id: 4, name: 'Pierre Lefevre', email: 'pierre.lefevre@email.com', role: 'Gestionnaire', organisation: 'Formation Excellence', organisationType: 'OF', status: 'active', lastLogin: '2024-01-19' },
-    { id: 5, name: 'Julie Rousseau', email: 'julie.rousseau@email.com', role: 'Animateur', organisation: 'Learneezy Direct', organisationType: 'Direct', status: 'active', lastLogin: '2024-01-21' },
-    { id: 6, name: 'Thomas Bernard', email: 'thomas.bernard@learneezy.com', role: 'Administrateur', organisation: 'Learneezy Administration', organisationType: 'Admin', status: 'active', lastLogin: '2024-01-22' },
-    { id: 7, name: 'Marie Dupont', email: 'marie.dupont@email.com', role: 'Apprenant', organisation: 'TechForm Pro', organisationType: 'OF', status: 'inactive', lastLogin: '2024-01-10' },
-    { id: 8, name: 'Antoine Roux', email: 'antoine.roux@email.com', role: 'Formateur indépendant', organisation: 'Learneezy Direct', organisationType: 'Direct', status: 'active', lastLogin: '2024-01-17' },
-    { id: 9, name: 'Camille Blanc', email: 'camille.blanc@email.com', role: 'Gestionnaire', organisation: 'EduSoft Academy', organisationType: 'OF', status: 'active', lastLogin: '2024-01-16' },
-    { id: 10, name: 'Lucas Petit', email: 'lucas.petit@email.com', role: 'Apprenant', organisation: 'Learneezy Direct', organisationType: 'Direct', status: 'active', lastLogin: '2024-01-14' }
-  ];
+  // Récupérer les utilisateurs depuis l'API
+  const { data: apiUsers, isLoading, error } = useSuperadminUsers();
+
+  // Mapper les rôles backend vers frontend pour l'affichage
+  const mapBackendRoleToFrontend = (backendRole: string): string => {
+    const roleMap: Record<string, string> = {
+      'formateur_interne': 'Formateur',
+      'independent_trainer': 'Formateur indépendant',
+      'gestionnaire': 'Gestionnaire',
+      'facilitator': 'Animateur',
+      'administrator': 'Administrateur',
+      'student': 'Apprenant',
+      'apprenant': 'Apprenant',
+      'tutor': 'Tuteur',
+      'trainer': 'Formateur',
+      'superadmin': 'Super Administrateur',
+      'of_admin': 'Administrateur OF',
+      'createur_contenu': 'Créateur de contenu',
+      'manager': 'Manager'
+    };
+    return roleMap[backendRole] || backendRole;
+  };
+
+  // Transformer les données de l'API pour correspondre au format attendu
+  const users = useMemo(() => {
+    if (!apiUsers) return [];
+    
+    return apiUsers.map(user => {
+      // Gérer les dates invalides ou manquantes
+      let lastLoginDate = 'N/A';
+      if (user.last_login) {
+        try {
+          lastLoginDate = new Date(user.last_login).toISOString().split('T')[0];
+        } catch (e) {
+          lastLoginDate = 'N/A';
+        }
+      } else if (user.created_at) {
+        try {
+          lastLoginDate = new Date(user.created_at).toISOString().split('T')[0];
+        } catch (e) {
+          lastLoginDate = 'N/A';
+        }
+      }
+
+      return {
+        id: user.id,
+        name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email.split('@')[0],
+        email: user.email,
+        role: mapBackendRoleToFrontend(user.role),
+        organisation: user.of_id ? `Organisation ${user.of_id}` : 'Learneezy Direct',
+        organisationType: user.of_id ? 'OF' : 'Direct',
+        status: user.is_active ? 'active' : 'inactive',
+        lastLogin: lastLoginDate
+      };
+    });
+  }, [apiUsers]);
 
   // Fonction pour obtenir l'URL de détail selon le rôle
   const getUserDetailUrl = (user: any) => {
@@ -120,6 +165,25 @@ export const AdminUsers = () => {
     // Ici vous pourriez ajouter l'apprenant à votre liste d'utilisateurs
     // ou faire un appel API pour l'enregistrer
   };
+
+  // Afficher un loader pendant le chargement
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2">Chargement des utilisateurs...</span>
+      </div>
+    );
+  }
+
+  // Afficher une erreur si la requête échoue
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-red-600">Erreur lors du chargement des utilisateurs</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -288,7 +352,7 @@ export const AdminUsers = () => {
                       </Badge>
                     </TableCell>
                     <TableCell>{getStatusBadge(user.status)}</TableCell>
-                    <TableCell>{new Date(user.lastLogin).toLocaleDateString()}</TableCell>
+                    <TableCell>{user.lastLogin}</TableCell>
                     <TableCell className="text-right">
                       <Button
                         variant="ghost"

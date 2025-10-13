@@ -42,6 +42,18 @@ export interface UserCreate {
   accessible_catalogues?: string[];
 }
 
+// Création d'utilisateur par le superadmin (sans mot de passe, généré côté serveur)
+export interface SuperAdminUserCreate {
+  email: string;
+  role: UserRole;
+  first_name: string;
+  last_name: string;
+  is_major?: boolean;
+  accept_terms: boolean;
+  of_id?: number | null;
+  accessible_catalogues?: string[];
+}
+
 export interface UserResponse {
   id?: number;
   email: string;
@@ -51,6 +63,19 @@ export interface UserResponse {
   is_major?: boolean;
   of_id?: number | null;
   accessible_catalogues?: string[];
+}
+
+// Réponse complète de la liste des utilisateurs (endpoint superadmin)
+export interface ListAllUsersResponse {
+  id: number;
+  email: string;
+  role: string;
+  first_name?: string;
+  last_name?: string;
+  is_active: boolean;
+  created_at: string;
+  last_login?: string;
+  of_id?: number | null;
 }
 
 export interface RefreshRequest {

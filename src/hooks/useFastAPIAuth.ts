@@ -73,7 +73,8 @@ export const useFastAPIAuth = () => {
     localStorage.removeItem('refresh_token');
     setUser(null);
     setIsAuthenticated(false);
-    window.location.href = '/connexion';
+    // Utiliser replace pour empêcher le retour en arrière vers les pages protégées
+    window.location.replace('/connexion');
   };
 
   /**
