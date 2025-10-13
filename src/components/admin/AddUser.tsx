@@ -78,16 +78,6 @@ export const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose, onAdd }) => {
     return roleMap[frontendRole] || 'student';
   };
 
-  // Générer un mot de passe aléatoire
-  const generatePassword = (): string => {
-    const length = 12;
-    const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
-    let password = "";
-    for (let i = 0; i < length; i++) {
-      password += charset.charAt(Math.floor(Math.random() * charset.length));
-    }
-    return password;
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,13 +87,9 @@ export const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose, onAdd }) => {
     const firstName = nameParts[0] || '';
     const lastName = nameParts.slice(1).join(' ') || nameParts[0] || '';
     
-    // Générer un mot de passe temporaire
-    const tempPassword = generatePassword();
-    
-    // Préparer les données pour le backend
+    // Préparer les données pour le backend (SANS mot de passe - généré côté serveur)
     const backendUserData = {
       email: formData.email,
-      password: tempPassword,
       role: mapRoleToBackend(formData.role),
       first_name: firstName,
       last_name: lastName,
@@ -114,13 +100,6 @@ export const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose, onAdd }) => {
 
     try {
       const result = await superadminRegister.mutateAsync(backendUserData);
-      
-      // Afficher le mot de passe temporaire
-      toast({
-        title: "Utilisateur créé avec succès",
-        description: `Mot de passe temporaire: ${tempPassword}`,
-        duration: 10000,
-      });
       
       // Notifier le parent
       onAdd({
@@ -190,7 +169,7 @@ export const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose, onAdd }) => {
               Ajouter un utilisateur
             </DialogTitle>
             <DialogDescription>
-              Créer un nouveau compte utilisateur avec les informations ci-dessous. Un mot de passe temporaire sera généré automatiquement.
+              Créer un nouveau compte utilisateur avec les informations ci-dessous. Un mot de passe sera généré automatiquement côté serveur et envoyé par email à l'utilisateur.
             </DialogDescription>
           </DialogHeader>
 
