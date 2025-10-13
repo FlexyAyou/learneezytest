@@ -52,16 +52,34 @@ export const AdminUsers = () => {
   const users = useMemo(() => {
     if (!apiUsers) return [];
     
-    return apiUsers.map(user => ({
-      id: user.id,
-      name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email.split('@')[0],
-      email: user.email,
-      role: mapBackendRoleToFrontend(user.role),
-      organisation: user.of_id ? `Organisation ${user.of_id}` : 'Learneezy Direct',
-      organisationType: user.of_id ? 'OF' : 'Direct',
-      status: user.is_active ? 'active' : 'inactive',
-      lastLogin: user.last_login ? new Date(user.last_login).toISOString().split('T')[0] : new Date(user.created_at).toISOString().split('T')[0]
-    }));
+    return apiUsers.map(user => {
+      // Gérer les dates invalides ou manquantes
+      let lastLoginDate = 'N/A';
+      if (user.last_login) {
+        try {
+          lastLoginDate = new Date(user.last_login).toISOString().split('T')[0];
+        } catch (e) {
+          lastLoginDate = 'N/A';
+        }
+      } else if (user.created_at) {
+        try {
+          lastLoginDate = new Date(user.created_at).toISOString().split('T')[0];
+        } catch (e) {
+          lastLoginDate = 'N/A';
+        }
+      }
+
+      return {
+        id: user.id,
+        name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email.split('@')[0],
+        email: user.email,
+        role: mapBackendRoleToFrontend(user.role),
+        organisation: user.of_id ? `Organisation ${user.of_id}` : 'Learneezy Direct',
+        organisationType: user.of_id ? 'OF' : 'Direct',
+        status: user.is_active ? 'active' : 'inactive',
+        lastLogin: lastLoginDate
+      };
+    });
   }, [apiUsers]);
 
   // Fonction pour obtenir l'URL de détail selon le rôle
@@ -334,7 +352,7 @@ export const AdminUsers = () => {
                       </Badge>
                     </TableCell>
                     <TableCell>{getStatusBadge(user.status)}</TableCell>
-                    <TableCell>{new Date(user.lastLogin).toLocaleDateString()}</TableCell>
+                    <TableCell>{user.lastLogin}</TableCell>
                     <TableCell className="text-right">
                       <Button
                         variant="ghost"
