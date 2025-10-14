@@ -7,10 +7,16 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
+import { useCreateCourse } from '@/hooks/useApi';
+import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
+import { Course } from '@/types/fastapi';
 
 const CreateCourse = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useFastAPIAuth();
+  const createCourseMutation = useCreateCourse();
+  
   const [courseData, setCourseData] = useState({
     title: '',
     description: '',
@@ -63,7 +69,7 @@ const CreateCourse = () => {
     });
   };
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
     if (!courseData.title || !courseData.description) {
       toast({
         title: "Erreur",
@@ -73,11 +79,44 @@ const CreateCourse = () => {
       return;
     }
 
-    toast({
-      title: "Cours publié",
-      description: "Votre cours a été publié avec succès",
-    });
-    navigate('/dashboard/instructeur');
+    if (courseData.modules.length === 0 || !courseData.modules[0].title) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez ajouter au moins un module avec un titre",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // Transformer les données au format attendu par l'API
+      const coursePayload: Course = {
+        title: courseData.title,
+        description: courseData.description,
+        price: courseData.price ? parseFloat(courseData.price) : undefined,
+        category: courseData.category || undefined,
+        duration: courseData.duration || undefined,
+        level: courseData.level,
+        modules: courseData.modules
+          .filter(m => m.title) // Filtrer les modules vides
+          .map(m => ({
+            title: m.title,
+            duration: m.duration || '1h',
+            description: m.content,
+            content: [{
+              title: m.title,
+              duration: m.duration || '1h',
+              description: m.content || 'Contenu à venir'
+            }]
+          }))
+      };
+
+      await createCourseMutation.mutateAsync(coursePayload);
+      navigate('/dashboard/instructeur');
+    } catch (error) {
+      // L'erreur est déjà gérée par le hook useCreateCourse
+      console.error('Erreur lors de la création du cours:', error);
+    }
   };
 
   return (

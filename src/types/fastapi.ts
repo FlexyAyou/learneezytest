@@ -175,3 +175,110 @@ export interface ValidationError {
 export interface HTTPValidationError {
   detail?: ValidationError[];
 }
+
+// ============= COURSES =============
+
+export type CourseStatus = 'draft' | 'published';
+export type CourseOwnerType = 'learneezy' | 'of';
+
+export interface QuizQuestion {
+  question: string;
+  options: string[];
+  correct_answer: string;
+}
+
+export interface Quiz {
+  title: string;
+  questions: QuizQuestion[];
+}
+
+export interface Content {
+  title: string;
+  duration: string;
+  description: string;
+  video_url?: string;
+  transcription?: string;
+}
+
+export interface Module {
+  title: string;
+  description?: string;
+  duration: string;
+  content: Content[];
+  quizzes?: Quiz[];
+}
+
+export interface Resource {
+  name: string;
+  url: string;
+}
+
+export interface Course {
+  id?: string;
+  title: string;
+  description: string;
+  price?: number;
+  category?: string;
+  duration?: string;
+  level: string;
+  image_url?: string;
+  resources?: Resource[];
+  modules: Module[];
+}
+
+export interface CourseResponse extends Course {
+  owner_type: CourseOwnerType;
+  owner_id: number;
+}
+
+export interface CourseUpdate {
+  title?: string;
+  description?: string;
+  price?: number;
+  status?: CourseStatus;
+}
+
+export interface ModuleCreate {
+  title: string;
+  description?: string;
+  duration: string;
+  content: Content[];
+  quizzes?: Quiz[];
+}
+
+export interface LessonCreate {
+  title: string;
+  duration: string;
+  description: string;
+  video_url?: string;
+  transcription?: string;
+}
+
+export interface QuizCreate {
+  title: string;
+  questions: QuizQuestion[];
+}
+
+export interface UploadRequest {
+  file_type: 'image' | 'video';
+  file_name: string;
+}
+
+export interface UploadResponse {
+  url: string;
+}
+
+export interface EnrollRequest {
+  course_id: string;
+}
+
+export interface EnrollResponse {
+  message: string;
+  progress: Record<string, number>;
+}
+
+export interface CourseStatsResponse {
+  enrolled_count: number;
+  revenue_tokens: number;
+  average_score: number;
+}
