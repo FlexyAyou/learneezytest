@@ -48,17 +48,29 @@ export const OrganismeFormStep1: React.FC<OrganismeFormStep1Props> = ({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="website" className="flex items-center">
+        <Label htmlFor="slug" className="flex items-center">
           <Globe className="w-4 h-4 mr-2" />
-          Site web
+          Slug du site
         </Label>
-        <Input
-          id="website"
-          type="url"
-          value={formData.website}
-          onChange={(e) => updateFormData({ website: e.target.value })}
-          placeholder="https://www.exemple.fr"
-        />
+        <div className="flex items-center gap-2">
+          <Input
+            id="slug"
+            type="text"
+            value={formData.website.replace('.learneezy.com', '')}
+            onChange={(e) => {
+              const slug = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+              updateFormData({ website: slug + '.learneezy.com' });
+            }}
+            placeholder="mon-organisme"
+            className="flex-1"
+          />
+          <Input
+            type="text"
+            value=".learneezy.com"
+            disabled
+            className="w-40 bg-muted cursor-not-allowed"
+          />
+        </div>
       </div>
 
       <div className="space-y-2">
