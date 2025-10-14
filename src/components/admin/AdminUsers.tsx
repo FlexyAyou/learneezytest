@@ -53,21 +53,28 @@ export const AdminUsers = () => {
     if (!apiUsers) return [];
     
     return apiUsers.map(user => {
-      // Gérer les dates invalides ou manquantes
-      let lastLoginDate = 'N/A';
-      if (user.last_login) {
-        try {
-          lastLoginDate = new Date(user.last_login).toISOString().split('T')[0];
-        } catch (e) {
-          lastLoginDate = 'N/A';
-        }
-      } else if (user.created_at) {
-        try {
-          lastLoginDate = new Date(user.created_at).toISOString().split('T')[0];
-        } catch (e) {
-          lastLoginDate = 'N/A';
-        }
-      }
+      // Générer une date/heure mockée récente (entre 1 et 30 jours en arrière)
+      const generateMockLastLogin = () => {
+        const now = new Date();
+        const daysAgo = Math.floor(Math.random() * 30) + 1;
+        const hoursAgo = Math.floor(Math.random() * 24);
+        const minutesAgo = Math.floor(Math.random() * 60);
+        
+        const mockDate = new Date(now);
+        mockDate.setDate(mockDate.getDate() - daysAgo);
+        mockDate.setHours(mockDate.getHours() - hoursAgo);
+        mockDate.setMinutes(mockDate.getMinutes() - minutesAgo);
+        
+        const day = String(mockDate.getDate()).padStart(2, '0');
+        const month = String(mockDate.getMonth() + 1).padStart(2, '0');
+        const year = mockDate.getFullYear();
+        const hours = String(mockDate.getHours()).padStart(2, '0');
+        const minutes = String(mockDate.getMinutes()).padStart(2, '0');
+        
+        return `${day}/${month}/${year} à ${hours}:${minutes}`;
+      };
+
+      const lastLoginDate = generateMockLastLogin();
 
       return {
         id: user.id,
@@ -136,6 +143,7 @@ export const AdminUsers = () => {
       case 'Gestionnaire': return 'bg-orange-100 text-orange-800';
       case 'Animateur': return 'bg-yellow-100 text-yellow-800';
       case 'Apprenant': return 'bg-green-100 text-green-800';
+      case 'Tuteur': return 'bg-blue-100 text-blue-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -152,7 +160,7 @@ export const AdminUsers = () => {
   const getStatusBadge = (status: string) => {
     const configs = {
       active: { variant: 'default' as const, label: 'Actif' },
-      inactive: { variant: 'secondary' as const, label: 'Inactif' },
+      inactive: { variant: 'destructive' as const, label: 'Inactif' },
       suspended: { variant: 'destructive' as const, label: 'Suspendu' }
     };
     
