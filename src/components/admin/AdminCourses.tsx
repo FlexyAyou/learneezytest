@@ -14,17 +14,10 @@ import { CreateCourseModal } from './CreateCourseModal';
 import { CourseRejectionModal } from './CourseRejectionModal';
 import { CourseViewModal } from './CourseViewModal';
 import { CourseVisibilityModal } from './CourseVisibilityModal';
-import { useCourses, useUpdateCourseStatus, useDeleteCourse } from '@/hooks/useApi';
-import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 
 const AdminCourses = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { user } = useFastAPIAuth();
-  
-  const { data: allCoursesData, isLoading } = useCourses(1, 100);
-  const updateStatusMutation = useUpdateCourseStatus();
-  const deleteMutation = useDeleteCourse();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [visibilityFilter, setVisibilityFilter] = useState('all');
@@ -38,14 +31,107 @@ const AdminCourses = () => {
   const [showVisibilityModal, setShowVisibilityModal] = useState(false);
   const [courseForVisibility, setCourseForVisibility] = useState(null);
 
-  // Filtrer les cours selon le rôle et l'organisation
-  const visibleCourses = user?.role === 'superadmin' 
-    ? allCoursesData || []
-    : (allCoursesData || []).filter(c => c.owner_type === 'of' && c.owner_id === user?.of_id);
+  // Mock data for published courses - Extended with new properties
+  const publishedCourses = [
+    {
+      id: '1',
+      title: 'Développement Web avec React',
+      instructor: 'Jean Dupont',
+      category: 'Développement',
+      price: 89,
+      students: 245,
+      rating: 4.8,
+      status: 'publié',
+      duration: '15h',
+      createdAt: '2023-10-15',
+      thumbnail: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80',
+      isOpenSource: true,
+      subscriptionRestrictions: [],
+      isVisible: true,
+      minorsAllowed: false,
+      organisationAccess: 'all' // 'all', 'restricted', 'none'
+    },
+    {
+      id: '2',
+      title: 'Design UX/UI avec Figma',
+      instructor: 'Marie Martin',
+      category: 'Design',
+      price: 99,
+      students: 189,
+      rating: 4.6,
+      status: 'publié',
+      duration: '12h',
+      createdAt: '2023-11-02',
+      thumbnail: 'https://images.unsplash.com/photo-1586717791821-3f44a563fa4c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80',
+      isOpenSource: false,
+      subscriptionRestrictions: ['premium', 'enterprise'],
+      isVisible: true,
+      minorsAllowed: true,
+      organisationAccess: 'restricted'
+    }
+  ];
 
-  const publishedCourses = visibleCourses.filter(c => c.status === 'published');
-  const pendingCourses = visibleCourses.filter(c => c.status === 'draft');
-  const allCourses = visibleCourses;
+  // Mock data for pending courses - Extended
+  const pendingCourses = [
+    {
+      id: '3',
+      title: 'Informatique 1ère - Bases de la Programmation',
+      instructor: 'Alex Dupont',
+      category: 'TechnoEdu',
+      price: 0,
+      students: 0,
+      rating: 0,
+      status: 'en_attente',
+      duration: '20h',
+      createdAt: '2024-03-15',
+      thumbnail: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80',
+      isOpenSource: false,
+      subscriptionRestrictions: [],
+      isVisible: false,
+      minorsAllowed: true,
+      organisationAccess: 'none'
+    },
+    {
+      id: '4',
+      title: 'Arts Plastiques CE1',
+      instructor: 'Clara Roussel',
+      category: 'Atelier Créatif',
+      price: 0,
+      students: 0,
+      rating: 0,
+      status: 'en_attente',
+      duration: '10h',
+      createdAt: '2024-03-20',
+      thumbnail: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80',
+      isOpenSource: false,
+      subscriptionRestrictions: [],
+      isVisible: false,
+      minorsAllowed: true,
+      organisationAccess: 'none'
+    }
+  ];
+
+  // Mock data for rejection history
+  const rejectionHistory = [
+    {
+      id: '1',
+      courseTitle: 'Python Avancé',
+      instructor: 'Michel Durand',
+      rejectionDate: '2024-03-10',
+      reason: 'Le contenu manque de profondeur dans les sections sur les décorateurs et les metaclasses.',
+      moderator: 'Admin Principal'
+    },
+    {
+      id: '2',
+      courseTitle: 'Design Thinking',
+      instructor: 'Sophie Martin',
+      rejectionDate: '2024-03-08',
+      reason: 'Qualité audio insuffisante dans plusieurs vidéos. Veuillez réenregistrer les modules 3 et 5.',
+      moderator: 'Admin Principal'
+    }
+  ];
+
+  const allCourses = [...publishedCourses, ...pendingCourses];
 
   const handleExamineCourse = (courseId) => {
     navigate(`/dashboard/superadmin/courses/${courseId}/review`);
@@ -59,17 +145,11 @@ const AdminCourses = () => {
   };
 
   const handleDeleteCourse = (courseId) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer ce cours ?')) {
-      deleteMutation.mutate(courseId, {
-        onSuccess: () => {
-          toast({
-            title: "Cours supprimé",
-            description: "Le cours a été supprimé avec succès.",
-            variant: "destructive"
-          });
-        }
-      });
-    }
+    toast({
+      title: "Cours supprimé",
+      description: "Le cours a été supprimé avec succès.",
+      variant: "destructive"
+    });
   };
 
   const handleEditCourse = (courseId) => {
@@ -101,16 +181,9 @@ const AdminCourses = () => {
   };
 
   const handleApproveCourse = (courseId) => {
-    updateStatusMutation.mutate({ 
-      courseId, 
-      status: 'published' 
-    }, {
-      onSuccess: () => {
-        toast({
-          title: "Cours approuvé",
-          description: "Le cours a été approuvé et publié avec succès.",
-        });
-      }
+    toast({
+      title: "Cours approuvé",
+      description: "Le cours a été approuvé et publié avec succès.",
     });
   };
 
@@ -120,21 +193,12 @@ const AdminCourses = () => {
   };
 
   const handleRejectionConfirm = (reason) => {
-    if (courseToReject) {
-      updateStatusMutation.mutate({ 
-        courseId: courseToReject.id, 
-        status: 'draft' 
-      }, {
-        onSuccess: () => {
-          toast({
-            title: "Cours rejeté",
-            description: `Le cours "${courseToReject?.title}" a été rejeté avec commentaires.`,
-            variant: "destructive"
-          });
-          setCourseToReject(null);
-        }
-      });
-    }
+    toast({
+      title: "Cours rejeté",
+      description: `Le cours "${courseToReject?.title}" a été rejeté avec commentaires.`,
+      variant: "destructive"
+    });
+    setCourseToReject(null);
   };
 
   const handleAICourseCreated = (course) => {
@@ -153,17 +217,19 @@ const AdminCourses = () => {
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case 'published':
+      case 'publié':
         return <Badge className="bg-green-100 text-green-800">Publié</Badge>;
-      case 'draft':
-        return <Badge className="bg-yellow-100 text-yellow-800">Brouillon</Badge>;
+      case 'en_attente':
+        return <Badge className="bg-yellow-100 text-yellow-800">En attente</Badge>;
+      case 'brouillon':
+        return <Badge className="bg-gray-100 text-gray-800">Brouillon</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
   };
 
   const getVisibilityBadge = (course) => {
-    if (course.isVisible === false) {
+    if (!course.isVisible) {
       return <Badge variant="outline" className="bg-red-50 text-red-700">Masqué</Badge>;
     }
     
@@ -180,8 +246,8 @@ const AdminCourses = () => {
 
   const filteredCourses = allCourses.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (course.instructor || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (course.category || '').toLowerCase().includes(searchTerm.toLowerCase());
+                         course.instructor.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         course.category.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || course.status === statusFilter;
     
@@ -189,16 +255,16 @@ const AdminCourses = () => {
     if (visibilityFilter !== 'all') {
       switch (visibilityFilter) {
         case 'visible':
-          matchesVisibility = course.isVisible === true;
+          matchesVisibility = course.isVisible;
           break;
         case 'hidden':
-          matchesVisibility = course.isVisible === false;
+          matchesVisibility = !course.isVisible;
           break;
         case 'open_source':
-          matchesVisibility = course.isOpenSource === true;
+          matchesVisibility = course.isOpenSource;
           break;
         case 'public':
-          matchesVisibility = course.isVisible === true && !course.isOpenSource && course.organisationAccess === 'all';
+          matchesVisibility = course.isVisible && !course.isOpenSource && course.organisationAccess === 'all';
           break;
         case 'restricted':
           matchesVisibility = course.organisationAccess === 'restricted';
@@ -213,8 +279,8 @@ const AdminCourses = () => {
 
   const filteredPendingCourses = pendingCourses.filter(course =>
     course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (course.instructor || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (course.category || '').toLowerCase().includes(searchTerm.toLowerCase())
+    course.instructor.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    course.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -278,7 +344,7 @@ const AdminCourses = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">
-              {allCourses.filter(c => c.isOpenSource === true).length}
+              {allCourses.filter(c => c.isOpenSource).length}
             </div>
             <p className="text-xs text-muted-foreground">Accessibles aux OF</p>
           </CardContent>
@@ -289,7 +355,7 @@ const AdminCourses = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {publishedCourses.reduce((sum, course) => sum + (course.students || 0), 0)}
+              {publishedCourses.reduce((sum, course) => sum + course.students, 0)}
             </div>
             <p className="text-xs text-muted-foreground">Tous cours confondus</p>
           </CardContent>
@@ -311,22 +377,22 @@ const AdminCourses = () => {
               {filteredPendingCourses.map((course) => (
                 <div key={course.id} className="bg-white border rounded-lg p-4">
                   <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-4">
                       <img 
-                        src={course.thumbnail || '/placeholder.svg'} 
+                        src={course.thumbnail} 
                         alt={course.title}
                         className="w-16 h-12 rounded object-cover"
                       />
                       <div>
                         <h3 className="font-semibold text-lg">{course.title}</h3>
                         <p className="text-sm text-gray-600">
-                          par {course.instructor || 'Inconnu'} • {course.category || 'Non catégorisé'}
+                          par {course.instructor} • {course.category}
                         </p>
                         <div className="flex items-center text-xs text-gray-500 mt-1">
                           <Clock className="h-3 w-3 mr-1" />
-                          {course.duration || 'N/A'}
+                          {course.duration}
                           <span className="mx-2">•</span>
-                          Créé le {course.createdAt ? new Date(course.createdAt).toLocaleDateString('fr-FR') : 'N/A'}
+                          Créé le {new Date(course.createdAt).toLocaleDateString('fr-FR')}
                         </div>
                       </div>
                     </div>
@@ -567,11 +633,33 @@ const AdminCourses = () => {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            {/* TODO: Implement rejection history from backend */}
-            <div className="text-center py-8 text-gray-500">
-              <History className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Aucun historique de rejet disponible pour le moment</p>
-            </div>
+            {rejectionHistory.map((rejection) => (
+              <Card key={rejection.id} className="border-red-200 bg-red-50">
+                <CardContent className="pt-4">
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <h4 className="font-semibold text-red-900">{rejection.courseTitle}</h4>
+                      <p className="text-sm text-red-700">par {rejection.instructor}</p>
+                    </div>
+                    <div className="text-right text-sm text-red-600">
+                      <p>Rejeté le {new Date(rejection.rejectionDate).toLocaleDateString('fr-FR')}</p>
+                      <p>par {rejection.moderator}</p>
+                    </div>
+                  </div>
+                  <div className="bg-white border border-red-200 rounded p-3">
+                    <p className="text-sm text-gray-700">
+                      <strong>Raison du rejet:</strong> {rejection.reason}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+            {rejectionHistory.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                <History className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Aucun historique de rejet disponible</p>
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>

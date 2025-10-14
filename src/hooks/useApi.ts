@@ -8,7 +8,6 @@ import {
   SuperAdminUserCreate, 
   ListAllUsersResponse,
   Course,
-  CourseResponse,
   CourseUpdate,
   CourseStatus,
   ModuleCreate,

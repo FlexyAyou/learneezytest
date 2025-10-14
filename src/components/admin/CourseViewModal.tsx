@@ -27,7 +27,6 @@ import {
 } from 'lucide-react';
 import { CourseExtended, courseCategories, courseLevels } from '@/data/mockCoursesData';
 import { useToast } from '@/hooks/use-toast';
-import { useUpdateCourse } from '@/hooks/useApi';
 
 interface CourseViewModalProps {
   course: CourseExtended | null;
@@ -75,7 +74,6 @@ const mockModules = [
 
 export const CourseViewModal = ({ course, isOpen, onClose, onSave }: CourseViewModalProps) => {
   const { toast } = useToast();
-  const updateCourseMutation = useUpdateCourse();
   const [editMode, setEditMode] = useState(false);
   const [editedCourse, setEditedCourse] = useState<CourseExtended | null>(null);
   const [modules, setModules] = useState(mockModules);
@@ -88,33 +86,13 @@ export const CourseViewModal = ({ course, isOpen, onClose, onSave }: CourseViewM
 
   if (!course || !editedCourse) return null;
 
-  const handleSave = async () => {
-    if (!editedCourse?.id) return;
-    
-    try {
-      await updateCourseMutation.mutateAsync({
-        courseId: editedCourse.id,
-        updates: {
-          title: editedCourse.title,
-          description: editedCourse.description,
-          price: parseFloat(editedCourse.price),
-        }
-      });
-      
-      onSave(editedCourse);
-      setEditMode(false);
-      toast({
-        title: "Cours mis à jour",
-        description: `Le cours "${editedCourse.title}" a été mis à jour avec succès.`,
-      });
-    } catch (error) {
-      console.error('Erreur lors de la mise à jour:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de mettre à jour le cours.",
-        variant: "destructive"
-      });
-    }
+  const handleSave = () => {
+    onSave(editedCourse);
+    setEditMode(false);
+    toast({
+      title: "Cours mis à jour",
+      description: `Le cours "${editedCourse.title}" a été mis à jour avec succès.`,
+    });
   };
 
   const handleFieldChange = (field: keyof CourseExtended, value: any) => {
