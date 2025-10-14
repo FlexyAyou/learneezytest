@@ -9,6 +9,19 @@ import {
   UserResetPassword,
   ResetPasswordRequest,
   JWTPayload,
+  Course,
+  CourseResponse,
+  CourseUpdate,
+  CourseStatus,
+  ModuleCreate,
+  Module,
+  LessonCreate,
+  Content,
+  QuizCreate,
+  Quiz,
+  UploadResponse,
+  EnrollResponse,
+  CourseStatsResponse,
 } from '@/types/fastapi';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://backendlearneezy.testdevinfinitiax.fr';
@@ -234,6 +247,102 @@ class FastAPIClient {
     } catch {
       return null;
     }
+  }
+
+  // ============= PATCH METHOD =============
+
+  /**
+   * Requête PATCH générique
+   */
+  async patch<T>(endpoint: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    const response: AxiosResponse<T> = await this.axiosInstance.patch(endpoint, data, config);
+    return response.data;
+  }
+
+  // ============= COURSES ENDPOINTS =============
+
+  /**
+   * Récupérer la liste des cours avec pagination
+   */
+  async getCourses(page = 1, perPage = 10): Promise<CourseResponse[]> {
+    return this.get<CourseResponse[]>(`/api/courses/?page=${page}&per_page=${perPage}`);
+  }
+
+  /**
+   * Récupérer un cours par ID
+   */
+  async getCourse(courseId: string): Promise<CourseResponse> {
+    return this.get<CourseResponse>(`/api/courses/${courseId}`);
+  }
+
+  /**
+   * Créer un nouveau cours
+   */
+  async createCourse(courseData: Course): Promise<{ message: string }> {
+    return this.post<{ message: string }>('/api/courses/', courseData);
+  }
+
+  /**
+   * Mettre à jour un cours
+   */
+  async updateCourse(courseId: string, updates: CourseUpdate): Promise<CourseResponse> {
+    return this.put<CourseResponse>(`/api/courses/${courseId}`, updates);
+  }
+
+  /**
+   * Supprimer un cours
+   */
+  async deleteCourse(courseId: string): Promise<void> {
+    return this.delete<void>(`/api/courses/${courseId}`);
+  }
+
+  /**
+   * Changer le statut d'un cours (draft/published)
+   */
+  async updateCourseStatus(courseId: string, status: CourseStatus): Promise<CourseResponse> {
+    return this.patch<CourseResponse>(`/api/courses/${courseId}/status?status=${status}`);
+  }
+
+  /**
+   * Ajouter un module à un cours
+   */
+  async createModule(courseId: string, moduleData: ModuleCreate): Promise<Module> {
+    return this.post<Module>(`/api/courses/${courseId}/modules`, moduleData);
+  }
+
+  /**
+   * Ajouter une leçon à un module
+   */
+  async createLesson(courseId: string, moduleId: number, lessonData: LessonCreate): Promise<Content> {
+    return this.post<Content>(`/api/courses/${courseId}/modules/${moduleId}/lessons`, lessonData);
+  }
+
+  /**
+   * Ajouter un quiz à une leçon
+   */
+  async createQuiz(courseId: string, moduleId: number, lessonId: number, quizData: QuizCreate): Promise<Quiz> {
+    return this.post<Quiz>(`/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/quizzes`, quizData);
+  }
+
+  /**
+   * Upload de média (image ou vidéo)
+   */
+  async uploadMedia(courseId: string, fileType: 'image' | 'video', fileName: string): Promise<UploadResponse> {
+    return this.post<UploadResponse>(`/api/courses/${courseId}/upload`, { file_type: fileType, file_name: fileName });
+  }
+
+  /**
+   * Récupérer les statistiques d'un cours
+   */
+  async getCourseStats(courseId: string): Promise<CourseStatsResponse> {
+    return this.get<CourseStatsResponse>(`/api/courses/${courseId}/stats`);
+  }
+
+  /**
+   * S'inscrire à un cours (enrollment)
+   */
+  async enrollCourse(courseId: string): Promise<EnrollResponse> {
+    return this.post<EnrollResponse>('/api/courses/enroll', { course_id: courseId });
   }
 }
 
