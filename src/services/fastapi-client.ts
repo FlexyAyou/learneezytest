@@ -278,8 +278,8 @@ class FastAPIClient {
   /**
    * Créer un nouveau cours
    */
-  async createCourse(courseData: Course): Promise<{ message: string }> {
-    return this.post<{ message: string }>('/api/courses/', courseData);
+  async createCourse(courseData: Course): Promise<CourseResponse> {
+    return this.post<CourseResponse>('/api/courses/', courseData);
   }
 
   /**

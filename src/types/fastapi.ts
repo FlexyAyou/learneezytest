@@ -229,6 +229,16 @@ export interface Course {
 export interface CourseResponse extends Course {
   owner_type: CourseOwnerType;
   owner_id: number;
+  status?: CourseStatus;
+  instructor?: string;
+  thumbnail?: string;
+  students?: number;
+  rating?: number;
+  createdAt?: string;
+  isVisible?: boolean;
+  isOpenSource?: boolean;
+  organisationAccess?: string;
+  minorsAllowed?: boolean;
 }
 
 export interface CourseUpdate {

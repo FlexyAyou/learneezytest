@@ -8,6 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Upload, Plus, X, Save, Book, Video, FileText, Image, Bold, Italic, Underline, List, ListOrdered, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useCreateCourse, useUploadMedia } from '@/hooks/useApi';
+import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
+import { Course } from '@/types/fastapi';
 
 interface CreateCourseModalProps {
   isOpen: boolean;
@@ -27,7 +30,11 @@ interface Module {
 
 export const CreateCourseModal = ({ isOpen, onClose, onCourseCreated }: CreateCourseModalProps) => {
   const { toast } = useToast();
+  const { user } = useFastAPIAuth();
+  const createCourseMutation = useCreateCourse();
+  const uploadMediaMutation = useUploadMedia();
   const [currentStep, setCurrentStep] = useState<'info' | 'modules' | 'review'>('info');
+  const [isUploading, setIsUploading] = useState(false);
   
   const [courseData, setCourseData] = useState({
     title: '',
@@ -162,7 +169,7 @@ export const CreateCourseModal = ({ isOpen, onClose, onCourseCreated }: CreateCo
     updateModule(moduleId, 'content', newContent);
   };
 
-  const handleCreateCourse = () => {
+  const handleCreateCourse = async () => {
     if (!courseData.title || !courseData.description || modules.some(m => !m.title || !m.content)) {
       toast({
         title: "Erreur",
@@ -172,23 +179,82 @@ export const CreateCourseModal = ({ isOpen, onClose, onCourseCreated }: CreateCo
       return;
     }
 
-    const newCourse = {
-      id: `course-${Date.now()}`,
-      ...courseData,
-      modules: modules.filter(m => m.title && m.content),
-      createdAt: new Date().toISOString(),
-      status: 'draft'
-    };
+    setIsUploading(true);
+    try {
+      // 1. Créer le cours
+      const coursePayload: Course = {
+        title: courseData.title,
+        description: courseData.description,
+        price: courseData.price ? parseFloat(courseData.price) : undefined,
+        category: courseData.category || undefined,
+        duration: courseData.duration || undefined,
+        level: courseData.level,
+        modules: modules
+          .filter(m => m.title && m.content)
+          .map(m => ({
+            title: m.title,
+            duration: m.duration || '1h',
+            description: m.content,
+            content: [{
+              title: m.title,
+              duration: m.duration || '1h',
+              description: m.content,
+              video_url: m.videoUrl,
+            }]
+          }))
+      };
 
-    console.log('Course created:', newCourse);
-    onCourseCreated(newCourse);
-    
-    toast({
-      title: "Cours créé",
-      description: "Le cours a été créé avec succès",
-    });
-    
-    onClose();
+      const result = await createCourseMutation.mutateAsync(coursePayload);
+
+      // 2. Upload de l'image de couverture si présente (TODO: when upload API is ready)
+      // if (courseData.image && result.id) {
+      //   const { url } = await uploadMediaMutation.mutateAsync({
+      //     courseId: result.id,
+      //     fileType: 'image',
+      //     fileName: courseData.image.name
+      //   });
+      //
+      //   await fetch(url, {
+      //     method: 'PUT',
+      //     body: courseData.image,
+      //     headers: { 'Content-Type': courseData.image.type }
+      //   });
+      // }
+
+      // 3. Upload des vidéos pour chaque module (TODO: when upload API is ready)
+      // for (const module of modules.filter(m => m.videoUrl)) {
+      //   if (result.id) {
+      //     const videoBlob = await fetch(module.videoUrl).then(r => r.blob());
+      //     const { url } = await uploadMediaMutation.mutateAsync({
+      //       courseId: result.id,
+      //       fileType: 'video',
+      //       fileName: `${module.title}.mp4`
+      //     });
+      //
+      //     await fetch(url, {
+      //       method: 'PUT',
+      //       body: videoBlob
+      //     });
+      //   }
+      // }
+
+      toast({
+        title: "Cours créé",
+        description: "Le cours a été créé avec succès",
+      });
+      
+      onCourseCreated(result);
+      onClose();
+    } catch (error) {
+      console.error('Erreur lors de la création du cours:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de créer le cours. Veuillez réessayer.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const renderStepContent = () => {
