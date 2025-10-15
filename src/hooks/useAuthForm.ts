@@ -59,8 +59,8 @@ export const useAuthForm = () => {
     try {
       await register.mutateAsync(userData);
       toast({
-        title: "Inscription réussie",
-        description: "Votre compte a été créé avec succès",
+        title: "Confirmation requise",
+        description: "Un email vous est envoyé pour confirmer votre inscription",
       });
     } catch (error: any) {
       const errorMessage = error?.response?.data?.detail?.[0]?.msg || 
