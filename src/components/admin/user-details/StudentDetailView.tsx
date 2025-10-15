@@ -84,42 +84,6 @@ export const StudentDetailView = ({ user, userRole = 'admin' }: StudentDetailVie
 
   return (
     <div className="space-y-6">
-      {/* Informations backend réelles */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Informations Backend</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="font-medium">Nom complet:</span> {realData.firstName} {realData.lastName}
-            </div>
-            <div>
-              <span className="font-medium">Email:</span> {realData.email}
-            </div>
-            <div>
-              <span className="font-medium">Statut:</span>{" "}
-              <Badge variant={realData.isActive ? "default" : "secondary"}>
-                {realData.isActive ? "Actif" : "Inactif"}
-              </Badge>
-            </div>
-            <div>
-              <span className="font-medium">Inscrit le:</span> {new Date(realData.createdAt).toLocaleDateString('fr-FR')}
-            </div>
-            {realData.lastLogin && (
-              <div>
-                <span className="font-medium">Dernière connexion:</span> {new Date(realData.lastLogin).toLocaleDateString('fr-FR')}
-              </div>
-            )}
-            {realData.ofId && (
-              <div>
-                <span className="font-medium">Organisation ID:</span> {realData.ofId}
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Statistiques de l'apprenant (mockées) */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
