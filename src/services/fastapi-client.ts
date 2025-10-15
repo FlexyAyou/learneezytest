@@ -90,7 +90,10 @@ class FastAPIClient {
     this.axiosInstance.interceptors.response.use(
       (response) => response,
       async (error) => {
-        if (error.response?.status === 401) {
+        // Ne pas rediriger si c'est une erreur de login (identifiants incorrects)
+        const isLoginError = error.config?.url?.includes('/api/auth/login');
+        
+        if (error.response?.status === 401 && !isLoginError) {
           this.logout();
         }
         return Promise.reject(error);
