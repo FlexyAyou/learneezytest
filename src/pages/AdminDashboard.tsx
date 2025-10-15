@@ -19,6 +19,8 @@ import IndependentTrainerDetailPage from './admin/IndependentTrainerDetailPage';
 import ManagerDetailPage from './admin/ManagerDetailPage';
 import AnimatorDetailPage from './admin/AnimatorDetailPage';
 import AdminDetailPage from './admin/AdminDetailPage';
+import SuperAdminDetailPage from './admin/SuperAdminDetailPage';
+import TutorDetailPage from './admin/TutorDetailPage';
 import OrganismeDetail from './admin/OrganismeDetail';
 import SuperAdminDocuments from './admin/SuperAdminDocuments';
 import AdminInscriptions from './admin/AdminInscriptions';
@@ -77,6 +79,8 @@ const AdminDashboard = () => {
               <Route path="users/manager/:userSlug" element={<ManagerDetailPage />} />
               <Route path="users/animator/:userSlug" element={<AnimatorDetailPage />} />
               <Route path="users/admin/:userSlug" element={<AdminDetailPage />} />
+              <Route path="users/superadmin/:userSlug" element={<SuperAdminDetailPage />} />
+              <Route path="users/tutor/:userSlug" element={<TutorDetailPage />} />
               <Route path="trainers" element={<AdminTrainers />} />
               <Route path="organisations" element={<AdminOrganisations />} />
               <Route path="organisations/create" element={<CreateOrganisme />} />
