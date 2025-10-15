@@ -66,15 +66,20 @@ export const useFastAPIAuth = () => {
   };
 
   /**
-   * Déconnexion
+   * Déconnexion avec appel API backend
    */
-  const logout = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    setUser(null);
-    setIsAuthenticated(false);
-    // Utiliser replace pour empêcher le retour en arrière vers les pages protégées
-    window.location.replace('/connexion');
+  const logout = async () => {
+    try {
+      await fastAPIClient.logoutUser();
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion:', error);
+      // Forcer le nettoyage local même en cas d'erreur
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      setUser(null);
+      setIsAuthenticated(false);
+      window.location.replace('/connexion');
+    }
   };
 
   /**

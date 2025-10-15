@@ -68,12 +68,12 @@ class FastAPIClient {
               config.headers.Authorization = `Bearer ${newAccessToken}`;
             } catch (error) {
               // Refresh échoué, déconnexion
-              this.logout();
+              this.clearLocalAuth();
               throw new Error('Session expirée, veuillez vous reconnecter');
             }
           } else {
             // Refresh token expiré
-            this.logout();
+            this.clearLocalAuth();
             throw new Error('Session expirée, veuillez vous reconnecter');
           }
         } else if (accessToken) {
@@ -94,7 +94,7 @@ class FastAPIClient {
         const isLoginError = error.config?.url?.includes('/api/auth/login');
         
         if (error.response?.status === 401 && !isLoginError) {
-          this.logout();
+          this.clearLocalAuth();
         }
         return Promise.reject(error);
       }
@@ -149,12 +149,31 @@ class FastAPIClient {
   }
 
   /**
-   * Déconnexion complète
+   * Déconnexion locale (sans appel API)
    */
-  private logout() {
+  private clearLocalAuth() {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     window.location.href = '/connexion';
+  }
+
+  /**
+   * Déconnexion complète avec appel API backend
+   */
+  async logoutUser(): Promise<void> {
+    try {
+      const refreshToken = localStorage.getItem('refresh_token');
+      
+      // Appeler l'endpoint de logout avec le refresh_token
+      await this.post('/api/auth/logout', null, {
+        params: { refresh_token: refreshToken }
+      });
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion:', error);
+    } finally {
+      // Toujours nettoyer les tokens locaux
+      this.clearLocalAuth();
+    }
   }
 
   // ============= MÉTHODES PUBLIQUES =============
