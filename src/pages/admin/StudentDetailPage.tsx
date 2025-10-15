@@ -39,10 +39,22 @@ const StudentDetailPage = () => {
   // Récupérer la liste des utilisateurs
   const { data: allUsers, isLoading: usersLoading } = useSuperadminUsers();
   
-  // Trouver l'utilisateur par slug
-  const foundUser = allUsers?.find(u => 
-    `${u.first_name?.toLowerCase()}-${u.last_name?.toLowerCase()}` === userSlug
-  );
+  // Debug: afficher les utilisateurs et le slug recherché
+  console.log('Slug recherché:', userSlug);
+  console.log('Tous les utilisateurs:', allUsers?.map(u => ({
+    id: u.id,
+    firstName: u.first_name,
+    lastName: u.last_name,
+    slug: `${u.first_name?.toLowerCase()}-${u.last_name?.toLowerCase()}`
+  })));
+  
+  // Trouver l'utilisateur par slug (en normalisant les espaces et accents)
+  const foundUser = allUsers?.find(u => {
+    const userSlugGenerated = `${u.first_name?.toLowerCase().trim()}-${u.last_name?.toLowerCase().trim()}`;
+    return userSlugGenerated === userSlug;
+  });
+
+  console.log('Utilisateur trouvé:', foundUser);
 
   if (usersLoading) {
     return (
@@ -55,8 +67,9 @@ const StudentDetailPage = () => {
   if (!foundUser) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Utilisateur non trouvé</h2>
+        <div className="text-center space-y-4">
+          <h2 className="text-2xl font-bold text-gray-900">Utilisateur non trouvé</h2>
+          <p className="text-gray-600">Le slug "{userSlug}" ne correspond à aucun utilisateur</p>
           <Button onClick={() => navigate('/dashboard/superadmin/users')}>
             Retour à la liste
           </Button>
