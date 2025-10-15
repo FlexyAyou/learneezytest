@@ -5,8 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
 import { StudentDetailView } from '@/components/admin/user-details/StudentDetailView';
-import LoadingSpinner from '@/components/common/LoadingSpinner';
-import { useSuperadminUsers, useUserDetail } from '@/hooks/useApi';
 import { 
   ArrowLeft, 
   Mail,
@@ -36,52 +34,17 @@ const StudentDetailPage = () => {
   const navigate = useNavigate();
   const currentPath = `/dashboard/superadmin/users/${userSlug}`;
 
-  // Récupérer la liste des utilisateurs pour trouver celui qui correspond au slug
-  const { data: usersData, isLoading: isLoadingUsers } = useSuperadminUsers();
-  
-  // Trouver l'utilisateur correspondant au slug
-  const foundUser = usersData?.find(u => {
-    const userName = `${u.first_name || ''} ${u.last_name || ''}`.trim().toLowerCase().replace(/\s+/g, '-');
-    return userName === userSlug;
-  });
-  
-  // Récupérer les détails de l'utilisateur
-  const { data: userDetail, isLoading: isLoadingDetail } = useUserDetail(foundUser?.id);
-
-  // Afficher le spinner pendant le chargement
-  if (isLoadingUsers || isLoadingDetail) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
-  }
-
-  // Si l'utilisateur n'est pas trouvé
-  if (!foundUser || !userDetail) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900">Utilisateur non trouvé</h2>
-          <Button onClick={() => navigate('/dashboard/superadmin/users')} className="mt-4">
-            Retour à la liste
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // Données réelles de l'utilisateur
+  // Mock data pour l'apprenant
   const user = {
-    id: userDetail.id,
-    name: `${userDetail.first_name || ''} ${userDetail.last_name || ''}`.trim() || 'Utilisateur',
-    email: userDetail.email,
+    id: 1,
+    name: 'Sophie Martin',
+    email: 'sophie.martin@email.com',
     phone: '+33 6 12 34 56 78',
     role: 'Apprenant',
     status: 'active',
     lastLogin: '2024-01-15',
-    joinDate: userDetail.created_at || '2023-09-15',
-    organisation: userDetail.of_id ? `Organisation ${userDetail.of_id}` : 'Non renseigné',
+    joinDate: '2023-09-15',
+    organisation: 'Formation Excellence',
     organisationType: 'OF',
     address: '123 Rue de la Formation, 75001 Paris'
   };
