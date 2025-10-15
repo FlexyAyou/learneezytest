@@ -5,9 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
 import { IndependentTrainerDetailView } from '@/components/admin/user-details/IndependentTrainerDetailView';
-import { useUserDetail, useSuperadminUsers } from '@/hooks/useApi';
-import LoadingSpinner from '@/components/common/LoadingSpinner';
-import {
+import { 
   ArrowLeft, 
   Mail,
   Phone,
@@ -36,59 +34,20 @@ const IndependentTrainerDetailPage = () => {
   const navigate = useNavigate();
   const currentPath = `/dashboard/superadmin/users/${userSlug}`;
 
-  // Récupérer tous les utilisateurs pour trouver celui qui correspond au slug
-  const { data: allUsers, isLoading: usersLoading } = useSuperadminUsers();
-  
-  // Trouver l'utilisateur avec le slug correspondant (format: babacar-ndiaye)
-  const matchedUser = allUsers?.find(u => {
-    const fullName = `${u.first_name} ${u.last_name}`.toLowerCase().replace(/\s+/g, '-');
-    return fullName === userSlug;
-  });
-
-  const userId = matchedUser?.id;
-  const { data: userDetail, isLoading: detailLoading } = useUserDetail(userId || 0);
-
-  const isLoading = usersLoading || detailLoading;
-
-  // Utiliser les données du backend
+  // Mock data pour le formateur indépendant
   const user = {
-    id: userDetail?.id || matchedUser?.id || 3,
-    userId: userDetail?.id || matchedUser?.id || 3,
-    name: userDetail ? `${userDetail.first_name} ${userDetail.last_name}` : matchedUser ? `${matchedUser.first_name} ${matchedUser.last_name}` : 'Claire Moreau',
-    first_name: userDetail?.first_name || matchedUser?.first_name || 'Claire',
-    last_name: userDetail?.last_name || matchedUser?.last_name || 'Moreau',
-    email: userDetail?.email || matchedUser?.email || 'claire.moreau@email.com',
+    id: 3,
+    name: 'Claire Moreau',
+    email: 'claire.moreau@email.com',
     phone: '+33 6 34 56 78 90',
     role: 'Formateur indépendant',
-    status: (userDetail?.is_active || matchedUser?.is_active) ? 'active' : 'inactive',
-    is_active: userDetail?.is_active ?? matchedUser?.is_active ?? true,
-    lastLogin: userDetail?.last_login || matchedUser?.last_login || '2024-01-18',
-    joinDate: userDetail?.created_at || matchedUser?.created_at || '2023-08-20',
-    created_at: userDetail?.created_at || matchedUser?.created_at || '2023-08-20',
-    last_login: userDetail?.last_login || matchedUser?.last_login || '2024-01-18',
+    status: 'active',
+    lastLogin: '2024-01-18',
+    joinDate: '2023-08-20',
     organisation: 'Learneezy Direct',
     organisationType: 'Direct',
-    of_id: userDetail?.of_id || matchedUser?.of_id,
     address: '789 Rue de l\'Indépendance, 33000 Bordeaux'
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex h-screen bg-gray-50">
-        <div className="fixed left-0 top-0 h-full z-30">
-          <DashboardSidebar
-            title="Super Administration"
-            subtitle="Gestion de la plateforme"
-            items={[]}
-            userInfo={{ name: "Super Admin", email: "superadmin@Learneezy.com" }}
-          />
-        </div>
-        <div className="flex-1 flex items-center justify-center">
-          <LoadingSpinner size="lg" />
-        </div>
-      </div>
-    );
-  }
 
   const sidebarItems = [
     { title: "Tableau de bord", href: "/dashboard/superadmin", icon: Home, isActive: false },
