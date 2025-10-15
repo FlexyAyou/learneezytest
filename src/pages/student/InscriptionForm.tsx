@@ -106,63 +106,30 @@ const InscriptionForm = () => {
     return (
       <Card className="max-w-2xl mx-auto">
         <CardContent className="p-8 text-center">
-          <div className="mb-6">
-            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Mail className="w-10 h-10 text-green-600" />
-            </div>
-            <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
-          </div>
-          
-          <h2 className="text-3xl font-bold mb-4">Inscription enregistrée !</h2>
-          
-          <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-6 mb-6">
-            <p className="text-lg font-semibold text-blue-900 mb-2">
-              📧 Un email de confirmation vous a été envoyé
-            </p>
-            <p className="text-sm text-blue-700">
-              Veuillez consulter votre boîte de réception pour confirmer votre inscription. 
-              Pensez à vérifier vos spams si vous ne le voyez pas.
-            </p>
-          </div>
-          
+          <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold mb-4">Inscription soumise avec succès !</h2>
           <p className="text-gray-600 mb-6">
             Votre demande d'inscription a été transmise à notre équipe pédagogique. 
-            Après validation de votre email, vous recevrez les prochaines étapes.
+            Vous recevrez un email de confirmation dans les plus brefs délais.
           </p>
           
           <div className="space-y-4">
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-              <h3 className="font-semibold mb-3 text-left">Prochaines étapes :</h3>
-              <ul className="text-sm space-y-2 text-left">
-                <li className="flex items-start">
-                  <span className="text-green-500 mr-2">✓</span>
-                  <span>Confirmez votre email en cliquant sur le lien reçu</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-blue-500 mr-2">•</span>
-                  <span>Vérification de votre dossier (24-48h)</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-blue-500 mr-2">•</span>
-                  <span>Envoi de la convention de formation par email</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-blue-500 mr-2">•</span>
-                  <span>Réception des documents (programme, règlement, CGV)</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-blue-500 mr-2">•</span>
-                  <span>Accès à votre espace de formation</span>
-                </li>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h3 className="font-semibold mb-2">Prochaines étapes :</h3>
+              <ul className="text-sm space-y-1 text-left">
+                <li>✓ Vérification de votre dossier (24-48h)</li>
+                <li>✓ Envoi de la convention de formation par email</li>
+                <li>✓ Réception des documents (programme, règlement, CGV)</li>
+                <li>✓ Accès à votre espace de formation</li>
               </ul>
             </div>
             
-            <div className="flex flex-col sm:flex-row justify-center gap-3">
-              <Button variant="default" onClick={() => window.location.href = 'mailto:'}>
+            <div className="flex justify-center space-x-4">
+              <Button variant="outline">
                 <Mail className="w-4 h-4 mr-2" />
-                Ouvrir ma messagerie
+                Vérifier mes emails
               </Button>
-              <Button variant="outline" onClick={() => window.location.href = '/'}>
+              <Button>
                 Retour à l'accueil
               </Button>
             </div>

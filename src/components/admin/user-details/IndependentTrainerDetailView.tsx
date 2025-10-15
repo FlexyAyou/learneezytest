@@ -8,6 +8,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { DollarSign, FileText, Calendar, Clock, CreditCard, User, CheckCircle, XCircle, Award, AlertCircle } from 'lucide-react';
 import { mockTrainerFiscalInfo, mockTrainerSpecialtyRequests } from '@/data/mockTrainerApplicationsData';
 import { useToast } from '@/hooks/use-toast';
+import { useUserDetail } from '@/hooks/useApi';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
 
 interface IndependentTrainerDetailViewProps {
   user: any;
@@ -15,12 +17,27 @@ interface IndependentTrainerDetailViewProps {
 
 export const IndependentTrainerDetailView = ({ user }: IndependentTrainerDetailViewProps) => {
   const { toast } = useToast();
+  const { data: userDetail, isLoading: userLoading } = useUserDetail(user.id);
   const [specialtyRequests, setSpecialtyRequests] = useState(
     mockTrainerSpecialtyRequests.filter(req => req.trainerId === user.userId)
   );
   const [rejectionModalOpen, setRejectionModalOpen] = useState(false);
   const [selectedSpecialty, setSelectedSpecialty] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
+
+  if (userLoading) {
+    return <LoadingSpinner size="lg" className="py-8" />;
+  }
+
+  const realData = {
+    firstName: userDetail?.first_name || user.first_name,
+    lastName: userDetail?.last_name || user.last_name,
+    email: userDetail?.email || user.email,
+    isActive: userDetail?.is_active ?? user.is_active,
+    createdAt: userDetail?.created_at || user.created_at,
+    lastLogin: userDetail?.last_login || user.last_login,
+    ofId: userDetail?.of_id || user.of_id,
+  };
 
   // Récupérer les vraies données fiscales
   const fiscalInfo = mockTrainerFiscalInfo[user.userId];
