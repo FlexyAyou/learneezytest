@@ -5,32 +5,14 @@ import { Progress } from '@/components/ui/progress';
 import { BookOpen, Calendar, Award, TrendingUp, Clock, CheckCircle, Star, Trophy, Shield } from 'lucide-react';
 import { BadgeDisplay } from '@/components/common/BadgeDisplay';
 import { useStudentAchievements } from '@/hooks/useStudentAchievements';
-import { useUserDetail } from '@/hooks/useApi';
-import LoadingSpinner from '@/components/common/LoadingSpinner';
 
 interface StudentDetailViewProps {
   user: any;
-  userRole?: string; // Pour gérer les permissions
+  userRole?: string;
 }
 
 export const StudentDetailView = ({ user, userRole = 'admin' }: StudentDetailViewProps) => {
-  const { data: userDetail, isLoading: userLoading } = useUserDetail(user.id);
   const { badges, loading } = useStudentAchievements(user.id);
-  
-  if (userLoading) {
-    return <LoadingSpinner size="lg" className="py-8" />;
-  }
-
-  // Données réelles du backend (quand disponibles)
-  const realData = {
-    firstName: userDetail?.first_name || user.first_name,
-    lastName: userDetail?.last_name || user.last_name,
-    email: userDetail?.email || user.email,
-    isActive: userDetail?.is_active ?? user.is_active,
-    createdAt: userDetail?.created_at || user.created_at,
-    lastLogin: userDetail?.last_login || user.last_login,
-    ofId: userDetail?.of_id || user.of_id,
-  };
 
   // Mock data spécifique aux apprenants
   const studentData = {
