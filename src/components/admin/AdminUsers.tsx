@@ -106,6 +106,10 @@ export const AdminUsers = () => {
         return `/dashboard/superadmin/users/animator/${slug}`;
       case 'Administrateur':
         return `/dashboard/superadmin/users/admin/${slug}`;
+      case 'Super Administrateur':
+        return `/dashboard/superadmin/users/superadmin/${slug}`;
+      case 'Tuteur':
+        return `/dashboard/superadmin/users/tutor/${slug}`;
       default:
         return `/dashboard/superadmin/users/student/${slug}`;
     }
