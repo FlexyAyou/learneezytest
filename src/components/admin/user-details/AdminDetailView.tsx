@@ -3,12 +3,30 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Shield, Settings, Activity, Users, Database, Lock } from 'lucide-react';
+import { useUserDetail } from '@/hooks/useApi';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
 
 interface AdminDetailViewProps {
   user: any;
 }
 
 export const AdminDetailView = ({ user }: AdminDetailViewProps) => {
+  const { data: userDetail, isLoading: userLoading } = useUserDetail(user.id);
+
+  if (userLoading) {
+    return <LoadingSpinner size="lg" className="py-8" />;
+  }
+
+  const realData = {
+    firstName: userDetail?.first_name || user.first_name,
+    lastName: userDetail?.last_name || user.last_name,
+    email: userDetail?.email || user.email,
+    isActive: userDetail?.is_active ?? user.is_active,
+    createdAt: userDetail?.created_at || user.created_at,
+    lastLogin: userDetail?.last_login || user.last_login,
+    ofId: userDetail?.of_id || user.of_id,
+  };
+
   // Mock data spécifique aux administrateurs
   const adminData = {
     permissions: [
