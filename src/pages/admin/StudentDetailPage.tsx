@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
 import { StudentDetailView } from '@/components/admin/user-details/StudentDetailView';
-import { useSuperadminUsers, useUserDetail } from '@/hooks/useApi';
+import { useSuperadminUsers } from '@/hooks/useApi';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { 
   ArrowLeft, 
@@ -36,16 +36,15 @@ const StudentDetailPage = () => {
   const navigate = useNavigate();
   const currentPath = `/dashboard/superadmin/users/${userSlug}`;
 
-  // Récupérer la liste des utilisateurs pour trouver l'ID par slug
+  // Récupérer la liste des utilisateurs
   const { data: allUsers, isLoading: usersLoading } = useSuperadminUsers();
+  
+  // Trouver l'utilisateur par slug
   const foundUser = allUsers?.find(u => 
     `${u.first_name?.toLowerCase()}-${u.last_name?.toLowerCase()}` === userSlug
   );
 
-  // Récupérer les détails complets de l'utilisateur
-  const { data: userDetail, isLoading: detailLoading } = useUserDetail(foundUser?.id);
-
-  if (usersLoading || detailLoading) {
+  if (usersLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
         <LoadingSpinner size="lg" />
@@ -53,7 +52,7 @@ const StudentDetailPage = () => {
     );
   }
 
-  if (!foundUser || !userDetail) {
+  if (!foundUser) {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="text-center">
@@ -68,15 +67,15 @@ const StudentDetailPage = () => {
 
   // Construire l'objet user avec les données backend
   const user = {
-    id: userDetail.id,
-    name: `${userDetail.first_name} ${userDetail.last_name}`,
-    email: userDetail.email,
+    id: foundUser.id,
+    name: `${foundUser.first_name} ${foundUser.last_name}`,
+    email: foundUser.email,
     phone: '+33 6 12 34 56 78', // Mock pour le moment
     role: 'Apprenant',
-    status: userDetail.is_active ? 'active' : 'inactive',
-    lastLogin: userDetail.last_login || '2024-01-15',
-    joinDate: userDetail.created_at,
-    organisation: userDetail.of_id ? `Organisation ${userDetail.of_id}` : 'Formation Excellence', // Mock si non disponible
+    status: foundUser.is_active ? 'active' : 'inactive',
+    lastLogin: foundUser.last_login || '2024-01-15',
+    joinDate: foundUser.created_at,
+    organisation: foundUser.of_id ? `Organisation ${foundUser.of_id}` : 'Formation Excellence',
     organisationType: 'OF',
     address: '123 Rue de la Formation, 75001 Paris' // Mock pour le moment
   };
