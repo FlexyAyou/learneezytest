@@ -5,8 +5,6 @@ import { Progress } from '@/components/ui/progress';
 import { BookOpen, Calendar, Award, TrendingUp, Clock, CheckCircle, Star, Trophy, Shield } from 'lucide-react';
 import { BadgeDisplay } from '@/components/common/BadgeDisplay';
 import { useStudentAchievements } from '@/hooks/useStudentAchievements';
-import { useUserDetail } from '@/hooks/useApi';
-import LoadingSpinner from '@/components/common/LoadingSpinner';
 
 interface StudentDetailViewProps {
   user: any;
@@ -14,23 +12,7 @@ interface StudentDetailViewProps {
 }
 
 export const StudentDetailView = ({ user, userRole = 'admin' }: StudentDetailViewProps) => {
-  const { data: userDetail, isLoading: userLoading } = useUserDetail(user.id);
   const { badges, loading } = useStudentAchievements(user.id);
-  
-  if (userLoading) {
-    return <LoadingSpinner size="lg" className="py-8" />;
-  }
-
-  // Données réelles du backend (quand disponibles)
-  const realData = {
-    firstName: userDetail?.first_name || user.first_name,
-    lastName: userDetail?.last_name || user.last_name,
-    email: userDetail?.email || user.email,
-    isActive: userDetail?.is_active ?? user.is_active,
-    createdAt: userDetail?.created_at || user.created_at,
-    lastLogin: userDetail?.last_login || user.last_login,
-    ofId: userDetail?.of_id || user.of_id,
-  };
 
   // Mock data spécifique aux apprenants
   const studentData = {
@@ -84,43 +66,7 @@ export const StudentDetailView = ({ user, userRole = 'admin' }: StudentDetailVie
 
   return (
     <div className="space-y-6">
-      {/* Informations backend réelles */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Informations Backend</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="font-medium">Nom complet:</span> {realData.firstName} {realData.lastName}
-            </div>
-            <div>
-              <span className="font-medium">Email:</span> {realData.email}
-            </div>
-            <div>
-              <span className="font-medium">Statut:</span>{" "}
-              <Badge variant={realData.isActive ? "default" : "secondary"}>
-                {realData.isActive ? "Actif" : "Inactif"}
-              </Badge>
-            </div>
-            <div>
-              <span className="font-medium">Inscrit le:</span> {new Date(realData.createdAt).toLocaleDateString('fr-FR')}
-            </div>
-            {realData.lastLogin && (
-              <div>
-                <span className="font-medium">Dernière connexion:</span> {new Date(realData.lastLogin).toLocaleDateString('fr-FR')}
-              </div>
-            )}
-            {realData.ofId && (
-              <div>
-                <span className="font-medium">Organisation ID:</span> {realData.ofId}
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Statistiques de l'apprenant (mockées) */}
+      {/* Statistiques de l'apprenant */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
@@ -128,7 +74,6 @@ export const StudentDetailView = ({ user, userRole = 'admin' }: StudentDetailVie
               {studentData.stats.completedCourses}
             </div>
             <div className="text-sm text-gray-600">Cours terminés</div>
-            <p className="text-xs text-muted-foreground">Données mockées</p>
           </CardContent>
         </Card>
         <Card>

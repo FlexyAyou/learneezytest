@@ -346,17 +346,3 @@ export const useSuperadminUsers = () => {
     queryFn: () => fastAPIClient.get<ListAllUsersResponse[]>('/api/auth/superadmin/users'),
   });
 };
-
-/**
- * Hook pour récupérer les détails d'un utilisateur spécifique
- */
-export const useUserDetail = (userId: string | number) => {
-  return useQuery({
-    queryKey: ['user-detail', userId],
-    queryFn: async () => {
-      const response = await fastAPIClient.get<ListAllUsersResponse>(`/api/auth/superadmin/users/${userId}`);
-      return response;
-    },
-    enabled: !!userId,
-  });
-};

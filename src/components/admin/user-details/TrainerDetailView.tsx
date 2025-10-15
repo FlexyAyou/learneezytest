@@ -3,31 +3,12 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { BookOpen, Users, DollarSign, Star, Calendar, TrendingUp } from 'lucide-react';
-import { useUserDetail } from '@/hooks/useApi';
-import LoadingSpinner from '@/components/common/LoadingSpinner';
 
 interface TrainerDetailViewProps {
   user: any;
 }
 
 export const TrainerDetailView = ({ user }: TrainerDetailViewProps) => {
-  const { data: userDetail, isLoading: userLoading } = useUserDetail(user.id);
-
-  if (userLoading) {
-    return <LoadingSpinner size="lg" className="py-8" />;
-  }
-
-  // Données réelles du backend
-  const realData = {
-    firstName: userDetail?.first_name || user.first_name,
-    lastName: userDetail?.last_name || user.last_name,
-    email: userDetail?.email || user.email,
-    isActive: userDetail?.is_active ?? user.is_active,
-    createdAt: userDetail?.created_at || user.created_at,
-    lastLogin: userDetail?.last_login || user.last_login,
-    ofId: userDetail?.of_id || user.of_id,
-  };
-
   // Mock data spécifique aux formateurs
   const trainerData = {
     courses: [
@@ -63,43 +44,7 @@ export const TrainerDetailView = ({ user }: TrainerDetailViewProps) => {
 
   return (
     <div className="space-y-6">
-      {/* Informations backend réelles */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Informations Backend</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="font-medium">Nom complet:</span> {realData.firstName} {realData.lastName}
-            </div>
-            <div>
-              <span className="font-medium">Email:</span> {realData.email}
-            </div>
-            <div>
-              <span className="font-medium">Statut:</span>{" "}
-              <Badge variant={realData.isActive ? "default" : "secondary"}>
-                {realData.isActive ? "Actif" : "Inactif"}
-              </Badge>
-            </div>
-            <div>
-              <span className="font-medium">Inscrit le:</span> {new Date(realData.createdAt).toLocaleDateString('fr-FR')}
-            </div>
-            {realData.lastLogin && (
-              <div>
-                <span className="font-medium">Dernière connexion:</span> {new Date(realData.lastLogin).toLocaleDateString('fr-FR')}
-              </div>
-            )}
-            {realData.ofId && (
-              <div>
-                <span className="font-medium">Organisation ID:</span> {realData.ofId}
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Statistiques du formateur (mockées) */}
+      {/* Statistiques du formateur */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
@@ -107,7 +52,6 @@ export const TrainerDetailView = ({ user }: TrainerDetailViewProps) => {
               {trainerData.stats.activeCourses}
             </div>
             <div className="text-sm text-gray-600">Cours actifs</div>
-            <p className="text-xs text-muted-foreground">Données mockées</p>
           </CardContent>
         </Card>
         <Card>
