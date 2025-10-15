@@ -1,14 +1,14 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useApi';
-import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 import { useToast } from '@/hooks/use-toast';
 import { UserCreate, UserRole } from '@/types/fastapi';
 
 export const useAuthForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
   const { login, register } = useAuth();
-  const { redirectByRole } = useFastAPIAuth();
   const { toast } = useToast();
 
   const handleLogin = async (email: string, password: string) => {
@@ -27,8 +27,25 @@ export const useAuthForm = () => {
           description: "Redirection vers votre espace...",
         });
         
-        // Rediriger selon le rôle
-        redirectByRole(role);
+        // Rediriger selon le rôle avec React Router
+        const roleRedirects: Record<UserRole, string> = {
+          apprenant: '/dashboard/apprenant',
+          student: '/dashboard/apprenant',
+          tutor: '/dashboard/tuteur',
+          independent_trainer: '/formateur-independant',
+          trainer: '/formateur-independant',
+          superadmin: '/dashboard/superadmin',
+          administrator: '/dashboard/admin',
+          of_admin: '/dashboard/organisme-formation',
+          gestionnaire: '/dashboard/gestionnaire',
+          formateur_interne: '/dashboard/formateur-interne',
+          createur_contenu: '/dashboard/createur-contenu',
+          facilitator: '/dashboard/animateur',
+          manager: '/dashboard/gestionnaire',
+        };
+        
+        const redirectPath = roleRedirects[role] || '/dashboard/apprenant';
+        navigate(redirectPath, { replace: true });
       }
     } catch (error: any) {
       throw error;
