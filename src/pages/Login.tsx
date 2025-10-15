@@ -27,12 +27,15 @@ const Login = () => {
   const { toast } = useToast();
   const { showPassword, setShowPassword, isLoading, handleLogin } = useAuthForm();
 
+  const [loginError, setLoginError] = React.useState<string>("");
+
   const onSubmit = async (data: z.infer<typeof loginSchema>) => {
+    setLoginError("");
     try {
       await handleLogin(data.email, data.password);
       // La redirection est gérée par handleLogin via redirectByRole
     } catch (error) {
-      // L'erreur est déjà gérée par handleLogin
+      setLoginError("Votre email ou mot de passe est incorrect!");
     }
   };
 
@@ -101,6 +104,11 @@ const Login = () => {
 
           {/* Form */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            {loginError && (
+              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+                {loginError}
+              </div>
+            )}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                 Adresse email

@@ -31,11 +31,6 @@ export const useAuthForm = () => {
         redirectByRole(role);
       }
     } catch (error: any) {
-      toast({
-        title: "Erreur de connexion",
-        description: error?.response?.data?.detail || "Email ou mot de passe incorrect",
-        variant: "destructive",
-      });
       throw error;
     } finally {
       setIsSubmitting(false);
