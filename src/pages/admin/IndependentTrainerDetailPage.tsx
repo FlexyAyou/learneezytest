@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
 import { IndependentTrainerDetailView } from '@/components/admin/user-details/IndependentTrainerDetailView';
+import { useUserDetail } from '@/hooks/useApi';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { 
   ArrowLeft, 
   Mail,
@@ -34,20 +36,49 @@ const IndependentTrainerDetailPage = () => {
   const navigate = useNavigate();
   const currentPath = `/dashboard/superadmin/users/${userSlug}`;
 
-  // Mock data pour le formateur indépendant
+  // Extraire l'ID utilisateur depuis le slug (format: independent-trainer-{id})
+  const userId = userSlug?.split('-').pop();
+  const { data: userDetail, isLoading } = useUserDetail(userId ? parseInt(userId) : 0);
+
+  // Mock data pour le formateur indépendant (sera enrichi avec les vraies données)
   const user = {
-    id: 3,
-    name: 'Claire Moreau',
-    email: 'claire.moreau@email.com',
+    id: userDetail?.id || 3,
+    userId: userDetail?.id || 3,
+    name: userDetail ? `${userDetail.first_name} ${userDetail.last_name}` : 'Claire Moreau',
+    first_name: userDetail?.first_name || 'Claire',
+    last_name: userDetail?.last_name || 'Moreau',
+    email: userDetail?.email || 'claire.moreau@email.com',
     phone: '+33 6 34 56 78 90',
     role: 'Formateur indépendant',
-    status: 'active',
-    lastLogin: '2024-01-18',
-    joinDate: '2023-08-20',
+    status: userDetail?.is_active ? 'active' : 'inactive',
+    is_active: userDetail?.is_active ?? true,
+    lastLogin: userDetail?.last_login || '2024-01-18',
+    joinDate: userDetail?.created_at || '2023-08-20',
+    created_at: userDetail?.created_at || '2023-08-20',
+    last_login: userDetail?.last_login || '2024-01-18',
     organisation: 'Learneezy Direct',
     organisationType: 'Direct',
+    of_id: userDetail?.of_id,
     address: '789 Rue de l\'Indépendance, 33000 Bordeaux'
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen bg-gray-50">
+        <div className="fixed left-0 top-0 h-full z-30">
+          <DashboardSidebar
+            title="Super Administration"
+            subtitle="Gestion de la plateforme"
+            items={[]}
+            userInfo={{ name: "Super Admin", email: "superadmin@Learneezy.com" }}
+          />
+        </div>
+        <div className="flex-1 flex items-center justify-center">
+          <LoadingSpinner size="lg" />
+        </div>
+      </div>
+    );
+  }
 
   const sidebarItems = [
     { title: "Tableau de bord", href: "/dashboard/superadmin", icon: Home, isActive: false },
