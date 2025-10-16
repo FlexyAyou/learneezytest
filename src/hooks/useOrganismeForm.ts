@@ -90,6 +90,8 @@ export const useOrganismeForm = () => {
       // Mapper les données du formulaire vers le format backend
       const backendData = mapFormDataToBackend(formData);
       
+      console.log('Données envoyées au backend:', backendData);
+      
       // Appel réel à l'API
       const response = await fastAPIClient.createOrganization(backendData);
       
@@ -102,11 +104,28 @@ export const useOrganismeForm = () => {
       
       return true;
     } catch (error: any) {
-      console.error('Erreur création organisme:', error);
+      console.error('Erreur complète:', error);
+      console.error('Response data:', error.response?.data);
+      console.error('Status:', error.response?.status);
+      
+      // Formater le message d'erreur de validation
+      let errorMessage = "Une erreur s'est produite lors de la création de l'organisme.";
+      
+      if (error.response?.data?.detail) {
+        if (Array.isArray(error.response.data.detail)) {
+          // Erreurs de validation FastAPI
+          const validationErrors = error.response.data.detail
+            .map((err: any) => `${err.loc.join('.')}: ${err.msg}`)
+            .join(', ');
+          errorMessage = `Erreur de validation: ${validationErrors}`;
+        } else if (typeof error.response.data.detail === 'string') {
+          errorMessage = error.response.data.detail;
+        }
+      }
       
       toast({
         title: "Erreur lors de la création",
-        description: error.response?.data?.detail || "Une erreur s'est produite lors de la création de l'organisme.",
+        description: errorMessage,
         variant: "destructive",
       });
       return false;
