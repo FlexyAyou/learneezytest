@@ -79,7 +79,17 @@ export const useOrganismeForm = () => {
       name: formData.name,
       subdomain: subdomain || formData.name.toLowerCase().replace(/\s+/g, '-'),
       subscription_type: subscriptionTypeMap[formData.subscriptionType] || 'starter',
-      contact_email: formData.email
+      contact_email: formData.email,
+      description: formData.description,
+      website: formData.website,
+      legal_representative: formData.legalRepresentative,
+      address: formData.address,
+      phone: formData.phone,
+      email: formData.email,
+      siret: formData.siret,
+      numero_declaration: formData.numeroDeclaration,
+      agrement: formData.agrement,
+      tokens_total: formData.tokensTotal
     };
   };
 

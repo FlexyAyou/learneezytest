@@ -114,6 +114,16 @@ export interface OrganizationCreate {
   subdomain: string;
   subscription_type: SubscriptionType;
   contact_email: string;
+  description: string;
+  website: string;
+  legal_representative: string;
+  address: string;
+  phone: string;
+  email: string;
+  siret: string;
+  numero_declaration: string;
+  agrement: string;
+  tokens_total: number;
 }
 
 export interface OrganizationResponse {
