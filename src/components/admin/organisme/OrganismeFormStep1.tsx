@@ -50,7 +50,7 @@ export const OrganismeFormStep1: React.FC<OrganismeFormStep1Props> = ({
       <div className="space-y-2">
         <Label htmlFor="slug" className="flex items-center">
           <Globe className="w-4 h-4 mr-2" />
-          Slug du site
+          Sous domaine
         </Label>
         <div className="flex items-center gap-2">
           <Input
