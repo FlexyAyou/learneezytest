@@ -17,6 +17,8 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { AddApprenantModal } from './AddApprenantModal';
 import { useSuperadminUsers } from '@/hooks/useApi';
+import { fastAPIClient } from '@/services/fastapi-client';
+import { OrganizationResponse } from '@/types/fastapi';
 
 export const AdminUsers = () => {
   const navigate = useNavigate();
@@ -27,6 +29,25 @@ export const AdminUsers = () => {
 
   // Récupérer les utilisateurs depuis l'API
   const { data: apiUsers, isLoading, error } = useSuperadminUsers();
+  
+  // Récupérer les organisations pour afficher les représentants légaux
+  const [organizations, setOrganizations] = useState<Record<number, OrganizationResponse>>({});
+  
+  React.useEffect(() => {
+    const fetchOrganizations = async () => {
+      try {
+        const orgs = await fastAPIClient.listOrganizations(1, 100); // Récupérer toutes les organisations
+        const orgsMap = orgs.reduce((acc, org) => {
+          acc[org.id] = org;
+          return acc;
+        }, {} as Record<number, OrganizationResponse>);
+        setOrganizations(orgsMap);
+      } catch (error) {
+        console.error('Erreur lors de la récupération des organisations:', error);
+      }
+    };
+    fetchOrganizations();
+  }, []);
 
   // Mapper les rôles backend vers frontend pour l'affichage
   const mapBackendRoleToFrontend = (backendRole: string): string => {
@@ -76,12 +97,17 @@ export const AdminUsers = () => {
 
       const lastLoginDate = generateMockLastLogin();
 
+      // Afficher le représentant légal pour les utilisateurs OF, sinon le nom de l'organisation
+      const orgName = user.of_id && organizations[user.of_id]
+        ? organizations[user.of_id].legal_representative || organizations[user.of_id].name
+        : 'Learneezy Direct';
+
       return {
         id: user.id,
         name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email.split('@')[0],
         email: user.email,
         role: mapBackendRoleToFrontend(user.role),
-        organisation: user.of_id ? `Organisation ${user.of_id}` : 'Learneezy Direct',
+        organisation: orgName,
         organisationType: user.of_id ? 'OF' : 'Direct',
         status: user.is_active ? 'active' : 'inactive',
         lastLogin: lastLoginDate
