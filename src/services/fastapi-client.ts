@@ -22,6 +22,9 @@ import {
   UploadResponse,
   EnrollResponse,
   CourseStatsResponse,
+  OrganizationCreate,
+  OrganizationResponse,
+  OrganizationUpdate,
 } from '@/types/fastapi';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://backendlearneezy.testdevinfinitiax.fr';
@@ -365,6 +368,31 @@ class FastAPIClient {
    */
   async enrollCourse(courseId: string): Promise<EnrollResponse> {
     return this.post<EnrollResponse>('/api/courses/enroll', { course_id: courseId });
+  }
+
+  // ============= ORGANIZATIONS =============
+
+  /**
+   * Créer un organisme de formation (superadmin uniquement)
+   */
+  async createOrganization(orgData: OrganizationCreate): Promise<OrganizationResponse> {
+    return this.post<OrganizationResponse>('/api/organizations/', orgData);
+  }
+
+  /**
+   * Lister les organismes de formation avec pagination
+   */
+  async listOrganizations(page: number = 1, perPage: number = 10): Promise<OrganizationResponse[]> {
+    return this.get<OrganizationResponse[]>('/api/organizations/', {
+      params: { page, per_page: perPage }
+    });
+  }
+
+  /**
+   * Mettre à jour un organisme de formation
+   */
+  async updateOrganization(orgId: number, update: OrganizationUpdate): Promise<OrganizationResponse> {
+    return this.put<OrganizationResponse>(`/api/organizations/${orgId}`, update);
   }
 }
 

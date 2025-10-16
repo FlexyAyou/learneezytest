@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import { OrganismeFormData } from '@/types/organisme';
 import { useToast } from '@/hooks/use-toast';
+import { OrganizationCreate, SubscriptionType } from '@/types/fastapi';
+import { fastAPIClient } from '@/services/fastapi-client';
 
 export const useOrganismeForm = () => {
   const { toast } = useToast();
@@ -62,26 +64,49 @@ export const useOrganismeForm = () => {
     }
   };
 
+  const mapFormDataToBackend = (formData: OrganismeFormData): OrganizationCreate => {
+    // Extraire le subdomain du website (enlever .learneezy.com si présent)
+    const subdomain = formData.website.replace(/\.learneezy\.com$/, '').trim();
+    
+    // Mapper le type d'abonnement frontend vers backend
+    const subscriptionTypeMap: Record<string, SubscriptionType> = {
+      'basic': 'starter',
+      'premium': 'gold',
+      'enterprise': 'premium'
+    };
+    
+    return {
+      name: formData.name,
+      subdomain: subdomain || formData.name.toLowerCase().replace(/\s+/g, '-'),
+      subscription_type: subscriptionTypeMap[formData.subscriptionType] || 'starter',
+      contact_email: formData.email
+    };
+  };
+
   const submitForm = async (): Promise<boolean> => {
     setIsSubmitting(true);
     
     try {
-      // Simulation d'un appel API
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Mapper les données du formulaire vers le format backend
+      const backendData = mapFormDataToBackend(formData);
       
-      // Ici, on ferait l'appel réel à l'API
-      console.log('Données de l\'organisme à créer:', formData);
+      // Appel réel à l'API
+      const response = await fastAPIClient.createOrganization(backendData);
+      
+      console.log('Organisme créé:', response);
       
       toast({
         title: "Organisme créé avec succès",
-        description: `${formData.name} a été créé et sera activé après validation des documents.`,
+        description: `${formData.name} a été créé avec succès.`,
       });
       
       return true;
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Erreur création organisme:', error);
+      
       toast({
         title: "Erreur lors de la création",
-        description: "Une erreur s'est produite lors de la création de l'organisme.",
+        description: error.response?.data?.detail || "Une erreur s'est produite lors de la création de l'organisme.",
         variant: "destructive",
       });
       return false;
