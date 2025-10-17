@@ -134,6 +134,19 @@ export interface OrganizationResponse {
   contact_email: string;
   created_at: string;
   created_by: number;
+  // Champs additionnels
+  description?: string;
+  website?: string;
+  legal_representative?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  siret?: string;
+  numero_declaration?: string;
+  agrement?: string;
+  tokens_total?: number;
+  tokens_remaining?: number;
+  is_active?: boolean;
 }
 
 export interface OrganizationUpdate {

@@ -360,3 +360,15 @@ export const useUserDetail = (userId: string | number) => {
     enabled: !!userId,
   });
 };
+
+// ============= ORGANIZATIONS HOOKS =============
+
+/**
+ * Hook pour récupérer la liste des organisations
+ */
+export const useOrganizations = (page = 1, perPage = 100) => {
+  return useQuery({
+    queryKey: ['organizations', page, perPage],
+    queryFn: () => fastAPIClient.listOrganizations(page, perPage),
+  });
+};

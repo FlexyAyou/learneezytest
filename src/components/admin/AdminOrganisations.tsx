@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,7 @@ import { Search, Plus, Eye, Building, MapPin, Phone, Mail, FileText, CheckCircle
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { CommercialReminderModal } from './CommercialReminderModal';
+import { useOrganizations } from '@/hooks/useApi';
 
 const AdminOrganisations = () => {
   const { toast } = useToast();
@@ -22,8 +23,11 @@ const AdminOrganisations = () => {
   const [showCommercialModal, setShowCommercialModal] = useState(false);
   const [selectedOrgForReminder, setSelectedOrgForReminder] = useState(null);
 
-  // Mock data for organisations avec les nouvelles données d'abonnement et détails utilisateurs
-  const organisations = [
+  // Récupérer les organisations depuis l'API
+  const { data: apiOrganizations, isLoading } = useOrganizations();
+
+  // Mock data pour 2 organisations (pour garder la logique du rendu)
+  const mockOrganisations = [
     {
       id: '1',
       name: 'Centre de Formation Digital',
@@ -90,41 +94,43 @@ const AdminOrganisations = () => {
         { name: 'Déclaration d\'activité', type: 'declaration', status: 'validé', uploadDate: '2023-03-21' },
         { name: 'Attestation fiscale', type: 'fiscal', status: 'refusé', uploadDate: '2023-03-22' }
       ]
-    },
-    {
-      id: '3',
-      name: 'Formation Pro Marseille',
-      address: '789 Boulevard Maritime, 13001 Marseille',
-      phone: '04 91 23 45 67',
-      email: 'contact@formpro-marseille.fr',
-      siret: '11223344556677',
-      numeroDeclaration: '93-13-11223-13',
-      agrements: ['Datadock'],
-      usersCount: 67,
-      userBreakdown: {
-        apprenants: 55,
-        apprenantsActifs: 41,
-        gestionnaires: 7,
-        comptesPro: 5
-      },
-      createdAt: '2023-06-10',
-      isActive: false,
-      logoUrl: '',
-      description: 'Formation professionnelle continue en région PACA',
-      website: 'https://www.formpro-marseille.fr',
-      legalRepresentative: 'Pierre Durand',
-      subscription: {
-        daysRemaining: 156,
-        tokensRemaining: 800,
-        tokensTotal: 2000
-      },
-      documents: [
-        { name: 'Extrait K-bis', type: 'kbis', status: 'validé', uploadDate: '2023-06-08' },
-        { name: 'Déclaration d\'activité', type: 'declaration', status: 'validé', uploadDate: '2023-06-09' },
-        { name: 'Certificat Qualiopi', type: 'qualiopi', status: 'validé', uploadDate: '2023-06-10' }
-      ]
     }
   ];
+
+  // Combiner les organisations mockées avec celles de l'API
+  const organisations = useMemo(() => {
+    const apiOrgs = (apiOrganizations || []).map(org => ({
+      id: org.id.toString(),
+      name: org.name,
+      address: org.address || 'Non renseigné',
+      phone: org.phone || 'Non renseigné',
+      email: org.email || org.contact_email || 'Non renseigné',
+      siret: org.siret || 'Non renseigné',
+      numeroDeclaration: org.numero_declaration || 'Non renseigné',
+      agrements: org.agrement ? [org.agrement] : [],
+      usersCount: 0, // TODO: récupérer depuis l'API
+      userBreakdown: {
+        apprenants: 0,
+        apprenantsActifs: 0,
+        gestionnaires: 0,
+        comptesPro: 0
+      },
+      createdAt: org.created_at || new Date().toISOString(),
+      isActive: org.is_active !== false,
+      logoUrl: '',
+      description: org.description || '',
+      website: org.website || '',
+      legalRepresentative: org.legal_representative || 'Non renseigné',
+      subscription: {
+        daysRemaining: 30, // TODO: calculer depuis subscription_end_date
+        tokensRemaining: org.tokens_remaining || 0,
+        tokensTotal: org.tokens_total || 0
+      },
+      documents: []
+    }));
+
+    return [...mockOrganisations, ...apiOrgs];
+  }, [apiOrganizations]);
 
   const handleToggleStatus = (orgId, currentStatus) => {
     toast({
