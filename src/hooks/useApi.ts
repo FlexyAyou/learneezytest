@@ -13,6 +13,8 @@ import {
   ModuleCreate,
   LessonCreate,
   QuizCreate,
+  OrganizationCreate,
+  OrganizationResponse,
 } from '@/types/fastapi';
 import { toast } from '@/hooks/use-toast';
 
@@ -370,5 +372,43 @@ export const useOrganizations = (page = 1, perPage = 100) => {
   return useQuery({
     queryKey: ['organizations', page, perPage],
     queryFn: () => fastAPIClient.listOrganizations(page, perPage),
+  });
+};
+
+/**
+ * Hook pour récupérer une organisation par son ID
+ */
+export const useOrganization = (orgId: number | string) => {
+  return useQuery({
+    queryKey: ['organization', orgId],
+    queryFn: () => fastAPIClient.getOrganization(Number(orgId)),
+    enabled: !!orgId,
+  });
+};
+
+/**
+ * Hook pour mettre à jour une organisation
+ */
+export const useUpdateOrganization = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ orgId, data }: { orgId: number; data: Partial<OrganizationCreate> }) =>
+      fastAPIClient.updateOrganization(orgId, data),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['organization', data.id] });
+      queryClient.invalidateQueries({ queryKey: ['organizations'] });
+      toast({
+        title: 'Organisation mise à jour',
+        description: 'Les informations ont été mises à jour avec succès.',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erreur',
+        description: error.message || 'Impossible de mettre à jour l\'organisation.',
+        variant: 'destructive',
+      });
+    },
   });
 };

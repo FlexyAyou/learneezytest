@@ -389,9 +389,16 @@ class FastAPIClient {
   }
 
   /**
+   * Récupérer un organisme de formation par son ID
+   */
+  async getOrganization(orgId: number): Promise<OrganizationResponse> {
+    return this.get<OrganizationResponse>(`/api/organizations/${orgId}`);
+  }
+
+  /**
    * Mettre à jour un organisme de formation
    */
-  async updateOrganization(orgId: number, update: OrganizationUpdate): Promise<OrganizationResponse> {
+  async updateOrganization(orgId: number, update: Partial<OrganizationCreate>): Promise<OrganizationResponse> {
     return this.put<OrganizationResponse>(`/api/organizations/${orgId}`, update);
   }
 }

@@ -25,10 +25,14 @@ import {
   CheckCircle,
   XCircle,
   Eye,
-  Send
+  Send,
+  Edit
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useOrganization } from '@/hooks/useApi';
 import { DeactivateOrganismeModal } from '@/components/admin/DeactivateOrganismeModal';
+import { EditOrganismeModal } from '@/components/admin/EditOrganismeModal';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
 
 const OrganismeDetail = () => {
   const { id } = useParams();
@@ -36,85 +40,42 @@ const OrganismeDetail = () => {
   const { toast } = useToast();
   const [selectedApprenant, setSelectedApprenant] = useState(null);
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
-  // Mock data pour l'organisme - en réalité viendrait de l'API
-  const organisme = {
-    id: '1',
-    name: 'Centre de Formation Digital',
-    description: 'Centre de formation spécialisé dans le digital et les nouvelles technologies',
-    address: '123 Rue de la Formation, 75001 Paris',
-    phone: '01 23 45 67 89',
-    email: 'contact@cfdigital.fr',
-    website: 'https://www.cfdigital.fr',
-    siret: '12345678901234',
-    numeroDeclaration: '11-75-12345-75',
-    agrements: ['Qualiopi', 'OPCO', 'Datadock', 'RNCP', 'Pôle Emploi', 'CPF'],
-    legalRepresentative: 'Jean Dupont',
-    createdAt: '2023-01-15',
-    isActive: true,
-    subscription: {
-      type: 'Premium',
-      startDate: '2024-01-01',
-      endDate: '2024-12-31',
-      daysRemaining: 45,
-      status: 'active',
-      tokensRemaining: 150,
-      tokensTotal: 1000,
-      autoRenewal: true,
-      monthlyPrice: 299
-    },
-    apprenants: [
-      {
-        id: '1',
-        firstName: 'Marie',
-        lastName: 'Dubois',
-        email: 'marie.dubois@email.com',
-        phone: '06 12 34 56 78',
-        enrolledAt: '2024-02-15',
-        coursesCount: 3,
-        subscription: {
-          type: 'Individuel',
-          status: 'active',
-          endDate: '2024-12-31',
-          daysRemaining: 67
-        },
-        progress: 75
-      },
-      {
-        id: '2',
-        firstName: 'Pierre',
-        lastName: 'Martin',
-        email: 'pierre.martin@email.com',
-        phone: '06 98 76 54 32',
-        enrolledAt: '2024-03-10',
-        coursesCount: 2,
-        subscription: null,
-        progress: 45
-      },
-      {
-        id: '3',
-        firstName: 'Sophie',
-        lastName: 'Bernard',
-        email: 'sophie.bernard@email.com',
-        phone: '06 11 22 33 44',
-        enrolledAt: '2024-01-20',
-        coursesCount: 5,
-        subscription: {
-          type: 'Premium',
-          status: 'expires_soon',
-          endDate: '2024-11-30',
-          daysRemaining: 12
-        },
-        progress: 90
-      }
-    ]
-  };
+  // Récupération des données de l'organisme depuis l'API
+  const { data: organisme, isLoading, error } = useOrganization(id!);
 
-  const renderAgrements = (agrements) => {
-    if (!agrements || agrements.length === 0) {
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  if (error || !organisme) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Impossible de charger les informations de l'organisme.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  // Mock data pour les apprenants - sera remplacé par l'API
+  const apprenants = [];
+
+  const renderAgrements = (agrement: string | undefined) => {
+    if (!agrement) {
       return <Badge variant="outline">Aucun agrément</Badge>;
     }
 
+    // Si l'agrément contient des virgules, on le split et on affiche plusieurs badges
+    const agrements = agrement.split(',').map(a => a.trim()).filter(Boolean);
     const maxDisplayed = 3;
     const displayedAgrements = agrements.slice(0, maxDisplayed);
     const remainingCount = agrements.length - maxDisplayed;
@@ -200,14 +161,20 @@ const OrganismeDetail = () => {
     console.log('Deactivating organisme:', organismeId, 'Reason:', reason);
     
     toast({
-      title: organisme.isActive ? "Organisme désactivé" : "Organisme activé",
-      description: `L'organisme a été ${organisme.isActive ? 'désactivé' : 'activé'} avec succès.`,
+      title: organisme.is_active ? "Organisme désactivé" : "Organisme activé",
+      description: `L'organisme a été ${organisme.is_active ? 'désactivé' : 'activé'} avec succès.`,
     });
   };
 
-  const tokensAlert = getTokensAlert(organisme.subscription.tokensRemaining, organisme.subscription.tokensTotal);
-  const daysAlert = getDaysAlert(organisme.subscription.daysRemaining);
-  const tokensPercentage = (organisme.subscription.tokensRemaining / organisme.subscription.tokensTotal) * 100;
+  // Calcul des alertes et métriques d'abonnement
+  const tokensRemaining = organisme.tokens_remaining || 0;
+  const tokensTotal = organisme.tokens_total || 1;
+  const tokensAlert = getTokensAlert(tokensRemaining, tokensTotal);
+  
+  // Calcul des jours restants (mock pour l'instant)
+  const daysRemaining = 0;
+  const daysAlert = getDaysAlert(daysRemaining);
+  const tokensPercentage = (tokensRemaining / tokensTotal) * 100;
 
   return (
     <TooltipProvider>
@@ -227,10 +194,10 @@ const OrganismeDetail = () => {
 
           {/* Action de désactivation/activation */}
           <Button 
-            variant={organisme.isActive ? "destructive" : "default"}
+            variant={organisme.is_active ? "destructive" : "default"}
             onClick={() => setShowDeactivateModal(true)}
           >
-            {organisme.isActive ? (
+            {organisme.is_active ? (
               <>
                 <XCircle className="h-4 w-4 mr-2" />
                 Désactiver l'organisme
@@ -278,9 +245,15 @@ const OrganismeDetail = () => {
           {/* Informations générales */}
           <Card className="lg:col-span-2">
             <CardHeader>
-              <CardTitle className="flex items-center">
-                <Building className="h-5 w-5 mr-2" />
-                Informations générales
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <Building className="h-5 w-5 mr-2" />
+                  Informations générales
+                </div>
+                <Button variant="outline" size="sm" onClick={() => setShowEditModal(true)}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Modifier
+                </Button>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -311,12 +284,12 @@ const OrganismeDetail = () => {
                 <div>
                   <h4 className="font-medium text-gray-900 mb-2">Informations légales</h4>
                   <div className="space-y-2 text-sm">
-                    <div><span className="font-medium">SIRET:</span> {organisme.siret}</div>
-                    <div><span className="font-medium">N° Déclaration:</span> {organisme.numeroDeclaration}</div>
-                    <div><span className="font-medium">Représentant légal:</span> {organisme.legalRepresentative}</div>
+                    <div><span className="font-medium">SIRET:</span> {organisme.siret || 'N/A'}</div>
+                    <div><span className="font-medium">N° Déclaration:</span> {organisme.numero_declaration || 'N/A'}</div>
+                    <div><span className="font-medium">Représentant légal:</span> {organisme.legal_representative || 'N/A'}</div>
                     <div>
                       <span className="font-medium mb-2 block">Agréments:</span>
-                      {renderAgrements(organisme.agrements)}
+                      {renderAgrements(organisme.agrement)}
                     </div>
                   </div>
                 </div>
@@ -331,7 +304,7 @@ const OrganismeDetail = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="text-center">
-                {organisme.isActive ? (
+                {organisme.is_active ? (
                   <Badge className="bg-green-100 text-green-800 text-lg px-3 py-1">
                     <CheckCircle className="h-4 w-4 mr-1" />
                     Actif
@@ -345,12 +318,12 @@ const OrganismeDetail = () => {
               </div>
               <div className="space-y-2">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">{organisme.apprenants.length}</div>
+                  <div className="text-2xl font-bold text-blue-600">{apprenants.length}</div>
                   <div className="text-sm text-gray-500">Apprenants inscrits</div>
                 </div>
                 <div className="text-center">
                   <div className="text-sm text-gray-500">Membre depuis</div>
-                  <div className="font-medium">{new Date(organisme.createdAt).toLocaleDateString()}</div>
+                  <div className="font-medium">{new Date(organisme.created_at).toLocaleDateString()}</div>
                 </div>
               </div>
             </CardContent>
@@ -362,41 +335,38 @@ const OrganismeDetail = () => {
           <CardHeader>
             <CardTitle className="flex items-center">
               <CreditCard className="h-5 w-5 mr-2" />
-              Abonnement - {organisme.subscription.type}
+              Abonnement - {organisme.subscription_type}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div className="space-y-2">
                 <div className="text-sm text-gray-500">Statut</div>
-                {getSubscriptionStatusBadge(organisme.subscription.status, organisme.subscription.daysRemaining)}
+                {getSubscriptionStatusBadge('active', daysRemaining)}
               </div>
               <div className="space-y-2">
                 <div className="text-sm text-gray-500">Période</div>
                 <div className="font-medium">
-                  {new Date(organisme.subscription.startDate).toLocaleDateString()} - {new Date(organisme.subscription.endDate).toLocaleDateString()}
+                  {new Date(organisme.created_at).toLocaleDateString()} - N/A
                 </div>
                 <div className="flex items-center text-sm">
                   <Clock className="h-4 w-4 mr-1" />
-                  {organisme.subscription.daysRemaining} jours restants
+                  {daysRemaining} jours restants
                 </div>
               </div>
               <div className="space-y-2">
                 <div className="text-sm text-gray-500">Tokens</div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span>{organisme.subscription.tokensRemaining} restants</span>
-                    <span>{organisme.subscription.tokensTotal} total</span>
+                    <span>{tokensRemaining} restants</span>
+                    <span>{tokensTotal} total</span>
                   </div>
                   <Progress value={tokensPercentage} className="h-2" />
                 </div>
               </div>
               <div className="space-y-2">
-                <div className="text-sm text-gray-500">Prix mensuel</div>
-                <div className="text-xl font-bold">{organisme.subscription.monthlyPrice}€</div>
-                <div className="text-sm text-gray-500">
-                  Renouvellement: {organisme.subscription.autoRenewal ? 'Automatique' : 'Manuel'}
-                </div>
+                <div className="text-sm text-gray-500">Type</div>
+                <div className="text-xl font-bold capitalize">{organisme.subscription_type}</div>
               </div>
             </div>
           </CardContent>
@@ -407,24 +377,29 @@ const OrganismeDetail = () => {
           <CardHeader>
             <CardTitle className="flex items-center">
               <Users className="h-5 w-5 mr-2" />
-              Apprenants ({organisme.apprenants.length})
+              Apprenants ({apprenants.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nom</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Inscription</TableHead>
-                  <TableHead>Cours</TableHead>
-                  <TableHead>Abonnement</TableHead>
-                  <TableHead>Progrès</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {organisme.apprenants.map((apprenant) => (
+            {apprenants.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                Aucun apprenant inscrit pour le moment
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nom</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Inscription</TableHead>
+                    <TableHead>Cours</TableHead>
+                    <TableHead>Abonnement</TableHead>
+                    <TableHead>Progrès</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {apprenants.map((apprenant: any) => (
                   <TableRow key={apprenant.id}>
                     <TableCell>
                       <div>
@@ -522,9 +497,10 @@ const OrganismeDetail = () => {
                       </Dialog>
                     </TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
 
@@ -533,11 +509,18 @@ const OrganismeDetail = () => {
           isOpen={showDeactivateModal}
           onClose={() => setShowDeactivateModal(false)}
           organisme={{
-            id: organisme.id,
+            id: String(organisme.id),
             name: organisme.name,
-            isActive: organisme.isActive
+            isActive: organisme.is_active || false
           }}
           onConfirm={handleDeactivateOrganisme}
+        />
+
+        {/* Modal de modification */}
+        <EditOrganismeModal
+          open={showEditModal}
+          onOpenChange={setShowEditModal}
+          organisme={organisme}
         />
       </div>
     </TooltipProvider>
