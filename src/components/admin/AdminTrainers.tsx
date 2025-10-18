@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,8 +12,9 @@ import { TrainerApplicationModal } from './TrainerApplicationModal';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { mockTrainerApplications, mockTrainerFiscalInfo } from '@/data/mockTrainerApplicationsData';
+import { mockTrainerFiscalInfo } from '@/data/mockTrainerApplicationsData';
 import { TrainerApplication } from '@/types/trainer-application';
+import { useSuperadminUsers } from '@/hooks/useApi';
 
 const AdminTrainers = () => {
   const { toast } = useToast();
@@ -25,10 +26,59 @@ const AdminTrainers = () => {
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteFirstName, setInviteFirstName] = useState('');
   const [inviteLastName, setInviteLastName] = useState('');
-  const [applications, setApplications] = useState(mockTrainerApplications.map(app => ({
-    ...app,
-    isVisible: true
-  })));
+  
+  // Récupérer les utilisateurs depuis l'API
+  const { data: allUsers, isLoading } = useSuperadminUsers();
+  
+  // Formateur mocké unique
+  const mockTrainer: TrainerApplication = {
+    id: 'mock-1',
+    userId: 'user-mock-1',
+    firstName: 'Sophie',
+    lastName: 'Martin',
+    email: 'sophie.martin@example.com',
+    phone: '+33 6 12 34 56 78',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+    location: 'Lyon, France',
+    specialties: ['React', 'TypeScript', 'Node.js'],
+    languages: ['Français', 'Anglais'],
+    experienceYears: 8,
+    hourlyRate: 85,
+    bio: 'Formatrice expérimentée en développement web moderne',
+    status: 'approved',
+    submittedAt: '2024-01-15T10:00:00Z',
+    isVisible: true,
+    isActive: true
+  };
+
+  // Mapper les formateurs de l'API et ajouter le formateur mocké
+  const applications = useMemo(() => {
+    const apiTrainers = (allUsers || [])
+      .filter(user => user.role === 'formateur_independant')
+      .map(user => ({
+        id: user.id.toString(),
+        userId: user.id.toString(),
+        firstName: user.first_name || 'Prénom',
+        lastName: user.last_name || 'Nom',
+        email: user.email,
+        phone: '',
+        avatar: 'https://via.placeholder.com/100',
+        location: 'Non renseigné',
+        specialties: ['En attente'],
+        languages: ['Français'],
+        experienceYears: 0,
+        hourlyRate: 0,
+        bio: '',
+        status: user.is_active ? 'approved' : 'pending',
+        submittedAt: user.created_at || new Date().toISOString(),
+        isVisible: true,
+        isActive: user.is_active || false
+      })) as TrainerApplication[];
+    
+    return [mockTrainer, ...apiTrainers];
+  }, [allUsers]);
+  
+  const [localApplications, setLocalApplications] = useState<TrainerApplication[]>(applications);
 
   const handleStatusChange = (trainerId: string, newStatus: string) => {
     toast({
@@ -38,13 +88,13 @@ const AdminTrainers = () => {
   };
 
   const handleToggleVisibility = (trainerId: string) => {
-    setApplications(prev => prev.map(app => 
+    setLocalApplications(prev => prev.map(app => 
       app.id === trainerId 
         ? { ...app, isVisible: !app.isVisible }
         : app
     ));
     
-    const trainer = applications.find(app => app.id === trainerId);
+    const trainer = localApplications.find(app => app.id === trainerId);
     toast({
       title: "Visibilité modifiée",
       description: `Le profil de ${trainer?.firstName} ${trainer?.lastName} est maintenant ${
@@ -83,7 +133,7 @@ const AdminTrainers = () => {
 
   const handleApproveApplication = (id: string, notes?: string) => {
     // 1. Trouver l'application
-    const application = applications.find(app => app.id === id);
+    const application = localApplications.find(app => app.id === id);
     if (!application) return;
 
     // 2. Vérifier les infos fiscales
@@ -99,7 +149,7 @@ const AdminTrainers = () => {
     }
 
     // 3. Approuver et activer
-    setApplications(prev => prev.map(app => 
+    setLocalApplications(prev => prev.map(app => 
       app.id === id 
         ? { 
             ...app, 
@@ -119,7 +169,7 @@ const AdminTrainers = () => {
   };
 
   const handleRejectApplication = (id: string, notes: string) => {
-    setApplications(prev => prev.map(app => 
+    setLocalApplications(prev => prev.map(app => 
       app.id === id 
         ? { 
             ...app, 
@@ -145,7 +195,7 @@ const AdminTrainers = () => {
     }
   };
 
-  const filteredApplications = applications.filter(application => {
+  const filteredApplications = localApplications.filter(application => {
     const matchesSearch = 
       `${application.firstName} ${application.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
       application.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -157,11 +207,16 @@ const AdminTrainers = () => {
   });
 
   const stats = {
-    total: applications.length,
-    pending: applications.filter(app => app.status === 'pending').length,
-    approved: applications.filter(app => app.status === 'approved').length,
-    rejected: applications.filter(app => app.status === 'rejected').length
+    total: localApplications.length,
+    pending: localApplications.filter(app => app.status === 'pending').length,
+    approved: localApplications.filter(app => app.status === 'approved').length,
+    rejected: localApplications.filter(app => app.status === 'rejected').length
   };
+  
+  // Synchroniser localApplications avec les nouvelles données de l'API
+  React.useEffect(() => {
+    setLocalApplications(applications);
+  }, [applications]);
 
   return (
     <div className="space-y-6">
