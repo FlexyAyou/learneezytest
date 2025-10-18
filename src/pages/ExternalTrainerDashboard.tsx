@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useTrainerActivation } from '@/hooks/useTrainerActivation';
+import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 import { TrainerActivationAlert } from '@/components/external-trainer/TrainerActivationAlert';
 import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { ExternalTrainerSidebar } from '@/components/external-trainer/ExternalTrainerSidebar';
@@ -50,48 +51,40 @@ import TrainerVideoConferences from '@/components/external-trainer/TrainerVideoC
 
 const ExternalTrainerDashboardHome = () => {
   const { toast } = useToast();
+  const { user } = useFastAPIAuth();
   
   const stats = [
     {
       title: "Revenus ce mois",
-      value: "2,450€",
+      value: "0€",
       icon: Euro,
-      change: "+15% vs mois dernier"
+      change: "+0% vs mois dernier"
     },
     {
       title: "Heures planifiées",
-      value: "32h",
+      value: "0h",
       icon: Clock,
       change: "Cette semaine"
     },
     {
       title: "Note moyenne",
-      value: "4.8",
+      value: "0",
       icon: Star,
-      change: "Basé sur 47 avis"
+      change: "Basé sur 0 avis"
     },
     {
       title: "Étudiants actifs",
-      value: "23",
+      value: "0",
       icon: Users,
-      change: "+2 ce mois"
+      change: "+0 ce mois"
     }
   ];
 
-  const availableSlots = [
-    { id: 1, date: '2024-01-15', time: '10:00-12:00', price: 45, booked: false },
-    { id: 2, date: '2024-01-15', time: '14:00-16:00', price: 45, booked: true },
-    { id: 3, date: '2024-01-16', time: '09:00-11:00', price: 50, booked: false },
-    { id: 4, date: '2024-01-16', time: '16:00-18:00', price: 45, booked: false },
-  ];
+  const availableSlots: any[] = [];
 
-  const upcomingBookings = [
-    { id: 1, student: 'Alice Martin', subject: 'React Development', date: '2024-01-15', time: '14:00', price: 45, commission: 13.5 },
-    { id: 2, student: 'Thomas Petit', subject: 'JavaScript', date: '2024-01-16', time: '10:00', price: 50, commission: 15 },
-    { id: 3, student: 'Emma Dubois', subject: 'UI/UX Design', date: '2024-01-17', time: '15:00', price: 40, commission: 12 },
-  ];
+  const upcomingBookings: any[] = [];
 
-  const specialties = ['React', 'JavaScript', 'UI/UX Design', 'Node.js', 'Python'];
+  const specialties: string[] = [];
 
   const handleSetAvailability = () => {
     toast({
@@ -111,7 +104,7 @@ const ExternalTrainerDashboardHome = () => {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Formateur Independant</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Bonjour {user?.first_name || 'Formateur'} !</h1>
         <p className="text-gray-600">Gérez vos disponibilités et vos tarifs</p>
         <div className="mt-2 text-sm text-gray-500">
           Commission Learneezy: 30% • Vous recevez: 70%
@@ -237,19 +230,19 @@ const ExternalTrainerDashboardHome = () => {
           <CardContent className="space-y-4">
             <div className="flex justify-between">
               <span className="text-sm">Taux de satisfaction</span>
-              <span className="font-medium">98%</span>
+              <span className="font-medium">0%</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm">Sessions complétées</span>
-              <span className="font-medium">156</span>
+              <span className="font-medium">0</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm">Taux de réservation</span>
-              <span className="font-medium">85%</span>
+              <span className="font-medium">0%</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm">Revenus totaux</span>
-              <span className="font-medium text-green-600">12,450€</span>
+              <span className="font-medium text-green-600">0€</span>
             </div>
           </CardContent>
         </Card>
