@@ -17,6 +17,7 @@ import AIChatButton from '@/components/common/AIChatButton';
 import { TutorDocuments } from '@/components/tutor/TutorDocuments';
 import { TutorStudentDetailedView } from '@/components/tutor/TutorStudentDetailedView';
 import { TutorCatalog } from '@/components/tutor/TutorCatalog';
+import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 import { 
   Users, 
   MessageSquare, 
@@ -38,80 +39,17 @@ import { useToast } from '@/hooks/use-toast';
 const TutorDashboardHome = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useFastAPIAuth();
   const [selectedStudent, setSelectedStudent] = React.useState(null);
   const [showDetailedView, setShowDetailedView] = React.useState(false);
 
-  const students = [
-    { 
-      id: '1', 
-      name: 'Emma Martin', 
-      age: 16, 
-      courses: 3, 
-      avgScore: 85, 
-      status: 'active',
-      email: 'emma.martin@email.com',
-      phone: '06 12 34 56 78',
-      course: 'Mathématiques',
-      progress: 85,
-      lastActivity: '2024-01-20',
-      parentContact: 'parent.martin@email.com',
-      notes: 'Très motivée, excellente participation'
-    },
-    { 
-      id: '2', 
-      name: 'Lucas Dubois', 
-      age: 14, 
-      courses: 2, 
-      avgScore: 92, 
-      status: 'active',
-      email: 'lucas.dubois@email.com',
-      phone: '06 87 65 43 21',
-      course: 'Sciences',
-      progress: 92,
-      lastActivity: '2024-01-19',
-      parentContact: 'parent.dubois@email.com',
-      notes: 'Très bon niveau, autonome'
-    }
-  ];
+  const students = [];
 
-  const recentActivity = [
-    {
-      id: 1,
-      student: 'Emma Martin',
-      activity: 'Quiz Mathématiques terminé',
-      score: 85,
-      date: '2024-01-14',
-      type: 'quiz'
-    },
-    {
-      id: 2,
-      student: 'Lucas Dubois',
-      activity: 'Devoir Sciences rendu',
-      score: 95,
-      date: '2024-01-13',
-      type: 'homework'
-    },
-    {
-      id: 3,
-      student: 'Emma Martin',
-      activity: 'Session Anglais terminée',
-      score: null,
-      date: '2024-01-12',
-      type: 'session'
-    }
-  ];
+  const recentActivity = [];
 
-  const upcomingEvents = [
-    { id: 1, student: 'Emma Martin', event: 'Cours Mathématiques', date: '2024-01-20', time: '14:00' },
-    { id: 2, student: 'Lucas Dubois', event: 'Contrôle Sciences', date: '2024-01-22', time: '10:30' },
-    { id: 3, student: 'Emma Martin', event: 'Session Anglais', date: '2024-01-25', time: '16:00' },
-  ];
+  const upcomingEvents = [];
 
-  const notifications = [
-    { id: 1, message: 'Changement d\'horaire pour Emma Martin', priority: 'medium', unread: true },
-    { id: 2, message: 'Devoir non remis - Lucas Dubois', priority: 'high', unread: true },
-    { id: 3, message: 'Nouvelle évaluation disponible', priority: 'low', unread: false },
-  ];
+  const notifications = [];
 
   const handleViewDetails = (studentName: string) => {
     const student = students.find(s => s.name === studentName);
@@ -130,7 +68,10 @@ const TutorDashboardHome = () => {
       {/* Header with Catalog Button */}
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard Tuteur</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Bonjour {user?.first_name || 'Tuteur'} ! 
+            <span className="inline-block animate-bounce ml-2">👋</span>
+          </h1>
           <p className="text-gray-600">Suivez la progression de vos élèves</p>
         </div>
         <Button onClick={handleViewCatalog} className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700">
@@ -182,7 +123,7 @@ const TutorDashboardHome = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{students.length}</div>
+            <div className="text-2xl font-bold">0</div>
             <p className="text-xs text-muted-foreground">Actifs</p>
           </CardContent>
         </Card>
@@ -193,9 +134,7 @@ const TutorDashboardHome = () => {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {Math.round(students.reduce((acc, student) => acc + student.avgScore, 0) / students.length)}%
-            </div>
+            <div className="text-2xl font-bold">0%</div>
             <p className="text-xs text-muted-foreground">Sur tous les élèves</p>
           </CardContent>
         </Card>
@@ -206,7 +145,7 @@ const TutorDashboardHome = () => {
             <MessageSquare className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">3</div>
+            <div className="text-2xl font-bold">0</div>
             <p className="text-xs text-muted-foreground">Nouveaux messages</p>
           </CardContent>
         </Card>
@@ -217,7 +156,7 @@ const TutorDashboardHome = () => {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{upcomingEvents.length}</div>
+            <div className="text-2xl font-bold">0</div>
             <p className="text-xs text-muted-foreground">Cette semaine</p>
           </CardContent>
         </Card>

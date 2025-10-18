@@ -33,6 +33,7 @@ interface ProfileFormData {
   lastName: string;
   email: string;
   phone: string;
+  address: string;
   bio: string;
   specialties: string;
   experience: string;
@@ -81,6 +82,7 @@ export const TutorSettings = () => {
       lastName: user?.last_name || 'Durand',
       email: user?.email || 'claire.durand@email.com',
       phone: '06 12 34 56 78',
+      address: '',
       bio: 'Tutrice expérimentée spécialisée dans l\'accompagnement personnalisé des élèves du primaire au lycée.',
       specialties: 'Mathématiques, Sciences, Français',
       experience: '5 ans d\'expérience dans l\'enseignement personnalisé'
@@ -337,6 +339,16 @@ export const TutorSettings = () => {
                           className="mt-1"
                         />
                       </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="address">Adresse</Label>
+                      <Input
+                        id="address"
+                        {...profileForm.register('address')}
+                        placeholder="Votre adresse complète"
+                        className="mt-1"
+                      />
                     </div>
 
                     <div>
