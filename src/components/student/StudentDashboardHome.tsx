@@ -18,31 +18,31 @@ export const StudentDashboardHome = () => {
   const stats = [
     {
       title: "Cours en cours",
-      value: "3",
+      value: "0",
       icon: BookOpen,
-      change: "2 à terminer",
+      change: "0 à terminer",
       trend: "neutral" as const
     },
     {
       title: "Cours terminés",
-      value: "12",
+      value: "0",
       icon: Award,
-      change: "+2 ce mois",
-      trend: "up" as const
+      change: "+0 ce mois",
+      trend: "neutral" as const
     },
     {
       title: "Certificats obtenus",
-      value: "8",
+      value: "0",
       icon: Award,
-      change: "+1 cette semaine",
-      trend: "up" as const
+      change: "+0 cette semaine",
+      trend: "neutral" as const
     },
     {
       title: "Heures d'étude",
-      value: "156h",
+      value: "0h",
       icon: Clock,
-      change: "+12h cette semaine",
-      trend: "up" as const
+      change: "+0h cette semaine",
+      trend: "neutral" as const
     }
   ];
 
