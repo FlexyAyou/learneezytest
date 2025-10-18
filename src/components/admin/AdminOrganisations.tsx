@@ -26,80 +26,9 @@ const AdminOrganisations = () => {
   // Récupérer les organisations depuis l'API
   const { data: apiOrganizations, isLoading } = useOrganizations();
 
-  // Mock data pour 2 organisations (pour garder la logique du rendu)
-  const mockOrganisations = [
-    {
-      id: '1',
-      name: 'Centre de Formation Digital',
-      address: '123 Rue de la Formation, 75001 Paris',
-      phone: '01 23 45 67 89',
-      email: 'contact@cfdigital.fr',
-      siret: '12345678901234',
-      numeroDeclaration: '11-75-12345-75',
-      agrements: ['Qualiopi', 'OPCO', 'Datadock', 'RNCP'],
-      usersCount: 145,
-      userBreakdown: {
-        apprenants: 120,
-        apprenantsActifs: 95,
-        gestionnaires: 15,
-        comptesPro: 10
-      },
-      createdAt: '2023-01-15',
-      isActive: true,
-      logoUrl: '',
-      description: 'Centre de formation spécialisé dans le digital et les nouvelles technologies',
-      website: 'https://www.cfdigital.fr',
-      legalRepresentative: 'Jean Dupont',
-      subscription: {
-        daysRemaining: 45,
-        tokensRemaining: 150,
-        tokensTotal: 1000
-      },
-      documents: [
-        { name: 'Extrait K-bis', type: 'kbis', status: 'validé', uploadDate: '2023-01-10' },
-        { name: 'Déclaration d\'activité', type: 'declaration', status: 'validé', uploadDate: '2023-01-12' },
-        { name: 'Certificat Qualiopi', type: 'qualiopi', status: 'validé', uploadDate: '2023-01-14' },
-        { name: 'Assurance responsabilité civile', type: 'assurance', status: 'en_attente', uploadDate: '2023-01-15' }
-      ]
-    },
-    {
-      id: '2',
-      name: 'Institut TechnoPlus',
-      address: '456 Avenue des Sciences, 69002 Lyon',
-      phone: '04 78 90 12 34',
-      email: 'info@technoplus.fr',
-      siret: '98765432109876',
-      numeroDeclaration: '84-69-98765-69',
-      agrements: ['OPCO', 'Pôle Emploi'],
-      usersCount: 89,
-      userBreakdown: {
-        apprenants: 75,
-        apprenantsActifs: 62,
-        gestionnaires: 8,
-        comptesPro: 6
-      },
-      createdAt: '2023-03-22',
-      isActive: true,
-      logoUrl: '',
-      description: 'Institut de formation technique et technologique',
-      website: 'https://www.technoplus.fr',
-      legalRepresentative: 'Marie Martin',
-      subscription: {
-        daysRemaining: 12,
-        tokensRemaining: 50,
-        tokensTotal: 500
-      },
-      documents: [
-        { name: 'Extrait K-bis', type: 'kbis', status: 'validé', uploadDate: '2023-03-20' },
-        { name: 'Déclaration d\'activité', type: 'declaration', status: 'validé', uploadDate: '2023-03-21' },
-        { name: 'Attestation fiscale', type: 'fiscal', status: 'refusé', uploadDate: '2023-03-22' }
-      ]
-    }
-  ];
-
-  // Combiner les organisations mockées avec celles de l'API
+  // Mapper les organisations de l'API
   const organisations = useMemo(() => {
-    const apiOrgs = (apiOrganizations || []).map(org => ({
+    return (apiOrganizations || []).map(org => ({
       id: org.id.toString(),
       name: org.name,
       address: org.address || 'Non renseigné',
@@ -128,8 +57,6 @@ const AdminOrganisations = () => {
       },
       documents: []
     }));
-
-    return [...mockOrganisations, ...apiOrgs];
   }, [apiOrganizations]);
 
   const handleToggleStatus = (orgId, currentStatus) => {
