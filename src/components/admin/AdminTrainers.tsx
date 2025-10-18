@@ -54,7 +54,7 @@ const AdminTrainers = () => {
   // Mapper les formateurs de l'API et ajouter le formateur mocké
   const applications = useMemo(() => {
     const apiTrainers = (allUsers || [])
-      .filter(user => user.role === 'formateur_independant')
+      .filter(user => user.role === 'independent_trainer')
       .map(user => ({
         id: user.id.toString(),
         userId: user.id.toString(),
