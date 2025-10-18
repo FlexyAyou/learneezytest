@@ -93,6 +93,25 @@ export const AdminUsers = () => {
   const getUserDetailUrl = (user: any) => {
     const slug = user.name.toLowerCase().replace(/\s+/g, '-');
     
+    // Si l'utilisateur est d'un OF, router vers les pages OF spécifiques
+    if (user.organisationType === 'OF') {
+      switch (user.role) {
+        case 'Apprenant':
+          return `/dashboard/superadmin/users/of-student/${slug}`;
+        case 'Formateur':
+        case 'Formateur indépendant':
+          return `/dashboard/superadmin/users/of-trainer/${slug}`;
+        case 'Gestionnaire':
+        case 'Manager':
+          return `/dashboard/superadmin/users/of-manager/${slug}`;
+        case 'Administrateur OF':
+          return `/dashboard/superadmin/users/of-admin/${slug}`;
+        default:
+          return `/dashboard/superadmin/users/of-student/${slug}`;
+      }
+    }
+    
+    // Pour les utilisateurs Learneezy Direct
     switch (user.role) {
       case 'Apprenant':
         return `/dashboard/superadmin/users/student/${slug}`;
@@ -101,6 +120,7 @@ export const AdminUsers = () => {
       case 'Formateur indépendant':
         return `/dashboard/superadmin/users/independent-trainer/${slug}`;
       case 'Gestionnaire':
+      case 'Manager':
         return `/dashboard/superadmin/users/manager/${slug}`;
       case 'Animateur':
         return `/dashboard/superadmin/users/animator/${slug}`;
@@ -314,6 +334,7 @@ export const AdminUsers = () => {
                 <SelectItem value="Gestionnaire">Gestionnaires</SelectItem>
                 <SelectItem value="Animateur">Animateurs</SelectItem>
                 <SelectItem value="Administrateur">Administrateurs</SelectItem>
+                <SelectItem value="Administrateur OF">Administrateurs OF</SelectItem>
               </SelectContent>
             </Select>
             <Select value={orgFilter} onValueChange={setOrgFilter}>
