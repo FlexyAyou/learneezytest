@@ -89,16 +89,16 @@ export const TrainerApplicationModal = ({
       ndaNumber: null,
     },
     performance: {
-      totalEarnings: 15420,
-      completedSessions: 142,
-      averageRating: 4.8,
-      totalStudents: 89,
+      totalEarnings: 0,
+      completedSessions: 0,
+      averageRating: 0,
+      totalStudents: 0,
     },
     compliance: {
-      backgroundCheck: true,
-      insuranceValid: true,
-      certificationStatus: "Valid",
-      lastVerification: "2024-01-15",
+      backgroundCheck: false,
+      insuranceValid: false,
+      certificationStatus: "En attente",
+      lastVerification: null,
     },
   };
 
@@ -339,7 +339,7 @@ export const TrainerApplicationModal = ({
                   {trainerDetails.compliance.backgroundCheck ? "✓ Vérifiée" : "✗ En attente"}
                 </p>
                 <p className="text-sm text-orange-600">
-                  Dernier contrôle : {new Date(trainerDetails.compliance.lastVerification).toLocaleDateString()}
+                  Dernier contrôle : {trainerDetails.compliance.lastVerification ? new Date(trainerDetails.compliance.lastVerification).toLocaleDateString() : "Non renseigné"}
                 </p>
               </div>
             </div>
