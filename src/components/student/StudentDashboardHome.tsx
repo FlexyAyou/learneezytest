@@ -8,9 +8,11 @@ import { InteractiveChart } from '@/components/common/InteractiveChart';
 import { BadgeDisplay } from '@/components/common/BadgeDisplay';
 import { useStudentAchievements } from '@/hooks/useStudentAchievements';
 import { useNavigate } from 'react-router-dom';
+import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 
 export const StudentDashboardHome = () => {
   const navigate = useNavigate();
+  const { user } = useFastAPIAuth();
   const { badges, loading } = useStudentAchievements('1');
 
   const stats = [
@@ -103,7 +105,7 @@ export const StudentDashboardHome = () => {
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Bonjour Alice ! 
+            Bonjour {user?.first_name || 'Apprenant'} ! 
             <span className="inline-block animate-bounce ml-2">👋</span>
           </h1>
           <p className="text-gray-600">Continuez votre apprentissage</p>

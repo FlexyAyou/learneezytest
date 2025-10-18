@@ -63,6 +63,9 @@ export interface UserResponse {
   is_major?: boolean;
   of_id?: number | null;
   accessible_catalogues?: string[];
+  phone_number?: string;
+  address?: string;
+  bio?: string;
 }
 
 // Réponse complète de la liste des utilisateurs (endpoint superadmin)

@@ -1,14 +1,20 @@
 
-import React, { useState } from 'react';
-import { User, Mail, Lock, Bell, Globe, Shield, Trash2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { User, Mail, Lock, Bell, Globe, Shield, Trash2, Camera, X } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
+import { useToast } from '@/hooks/use-toast';
 
 const StudentSettings = () => {
+  const { user } = useFastAPIAuth();
+  const { toast } = useToast();
+  const [avatar, setAvatar] = useState<string>('');
   const [notifications, setNotifications] = useState({
     email: true,
     push: false,
@@ -16,6 +22,65 @@ const StudentSettings = () => {
     courseUpdates: true,
     marketing: false
   });
+
+  // Charger la photo depuis localStorage
+  useEffect(() => {
+    const savedAvatar = localStorage.getItem('student-avatar');
+    if (savedAvatar) {
+      setAvatar(savedAvatar);
+    }
+  }, []);
+
+  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validation du type
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      toast({
+        title: "Format non supporté",
+        description: "Veuillez choisir une image JPG, PNG ou WEBP",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validation de la taille (5 MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Fichier trop volumineux",
+        description: "La taille maximale est de 5 MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Conversion en base64
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      setAvatar(base64String);
+      
+      // Sauvegarde dans localStorage pour persistance
+      localStorage.setItem('student-avatar', base64String);
+      
+      toast({
+        title: "Photo mise à jour",
+        description: "Votre photo de profil a été changée avec succès",
+      });
+    };
+    
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemovePhoto = () => {
+    setAvatar('');
+    localStorage.removeItem('student-avatar');
+    toast({
+      title: "Photo supprimée",
+      description: "Votre photo de profil a été supprimée",
+    });
+  };
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-gray-50">
@@ -25,9 +90,57 @@ const StudentSettings = () => {
             <p className="text-gray-600">Gérez vos préférences et informations personnelles</p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Informations personnelles */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Photo de profil */}
             <Card>
+              <CardHeader>
+                <CardTitle>Photo de profil</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex flex-col items-center">
+                  <Avatar className="h-24 w-24 mb-4">
+                    {avatar ? (
+                      <AvatarImage src={avatar} alt={`${user?.first_name} ${user?.last_name}`} />
+                    ) : (
+                      <AvatarFallback className="text-lg bg-gradient-to-br from-pink-500 to-purple-600 text-white">
+                        {user?.first_name?.[0]}{user?.last_name?.[0]}
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
+                  
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => document.getElementById('avatar-upload')?.click()}
+                    >
+                      <Camera className="h-4 w-4 mr-2" />
+                      Changer
+                    </Button>
+                    {avatar && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleRemovePhoto}
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Supprimer
+                      </Button>
+                    )}
+                  </div>
+                  <input
+                    id="avatar-upload"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={handlePhotoUpload}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Informations personnelles */}
+            <Card className="lg:col-span-2">
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <User className="h-5 w-5 mr-2 text-pink-600" />
@@ -36,21 +149,28 @@ const StudentSettings = () => {
                 <CardDescription>Modifiez vos informations de profil</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">Prénom</Label>
-                  <Input id="firstName" defaultValue="Jean-Paul" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Nom</Label>
-                  <Input id="lastName" defaultValue="Martin" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName">Prénom</Label>
+                    <Input id="firstName" defaultValue={user?.first_name || ''} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">Nom</Label>
+                    <Input id="lastName" defaultValue={user?.last_name || ''} />
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" defaultValue="jean-paul@email.com" />
+                  <Input id="email" type="email" defaultValue={user?.email || ''} disabled className="bg-gray-100 cursor-not-allowed" />
+                  <p className="text-xs text-gray-500">L'email ne peut pas être modifié</p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="phone">Téléphone</Label>
-                  <Input id="phone" defaultValue="+33 1 23 45 67 89" />
+                  <Input id="phone" defaultValue={user?.phone_number || ''} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="address">Adresse</Label>
+                  <Input id="address" defaultValue={user?.address || ''} placeholder="Votre adresse complète" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="bio">Bio</Label>
@@ -58,7 +178,7 @@ const StudentSettings = () => {
                     id="bio"
                     className="w-full min-h-[100px] px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
                     placeholder="Parlez-nous de vous..."
-                    defaultValue="Passionné par le développement web et les nouvelles technologies."
+                    defaultValue={user?.bio || ''}
                   />
                 </div>
                 <Button className="bg-pink-600 hover:bg-pink-700">
