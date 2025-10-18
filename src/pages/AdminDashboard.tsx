@@ -21,6 +21,10 @@ import AnimatorDetailPage from './admin/AnimatorDetailPage';
 import AdminDetailPage from './admin/AdminDetailPage';
 import SuperAdminDetailPage from './admin/SuperAdminDetailPage';
 import TutorDetailPage from './admin/TutorDetailPage';
+import OFStudentDetailPageSuperadmin from './admin/OFStudentDetailPageSuperadmin';
+import OFManagerDetailPageSuperadmin from './admin/OFManagerDetailPageSuperadmin';
+import OFTrainerDetailPageSuperadmin from './admin/OFTrainerDetailPageSuperadmin';
+import OFAdminDetailPageSuperadmin from './admin/OFAdminDetailPageSuperadmin';
 import OrganismeDetail from './admin/OrganismeDetail';
 import SuperAdminDocuments from './admin/SuperAdminDocuments';
 import AdminInscriptions from './admin/AdminInscriptions';
@@ -81,6 +85,10 @@ const AdminDashboard = () => {
               <Route path="users/admin/:userSlug" element={<AdminDetailPage />} />
               <Route path="users/superadmin/:userSlug" element={<SuperAdminDetailPage />} />
               <Route path="users/tutor/:userSlug" element={<TutorDetailPage />} />
+              <Route path="users/of-student/:userSlug" element={<OFStudentDetailPageSuperadmin />} />
+              <Route path="users/of-manager/:userSlug" element={<OFManagerDetailPageSuperadmin />} />
+              <Route path="users/of-trainer/:userSlug" element={<OFTrainerDetailPageSuperadmin />} />
+              <Route path="users/of-admin/:userSlug" element={<OFAdminDetailPageSuperadmin />} />
               <Route path="trainers" element={<AdminTrainers />} />
               <Route path="organisations" element={<AdminOrganisations />} />
               <Route path="organisations/create" element={<CreateOrganisme />} />
