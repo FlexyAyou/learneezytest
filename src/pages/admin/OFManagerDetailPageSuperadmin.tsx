@@ -21,7 +21,8 @@ const OFManagerDetailPageSuperadmin = () => {
   const { data: allUsers, isLoading: usersLoading } = useSuperadminUsers();
   
   const foundUser = allUsers?.find(u => {
-    const userSlugGenerated = `${u.first_name?.toLowerCase().trim()}-${u.last_name?.toLowerCase().trim()}`;
+    const fullName = `${u.first_name || ''} ${u.last_name || ''}`.trim();
+    const userSlugGenerated = fullName.toLowerCase().replace(/\s+/g, '-');
     return userSlugGenerated === userSlug;
   });
 
