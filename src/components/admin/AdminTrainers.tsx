@@ -62,7 +62,7 @@ const AdminTrainers = () => {
         lastName: user.last_name || 'Nom',
         email: user.email,
         phone: '',
-        avatar: 'https://via.placeholder.com/100',
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent((user.first_name || 'P') + ' ' + (user.last_name || 'N'))}&background=random&size=100`,
         location: 'Non renseigné',
         specialties: ['En attente'],
         languages: ['Français'],

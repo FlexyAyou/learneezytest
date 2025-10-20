@@ -70,10 +70,13 @@ export const useAuth = () => {
 
 // ============= COURSES HOOKS =============
 
-export const useCourses = (page = 1, perPage = 10) => {
+export const useCourses = (page = 1, perPage = 10, enabled = true) => {
   return useQuery({
     queryKey: ['courses', page, perPage],
     queryFn: () => fastAPIClient.getCourses(page, perPage),
+    enabled,
+    retry: 1, // Réessayer seulement 1 fois en cas d'erreur
+    retryDelay: 1000,
   });
 };
 
