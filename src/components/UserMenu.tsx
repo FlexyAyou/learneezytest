@@ -44,29 +44,56 @@ const UserMenu = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-          <Avatar className="h-10 w-10">
-            <AvatarFallback>{getInitials(getFullName())}</AvatarFallback>
+        <Button 
+          variant="ghost" 
+          className="relative h-11 w-11 rounded-full cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all duration-200"
+        >
+          <Avatar className="h-10 w-10 border-2 border-primary/10">
+            <AvatarFallback className="bg-gradient-to-br from-primary/90 to-primary text-primary-foreground font-semibold text-sm">
+              {getInitials(getFullName())}
+            </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end" forceMount>
-        <DropdownMenuLabel className="font-normal">
-          <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{getFullName()}</p>
-            <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+      <DropdownMenuContent 
+        className="w-64 z-50 bg-background/95 backdrop-blur-sm border shadow-lg" 
+        align="end" 
+        forceMount
+        sideOffset={8}
+      >
+        <DropdownMenuLabel className="font-normal py-3 px-3">
+          <div className="flex items-center gap-3">
+            <Avatar className="h-12 w-12 border-2 border-primary/20">
+              <AvatarFallback className="bg-gradient-to-br from-primary/90 to-primary text-primary-foreground font-semibold">
+                {getInitials(getFullName())}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col space-y-1">
+              <p className="text-sm font-semibold leading-none">{getFullName()}</p>
+              <p className="text-xs leading-none text-muted-foreground truncate">{user.email}</p>
+            </div>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleGoToDashboard}>
-          <LayoutDashboard className="mr-2 h-4 w-4" />
-          <span>Voir mon dashboard</span>
-        </DropdownMenuItem>
+        <div className="p-1">
+          <DropdownMenuItem 
+            onClick={handleGoToDashboard}
+            className="cursor-pointer py-2.5 px-3 rounded-md hover:bg-primary/10 transition-colors"
+          >
+            <LayoutDashboard className="mr-3 h-4 w-4 text-primary" />
+            <span className="font-medium">Voir mon dashboard</span>
+          </DropdownMenuItem>
+        </div>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleLogout}>
-          <LogOut className="mr-2 h-4 w-4" />
-          <span>Se déconnecter</span>
-        </DropdownMenuItem>
+        <div className="p-1">
+          <DropdownMenuItem 
+            onClick={handleLogout}
+            className="cursor-pointer py-2.5 px-3 rounded-md hover:bg-destructive/10 text-destructive transition-colors"
+          >
+            <LogOut className="mr-3 h-4 w-4" />
+            <span className="font-medium">Se déconnecter</span>
+          </DropdownMenuItem>
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );
