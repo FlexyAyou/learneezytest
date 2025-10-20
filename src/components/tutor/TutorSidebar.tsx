@@ -165,11 +165,11 @@ export function TutorSidebar() {
       <SidebarFooter className="border-t border-border p-4">
         <Button
           variant="ghost"
-          className="w-full justify-start"
+          className="w-full justify-start cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"
           onClick={logout}
         >
           <LogOut className="h-4 w-4" />
-          {!isCollapsed && <span>Se déconnecter</span>}
+          {!isCollapsed && <span className="font-medium">Se déconnecter</span>}
         </Button>
       </SidebarFooter>
     </Sidebar>
