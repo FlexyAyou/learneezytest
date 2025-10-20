@@ -12,52 +12,18 @@ import { useNavigate } from 'react-router-dom';
 export const OFDashboard = () => {
   const navigate = useNavigate();
 
-  const recentActivity = [
-    { type: 'inscription', message: 'Nouvelle inscription - Marie Dupont', time: '2h', icon: Users, color: 'text-green-600' },
-    { type: 'document', message: 'Attestation générée pour Jean Martin', time: '3h', icon: FileText, color: 'text-blue-600' },
-    { type: 'formation', message: 'Formation JavaScript terminée', time: '5h', icon: BookOpen, color: 'text-purple-600' },
-    { type: 'evaluation', message: 'Évaluation finale complétée par Sophie', time: '1j', icon: Award, color: 'text-orange-600' },
-  ];
+  const recentActivity: any[] = [];
 
-  const upcomingSessions = [
-    { title: 'Formation React Avancé', date: '15 février', time: '09:00', participants: 15, formateur: 'Sophie Bernard' },
-    { title: 'Évaluation JavaScript', date: '18 février', time: '14:00', participants: 8, formateur: 'Jean Martin' },
-    { title: 'Certification Vue.js', date: '20 février', time: '10:00', participants: 12, formateur: 'Marie Dupont' },
-    { title: 'Suivi pédagogique', date: '22 février', time: '16:00', participants: 25, formateur: 'Alex Rousseau' },
-  ];
+  const upcomingSessions: any[] = [];
 
-  const alertes = [
-    { type: 'warning', message: '5 apprenants en retard sur leur formation', priority: 'high' },
-    { type: 'info', message: '3 nouvelles demandes d\'inscription', priority: 'medium' },
-    { type: 'success', message: 'Taux de réussite en hausse ce mois', priority: 'low' },
-    { type: 'error', message: '2 documents en attente de signature', priority: 'high' },
-  ];
+  const alertes: any[] = [];
 
   // Données pour les graphiques spécifiques à l'OF
-  const inscriptionsData = [
-    { name: 'Jan', value: 45, terminees: 38 },
-    { name: 'Fév', value: 52, terminees: 45 },
-    { name: 'Mar', value: 48, terminees: 42 },
-    { name: 'Avr', value: 61, terminees: 55 },
-    { name: 'Mai', value: 55, terminees: 48 },
-    { name: 'Jun', value: 67, terminees: 58 },
-  ];
+  const inscriptionsData: any[] = [];
 
-  const formationsDistribution = [
-    { name: 'Développement Web', value: 45 },
-    { name: 'Design UI/UX', value: 25 },
-    { name: 'Marketing Digital', value: 20 },
-    { name: 'Gestion de Projet', value: 10 },
-  ];
+  const formationsDistribution: any[] = [];
 
-  const satisfactionData = [
-    { name: 'Jan', value: 85 },
-    { name: 'Fév', value: 88 },
-    { name: 'Mar', value: 92 },
-    { name: 'Avr', value: 87 },
-    { name: 'Mai', value: 91 },
-    { name: 'Jun', value: 89 },
-  ];
+  const satisfactionData: any[] = [];
 
   const getAlertColor = (type: string) => {
     const colors = {
@@ -95,34 +61,34 @@ export const OFDashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatsCard
           title="Apprenants actifs"
-          value="456"
-          change="+12 ce mois"
+          value="0"
+          change="Aucune donnée"
           icon={Users}
-          trend="up"
+          trend="neutral"
           onClick={() => navigate('/dashboard/organisme-formation/apprenants')}
         />
         <StatsCard
           title="Formations en cours"
-          value="24"
-          change="+3 ce mois"
+          value="0"
+          change="Aucune donnée"
           icon={BookOpen}
-          trend="up"
+          trend="neutral"
           onClick={() => navigate('/dashboard/organisme-formation/formations')}
         />
         <StatsCard
           title="Taux de réussite"
-          value="87%"
-          change="+2% ce mois"
+          value="0%"
+          change="Aucune donnée"
           icon={Award}
-          trend="up"
+          trend="neutral"
           onClick={() => navigate('/dashboard/organisme-formation/suivi')}
         />
         <StatsCard
           title="Documents générés"
-          value="1,247"
-          change="+23 cette semaine"
+          value="0"
+          change="Aucune donnée"
           icon={FileText}
-          trend="up"
+          trend="neutral"
           onClick={() => navigate('/dashboard/organisme-formation/documents')}
         />
       </div>
@@ -166,17 +132,21 @@ export const OFDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {recentActivity.map((activity, index) => (
-                <div key={index} className="flex items-start space-x-3">
-                  <div className={`p-1 rounded-full ${activity.color}`}>
-                    <activity.icon className="h-3 w-3" />
+              {recentActivity.length > 0 ? (
+                recentActivity.map((activity, index) => (
+                  <div key={index} className="flex items-start space-x-3">
+                    <div className={`p-1 rounded-full ${activity.color}`}>
+                      <activity.icon className="h-3 w-3" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-gray-900">{activity.message}</p>
+                      <p className="text-xs text-gray-500">{activity.time}</p>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-900">{activity.message}</p>
-                    <p className="text-xs text-gray-500">{activity.time}</p>
-                  </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-sm text-gray-500 text-center py-8">Aucune activité récente</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -191,26 +161,30 @@ export const OFDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {upcomingSessions.map((session, index) => (
-                <div key={index} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-medium">{session.title}</h4>
-                    <Button size="sm" variant="outline" onClick={() => navigate('/dashboard/organisme-formation/suivi')}>
-                      <Eye className="h-3 w-3" />
-                    </Button>
+              {upcomingSessions.length > 0 ? (
+                upcomingSessions.map((session, index) => (
+                  <div key={index} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-medium">{session.title}</h4>
+                      <Button size="sm" variant="outline" onClick={() => navigate('/dashboard/organisme-formation/suivi')}>
+                        <Eye className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-gray-500">
+                      <span>{session.date} à {session.time}</span>
+                      <span className="flex items-center">
+                        <Users className="h-3 w-3 mr-1" />
+                        {session.participants}
+                      </span>
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      Formateur: {session.formateur}
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between text-xs text-gray-500">
-                    <span>{session.date} à {session.time}</span>
-                    <span className="flex items-center">
-                      <Users className="h-3 w-3 mr-1" />
-                      {session.participants}
-                    </span>
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    Formateur: {session.formateur}
-                  </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-sm text-gray-500 text-center py-8">Aucune session à venir</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -225,19 +199,23 @@ export const OFDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {alertes.map((alert, index) => (
-                <div key={index} className={`p-3 rounded-lg border ${getAlertColor(alert.type)}`}>
-                  <div className="flex items-start justify-between">
-                    <p className="text-sm font-medium">{alert.message}</p>
-                    <Badge 
-                      variant={alert.priority === 'high' ? 'destructive' : alert.priority === 'medium' ? 'default' : 'outline'}
-                      className="text-xs"
-                    >
-                      {alert.priority}
-                    </Badge>
+              {alertes.length > 0 ? (
+                alertes.map((alert, index) => (
+                  <div key={index} className={`p-3 rounded-lg border ${getAlertColor(alert.type)}`}>
+                    <div className="flex items-start justify-between">
+                      <p className="text-sm font-medium">{alert.message}</p>
+                      <Badge 
+                        variant={alert.priority === 'high' ? 'destructive' : alert.priority === 'medium' ? 'default' : 'outline'}
+                        className="text-xs"
+                      >
+                        {alert.priority}
+                      </Badge>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-sm text-gray-500 text-center py-8">Aucune alerte</p>
+              )}
             </div>
           </CardContent>
         </Card>
