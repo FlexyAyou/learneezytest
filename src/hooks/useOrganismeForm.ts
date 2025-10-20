@@ -91,7 +91,12 @@ export const useOrganismeForm = () => {
       'enterprise': 'premium'
     };
     
-    return {
+    // Préparer les agréments - ne pas envoyer une liste vide
+    const agrements = formData.agrement && formData.agrement.length > 0 
+      ? formData.agrement 
+      : undefined;
+    
+    const backendData: any = {
       name: formData.name,
       subdomain: subdomain || formData.name.toLowerCase().replace(/\s+/g, '-'),
       subscription_type: subscriptionTypeMap[formData.subscriptionType] || 'starter',
@@ -104,9 +109,15 @@ export const useOrganismeForm = () => {
       email: formData.email,
       siret: formData.siret,
       numero_declaration: formData.numeroDeclaration,
-      agrement: formData.agrement || [],
       tokens_total: formData.tokensTotal
     };
+    
+    // Ajouter agrement seulement s'il y a des valeurs
+    if (agrements && agrements.length > 0) {
+      backendData.agrement = agrements;
+    }
+    
+    return backendData as OrganizationCreate;
   };
 
   const submitForm = async (): Promise<boolean> => {
@@ -126,7 +137,7 @@ export const useOrganismeForm = () => {
       // Mapper les données du formulaire vers le format backend
       const backendData = mapFormDataToBackend(formData);
       
-      console.log('Données envoyées au backend:', backendData);
+      console.log('Données envoyées au backend:', JSON.stringify(backendData, null, 2));
       
       // Appel réel à l'API
       const response = await fastAPIClient.createOrganization(backendData);
