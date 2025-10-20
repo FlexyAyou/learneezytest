@@ -125,7 +125,7 @@ export interface OrganizationCreate {
   email: string;
   siret: string;
   numero_declaration: string;
-  agrement: string;
+  agrement: string[];
   tokens_total: number;
 }
 
@@ -146,7 +146,7 @@ export interface OrganizationResponse {
   email?: string;
   siret?: string;
   numero_declaration?: string;
-  agrement?: string;
+  agrement?: string[];
   tokens_total?: number;
   tokens_remaining?: number;
   is_active?: boolean;

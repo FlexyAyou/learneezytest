@@ -69,16 +69,15 @@ const OrganismeDetail = () => {
   // Mock data pour les apprenants - sera remplacé par l'API
   const apprenants = [];
 
-  const renderAgrements = (agrement: string | undefined) => {
-    if (!agrement) {
+  const renderAgrements = (agrement: string[] | undefined) => {
+    if (!agrement || agrement.length === 0) {
       return <Badge variant="outline">Aucun agrément</Badge>;
     }
 
-    // Si l'agrément contient des virgules, on le split et on affiche plusieurs badges
-    const agrements = agrement.split(',').map(a => a.trim()).filter(Boolean);
+    // Afficher plusieurs badges pour chaque agrément
     const maxDisplayed = 3;
-    const displayedAgrements = agrements.slice(0, maxDisplayed);
-    const remainingCount = agrements.length - maxDisplayed;
+    const displayedAgrements = agrement.slice(0, maxDisplayed);
+    const remainingCount = agrement.length - maxDisplayed;
 
     return (
       <div className="flex flex-wrap gap-2">
@@ -98,10 +97,10 @@ const OrganismeDetail = () => {
             <TooltipContent>
               <div className="space-y-1">
                 <div className="font-medium">Autres agréments :</div>
-                {agrements.slice(maxDisplayed).map((agrement, index) => (
+                {agrement.slice(maxDisplayed).map((agr, index) => (
                   <div key={index} className="flex items-center">
                     <CheckCircle className="h-3 w-3 mr-1 text-green-600" />
-                    {agrement}
+                    {agr}
                   </div>
                 ))}
               </div>

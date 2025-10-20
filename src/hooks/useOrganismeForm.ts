@@ -104,7 +104,7 @@ export const useOrganismeForm = () => {
       email: formData.email,
       siret: formData.siret,
       numero_declaration: formData.numeroDeclaration,
-      agrement: formData.agrement?.join(',') || '',
+      agrement: formData.agrement || [],
       tokens_total: formData.tokensTotal
     };
   };
