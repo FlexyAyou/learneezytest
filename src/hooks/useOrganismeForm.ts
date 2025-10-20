@@ -20,7 +20,7 @@ export const useOrganismeForm = () => {
     email: '',
     siret: '',
     numeroDeclaration: '',
-    agrement: '',
+    agrement: [],
     logoUrl: '',
     maxUsers: 50,
     customBranding: false,
@@ -88,7 +88,7 @@ export const useOrganismeForm = () => {
       email: formData.email,
       siret: formData.siret,
       numero_declaration: formData.numeroDeclaration,
-      agrement: formData.agrement,
+      agrement: formData.agrement?.join(',') || '',
       tokens_total: formData.tokensTotal
     };
   };
