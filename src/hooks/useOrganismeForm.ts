@@ -50,7 +50,9 @@ export const useOrganismeForm = () => {
   const validateStep = (step: number): boolean => {
     switch (step) {
       case 1:
-        return !!(formData.name && formData.description && formData.legalRepresentative);
+        // Extraire le subdomain du website
+        const subdomain = formData.website.replace(/\.learneezy\.com$/, '').trim();
+        return !!(formData.name && formData.description && formData.legalRepresentative && subdomain);
       case 2:
         return !!(formData.address && formData.phone && formData.email);
       case 3:
@@ -62,6 +64,20 @@ export const useOrganismeForm = () => {
       default:
         return false;
     }
+  };
+
+  const validateAllRequiredFields = (): boolean => {
+    return !!(
+      formData.name &&
+      formData.description &&
+      formData.legalRepresentative &&
+      formData.address &&
+      formData.phone &&
+      formData.email &&
+      formData.siret &&
+      formData.numeroDeclaration &&
+      formData.website
+    );
   };
 
   const mapFormDataToBackend = (formData: OrganismeFormData): OrganizationCreate => {
@@ -94,6 +110,16 @@ export const useOrganismeForm = () => {
   };
 
   const submitForm = async (): Promise<boolean> => {
+    // Vérifier que tous les champs obligatoires sont remplis
+    if (!validateAllRequiredFields()) {
+      toast({
+        title: "Champs manquants",
+        description: "Veuillez remplir tous les champs obligatoires avant de soumettre.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
     setIsSubmitting(true);
     
     try {
