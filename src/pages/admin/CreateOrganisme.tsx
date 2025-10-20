@@ -99,14 +99,19 @@ const CreateOrganisme = () => {
             {steps.map((step, index) => (
               <div key={step.number} className="flex items-center">
                 <div 
-                  className={`flex items-center justify-center w-10 h-10 rounded-full border-2 cursor-pointer transition-colors ${
+                  className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors ${
                     step.completed 
-                      ? 'bg-green-500 border-green-500 text-white' 
+                      ? 'bg-green-500 border-green-500 text-white cursor-pointer' 
                       : currentStep === step.number
-                        ? 'border-blue-500 text-blue-500 bg-blue-50'
-                        : 'border-gray-300 text-gray-400'
+                        ? 'border-blue-500 text-blue-500 bg-blue-50 cursor-default'
+                        : 'border-gray-300 text-gray-400 cursor-not-allowed'
                   }`}
-                  onClick={() => setCurrentStep(step.number)}
+                  onClick={() => {
+                    // Ne permettre de cliquer que sur l'étape courante ou les étapes déjà complétées
+                    if (step.number <= currentStep || step.completed) {
+                      setCurrentStep(step.number);
+                    }
+                  }}
                 >
                   {step.completed ? (
                     <Check className="w-5 h-5" />

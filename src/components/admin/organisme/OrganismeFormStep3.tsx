@@ -1,10 +1,11 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { OrganismeFormData } from '@/types/organisme';
-import { FileText, Award, Hash } from 'lucide-react';
+import { FileText, Award, Hash, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { validateSiret } from '@/utils/fiscalValidation';
 
 interface OrganismeFormStep3Props {
   formData: OrganismeFormData;
@@ -15,6 +16,29 @@ export const OrganismeFormStep3: React.FC<OrganismeFormStep3Props> = ({
   formData,
   updateFormData
 }) => {
+  const [siretError, setSiretError] = useState<string>('');
+  const [siretValid, setSiretValid] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (formData.siret) {
+      const isValid = validateSiret(formData.siret);
+      setSiretValid(isValid);
+      if (!isValid && formData.siret.length > 0) {
+        setSiretError('Le SIRET doit contenir exactement 14 chiffres');
+      } else {
+        setSiretError('');
+      }
+    } else {
+      setSiretValid(false);
+      setSiretError('');
+    }
+  }, [formData.siret]);
+
+  const handleSiretChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, ''); // Ne garder que les chiffres
+    updateFormData({ siret: value });
+  };
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -23,14 +47,38 @@ export const OrganismeFormStep3: React.FC<OrganismeFormStep3Props> = ({
             <Hash className="w-4 h-4 mr-2" />
             Numéro SIRET *
           </Label>
-          <Input
-            id="siret"
-            value={formData.siret}
-            onChange={(e) => updateFormData({ siret: e.target.value })}
-            placeholder="12345678901234"
-            maxLength={14}
-            required
-          />
+          <div className="relative">
+            <Input
+              id="siret"
+              value={formData.siret}
+              onChange={handleSiretChange}
+              placeholder="12345678901234"
+              maxLength={14}
+              required
+              className={`pr-10 ${siretError ? 'border-red-500' : siretValid ? 'border-green-500' : ''}`}
+            />
+            {formData.siret && (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                {siretValid ? (
+                  <CheckCircle2 className="w-5 h-5 text-green-500" />
+                ) : (
+                  <AlertCircle className="w-5 h-5 text-red-500" />
+                )}
+              </div>
+            )}
+          </div>
+          {siretError && (
+            <p className="text-sm text-red-500 flex items-center">
+              <AlertCircle className="w-4 h-4 mr-1" />
+              {siretError}
+            </p>
+          )}
+          {siretValid && (
+            <p className="text-sm text-green-600 flex items-center">
+              <CheckCircle2 className="w-4 h-4 mr-1" />
+              SIRET valide
+            </p>
+          )}
         </div>
 
         <div className="space-y-2">

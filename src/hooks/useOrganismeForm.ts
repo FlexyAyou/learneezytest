@@ -4,6 +4,7 @@ import { OrganismeFormData } from '@/types/organisme';
 import { useToast } from '@/hooks/use-toast';
 import { OrganizationCreate, SubscriptionType } from '@/types/fastapi';
 import { fastAPIClient } from '@/services/fastapi-client';
+import { validateSiret } from '@/utils/fiscalValidation';
 
 export const useOrganismeForm = () => {
   const { toast } = useToast();
@@ -50,11 +51,54 @@ export const useOrganismeForm = () => {
   const validateStep = (step: number): boolean => {
     switch (step) {
       case 1:
-        return !!(formData.name && formData.description && formData.legalRepresentative);
+        if (!formData.name || !formData.description || !formData.legalRepresentative) {
+          toast({
+            title: "Champs obligatoires manquants",
+            description: "Veuillez remplir tous les champs obligatoires de l'étape 1.",
+            variant: "destructive",
+          });
+          return false;
+        }
+        return true;
       case 2:
-        return !!(formData.address && formData.phone && formData.email);
+        if (!formData.address || !formData.phone || !formData.email) {
+          toast({
+            title: "Champs obligatoires manquants",
+            description: "Veuillez remplir tous les champs obligatoires de l'étape 2.",
+            variant: "destructive",
+          });
+          return false;
+        }
+        // Validation format email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email)) {
+          toast({
+            title: "Email invalide",
+            description: "Veuillez saisir une adresse email valide.",
+            variant: "destructive",
+          });
+          return false;
+        }
+        return true;
       case 3:
-        return !!(formData.siret && formData.numeroDeclaration);
+        if (!formData.siret || !formData.numeroDeclaration) {
+          toast({
+            title: "Champs obligatoires manquants",
+            description: "Veuillez remplir tous les champs obligatoires de l'étape 3.",
+            variant: "destructive",
+          });
+          return false;
+        }
+        // Validation SIRET stricte
+        if (!validateSiret(formData.siret)) {
+          toast({
+            title: "SIRET invalide",
+            description: "Le numéro SIRET doit contenir exactement 14 chiffres.",
+            variant: "destructive",
+          });
+          return false;
+        }
+        return true;
       case 4:
         return true; // Configuration optionnelle
       case 5:
