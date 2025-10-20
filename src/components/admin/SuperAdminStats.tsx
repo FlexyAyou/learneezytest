@@ -7,13 +7,12 @@ import { useOrganizations, useCourses, useSuperadminUsers } from '@/hooks/useApi
 export const SuperAdminStats = () => {
   // Récupération des données depuis l'API
   const { data: organizations, isLoading: loadingOrgs } = useOrganizations();
-  // Désactiver temporairement l'appel courses car l'API n'est pas encore prête (erreur 422)
-  const { data: coursesData, isLoading: loadingCourses, error: coursesError } = useCourses(1, 100);
+  const { data: coursesData, isLoading: loadingCourses } = useCourses(1, 1000);
   const { data: users, isLoading: loadingUsers } = useSuperadminUsers();
 
-  // Calcul des statistiques dynamiques avec gestion d'erreur
+  // Calcul des statistiques dynamiques
   const totalOrgs = organizations?.length || 0;
-  const totalCourses = coursesError ? 0 : (Array.isArray(coursesData) ? coursesData.length : 0);
+  const totalCourses = Array.isArray(coursesData) ? coursesData.length : 0;
   const totalUsers = users?.length || 0;
 
   return (
@@ -34,8 +33,8 @@ export const SuperAdminStats = () => {
       />
       <StatsCard
         title="Cours totaux"
-        value={loadingCourses ? "..." : coursesError ? "N/A" : totalCourses.toLocaleString('fr-FR')}
-        change={coursesError ? "API non disponible" : "Données en direct"}
+        value={loadingCourses ? "..." : totalCourses.toLocaleString('fr-FR')}
+        change="Données en direct"
         icon={BookOpen}
         trend="neutral"
       />
