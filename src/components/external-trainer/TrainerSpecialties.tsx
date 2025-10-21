@@ -10,13 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const TrainerSpecialties = () => {
   const { toast } = useToast();
-  const [specialties, setSpecialties] = useState([
-    { id: 1, name: 'React', status: 'approved', level: 'Expert' },
-    { id: 2, name: 'JavaScript', status: 'approved', level: 'Expert' },
-    { id: 3, name: 'UI/UX Design', status: 'approved', level: 'Avancé' },
-    { id: 4, name: 'Node.js', status: 'pending', level: 'Avancé' },
-    { id: 5, name: 'Python', status: 'rejected', level: 'Intermédiaire' },
-  ]);
+  const [specialties, setSpecialties] = useState([]);
   
   const [newSpecialty, setNewSpecialty] = useState({ name: '', level: '', motivation: '' });
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -31,7 +25,7 @@ const TrainerSpecialties = () => {
       return;
     }
 
-    const newId = Math.max(...specialties.map(s => s.id)) + 1;
+    const newId = specialties.length > 0 ? Math.max(...specialties.map(s => s.id)) + 1 : 1;
     setSpecialties([...specialties, {
       id: newId,
       name: newSpecialty.name,
