@@ -412,3 +412,52 @@ export const useUpdateOrganization = () => {
     },
   });
 };
+
+/**
+ * Hook pour récupérer un utilisateur par son slug
+ * Le slug est généré à partir du prénom et du nom (ex: "ndeye-fatou-ndiaye")
+ */
+export const useUserBySlug = (userSlug?: string) => {
+  const { data: apiUsers, isLoading, error } = useSuperadminUsers();
+
+  return useQuery({
+    queryKey: ['userBySlug', userSlug],
+    queryFn: () => {
+      if (!apiUsers || !userSlug) {
+        throw new Error('Utilisateur non trouvé');
+      }
+
+      // Fonction pour générer un slug à partir du nom complet
+      const generateSlug = (firstName: string, lastName: string): string => {
+        const fullName = `${firstName} ${lastName}`.trim();
+        return fullName.toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '') // Enlever les accents
+          .replace(/\s+/g, '-');
+      };
+
+      console.log('Slug recherché:', userSlug);
+      console.log('Tous les utilisateurs:', apiUsers.map(u => ({
+        id: u.id,
+        first_name: u.first_name,
+        last_name: u.last_name,
+        slug: generateSlug(u.first_name || '', u.last_name || '')
+      })));
+
+      // Chercher l'utilisateur correspondant au slug
+      const user = apiUsers.find(u => {
+        const userSlugGenerated = generateSlug(u.first_name || '', u.last_name || '');
+        console.log(`Comparaison: ${userSlugGenerated} === ${userSlug}`);
+        return userSlugGenerated === userSlug;
+      });
+
+      if (!user) {
+        throw new Error(`Le slug "${userSlug}" ne correspond à aucun utilisateur`);
+      }
+
+      console.log('Utilisateur trouvé:', user);
+      return user;
+    },
+    enabled: !!apiUsers && !!userSlug,
+  });
+};
