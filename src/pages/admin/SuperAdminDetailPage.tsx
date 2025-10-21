@@ -23,17 +23,23 @@ const SuperAdminDetailPage = () => {
 
   const { data: allUsers, isLoading: usersLoading } = useSuperadminUsers();
   
-  // Récupérer les statistiques dynamiques
-  const { data: courses, isLoading: coursesLoading, isError: coursesError } = useQuery({
+  // Récupérer les statistiques dynamiques - avec fallback à 0 si erreur
+  const { data: courses, isLoading: coursesLoading } = useQuery({
     queryKey: ['all-courses-stats'],
     queryFn: () => fastAPIClient.getCourses(1, 100),
     retry: false,
+    meta: {
+      onError: () => console.warn('Erreur lors du chargement des cours')
+    }
   });
 
-  const { data: organizations, isLoading: orgsLoading, isError: orgsError } = useQuery({
+  const { data: organizations, isLoading: orgsLoading } = useQuery({
     queryKey: ['all-organizations-stats'],
     queryFn: () => fastAPIClient.listOrganizations(1, 100),
     retry: false,
+    meta: {
+      onError: () => console.warn('Erreur lors du chargement des organisations')
+    }
   });
   
   const foundUser = allUsers?.find(u => {
