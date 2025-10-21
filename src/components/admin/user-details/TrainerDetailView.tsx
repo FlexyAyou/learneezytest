@@ -68,7 +68,6 @@ export const TrainerDetailView = ({ user }: TrainerDetailViewProps) => {
           <CardContent className="p-4 text-center">
             <div className="text-3xl font-bold text-blue-600 mb-1">{trainerData.stats.activeCourses}</div>
             <div className="text-sm text-gray-600">Cours actifs</div>
-            <p className="text-xs text-muted-foreground">Données mockées</p>
           </CardContent>
         </Card>
         <Card>
