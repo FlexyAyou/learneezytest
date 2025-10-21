@@ -91,7 +91,10 @@ export const AdminUsers = () => {
 
   // Fonction pour obtenir l'URL de détail selon le rôle
   const getUserDetailUrl = (user: any) => {
-    const slug = user.name.toLowerCase().replace(/\s+/g, '-');
+    const slug = user.name.toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Enlever les accents
+      .replace(/\s+/g, '-');
     
     // Si l'utilisateur est d'un OF, router vers les pages OF spécifiques
     if (user.organisationType === 'OF') {
