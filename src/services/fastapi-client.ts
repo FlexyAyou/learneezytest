@@ -377,6 +377,15 @@ class FastAPIClient {
     return this.post<EnrollResponse>('/api/courses/enroll', { course_id: courseId });
   }
 
+  // ============= USERS =============
+
+  /**
+   * Récupérer la liste de tous les utilisateurs (superadmin)
+   */
+  async getUsers(page = 1, perPage = 100): Promise<UserResponse[]> {
+    return this.get<UserResponse[]>(`/api/users/?page=${page}&per_page=${perPage}`);
+  }
+
   // ============= ORGANIZATIONS =============
 
   /**

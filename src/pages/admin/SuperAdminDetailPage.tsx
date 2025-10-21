@@ -1,11 +1,13 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { SuperAdminDetailView } from '@/components/admin/user-details/SuperAdminDetailView';
 import { useSuperadminUsers } from '@/hooks/useApi';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
+import { fastAPIClient } from '@/services/fastapi-client';
 import { 
   ArrowLeft, 
   Mail,
@@ -21,12 +23,30 @@ const SuperAdminDetailPage = () => {
 
   const { data: allUsers, isLoading: usersLoading } = useSuperadminUsers();
   
+  // Récupérer les statistiques dynamiques
+  const { data: allUsersStats, isLoading: allUsersLoading } = useQuery({
+    queryKey: ['all-users-stats'],
+    queryFn: () => fastAPIClient.getUsers(1, 1000),
+  });
+
+  const { data: courses, isLoading: coursesLoading } = useQuery({
+    queryKey: ['all-courses-stats'],
+    queryFn: () => fastAPIClient.getCourses(1, 100),
+  });
+
+  const { data: organizations, isLoading: orgsLoading } = useQuery({
+    queryKey: ['all-organizations-stats'],
+    queryFn: () => fastAPIClient.listOrganizations(1, 100),
+  });
+  
   const foundUser = allUsers?.find(u => {
     const userSlugGenerated = `${u.first_name?.toLowerCase().trim()}-${u.last_name?.toLowerCase().trim()}`;
     return userSlugGenerated === userSlug;
   });
 
-  if (usersLoading) {
+  const isLoading = usersLoading || allUsersLoading || coursesLoading || orgsLoading;
+
+  if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
         <LoadingSpinner size="lg" />
@@ -169,7 +189,12 @@ const SuperAdminDetailPage = () => {
         </CardContent>
       </Card>
 
-      <SuperAdminDetailView user={user} />
+      <SuperAdminDetailView 
+        user={user}
+        totalUsers={allUsersStats?.length || 0}
+        totalOrganisations={organizations?.length || 0}
+        activeCourses={courses?.length || 0}
+      />
     </div>
   );
 };
