@@ -264,6 +264,13 @@ class FastAPIClient {
   }
 
   /**
+   * Vérifier l'email avec le token
+   */
+  async verifyEmail(token: string): Promise<UserResponse> {
+    return this.post<UserResponse>(`/api/auth/verify-email?token=${token}`);
+  }
+
+  /**
    * Décode le JWT pour obtenir le payload
    */
   decodeToken(token: string): JWTPayload | null {

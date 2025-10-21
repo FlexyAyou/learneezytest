@@ -1,14 +1,15 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Eye, EyeOff, Mail } from "lucide-react";
+import { Eye, EyeOff, Mail, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuthForm } from "@/hooks/useAuthForm";
 import { useToast } from "@/hooks/use-toast";
+import { fastAPIClient } from "@/services/fastapi-client";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Veuillez entrer une adresse email valide." }),
@@ -26,8 +27,44 @@ const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { showPassword, setShowPassword, isLoading, handleLogin } = useAuthForm();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [loginError, setLoginError] = React.useState<string>("");
+  const [verificationSuccess, setVerificationSuccess] = React.useState<boolean>(false);
+  const [isVerifying, setIsVerifying] = React.useState<boolean>(false);
+
+  // Vérification de l'email au montage si token présent
+  useEffect(() => {
+    const token = searchParams.get("token");
+    
+    if (token) {
+      setIsVerifying(true);
+      fastAPIClient
+        .verifyEmail(token)
+        .then(() => {
+          setVerificationSuccess(true);
+          toast({
+            title: "✅ Email vérifié avec succès !",
+            description: "Félicitations, votre compte est actif. Veuillez vous connecter !",
+            variant: "default",
+          });
+          // Retirer le token de l'URL
+          setSearchParams({});
+        })
+        .catch((error) => {
+          console.error("Erreur de vérification:", error);
+          toast({
+            title: "❌ Erreur de vérification",
+            description: "Le lien de vérification est invalide ou a expiré.",
+            variant: "destructive",
+          });
+          setSearchParams({});
+        })
+        .finally(() => {
+          setIsVerifying(false);
+        });
+    }
+  }, [searchParams, setSearchParams, toast]);
 
   const onSubmit = async (data: z.infer<typeof loginSchema>) => {
     setLoginError("");
@@ -104,6 +141,23 @@ const Login = () => {
 
           {/* Form */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            {isVerifying && (
+              <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
+                <div className="animate-spin h-4 w-4 border-2 border-blue-700 border-t-transparent rounded-full"></div>
+                Vérification de votre email en cours...
+              </div>
+            )}
+            
+            {verificationSuccess && (
+              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5" />
+                <div>
+                  <p className="font-semibold">Félicitations, votre compte est actif !</p>
+                  <p className="text-xs mt-1">Veuillez vous connecter pour accéder à votre espace.</p>
+                </div>
+              </div>
+            )}
+            
             {loginError && (
               <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
                 {loginError}
