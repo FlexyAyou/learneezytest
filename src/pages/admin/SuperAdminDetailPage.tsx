@@ -24,19 +24,16 @@ const SuperAdminDetailPage = () => {
   const { data: allUsers, isLoading: usersLoading } = useSuperadminUsers();
   
   // Récupérer les statistiques dynamiques
-  const { data: allUsersStats, isLoading: allUsersLoading } = useQuery({
-    queryKey: ['all-users-stats'],
-    queryFn: () => fastAPIClient.getUsers(1, 1000),
-  });
-
-  const { data: courses, isLoading: coursesLoading } = useQuery({
+  const { data: courses, isLoading: coursesLoading, isError: coursesError } = useQuery({
     queryKey: ['all-courses-stats'],
     queryFn: () => fastAPIClient.getCourses(1, 100),
+    retry: false,
   });
 
-  const { data: organizations, isLoading: orgsLoading } = useQuery({
+  const { data: organizations, isLoading: orgsLoading, isError: orgsError } = useQuery({
     queryKey: ['all-organizations-stats'],
     queryFn: () => fastAPIClient.listOrganizations(1, 100),
+    retry: false,
   });
   
   const foundUser = allUsers?.find(u => {
@@ -44,7 +41,7 @@ const SuperAdminDetailPage = () => {
     return userSlugGenerated === userSlug;
   });
 
-  const isLoading = usersLoading || allUsersLoading || coursesLoading || orgsLoading;
+  const isLoading = usersLoading || coursesLoading || orgsLoading;
 
   if (isLoading) {
     return (
@@ -191,7 +188,7 @@ const SuperAdminDetailPage = () => {
 
       <SuperAdminDetailView 
         user={user}
-        totalUsers={allUsersStats?.length || 0}
+        totalUsers={allUsers?.length || 0}
         totalOrganisations={organizations?.length || 0}
         activeCourses={courses?.length || 0}
       />
