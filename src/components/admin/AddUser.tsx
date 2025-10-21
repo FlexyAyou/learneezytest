@@ -69,7 +69,7 @@ export const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose, onAdd }) => {
   const mapRoleToBackend = (frontendRole: string): UserRole => {
     const roleMap: Record<string, UserRole> = {
       'Formateur interne': 'formateur_interne',
-      'Formateur indépendant': 'independent_trainer',
+      'Créateur de contenu': 'createur_contenu',
       'Gestionnaire': 'gestionnaire',
       'Technicien': 'manager'
     };
@@ -134,7 +134,7 @@ export const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose, onAdd }) => {
   const getRoleColor = (role: string) => {
     switch (role) {
       case 'Formateur interne': return 'bg-blue-100 text-blue-800';
-      case 'Formateur indépendant': return 'bg-purple-100 text-purple-800';
+      case 'Créateur de contenu': return 'bg-purple-100 text-purple-800';
       case 'Gestionnaire': return 'bg-orange-100 text-orange-800';
       case 'Technicien': return 'bg-green-100 text-green-800';
       default: return 'bg-gray-100 text-gray-800';
@@ -228,7 +228,7 @@ export const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose, onAdd }) => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="Formateur interne">Formateur interne</SelectItem>
-                        <SelectItem value="Formateur indépendant">Formateur indépendant</SelectItem>
+                        <SelectItem value="Créateur de contenu">Créateur de contenu</SelectItem>
                         <SelectItem value="Gestionnaire">Gestionnaire</SelectItem>
                         <SelectItem value="Technicien">Technicien</SelectItem>
                       </SelectContent>
