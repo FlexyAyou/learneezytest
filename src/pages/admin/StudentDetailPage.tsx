@@ -4,8 +4,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { StudentDetailView } from '@/components/admin/user-details/StudentDetailView';
-import { useSuperadminUsers } from '@/hooks/useApi';
-import LoadingSpinner from '@/components/common/LoadingSpinner';
+import { useUserBySlug } from '@/hooks/useApi';
+import { Loader2 } from 'lucide-react';
 import { 
   ArrowLeft, 
   Mail,
@@ -19,35 +19,19 @@ const StudentDetailPage = () => {
   const navigate = useNavigate();
   const currentPath = `/dashboard/superadmin/users/${userSlug}`;
 
-  // Récupérer la liste des utilisateurs
-  const { data: allUsers, isLoading: usersLoading } = useSuperadminUsers();
-  
-  // Debug: afficher les utilisateurs et le slug recherché
-  console.log('Slug recherché:', userSlug);
-  console.log('Tous les utilisateurs:', allUsers?.map(u => ({
-    id: u.id,
-    firstName: u.first_name,
-    lastName: u.last_name,
-    slug: `${u.first_name?.toLowerCase()}-${u.last_name?.toLowerCase()}`
-  })));
-  
-  // Trouver l'utilisateur par slug (en normalisant les espaces et accents)
-  const foundUser = allUsers?.find(u => {
-    const userSlugGenerated = `${u.first_name?.toLowerCase().trim()}-${u.last_name?.toLowerCase().trim()}`;
-    return userSlugGenerated === userSlug;
-  });
-
-  console.log('Utilisateur trouvé:', foundUser);
+  // Récupérer l'utilisateur par son slug
+  const { data: foundUser, isLoading: usersLoading, error } = useUserBySlug(userSlug);
 
   if (usersLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <LoadingSpinner size="lg" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2">Chargement...</span>
       </div>
     );
   }
 
-  if (!foundUser) {
+  if (!foundUser || error) {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="text-center space-y-4">
