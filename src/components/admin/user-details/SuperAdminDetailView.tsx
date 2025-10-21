@@ -1,30 +1,21 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Shield, Users, Building, Activity, FileText } from 'lucide-react';
+import { Shield, Users, Building, Settings, Activity, FileText } from 'lucide-react';
 
 interface SuperAdminDetailViewProps {
   user: any;
-  totalUsers: number;
-  totalOrganisations: number;
-  activeCourses: number;
-  pendingApprovals?: number;
 }
 
-export const SuperAdminDetailView = ({ 
-  user, 
-  totalUsers, 
-  totalOrganisations, 
-  activeCourses,
-  pendingApprovals = 0
-}: SuperAdminDetailViewProps) => {
+export const SuperAdminDetailView = ({ user }: SuperAdminDetailViewProps) => {
+  // Mock data pour les statistiques du super admin
   const adminStats = {
-    totalUsers,
-    totalOrganisations,
-    activeCourses,
-    pendingApprovals,
+    totalUsers: 1247,
+    totalOrganisations: 45,
+    activeCourses: 156,
+    pendingApprovals: 12,
     systemHealth: 98.5,
-    lastSystemCheck: new Date().toLocaleString('fr-FR')
+    lastSystemCheck: '2024-01-20 14:30'
   };
 
   const recentActions = [

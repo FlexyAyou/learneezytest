@@ -62,7 +62,7 @@ const AdminTrainers = () => {
         lastName: user.last_name || 'Nom',
         email: user.email,
         phone: '',
-        avatar: '', // Pas d'avatar par défaut pour éviter l'erreur via.placeholder
+        avatar: 'https://via.placeholder.com/100',
         location: 'Non renseigné',
         specialties: ['En attente'],
         languages: ['Français'],
