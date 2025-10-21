@@ -10,7 +10,7 @@ export const SuperAdminStats = () => {
   const { data: coursesData, isLoading: loadingCourses } = useCourses(1, 100);
   const { data: users, isLoading: loadingUsers } = useSuperadminUsers();
 
-  // Calcul des statistiques dynamiques
+  // Calcul des statistiques dynamiques - avec fallback si erreur API
   const totalOrgs = organizations?.length || 0;
   const totalCourses = Array.isArray(coursesData) ? coursesData.length : 0;
   const totalUsers = users?.length || 0;

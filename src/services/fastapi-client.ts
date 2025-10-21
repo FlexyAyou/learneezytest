@@ -297,7 +297,9 @@ class FastAPIClient {
    * Récupérer la liste des cours avec pagination
    */
   async getCourses(page = 1, perPage = 10): Promise<CourseResponse[]> {
-    return this.get<CourseResponse[]>(`/api/courses/?page=${page}&per_page=${perPage}`);
+    // Limiter à 100 max pour éviter surcharge serveur
+    const limitedPerPage = Math.min(perPage, 100);
+    return this.get<CourseResponse[]>(`/api/courses/?page=${page}&per_page=${limitedPerPage}`);
   }
 
   /**

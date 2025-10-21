@@ -73,7 +73,9 @@ export const useAuth = () => {
 export const useCourses = (page = 1, perPage = 10) => {
   return useQuery({
     queryKey: ['courses', page, perPage],
-    queryFn: () => fastAPIClient.getCourses(page, perPage),
+    queryFn: () => fastAPIClient.getCourses(page, Math.min(perPage, 100)),
+    retry: 1,
+    retryDelay: 1000,
   });
 };
 
