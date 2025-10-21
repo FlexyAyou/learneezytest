@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import About from "./pages/About";
 import Courses from "./pages/Courses";
@@ -20,7 +20,6 @@ import InternalTrainerDashboard from "./pages/InternalTrainerDashboard";
 import ContentCreatorDashboard from "./pages/ContentCreatorDashboard";
 import TechnicianDashboard from "./pages/TechnicianDashboard";
 import Login from "./pages/Login";
-import OFLogin from "./pages/OFLogin";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
@@ -35,44 +34,12 @@ import CourseReviewPage from "@/pages/admin/CourseReviewPage";
 import SystemArchitecture from "./pages/SystemArchitecture";
 import FastAPIProtectedRoute from "./components/common/FastAPIProtectedRoute";
 import NotFound from "./pages/NotFound";
-import { useSubdomain } from "./hooks/useSubdomain";
-
-const OFSubdomainWrapper = ({ children }: { children: React.ReactNode }) => {
-  const { isOFSubdomain } = useSubdomain();
-
-  // Si c'est un sous-domaine d'OF, rediriger vers la page de connexion OF
-  if (isOFSubdomain) {
-    const currentPath = window.location.pathname;
-    
-    // Autoriser uniquement la page de connexion OF et les dashboards OF
-    const allowedPaths = [
-      '/of-connexion',
-      '/dashboard/organisme-formation',
-      '/dashboard/gestionnaire',
-      '/dashboard/formateur-interne',
-      '/dashboard/apprenant',
-      '/mot-de-passe-oublie',
-      '/mot-de-passe-oublié',
-      '/reinitialiser-mot-de-passe',
-      '/404'
-    ];
-    
-    const isAllowedPath = allowedPaths.some(path => currentPath.startsWith(path));
-    
-    if (!isAllowedPath) {
-      return <Navigate to="/of-connexion" replace />;
-    }
-  }
-
-  return <>{children}</>;
-};
 
 function App() {
   return (
     <LanguageProvider>
       <BrowserRouter>
-        <OFSubdomainWrapper>
-          <Routes>
+        <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/apropos" element={<About />} />
           <Route path="/cours" element={<Courses />} />
@@ -83,7 +50,6 @@ function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/documentation" element={<Documentation />} />
           <Route path="/connexion" element={<Login />} />
-          <Route path="/of-connexion" element={<OFLogin />} />
           <Route path="/inscription" element={<Register />} />
           <Route path="/mot-de-passe-oublié" element={<ForgotPassword />} />
           <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
@@ -270,7 +236,6 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
         <Toaster />
-        </OFSubdomainWrapper>
       </BrowserRouter>
     </LanguageProvider>
   );
