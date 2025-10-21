@@ -28,7 +28,8 @@ export const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose, onAdd }) => {
   const superadminRegister = useSuperadminRegister();
   
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     phone: '',
     role: '',
@@ -67,11 +68,10 @@ export const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose, onAdd }) => {
   // Mapper les rôles frontend vers les rôles backend
   const mapRoleToBackend = (frontendRole: string): UserRole => {
     const roleMap: Record<string, UserRole> = {
-      'Formateur': 'formateur_interne',
-      'Formateur indépendant': 'independent_trainer',
+      'Formateur interne': 'formateur_interne',
+      'Créateur de contenu': 'createur_contenu',
       'Gestionnaire': 'gestionnaire',
-      'Animateur': 'facilitator',
-      'Administrateur': 'administrator'
+      'Technicien': 'manager'
     };
     return roleMap[frontendRole] || 'student';
   };
@@ -80,17 +80,12 @@ export const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose, onAdd }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Splitter le nom en prénom et nom
-    const nameParts = formData.name.trim().split(' ');
-    const firstName = nameParts[0] || '';
-    const lastName = nameParts.slice(1).join(' ') || nameParts[0] || '';
-    
     // Préparer les données pour le backend (SANS mot de passe - généré côté serveur)
     const backendUserData = {
       email: formData.email,
       role: mapRoleToBackend(formData.role),
-      first_name: firstName,
-      last_name: lastName,
+      first_name: formData.firstName.trim(),
+      last_name: formData.lastName.trim(),
       accept_terms: true,
       of_id: null,
       accessible_catalogues: []
@@ -109,7 +104,8 @@ export const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose, onAdd }) => {
       
       // Reset form
       setFormData({
-        name: '',
+        firstName: '',
+        lastName: '',
         email: '',
         phone: '',
         role: '',
@@ -137,11 +133,10 @@ export const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose, onAdd }) => {
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case 'Administrateur': return 'bg-red-100 text-red-800';
-      case 'Formateur': return 'bg-blue-100 text-blue-800';
-      case 'Formateur indépendant': return 'bg-purple-100 text-purple-800';
+      case 'Formateur interne': return 'bg-blue-100 text-blue-800';
+      case 'Créateur de contenu': return 'bg-purple-100 text-purple-800';
       case 'Gestionnaire': return 'bg-orange-100 text-orange-800';
-      case 'Animateur': return 'bg-yellow-100 text-yellow-800';
+      case 'Technicien': return 'bg-green-100 text-green-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -178,27 +173,37 @@ export const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose, onAdd }) => {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="name">Nom complet *</Label>
+                    <Label htmlFor="firstName">Prénom *</Label>
                     <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => handleInputChange('name', e.target.value)}
+                      id="firstName"
+                      value={formData.firstName}
+                      onChange={(e) => handleInputChange('firstName', e.target.value)}
                       required
                     />
                   </div>
                   <div>
-                    <Label htmlFor="email">Email *</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => handleInputChange('email', e.target.value)}
-                        className="pl-10"
-                        required
-                      />
-                    </div>
+                    <Label htmlFor="lastName">Nom *</Label>
+                    <Input
+                      id="lastName"
+                      value={formData.lastName}
+                      onChange={(e) => handleInputChange('lastName', e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="email">Email *</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      className="pl-10"
+                      required
+                    />
                   </div>
                 </div>
 
@@ -222,11 +227,10 @@ export const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose, onAdd }) => {
                         <SelectValue placeholder="Sélectionner un rôle" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Formateur">Formateur</SelectItem>
-                        <SelectItem value="Formateur indépendant">Formateur indépendant</SelectItem>
+                        <SelectItem value="Formateur interne">Formateur interne</SelectItem>
+                        <SelectItem value="Créateur de contenu">Créateur de contenu</SelectItem>
                         <SelectItem value="Gestionnaire">Gestionnaire</SelectItem>
-                        <SelectItem value="Animateur">Animateur</SelectItem>
-                        <SelectItem value="Administrateur">Administrateur</SelectItem>
+                        <SelectItem value="Technicien">Technicien</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -243,8 +247,8 @@ export const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose, onAdd }) => {
               </CardContent>
             </Card>
 
-            {/* Configuration avancée pour Gestionnaire/Administrateur */}
-            {(formData.role === 'Gestionnaire' || formData.role === 'Administrateur') && (
+            {/* Configuration avancée pour Gestionnaire */}
+            {formData.role === 'Gestionnaire' && (
               <Card className="border-orange-200 bg-orange-50">
                 <CardHeader>
                   <CardTitle className="text-base flex items-center gap-2">
@@ -289,7 +293,7 @@ export const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose, onAdd }) => {
             )}
 
             {/* Aperçu de l'utilisateur */}
-            {formData.name && formData.email && formData.role && (
+            {formData.firstName && formData.lastName && formData.email && formData.role && (
               <Card className="border-green-200 bg-green-50">
                 <CardHeader>
                   <CardTitle className="text-base">Aperçu de l'utilisateur</CardTitle>
@@ -297,7 +301,7 @@ export const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose, onAdd }) => {
                 <CardContent>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium">{formData.name}</span>
+                      <span className="font-medium">{formData.firstName} {formData.lastName}</span>
                       <Badge className={getRoleColor(formData.role)}>
                         {formData.role}
                       </Badge>
@@ -329,8 +333,8 @@ export const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose, onAdd }) => {
         isOpen={showRolePermissionModal}
         onClose={() => setShowRolePermissionModal(false)}
         onSave={handleRolePermissionSave}
-        userRole={formData.role as 'Gestionnaire' | 'Administrateur'}
-        userName={formData.name}
+        userRole={formData.role as 'Gestionnaire'}
+        userName={`${formData.firstName} ${formData.lastName}`}
       />
     </>
   );
