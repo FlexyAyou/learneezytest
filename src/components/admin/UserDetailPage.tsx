@@ -4,6 +4,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
+import { useUserBySlug } from '@/hooks/useApi';
+import { Loader2 } from 'lucide-react';
 import { 
   ArrowLeft, 
   User, 
@@ -42,24 +44,47 @@ const UserDetailPage = () => {
   const navigate = useNavigate();
   const currentPath = `/dashboard/superadmin/users/${userSlug}`;
 
-  // Mock data étendu - normalement récupéré depuis l'API
-  const user = {
-    id: 1,
-    name: 'Marie Dupont',
-    email: 'marie.dupont@email.com',
-    phone: '+33 6 12 34 56 78',
-    role: 'Apprenant', // Peut être: Apprenant, Formateur, Formateur indépendant, Gestionnaire, Animateur, Administrateur
-    status: 'active',
-    lastLogin: '2024-01-15',
-    joinDate: '2023-09-15',
-    organisation: 'Formation Excellence',
-    organisationType: 'OF', // OF, Direct, Admin
-    address: '123 Rue de la Formation, 75001 Paris',
+  // Récupérer l'utilisateur depuis l'API en utilisant le slug
+  const { data: apiUser, isLoading, error } = useUserBySlug(userSlug);
+
+  // Mapper les rôles backend vers frontend
+  const mapBackendRoleToFrontend = (backendRole: string): string => {
+    const roleMap: Record<string, string> = {
+      'formateur_interne': 'Formateur',
+      'independent_trainer': 'Formateur indépendant',
+      'gestionnaire': 'Gestionnaire',
+      'facilitator': 'Animateur',
+      'administrator': 'Administrateur',
+      'student': 'Apprenant',
+      'apprenant': 'Apprenant',
+      'tutor': 'Tuteur',
+      'trainer': 'Formateur',
+      'superadmin': 'Super Administrateur',
+      'of_admin': 'Administrateur OF',
+      'createur_contenu': 'Créateur de contenu',
+      'manager': 'Technicien'
+    };
+    return roleMap[backendRole] || backendRole;
+  };
+
+  // Transformer les données de l'API pour correspondre au format attendu
+  const user = apiUser ? {
+    id: apiUser.id,
+    name: `${apiUser.first_name || ''} ${apiUser.last_name || ''}`.trim() || apiUser.email.split('@')[0],
+    email: apiUser.email,
+    phone: '+33 6 12 34 56 78', // TODO: Ajouter phone_number dans l'API
+    role: mapBackendRoleToFrontend(apiUser.role),
+    status: apiUser.is_active ? 'active' : 'inactive',
+    lastLogin: apiUser.last_login || '2024-01-15',
+    joinDate: apiUser.created_at || '2023-09-15',
+    organisation: apiUser.of_id ? `Organisation ${apiUser.of_id}` : 'Learneezy Direct',
+    organisationType: apiUser.of_id ? 'OF' : 'Direct',
+    address: '123 Rue de la Formation, 75001 Paris', // TODO: Ajouter address dans l'API
     totalCourses: 3,
     completedModules: 12,
     inProgressModules: 5,
     avgScore: 85
-  };
+  } : null;
 
   const sidebarItems = [
     { title: "Tableau de bord", href: "/dashboard/superadmin", icon: Home, isActive: false },
@@ -119,6 +144,33 @@ const UserDetailPage = () => {
       default: return 'bg-gray-50 text-gray-700';
     }
   };
+
+  // Afficher un loader pendant le chargement
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2">Chargement...</span>
+      </div>
+    );
+  }
+
+  // Afficher une erreur si l'utilisateur n'est pas trouvé
+  if (error || !user) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Utilisateur non trouvé</h2>
+          <p className="text-gray-600 mb-4">
+            {error?.message || `Le slug "${userSlug}" ne correspond à aucun utilisateur`}
+          </p>
+          <Button onClick={() => navigate('/dashboard/superadmin/users')}>
+            Retour à la liste des utilisateurs
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   // Fonction pour rendre le composant spécialisé selon le rôle
   const renderUserSpecificContent = () => {

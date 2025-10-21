@@ -412,3 +412,39 @@ export const useUpdateOrganization = () => {
     },
   });
 };
+
+/**
+ * Hook pour récupérer un utilisateur par son slug
+ * Le slug est généré à partir du prénom et du nom (ex: "ndeye-fatou-ndiaye")
+ */
+export const useUserBySlug = (userSlug?: string) => {
+  const { data: apiUsers, isLoading, error } = useSuperadminUsers();
+
+  return useQuery({
+    queryKey: ['userBySlug', userSlug],
+    queryFn: () => {
+      if (!apiUsers || !userSlug) {
+        throw new Error('Utilisateur non trouvé');
+      }
+
+      // Fonction pour générer un slug à partir du nom complet
+      const generateSlug = (firstName: string, lastName: string): string => {
+        const fullName = `${firstName} ${lastName}`.trim();
+        return fullName.toLowerCase().replace(/\s+/g, '-');
+      };
+
+      // Chercher l'utilisateur correspondant au slug
+      const user = apiUsers.find(u => {
+        const userSlugGenerated = generateSlug(u.first_name || '', u.last_name || '');
+        return userSlugGenerated === userSlug;
+      });
+
+      if (!user) {
+        throw new Error(`Le slug "${userSlug}" ne correspond à aucun utilisateur`);
+      }
+
+      return user;
+    },
+    enabled: !!apiUsers && !!userSlug,
+  });
+};
