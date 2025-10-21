@@ -33,6 +33,7 @@ import StudentPayment from "./pages/student/StudentPayment";
 import CourseReviewPage from "@/pages/admin/CourseReviewPage";
 import SystemArchitecture from "./pages/SystemArchitecture";
 import FastAPIProtectedRoute from "./components/common/FastAPIProtectedRoute";
+import NotFound from "./pages/NotFound";
 
 function App() {
   return (
@@ -230,6 +231,9 @@ function App() {
 
           {/* Route pour l'architecture système */}
           <Route path="/architecture" element={<SystemArchitecture />} />
+          
+          {/* 404 Route - Must be last */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
         <Toaster />
       </BrowserRouter>

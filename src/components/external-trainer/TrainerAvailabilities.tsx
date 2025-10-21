@@ -27,12 +27,7 @@ const TrainerAvailabilities = () => {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedAvailability, setSelectedAvailability] = useState<Availability | null>(null);
   
-  const [availabilities, setAvailabilities] = useState<Availability[]>([
-    { id: 1, date: '2024-01-15', timeStart: '09:00', timeEnd: '12:00', isBooked: false, recurringType: 'none' },
-    { id: 2, date: '2024-01-15', timeStart: '14:00', timeEnd: '17:00', isBooked: true, recurringType: 'none' },
-    { id: 3, date: '2024-01-16', timeStart: '10:00', timeEnd: '16:00', isBooked: false, recurringType: 'weekly' },
-    { id: 4, date: '2024-01-17', timeStart: '09:00', timeEnd: '11:00', isBooked: false, recurringType: 'none' },
-  ]);
+  const [availabilities, setAvailabilities] = useState<Availability[]>([]);
 
   const [newSlot, setNewSlot] = useState({
     date: '',
@@ -51,7 +46,7 @@ const TrainerAvailabilities = () => {
       return;
     }
 
-    const newId = Math.max(...availabilities.map(a => a.id)) + 1;
+    const newId = availabilities.length > 0 ? Math.max(...availabilities.map(a => a.id)) + 1 : 1;
     setAvailabilities([...availabilities, {
       id: newId,
       date: newSlot.date,

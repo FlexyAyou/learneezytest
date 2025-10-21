@@ -1,10 +1,9 @@
-
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { BookOpen, Users, DollarSign, Star, Calendar, TrendingUp } from 'lucide-react';
-import { useUserDetail } from '@/hooks/useApi';
-import LoadingSpinner from '@/components/common/LoadingSpinner';
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { BookOpen, Users, DollarSign, Star, Calendar, TrendingUp } from "lucide-react";
+import { useUserDetail } from "@/hooks/useApi";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 interface TrainerDetailViewProps {
   user: any;
@@ -31,98 +30,55 @@ export const TrainerDetailView = ({ user }: TrainerDetailViewProps) => {
   // Mock data spécifique aux formateurs
   const trainerData = {
     courses: [
-      { id: 1, title: 'Formation React Avancée', students: 25, revenue: 2500, rating: 4.8, status: 'active' },
-      { id: 2, title: 'JavaScript pour débutants', students: 45, revenue: 3200, rating: 4.9, status: 'active' },
-      { id: 3, title: 'HTML/CSS Responsive', students: 32, revenue: 1800, status: 'draft', rating: 0 }
+      { id: 1, title: "Formation React Avancée", students: 0, revenue: 0, rating: 0, status: "active" },
+      { id: 2, title: "JavaScript pour débutants", students: 0, revenue: 0, rating: 0, status: "active" },
+      { id: 3, title: "HTML/CSS Responsive", students: 0, revenue: 0, status: "draft", rating: 0 },
     ],
     stats: {
-      totalStudents: 102,
-      totalRevenue: 7500,
-      averageRating: 4.85,
-      activeCourses: 2
+      totalStudents: 0,
+      totalRevenue: 0,
+      averageRating: 0,
+      activeCourses: 0,
     },
     schedule: [
-      { date: '2024-01-25', time: '14:00-16:00', course: 'React Avancée', students: 12 },
-      { date: '2024-01-26', time: '10:00-12:00', course: 'JavaScript', students: 18 },
-      { date: '2024-01-27', time: '16:00-18:00', course: 'React Avancée', students: 15 }
+      { date: "2024-01-25", time: "14:00-16:00", course: "React Avancée", students: 0 },
+      { date: "2024-01-26", time: "10:00-12:00", course: "JavaScript", students: 0 },
+      { date: "2024-01-27", time: "16:00-18:00", course: "React Avancée", students: 0 },
     ],
     reviews: [
-      { student: 'Marie D.', course: 'React Avancée', rating: 5, comment: 'Excellent formateur, très pédagogue' },
-      { student: 'Paul M.', course: 'JavaScript', rating: 4, comment: 'Bonne formation, contenu de qualité' }
-    ]
+      { student: "Marie D.", course: "React Avancée", rating: 5, comment: "Excellent formateur, très pédagogue" },
+      { student: "Paul M.", course: "JavaScript", rating: 4, comment: "Bonne formation, contenu de qualité" },
+    ],
   };
 
   const getStatusBadge = (status: string) => {
     const configs = {
-      active: { variant: 'default' as const, label: 'Actif' },
-      draft: { variant: 'secondary' as const, label: 'Brouillon' },
-      paused: { variant: 'outline' as const, label: 'En pause' }
+      active: { variant: "default" as const, label: "Actif" },
+      draft: { variant: "secondary" as const, label: "Brouillon" },
+      paused: { variant: "outline" as const, label: "En pause" },
     };
     return configs[status as keyof typeof configs] || configs.draft;
   };
 
   return (
     <div className="space-y-6">
-      {/* Informations backend réelles */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Informations Backend</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="font-medium">Nom complet:</span> {realData.firstName} {realData.lastName}
-            </div>
-            <div>
-              <span className="font-medium">Email:</span> {realData.email}
-            </div>
-            <div>
-              <span className="font-medium">Statut:</span>{" "}
-              <Badge variant={realData.isActive ? "default" : "secondary"}>
-                {realData.isActive ? "Actif" : "Inactif"}
-              </Badge>
-            </div>
-            <div>
-              <span className="font-medium">Inscrit le:</span> {new Date(realData.createdAt).toLocaleDateString('fr-FR')}
-            </div>
-            {realData.lastLogin && (
-              <div>
-                <span className="font-medium">Dernière connexion:</span> {new Date(realData.lastLogin).toLocaleDateString('fr-FR')}
-              </div>
-            )}
-            {realData.ofId && (
-              <div>
-                <span className="font-medium">Organisation ID:</span> {realData.ofId}
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Statistiques du formateur (mockées) */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-3xl font-bold text-blue-600 mb-1">
-              {trainerData.stats.activeCourses}
-            </div>
+            <div className="text-3xl font-bold text-blue-600 mb-1">{trainerData.stats.activeCourses}</div>
             <div className="text-sm text-gray-600">Cours actifs</div>
-            <p className="text-xs text-muted-foreground">Données mockées</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-3xl font-bold text-green-600 mb-1">
-              {trainerData.stats.totalStudents}
-            </div>
+            <div className="text-3xl font-bold text-green-600 mb-1">{trainerData.stats.totalStudents}</div>
             <div className="text-sm text-gray-600">Étudiants formés</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-3xl font-bold text-purple-600 mb-1">
-              {trainerData.stats.totalRevenue}€
-            </div>
+            <div className="text-3xl font-bold text-purple-600 mb-1">{trainerData.stats.totalRevenue}€</div>
             <div className="text-sm text-gray-600">Revenus générés</div>
           </CardContent>
         </Card>
@@ -194,7 +150,9 @@ export const TrainerDetailView = ({ user }: TrainerDetailViewProps) => {
               <div key={index} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
                 <div>
                   <p className="font-medium">{session.course}</p>
-                  <p className="text-sm text-gray-600">{session.date} • {session.time}</p>
+                  <p className="text-sm text-gray-600">
+                    {session.date} • {session.time}
+                  </p>
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-medium">{session.students} participants</p>

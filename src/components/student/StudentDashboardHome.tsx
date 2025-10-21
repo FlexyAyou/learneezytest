@@ -46,42 +46,34 @@ export const StudentDashboardHome = () => {
     }
   ];
 
-  const recentCourses = [
-    { id: 1, title: 'React pour Débutants', progress: 75, instructor: 'Marie Dubois', nextLesson: 'Hooks avancés' },
-    { id: 2, title: 'JavaScript Avancé', progress: 30, instructor: 'Jean Martin', nextLesson: 'Async/Await' },
-    { id: 3, title: 'CSS Grid & Flexbox', progress: 90, instructor: 'Sophie Laurent', nextLesson: 'Projet final' },
-  ];
+  const recentCourses: Array<{ id: number; title: string; progress: number; instructor: string; nextLesson: string }> = [];
 
-  const upcomingEvents = [
-    { id: 1, title: 'Évaluation React', date: '2024-01-18', time: '14:00', type: 'exam' },
-    { id: 2, title: 'Session de révision JS', date: '2024-01-20', time: '10:00', type: 'review' },
-    { id: 3, title: 'Remise projet CSS', date: '2024-01-22', time: '23:59', type: 'assignment' },
-  ];
+  const upcomingEvents: Array<{ id: number; title: string; date: string; time: string; type: string }> = [];
 
   const progressData = [
-    { name: 'Sem 1', value: 20, progression: 20 },
-    { name: 'Sem 2', value: 35, progression: 35 },
-    { name: 'Sem 3', value: 45, progression: 45 },
-    { name: 'Sem 4', value: 60, progression: 60 },
-    { name: 'Sem 5', value: 72, progression: 72 },
-    { name: 'Sem 6', value: 85, progression: 85 },
+    { name: 'Sem 1', value: 0, progression: 0 },
+    { name: 'Sem 2', value: 0, progression: 0 },
+    { name: 'Sem 3', value: 0, progression: 0 },
+    { name: 'Sem 4', value: 0, progression: 0 },
+    { name: 'Sem 5', value: 0, progression: 0 },
+    { name: 'Sem 6', value: 0, progression: 0 },
   ];
 
   const studyTimeData = [
-    { name: 'Lun', value: 3 },
-    { name: 'Mar', value: 2 },
-    { name: 'Mer', value: 4 },
-    { name: 'Jeu', value: 2.5 },
-    { name: 'Ven', value: 3.5 },
-    { name: 'Sam', value: 5 },
-    { name: 'Dim', value: 1 },
+    { name: 'Lun', value: 0 },
+    { name: 'Mar', value: 0 },
+    { name: 'Mer', value: 0 },
+    { name: 'Jeu', value: 0 },
+    { name: 'Ven', value: 0 },
+    { name: 'Sam', value: 0 },
+    { name: 'Dim', value: 0 },
   ];
 
   const skillsData = [
-    { name: 'React', value: 75 },
-    { name: 'JavaScript', value: 60 },
-    { name: 'CSS', value: 85 },
-    { name: 'Node.js', value: 40 },
+    { name: 'React', value: 0 },
+    { name: 'JavaScript', value: 0 },
+    { name: 'CSS', value: 0 },
+    { name: 'Node.js', value: 0 },
   ];
 
   const getEventTypeColor = (type: string) => {
