@@ -38,7 +38,7 @@ export const AddApprenantModal = ({ isOpen, onClose, onAdd }: AddApprenantModalP
     adresse: '',
     dateNaissance: '',
     formation: '',
-    organismeId: '',
+    organismeId: 'learneezy',
     financementBadges: [] as string[],
     customFields: {} as Record<string, string>,
     documentsToSign: [] as string[]
@@ -203,7 +203,7 @@ export const AddApprenantModal = ({ isOpen, onClose, onAdd }: AddApprenantModalP
       adresse: '',
       dateNaissance: '',
       formation: '',
-      organismeId: '',
+      organismeId: 'learneezy',
       financementBadges: [],
       customFields: {},
       documentsToSign: []
@@ -304,23 +304,17 @@ export const AddApprenantModal = ({ isOpen, onClose, onAdd }: AddApprenantModalP
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="organisme">Organisme de formation *</Label>
-                <Select value={formData.organismeId} onValueChange={(value) => setFormData(prev => ({ ...prev, organismeId: value }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner un organisme" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {organismes.map((org) => (
-                      <SelectItem key={org.id} value={org.id}>
-                        {org.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="organisme">Organisme de formation</Label>
+                <Input
+                  id="organisme"
+                  value="Learneezy"
+                  disabled
+                  className="bg-muted"
+                />
               </div>
 
               <div>
-                <Label htmlFor="formation">Formation *</Label>
+                <Label htmlFor="formation">Formation</Label>
                 <Select value={formData.formation} onValueChange={(value) => setFormData(prev => ({ ...prev, formation: value }))}>
                   <SelectTrigger>
                     <SelectValue placeholder="Sélectionner une formation" />
