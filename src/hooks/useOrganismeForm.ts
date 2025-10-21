@@ -20,7 +20,7 @@ export const useOrganismeForm = () => {
     email: '',
     siret: '',
     numeroDeclaration: '',
-    agrement: '',
+    agrement: [],
     logoUrl: '',
     maxUsers: 50,
     customBranding: false,
@@ -50,7 +50,9 @@ export const useOrganismeForm = () => {
   const validateStep = (step: number): boolean => {
     switch (step) {
       case 1:
-        return !!(formData.name && formData.description && formData.legalRepresentative);
+        // Extraire le subdomain du website
+        const subdomain = formData.website.replace(/\.learneezy\.com$/, '').trim();
+        return !!(formData.name && formData.description && formData.legalRepresentative && subdomain);
       case 2:
         return !!(formData.address && formData.phone && formData.email);
       case 3:
@@ -64,6 +66,20 @@ export const useOrganismeForm = () => {
     }
   };
 
+  const validateAllRequiredFields = (): boolean => {
+    return !!(
+      formData.name &&
+      formData.description &&
+      formData.legalRepresentative &&
+      formData.address &&
+      formData.phone &&
+      formData.email &&
+      formData.siret &&
+      formData.numeroDeclaration &&
+      formData.website
+    );
+  };
+
   const mapFormDataToBackend = (formData: OrganismeFormData): OrganizationCreate => {
     // Extraire le subdomain du website (enlever .learneezy.com si présent)
     const subdomain = formData.website.replace(/\.learneezy\.com$/, '').trim();
@@ -75,7 +91,12 @@ export const useOrganismeForm = () => {
       'enterprise': 'premium'
     };
     
-    return {
+    // Préparer les agréments - ne pas envoyer une liste vide
+    const agrements = formData.agrement && formData.agrement.length > 0 
+      ? formData.agrement 
+      : undefined;
+    
+    const backendData: any = {
       name: formData.name,
       subdomain: subdomain || formData.name.toLowerCase().replace(/\s+/g, '-'),
       subscription_type: subscriptionTypeMap[formData.subscriptionType] || 'starter',
@@ -88,19 +109,35 @@ export const useOrganismeForm = () => {
       email: formData.email,
       siret: formData.siret,
       numero_declaration: formData.numeroDeclaration,
-      agrement: formData.agrement,
       tokens_total: formData.tokensTotal
     };
+    
+    // Ajouter agrement seulement s'il y a des valeurs
+    if (agrements && agrements.length > 0) {
+      backendData.agrement = agrements;
+    }
+    
+    return backendData as OrganizationCreate;
   };
 
   const submitForm = async (): Promise<boolean> => {
+    // Vérifier que tous les champs obligatoires sont remplis
+    if (!validateAllRequiredFields()) {
+      toast({
+        title: "Champs manquants",
+        description: "Veuillez remplir tous les champs obligatoires avant de soumettre.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
     setIsSubmitting(true);
     
     try {
       // Mapper les données du formulaire vers le format backend
       const backendData = mapFormDataToBackend(formData);
       
-      console.log('Données envoyées au backend:', backendData);
+      console.log('Données envoyées au backend:', JSON.stringify(backendData, null, 2));
       
       // Appel réel à l'API
       const response = await fastAPIClient.createOrganization(backendData);

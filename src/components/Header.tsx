@@ -1,12 +1,15 @@
-
 import React, { useState } from 'react';
 import { Menu, X, BookOpen, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import LanguageSelector from '@/components/common/LanguageSelector';
+import UserMenu from '@/components/UserMenu';
+import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { isAuthenticated, isLoading } = useFastAPIAuth();
 
   return (
     <header className="bg-white shadow-lg fixed w-full top-0 z-50">
@@ -29,17 +32,25 @@ const Header = () => {
           {/* Language Selector and Auth */}
           <div className="hidden md:flex items-center space-x-4">
             <LanguageSelector />
-            <Link to="/connexion">
-              <Button variant="outline" size="sm">
-                <User className="h-4 w-4 mr-2" />
-                Connexion
-              </Button>
-            </Link>
-            <Link to="/inscription">
-              <Button size="sm" className="bg-pink-600 hover:bg-pink-700">
-                S'inscrire
-              </Button>
-            </Link>
+            {isLoading ? (
+              <LoadingSpinner size="sm" />
+            ) : isAuthenticated ? (
+              <UserMenu />
+            ) : (
+              <>
+                <Link to="/connexion">
+                  <Button variant="outline" size="sm">
+                    <User className="h-4 w-4 mr-2" />
+                    Connexion
+                  </Button>
+                </Link>
+                <Link to="/inscription">
+                  <Button size="sm" className="bg-pink-600 hover:bg-pink-700">
+                    S'inscrire
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -66,16 +77,28 @@ const Header = () => {
                 <div className="px-3 py-2">
                   <LanguageSelector />
                 </div>
-                <Link to="/connexion">
-                  <Button variant="outline" size="sm" className="w-full mb-2">
-                    Connexion
-                  </Button>
-                </Link>
-                <Link to="/inscription">
-                  <Button size="sm" className="w-full bg-pink-600 hover:bg-pink-700">
-                    S'inscrire
-                  </Button>
-                </Link>
+                {isLoading ? (
+                  <div className="px-3 py-2">
+                    <LoadingSpinner size="sm" />
+                  </div>
+                ) : isAuthenticated ? (
+                  <div className="px-3 py-2">
+                    <UserMenu />
+                  </div>
+                ) : (
+                  <>
+                    <Link to="/connexion">
+                      <Button variant="outline" size="sm" className="w-full mb-2">
+                        Connexion
+                      </Button>
+                    </Link>
+                    <Link to="/inscription">
+                      <Button size="sm" className="w-full bg-pink-600 hover:bg-pink-700">
+                        S'inscrire
+                      </Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>

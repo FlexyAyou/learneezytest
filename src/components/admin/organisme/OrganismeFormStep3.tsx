@@ -2,7 +2,7 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { OrganismeFormData } from '@/types/organisme';
 import { FileText, Award, Hash } from 'lucide-react';
 
@@ -49,26 +49,36 @@ export const OrganismeFormStep3: React.FC<OrganismeFormStep3Props> = ({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="agrement" className="flex items-center">
+        <Label className="flex items-center">
           <Award className="w-4 h-4 mr-2" />
           Agrément / Certification qualité
         </Label>
-        <Select 
-          value={formData.agrement} 
-          onValueChange={(value) => updateFormData({ agrement: value })}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Sélectionner un agrément" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">Aucun agrément</SelectItem>
-            <SelectItem value="Qualiopi">Qualiopi</SelectItem>
-            <SelectItem value="OPCO">OPCO</SelectItem>
-            <SelectItem value="Datadock">Datadock</SelectItem>
-            <SelectItem value="ISQ">ISQ</SelectItem>
-            <SelectItem value="Autre">Autre</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="space-y-3 border rounded-lg p-4">
+          {['Qualiopi', 'OPCO', 'Datadock', 'ISQ', 'Autre'].map((agrement) => (
+            <div key={agrement} className="flex items-center space-x-2">
+              <Checkbox
+                id={agrement}
+                checked={formData.agrement?.includes(agrement) || false}
+                onCheckedChange={(checked) => {
+                  const currentAgrements = formData.agrement || [];
+                  if (checked) {
+                    updateFormData({ agrement: [...currentAgrements, agrement] });
+                  } else {
+                    updateFormData({ 
+                      agrement: currentAgrements.filter(a => a !== agrement) 
+                    });
+                  }
+                }}
+              />
+              <Label
+                htmlFor={agrement}
+                className="text-sm font-normal cursor-pointer"
+              >
+                {agrement}
+              </Label>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="bg-green-50 p-4 rounded-lg">

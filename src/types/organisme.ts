@@ -14,7 +14,7 @@ export interface OrganismeFormData {
   // Informations légales
   siret: string;
   numeroDeclaration: string;
-  agrement?: string;
+  agrement?: string[];
   
   // Configuration
   logoUrl?: string;
@@ -57,7 +57,7 @@ export interface Organisme {
   email: string;
   siret: string;
   numeroDeclaration: string;
-  agrement?: string;
+  agrement?: string[];
   website: string;
   legalRepresentative: string;
   logoUrl?: string;

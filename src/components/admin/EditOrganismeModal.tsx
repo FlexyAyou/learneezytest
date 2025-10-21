@@ -28,7 +28,7 @@ export const EditOrganismeModal = ({ open, onOpenChange, organisme }: EditOrgani
     contact_email: '',
     siret: '',
     numero_declaration: '',
-    agrement: '',
+    agrement: [],
   });
 
   useEffect(() => {
@@ -44,7 +44,7 @@ export const EditOrganismeModal = ({ open, onOpenChange, organisme }: EditOrgani
         contact_email: organisme.contact_email || '',
         siret: organisme.siret || '',
         numero_declaration: organisme.numero_declaration || '',
-        agrement: organisme.agrement || '',
+        agrement: organisme.agrement || [],
       });
     }
   }, [organisme]);
@@ -221,9 +221,15 @@ export const EditOrganismeModal = ({ open, onOpenChange, organisme }: EditOrgani
               <Label htmlFor="agrement">Agrément</Label>
               <Input
                 id="agrement"
-                value={formData.agrement}
-                onChange={(e) => setFormData({ ...formData, agrement: e.target.value })}
-                placeholder="Ex: Qualiopi"
+                value={formData.agrement?.join(', ') || ''}
+                onChange={(e) => {
+                  const agrementArray = e.target.value
+                    .split(',')
+                    .map(a => a.trim())
+                    .filter(a => a);
+                  setFormData({ ...formData, agrement: agrementArray });
+                }}
+                placeholder="Ex: Qualiopi, OPCO (séparés par des virgules)"
               />
             </div>
           </div>
