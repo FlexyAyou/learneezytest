@@ -10,7 +10,7 @@ const NotFound = () => {
   
   // Check if this is an OF slug error (subdomain or path-based)
   const isOFError = location.state?.isOFError || location.pathname.includes('/organisme');
-  const ofSlug = location.state?.slug;
+  const ofSlug = location.state?.ofSlug;
 
   useEffect(() => {
     console.error(
