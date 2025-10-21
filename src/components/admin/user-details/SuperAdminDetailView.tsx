@@ -1,7 +1,7 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Shield, Users, Building, Settings, Activity, FileText } from 'lucide-react';
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Shield, Users, Building, Settings, Activity, FileText } from "lucide-react";
 
 interface SuperAdminDetailViewProps {
   user: any;
@@ -10,30 +10,30 @@ interface SuperAdminDetailViewProps {
 export const SuperAdminDetailView = ({ user }: SuperAdminDetailViewProps) => {
   // Mock data pour les statistiques du super admin
   const adminStats = {
-    totalUsers: 1247,
-    totalOrganisations: 45,
-    activeCourses: 156,
-    pendingApprovals: 12,
+    totalUsers: 0,
+    totalOrganisations: 0,
+    activeCourses: 0,
+    pendingApprovals: 0,
     systemHealth: 98.5,
-    lastSystemCheck: '2024-01-20 14:30'
+    lastSystemCheck: "2024-01-20 14:30",
   };
 
   const recentActions = [
-    { id: 1, action: 'Validation OF "Formation Pro"', date: '2024-01-20 10:30', type: 'approval' },
-    { id: 2, action: 'Ajout utilisateur "Marie Dupont"', date: '2024-01-20 09:15', type: 'user' },
-    { id: 3, action: 'Mise à jour paramètres système', date: '2024-01-19 16:45', type: 'settings' },
-    { id: 4, action: 'Validation cours "React Avancé"', date: '2024-01-19 14:20', type: 'approval' }
+    { id: 1, action: 'Validation OF "Formation Pro"', date: "2024-01-20 10:30", type: "approval" },
+    { id: 2, action: 'Ajout utilisateur "Marie Dupont"', date: "2024-01-20 09:15", type: "user" },
+    { id: 3, action: "Mise à jour paramètres système", date: "2024-01-19 16:45", type: "settings" },
+    { id: 4, action: 'Validation cours "React Avancé"', date: "2024-01-19 14:20", type: "approval" },
   ];
 
   const permissions = [
-    'Gestion complète des utilisateurs',
-    'Gestion des organismes de formation',
-    'Validation des cours',
-    'Configuration système',
-    'Gestion de la sécurité',
-    'Accès aux logs système',
-    'Gestion des paiements',
-    'Support technique niveau 3'
+    "Gestion complète des utilisateurs",
+    "Gestion des organismes de formation",
+    "Validation des cours",
+    "Configuration système",
+    "Gestion de la sécurité",
+    "Accès aux logs système",
+    "Gestion des paiements",
+    "Support technique niveau 3",
   ];
 
   return (
@@ -42,25 +42,19 @@ export const SuperAdminDetailView = ({ user }: SuperAdminDetailViewProps) => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-3xl font-bold text-blue-600 mb-1">
-              {adminStats.totalUsers}
-            </div>
+            <div className="text-3xl font-bold text-blue-600 mb-1">{adminStats.totalUsers}</div>
             <div className="text-sm text-gray-600">Utilisateurs totaux</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-3xl font-bold text-purple-600 mb-1">
-              {adminStats.totalOrganisations}
-            </div>
+            <div className="text-3xl font-bold text-purple-600 mb-1">{adminStats.totalOrganisations}</div>
             <div className="text-sm text-gray-600">Organismes de formation</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-3xl font-bold text-green-600 mb-1">
-              {adminStats.activeCourses}
-            </div>
+            <div className="text-3xl font-bold text-green-600 mb-1">{adminStats.activeCourses}</div>
             <div className="text-sm text-gray-600">Cours actifs</div>
           </CardContent>
         </Card>
@@ -129,9 +123,9 @@ export const SuperAdminDetailView = ({ user }: SuperAdminDetailViewProps) => {
                   <p className="text-sm text-gray-600">{action.date}</p>
                 </div>
                 <Badge variant="outline">
-                  {action.type === 'approval' && '✓ Validation'}
-                  {action.type === 'user' && '👤 Utilisateur'}
-                  {action.type === 'settings' && '⚙️ Paramètres'}
+                  {action.type === "approval" && "✓ Validation"}
+                  {action.type === "user" && "👤 Utilisateur"}
+                  {action.type === "settings" && "⚙️ Paramètres"}
                 </Badge>
               </div>
             ))}
