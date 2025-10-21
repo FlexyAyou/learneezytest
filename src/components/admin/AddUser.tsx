@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { UserRolePermissionModal } from './UserRolePermissionModal';
 import { Role } from '@/types/permissions';
-import { User, Mail, Phone, Building, Settings, Shield } from 'lucide-react';
+import { User, Mail, Phone, Settings, Shield } from 'lucide-react';
 import { useSuperadminRegister } from '@/hooks/useApi';
 import { UserRole } from '@/types/fastapi';
 import { useToast } from '@/hooks/use-toast';
@@ -32,8 +32,6 @@ export const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose, onAdd }) => {
     email: '',
     phone: '',
     role: '',
-    organisation: '',
-    organisationType: 'OF',
     address: ''
   });
 
@@ -115,8 +113,6 @@ export const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose, onAdd }) => {
         email: '',
         phone: '',
         role: '',
-        organisation: '',
-        organisationType: 'OF',
         address: ''
       });
       setUserRoles([]);
@@ -235,46 +231,6 @@ export const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose, onAdd }) => {
                     </Select>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Organisation */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Organisation</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="organisation">Organisation *</Label>
-                    <div className="relative">
-                      <Building className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="organisation"
-                        value={formData.organisation}
-                        onChange={(e) => handleInputChange('organisation', e.target.value)}
-                        className="pl-10"
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <Label htmlFor="organisationType">Type d'organisation</Label>
-                    <Select 
-                      value={formData.organisationType} 
-                      onValueChange={(value) => handleInputChange('organisationType', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="OF">Organisme de Formation</SelectItem>
-                        <SelectItem value="Direct">Learneezy Direct</SelectItem>
-                        <SelectItem value="Admin">Administration</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
 
                 <div>
                   <Label htmlFor="address">Adresse</Label>
@@ -347,11 +303,9 @@ export const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose, onAdd }) => {
                       </Badge>
                     </div>
                     <p className="text-sm text-gray-600">{formData.email}</p>
-                    {formData.organisation && (
-                      <Badge className={getOrganisationColor(formData.organisationType)}>
-                        {formData.organisation}
-                      </Badge>
-                    )}
+                    <Badge className="bg-pink-50 text-pink-700">
+                      Learneezy Direct
+                    </Badge>
                   </div>
                 </CardContent>
               </Card>
