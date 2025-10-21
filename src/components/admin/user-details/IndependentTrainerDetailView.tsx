@@ -1,13 +1,30 @@
-
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { DollarSign, FileText, Calendar, Clock, CreditCard, User, CheckCircle, XCircle, Award, AlertCircle } from 'lucide-react';
-import { mockTrainerFiscalInfo, mockTrainerSpecialtyRequests } from '@/data/mockTrainerApplicationsData';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  DollarSign,
+  FileText,
+  Calendar,
+  Clock,
+  CreditCard,
+  User,
+  CheckCircle,
+  XCircle,
+  Award,
+  AlertCircle,
+} from "lucide-react";
+import { mockTrainerFiscalInfo, mockTrainerSpecialtyRequests } from "@/data/mockTrainerApplicationsData";
+import { useToast } from "@/hooks/use-toast";
 
 interface IndependentTrainerDetailViewProps {
   user: any;
@@ -16,11 +33,11 @@ interface IndependentTrainerDetailViewProps {
 export const IndependentTrainerDetailView = ({ user }: IndependentTrainerDetailViewProps) => {
   const { toast } = useToast();
   const [specialtyRequests, setSpecialtyRequests] = useState(
-    mockTrainerSpecialtyRequests.filter(req => req.trainerId === user.userId)
+    mockTrainerSpecialtyRequests.filter((req) => req.trainerId === user.userId),
   );
   const [rejectionModalOpen, setRejectionModalOpen] = useState(false);
   const [selectedSpecialty, setSelectedSpecialty] = useState<string | null>(null);
-  const [rejectionReason, setRejectionReason] = useState('');
+  const [rejectionReason, setRejectionReason] = useState("");
 
   // Récupérer les vraies données fiscales
   const fiscalInfo = mockTrainerFiscalInfo[user.userId];
@@ -28,53 +45,62 @@ export const IndependentTrainerDetailView = ({ user }: IndependentTrainerDetailV
   // Mock data spécifique aux formateurs indépendants
   const independentTrainerData = {
     contracts: [
-      { id: 1, client: 'Entreprise ABC', amount: 2400, status: 'active', startDate: '2024-01-15', endDate: '2024-03-15' },
-      { id: 2, client: 'Formation XYZ', amount: 1800, status: 'completed', startDate: '2023-12-01', endDate: '2024-01-31' },
-      { id: 3, client: 'Institut DEF', amount: 3200, status: 'pending', startDate: '2024-02-01', endDate: '2024-04-30' }
+      { id: 1, client: "Entreprise ABC", amount: 0, status: "active", startDate: "2024-01-15", endDate: "2024-03-15" },
+      {
+        id: 2,
+        client: "Formation XYZ",
+        amount: 0,
+        status: "completed",
+        startDate: "2023-12-01",
+        endDate: "2024-01-31",
+      },
+      { id: 3, client: "Institut DEF", amount: 0, status: "pending", startDate: "2024-02-01", endDate: "2024-04-30" },
     ],
     payments: [
-      { id: 1, amount: 1800, date: '2024-01-15', status: 'paid', client: 'Formation XYZ' },
-      { id: 2, amount: 1200, date: '2024-01-30', status: 'pending', client: 'Entreprise ABC' },
-      { id: 3, amount: 800, date: '2024-02-15', status: 'overdue', client: 'Entreprise ABC' }
+      { id: 1, amount: 0, date: "2024-01-15", status: "paid", client: "Formation XYZ" },
+      { id: 2, amount: 0, date: "2024-01-30", status: "pending", client: "Entreprise ABC" },
+      { id: 3, amount: 0, date: "2024-02-15", status: "overdue", client: "Entreprise ABC" },
     ],
     availabilities: [
-      { date: '2024-01-25', morning: true, afternoon: false },
-      { date: '2024-01-26', morning: false, afternoon: true },
-      { date: '2024-01-27', morning: true, afternoon: true }
+      { date: "2024-01-25", morning: true, afternoon: false },
+      { date: "2024-01-26", morning: false, afternoon: true },
+      { date: "2024-01-27", morning: true, afternoon: true },
     ],
     stats: {
-      totalEarnings: 5400,
-      activeContracts: 1,
-      pendingPayments: 2000,
-      hourlyRate: 75
-    }
+      totalEarnings: 0,
+      activeContracts: 0,
+      pendingPayments: 0,
+      hourlyRate: 0,
+    },
   };
 
   const getContractStatusBadge = (status: string) => {
     const configs = {
-      active: { variant: 'default' as const, label: 'Actif', color: 'bg-green-500' },
-      completed: { variant: 'secondary' as const, label: 'Terminé', color: 'bg-gray-500' },
-      pending: { variant: 'outline' as const, label: 'En attente', color: 'bg-yellow-500' }
+      active: { variant: "default" as const, label: "Actif", color: "bg-green-500" },
+      completed: { variant: "secondary" as const, label: "Terminé", color: "bg-gray-500" },
+      pending: { variant: "outline" as const, label: "En attente", color: "bg-yellow-500" },
     };
     return configs[status as keyof typeof configs] || configs.pending;
   };
 
   const getPaymentStatusBadge = (status: string) => {
     const configs = {
-      paid: { variant: 'default' as const, label: 'Payé', color: 'text-green-600' },
-      pending: { variant: 'outline' as const, label: 'En attente', color: 'text-yellow-600' },
-      overdue: { variant: 'destructive' as const, label: 'En retard', color: 'text-red-600' }
+      paid: { variant: "default" as const, label: "Payé", color: "text-green-600" },
+      pending: { variant: "outline" as const, label: "En attente", color: "text-yellow-600" },
+      overdue: { variant: "destructive" as const, label: "En retard", color: "text-red-600" },
     };
     return configs[status as keyof typeof configs] || configs.pending;
   };
 
   const handleApproveSpecialty = (specialtyId: string) => {
-    setSpecialtyRequests(prev => prev.map(spec =>
-      spec.id === specialtyId
-        ? { ...spec, status: 'approved' as const, reviewedAt: new Date().toISOString(), reviewedBy: 'admin-1' }
-        : spec
-    ));
-    
+    setSpecialtyRequests((prev) =>
+      prev.map((spec) =>
+        spec.id === specialtyId
+          ? { ...spec, status: "approved" as const, reviewedAt: new Date().toISOString(), reviewedBy: "admin-1" }
+          : spec,
+      ),
+    );
+
     toast({
       title: "Spécialité approuvée",
       description: "La demande de spécialité a été approuvée avec succès.",
@@ -86,23 +112,25 @@ export const IndependentTrainerDetailView = ({ user }: IndependentTrainerDetailV
       toast({
         title: "Erreur",
         description: "Veuillez fournir une raison de rejet.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
 
-    setSpecialtyRequests(prev => prev.map(spec =>
-      spec.id === selectedSpecialty
-        ? { 
-            ...spec, 
-            status: 'rejected' as const, 
-            rejectionReason: rejectionReason,
-            reviewedAt: new Date().toISOString(), 
-            reviewedBy: 'admin-1' 
-          }
-        : spec
-    ));
-    
+    setSpecialtyRequests((prev) =>
+      prev.map((spec) =>
+        spec.id === selectedSpecialty
+          ? {
+              ...spec,
+              status: "rejected" as const,
+              rejectionReason: rejectionReason,
+              reviewedAt: new Date().toISOString(),
+              reviewedBy: "admin-1",
+            }
+          : spec,
+      ),
+    );
+
     toast({
       title: "Spécialité rejetée",
       description: "La demande a été rejetée. Le formateur recevra la raison du rejet.",
@@ -110,7 +138,7 @@ export const IndependentTrainerDetailView = ({ user }: IndependentTrainerDetailV
 
     setRejectionModalOpen(false);
     setSelectedSpecialty(null);
-    setRejectionReason('');
+    setRejectionReason("");
   };
 
   const openRejectionModal = (specialtyId: string) => {
@@ -120,11 +148,11 @@ export const IndependentTrainerDetailView = ({ user }: IndependentTrainerDetailV
 
   const getSpecialtyStatusBadge = (status: string) => {
     switch (status) {
-      case 'approved':
+      case "approved":
         return <Badge className="bg-green-100 text-green-800">Approuvé</Badge>;
-      case 'pending':
+      case "pending":
         return <Badge className="bg-yellow-100 text-yellow-800">En attente</Badge>;
-      case 'rejected':
+      case "rejected":
         return <Badge variant="destructive">Refusé</Badge>;
       default:
         return <Badge variant="outline">Inconnu</Badge>;
@@ -137,17 +165,13 @@ export const IndependentTrainerDetailView = ({ user }: IndependentTrainerDetailV
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-3xl font-bold text-green-600 mb-1">
-              {independentTrainerData.stats.totalEarnings}€
-            </div>
+            <div className="text-3xl font-bold text-green-600 mb-1">{independentTrainerData.stats.totalEarnings}€</div>
             <div className="text-sm text-gray-600">Revenus totaux</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-3xl font-bold text-blue-600 mb-1">
-              {independentTrainerData.stats.activeContracts}
-            </div>
+            <div className="text-3xl font-bold text-blue-600 mb-1">{independentTrainerData.stats.activeContracts}</div>
             <div className="text-sm text-gray-600">Contrats actifs</div>
           </CardContent>
         </Card>
@@ -161,9 +185,7 @@ export const IndependentTrainerDetailView = ({ user }: IndependentTrainerDetailV
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-3xl font-bold text-purple-600 mb-1">
-              {independentTrainerData.stats.hourlyRate}€/h
-            </div>
+            <div className="text-3xl font-bold text-purple-600 mb-1">{independentTrainerData.stats.hourlyRate}€/h</div>
             <div className="text-sm text-gray-600">Tarif horaire</div>
           </CardContent>
         </Card>
@@ -199,19 +221,19 @@ export const IndependentTrainerDetailView = ({ user }: IndependentTrainerDetailV
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-gray-600">N° NDA</label>
-                <p className="font-semibold">{fiscalInfo.ndaNumber || 'Non renseigné'}</p>
+                <p className="font-semibold">{fiscalInfo.ndaNumber || "Non renseigné"}</p>
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-600">Statut juridique</label>
-                <p className="font-semibold">{fiscalInfo.legalStatus || 'Non renseigné'}</p>
+                <p className="font-semibold">{fiscalInfo.legalStatus || "Non renseigné"}</p>
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-600">N° SIRET</label>
-                <p className="font-semibold">{fiscalInfo.siret || 'Non renseigné'}</p>
+                <p className="font-semibold">{fiscalInfo.siret || "Non renseigné"}</p>
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-600">N° TVA intracommunautaire</label>
-                <p className="font-semibold">{fiscalInfo.tvaNumber || 'Non renseigné'}</p>
+                <p className="font-semibold">{fiscalInfo.tvaNumber || "Non renseigné"}</p>
               </div>
             </div>
           )}
@@ -297,10 +319,10 @@ export const IndependentTrainerDetailView = ({ user }: IndependentTrainerDetailV
                 </div>
                 <div className="flex gap-2">
                   <Badge variant={availability.morning ? "default" : "outline"}>
-                    Matin {availability.morning ? '✓' : '✗'}
+                    Matin {availability.morning ? "✓" : "✗"}
                   </Badge>
                   <Badge variant={availability.afternoon ? "default" : "outline"}>
-                    Après-midi {availability.afternoon ? '✓' : '✗'}
+                    Après-midi {availability.afternoon ? "✓" : "✗"}
                   </Badge>
                 </div>
               </div>
@@ -338,7 +360,7 @@ export const IndependentTrainerDetailView = ({ user }: IndependentTrainerDetailV
                         <div>
                           <span className="text-gray-600">Soumis le:</span>
                           <span className="ml-2 font-medium">
-                            {new Date(specialty.submittedAt).toLocaleDateString('fr-FR')}
+                            {new Date(specialty.submittedAt).toLocaleDateString("fr-FR")}
                           </span>
                         </div>
                       </div>
@@ -346,8 +368,8 @@ export const IndependentTrainerDetailView = ({ user }: IndependentTrainerDetailV
                         <p className="text-sm text-gray-600 font-medium mb-1">Motivation:</p>
                         <p className="text-sm">{specialty.motivation}</p>
                       </div>
-                      
-                      {specialty.status === 'rejected' && specialty.rejectionReason && (
+
+                      {specialty.status === "rejected" && specialty.rejectionReason && (
                         <div className="bg-red-50 border border-red-200 p-3 rounded-md flex items-start gap-2">
                           <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
                           <div>
@@ -357,15 +379,15 @@ export const IndependentTrainerDetailView = ({ user }: IndependentTrainerDetailV
                         </div>
                       )}
 
-                      {specialty.status === 'approved' && specialty.reviewedAt && (
+                      {specialty.status === "approved" && specialty.reviewedAt && (
                         <div className="text-xs text-gray-500">
-                          Approuvé le {new Date(specialty.reviewedAt).toLocaleDateString('fr-FR')}
+                          Approuvé le {new Date(specialty.reviewedAt).toLocaleDateString("fr-FR")}
                         </div>
                       )}
                     </div>
                   </div>
 
-                  {specialty.status === 'pending' && (
+                  {specialty.status === "pending" && (
                     <div className="flex gap-2 justify-end">
                       <Button
                         variant="outline"
@@ -415,21 +437,17 @@ export const IndependentTrainerDetailView = ({ user }: IndependentTrainerDetailV
             </div>
           </div>
           <DialogFooter>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => {
                 setRejectionModalOpen(false);
                 setSelectedSpecialty(null);
-                setRejectionReason('');
+                setRejectionReason("");
               }}
             >
               Annuler
             </Button>
-            <Button 
-              variant="destructive"
-              onClick={handleRejectSpecialty}
-              disabled={!rejectionReason.trim()}
-            >
+            <Button variant="destructive" onClick={handleRejectSpecialty} disabled={!rejectionReason.trim()}>
               Confirmer le rejet
             </Button>
           </DialogFooter>
