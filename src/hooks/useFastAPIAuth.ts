@@ -58,7 +58,7 @@ export const useFastAPIAuth = () => {
       formateur_interne: '/dashboard/formateur-interne',
       createur_contenu: '/dashboard/createur-contenu',
       facilitator: '/dashboard/animateur',
-      manager: '/dashboard/gestionnaire',
+      manager: '/dashboard/technicien',
     };
 
     const redirectPath = roleRedirects[role] || '/dashboard/apprenant';
