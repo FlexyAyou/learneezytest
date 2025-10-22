@@ -79,6 +79,16 @@ export interface ListAllUsersResponse {
   created_at: string;
   last_login?: string;
   of_id?: number | null;
+  status?: string;
+  is_verified?: boolean;
+  is_major?: boolean | null;
+  accessible_catalogues?: string[];
+  of_name?: string | null;
+  alert_message?: {
+    type: string | null;
+    message: string | null;
+    date: string | null;
+  };
 }
 
 export interface RefreshRequest {
