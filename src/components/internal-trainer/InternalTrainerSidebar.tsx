@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import LanguageSelector from "@/components/common/LanguageSelector";
+import { useFastAPIAuth } from "@/hooks/useFastAPIAuth";
 
 const navigationItems = [
   { title: "Tableau de bord", href: "/formateur-interne", icon: Home },
@@ -44,15 +45,16 @@ const toolsItems = [
   { title: "Paramètres", href: "/formateur-interne/parametres", icon: Settings },
 ];
 
-const userInfo = {
-  name: "Sophie Moreau",
-  email: "sophie.moreau@learneezy.com",
-};
-
 export function InternalTrainerSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
+  const { user, logout } = useFastAPIAuth();
+  
+  const userName = user?.first_name && user?.last_name 
+    ? `${user.first_name} ${user.last_name}` 
+    : user?.email || 'Formateur';
+  const userEmail = user?.email || '';
 
   const isActive = (path: string) => currentPath === path;
   const isCollapsed = state === "collapsed";
@@ -80,15 +82,15 @@ export function InternalTrainerSidebar() {
           <div className="flex items-center space-x-3 mb-3">
             <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-pink-600 font-medium text-sm">
-                {userInfo.name
+                {userName
                   .split(" ")
                   .map((n) => n[0])
                   .join("")}
               </span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{userInfo.name}</p>
-              <p className="text-xs text-muted-foreground truncate">{userInfo.email}</p>
+              <p className="text-sm font-medium truncate">{userName}</p>
+              <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
             </div>
           </div>
           <LanguageSelector />
@@ -134,7 +136,7 @@ export function InternalTrainerSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="border-t border-border p-4">
-        <Button variant="ghost" className="w-full justify-start">
+        <Button variant="ghost" className="w-full justify-start" onClick={logout}>
           <LogOut className="h-4 w-4" />
           {!isCollapsed && <span>Se déconnecter</span>}
         </Button>

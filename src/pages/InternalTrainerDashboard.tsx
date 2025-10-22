@@ -45,6 +45,7 @@ import {
   Bell,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useFastAPIAuth } from "@/hooks/useFastAPIAuth";
 
 // Import des composants spécialisés
 import InternalTrainerContent from "@/components/internal-trainer/InternalTrainerContent";
@@ -59,6 +60,7 @@ import AIChatButton from "@/components/common/AIChatButton";
 
 const InternalTrainerDashboardHome = () => {
   const { toast } = useToast();
+  const { user } = useFastAPIAuth();
 
   const stats = [
     {
@@ -115,8 +117,11 @@ const InternalTrainerDashboardHome = () => {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Formateur Interne</h1>
+      <div className="space-y-1">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          Bonjour {user?.first_name || 'Formateur'} ! 
+          <span className="inline-block animate-bounce ml-2">👋</span>
+        </h1>
         <p className="text-gray-600">Suivez vos sessions et vos apprenants</p>
       </div>
 

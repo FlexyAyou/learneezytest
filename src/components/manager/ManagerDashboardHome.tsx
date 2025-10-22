@@ -24,10 +24,12 @@ import { StatsCard } from '@/components/common/StatsCard';
 import { InteractiveChart } from '@/components/common/InteractiveChart';
 import { TimelineComponent } from '@/components/common/TimelineComponent';
 import { QuickActionsGrid } from '@/components/common/QuickActionsGrid';
+import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 
 export const ManagerDashboardHome = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useFastAPIAuth();
 
   const chartData = [
     { name: 'Jan', value: 45, inscriptions: 45, abandons: 5 },
@@ -204,8 +206,9 @@ export const ManagerDashboardHome = () => {
       {/* Header avec animation */}
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold text-gray-900 bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-            Tableau de bord Gestionnaire
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Bonjour {user?.first_name || 'Gestionnaire'} ! 
+            <span className="inline-block animate-bounce ml-2">👋</span>
           </h1>
           <p className="text-gray-600">Vue d'ensemble des activités de formation</p>
         </div>
