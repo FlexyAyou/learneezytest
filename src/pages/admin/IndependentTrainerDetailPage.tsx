@@ -55,8 +55,8 @@ const IndependentTrainerDetailPage = () => {
     email: foundUser.email,
     phone: '+33 6 34 56 78 90', // Mock pour le moment
     role: 'Formateur indépendant',
-    status: foundUser.is_active ? 'active' : 'inactive',
-    is_active: foundUser.is_active,
+    status: foundUser.status || 'inactive',
+    is_active: foundUser.status === 'active',
     lastLogin: foundUser.last_login || '2024-01-18',
     joinDate: foundUser.created_at,
     created_at: foundUser.created_at,

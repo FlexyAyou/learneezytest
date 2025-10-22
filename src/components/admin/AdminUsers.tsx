@@ -53,28 +53,19 @@ export const AdminUsers = () => {
     if (!apiUsers) return [];
     
     return apiUsers.map(user => {
-      // Générer une date/heure mockée récente (entre 1 et 30 jours en arrière)
-      const generateMockLastLogin = () => {
-        const now = new Date();
-        const daysAgo = Math.floor(Math.random() * 30) + 1;
-        const hoursAgo = Math.floor(Math.random() * 24);
-        const minutesAgo = Math.floor(Math.random() * 60);
+      // Formater la dernière connexion depuis le backend
+      const formatLastLogin = (lastLogin: string | null) => {
+        if (!lastLogin) return 'Jamais connecté';
         
-        const mockDate = new Date(now);
-        mockDate.setDate(mockDate.getDate() - daysAgo);
-        mockDate.setHours(mockDate.getHours() - hoursAgo);
-        mockDate.setMinutes(mockDate.getMinutes() - minutesAgo);
-        
-        const day = String(mockDate.getDate()).padStart(2, '0');
-        const month = String(mockDate.getMonth() + 1).padStart(2, '0');
-        const year = mockDate.getFullYear();
-        const hours = String(mockDate.getHours()).padStart(2, '0');
-        const minutes = String(mockDate.getMinutes()).padStart(2, '0');
+        const date = new Date(lastLogin);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
         
         return `${day}/${month}/${year} à ${hours}:${minutes}`;
       };
-
-      const lastLoginDate = generateMockLastLogin();
 
       return {
         id: user.id,
@@ -83,18 +74,20 @@ export const AdminUsers = () => {
         role: mapBackendRoleToFrontend(user.role),
         organisation: user.of_id ? `Organisation ${user.of_id}` : 'Learneezy Direct',
         organisationType: user.of_id ? 'OF' : 'Direct',
-        status: user.is_active ? 'active' : 'inactive',
-        lastLogin: lastLoginDate
+        status: user.status || 'inactive',
+        lastLogin: formatLastLogin(user.last_login)
       };
     });
   }, [apiUsers]);
 
   // Fonction pour obtenir l'URL de détail selon le rôle
   const getUserDetailUrl = (user: any) => {
-    const slug = user.name.toLowerCase()
+    const nameSlug = user.name.toLowerCase()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '') // Enlever les accents
       .replace(/\s+/g, '-');
+    
+    const slug = `${user.id}-${nameSlug}`;
     
     // Si l'utilisateur est d'un OF, router vers les pages OF spécifiques
     if (user.organisationType === 'OF') {

@@ -51,7 +51,7 @@ const SuperAdminDetailPage = () => {
     email: foundUser.email,
     phone: '+33 6 12 34 56 78',
     role: 'Super Administrateur',
-    status: foundUser.is_active ? 'active' : 'inactive',
+    status: foundUser.status || 'inactive',
     lastLogin: foundUser.last_login || '2024-01-15',
     joinDate: foundUser.created_at,
     organisation: 'Learneezy',
