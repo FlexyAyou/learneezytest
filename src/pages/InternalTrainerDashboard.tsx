@@ -1,16 +1,16 @@
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
-import { InternalTrainerSidebar } from '@/components/internal-trainer/InternalTrainerSidebar';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { 
-  Users, 
-  BookOpen, 
-  Calendar, 
-  Award, 
+import React from "react";
+import { Routes, Route } from "react-router-dom";
+import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
+import { InternalTrainerSidebar } from "@/components/internal-trainer/InternalTrainerSidebar";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import {
+  Users,
+  BookOpen,
+  Calendar,
+  Award,
   TrendingUp,
   MessageSquare,
   Settings,
@@ -42,20 +42,20 @@ import {
   VideoOff,
   Share,
   HelpCircle,
-  Bell
-} from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+  Bell,
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 // Import des composants spécialisés
-import InternalTrainerContent from '@/components/internal-trainer/InternalTrainerContent';
-import InternalTrainerSessions from '@/components/internal-trainer/InternalTrainerSessions';
-import InternalTrainerStudents from '@/components/internal-trainer/InternalTrainerStudents';
-import InternalTrainerMessaging from '@/components/internal-trainer/InternalTrainerMessaging';
-import { DocumentDownload } from '@/components/common/DocumentDownload';
-import AIChat from '@/components/common/AIChat';
-import TrainerVideoConferences from '@/components/external-trainer/TrainerVideoConferences';
-import { PositioningTest } from '@/components/common/PositioningTest';
-import AIChatButton from '@/components/common/AIChatButton';
+import InternalTrainerContent from "@/components/internal-trainer/InternalTrainerContent";
+import InternalTrainerSessions from "@/components/internal-trainer/InternalTrainerSessions";
+import InternalTrainerStudents from "@/components/internal-trainer/InternalTrainerStudents";
+import InternalTrainerMessaging from "@/components/internal-trainer/InternalTrainerMessaging";
+import { DocumentDownload } from "@/components/common/DocumentDownload";
+import AIChat from "@/components/common/AIChat";
+import TrainerVideoConferences from "@/components/external-trainer/TrainerVideoConferences";
+import { PositioningTest } from "@/components/common/PositioningTest";
+import AIChatButton from "@/components/common/AIChatButton";
 
 const InternalTrainerDashboardHome = () => {
   const { toast } = useToast();
@@ -63,46 +63,46 @@ const InternalTrainerDashboardHome = () => {
   const stats = [
     {
       title: "Sessions ce mois",
-      value: "12",
+      value: "0",
       icon: Calendar,
-      change: "+2 vs mois dernier"
+      change: "+2 vs mois dernier",
     },
     {
       title: "Heures de formation",
-      value: "24h",
+      value: "0h",
       icon: Clock,
-      change: "Cette semaine"
+      change: "Cette semaine",
     },
     {
       title: "Satisfaction moyenne",
-      value: "92%",
+      value: "0%",
       icon: Star,
-      change: "Basé sur 24 retours"
+      change: "Basé sur 24 retours",
     },
     {
       title: "Apprenants actifs",
-      value: "45",
+      value: "0",
       icon: Users,
-      change: "+5 ce mois"
-    }
+      change: "+5 ce mois",
+    },
   ];
 
   const courseProgress = [
-    { id: 1, course: 'React Avancé', progress: 75 },
-    { id: 2, course: 'Node.js Déploiement', progress: 50 },
-    { id: 3, course: 'UI/UX Design', progress: 90 },
+    { id: 1, course: "React Avancé", progress: 0 },
+    { id: 2, course: "Node.js Déploiement", progress: 0 },
+    { id: 3, course: "UI/UX Design", progress: 0 },
   ];
 
   const upcomingSessions = [
-    { id: 1, course: 'React Avancé', date: '2024-01-15', time: '14:00', status: 'confirmed' },
-    { id: 2, course: 'Node.js Déploiement', date: '2024-01-16', time: '10:00', status: 'pending' },
-    { id: 3, course: 'UI/UX Design', date: '2024-01-17', time: '15:00', status: 'confirmed' },
+    { id: 1, course: "React Avancé", date: "2024-01-15", time: "14:00", status: "confirmed" },
+    { id: 2, course: "Node.js Déploiement", date: "2024-01-16", time: "10:00", status: "pending" },
+    { id: 3, course: "UI/UX Design", date: "2024-01-17", time: "15:00", status: "confirmed" },
   ];
 
   const notifications = [
-    { id: 1, message: 'Nouveau feedback sur React Avancé', type: 'feedback', read: false },
-    { id: 2, message: 'Session Node.js à confirmer', type: 'session', read: true },
-    { id: 3, message: 'Mise à jour du guide UI/UX', type: 'content', read: false },
+    { id: 1, message: "Nouveau feedback sur React Avancé", type: "feedback", read: false },
+    { id: 2, message: "Session Node.js à confirmer", type: "session", read: true },
+    { id: 3, message: "Mise à jour du guide UI/UX", type: "content", read: false },
   ];
 
   const handleSessionAction = (sessionId: number, action: string) => {
@@ -178,26 +178,20 @@ const InternalTrainerDashboardHome = () => {
               <div key={session.id} className="flex items-center justify-between p-4 border rounded-lg">
                 <div>
                   <p className="font-medium text-sm">{session.course}</p>
-                  <p className="text-xs text-gray-600">{session.date} - {session.time}</p>
+                  <p className="text-xs text-gray-600">
+                    {session.date} - {session.time}
+                  </p>
                 </div>
                 <div>
-                  {session.status === 'confirmed' ? (
+                  {session.status === "confirmed" ? (
                     <Badge variant="default">Confirmée</Badge>
                   ) : (
                     <Badge variant="outline">En attente</Badge>
                   )}
-                  <Button 
-                    size="sm" 
-                    variant="ghost"
-                    onClick={() => handleSessionAction(session.id, 'confirmée')}
-                  >
+                  <Button size="sm" variant="ghost" onClick={() => handleSessionAction(session.id, "confirmée")}>
                     <CheckCircle className="mr-1 h-3 w-3" />
                   </Button>
-                  <Button 
-                    size="sm" 
-                    variant="ghost"
-                    onClick={() => handleSessionAction(session.id, 'annulée')}
-                  >
+                  <Button size="sm" variant="ghost" onClick={() => handleSessionAction(session.id, "annulée")}>
                     <AlertCircle className="mr-1 h-3 w-3" />
                   </Button>
                 </div>
@@ -222,9 +216,9 @@ const InternalTrainerDashboardHome = () => {
             {notifications.map((notification) => (
               <div key={notification.id} className="flex items-center justify-between p-4 border rounded-lg">
                 <div className="flex items-center space-x-3">
-                  {notification.type === 'feedback' && <MessageSquare className="h-4 w-4 text-blue-600" />}
-                  {notification.type === 'session' && <Calendar className="h-4 w-4 text-green-600" />}
-                  {notification.type === 'content' && <BookOpen className="h-4 w-4 text-purple-600" />}
+                  {notification.type === "feedback" && <MessageSquare className="h-4 w-4 text-blue-600" />}
+                  {notification.type === "session" && <Calendar className="h-4 w-4 text-green-600" />}
+                  {notification.type === "content" && <BookOpen className="h-4 w-4 text-purple-600" />}
                   <div>
                     <p className="font-medium text-sm">{notification.message}</p>
                     {!notification.read && <Badge variant="secondary">Nouveau</Badge>}
@@ -270,21 +264,21 @@ const InternalTrainerDashboardHome = () => {
 
 const InternalTrainerDashboard = () => {
   const mockDocuments = [
-    { id: '1', name: 'Plan de formation.pdf', type: 'PDF', date: '2024-01-20', size: '2.3 MB' },
-    { id: '2', name: 'Guide formateur.pdf', type: 'PDF', date: '2024-01-18', size: '1.8 MB' }
+    { id: "1", name: "Plan de formation.pdf", type: "PDF", date: "2024-01-20", size: "2.3 MB" },
+    { id: "2", name: "Guide formateur.pdf", type: "PDF", date: "2024-01-18", size: "1.8 MB" },
   ];
 
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
         <InternalTrainerSidebar />
-        
+
         <SidebarInset className="flex-1">
           <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4">
             <SidebarTrigger />
             <div className="flex-1" />
           </header>
-          
+
           <main className="flex-1 p-8">
             <Routes>
               <Route path="/" element={<InternalTrainerDashboardHome />} />
@@ -299,7 +293,7 @@ const InternalTrainerDashboard = () => {
             </Routes>
           </main>
         </SidebarInset>
-        
+
         <AIChatButton />
       </div>
     </SidebarProvider>
