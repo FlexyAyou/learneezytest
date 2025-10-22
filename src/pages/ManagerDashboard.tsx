@@ -24,9 +24,16 @@ import ManagerApprenants from '@/components/manager/ManagerApprenants';
 import ManagerFormations from '@/components/manager/ManagerFormations';
 import { ManagerDashboardHome } from '@/components/manager/ManagerDashboardHome';
 import AIChatButton from '@/components/common/AIChatButton';
+import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 
 const ManagerDashboard = () => {
   const location = useLocation();
+  const { user } = useFastAPIAuth();
+  
+  const userName = user?.first_name && user?.last_name 
+    ? `${user.first_name} ${user.last_name}` 
+    : user?.email || 'Gestionnaire';
+  const userEmail = user?.email || '';
 
   const sidebarItems = [
     { 
@@ -86,8 +93,8 @@ const ManagerDashboard = () => {
   ];
 
   const userInfo = {
-    name: "Sophie Laurent",
-    email: "sophie.laurent@learneezy.com"
+    name: userName,
+    email: userEmail
   };
 
   return (
