@@ -17,23 +17,23 @@ export const StudentDetailView = ({ user, userRole = 'admin' }: StudentDetailVie
   // Mock data spécifique aux apprenants
   const studentData = {
     courses: [
-      { id: 1, name: 'React Avancé', progress: 75, status: 'en_cours', timeSpent: '24h' },
-      { id: 2, name: 'JavaScript ES6+', progress: 100, status: 'terminé', timeSpent: '32h' },
-      { id: 3, name: 'HTML/CSS', progress: 30, status: 'en_cours', timeSpent: '8h' }
+      { id: 1, name: 'React Avancé', progress: 0, status: 'en_cours', timeSpent: '0h' },
+      { id: 2, name: 'JavaScript ES6+', progress: 0, status: 'terminé', timeSpent: '0h' },
+      { id: 3, name: 'HTML/CSS', progress: 0, status: 'en_cours', timeSpent: '0h' }
     ],
     certificates: [
       { id: 1, name: 'Certificat React', date: '2024-01-15' },
       { id: 2, name: 'Attestation JavaScript', date: '2024-01-10' }
     ],
     evaluations: [
-      { id: 1, course: 'React Avancé', type: 'Quiz', score: '16/20', date: '2024-01-20' },
-      { id: 2, course: 'JavaScript ES6+', type: 'Projet final', score: '18/20', date: '2024-01-15' }
+      { id: 1, course: 'React Avancé', type: 'Quiz', score: '0/20', date: '2024-01-20' },
+      { id: 2, course: 'JavaScript ES6+', type: 'Projet final', score: '0/20', date: '2024-01-15' }
     ],
     stats: {
-      totalStudyTime: '64h',
-      averageGrade: 8.5,
-      completedCourses: 2,
-      inProgressCourses: 1
+      totalStudyTime: '0h',
+      averageGrade: 0,
+      completedCourses: 0,
+      inProgressCourses: 0
     }
   };
 
@@ -74,7 +74,6 @@ export const StudentDetailView = ({ user, userRole = 'admin' }: StudentDetailVie
               {studentData.stats.completedCourses}
             </div>
             <div className="text-sm text-gray-600">Cours terminés</div>
-            <p className="text-xs text-muted-foreground">Données mockées</p>
           </CardContent>
         </Card>
         <Card>
