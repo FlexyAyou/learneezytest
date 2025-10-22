@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   Settings, 
   User, 
@@ -17,22 +18,26 @@ import {
   Users,
   Mail,
   Phone,
-  Building
+  Building,
+  Camera,
+  X,
+  Lock
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 
 const ManagerSettings = () => {
   const { toast } = useToast();
+  const { user } = useFastAPIAuth();
+  const [avatar, setAvatar] = useState<string>('');
+  const [formData, setFormData] = useState({
+    firstName: user?.first_name || '',
+    lastName: user?.last_name || '',
+    phone: user?.phone_number || '',
+    address: user?.address || '',
+    bio: user?.bio || '',
+  });
   const [settings, setSettings] = useState({
-    // Profile
-    firstName: 'Sophie',
-    lastName: 'Laurent',
-    email: 'sophie.laurent@learneezy.com',
-    phone: '+33 1 23 45 67 89',
-    department: 'Formation Continue',
-    position: 'Gestionnaire de Formation',
-    bio: 'Responsable de la supervision des parcours de formation et du suivi des apprenants.',
-    
     // Notifications
     emailNotifications: true,
     pushNotifications: true,
@@ -49,11 +54,92 @@ const ManagerSettings = () => {
     timezone: 'Europe/Paris'
   });
 
+  // Charger la photo depuis localStorage
+  useEffect(() => {
+    const savedAvatar = localStorage.getItem('manager-avatar');
+    if (savedAvatar) {
+      setAvatar(savedAvatar);
+    }
+  }, []);
+
+  // Mettre à jour formData quand user change
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        firstName: user.first_name || '',
+        lastName: user.last_name || '',
+        phone: user.phone_number || '',
+        address: user.address || '',
+        bio: user.bio || '',
+      });
+    }
+  }, [user]);
+
+  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validation du type
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      toast({
+        title: "Format non supporté",
+        description: "Veuillez choisir une image JPG, PNG ou WEBP",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validation de la taille (5 MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Fichier trop volumineux",
+        description: "La taille maximale est de 5 MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Conversion en base64
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      setAvatar(base64String);
+      
+      // Sauvegarde dans localStorage pour persistance
+      localStorage.setItem('manager-avatar', base64String);
+      
+      toast({
+        title: "Photo mise à jour",
+        description: "Votre photo de profil a été changée avec succès",
+      });
+    };
+    
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemovePhoto = () => {
+    setAvatar('');
+    localStorage.removeItem('manager-avatar');
+    toast({
+      title: "Photo supprimée",
+      description: "Votre photo de profil a été supprimée",
+    });
+  };
+
   const handleSave = () => {
+    // TODO: Implémenter l'appel API pour sauvegarder les modifications
     toast({
       title: "Paramètres sauvegardés",
       description: "Vos préférences ont été mises à jour avec succès.",
     });
+  };
+
+  const handleFormDataChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [id]: value
+    }));
   };
 
   const handleInputChange = (field: string, value: string | boolean) => {
@@ -61,6 +147,14 @@ const ManagerSettings = () => {
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleChangePassword = () => {
+    // TODO: Implémenter le changement de mot de passe
+    toast({
+      title: "Mot de passe modifié",
+      description: "Votre mot de passe a été changé avec succès",
+    });
   };
 
   return (
@@ -77,91 +171,157 @@ const ManagerSettings = () => {
         </Button>
       </div>
 
-      {/* Profile Settings */}
+      {/* Photo de profil et Informations personnelles */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Photo de profil */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Photo de profil</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-col items-center">
+              <Avatar className="h-24 w-24 mb-4">
+                {avatar ? (
+                  <AvatarImage src={avatar} alt={`${user?.first_name} ${user?.last_name}`} />
+                ) : (
+                  <AvatarFallback className="text-lg bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
+                    {user?.first_name?.[0]}{user?.last_name?.[0]}
+                  </AvatarFallback>
+                )}
+              </Avatar>
+              
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => document.getElementById('avatar-upload')?.click()}
+                >
+                  <Camera className="h-4 w-4 mr-2" />
+                  Changer
+                </Button>
+                {avatar && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRemovePhoto}
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Supprimer
+                  </Button>
+                )}
+              </div>
+              <input
+                id="avatar-upload"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={handlePhotoUpload}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Informations personnelles */}
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <User className="mr-2 h-5 w-5 text-primary" />
+              Informations personnelles
+            </CardTitle>
+            <CardDescription>Modifiez vos informations de profil</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">Prénom</Label>
+                <Input 
+                  id="firstName" 
+                  value={formData.firstName}
+                  onChange={handleFormDataChange}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Nom</Label>
+                <Input 
+                  id="lastName" 
+                  value={formData.lastName}
+                  onChange={handleFormDataChange}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input 
+                id="email" 
+                type="email" 
+                value={user?.email || ''} 
+                disabled 
+                className="bg-muted cursor-not-allowed" 
+              />
+              <p className="text-xs text-muted-foreground">L'email ne peut pas être modifié</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone">Téléphone</Label>
+              <Input 
+                id="phone" 
+                value={formData.phone}
+                onChange={handleFormDataChange}
+                placeholder="Votre numéro de téléphone"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="address">Adresse</Label>
+              <Input 
+                id="address" 
+                value={formData.address}
+                onChange={handleFormDataChange}
+                placeholder="Votre adresse complète" 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="bio">Bio</Label>
+              <Textarea 
+                id="bio"
+                className="min-h-[100px]"
+                placeholder="Parlez-nous de vous, de votre expertise..."
+                value={formData.bio}
+                onChange={handleFormDataChange}
+              />
+            </div>
+            <Button onClick={handleSave} className="w-full">
+              Sauvegarder les modifications
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Sécurité */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
-            <User className="mr-2 h-5 w-5" />
-            Informations Personnelles
+            <Lock className="mr-2 h-5 w-5 text-primary" />
+            Sécurité
           </CardTitle>
-          <CardDescription>
-            Gérez vos informations de profil et de contact
-          </CardDescription>
+          <CardDescription>Modifiez votre mot de passe</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="firstName">Prénom</Label>
-              <Input
-                id="firstName"
-                value={settings.firstName}
-                onChange={(e) => handleInputChange('firstName', e.target.value)}
-              />
+              <Label htmlFor="currentPassword">Mot de passe actuel</Label>
+              <Input id="currentPassword" type="password" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="lastName">Nom</Label>
-              <Input
-                id="lastName"
-                value={settings.lastName}
-                onChange={(e) => handleInputChange('lastName', e.target.value)}
-              />
+              <Label htmlFor="newPassword">Nouveau mot de passe</Label>
+              <Input id="newPassword" type="password" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
+              <Input id="confirmPassword" type="password" />
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="flex items-center">
-                <Mail className="mr-2 h-4 w-4" />
-                Email
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                value={settings.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="phone" className="flex items-center">
-                <Phone className="mr-2 h-4 w-4" />
-                Téléphone
-              </Label>
-              <Input
-                id="phone"
-                value={settings.phone}
-                onChange={(e) => handleInputChange('phone', e.target.value)}
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="department" className="flex items-center">
-                <Building className="mr-2 h-4 w-4" />
-                Département
-              </Label>
-              <Input
-                id="department"
-                value={settings.department}
-                onChange={(e) => handleInputChange('department', e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="position">Poste</Label>
-              <Input
-                id="position"
-                value={settings.position}
-                onChange={(e) => handleInputChange('position', e.target.value)}
-              />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="bio">Biographie</Label>
-            <Textarea
-              id="bio"
-              value={settings.bio}
-              onChange={(e) => handleInputChange('bio', e.target.value)}
-              className="min-h-[100px]"
-            />
-          </div>
+          <Button variant="outline" className="mt-4" onClick={handleChangePassword}>
+            Changer le mot de passe
+          </Button>
         </CardContent>
       </Card>
 
@@ -227,22 +387,22 @@ const ManagerSettings = () => {
         </CardContent>
       </Card>
 
-      {/* Security Settings */}
+      {/* Options avancées de sécurité */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
             <Shield className="mr-2 h-5 w-5" />
-            Sécurité
+            Options avancées
           </CardTitle>
           <CardDescription>
-            Gérez vos paramètres de sécurité et confidentialité
+            Gérez vos paramètres de sécurité supplémentaires
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
               <Label htmlFor="2fa">Authentification à deux facteurs</Label>
-              <p className="text-sm text-gray-600">Ajouter une couche de sécurité supplémentaire</p>
+              <p className="text-sm text-muted-foreground">Ajouter une couche de sécurité supplémentaire</p>
             </div>
             <div className="flex items-center space-x-2">
               <Switch

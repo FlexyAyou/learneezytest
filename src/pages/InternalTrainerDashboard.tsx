@@ -57,6 +57,7 @@ import AIChat from "@/components/common/AIChat";
 import TrainerVideoConferences from "@/components/external-trainer/TrainerVideoConferences";
 import { PositioningTest } from "@/components/common/PositioningTest";
 import AIChatButton from "@/components/common/AIChatButton";
+import InternalTrainerSettings from "@/pages/InternalTrainerSettings";
 
 const InternalTrainerDashboardHome = () => {
   const { toast } = useToast();
@@ -295,6 +296,7 @@ const InternalTrainerDashboard = () => {
               <Route path="/video" element={<TrainerVideoConferences />} />
               <Route path="/chat" element={<AIChat />} />
               <Route path="/documents" element={<DocumentDownload documents={mockDocuments} userRole="instructor" />} />
+              <Route path="/parametres" element={<InternalTrainerSettings />} />
             </Routes>
           </main>
         </SidebarInset>
