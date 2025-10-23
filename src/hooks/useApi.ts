@@ -461,21 +461,9 @@ export const useUpdateProfile = () => {
 
   return useMutation({
     mutationFn: (userData: UserUpdate) => fastAPIClient.updateUserProfile(userData),
-    onSuccess: (data) => {
-      // Invalider les caches pour forcer le rechargement partout
-      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
-      
-      toast({
-        title: "Profil mis à jour",
-        description: "Vos informations ont été enregistrées avec succès",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Erreur",
-        description: error.response?.data?.detail || "Impossible de mettre à jour le profil",
-        variant: "destructive",
-      });
+    onSuccess: (updatedUser) => {
+      // Mettre à jour directement le cache sans refetch
+      queryClient.setQueryData(['currentUser'], updatedUser);
     },
   });
 };

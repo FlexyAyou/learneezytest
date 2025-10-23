@@ -93,6 +93,13 @@ export const useFastAPIAuth = () => {
     return decoded?.role || null;
   };
 
+  /**
+   * Mettre à jour l'utilisateur localement (sans appel API)
+   */
+  const updateUser = (updatedData: Partial<UserResponse>) => {
+    setUser(prev => prev ? { ...prev, ...updatedData } : null);
+  };
+
   return {
     user,
     isLoading,
@@ -100,5 +107,6 @@ export const useFastAPIAuth = () => {
     logout,
     redirectByRole,
     getUserRole,
+    updateUser,
   };
 };

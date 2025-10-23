@@ -14,7 +14,7 @@ import { useUpdateProfile } from '@/hooks/useApi';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 
 const StudentSettings = () => {
-  const { user, isLoading: authLoading } = useFastAPIAuth();
+  const { user, isLoading: authLoading, updateUser } = useFastAPIAuth();
   const { toast } = useToast();
   const updateProfileMutation = useUpdateProfile();
   
@@ -95,7 +95,7 @@ const StudentSettings = () => {
 
   const handleSaveProfile = async () => {
     try {
-      await updateProfileMutation.mutateAsync({
+      const updatedUser = await updateProfileMutation.mutateAsync({
         first_name: firstName,
         last_name: lastName,
         phone,
@@ -103,8 +103,20 @@ const StudentSettings = () => {
         bio,
         image: avatar,
       });
-    } catch (error) {
-      // L'erreur est déjà gérée par le hook
+      
+      // Mettre à jour immédiatement la sidebar sans rechargement
+      updateUser(updatedUser);
+      
+      toast({
+        title: "Profil mis à jour",
+        description: "Vos informations ont été enregistrées avec succès",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: error.response?.data?.detail || "Impossible de mettre à jour le profil",
+        variant: "destructive",
+      });
     }
   };
 
