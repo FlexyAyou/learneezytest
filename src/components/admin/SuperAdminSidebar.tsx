@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
-import {
+import { useState, useEffect } from "react";
+import { 
   Building,
   Users,
   BookOpen,
@@ -73,9 +74,24 @@ export function SuperAdminSidebar() {
   const location = useLocation();
   const currentPath = location.pathname;
   const { user, logout } = useFastAPIAuth();
+  const [avatar, setAvatar] = useState<string>('');
   
-  // Utiliser l'image du backend en priorité, fallback sur localStorage pour compatibilité
-  const avatar = user?.image || localStorage.getItem('admin-avatar') || '';
+  // Charger l'avatar depuis localStorage
+  useEffect(() => {
+    const savedAvatar = localStorage.getItem('admin-avatar');
+    if (savedAvatar) {
+      setAvatar(savedAvatar);
+    }
+
+    // Écouter les changements de localStorage
+    const handleStorageChange = () => {
+      const updatedAvatar = localStorage.getItem('admin-avatar');
+      setAvatar(updatedAvatar || '');
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
   
   // Informations utilisateur dynamiques
   const userInfo = {
