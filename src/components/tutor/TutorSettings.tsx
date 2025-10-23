@@ -36,8 +36,6 @@ interface ProfileFormData {
   phone: string;
   address: string;
   bio: string;
-  specialties: string;
-  experience: string;
 }
 
 interface PasswordFormData {
@@ -64,8 +62,6 @@ export const TutorSettings = () => {
     phone: '',
     address: '',
     bio: '',
-    specialties: '',
-    experience: '',
     avatar: ''
   });
 
@@ -89,9 +85,7 @@ export const TutorSettings = () => {
       email: user?.email || '',
       phone: user?.phone || '',
       address: user?.address || '',
-      bio: user?.bio || '',
-      specialties: '',
-      experience: ''
+      bio: user?.bio || ''
     }
   });
 
@@ -104,8 +98,6 @@ export const TutorSettings = () => {
         phone: user.phone || '',
         address: user.address || '',
         bio: user.bio || '',
-        specialties: '',
-        experience: '',
         avatar: user.image || ''
       };
       
@@ -115,9 +107,7 @@ export const TutorSettings = () => {
         email: user.email || '',
         phone: values.phone,
         address: values.address,
-        bio: values.bio,
-        specialties: values.specialties,
-        experience: values.experience
+        bio: values.bio
       });
       
       setAvatar(values.avatar);
@@ -135,8 +125,6 @@ export const TutorSettings = () => {
     watchedValues.phone !== initialValues.phone ||
     watchedValues.address !== initialValues.address ||
     watchedValues.bio !== initialValues.bio ||
-    watchedValues.specialties !== initialValues.specialties ||
-    watchedValues.experience !== initialValues.experience ||
     avatar !== initialValues.avatar;
 
   const passwordForm = useForm<PasswordFormData>();
@@ -162,8 +150,6 @@ export const TutorSettings = () => {
         phone: data.phone,
         address: data.address,
         bio: data.bio,
-        specialties: data.specialties,
-        experience: data.experience,
         avatar: avatar
       });
 
@@ -358,7 +344,11 @@ export const TutorSettings = () => {
             <div className="lg:col-span-2">
               <Card>
                 <CardHeader>
-                  <CardTitle>Informations personnelles</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <User className="h-5 w-5 text-primary" />
+                    Informations personnelles
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">Modifiez vos informations de profil</p>
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-4">
@@ -381,24 +371,25 @@ export const TutorSettings = () => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="email">Email</Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          {...profileForm.register('email', { required: true })}
-                          className="mt-1"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="phone">Téléphone</Label>
-                        <Input
-                          id="phone"
-                          {...profileForm.register('phone')}
-                          className="mt-1"
-                        />
-                      </div>
+                    <div>
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        {...profileForm.register('email', { required: true })}
+                        className="mt-1"
+                        disabled
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">L'email ne peut pas être modifié</p>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="phone">Téléphone</Label>
+                      <Input
+                        id="phone"
+                        {...profileForm.register('phone')}
+                        className="mt-1"
+                      />
                     </div>
 
                     <div>
@@ -406,37 +397,15 @@ export const TutorSettings = () => {
                       <Input
                         id="address"
                         {...profileForm.register('address')}
-                        placeholder="Votre adresse complète"
                         className="mt-1"
                       />
                     </div>
 
                     <div>
-                      <Label htmlFor="specialties">Spécialités</Label>
-                      <Input
-                        id="specialties"
-                        {...profileForm.register('specialties')}
-                        placeholder="Matières que vous enseignez..."
-                        className="mt-1"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="experience">Expérience</Label>
-                      <Input
-                        id="experience"
-                        {...profileForm.register('experience')}
-                        placeholder="Votre expérience professionnelle..."
-                        className="mt-1"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="bio">Biographie</Label>
+                      <Label htmlFor="bio">Bio</Label>
                       <Textarea
                         id="bio"
                         {...profileForm.register('bio')}
-                        placeholder="Décrivez-vous en quelques mots..."
                         className="mt-1"
                         rows={4}
                       />
