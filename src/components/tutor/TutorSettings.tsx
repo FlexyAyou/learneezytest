@@ -1,33 +1,18 @@
-
-import React, { useState, useRef, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Settings, 
-  User, 
-  Lock, 
-  Bell, 
-  Camera, 
-  Save, 
-  Eye, 
-  EyeOff,
-  Shield,
-  Clock,
-  Mail,
-  Upload,
-  X
-} from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { useForm } from 'react-hook-form';
-import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
-import { useUpdateProfile } from '@/hooks/useApi';
+import React, { useState, useRef, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Settings, User, Lock, Bell, Camera, Save, Eye, EyeOff, Shield, Clock, Mail, Upload, X } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useForm } from "react-hook-form";
+import { useFastAPIAuth } from "@/hooks/useFastAPIAuth";
+import { useUpdateProfile } from "@/hooks/useApi";
 
 interface ProfileFormData {
   firstName: string;
@@ -48,21 +33,21 @@ export const TutorSettings = () => {
   const { toast } = useToast();
   const { user, updateUser } = useFastAPIAuth();
   const inputFileRef = useRef<HTMLInputElement>(null);
-  const [avatar, setAvatar] = useState('');
+  const [avatar, setAvatar] = useState("");
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
+
   const updateProfileMutation = useUpdateProfile();
 
   // Valeurs initiales pour détecter les changements
   const [initialValues, setInitialValues] = useState({
-    firstName: '',
-    lastName: '',
-    phone: '',
-    address: '',
-    bio: '',
-    avatar: ''
+    firstName: "",
+    lastName: "",
+    phone: "",
+    address: "",
+    bio: "",
+    avatar: "",
   });
 
   // Notifications settings
@@ -75,41 +60,41 @@ export const TutorSettings = () => {
     pushMessages: true,
     weeklyReport: true,
     monthlyReport: false,
-    marketingEmails: false
+    marketingEmails: false,
   });
 
   const profileForm = useForm<ProfileFormData>({
     defaultValues: {
-      firstName: user?.first_name || '',
-      lastName: user?.last_name || '',
-      email: user?.email || '',
-      phone: user?.phone || '',
-      address: user?.address || '',
-      bio: user?.bio || ''
-    }
+      firstName: user?.first_name || "",
+      lastName: user?.last_name || "",
+      email: user?.email || "",
+      phone: user?.phone || "",
+      address: user?.address || "",
+      bio: user?.bio || "",
+    },
   });
 
   // Initialiser les champs avec les données utilisateur
   useEffect(() => {
     if (user) {
       const values = {
-        firstName: user.first_name || '',
-        lastName: user.last_name || '',
-        phone: user.phone || '',
-        address: user.address || '',
-        bio: user.bio || '',
-        avatar: user.image || ''
+        firstName: user.first_name || "",
+        lastName: user.last_name || "",
+        phone: user.phone || "",
+        address: user.address || "",
+        bio: user.bio || "",
+        avatar: user.image || "",
       };
-      
+
       profileForm.reset({
         firstName: values.firstName,
         lastName: values.lastName,
-        email: user.email || '',
+        email: user.email || "",
         phone: values.phone,
         address: values.address,
-        bio: values.bio
+        bio: values.bio,
       });
-      
+
       setAvatar(values.avatar);
       setInitialValues(values);
     }
@@ -119,7 +104,7 @@ export const TutorSettings = () => {
   const watchedValues = profileForm.watch();
 
   // Détection des changements
-  const hasChanges = 
+  const hasChanges =
     watchedValues.firstName !== initialValues.firstName ||
     watchedValues.lastName !== initialValues.lastName ||
     watchedValues.phone !== initialValues.phone ||
@@ -137,7 +122,7 @@ export const TutorSettings = () => {
         phone: data.phone,
         address: data.address,
         bio: data.bio,
-        image: avatar
+        image: avatar,
       });
 
       // Mettre à jour le contexte utilisateur local (pour la sidebar)
@@ -150,7 +135,7 @@ export const TutorSettings = () => {
         phone: data.phone,
         address: data.address,
         bio: data.bio,
-        avatar: avatar
+        avatar: avatar,
       });
 
       toast({
@@ -161,7 +146,7 @@ export const TutorSettings = () => {
       toast({
         title: "Erreur",
         description: "Impossible de mettre à jour le profil.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -171,13 +156,13 @@ export const TutorSettings = () => {
       toast({
         title: "Erreur",
         description: "Les mots de passe ne correspondent pas.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       toast({
         title: "Mot de passe modifié",
         description: "Votre mot de passe a été modifié avec succès.",
@@ -187,14 +172,14 @@ export const TutorSettings = () => {
       toast({
         title: "Erreur",
         description: "Impossible de modifier le mot de passe.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
 
   const updateNotifications = async () => {
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       toast({
         title: "Préférences sauvegardées",
         description: "Vos préférences de notification ont été mises à jour.",
@@ -203,7 +188,7 @@ export const TutorSettings = () => {
       toast({
         title: "Erreur",
         description: "Impossible de sauvegarder les préférences.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -213,7 +198,7 @@ export const TutorSettings = () => {
     if (!file) return;
 
     // Validation du type
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
       toast({
         title: "Format non supporté",
         description: "Veuillez choisir une image JPG, PNG ou WEBP",
@@ -237,18 +222,18 @@ export const TutorSettings = () => {
     reader.onloadend = () => {
       const base64String = reader.result as string;
       setAvatar(base64String);
-      
+
       toast({
         title: "Photo sélectionnée",
         description: "N'oubliez pas de sauvegarder vos modifications",
       });
     };
-    
+
     reader.readAsDataURL(file);
   };
 
   const handleRemovePhoto = () => {
-    setAvatar('');
+    setAvatar("");
     toast({
       title: "Photo supprimée",
       description: "N'oubliez pas de sauvegarder vos modifications",
@@ -295,11 +280,12 @@ export const TutorSettings = () => {
                       <AvatarImage src={avatar} alt={`${user?.first_name} ${user?.last_name}`} />
                     ) : (
                       <AvatarFallback className="text-lg bg-gradient-to-br from-pink-500 to-purple-600 text-white">
-                        {user?.first_name?.[0]}{user?.last_name?.[0]}
+                        {user?.first_name?.[0]}
+                        {user?.last_name?.[0]}
                       </AvatarFallback>
                     )}
                   </Avatar>
-                  
+
                   <input
                     ref={inputFileRef}
                     type="file"
@@ -307,23 +293,15 @@ export const TutorSettings = () => {
                     onChange={handlePhotoUpload}
                     className="hidden"
                   />
-                  
+
                   <div className="flex gap-2 justify-center">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => inputFileRef.current?.click()}
-                    >
+                    <Button variant="outline" size="sm" onClick={() => inputFileRef.current?.click()}>
                       <Upload className="h-4 w-4 mr-2" />
-                      {avatar ? 'Changer' : 'Ajouter'}
+                      {avatar ? "Changer" : "Ajouter"}
                     </Button>
-                    
+
                     {avatar && (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={handleRemovePhoto}
-                      >
+                      <Button variant="outline" size="sm" onClick={handleRemovePhoto}>
                         <X className="h-4 w-4" />
                       </Button>
                     )}
@@ -333,10 +311,7 @@ export const TutorSettings = () => {
                   <Badge variant="secondary" className="w-full justify-center">
                     Tutrice Certifiée
                   </Badge>
-                  <div className="text-center text-sm text-gray-600">
-                    <p>Membre depuis Mars 2023</p>
-                    <p>12 élèves accompagnés</p>
-                  </div>
+                  <div className="text-center text-sm text-gray-600"></div>
                 </div>
               </CardContent>
             </Card>
@@ -357,7 +332,7 @@ export const TutorSettings = () => {
                         <Label htmlFor="firstName">Prénom</Label>
                         <Input
                           id="firstName"
-                          {...profileForm.register('firstName', { required: true })}
+                          {...profileForm.register("firstName", { required: true })}
                           className="mt-1"
                         />
                       </div>
@@ -365,7 +340,7 @@ export const TutorSettings = () => {
                         <Label htmlFor="lastName">Nom</Label>
                         <Input
                           id="lastName"
-                          {...profileForm.register('lastName', { required: true })}
+                          {...profileForm.register("lastName", { required: true })}
                           className="mt-1"
                         />
                       </div>
@@ -376,7 +351,7 @@ export const TutorSettings = () => {
                       <Input
                         id="email"
                         type="email"
-                        {...profileForm.register('email', { required: true })}
+                        {...profileForm.register("email", { required: true })}
                         className="mt-1"
                         disabled
                       />
@@ -385,30 +360,17 @@ export const TutorSettings = () => {
 
                     <div>
                       <Label htmlFor="phone">Téléphone</Label>
-                      <Input
-                        id="phone"
-                        {...profileForm.register('phone')}
-                        className="mt-1"
-                      />
+                      <Input id="phone" {...profileForm.register("phone")} className="mt-1" />
                     </div>
 
                     <div>
                       <Label htmlFor="address">Adresse</Label>
-                      <Input
-                        id="address"
-                        {...profileForm.register('address')}
-                        className="mt-1"
-                      />
+                      <Input id="address" {...profileForm.register("address")} className="mt-1" />
                     </div>
 
                     <div>
                       <Label htmlFor="bio">Bio</Label>
-                      <Textarea
-                        id="bio"
-                        {...profileForm.register('bio')}
-                        className="mt-1"
-                        rows={4}
-                      />
+                      <Textarea id="bio" {...profileForm.register("bio")} className="mt-1" rows={4} />
                     </div>
 
                     <Button type="submit" disabled={!hasChanges || updateProfileMutation.isPending}>
@@ -444,7 +406,7 @@ export const TutorSettings = () => {
                     <Input
                       id="currentPassword"
                       type={showCurrentPassword ? "text" : "password"}
-                      {...passwordForm.register('currentPassword', { required: true })}
+                      {...passwordForm.register("currentPassword", { required: true })}
                     />
                     <Button
                       type="button"
@@ -464,9 +426,9 @@ export const TutorSettings = () => {
                     <Input
                       id="newPassword"
                       type={showNewPassword ? "text" : "password"}
-                      {...passwordForm.register('newPassword', { 
+                      {...passwordForm.register("newPassword", {
                         required: true,
-                        minLength: { value: 8, message: 'Le mot de passe doit contenir au moins 8 caractères' }
+                        minLength: { value: 8, message: "Le mot de passe doit contenir au moins 8 caractères" },
                       })}
                     />
                     <Button
@@ -487,7 +449,7 @@ export const TutorSettings = () => {
                     <Input
                       id="confirmPassword"
                       type={showConfirmPassword ? "text" : "password"}
-                      {...passwordForm.register('confirmPassword', { required: true })}
+                      {...passwordForm.register("confirmPassword", { required: true })}
                     />
                     <Button
                       type="button"
@@ -538,9 +500,7 @@ export const TutorSettings = () => {
                   <Switch
                     id="emailNewStudent"
                     checked={notifications.emailNewStudent}
-                    onCheckedChange={(checked) => 
-                      setNotifications({...notifications, emailNewStudent: checked})
-                    }
+                    onCheckedChange={(checked) => setNotifications({ ...notifications, emailNewStudent: checked })}
                   />
                 </div>
 
@@ -552,9 +512,7 @@ export const TutorSettings = () => {
                   <Switch
                     id="emailProgress"
                     checked={notifications.emailProgress}
-                    onCheckedChange={(checked) => 
-                      setNotifications({...notifications, emailProgress: checked})
-                    }
+                    onCheckedChange={(checked) => setNotifications({ ...notifications, emailProgress: checked })}
                   />
                 </div>
 
@@ -566,9 +524,7 @@ export const TutorSettings = () => {
                   <Switch
                     id="emailMessages"
                     checked={notifications.emailMessages}
-                    onCheckedChange={(checked) => 
-                      setNotifications({...notifications, emailMessages: checked})
-                    }
+                    onCheckedChange={(checked) => setNotifications({ ...notifications, emailMessages: checked })}
                   />
                 </div>
               </CardContent>
@@ -590,9 +546,7 @@ export const TutorSettings = () => {
                   <Switch
                     id="pushNewStudent"
                     checked={notifications.pushNewStudent}
-                    onCheckedChange={(checked) => 
-                      setNotifications({...notifications, pushNewStudent: checked})
-                    }
+                    onCheckedChange={(checked) => setNotifications({ ...notifications, pushNewStudent: checked })}
                   />
                 </div>
 
@@ -604,9 +558,7 @@ export const TutorSettings = () => {
                   <Switch
                     id="pushProgress"
                     checked={notifications.pushProgress}
-                    onCheckedChange={(checked) => 
-                      setNotifications({...notifications, pushProgress: checked})
-                    }
+                    onCheckedChange={(checked) => setNotifications({ ...notifications, pushProgress: checked })}
                   />
                 </div>
 
@@ -618,9 +570,7 @@ export const TutorSettings = () => {
                   <Switch
                     id="pushMessages"
                     checked={notifications.pushMessages}
-                    onCheckedChange={(checked) => 
-                      setNotifications({...notifications, pushMessages: checked})
-                    }
+                    onCheckedChange={(checked) => setNotifications({ ...notifications, pushMessages: checked })}
                   />
                 </div>
               </CardContent>
@@ -643,9 +593,7 @@ export const TutorSettings = () => {
                 <Switch
                   id="weeklyReport"
                   checked={notifications.weeklyReport}
-                  onCheckedChange={(checked) => 
-                    setNotifications({...notifications, weeklyReport: checked})
-                  }
+                  onCheckedChange={(checked) => setNotifications({ ...notifications, weeklyReport: checked })}
                 />
               </div>
 
@@ -657,9 +605,7 @@ export const TutorSettings = () => {
                 <Switch
                   id="monthlyReport"
                   checked={notifications.monthlyReport}
-                  onCheckedChange={(checked) => 
-                    setNotifications({...notifications, monthlyReport: checked})
-                  }
+                  onCheckedChange={(checked) => setNotifications({ ...notifications, monthlyReport: checked })}
                 />
               </div>
             </CardContent>
