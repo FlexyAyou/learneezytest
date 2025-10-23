@@ -11,6 +11,8 @@ import { Progress } from '@/components/ui/progress';
 import { Upload, Plus, X, Save, ArrowLeft, ArrowRight, Video, FileText, Image as ImageIcon, Edit2, Trash2, Check, BookOpen } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { QuizBuilder } from '@/components/quiz/QuizBuilder';
+import { SimpleQuizQuestion } from '@/types/quiz';
 
 interface Lesson {
   id: string;
@@ -22,19 +24,12 @@ interface Lesson {
   filePreview?: string;
 }
 
-interface Quiz {
-  id: string;
-  question: string;
-  options: string[];
-  correctAnswer: string;
-}
-
 interface ModuleWithLessons {
   id: string;
   title: string;
   description: string;
   lessons: Lesson[];
-  quizzes: Quiz[];
+  quizzes: SimpleQuizQuestion[];
 }
 
 const CreateCoursePage = () => {
@@ -66,7 +61,6 @@ const CreateCoursePage = () => {
 
   const [expandedModule, setExpandedModule] = useState<string | null>('1');
   const [editingLesson, setEditingLesson] = useState<{ moduleId: string; lessonId: string | null } | null>(null);
-  const [editingQuiz, setEditingQuiz] = useState<{ moduleId: string; quizId: string | null } | null>(null);
 
   const handleInputChange = (field: string, value: string) => {
     setCourseData(prev => ({ ...prev, [field]: value }));
@@ -203,53 +197,9 @@ const CreateCoursePage = () => {
   };
 
   // Quiz functions
-  const addQuiz = (moduleId: string) => {
-    const newQuiz: Quiz = {
-      id: `quiz-${Date.now()}`,
-      question: '',
-      options: ['', '', '', ''],
-      correctAnswer: ''
-    };
+  const updateModuleQuizzes = (moduleId: string, quizzes: SimpleQuizQuestion[]) => {
     setModules(modules.map(m => 
-      m.id === moduleId ? { ...m, quizzes: [...m.quizzes, newQuiz] } : m
-    ));
-    setEditingQuiz({ moduleId, quizId: newQuiz.id });
-  };
-
-  const removeQuiz = (moduleId: string, quizId: string) => {
-    setModules(modules.map(m => 
-      m.id === moduleId ? { ...m, quizzes: m.quizzes.filter(q => q.id !== quizId) } : m
-    ));
-  };
-
-  const updateQuiz = (moduleId: string, quizId: string, updates: Partial<Quiz>) => {
-    setModules(modules.map(m => 
-      m.id === moduleId 
-        ? { 
-            ...m, 
-            quizzes: m.quizzes.map(q => 
-              q.id === quizId ? { ...q, ...updates } : q
-            ) 
-          } 
-        : m
-    ));
-  };
-
-  const updateQuizOption = (moduleId: string, quizId: string, optionIndex: number, value: string) => {
-    setModules(modules.map(m => 
-      m.id === moduleId 
-        ? { 
-            ...m, 
-            quizzes: m.quizzes.map(q => 
-              q.id === quizId 
-                ? { 
-                    ...q, 
-                    options: q.options.map((opt, idx) => idx === optionIndex ? value : opt) 
-                  } 
-                : q
-            ) 
-          } 
-        : m
+      m.id === moduleId ? { ...m, quizzes } : m
     ));
   };
 
@@ -743,103 +693,11 @@ const CreateCoursePage = () => {
 
                           {/* Quizzes Section */}
                           <div className="space-y-4 border-t pt-6">
-                            <div className="flex items-center justify-between">
-                              <h4 className="font-semibold text-lg">Quiz</h4>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => addQuiz(module.id)}
-                              >
-                                <Plus className="h-4 w-4 mr-2" />
-                                Ajouter un quiz
-                              </Button>
-                            </div>
-
-                            {module.quizzes.length === 0 ? (
-                              <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed">
-                                <Check className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                                <p className="text-gray-500">Aucun quiz pour le moment</p>
-                              </div>
-                            ) : (
-                              <div className="space-y-3">
-                                {module.quizzes.map((quiz, quizIndex) => (
-                                  <Card key={quiz.id} className="bg-gradient-to-br from-yellow-50 to-orange-50 border-orange-200">
-                                    <CardHeader className="pb-3">
-                                      <div className="flex items-center justify-between">
-                                        <div className="flex items-center space-x-2">
-                                          <Badge variant="outline" className="bg-white">
-                                            Quiz {quizIndex + 1}
-                                          </Badge>
-                                          <span className="font-medium">{quiz.question || 'Sans question'}</span>
-                                        </div>
-                                        <div className="flex gap-2">
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => setEditingQuiz(
-                                              editingQuiz?.quizId === quiz.id ? null : { moduleId: module.id, quizId: quiz.id }
-                                            )}
-                                          >
-                                            <Edit2 className="h-4 w-4" />
-                                          </Button>
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => removeQuiz(module.id, quiz.id)}
-                                          >
-                                            <Trash2 className="h-4 w-4 text-red-500" />
-                                          </Button>
-                                        </div>
-                                      </div>
-                                    </CardHeader>
-                                    {editingQuiz?.quizId === quiz.id && (
-                                      <CardContent className="space-y-4">
-                                        <div>
-                                          <Label>Question</Label>
-                                          <Input
-                                            value={quiz.question}
-                                            onChange={(e) => updateQuiz(module.id, quiz.id, { question: e.target.value })}
-                                            placeholder="Posez votre question..."
-                                            className="mt-2"
-                                          />
-                                        </div>
-                                        <div>
-                                          <Label>Options de réponse</Label>
-                                          <div className="space-y-2 mt-2">
-                                            {quiz.options.map((option, optIndex) => (
-                                              <Input
-                                                key={optIndex}
-                                                value={option}
-                                                onChange={(e) => updateQuizOption(module.id, quiz.id, optIndex, e.target.value)}
-                                                placeholder={`Option ${optIndex + 1}`}
-                                              />
-                                            ))}
-                                          </div>
-                                        </div>
-                                        <div>
-                                          <Label>Réponse correcte</Label>
-                                          <Select
-                                            value={quiz.correctAnswer}
-                                            onValueChange={(value) => updateQuiz(module.id, quiz.id, { correctAnswer: value })}
-                                          >
-                                            <SelectTrigger className="mt-2">
-                                              <SelectValue placeholder="Sélectionner la bonne réponse" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                              {quiz.options.filter(opt => opt).map((option, idx) => (
-                                                <SelectItem key={idx} value={option}>
-                                                  {option}
-                                                </SelectItem>
-                                              ))}
-                                            </SelectContent>
-                                          </Select>
-                                        </div>
-                                      </CardContent>
-                                    )}
-                                  </Card>
-                                ))}
-                              </div>
-                            )}
+                            <h4 className="font-semibold text-lg mb-3">Quiz</h4>
+                            <QuizBuilder
+                              questions={module.quizzes}
+                              onQuestionsChange={(quizzes) => updateModuleQuizzes(module.id, quizzes)}
+                            />
                           </div>
                         </div>
                       </AccordionContent>
