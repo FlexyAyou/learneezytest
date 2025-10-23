@@ -56,10 +56,13 @@ export function OFSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
-  const { logout } = useFastAPIAuth();
+  const { user, logout } = useFastAPIAuth();
 
   const isActive = (path: string) => currentPath === path;
   const isCollapsed = state === "collapsed";
+
+  // Use user.image from backend for avatar
+  const avatar = user?.image;
 
   return (
     <Sidebar collapsible="icon">
@@ -82,14 +85,22 @@ export function OFSidebar() {
       {!isCollapsed && (
         <div className="border-b border-border p-4">
           <div className="flex items-center space-x-3 mb-3">
-            <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center flex-shrink-0">
-              <span className="text-pink-600 font-medium text-sm">
-                {userInfo.name.split(' ').map(n => n[0]).join('')}
-              </span>
-            </div>
+            {avatar ? (
+              <img 
+                src={avatar} 
+                alt="Profile" 
+                className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+              />
+            ) : (
+              <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <span className="text-pink-600 font-medium text-sm">
+                  {user?.first_name?.[0]}{user?.last_name?.[0]}
+                </span>
+              </div>
+            )}
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{userInfo.name}</p>
-              <p className="text-xs text-muted-foreground truncate">{userInfo.email}</p>
+              <p className="text-sm font-medium truncate">{user?.first_name} {user?.last_name}</p>
+              <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
             </div>
           </div>
           <LanguageSelector />

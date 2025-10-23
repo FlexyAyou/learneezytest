@@ -51,6 +51,9 @@ export function InternalTrainerSidebar() {
   const currentPath = location.pathname;
   const { user, logout } = useFastAPIAuth();
   
+  // Utiliser l'image du backend
+  const avatar = user?.image || '';
+  
   const userName = user?.first_name && user?.last_name 
     ? `${user.first_name} ${user.last_name}` 
     : user?.email || 'Formateur';
@@ -80,14 +83,22 @@ export function InternalTrainerSidebar() {
       {!isCollapsed && (
         <div className="border-b border-border p-4">
           <div className="flex items-center space-x-3 mb-3">
-            <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center flex-shrink-0">
-              <span className="text-pink-600 font-medium text-sm">
-                {userName
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")}
-              </span>
-            </div>
+            {avatar ? (
+              <img 
+                src={avatar} 
+                alt="Profile" 
+                className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+              />
+            ) : (
+              <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <span className="text-pink-600 font-medium text-sm">
+                  {userName
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")}
+                </span>
+              </div>
+            )}
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate">{userName}</p>
               <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
