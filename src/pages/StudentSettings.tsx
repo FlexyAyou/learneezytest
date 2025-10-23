@@ -26,6 +26,16 @@ const StudentSettings = () => {
   const [bio, setBio] = useState('');
   const [avatar, setAvatar] = useState<string>('');
   
+  // Valeurs initiales pour détecter les changements
+  const [initialValues, setInitialValues] = useState({
+    firstName: '',
+    lastName: '',
+    phone: '',
+    address: '',
+    bio: '',
+    avatar: ''
+  });
+  
   const [notifications, setNotifications] = useState({
     email: true,
     push: false,
@@ -37,14 +47,33 @@ const StudentSettings = () => {
   // Initialiser les champs avec les données utilisateur
   useEffect(() => {
     if (user) {
-      setFirstName(user.first_name || '');
-      setLastName(user.last_name || '');
-      setPhone(user.phone || '');
-      setAddress(user.address || '');
-      setBio(user.bio || '');
-      setAvatar(user.image || '');
+      const values = {
+        firstName: user.first_name || '',
+        lastName: user.last_name || '',
+        phone: user.phone || '',
+        address: user.address || '',
+        bio: user.bio || '',
+        avatar: user.image || ''
+      };
+      
+      setFirstName(values.firstName);
+      setLastName(values.lastName);
+      setPhone(values.phone);
+      setAddress(values.address);
+      setBio(values.bio);
+      setAvatar(values.avatar);
+      setInitialValues(values);
     }
   }, [user]);
+
+  // Détection des changements
+  const hasChanges = 
+    firstName !== initialValues.firstName ||
+    lastName !== initialValues.lastName ||
+    phone !== initialValues.phone ||
+    address !== initialValues.address ||
+    bio !== initialValues.bio ||
+    avatar !== initialValues.avatar;
 
   const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -249,7 +278,7 @@ const StudentSettings = () => {
                 <Button 
                   className="bg-pink-600 hover:bg-pink-700"
                   onClick={handleSaveProfile}
-                  disabled={updateProfileMutation.isPending}
+                  disabled={!hasChanges || updateProfileMutation.isPending}
                 >
                   {updateProfileMutation.isPending ? 'Enregistrement...' : 'Sauvegarder les modifications'}
                 </Button>
