@@ -23,7 +23,6 @@ const TrainerProfile = () => {
   const { fiscalInfo, updateFiscalInfo, isLoading: fiscalLoading } = useTrainerActivation(userId);
   
   const [isEditingBasic, setIsEditingBasic] = useState(false);
-  const [isEditingBio, setIsEditingBio] = useState(false);
   const [isEditingLanguages, setIsEditingLanguages] = useState(false);
   const [isAddingCertification, setIsAddingCertification] = useState(false);
   const [isAddingExperience, setIsAddingExperience] = useState(false);
@@ -47,13 +46,13 @@ const TrainerProfile = () => {
   }, [fiscalInfo]);
 
   const [profile, setProfile] = useState({
-    name: user ? `${user.first_name || ''} ${user.last_name || ''}`.trim() : 'Jean Martin',
+    firstName: user?.first_name || 'Jean',
+    lastName: user?.last_name || 'Martin',
     email: user?.email || 'jean.martin@email.com',
     phone: '+33 6 12 34 56 78',
-    location: 'Paris, France',
+    address: 'Paris, France',
     bio: 'Développeur Full-Stack avec plus de 8 ans d\'expérience dans les technologies web modernes. Passionné par l\'enseignement et le partage de connaissances, j\'ai formé plus de 150 étudiants dans divers domaines du développement web.',
     avatar: '',
-    hourlyRate: 45,
     languages: ['Français', 'Anglais', 'Espagnol'],
     availableDays: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'],
     timeZone: 'Europe/Paris'
@@ -71,7 +70,8 @@ const TrainerProfile = () => {
     if (user) {
       setProfile(prev => ({
         ...prev,
-        name: `${user.first_name || ''} ${user.last_name || ''}`.trim(),
+        firstName: user.first_name || prev.firstName,
+        lastName: user.last_name || prev.lastName,
         email: user.email || prev.email
       }));
     }
@@ -165,7 +165,6 @@ const TrainerProfile = () => {
       description: "Vos informations ont été sauvegardées avec succès",
     });
     setIsEditingBasic(false);
-    setIsEditingBio(false);
   };
 
   const handleAddCertification = () => {
@@ -471,10 +470,10 @@ const TrainerProfile = () => {
             <div className="text-center">
               <Avatar className="w-24 h-24 mx-auto mb-4">
                 {profile.avatar ? (
-                  <AvatarImage src={profile.avatar} alt={profile.name} />
+                  <AvatarImage src={profile.avatar} alt={`${profile.firstName} ${profile.lastName}`} />
                 ) : (
                   <AvatarFallback className="text-2xl bg-gradient-to-br from-pink-500 to-purple-600 text-white">
-                    {profile.name.split(' ').map(n => n[0]).join('')}
+                    {profile.firstName[0]}{profile.lastName[0]}
                   </AvatarFallback>
                 )}
               </Avatar>
@@ -512,12 +511,29 @@ const TrainerProfile = () => {
             {isEditingBasic ? (
               <div className="space-y-3">
                 <div>
-                  <Label htmlFor="name">Nom complet</Label>
+                  <Label htmlFor="firstName">Prénom</Label>
                   <Input
-                    id="name"
-                    value={profile.name}
-                    onChange={(e) => setProfile({...profile, name: e.target.value})}
+                    id="firstName"
+                    value={profile.firstName}
+                    onChange={(e) => setProfile({...profile, firstName: e.target.value})}
                   />
+                </div>
+                <div>
+                  <Label htmlFor="lastName">Nom</Label>
+                  <Input
+                    id="lastName"
+                    value={profile.lastName}
+                    onChange={(e) => setProfile({...profile, lastName: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    value={profile.email}
+                    disabled
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">L'email ne peut pas être modifié</p>
                 </div>
                 <div>
                   <Label htmlFor="phone">Téléphone</Label>
@@ -528,28 +544,36 @@ const TrainerProfile = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="location">Localisation</Label>
+                  <Label htmlFor="address">Adresse</Label>
                   <Input
-                    id="location"
-                    value={profile.location}
-                    onChange={(e) => setProfile({...profile, location: e.target.value})}
+                    id="address"
+                    value={profile.address}
+                    onChange={(e) => setProfile({...profile, address: e.target.value})}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="hourlyRate">Tarif horaire moyen (€)</Label>
-                  <Input
-                    id="hourlyRate"
-                    type="number"
-                    value={profile.hourlyRate}
-                    onChange={(e) => setProfile({...profile, hourlyRate: Number(e.target.value)})}
+                  <Label htmlFor="bio">Bio</Label>
+                  <Textarea
+                    id="bio"
+                    value={profile.bio}
+                    onChange={(e) => setProfile({...profile, bio: e.target.value})}
+                    rows={4}
                   />
                 </div>
                 <Button onClick={handleSaveProfile} className="w-full">
-                  Sauvegarder
+                  Sauvegarder les modifications
                 </Button>
               </div>
             ) : (
               <div className="space-y-3">
+                <div>
+                  <p className="text-xs text-muted-foreground">Prénom</p>
+                  <p className="text-sm font-medium">{profile.firstName}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Nom</p>
+                  <p className="text-sm font-medium">{profile.lastName}</p>
+                </div>
                 <div className="flex items-center text-sm">
                   <Mail className="mr-2 h-4 w-4 text-muted-foreground" />
                   {profile.email}
@@ -560,11 +584,11 @@ const TrainerProfile = () => {
                 </div>
                 <div className="flex items-center text-sm">
                   <MapPin className="mr-2 h-4 w-4 text-muted-foreground" />
-                  {profile.location}
+                  {profile.address}
                 </div>
                 <div className="pt-3 border-t">
-                  <p className="text-sm text-muted-foreground">Tarif moyen</p>
-                  <p className="font-semibold">{profile.hourlyRate}€/heure</p>
+                  <p className="text-xs text-muted-foreground">Bio</p>
+                  <p className="text-sm">{profile.bio}</p>
                 </div>
               </div>
             )}
@@ -675,42 +699,6 @@ const TrainerProfile = () => {
           </CardContent>
         </Card>
       </div>
-
-      {/* Biographie */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>Biographie</span>
-            <Button 
-              size="sm" 
-              variant="outline"
-              onClick={() => setIsEditingBio(!isEditingBio)}
-            >
-              <Edit className="h-4 w-4" />
-            </Button>
-          </CardTitle>
-          <CardDescription>
-            Présentez-vous à vos futurs élèves
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isEditingBio ? (
-            <div className="space-y-3">
-              <Textarea
-                value={profile.bio}
-                onChange={(e) => setProfile({...profile, bio: e.target.value})}
-                rows={5}
-                placeholder="Décrivez votre parcours, vos spécialités et votre approche pédagogique..."
-              />
-              <Button onClick={handleSaveProfile}>
-                Sauvegarder
-              </Button>
-            </div>
-          ) : (
-            <p className="text-gray-700 leading-relaxed">{profile.bio}</p>
-          )}
-        </CardContent>
-      </Card>
 
       {/* Nouvelle section Diplômes et Certifications */}
       <TrainerDiplomas />
