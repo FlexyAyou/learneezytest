@@ -14,9 +14,10 @@ interface QuizBuilderProps {
   quiz?: QuizConfig;
   onSave: (quiz: QuizConfig) => void;
   onCancel: () => void;
+  availableTypes?: QuestionType[];
 }
 
-export const QuizBuilder: React.FC<QuizBuilderProps> = ({ quiz, onSave, onCancel }) => {
+export const QuizBuilder: React.FC<QuizBuilderProps> = ({ quiz, onSave, onCancel, availableTypes }) => {
   const [title, setTitle] = useState(quiz?.title || '');
   const [description, setDescription] = useState(quiz?.description || '');
   const [questions, setQuestions] = useState<Question[]>(quiz?.questions || []);
@@ -32,7 +33,7 @@ export const QuizBuilder: React.FC<QuizBuilderProps> = ({ quiz, onSave, onCancel
   const [showQuestionBuilder, setShowQuestionBuilder] = useState(false);
 
   // Types de questions autorisés pour les quiz (rapides)
-  const allowedQuestionTypes: QuestionType[] = [
+  const allowedQuestionTypes: QuestionType[] = availableTypes || [
     'single-choice',
     'multiple-choice',
     'true-false',

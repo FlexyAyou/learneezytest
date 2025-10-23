@@ -8,9 +8,13 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { Upload, Plus, X, Save, ArrowLeft, ArrowRight, Video, FileText, Image as ImageIcon, Edit2, Trash2, Check, BookOpen } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Upload, Plus, X, Save, ArrowLeft, ArrowRight, Video, FileText, Image as ImageIcon, Edit2, Trash2, Check, BookOpen, Award, ClipboardList, HelpCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { QuizBuilder, AssignmentBuilder, CertificationBuilder } from '@/components/quiz';
+import type { QuizConfig, AssignmentConfig, CertificationConfig, QuestionType } from '@/types/quiz';
 
 interface Lesson {
   id: string;
@@ -20,13 +24,7 @@ interface Lesson {
   fileType: 'video' | 'pdf' | 'image' | null;
   fileName: string;
   filePreview?: string;
-}
-
-interface Quiz {
-  id: string;
-  question: string;
-  options: string[];
-  correctAnswer: string;
+  quiz?: QuizConfig; // Quiz optionnel par leçon
 }
 
 interface ModuleWithLessons {
@@ -34,13 +32,13 @@ interface ModuleWithLessons {
   title: string;
   description: string;
   lessons: Lesson[];
-  quizzes: Quiz[];
+  assignment?: AssignmentConfig; // Devoir optionnel par module
 }
 
 const CreateCoursePage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [currentStep, setCurrentStep] = useState<'info' | 'modules' | 'review'>('info');
+  const [currentStep, setCurrentStep] = useState<'info' | 'modules' | 'certification' | 'review'>('info');
   
   const [courseData, setCourseData] = useState({
     title: '',
@@ -52,6 +50,7 @@ const CreateCoursePage = () => {
     image: null as File | null,
     imagePreview: null as string | null,
     objectives: [''],
+    certification: null as CertificationConfig | null,
   });
 
   const [modules, setModules] = useState<ModuleWithLessons[]>([
@@ -60,13 +59,17 @@ const CreateCoursePage = () => {
       title: 'Module 1',
       description: '',
       lessons: [],
-      quizzes: []
     }
   ]);
 
   const [expandedModule, setExpandedModule] = useState<string | null>('1');
   const [editingLesson, setEditingLesson] = useState<{ moduleId: string; lessonId: string | null } | null>(null);
-  const [editingQuiz, setEditingQuiz] = useState<{ moduleId: string; quizId: string | null } | null>(null);
+  
+  // États pour les builders
+  const [showQuizBuilder, setShowQuizBuilder] = useState<{ moduleId: string; lessonId: string } | null>(null);
+  const [showAssignmentBuilder, setShowAssignmentBuilder] = useState<string | null>(null);
+  const [showCertificationBuilder, setShowCertificationBuilder] = useState(false);
+  const [enableCertification, setEnableCertification] = useState(false);
 
   const handleInputChange = (field: string, value: string) => {
     setCourseData(prev => ({ ...prev, [field]: value }));
@@ -117,7 +120,6 @@ const CreateCoursePage = () => {
       title: `Module ${modules.length + 1}`,
       description: '',
       lessons: [],
-      quizzes: []
     };
     setModules([...modules, newModule]);
     setExpandedModule(newModule.id);
@@ -202,55 +204,61 @@ const CreateCoursePage = () => {
     });
   };
 
-  // Quiz functions
-  const addQuiz = (moduleId: string) => {
-    const newQuiz: Quiz = {
-      id: `quiz-${Date.now()}`,
-      question: '',
-      options: ['', '', '', ''],
-      correctAnswer: ''
-    };
-    setModules(modules.map(m => 
-      m.id === moduleId ? { ...m, quizzes: [...m.quizzes, newQuiz] } : m
-    ));
-    setEditingQuiz({ moduleId, quizId: newQuiz.id });
+  // Quiz/Assignment/Certification functions
+  const handleSaveQuiz = (moduleId: string, lessonId: string, quiz: QuizConfig) => {
+    updateLesson(moduleId, lessonId, { quiz });
+    setShowQuizBuilder(null);
+    toast({
+      title: "Quiz sauvegardé",
+      description: "Le quiz a été ajouté à la leçon",
+    });
   };
 
-  const removeQuiz = (moduleId: string, quizId: string) => {
-    setModules(modules.map(m => 
-      m.id === moduleId ? { ...m, quizzes: m.quizzes.filter(q => q.id !== quizId) } : m
-    ));
+  const handleRemoveQuiz = (moduleId: string, lessonId: string) => {
+    updateLesson(moduleId, lessonId, { quiz: undefined });
+    toast({
+      title: "Quiz supprimé",
+      description: "Le quiz a été retiré de la leçon",
+    });
   };
 
-  const updateQuiz = (moduleId: string, quizId: string, updates: Partial<Quiz>) => {
+  const handleSaveAssignment = (moduleId: string, assignment: AssignmentConfig) => {
     setModules(modules.map(m => 
-      m.id === moduleId 
-        ? { 
-            ...m, 
-            quizzes: m.quizzes.map(q => 
-              q.id === quizId ? { ...q, ...updates } : q
-            ) 
-          } 
-        : m
+      m.id === moduleId ? { ...m, assignment } : m
     ));
+    setShowAssignmentBuilder(null);
+    toast({
+      title: "Devoir sauvegardé",
+      description: "Le devoir a été ajouté au module",
+    });
   };
 
-  const updateQuizOption = (moduleId: string, quizId: string, optionIndex: number, value: string) => {
+  const handleRemoveAssignment = (moduleId: string) => {
     setModules(modules.map(m => 
-      m.id === moduleId 
-        ? { 
-            ...m, 
-            quizzes: m.quizzes.map(q => 
-              q.id === quizId 
-                ? { 
-                    ...q, 
-                    options: q.options.map((opt, idx) => idx === optionIndex ? value : opt) 
-                  } 
-                : q
-            ) 
-          } 
-        : m
+      m.id === moduleId ? { ...m, assignment: undefined } : m
     ));
+    toast({
+      title: "Devoir supprimé",
+      description: "Le devoir a été retiré du module",
+    });
+  };
+
+  const handleSaveCertification = (certification: CertificationConfig) => {
+    setCourseData(prev => ({ ...prev, certification }));
+    setShowCertificationBuilder(false);
+    toast({
+      title: "Certification sauvegardée",
+      description: "La certification a été configurée",
+    });
+  };
+
+  const handleRemoveCertification = () => {
+    setCourseData(prev => ({ ...prev, certification: null }));
+    setEnableCertification(false);
+    toast({
+      title: "Certification supprimée",
+      description: "La certification a été retirée du cours",
+    });
   };
 
   const handleCreateCourse = () => {
@@ -288,12 +296,20 @@ const CreateCoursePage = () => {
     if (currentStep === 'modules') {
       return modules.length > 0 && modules.some(m => m.lessons.length > 0);
     }
+    if (currentStep === 'certification') {
+      // Si certification activée, au moins 10 questions requises
+      if (enableCertification && courseData.certification) {
+        return courseData.certification.questions.length >= 10;
+      }
+      return true; // Peut passer si certification non activée
+    }
     return true;
   };
 
   const steps = [
     { id: 'info', label: 'Informations', icon: BookOpen },
-    { id: 'modules', label: 'Modules', icon: FileText },
+    { id: 'modules', label: 'Modules & Leçons', icon: FileText },
+    { id: 'certification', label: 'Certification', icon: Award },
     { id: 'review', label: 'Révision', icon: Check }
   ];
 
@@ -336,7 +352,7 @@ const CreateCoursePage = () => {
               </div>
             </div>
             
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-4 gap-4">
               {steps.map((step, index) => {
                 const Icon = step.icon;
                 const isActive = step.id === currentStep;
@@ -541,17 +557,19 @@ const CreateCoursePage = () => {
                     <AccordionItem key={module.id} value={module.id} className="border rounded-lg mb-4 overflow-hidden">
                       <AccordionTrigger className="hover:no-underline px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100">
                         <div className="flex items-center justify-between w-full pr-4">
-                          <div className="flex items-center space-x-4">
-                            <Badge className="bg-gradient-to-r from-pink-600 to-purple-600">
-                              Module {moduleIndex + 1}
-                            </Badge>
-                            <div className="text-left">
-                              <div className="font-semibold text-lg">{module.title || 'Sans titre'}</div>
-                              <div className="text-sm text-gray-600 font-normal">
-                                {module.lessons.length} leçon{module.lessons.length !== 1 ? 's' : ''} • {module.quizzes.length} quiz
+                            <div className="flex items-center space-x-4">
+                              <Badge className="bg-gradient-to-r from-pink-600 to-purple-600">
+                                Module {moduleIndex + 1}
+                              </Badge>
+                              <div className="text-left">
+                                <div className="font-semibold text-lg">{module.title || 'Sans titre'}</div>
+                                <div className="text-sm text-gray-600 font-normal">
+                                  {module.lessons.length} leçon{module.lessons.length !== 1 ? 's' : ''}
+                                  {module.lessons.filter(l => l.quiz).length > 0 && ` • ${module.lessons.filter(l => l.quiz).length} quiz`}
+                                  {module.assignment && ' • 1 devoir'}
+                                </div>
                               </div>
                             </div>
-                          </div>
                           {modules.length > 1 && (
                             <Button
                               variant="ghost"
@@ -732,120 +750,247 @@ const CreateCoursePage = () => {
                                               </div>
                                             )}
                                           </div>
-                                        </div>
-                                      </CardContent>
-                                    )}
-                                  </Card>
-                                ))}
-                              </div>
-                            )}
-                          </div>
+                                         </div>
+                                       </CardContent>
+                                     )}
+                                   </Card>
+                                 ))}
+                               </div>
+                             )}
+                           </div>
 
-                          {/* Quizzes Section */}
-                          <div className="space-y-4 border-t pt-6">
-                            <div className="flex items-center justify-between">
-                              <h4 className="font-semibold text-lg">Quiz</h4>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => addQuiz(module.id)}
-                              >
-                                <Plus className="h-4 w-4 mr-2" />
-                                Ajouter un quiz
-                              </Button>
-                            </div>
+                           {/* Quiz Section for Lessons */}
+                           <div className="space-y-4 border-t pt-6">
+                             <div className="flex items-center justify-between">
+                               <div className="flex items-center gap-2">
+                                 <HelpCircle className="h-5 w-5 text-blue-600" />
+                                 <h4 className="font-semibold text-lg">Quiz des leçons</h4>
+                               </div>
+                             </div>
+                             <div className="text-sm text-gray-600 mb-4">
+                               Ajoutez des quiz aux leçons pour évaluer la compréhension après chaque contenu.
+                             </div>
+                             <div className="space-y-2">
+                               {module.lessons.map((lesson, idx) => (
+                                 <div key={lesson.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                                   <div className="flex items-center gap-3">
+                                     <Badge variant="outline">Leçon {idx + 1}</Badge>
+                                     <span className="font-medium">{lesson.title || 'Sans titre'}</span>
+                                   </div>
+                                   <div className="flex items-center gap-2">
+                                     {lesson.quiz ? (
+                                       <>
+                                         <Badge className="bg-green-100 text-green-800">
+                                           {lesson.quiz.questions.length} questions
+                                         </Badge>
+                                         <Button
+                                           variant="ghost"
+                                           size="sm"
+                                           onClick={() => setShowQuizBuilder({ moduleId: module.id, lessonId: lesson.id })}
+                                         >
+                                           <Edit2 className="h-4 w-4" />
+                                         </Button>
+                                         <Button
+                                           variant="ghost"
+                                           size="sm"
+                                           onClick={() => handleRemoveQuiz(module.id, lesson.id)}
+                                         >
+                                           <Trash2 className="h-4 w-4 text-red-500" />
+                                         </Button>
+                                       </>
+                                     ) : (
+                                       <Button
+                                         variant="outline"
+                                         size="sm"
+                                         onClick={() => setShowQuizBuilder({ moduleId: module.id, lessonId: lesson.id })}
+                                       >
+                                         <Plus className="h-4 w-4 mr-2" />
+                                         Ajouter un quiz
+                                       </Button>
+                                     )}
+                                   </div>
+                                 </div>
+                               ))}
+                             </div>
+                           </div>
 
-                            {module.quizzes.length === 0 ? (
-                              <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed">
-                                <Check className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                                <p className="text-gray-500">Aucun quiz pour le moment</p>
-                              </div>
-                            ) : (
-                              <div className="space-y-3">
-                                {module.quizzes.map((quiz, quizIndex) => (
-                                  <Card key={quiz.id} className="bg-gradient-to-br from-yellow-50 to-orange-50 border-orange-200">
-                                    <CardHeader className="pb-3">
-                                      <div className="flex items-center justify-between">
-                                        <div className="flex items-center space-x-2">
-                                          <Badge variant="outline" className="bg-white">
-                                            Quiz {quizIndex + 1}
-                                          </Badge>
-                                          <span className="font-medium">{quiz.question || 'Sans question'}</span>
-                                        </div>
-                                        <div className="flex gap-2">
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => setEditingQuiz(
-                                              editingQuiz?.quizId === quiz.id ? null : { moduleId: module.id, quizId: quiz.id }
-                                            )}
-                                          >
-                                            <Edit2 className="h-4 w-4" />
-                                          </Button>
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => removeQuiz(module.id, quiz.id)}
-                                          >
-                                            <Trash2 className="h-4 w-4 text-red-500" />
-                                          </Button>
-                                        </div>
-                                      </div>
-                                    </CardHeader>
-                                    {editingQuiz?.quizId === quiz.id && (
-                                      <CardContent className="space-y-4">
-                                        <div>
-                                          <Label>Question</Label>
-                                          <Input
-                                            value={quiz.question}
-                                            onChange={(e) => updateQuiz(module.id, quiz.id, { question: e.target.value })}
-                                            placeholder="Posez votre question..."
-                                            className="mt-2"
-                                          />
-                                        </div>
-                                        <div>
-                                          <Label>Options de réponse</Label>
-                                          <div className="space-y-2 mt-2">
-                                            {quiz.options.map((option, optIndex) => (
-                                              <Input
-                                                key={optIndex}
-                                                value={option}
-                                                onChange={(e) => updateQuizOption(module.id, quiz.id, optIndex, e.target.value)}
-                                                placeholder={`Option ${optIndex + 1}`}
-                                              />
-                                            ))}
-                                          </div>
-                                        </div>
-                                        <div>
-                                          <Label>Réponse correcte</Label>
-                                          <Select
-                                            value={quiz.correctAnswer}
-                                            onValueChange={(value) => updateQuiz(module.id, quiz.id, { correctAnswer: value })}
-                                          >
-                                            <SelectTrigger className="mt-2">
-                                              <SelectValue placeholder="Sélectionner la bonne réponse" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                              {quiz.options.filter(opt => opt).map((option, idx) => (
-                                                <SelectItem key={idx} value={option}>
-                                                  {option}
-                                                </SelectItem>
-                                              ))}
-                                            </SelectContent>
-                                          </Select>
-                                        </div>
-                                      </CardContent>
-                                    )}
-                                  </Card>
-                                ))}
-                              </div>
-                            )}
-                          </div>
+                           {/* Assignment Section for Module */}
+                           <div className="space-y-4 border-t pt-6">
+                             <div className="flex items-center justify-between">
+                               <div className="flex items-center gap-2">
+                                 <ClipboardList className="h-5 w-5 text-purple-600" />
+                                 <h4 className="font-semibold text-lg">Devoir de fin de module</h4>
+                               </div>
+                             </div>
+                             <div className="text-sm text-gray-600 mb-4">
+                               Un devoir permet d'évaluer l'ensemble des compétences acquises dans ce module.
+                             </div>
+                             {module.assignment ? (
+                               <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
+                                 <CardHeader>
+                                   <div className="flex items-center justify-between">
+                                     <div>
+                                       <CardTitle className="text-lg">{module.assignment.title}</CardTitle>
+                                       <p className="text-sm text-gray-600 mt-1">
+                                         {module.assignment.questions.length} questions • 
+                                         Note de passage: {module.assignment.settings.passingScore}%
+                                       </p>
+                                     </div>
+                                     <div className="flex gap-2">
+                                       <Button
+                                         variant="ghost"
+                                         size="sm"
+                                         onClick={() => setShowAssignmentBuilder(module.id)}
+                                       >
+                                         <Edit2 className="h-4 w-4" />
+                                       </Button>
+                                       <Button
+                                         variant="ghost"
+                                         size="sm"
+                                         onClick={() => handleRemoveAssignment(module.id)}
+                                       >
+                                         <Trash2 className="h-4 w-4 text-red-500" />
+                                       </Button>
+                                     </div>
+                                   </div>
+                                 </CardHeader>
+                               </Card>
+                             ) : (
+                               <Button
+                                 variant="outline"
+                                 onClick={() => setShowAssignmentBuilder(module.id)}
+                                 className="w-full"
+                               >
+                                 <Plus className="h-4 w-4 mr-2" />
+                                 Créer un devoir pour ce module
+                               </Button>
+                             )}
+                           </div>
                         </div>
                       </AccordionContent>
                     </AccordionItem>
                   ))}
                 </Accordion>
+              </div>
+            )}
+
+            {currentStep === 'certification' && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-800">Certification du cours</h2>
+                    <p className="text-gray-600 mt-1">
+                      La certification permet de valider les compétences acquises dans l'ensemble du cours
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Label>Activer la certification</Label>
+                    <Switch
+                      checked={enableCertification}
+                      onCheckedChange={(checked) => {
+                        setEnableCertification(checked);
+                        if (checked && !courseData.certification) {
+                          setShowCertificationBuilder(true);
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {!enableCertification ? (
+                  <Card className="bg-gradient-to-br from-gray-50 to-gray-100">
+                    <CardContent className="pt-12 pb-12 text-center">
+                      <Award className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                        Certification désactivée
+                      </h3>
+                      <p className="text-gray-600 mb-6">
+                        Activez la certification pour permettre aux apprenants d'obtenir un certificat à la fin du cours
+                      </p>
+                    </CardContent>
+                  </Card>
+                ) : courseData.certification ? (
+                  <Card className="bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle className="text-xl flex items-center gap-2">
+                            <Award className="h-6 w-6 text-amber-600" />
+                            {courseData.certification.title}
+                          </CardTitle>
+                          <p className="text-sm text-gray-600 mt-2">
+                            {courseData.certification.questions.length} questions • 
+                            Durée: {courseData.certification.settings.timeLimit} min • 
+                            Note de passage: {courseData.certification.settings.passingScore}%
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShowCertificationBuilder(true)}
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleRemoveCertification}
+                          >
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="p-3 bg-white rounded-lg border">
+                            <div className="text-sm text-gray-600">Mode examen</div>
+                            <div className="text-lg font-semibold">
+                              {courseData.certification.settings.examMode ? 'Activé' : 'Désactivé'}
+                            </div>
+                          </div>
+                          <div className="p-3 bg-white rounded-lg border">
+                            <div className="text-sm text-gray-600">Tentatives max</div>
+                            <div className="text-lg font-semibold">
+                              {courseData.certification.settings.maxAttempts}
+                            </div>
+                          </div>
+                          <div className="p-3 bg-white rounded-lg border">
+                            <div className="text-sm text-gray-600">Questions aléatoires</div>
+                            <div className="text-lg font-semibold">
+                              {courseData.certification.settings.randomizeQuestions ? 'Oui' : 'Non'}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="p-4 bg-white rounded-lg border">
+                          <div className="text-sm text-gray-600 mb-2">Description</div>
+                          <p className="text-sm">{courseData.certification.description}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card className="bg-gradient-to-br from-blue-50 to-purple-50">
+                    <CardContent className="pt-12 pb-12 text-center">
+                      <Award className="h-16 w-16 text-purple-400 mx-auto mb-4" />
+                      <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                        Configurer la certification
+                      </h3>
+                      <p className="text-gray-600 mb-6">
+                        Créez un examen final pour certifier les compétences des apprenants
+                      </p>
+                      <Button
+                        onClick={() => setShowCertificationBuilder(true)}
+                        className="bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Créer la certification
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             )}
 
@@ -889,7 +1034,7 @@ const CreateCoursePage = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      <div className="grid grid-cols-3 gap-4 text-center">
+                      <div className="grid grid-cols-4 gap-4 text-center">
                         <div className="p-4 bg-white rounded-lg">
                           <div className="text-3xl font-bold text-pink-600">{modules.length}</div>
                           <div className="text-sm text-gray-600">Modules</div>
@@ -902,18 +1047,38 @@ const CreateCoursePage = () => {
                         </div>
                         <div className="p-4 bg-white rounded-lg">
                           <div className="text-3xl font-bold text-purple-600">
-                            {modules.reduce((sum, m) => sum + m.quizzes.length, 0)}
+                            {modules.reduce((sum, m) => sum + m.lessons.filter(l => l.quiz).length, 0)}
                           </div>
                           <div className="text-sm text-gray-600">Quiz</div>
                         </div>
+                        <div className="p-4 bg-white rounded-lg">
+                          <div className="text-3xl font-bold text-orange-600">
+                            {modules.filter(m => m.assignment).length}
+                          </div>
+                          <div className="text-sm text-gray-600">Devoirs</div>
+                        </div>
                       </div>
 
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         {modules.map((module, idx) => (
-                          <div key={module.id} className="p-3 bg-white rounded border">
-                            <div className="font-semibold">{idx + 1}. {module.title}</div>
-                            <div className="text-sm text-gray-600 mt-1">
-                              {module.lessons.length} leçons • {module.quizzes.length} quiz
+                          <div key={module.id} className="p-4 bg-white rounded-lg border">
+                            <div className="font-semibold text-lg mb-2">{idx + 1}. {module.title}</div>
+                            <div className="space-y-2 ml-4">
+                              <div className="flex items-center gap-2 text-sm text-gray-600">
+                                <FileText className="h-4 w-4" />
+                                <span>{module.lessons.length} leçons</span>
+                                {module.lessons.filter(l => l.quiz).length > 0 && (
+                                  <span className="text-blue-600">
+                                    ({module.lessons.filter(l => l.quiz).length} avec quiz)
+                                  </span>
+                                )}
+                              </div>
+                              {module.assignment && (
+                                <div className="flex items-center gap-2 text-sm text-purple-600">
+                                  <ClipboardList className="h-4 w-4" />
+                                  <span>Devoir: {module.assignment.title} ({module.assignment.questions.length} questions)</span>
+                                </div>
+                              )}
                             </div>
                           </div>
                         ))}
@@ -921,6 +1086,39 @@ const CreateCoursePage = () => {
                     </div>
                   </CardContent>
                 </Card>
+
+                {courseData.certification && (
+                  <Card className="bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Award className="h-6 w-6 text-amber-600" />
+                        Certification finale
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label className="text-gray-600">Titre</Label>
+                            <p className="font-medium">{courseData.certification.title}</p>
+                          </div>
+                          <div>
+                            <Label className="text-gray-600">Questions</Label>
+                            <p className="font-medium">{courseData.certification.questions.length} questions</p>
+                          </div>
+                          <div>
+                            <Label className="text-gray-600">Durée</Label>
+                            <p className="font-medium">{courseData.certification.settings.timeLimit} minutes</p>
+                          </div>
+                          <div>
+                            <Label className="text-gray-600">Note de passage</Label>
+                            <p className="font-medium">{courseData.certification.settings.passingScore}%</p>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             )}
           </CardContent>
@@ -934,7 +1132,8 @@ const CreateCoursePage = () => {
                 variant="outline"
                 onClick={() => {
                   if (currentStep === 'modules') setCurrentStep('info');
-                  else if (currentStep === 'review') setCurrentStep('modules');
+                  else if (currentStep === 'certification') setCurrentStep('modules');
+                  else if (currentStep === 'review') setCurrentStep('certification');
                 }}
                 disabled={currentStep === 'info'}
               >
@@ -946,7 +1145,8 @@ const CreateCoursePage = () => {
                 <Button
                   onClick={() => {
                     if (currentStep === 'info') setCurrentStep('modules');
-                    else if (currentStep === 'modules') setCurrentStep('review');
+                    else if (currentStep === 'modules') setCurrentStep('certification');
+                    else if (currentStep === 'certification') setCurrentStep('review');
                   }}
                   disabled={!canProceedToNextStep()}
                   className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700"
@@ -966,6 +1166,60 @@ const CreateCoursePage = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Quiz Builder Modal */}
+        {showQuizBuilder && (
+          <Dialog open={!!showQuizBuilder} onOpenChange={() => setShowQuizBuilder(null)}>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Configurer le quiz de la leçon</DialogTitle>
+              </DialogHeader>
+              <QuizBuilder
+                quiz={modules
+                  .find(m => m.id === showQuizBuilder.moduleId)
+                  ?.lessons.find(l => l.id === showQuizBuilder.lessonId)
+                  ?.quiz
+                }
+                onSave={(quiz) => handleSaveQuiz(showQuizBuilder.moduleId, showQuizBuilder.lessonId, quiz)}
+                onCancel={() => setShowQuizBuilder(null)}
+                availableTypes={['single-choice', 'multiple-choice', 'true-false', 'short-answer'] as QuestionType[]}
+              />
+            </DialogContent>
+          </Dialog>
+        )}
+
+        {/* Assignment Builder Modal */}
+        {showAssignmentBuilder && (
+          <Dialog open={!!showAssignmentBuilder} onOpenChange={() => setShowAssignmentBuilder(null)}>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Configurer le devoir du module</DialogTitle>
+              </DialogHeader>
+              <AssignmentBuilder
+                assignment={modules.find(m => m.id === showAssignmentBuilder)?.assignment}
+                onSave={(assignment) => handleSaveAssignment(showAssignmentBuilder, assignment)}
+                onCancel={() => setShowAssignmentBuilder(null)}
+              />
+            </DialogContent>
+          </Dialog>
+        )}
+
+        {/* Certification Builder Modal */}
+        {showCertificationBuilder && (
+          <Dialog open={showCertificationBuilder} onOpenChange={setShowCertificationBuilder}>
+            <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Configurer la certification du cours</DialogTitle>
+              </DialogHeader>
+              <CertificationBuilder
+                certification={courseData.certification || undefined}
+                onSave={handleSaveCertification}
+                onCancel={() => setShowCertificationBuilder(false)}
+                availableModules={modules.map(m => ({ id: m.id, title: m.title }))}
+              />
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
     </div>
   );
