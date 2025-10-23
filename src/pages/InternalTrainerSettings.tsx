@@ -16,7 +16,7 @@ const InternalTrainerSettings = () => {
   const [formData, setFormData] = useState({
     firstName: user?.first_name || '',
     lastName: user?.last_name || '',
-    phone: user?.phone_number || '',
+    phone: user?.phone || '',
     address: user?.address || '',
     bio: user?.bio || '',
   });
@@ -35,7 +35,7 @@ const InternalTrainerSettings = () => {
       setFormData({
         firstName: user.first_name || '',
         lastName: user.last_name || '',
-        phone: user.phone_number || '',
+        phone: user.phone || '',
         address: user.address || '',
         bio: user.bio || '',
       });

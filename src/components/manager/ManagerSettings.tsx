@@ -33,7 +33,7 @@ const ManagerSettings = () => {
   const [formData, setFormData] = useState({
     firstName: user?.first_name || '',
     lastName: user?.last_name || '',
-    phone: user?.phone_number || '',
+    phone: user?.phone || '',
     address: user?.address || '',
     bio: user?.bio || '',
   });
@@ -68,7 +68,7 @@ const ManagerSettings = () => {
       setFormData({
         firstName: user.first_name || '',
         lastName: user.last_name || '',
-        phone: user.phone_number || '',
+        phone: user.phone || '',
         address: user.address || '',
         bio: user.bio || '',
       });

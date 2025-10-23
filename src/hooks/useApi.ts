@@ -15,6 +15,7 @@ import {
   QuizCreate,
   OrganizationCreate,
   OrganizationResponse,
+  UserUpdate,
 } from '@/types/fastapi';
 import { toast } from '@/hooks/use-toast';
 
@@ -449,5 +450,32 @@ export const useUserBySlug = (userSlug?: string) => {
       return user;
     },
     enabled: !!apiUsers && !!userSlug,
+  });
+};
+
+/**
+ * Hook pour mettre à jour le profil utilisateur
+ */
+export const useUpdateProfile = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (userData: UserUpdate) => fastAPIClient.updateUserProfile(userData),
+    onSuccess: (data) => {
+      // Invalider les caches pour forcer le rechargement partout
+      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      
+      toast({
+        title: "Profil mis à jour",
+        description: "Vos informations ont été enregistrées avec succès",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erreur",
+        description: error.response?.data?.detail || "Impossible de mettre à jour le profil",
+        variant: "destructive",
+      });
+    },
   });
 };

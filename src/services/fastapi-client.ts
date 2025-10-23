@@ -25,6 +25,7 @@ import {
   OrganizationCreate,
   OrganizationResponse,
   OrganizationUpdate,
+  UserUpdate,
 } from '@/types/fastapi';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.plateforme-test-infinitiax.com';
@@ -268,6 +269,13 @@ class FastAPIClient {
    */
   async verifyEmail(token: string): Promise<UserResponse> {
     return this.post<UserResponse>(`/api/auth/verify-email?token=${token}`);
+  }
+
+  /**
+   * Mettre à jour le profil utilisateur
+   */
+  async updateUserProfile(userData: UserUpdate): Promise<UserResponse> {
+    return this.put<UserResponse>('/api/auth/user', userData);
   }
 
   /**

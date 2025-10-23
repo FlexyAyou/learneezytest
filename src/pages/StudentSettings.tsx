@@ -10,11 +10,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useUpdateProfile } from '@/hooks/useApi';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
 
 const StudentSettings = () => {
-  const { user } = useFastAPIAuth();
+  const { user, isLoading: authLoading } = useFastAPIAuth();
   const { toast } = useToast();
+  const updateProfileMutation = useUpdateProfile();
+  
+  // États du formulaire
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+  const [bio, setBio] = useState('');
   const [avatar, setAvatar] = useState<string>('');
+  
   const [notifications, setNotifications] = useState({
     email: true,
     push: false,
@@ -23,13 +34,17 @@ const StudentSettings = () => {
     marketing: false
   });
 
-  // Charger la photo depuis localStorage
+  // Initialiser les champs avec les données utilisateur
   useEffect(() => {
-    const savedAvatar = localStorage.getItem('student-avatar');
-    if (savedAvatar) {
-      setAvatar(savedAvatar);
+    if (user) {
+      setFirstName(user.first_name || '');
+      setLastName(user.last_name || '');
+      setPhone(user.phone || '');
+      setAddress(user.address || '');
+      setBio(user.bio || '');
+      setAvatar(user.image || '');
     }
-  }, []);
+  }, [user]);
 
   const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -61,12 +76,9 @@ const StudentSettings = () => {
       const base64String = reader.result as string;
       setAvatar(base64String);
       
-      // Sauvegarde dans localStorage pour persistance
-      localStorage.setItem('student-avatar', base64String);
-      
       toast({
-        title: "Photo mise à jour",
-        description: "Votre photo de profil a été changée avec succès",
+        title: "Photo sélectionnée",
+        description: "Cliquez sur 'Sauvegarder' pour enregistrer les modifications",
       });
     };
     
@@ -75,12 +87,34 @@ const StudentSettings = () => {
 
   const handleRemovePhoto = () => {
     setAvatar('');
-    localStorage.removeItem('student-avatar');
     toast({
-      title: "Photo supprimée",
-      description: "Votre photo de profil a été supprimée",
+      title: "Photo retirée",
+      description: "Cliquez sur 'Sauvegarder' pour enregistrer les modifications",
     });
   };
+
+  const handleSaveProfile = async () => {
+    try {
+      await updateProfileMutation.mutateAsync({
+        first_name: firstName,
+        last_name: lastName,
+        phone,
+        address,
+        bio,
+        image: avatar,
+      });
+    } catch (error) {
+      // L'erreur est déjà gérée par le hook
+    }
+  };
+
+  if (authLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-gray-50">
@@ -152,25 +186,43 @@ const StudentSettings = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">Prénom</Label>
-                    <Input id="firstName" defaultValue={user?.first_name || ''} />
+                    <Input 
+                      id="firstName" 
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="lastName">Nom</Label>
-                    <Input id="lastName" defaultValue={user?.last_name || ''} />
+                    <Input 
+                      id="lastName" 
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" defaultValue={user?.email || ''} disabled className="bg-gray-100 cursor-not-allowed" />
+                  <Input id="email" type="email" value={user?.email || ''} disabled className="bg-gray-100 cursor-not-allowed" />
                   <p className="text-xs text-gray-500">L'email ne peut pas être modifié</p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="phone">Téléphone</Label>
-                  <Input id="phone" defaultValue={user?.phone_number || ''} />
+                  <Input 
+                    id="phone" 
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="Ex: 06 12 34 56 78"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="address">Adresse</Label>
-                  <Input id="address" defaultValue={user?.address || ''} placeholder="Votre adresse complète" />
+                  <Input 
+                    id="address" 
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="Votre adresse complète"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="bio">Bio</Label>
@@ -178,11 +230,16 @@ const StudentSettings = () => {
                     id="bio"
                     className="w-full min-h-[100px] px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
                     placeholder="Parlez-nous de vous..."
-                    defaultValue={user?.bio || ''}
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
                   />
                 </div>
-                <Button className="bg-pink-600 hover:bg-pink-700">
-                  Sauvegarder les modifications
+                <Button 
+                  className="bg-pink-600 hover:bg-pink-700"
+                  onClick={handleSaveProfile}
+                  disabled={updateProfileMutation.isPending}
+                >
+                  {updateProfileMutation.isPending ? 'Enregistrement...' : 'Sauvegarder les modifications'}
                 </Button>
               </CardContent>
             </Card>
