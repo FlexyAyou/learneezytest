@@ -27,6 +27,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
+import { useUpdateProfile } from '@/hooks/useApi';
 
 interface ProfileFormData {
   firstName: string;
@@ -47,13 +48,26 @@ interface PasswordFormData {
 
 export const TutorSettings = () => {
   const { toast } = useToast();
-  const { user } = useFastAPIAuth();
+  const { user, updateUser } = useFastAPIAuth();
   const inputFileRef = useRef<HTMLInputElement>(null);
   const [avatar, setAvatar] = useState('');
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
+  
+  const updateProfileMutation = useUpdateProfile();
+
+  // Valeurs initiales pour détecter les changements
+  const [initialValues, setInitialValues] = useState({
+    firstName: '',
+    lastName: '',
+    phone: '',
+    address: '',
+    bio: '',
+    specialties: '',
+    experience: '',
+    avatar: ''
+  });
 
   // Notifications settings
   const [notifications, setNotifications] = useState({
@@ -68,33 +82,91 @@ export const TutorSettings = () => {
     marketingEmails: false
   });
 
-  // Charger l'avatar depuis localStorage au montage
-  useEffect(() => {
-    const savedAvatar = localStorage.getItem('tutor-avatar');
-    if (savedAvatar) {
-      setAvatar(savedAvatar);
-    }
-  }, []);
-
   const profileForm = useForm<ProfileFormData>({
     defaultValues: {
-      firstName: user?.first_name || 'Claire',
-      lastName: user?.last_name || 'Durand',
-      email: user?.email || 'claire.durand@email.com',
-      phone: '06 12 34 56 78',
-      address: '',
-      bio: 'Tutrice expérimentée spécialisée dans l\'accompagnement personnalisé des élèves du primaire au lycée.',
-      specialties: 'Mathématiques, Sciences, Français',
-      experience: '5 ans d\'expérience dans l\'enseignement personnalisé'
+      firstName: user?.first_name || '',
+      lastName: user?.last_name || '',
+      email: user?.email || '',
+      phone: user?.phone || '',
+      address: user?.address || '',
+      bio: user?.bio || '',
+      specialties: '',
+      experience: ''
     }
   });
+
+  // Initialiser les champs avec les données utilisateur
+  useEffect(() => {
+    if (user) {
+      const values = {
+        firstName: user.first_name || '',
+        lastName: user.last_name || '',
+        phone: user.phone || '',
+        address: user.address || '',
+        bio: user.bio || '',
+        specialties: '',
+        experience: '',
+        avatar: user.image || ''
+      };
+      
+      profileForm.reset({
+        firstName: values.firstName,
+        lastName: values.lastName,
+        email: user.email || '',
+        phone: values.phone,
+        address: values.address,
+        bio: values.bio,
+        specialties: values.specialties,
+        experience: values.experience
+      });
+      
+      setAvatar(values.avatar);
+      setInitialValues(values);
+    }
+  }, [user, profileForm]);
+
+  // Surveiller les changements du formulaire
+  const watchedValues = profileForm.watch();
+
+  // Détection des changements
+  const hasChanges = 
+    watchedValues.firstName !== initialValues.firstName ||
+    watchedValues.lastName !== initialValues.lastName ||
+    watchedValues.phone !== initialValues.phone ||
+    watchedValues.address !== initialValues.address ||
+    watchedValues.bio !== initialValues.bio ||
+    watchedValues.specialties !== initialValues.specialties ||
+    watchedValues.experience !== initialValues.experience ||
+    avatar !== initialValues.avatar;
 
   const passwordForm = useForm<PasswordFormData>();
 
   const onProfileSubmit = async (data: ProfileFormData) => {
-    setIsUpdating(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const updatedData = await updateProfileMutation.mutateAsync({
+        first_name: data.firstName,
+        last_name: data.lastName,
+        phone: data.phone,
+        address: data.address,
+        bio: data.bio,
+        image: avatar
+      });
+
+      // Mettre à jour le contexte utilisateur local (pour la sidebar)
+      updateUser(updatedData);
+
+      // Mettre à jour les valeurs initiales
+      setInitialValues({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phone: data.phone,
+        address: data.address,
+        bio: data.bio,
+        specialties: data.specialties,
+        experience: data.experience,
+        avatar: avatar
+      });
+
       toast({
         title: "Profil mis à jour",
         description: "Vos informations ont été mises à jour avec succès.",
@@ -105,8 +177,6 @@ export const TutorSettings = () => {
         description: "Impossible de mettre à jour le profil.",
         variant: "destructive"
       });
-    } finally {
-      setIsUpdating(false);
     }
   };
 
@@ -120,7 +190,6 @@ export const TutorSettings = () => {
       return;
     }
 
-    setIsUpdating(true);
     try {
       await new Promise(resolve => setTimeout(resolve, 1000));
       toast({
@@ -134,13 +203,10 @@ export const TutorSettings = () => {
         description: "Impossible de modifier le mot de passe.",
         variant: "destructive"
       });
-    } finally {
-      setIsUpdating(false);
     }
   };
 
   const updateNotifications = async () => {
-    setIsUpdating(true);
     try {
       await new Promise(resolve => setTimeout(resolve, 1000));
       toast({
@@ -153,8 +219,6 @@ export const TutorSettings = () => {
         description: "Impossible de sauvegarder les préférences.",
         variant: "destructive"
       });
-    } finally {
-      setIsUpdating(false);
     }
   };
 
@@ -188,12 +252,9 @@ export const TutorSettings = () => {
       const base64String = reader.result as string;
       setAvatar(base64String);
       
-      // Sauvegarde dans localStorage pour persistance
-      localStorage.setItem('tutor-avatar', base64String);
-      
       toast({
-        title: "Photo mise à jour",
-        description: "Votre photo de profil a été changée avec succès",
+        title: "Photo sélectionnée",
+        description: "N'oubliez pas de sauvegarder vos modifications",
       });
     };
     
@@ -202,10 +263,9 @@ export const TutorSettings = () => {
 
   const handleRemovePhoto = () => {
     setAvatar('');
-    localStorage.removeItem('tutor-avatar');
     toast({
       title: "Photo supprimée",
-      description: "Votre photo de profil a été supprimée",
+      description: "N'oubliez pas de sauvegarder vos modifications",
     });
   };
 
@@ -382,13 +442,13 @@ export const TutorSettings = () => {
                       />
                     </div>
 
-                    <Button type="submit" disabled={isUpdating}>
-                      {isUpdating ? (
+                    <Button type="submit" disabled={!hasChanges || updateProfileMutation.isPending}>
+                      {updateProfileMutation.isPending ? (
                         <>Mise à jour...</>
                       ) : (
                         <>
                           <Save className="h-4 w-4 mr-2" />
-                          Sauvegarder
+                          Sauvegarder les modifications
                         </>
                       )}
                     </Button>
@@ -482,15 +542,9 @@ export const TutorSettings = () => {
                   </ul>
                 </div>
 
-                <Button type="submit" disabled={isUpdating}>
-                  {isUpdating ? (
-                    <>Modification...</>
-                  ) : (
-                    <>
-                      <Lock className="h-4 w-4 mr-2" />
-                      Modifier le mot de passe
-                    </>
-                  )}
+                <Button type="submit">
+                  <Lock className="h-4 w-4 mr-2" />
+                  Modifier le mot de passe
                 </Button>
               </form>
             </CardContent>
@@ -643,15 +697,9 @@ export const TutorSettings = () => {
           </Card>
 
           <div className="flex justify-end">
-            <Button onClick={updateNotifications} disabled={isUpdating}>
-              {isUpdating ? (
-                <>Sauvegarde...</>
-              ) : (
-                <>
-                  <Save className="h-4 w-4 mr-2" />
-                  Sauvegarder les préférences
-                </>
-              )}
+            <Button onClick={updateNotifications}>
+              <Save className="h-4 w-4 mr-2" />
+              Sauvegarder les préférences
             </Button>
           </div>
         </TabsContent>
