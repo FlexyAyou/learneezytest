@@ -1,13 +1,15 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Upload, Plus, X, Save, Book, Video, FileText, Image, Bold, Italic, Underline, List, ListOrdered, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
+import { Upload, Plus, X, Save, ArrowLeft, ArrowRight, Video, FileText, Image as ImageIcon, Edit2, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 interface CreateCourseModalProps {
   isOpen: boolean;
@@ -15,14 +17,29 @@ interface CreateCourseModalProps {
   onCourseCreated: (course: any) => void;
 }
 
-interface Module {
+interface Lesson {
   id: string;
   title: string;
-  duration: string;
+  duration: number;
   content: string;
-  videoUrl?: string;
-  imageUrl?: string;
-  documents?: File[];
+  fileType: 'video' | 'pdf' | 'image' | null;
+  fileName: string;
+  filePreview?: string;
+}
+
+interface Quiz {
+  id: string;
+  question: string;
+  options: string[];
+  correctAnswer: string;
+}
+
+interface ModuleWithLessons {
+  id: string;
+  title: string;
+  description: string;
+  lessons: Lesson[];
+  quizzes: Quiz[];
 }
 
 export const CreateCourseModal = ({ isOpen, onClose, onCourseCreated }: CreateCourseModalProps) => {
@@ -40,11 +57,19 @@ export const CreateCourseModal = ({ isOpen, onClose, onCourseCreated }: CreateCo
     objectives: [''],
   });
 
-  const [modules, setModules] = useState<Module[]>([
-    { id: '1', title: '', duration: '', content: '', documents: [] }
+  const [modules, setModules] = useState<ModuleWithLessons[]>([
+    {
+      id: '1',
+      title: 'Module 1',
+      description: '',
+      lessons: [],
+      quizzes: []
+    }
   ]);
 
-  const [activeEditor, setActiveEditor] = useState<string | null>(null);
+  const [expandedModule, setExpandedModule] = useState<string | null>(null);
+  const [editingLesson, setEditingLesson] = useState<{ moduleId: string; lessonId: string | null } | null>(null);
+  const [editingQuiz, setEditingQuiz] = useState<{ moduleId: string; quizId: string | null } | null>(null);
 
   const handleInputChange = (field: string, value: string) => {
     setCourseData(prev => ({ ...prev, [field]: value }));
@@ -80,90 +105,150 @@ export const CreateCourseModal = ({ isOpen, onClose, onCourseCreated }: CreateCo
     }
   };
 
+  // Module functions
   const addModule = () => {
-    const newModule: Module = {
-      id: Date.now().toString(),
-      title: '',
-      duration: '',
-      content: '',
-      documents: []
+    const newModule: ModuleWithLessons = {
+      id: `module-${Date.now()}`,
+      title: `Module ${modules.length + 1}`,
+      description: '',
+      lessons: [],
+      quizzes: []
     };
-    setModules(prev => [...prev, newModule]);
+    setModules([...modules, newModule]);
   };
 
-  const removeModule = (id: string) => {
-    if (modules.length > 1) {
-      setModules(prev => prev.filter(m => m.id !== id));
-    }
+  const removeModule = (moduleId: string) => {
+    setModules(modules.filter(m => m.id !== moduleId));
   };
 
-  const updateModule = (id: string, field: keyof Module, value: any) => {
-    setModules(prev => prev.map(module => 
-      module.id === id ? { ...module, [field]: value } : module
+  const updateModule = (moduleId: string, field: 'title' | 'description', value: string) => {
+    setModules(modules.map(m => 
+      m.id === moduleId ? { ...m, [field]: value } : m
     ));
   };
 
-  const handleVideoUpload = (moduleId: string, e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Simulate video URL for demo
-      updateModule(moduleId, 'videoUrl', URL.createObjectURL(file));
-    }
+  // Lesson functions
+  const addLesson = (moduleId: string) => {
+    const newLesson: Lesson = {
+      id: `lesson-${Date.now()}`,
+      title: '',
+      duration: 0,
+      content: '',
+      fileType: null,
+      fileName: ''
+    };
+    setModules(modules.map(m => 
+      m.id === moduleId ? { ...m, lessons: [...m.lessons, newLesson] } : m
+    ));
+    setEditingLesson({ moduleId, lessonId: newLesson.id });
   };
 
-  const handleModuleImageUpload = (moduleId: string, e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      updateModule(moduleId, 'imageUrl', URL.createObjectURL(file));
-    }
+  const removeLesson = (moduleId: string, lessonId: string) => {
+    setModules(modules.map(m => 
+      m.id === moduleId ? { ...m, lessons: m.lessons.filter(l => l.id !== lessonId) } : m
+    ));
   };
 
-  const handleDocumentUpload = (moduleId: string, e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    const currentModule = modules.find(m => m.id === moduleId);
-    if (currentModule) {
-      updateModule(moduleId, 'documents', [...(currentModule.documents || []), ...files]);
-    }
+  const updateLesson = (moduleId: string, lessonId: string, updates: Partial<Lesson>) => {
+    setModules(modules.map(m => 
+      m.id === moduleId 
+        ? { 
+            ...m, 
+            lessons: m.lessons.map(l => 
+              l.id === lessonId ? { ...l, ...updates } : l
+            ) 
+          } 
+        : m
+    ));
   };
 
-  const applyTextFormat = (moduleId: string, format: string) => {
-    const textarea = document.getElementById(`content-${moduleId}`) as HTMLTextAreaElement;
-    if (!textarea) return;
+  const handleFileUpload = (moduleId: string, lessonId: string, event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = textarea.value.substring(start, end);
-    const currentModule = modules.find(m => m.id === moduleId);
-    
-    if (!currentModule || !selectedText) return;
+    const fileType = file.type.startsWith('video/') ? 'video' 
+      : file.type === 'application/pdf' ? 'pdf' 
+      : file.type.startsWith('image/') ? 'image' 
+      : null;
 
-    let formattedText = '';
-    switch (format) {
-      case 'bold':
-        formattedText = `**${selectedText}**`;
-        break;
-      case 'italic':
-        formattedText = `*${selectedText}*`;
-        break;
-      case 'underline':
-        formattedText = `<u>${selectedText}</u>`;
-        break;
-      case 'list':
-        formattedText = `\n- ${selectedText}`;
-        break;
-      case 'orderedList':
-        formattedText = `\n1. ${selectedText}`;
-        break;
-      default:
-        formattedText = selectedText;
+    if (!fileType) {
+      toast({
+        title: "Format non supporté",
+        description: "Veuillez uploader une vidéo, PDF ou image",
+        variant: "destructive"
+      });
+      return;
     }
 
-    const newContent = currentModule.content.substring(0, start) + formattedText + currentModule.content.substring(end);
-    updateModule(moduleId, 'content', newContent);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      updateLesson(moduleId, lessonId, {
+        fileType,
+        fileName: file.name,
+        filePreview: e.target?.result as string
+      });
+    };
+    reader.readAsDataURL(file);
+
+    toast({
+      title: "Fichier ajouté",
+      description: `${file.name} a été ajouté à la leçon`
+    });
+  };
+
+  // Quiz functions
+  const addQuiz = (moduleId: string) => {
+    const newQuiz: Quiz = {
+      id: `quiz-${Date.now()}`,
+      question: '',
+      options: ['', '', '', ''],
+      correctAnswer: ''
+    };
+    setModules(modules.map(m => 
+      m.id === moduleId ? { ...m, quizzes: [...m.quizzes, newQuiz] } : m
+    ));
+    setEditingQuiz({ moduleId, quizId: newQuiz.id });
+  };
+
+  const removeQuiz = (moduleId: string, quizId: string) => {
+    setModules(modules.map(m => 
+      m.id === moduleId ? { ...m, quizzes: m.quizzes.filter(q => q.id !== quizId) } : m
+    ));
+  };
+
+  const updateQuiz = (moduleId: string, quizId: string, updates: Partial<Quiz>) => {
+    setModules(modules.map(m => 
+      m.id === moduleId 
+        ? { 
+            ...m, 
+            quizzes: m.quizzes.map(q => 
+              q.id === quizId ? { ...q, ...updates } : q
+            ) 
+          } 
+        : m
+    ));
+  };
+
+  const updateQuizOption = (moduleId: string, quizId: string, optionIndex: number, value: string) => {
+    setModules(modules.map(m => 
+      m.id === moduleId 
+        ? { 
+            ...m, 
+            quizzes: m.quizzes.map(q => 
+              q.id === quizId 
+                ? { 
+                    ...q, 
+                    options: q.options.map((opt, idx) => idx === optionIndex ? value : opt) 
+                  } 
+                : q
+            ) 
+          } 
+        : m
+    ));
   };
 
   const handleCreateCourse = () => {
-    if (!courseData.title || !courseData.description || modules.some(m => !m.title || !m.content)) {
+    if (!courseData.title || !courseData.description) {
       toast({
         title: "Erreur",
         description: "Veuillez remplir tous les champs obligatoires",
@@ -175,7 +260,7 @@ export const CreateCourseModal = ({ isOpen, onClose, onCourseCreated }: CreateCo
     const newCourse = {
       id: `course-${Date.now()}`,
       ...courseData,
-      modules: modules.filter(m => m.title && m.content),
+      modules: modules,
       createdAt: new Date().toISOString(),
       status: 'draft'
     };
@@ -198,9 +283,7 @@ export const CreateCourseModal = ({ isOpen, onClose, onCourseCreated }: CreateCo
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Titre du cours *
-                </label>
+                <Label>Titre du cours *</Label>
                 <Input
                   value={courseData.title}
                   onChange={(e) => handleInputChange('title', e.target.value)}
@@ -209,21 +292,17 @@ export const CreateCourseModal = ({ isOpen, onClose, onCourseCreated }: CreateCo
               </div>
               
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Description *
-                </label>
-                <textarea
-                  className="w-full min-h-[120px] px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
+                <Label>Description *</Label>
+                <Textarea
                   value={courseData.description}
                   onChange={(e) => handleInputChange('description', e.target.value)}
                   placeholder="Décrivez votre cours en détail..."
+                  rows={4}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Prix (€)
-                </label>
+                <Label>Prix (€)</Label>
                 <Input
                   type="number"
                   value={courseData.price}
@@ -233,9 +312,7 @@ export const CreateCourseModal = ({ isOpen, onClose, onCourseCreated }: CreateCo
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Catégorie
-                </label>
+                <Label>Catégorie</Label>
                 <Select value={courseData.category} onValueChange={(value) => handleInputChange('category', value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Sélectionner" />
@@ -250,9 +327,7 @@ export const CreateCourseModal = ({ isOpen, onClose, onCourseCreated }: CreateCo
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Durée estimée
-                </label>
+                <Label>Durée estimée</Label>
                 <Input
                   value={courseData.duration}
                   onChange={(e) => handleInputChange('duration', e.target.value)}
@@ -261,9 +336,7 @@ export const CreateCourseModal = ({ isOpen, onClose, onCourseCreated }: CreateCo
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Niveau
-                </label>
+                <Label>Niveau</Label>
                 <Select value={courseData.level} onValueChange={(value) => handleInputChange('level', value)}>
                   <SelectTrigger>
                     <SelectValue />
@@ -278,9 +351,7 @@ export const CreateCourseModal = ({ isOpen, onClose, onCourseCreated }: CreateCo
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Objectifs pédagogiques
-              </label>
+              <Label>Objectifs pédagogiques</Label>
               <div className="space-y-2">
                 {courseData.objectives.map((objective, index) => (
                   <div key={index} className="flex items-center space-x-2">
@@ -308,9 +379,7 @@ export const CreateCourseModal = ({ isOpen, onClose, onCourseCreated }: CreateCo
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Image de couverture
-              </label>
+              <Label>Image de couverture</Label>
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                 <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                 <p className="text-gray-600 mb-2">Glissez votre image ici ou cliquez pour sélectionner</p>
@@ -322,7 +391,7 @@ export const CreateCourseModal = ({ isOpen, onClose, onCourseCreated }: CreateCo
                   id="course-image-upload"
                 />
                 <label htmlFor="course-image-upload">
-                  <Button variant="outline" className="cursor-pointer">
+                  <Button variant="outline" className="cursor-pointer" type="button">
                     Choisir un fichier
                   </Button>
                 </label>
@@ -340,251 +409,349 @@ export const CreateCourseModal = ({ isOpen, onClose, onCourseCreated }: CreateCo
         return (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Modules du cours</h3>
+              <h3 className="text-lg font-bold text-gray-800">Liste des modules</h3>
               <Button onClick={addModule} size="sm">
                 <Plus className="h-4 w-4 mr-2" />
                 Ajouter un module
               </Button>
             </div>
 
-            {modules.map((module, index) => (
-              <Card key={module.id} className="p-4">
-                <CardHeader className="pb-4">
-                  <div className="flex justify-between items-center">
-                    <CardTitle className="text-base">Module {index + 1}</CardTitle>
-                    {modules.length > 1 && (
+            <Accordion type="single" collapsible value={expandedModule || undefined} onValueChange={setExpandedModule}>
+              {modules.map((module, moduleIndex) => (
+                <AccordionItem key={module.id} value={module.id}>
+                  <AccordionTrigger className="hover:no-underline">
+                    <div className="flex items-center justify-between w-full pr-4">
+                      <div className="flex items-center space-x-3">
+                        <Badge className="bg-blue-100 text-blue-800">
+                          Module {moduleIndex + 1}
+                        </Badge>
+                        <div className="text-left">
+                          <div className="font-semibold">{module.title || 'Sans titre'}</div>
+                          <div className="text-sm text-gray-600 font-normal">
+                            {module.lessons.length} leçons • {module.quizzes.length} quiz
+                          </div>
+                        </div>
+                      </div>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => removeModule(module.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeModule(module.id);
+                        }}
                       >
-                        <X className="h-4 w-4" />
+                        <Trash2 className="h-4 w-4 text-red-500" />
                       </Button>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Titre du module *
-                      </label>
-                      <Input
-                        value={module.title}
-                        onChange={(e) => updateModule(module.id, 'title', e.target.value)}
-                        placeholder="Ex: Introduction à React"
-                      />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Durée
-                      </label>
-                      <Input
-                        value={module.duration}
-                        onChange={(e) => updateModule(module.id, 'duration', e.target.value)}
-                        placeholder="Ex: 2h 30min"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Contenu du module *
-                    </label>
-                    
-                    {/* Éditeur de texte riche */}
-                    <div className="border rounded-md">
-                      <div className="flex items-center space-x-1 p-2 border-b bg-gray-50">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => applyTextFormat(module.id, 'bold')}
-                          className="p-1"
-                        >
-                          <Bold className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => applyTextFormat(module.id, 'italic')}
-                          className="p-1"
-                        >
-                          <Italic className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => applyTextFormat(module.id, 'underline')}
-                          className="p-1"
-                        >
-                          <Underline className="h-4 w-4" />
-                        </Button>
-                        <div className="w-px h-6 bg-gray-300 mx-1" />
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => applyTextFormat(module.id, 'list')}
-                          className="p-1"
-                        >
-                          <List className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => applyTextFormat(module.id, 'orderedList')}
-                          className="p-1"
-                        >
-                          <ListOrdered className="h-4 w-4" />
-                        </Button>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-6 pt-4 pl-4">
+                      {/* Module Info */}
+                      <div className="space-y-4">
+                        <div>
+                          <Label>Titre du module</Label>
+                          <Input
+                            value={module.title}
+                            onChange={(e) => updateModule(module.id, 'title', e.target.value)}
+                            placeholder="Titre du module"
+                          />
+                        </div>
+                        <div>
+                          <Label>Description</Label>
+                          <Textarea
+                            value={module.description}
+                            onChange={(e) => updateModule(module.id, 'description', e.target.value)}
+                            placeholder="Description du module"
+                            rows={3}
+                          />
+                        </div>
                       </div>
-                      <textarea
-                        id={`content-${module.id}`}
-                        className="w-full min-h-[200px] px-3 py-2 border-0 focus:outline-none focus:ring-0 resize-none"
-                        value={module.content}
-                        onChange={(e) => updateModule(module.id, 'content', e.target.value)}
-                        placeholder="Décrivez le contenu de ce module..."
-                        onFocus={() => setActiveEditor(module.id)}
-                        onBlur={() => setActiveEditor(null)}
-                      />
-                    </div>
-                  </div>
 
-                  {/* Médias et documents */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Vidéo du module
-                      </label>
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-                        <Video className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-                        <input
-                          type="file"
-                          accept="video/*"
-                          onChange={(e) => handleVideoUpload(module.id, e)}
-                          className="hidden"
-                          id={`video-upload-${module.id}`}
-                        />
-                        <label htmlFor={`video-upload-${module.id}`}>
-                          <Button variant="outline" size="sm" className="cursor-pointer">
-                            Ajouter vidéo
+                      {/* Lessons Section */}
+                      <div className="space-y-4 border-t pt-4">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-semibold">Leçons</h4>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => addLesson(module.id)}
+                          >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Ajouter une leçon
                           </Button>
-                        </label>
-                        {module.videoUrl && (
-                          <p className="text-xs text-green-600 mt-1">Vidéo ajoutée</p>
-                        )}
-                      </div>
-                    </div>
+                        </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Image du module
-                      </label>
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-                        <Image className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleModuleImageUpload(module.id, e)}
-                          className="hidden"
-                          id={`image-upload-${module.id}`}
-                        />
-                        <label htmlFor={`image-upload-${module.id}`}>
-                          <Button variant="outline" size="sm" className="cursor-pointer">
-                            Ajouter image
-                          </Button>
-                        </label>
-                        {module.imageUrl && (
-                          <p className="text-xs text-green-600 mt-1">Image ajoutée</p>
-                        )}
-                      </div>
-                    </div>
+                        {module.lessons.map((lesson, lessonIndex) => (
+                          <Card key={lesson.id} className="bg-gray-50">
+                            <CardHeader className="pb-3">
+                              <div className="flex items-center justify-between">
+                                <CardTitle className="text-sm flex items-center">
+                                  <Badge variant="outline" className="mr-2">
+                                    Leçon {lessonIndex + 1}
+                                  </Badge>
+                                </CardTitle>
+                                <div className="flex gap-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setEditingLesson(
+                                      editingLesson?.lessonId === lesson.id ? null : { moduleId: module.id, lessonId: lesson.id }
+                                    )}
+                                  >
+                                    <Edit2 className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => removeLesson(module.id, lesson.id)}
+                                  >
+                                    <Trash2 className="h-4 w-4 text-red-500" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </CardHeader>
+                            
+                            {editingLesson?.lessonId === lesson.id ? (
+                              <CardContent className="space-y-4">
+                                <div>
+                                  <Label>Titre de la leçon</Label>
+                                  <Input
+                                    value={lesson.title}
+                                    onChange={(e) => updateLesson(module.id, lesson.id, { title: e.target.value })}
+                                    placeholder="Titre de la leçon"
+                                  />
+                                </div>
+                                <div>
+                                  <Label>Durée (minutes)</Label>
+                                  <Input
+                                    type="number"
+                                    value={lesson.duration}
+                                    onChange={(e) => updateLesson(module.id, lesson.id, { duration: parseInt(e.target.value) || 0 })}
+                                    placeholder="Durée"
+                                  />
+                                </div>
+                                <div>
+                                  <Label>Contenu de la leçon</Label>
+                                  <Textarea
+                                    value={lesson.content}
+                                    onChange={(e) => updateLesson(module.id, lesson.id, { content: e.target.value })}
+                                    placeholder="Contenu de la leçon"
+                                    rows={4}
+                                  />
+                                </div>
+                                
+                                {/* File Upload */}
+                                <div className="space-y-2">
+                                  <Label>Support de cours (Vidéo, PDF ou Image)</Label>
+                                  <div className="flex items-center gap-2">
+                                    <Input
+                                      type="file"
+                                      accept="video/*,application/pdf,image/*"
+                                      onChange={(e) => handleFileUpload(module.id, lesson.id, e)}
+                                      className="flex-1"
+                                    />
+                                    {lesson.fileType && (
+                                      <Badge className="flex items-center gap-1">
+                                        {lesson.fileType === 'video' && <Video className="h-3 w-3" />}
+                                        {lesson.fileType === 'pdf' && <FileText className="h-3 w-3" />}
+                                        {lesson.fileType === 'image' && <ImageIcon className="h-3 w-3" />}
+                                        {lesson.fileType}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  {lesson.fileName && (
+                                    <div className="flex items-center gap-2 text-sm text-gray-600 bg-white p-2 rounded border">
+                                      <Upload className="h-4 w-4" />
+                                      <span className="flex-1">{lesson.fileName}</span>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => updateLesson(module.id, lesson.id, { fileType: null, fileName: '', filePreview: '' })}
+                                      >
+                                        <X className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  )}
+                                </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Documents
-                      </label>
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-                        <FileText className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-                        <input
-                          type="file"
-                          multiple
-                          accept=".pdf,.doc,.docx,.ppt,.pptx"
-                          onChange={(e) => handleDocumentUpload(module.id, e)}
-                          className="hidden"
-                          id={`docs-upload-${module.id}`}
-                        />
-                        <label htmlFor={`docs-upload-${module.id}`}>
-                          <Button variant="outline" size="sm" className="cursor-pointer">
-                            Ajouter docs
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setEditingLesson(null)}
+                                >
+                                  Terminer l'édition
+                                </Button>
+                              </CardContent>
+                            ) : (
+                              <CardContent>
+                                <div className="text-sm space-y-2">
+                                  <p className="font-medium">{lesson.title || 'Sans titre'}</p>
+                                  <p className="text-gray-600">{lesson.duration} minutes</p>
+                                  {lesson.fileName && (
+                                    <div className="flex items-center gap-2 text-gray-600">
+                                      {lesson.fileType === 'video' && <Video className="h-4 w-4" />}
+                                      {lesson.fileType === 'pdf' && <FileText className="h-4 w-4" />}
+                                      {lesson.fileType === 'image' && <ImageIcon className="h-4 w-4" />}
+                                      <span>{lesson.fileName}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </CardContent>
+                            )}
+                          </Card>
+                        ))}
+                      </div>
+
+                      {/* Quiz Section */}
+                      <div className="space-y-4 border-t pt-4">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-semibold">Quiz</h4>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => addQuiz(module.id)}
+                          >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Ajouter un quiz
                           </Button>
-                        </label>
-                        {module.documents && module.documents.length > 0 && (
-                          <p className="text-xs text-green-600 mt-1">
-                            {module.documents.length} document(s)
-                          </p>
-                        )}
+                        </div>
+
+                        {module.quizzes.map((quiz, quizIndex) => (
+                          <Card key={quiz.id} className="bg-blue-50">
+                            <CardHeader className="pb-3">
+                              <div className="flex items-center justify-between">
+                                <CardTitle className="text-sm flex items-center">
+                                  <Badge variant="outline" className="mr-2 bg-blue-100">
+                                    Quiz {quizIndex + 1}
+                                  </Badge>
+                                </CardTitle>
+                                <div className="flex gap-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setEditingQuiz(
+                                      editingQuiz?.quizId === quiz.id ? null : { moduleId: module.id, quizId: quiz.id }
+                                    )}
+                                  >
+                                    <Edit2 className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => removeQuiz(module.id, quiz.id)}
+                                  >
+                                    <Trash2 className="h-4 w-4 text-red-500" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </CardHeader>
+                            
+                            {editingQuiz?.quizId === quiz.id ? (
+                              <CardContent className="space-y-4">
+                                <div>
+                                  <Label>Question</Label>
+                                  <Textarea
+                                    value={quiz.question}
+                                    onChange={(e) => updateQuiz(module.id, quiz.id, { question: e.target.value })}
+                                    placeholder="Entrez la question"
+                                    rows={2}
+                                  />
+                                </div>
+                                
+                                <div className="space-y-2">
+                                  <Label>Options de réponse</Label>
+                                  {quiz.options.map((option, optIndex) => (
+                                    <div key={optIndex} className="flex items-center gap-2">
+                                      <Badge className="w-8 h-8 flex items-center justify-center">
+                                        {String.fromCharCode(65 + optIndex)}
+                                      </Badge>
+                                      <Input
+                                        value={option}
+                                        onChange={(e) => updateQuizOption(module.id, quiz.id, optIndex, e.target.value)}
+                                        placeholder={`Option ${String.fromCharCode(65 + optIndex)}`}
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
+
+                                <div>
+                                  <Label>Bonne réponse</Label>
+                                  <Input
+                                    value={quiz.correctAnswer}
+                                    onChange={(e) => updateQuiz(module.id, quiz.id, { correctAnswer: e.target.value })}
+                                    placeholder="Entrez la bonne réponse"
+                                  />
+                                </div>
+
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setEditingQuiz(null)}
+                                >
+                                  Terminer l'édition
+                                </Button>
+                              </CardContent>
+                            ) : (
+                              <CardContent>
+                                <div className="text-sm space-y-2">
+                                  <p className="font-medium">{quiz.question || 'Sans question'}</p>
+                                  <div className="grid grid-cols-2 gap-2">
+                                    {quiz.options.map((option, optIndex) => (
+                                      <div key={optIndex} className="flex items-center gap-2">
+                                        <Badge variant="outline" className="w-6 h-6 flex items-center justify-center text-xs">
+                                          {String.fromCharCode(65 + optIndex)}
+                                        </Badge>
+                                        <span className={option === quiz.correctAnswer ? 'font-semibold text-green-700' : ''}>
+                                          {option || '(vide)'}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              </CardContent>
+                            )}
+                          </Card>
+                        ))}
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
           </div>
         );
 
       case 'review':
         return (
           <div className="space-y-6">
-            <h3 className="text-lg font-semibold">Récapitulatif du cours</h3>
+            <h3 className="text-xl font-bold">Récapitulatif du cours</h3>
             
             <Card>
               <CardHeader>
                 <CardTitle>Informations générales</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div><strong>Titre:</strong> {courseData.title}</div>
-                  <div><strong>Catégorie:</strong> {courseData.category}</div>
-                  <div><strong>Niveau:</strong> {courseData.level}</div>
-                  <div><strong>Prix:</strong> {courseData.price ? `${courseData.price}€` : 'Gratuit'}</div>
-                  <div><strong>Durée:</strong> {courseData.duration}</div>
-                  <div><strong>Nombre de modules:</strong> {modules.length}</div>
-                </div>
-                <div className="mt-4">
-                  <strong>Description:</strong>
-                  <p className="text-gray-600 mt-1">{courseData.description}</p>
-                </div>
-                <div className="mt-4">
-                  <strong>Objectifs:</strong>
-                  <ul className="list-disc list-inside text-gray-600 mt-1">
-                    {courseData.objectives.filter(obj => obj.trim()).map((objective, index) => (
-                      <li key={index}>{objective}</li>
-                    ))}
-                  </ul>
-                </div>
+              <CardContent className="space-y-2">
+                <p><strong>Titre:</strong> {courseData.title}</p>
+                <p><strong>Description:</strong> {courseData.description}</p>
+                <p><strong>Prix:</strong> {courseData.price}€</p>
+                <p><strong>Catégorie:</strong> {courseData.category}</p>
+                <p><strong>Durée:</strong> {courseData.duration}</p>
+                <p><strong>Niveau:</strong> {courseData.level}</p>
+                <p><strong>Objectifs:</strong> {courseData.objectives.filter(o => o).length}</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Modules</CardTitle>
+                <CardTitle>Modules ({modules.length})</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {modules.map((module, index) => (
-                    <div key={module.id} className="border-l-4 border-pink-500 pl-4">
-                      <h4 className="font-medium">Module {index + 1}: {module.title}</h4>
-                      <p className="text-sm text-gray-600">Durée: {module.duration || 'Non spécifiée'}</p>
-                      <div className="flex space-x-4 mt-2">
-                        {module.videoUrl && <Badge variant="outline">Vidéo</Badge>}
-                        {module.imageUrl && <Badge variant="outline">Image</Badge>}
-                        {module.documents && module.documents.length > 0 && (
-                          <Badge variant="outline">{module.documents.length} document(s)</Badge>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                {modules.map((module, index) => (
+                  <div key={module.id} className="mb-4 p-4 bg-gray-50 rounded">
+                    <h4 className="font-semibold">Module {index + 1}: {module.title}</h4>
+                    <p className="text-sm text-gray-600">{module.lessons.length} leçons • {module.quizzes.length} quiz</p>
+                  </div>
+                ))}
               </CardContent>
             </Card>
           </div>
@@ -598,71 +765,66 @@ export const CreateCourseModal = ({ isOpen, onClose, onCourseCreated }: CreateCo
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader className="border-b pb-4">
-          <div className="flex items-center space-x-3">
-            <Book className="h-6 w-6 text-pink-600" />
-            <DialogTitle className="text-xl font-bold">Créer un nouveau cours</DialogTitle>
-          </div>
-          
-          {/* Progress Steps */}
-          <div className="flex items-center justify-center space-x-8 mt-4">
-            <div className={`flex items-center space-x-2 ${currentStep === 'info' ? 'text-pink-600' : currentStep === 'modules' || currentStep === 'review' ? 'text-green-600' : 'text-gray-400'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${currentStep === 'info' ? 'bg-pink-600 text-white' : currentStep === 'modules' || currentStep === 'review' ? 'bg-green-600 text-white' : 'bg-gray-200'}`}>
-                1
-              </div>
-              <span className="text-sm font-medium">Informations</span>
-            </div>
-            <div className={`flex items-center space-x-2 ${currentStep === 'modules' ? 'text-pink-600' : currentStep === 'review' ? 'text-green-600' : 'text-gray-400'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${currentStep === 'modules' ? 'bg-pink-600 text-white' : currentStep === 'review' ? 'bg-green-600 text-white' : 'bg-gray-200'}`}>
-                2
-              </div>
-              <span className="text-sm font-medium">Modules</span>
-            </div>
-            <div className={`flex items-center space-x-2 ${currentStep === 'review' ? 'text-pink-600' : 'text-gray-400'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${currentStep === 'review' ? 'bg-pink-600 text-white' : 'bg-gray-200'}`}>
-                3
-              </div>
-              <span className="text-sm font-medium">Révision</span>
-            </div>
-          </div>
+        <DialogHeader>
+          <DialogTitle>Créer un nouveau cours</DialogTitle>
         </DialogHeader>
 
-        {/* Step Content */}
+        {/* Step indicators */}
+        <div className="flex items-center justify-center space-x-4 py-4 border-b">
+          <div className={`flex items-center ${currentStep === 'info' ? 'text-pink-600 font-semibold' : 'text-gray-400'}`}>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-2 ${currentStep === 'info' ? 'bg-pink-600 text-white' : 'bg-gray-200'}`}>
+              1
+            </div>
+            Informations
+          </div>
+          <div className="w-12 h-0.5 bg-gray-200" />
+          <div className={`flex items-center ${currentStep === 'modules' ? 'text-pink-600 font-semibold' : 'text-gray-400'}`}>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-2 ${currentStep === 'modules' ? 'bg-pink-600 text-white' : 'bg-gray-200'}`}>
+              2
+            </div>
+            Modules
+          </div>
+          <div className="w-12 h-0.5 bg-gray-200" />
+          <div className={`flex items-center ${currentStep === 'review' ? 'text-pink-600 font-semibold' : 'text-gray-400'}`}>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-2 ${currentStep === 'review' ? 'bg-pink-600 text-white' : 'bg-gray-200'}`}>
+              3
+            </div>
+            Révision
+          </div>
+        </div>
+
+        {/* Content */}
         <div className="flex-1 overflow-auto p-6">
           {renderStepContent()}
         </div>
 
-        {/* Footer Actions */}
-        <div className="border-t pt-4 flex justify-between">
-          <Button 
-            variant="outline" 
-            onClick={() => {
-              if (currentStep === 'info') {
-                onClose();
-              } else if (currentStep === 'modules') {
-                setCurrentStep('info');
-              } else if (currentStep === 'review') {
-                setCurrentStep('modules');
-              }
-            }}
-          >
-            {currentStep === 'info' ? 'Annuler' : 'Précédent'}
-          </Button>
+        {/* Navigation */}
+        <div className="flex justify-between pt-4 border-t">
+          {currentStep !== 'info' && (
+            <Button variant="outline" onClick={() => {
+              if (currentStep === 'modules') setCurrentStep('info');
+              if (currentStep === 'review') setCurrentStep('modules');
+            }}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Précédent
+            </Button>
+          )}
+          {currentStep === 'info' && <div />}
           
-          <Button 
-            onClick={() => {
-              if (currentStep === 'info') {
-                setCurrentStep('modules');
-              } else if (currentStep === 'modules') {
-                setCurrentStep('review');
-              } else if (currentStep === 'review') {
-                handleCreateCourse();
-              }
-            }}
-            className="bg-pink-600 hover:bg-pink-700"
-          >
-            {currentStep === 'review' ? 'Créer le cours' : 'Suivant'}
-          </Button>
+          {currentStep !== 'review' ? (
+            <Button onClick={() => {
+              if (currentStep === 'info') setCurrentStep('modules');
+              if (currentStep === 'modules') setCurrentStep('review');
+            }}>
+              Suivant
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </Button>
+          ) : (
+            <Button onClick={handleCreateCourse} className="bg-pink-600 hover:bg-pink-700">
+              <Save className="h-4 w-4 mr-2" />
+              Créer le cours
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>

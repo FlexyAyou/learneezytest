@@ -6,10 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Search, Plus, Eye, Edit, Trash2, BookOpen, Users, Star, Clock, Wand2, Book, Check, X, AlertTriangle, History, Globe, Lock, Settings, Shield } from 'lucide-react';
+import { Search, Plus, Eye, Edit, Trash2, BookOpen, Users, Star, Clock, Check, X, AlertTriangle, History, Globe, Lock, Settings, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
-import { AICourseCreatorModal } from './AICourseCreatorModal';
 import { CreateCourseModal } from './CreateCourseModal';
 import { CourseRejectionModal } from './CourseRejectionModal';
 import { CourseViewModal } from './CourseViewModal';
@@ -22,7 +21,6 @@ const AdminCourses = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [visibilityFilter, setVisibilityFilter] = useState('all');
   const [selectedCourse, setSelectedCourse] = useState(null);
-  const [showAICourseModal, setShowAICourseModal] = useState(false);
   const [showCreateCourseModal, setShowCreateCourseModal] = useState(false);
   const [showRejectionModal, setShowRejectionModal] = useState(false);
   const [courseToReject, setCourseToReject] = useState(null);
@@ -201,13 +199,6 @@ const AdminCourses = () => {
     setCourseToReject(null);
   };
 
-  const handleAICourseCreated = (course) => {
-    toast({
-      title: "Cours créé avec l'IA",
-      description: "Le cours a été généré et ajouté avec succès.",
-    });
-  };
-
   const handleCourseCreated = (course) => {
     toast({
       title: "Cours créé",
@@ -301,15 +292,10 @@ const AdminCourses = () => {
           </Button>
           <Button 
             onClick={() => setShowCreateCourseModal(true)}
-            variant="outline"
-            className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
+            className="bg-pink-600 hover:bg-pink-700"
           >
-            <Book className="h-4 w-4 mr-2" />
+            <Plus className="h-4 w-4 mr-2" />
             Créer un cours
-          </Button>
-          <Button onClick={() => setShowAICourseModal(true)}>
-            <Wand2 className="h-4 w-4 mr-2" />
-            Créer un cours avec l'IA
           </Button>
         </div>
       </div>
@@ -595,13 +581,6 @@ const AdminCourses = () => {
           </Table>
         </CardContent>
       </Card>
-
-      {/* AI Course Creator Modal */}
-      <AICourseCreatorModal
-        isOpen={showAICourseModal}
-        onClose={() => setShowAICourseModal(false)}
-        onCourseCreated={handleAICourseCreated}
-      />
 
       {/* Manual Course Creator Modal */}
       <CreateCourseModal
