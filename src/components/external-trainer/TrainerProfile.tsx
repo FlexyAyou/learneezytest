@@ -1,229 +1,207 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { User, Mail, Phone, MapPin, Award, Briefcase, Upload, Plus, X, Edit, FileText, AlertCircle, Languages } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import TrainerDiplomas from './TrainerDiplomas';
-import { useTrainerActivation } from '@/hooks/useTrainerActivation';
-import LoadingSpinner from '@/components/common/LoadingSpinner';
-import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
-import { useUpdateProfile } from '@/hooks/useApi';
+import React, { useState, useEffect, useRef } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Award,
+  Briefcase,
+  Upload,
+  Plus,
+  X,
+  Edit,
+  FileText,
+  AlertCircle,
+  Languages,
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import TrainerDiplomas from "./TrainerDiplomas";
+import { useTrainerActivation } from "@/hooks/useTrainerActivation";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { useFastAPIAuth } from "@/hooks/useFastAPIAuth";
 
 const TrainerProfile = () => {
   const { toast } = useToast();
-  const { user, isLoading: authLoading, updateUser } = useFastAPIAuth();
-  const userId = user?.id?.toString() || 'mock-trainer-id';
+  const { user, isLoading: authLoading } = useFastAPIAuth();
+  const userId = user?.id?.toString() || "mock-trainer-id";
   const { fiscalInfo, updateFiscalInfo, isLoading: fiscalLoading } = useTrainerActivation(userId);
-  const updateProfileMutation = useUpdateProfile();
-  
+
   const [isEditingBasic, setIsEditingBasic] = useState(false);
   const [isEditingLanguages, setIsEditingLanguages] = useState(false);
   const [isAddingCertification, setIsAddingCertification] = useState(false);
   const [isAddingExperience, setIsAddingExperience] = useState(false);
-  
+
   const inputFileRef = useRef<HTMLInputElement>(null);
-  
+
   // Fiscal form state
-  const [ndaNumber, setNdaNumber] = useState('');
-  const [legalStatus, setLegalStatus] = useState('');
-  const [siret, setSiret] = useState('');
-  const [tvaNumber, setTvaNumber] = useState('');
+  const [ndaNumber, setNdaNumber] = useState("");
+  const [legalStatus, setLegalStatus] = useState("");
+  const [siret, setSiret] = useState("");
+  const [tvaNumber, setTvaNumber] = useState("");
   const [isSavingFiscal, setIsSavingFiscal] = useState(false);
 
   useEffect(() => {
     if (fiscalInfo) {
-      setNdaNumber(fiscalInfo.nda_number || '');
-      setLegalStatus(fiscalInfo.status || '');
-      setSiret(fiscalInfo.siret || '');
-      setTvaNumber(fiscalInfo.tva_number || '');
+      setNdaNumber(fiscalInfo.nda_number || "");
+      setLegalStatus(fiscalInfo.status || "");
+      setSiret(fiscalInfo.siret || "");
+      setTvaNumber(fiscalInfo.tva_number || "");
     }
   }, [fiscalInfo]);
 
   const [profile, setProfile] = useState({
-    firstName: user?.first_name || '',
-    lastName: user?.last_name || '',
-    email: user?.email || '',
-    phone: user?.phone || '',
-    address: user?.address || '',
-    bio: user?.bio || '',
-    avatar: user?.image || '',
-    languages: ['Français', 'Anglais', 'Espagnol'],
-    availableDays: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'],
-    timeZone: 'Europe/Paris'
-  });
-
-  // Valeurs initiales pour détecter les changements
-  const [initialValues, setInitialValues] = useState({
-    firstName: '',
-    lastName: '',
-    phone: '',
-    address: '',
-    bio: '',
-    avatar: '',
+    firstName: user?.first_name || "Jean",
+    lastName: user?.last_name || "Martin",
+    email: user?.email || "jean.martin@email.com",
+    phone: "+33 6 12 34 56 78",
+    address: "Paris, France",
+    bio: "Développeur Full-Stack avec plus de 8 ans d'expérience dans les technologies web modernes. Passionné par l'enseignement et le partage de connaissances, j'ai formé plus de 150 étudiants dans divers domaines du développement web.",
+    avatar: "",
+    languages: ["Français", "Anglais", "Espagnol"],
+    availableDays: ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi"],
+    timeZone: "Europe/Paris",
   });
 
   // Liste des langues disponibles
   const availableLanguages = [
-    'Français', 'Anglais', 'Espagnol', 'Allemand', 'Italien', 
-    'Portugais', 'Arabe', 'Chinois', 'Japonais', 'Russe', 
-    'Néerlandais', 'Suédois', 'Polonais', 'Turc', 'Coréen'
+    "Français",
+    "Anglais",
+    "Espagnol",
+    "Allemand",
+    "Italien",
+    "Portugais",
+    "Arabe",
+    "Chinois",
+    "Japonais",
+    "Russe",
+    "Néerlandais",
+    "Suédois",
+    "Polonais",
+    "Turc",
+    "Coréen",
   ];
 
   // Mettre à jour le profil avec les données de l'utilisateur connecté
   useEffect(() => {
     if (user) {
-      const values = {
-        firstName: user.first_name || '',
-        lastName: user.last_name || '',
-        phone: user.phone || '',
-        address: user.address || '',
-        bio: user.bio || '',
-        avatar: user.image || '',
-      };
-
-      setProfile(prev => ({
+      setProfile((prev) => ({
         ...prev,
-        firstName: values.firstName,
-        lastName: values.lastName,
-        email: user.email || '',
-        phone: values.phone,
-        address: values.address,
-        bio: values.bio,
-        avatar: values.avatar,
+        firstName: user.first_name || prev.firstName,
+        lastName: user.last_name || prev.lastName,
+        email: user.email || prev.email,
       }));
-
-      setInitialValues(values);
     }
   }, [user]);
+
+  // Charger la photo depuis localStorage au montage
+  useEffect(() => {
+    const savedAvatar = localStorage.getItem("trainer-avatar");
+    if (savedAvatar) {
+      setProfile((prev) => ({ ...prev, avatar: savedAvatar }));
+    }
+  }, []);
 
   const [certifications, setCertifications] = useState([
     {
       id: 1,
-      name: 'AWS Certified Developer',
-      issuer: 'Amazon Web Services',
-      date: '2023-06-15',
-      credentialId: 'AWS-CD-123456',
-      url: 'https://aws.amazon.com/certification/'
+      name: "AWS Certified Developer",
+      issuer: "Amazon Web Services",
+      date: "2023-06-15",
+      credentialId: "AWS-CD-123456",
+      url: "https://aws.amazon.com/certification/",
     },
     {
       id: 2,
-      name: 'React Developer Certification',
-      issuer: 'Meta',
-      date: '2023-03-20',
-      credentialId: 'META-REACT-789',
-      url: 'https://developers.facebook.com/certification/'
+      name: "React Developer Certification",
+      issuer: "Meta",
+      date: "2023-03-20",
+      credentialId: "META-REACT-789",
+      url: "https://developers.facebook.com/certification/",
     },
     {
       id: 3,
-      name: 'Google UX Design Certificate',
-      issuer: 'Google',
-      date: '2022-11-10',
-      credentialId: 'GOOGLE-UX-456',
-      url: 'https://grow.google/certificates/ux-design/'
-    }
+      name: "Google UX Design Certificate",
+      issuer: "Google",
+      date: "2022-11-10",
+      credentialId: "GOOGLE-UX-456",
+      url: "https://grow.google/certificates/ux-design/",
+    },
   ]);
 
   const [experiences, setExperiences] = useState([
     {
       id: 1,
-      title: 'Senior Full-Stack Developer',
-      company: 'TechCorp',
-      startDate: '2020-01-01',
-      endDate: '2023-12-31',
+      title: "Senior Full-Stack Developer",
+      company: "TechCorp",
+      startDate: "2020-01-01",
+      endDate: "2023-12-31",
       current: false,
-      description: 'Développement d\'applications web complexes avec React, Node.js et AWS. Formation d\'équipes junior et mentoring.'
+      description:
+        "Développement d'applications web complexes avec React, Node.js et AWS. Formation d'équipes junior et mentoring.",
     },
     {
       id: 2,
-      title: 'Lead Frontend Developer',
-      company: 'StartupXYZ',
-      startDate: '2018-03-01',
-      endDate: '2019-12-31',
+      title: "Lead Frontend Developer",
+      company: "StartupXYZ",
+      startDate: "2018-03-01",
+      endDate: "2019-12-31",
       current: false,
-      description: 'Direction de l\'équipe frontend, architecture des applications React, mise en place des bonnes pratiques.'
+      description:
+        "Direction de l'équipe frontend, architecture des applications React, mise en place des bonnes pratiques.",
     },
     {
       id: 3,
-      title: 'Formateur Indépendant',
-      company: 'Freelance',
-      startDate: '2021-01-01',
+      title: "Formateur Indépendant",
+      company: "Freelance",
+      startDate: "2021-01-01",
       endDate: null,
       current: true,
-      description: 'Formation en développement web pour entreprises et particuliers. Spécialisé en React, JavaScript, et UI/UX.'
-    }
+      description:
+        "Formation en développement web pour entreprises et particuliers. Spécialisé en React, JavaScript, et UI/UX.",
+    },
   ]);
 
   const [newCertification, setNewCertification] = useState({
-    name: '',
-    issuer: '',
-    date: '',
-    credentialId: '',
-    url: ''
+    name: "",
+    issuer: "",
+    date: "",
+    credentialId: "",
+    url: "",
   });
 
   const [newExperience, setNewExperience] = useState({
-    title: '',
-    company: '',
-    startDate: '',
-    endDate: '',
+    title: "",
+    company: "",
+    startDate: "",
+    endDate: "",
     current: false,
-    description: ''
+    description: "",
   });
 
-  // Détection des changements
-  const hasChanges =
-    profile.firstName !== initialValues.firstName ||
-    profile.lastName !== initialValues.lastName ||
-    profile.phone !== initialValues.phone ||
-    profile.address !== initialValues.address ||
-    profile.bio !== initialValues.bio ||
-    profile.avatar !== initialValues.avatar;
-
-  const handleSaveProfile = async () => {
-    try {
-      const updatedData = await updateProfileMutation.mutateAsync({
-        first_name: profile.firstName,
-        last_name: profile.lastName,
-        phone: profile.phone,
-        address: profile.address,
-        bio: profile.bio,
-        image: profile.avatar,
-      });
-
-      // Mettre à jour le contexte utilisateur local
-      updateUser(updatedData);
-
-      // Mettre à jour les valeurs initiales
-      setInitialValues({
-        firstName: profile.firstName,
-        lastName: profile.lastName,
-        phone: profile.phone,
-        address: profile.address,
-        bio: profile.bio,
-        avatar: profile.avatar,
-      });
-
-      toast({
-        title: "Profil mis à jour",
-        description: "Vos informations ont été sauvegardées avec succès",
-      });
-      
-      setIsEditingBasic(false);
-    } catch (error) {
-      toast({
-        title: "Erreur",
-        description: "Impossible de mettre à jour le profil.",
-        variant: "destructive",
-      });
-    }
+  const handleSaveProfile = () => {
+    toast({
+      title: "Profil mis à jour",
+      description: "Vos informations ont été sauvegardées avec succès",
+    });
+    setIsEditingBasic(false);
   };
 
   const handleAddCertification = () => {
@@ -236,12 +214,12 @@ const TrainerProfile = () => {
       return;
     }
 
-    const newId = Math.max(...certifications.map(c => c.id)) + 1;
+    const newId = Math.max(...certifications.map((c) => c.id)) + 1;
     setCertifications([...certifications, { id: newId, ...newCertification }]);
-    
-    setNewCertification({ name: '', issuer: '', date: '', credentialId: '', url: '' });
+
+    setNewCertification({ name: "", issuer: "", date: "", credentialId: "", url: "" });
     setIsAddingCertification(false);
-    
+
     toast({
       title: "Certification ajoutée",
       description: "La certification a été ajoutée à votre profil",
@@ -258,19 +236,19 @@ const TrainerProfile = () => {
       return;
     }
 
-    const newId = Math.max(...experiences.map(e => e.id)) + 1;
+    const newId = Math.max(...experiences.map((e) => e.id)) + 1;
     setExperiences([...experiences, { id: newId, ...newExperience }]);
-    
+
     setNewExperience({
-      title: '',
-      company: '',
-      startDate: '',
-      endDate: '',
+      title: "",
+      company: "",
+      startDate: "",
+      endDate: "",
       current: false,
-      description: ''
+      description: "",
     });
     setIsAddingExperience(false);
-    
+
     toast({
       title: "Expérience ajoutée",
       description: "L'expérience a été ajoutée à votre profil",
@@ -278,7 +256,7 @@ const TrainerProfile = () => {
   };
 
   const removeCertification = (id: number) => {
-    setCertifications(certifications.filter(c => c.id !== id));
+    setCertifications(certifications.filter((c) => c.id !== id));
     toast({
       title: "Certification supprimée",
       description: "La certification a été retirée de votre profil",
@@ -286,7 +264,7 @@ const TrainerProfile = () => {
   };
 
   const removeExperience = (id: number) => {
-    setExperiences(experiences.filter(e => e.id !== id));
+    setExperiences(experiences.filter((e) => e.id !== id));
     toast({
       title: "Expérience supprimée",
       description: "L'expérience a été retirée de votre profil",
@@ -294,9 +272,9 @@ const TrainerProfile = () => {
   };
 
   const formatDate = (dateString: string) => {
-    if (!dateString) return '';
+    if (!dateString) return "";
     const date = new Date(dateString);
-    return date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+    return date.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
   };
 
   const handleSaveFiscalInfo = async () => {
@@ -328,9 +306,9 @@ const TrainerProfile = () => {
 
   const handleRemoveLanguage = (language: string) => {
     if (profile.languages.length > 1) {
-      setProfile({ 
-        ...profile, 
-        languages: profile.languages.filter(l => l !== language) 
+      setProfile({
+        ...profile,
+        languages: profile.languages.filter((l) => l !== language),
       });
       toast({
         title: "Langue supprimée",
@@ -340,7 +318,7 @@ const TrainerProfile = () => {
       toast({
         title: "Action impossible",
         description: "Vous devez avoir au moins une langue",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -350,7 +328,7 @@ const TrainerProfile = () => {
     if (!file) return;
 
     // Validation du type
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
       toast({
         title: "Format non supporté",
         description: "Veuillez choisir une image JPG, PNG ou WEBP",
@@ -374,21 +352,25 @@ const TrainerProfile = () => {
     reader.onloadend = () => {
       const base64String = reader.result as string;
       setProfile({ ...profile, avatar: base64String });
-      
+
+      // Sauvegarde dans localStorage pour persistance
+      localStorage.setItem("trainer-avatar", base64String);
+
       toast({
-        title: "Photo sélectionnée",
-        description: "N'oubliez pas de sauvegarder vos modifications",
+        title: "Photo mise à jour",
+        description: "Votre photo de profil a été changée avec succès",
       });
     };
-    
+
     reader.readAsDataURL(file);
   };
 
   const handleRemovePhoto = () => {
-    setProfile({ ...profile, avatar: '' });
+    setProfile({ ...profile, avatar: "" });
+    localStorage.removeItem("trainer-avatar");
     toast({
-      title: "Photo retirée",
-      description: "N'oubliez pas de sauvegarder vos modifications",
+      title: "Photo supprimée",
+      description: "Votre photo de profil a été supprimée",
     });
   };
 
@@ -466,7 +448,7 @@ const TrainerProfile = () => {
               <Input
                 id="siret"
                 value={siret}
-                onChange={(e) => setSiret(e.target.value.replace(/\D/g, '').slice(0, 14))}
+                onChange={(e) => setSiret(e.target.value.replace(/\D/g, "").slice(0, 14))}
                 placeholder="14 chiffres"
                 maxLength={14}
               />
@@ -492,12 +474,10 @@ const TrainerProfile = () => {
               disabled={isSavingFiscal || !ndaNumber || !legalStatus || !siret || !validateSiret(siret)}
               className="bg-pink-600 hover:bg-pink-700"
             >
-              {isSavingFiscal ? 'Enregistrement...' : 'Sauvegarder les informations fiscales'}
+              {isSavingFiscal ? "Enregistrement..." : "Sauvegarder les informations fiscales"}
             </Button>
             {!fiscalInfo?.is_complete && ndaNumber && legalStatus && siret && (
-              <p className="text-sm text-muted-foreground self-center">
-                * Champs obligatoires
-              </p>
+              <p className="text-sm text-muted-foreground self-center">* Champs obligatoires</p>
             )}
           </div>
         </CardContent>
@@ -512,11 +492,7 @@ const TrainerProfile = () => {
                 <User className="mr-2 h-5 w-5" />
                 Profil
               </span>
-              <Button 
-                size="sm" 
-                variant="outline"
-                onClick={() => setIsEditingBasic(!isEditingBasic)}
-              >
+              <Button size="sm" variant="outline" onClick={() => setIsEditingBasic(!isEditingBasic)}>
                 <Edit className="h-4 w-4" />
               </Button>
             </CardTitle>
@@ -528,11 +504,12 @@ const TrainerProfile = () => {
                   <AvatarImage src={profile.avatar} alt={`${profile.firstName} ${profile.lastName}`} />
                 ) : (
                   <AvatarFallback className="text-2xl bg-gradient-to-br from-pink-500 to-purple-600 text-white">
-                    {profile.firstName[0]}{profile.lastName[0]}
+                    {profile.firstName[0]}
+                    {profile.lastName[0]}
                   </AvatarFallback>
                 )}
               </Avatar>
-              
+
               <input
                 ref={inputFileRef}
                 type="file"
@@ -540,23 +517,15 @@ const TrainerProfile = () => {
                 onChange={handlePhotoUpload}
                 className="hidden"
               />
-              
+
               <div className="flex gap-2 justify-center">
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  onClick={() => inputFileRef.current?.click()}
-                >
+                <Button size="sm" variant="outline" onClick={() => inputFileRef.current?.click()}>
                   <Upload className="mr-2 h-4 w-4" />
-                  {profile.avatar ? 'Changer' : 'Ajouter'}
+                  {profile.avatar ? "Changer" : "Ajouter"}
                 </Button>
-                
+
                 {profile.avatar && (
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={handleRemovePhoto}
-                  >
+                  <Button size="sm" variant="outline" onClick={handleRemovePhoto}>
                     <X className="h-4 w-4" />
                   </Button>
                 )}
@@ -570,7 +539,7 @@ const TrainerProfile = () => {
                   <Input
                     id="firstName"
                     value={profile.firstName}
-                    onChange={(e) => setProfile({...profile, firstName: e.target.value})}
+                    onChange={(e) => setProfile({ ...profile, firstName: e.target.value })}
                   />
                 </div>
                 <div>
@@ -578,16 +547,12 @@ const TrainerProfile = () => {
                   <Input
                     id="lastName"
                     value={profile.lastName}
-                    onChange={(e) => setProfile({...profile, lastName: e.target.value})}
+                    onChange={(e) => setProfile({ ...profile, lastName: e.target.value })}
                   />
                 </div>
                 <div>
                   <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    value={profile.email}
-                    disabled
-                  />
+                  <Input id="email" value={profile.email} disabled />
                   <p className="text-xs text-muted-foreground mt-1">L'email ne peut pas être modifié</p>
                 </div>
                 <div>
@@ -595,7 +560,7 @@ const TrainerProfile = () => {
                   <Input
                     id="phone"
                     value={profile.phone}
-                    onChange={(e) => setProfile({...profile, phone: e.target.value})}
+                    onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
                   />
                 </div>
                 <div>
@@ -603,7 +568,7 @@ const TrainerProfile = () => {
                   <Input
                     id="address"
                     value={profile.address}
-                    onChange={(e) => setProfile({...profile, address: e.target.value})}
+                    onChange={(e) => setProfile({ ...profile, address: e.target.value })}
                   />
                 </div>
                 <div>
@@ -611,16 +576,12 @@ const TrainerProfile = () => {
                   <Textarea
                     id="bio"
                     value={profile.bio}
-                    onChange={(e) => setProfile({...profile, bio: e.target.value})}
+                    onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
                     rows={4}
                   />
                 </div>
-                <Button 
-                  onClick={handleSaveProfile} 
-                  className="w-full"
-                  disabled={!hasChanges || updateProfileMutation.isPending}
-                >
-                  {updateProfileMutation.isPending ? 'Sauvegarde...' : 'Sauvegarder les modifications'}
+                <Button onClick={handleSaveProfile} className="w-full">
+                  Sauvegarder les modifications
                 </Button>
               </div>
             ) : (
@@ -662,11 +623,7 @@ const TrainerProfile = () => {
                 <Languages className="mr-2 h-5 w-5" />
                 Langues & Disponibilités
               </span>
-              <Button 
-                size="sm" 
-                variant="outline"
-                onClick={() => setIsEditingLanguages(!isEditingLanguages)}
-              >
+              <Button size="sm" variant="outline" onClick={() => setIsEditingLanguages(!isEditingLanguages)}>
                 <Edit className="h-4 w-4" />
               </Button>
             </CardTitle>
@@ -679,15 +636,15 @@ const TrainerProfile = () => {
                   <Badge key={index} variant="secondary" className="flex items-center gap-1">
                     {lang}
                     {isEditingLanguages && (
-                      <X 
-                        className="h-3 w-3 cursor-pointer hover:text-destructive" 
+                      <X
+                        className="h-3 w-3 cursor-pointer hover:text-destructive"
                         onClick={() => handleRemoveLanguage(lang)}
                       />
                     )}
                   </Badge>
                 ))}
               </div>
-              
+
               {isEditingLanguages && (
                 <div className="mt-4 space-y-2">
                   <Label className="text-sm">Ajouter une langue</Label>
@@ -697,7 +654,7 @@ const TrainerProfile = () => {
                     </SelectTrigger>
                     <SelectContent>
                       {availableLanguages
-                        .filter(lang => !profile.languages.includes(lang))
+                        .filter((lang) => !profile.languages.includes(lang))
                         .map((lang) => (
                           <SelectItem key={lang} value={lang}>
                             {lang}
@@ -705,9 +662,9 @@ const TrainerProfile = () => {
                         ))}
                     </SelectContent>
                   </Select>
-                  <Button 
-                    size="sm" 
-                    className="w-full mt-2" 
+                  <Button
+                    size="sm"
+                    className="w-full mt-2"
                     onClick={() => {
                       setIsEditingLanguages(false);
                       handleSaveProfile();
@@ -718,16 +675,18 @@ const TrainerProfile = () => {
                 </div>
               )}
             </div>
-            
+
             <div>
               <Label className="text-sm font-medium">Jours disponibles</Label>
               <div className="flex flex-wrap gap-2 mt-2">
                 {profile.availableDays.map((day, index) => (
-                  <Badge key={index} variant="outline">{day}</Badge>
+                  <Badge key={index} variant="outline">
+                    {day}
+                  </Badge>
                 ))}
               </div>
             </div>
-            
+
             <div>
               <Label className="text-sm font-medium">Fuseau horaire</Label>
               <p className="text-sm text-muted-foreground">{profile.timeZone}</p>
@@ -742,16 +701,16 @@ const TrainerProfile = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="text-center">
-              <p className="text-3xl font-bold text-green-600">4.9</p>
+              <p className="text-3xl font-bold text-green-600">0.0</p>
               <p className="text-sm text-muted-foreground">Note moyenne</p>
             </div>
             <div className="grid grid-cols-2 gap-4 text-center">
               <div>
-                <p className="text-2xl font-bold">156</p>
+                <p className="text-2xl font-bold">0</p>
                 <p className="text-xs text-muted-foreground">Sessions données</p>
               </div>
               <div>
-                <p className="text-2xl font-bold">89%</p>
+                <p className="text-2xl font-bold">0%</p>
                 <p className="text-xs text-muted-foreground">Taux de satisfaction</p>
               </div>
             </div>
@@ -780,9 +739,7 @@ const TrainerProfile = () => {
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Ajouter une certification</DialogTitle>
-                  <DialogDescription>
-                    Ajoutez une certification professionnelle à votre profil
-                  </DialogDescription>
+                  <DialogDescription>Ajoutez une certification professionnelle à votre profil</DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
@@ -790,7 +747,7 @@ const TrainerProfile = () => {
                     <Input
                       id="cert-name"
                       value={newCertification.name}
-                      onChange={(e) => setNewCertification({...newCertification, name: e.target.value})}
+                      onChange={(e) => setNewCertification({ ...newCertification, name: e.target.value })}
                       placeholder="Ex: AWS Certified Developer"
                     />
                   </div>
@@ -799,7 +756,7 @@ const TrainerProfile = () => {
                     <Input
                       id="cert-issuer"
                       value={newCertification.issuer}
-                      onChange={(e) => setNewCertification({...newCertification, issuer: e.target.value})}
+                      onChange={(e) => setNewCertification({ ...newCertification, issuer: e.target.value })}
                       placeholder="Ex: Amazon Web Services"
                     />
                   </div>
@@ -809,7 +766,7 @@ const TrainerProfile = () => {
                       id="cert-date"
                       type="date"
                       value={newCertification.date}
-                      onChange={(e) => setNewCertification({...newCertification, date: e.target.value})}
+                      onChange={(e) => setNewCertification({ ...newCertification, date: e.target.value })}
                     />
                   </div>
                   <div>
@@ -817,7 +774,7 @@ const TrainerProfile = () => {
                     <Input
                       id="cert-id"
                       value={newCertification.credentialId}
-                      onChange={(e) => setNewCertification({...newCertification, credentialId: e.target.value})}
+                      onChange={(e) => setNewCertification({ ...newCertification, credentialId: e.target.value })}
                       placeholder="Ex: AWS-CD-123456"
                     />
                   </div>
@@ -826,7 +783,7 @@ const TrainerProfile = () => {
                     <Input
                       id="cert-url"
                       value={newCertification.url}
-                      onChange={(e) => setNewCertification({...newCertification, url: e.target.value})}
+                      onChange={(e) => setNewCertification({ ...newCertification, url: e.target.value })}
                       placeholder="https://..."
                     />
                   </div>
@@ -835,9 +792,7 @@ const TrainerProfile = () => {
                   <Button variant="outline" onClick={() => setIsAddingCertification(false)}>
                     Annuler
                   </Button>
-                  <Button onClick={handleAddCertification}>
-                    Ajouter
-                  </Button>
+                  <Button onClick={handleAddCertification}>Ajouter</Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
@@ -855,16 +810,17 @@ const TrainerProfile = () => {
                     {cert.credentialId && ` • ID: ${cert.credentialId}`}
                   </p>
                   {cert.url && (
-                    <a href={cert.url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">
+                    <a
+                      href={cert.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:underline"
+                    >
                       Vérifier la certification
                     </a>
                   )}
                 </div>
-                <Button 
-                  size="sm" 
-                  variant="ghost" 
-                  onClick={() => removeCertification(cert.id)}
-                >
+                <Button size="sm" variant="ghost" onClick={() => removeCertification(cert.id)}>
                   <X className="h-4 w-4" />
                 </Button>
               </div>
@@ -891,9 +847,7 @@ const TrainerProfile = () => {
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Ajouter une expérience</DialogTitle>
-                  <DialogDescription>
-                    Ajoutez une expérience professionnelle à votre profil
-                  </DialogDescription>
+                  <DialogDescription>Ajoutez une expérience professionnelle à votre profil</DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
@@ -901,7 +855,7 @@ const TrainerProfile = () => {
                     <Input
                       id="exp-title"
                       value={newExperience.title}
-                      onChange={(e) => setNewExperience({...newExperience, title: e.target.value})}
+                      onChange={(e) => setNewExperience({ ...newExperience, title: e.target.value })}
                       placeholder="Ex: Senior Developer"
                     />
                   </div>
@@ -910,7 +864,7 @@ const TrainerProfile = () => {
                     <Input
                       id="exp-company"
                       value={newExperience.company}
-                      onChange={(e) => setNewExperience({...newExperience, company: e.target.value})}
+                      onChange={(e) => setNewExperience({ ...newExperience, company: e.target.value })}
                       placeholder="Ex: TechCorp"
                     />
                   </div>
@@ -921,7 +875,7 @@ const TrainerProfile = () => {
                         id="exp-start"
                         type="date"
                         value={newExperience.startDate}
-                        onChange={(e) => setNewExperience({...newExperience, startDate: e.target.value})}
+                        onChange={(e) => setNewExperience({ ...newExperience, startDate: e.target.value })}
                       />
                     </div>
                     <div>
@@ -929,8 +883,8 @@ const TrainerProfile = () => {
                       <Input
                         id="exp-end"
                         type="date"
-                        value={newExperience.endDate || ''}
-                        onChange={(e) => setNewExperience({...newExperience, endDate: e.target.value})}
+                        value={newExperience.endDate || ""}
+                        onChange={(e) => setNewExperience({ ...newExperience, endDate: e.target.value })}
                         disabled={newExperience.current}
                       />
                     </div>
@@ -940,7 +894,13 @@ const TrainerProfile = () => {
                       type="checkbox"
                       id="exp-current"
                       checked={newExperience.current}
-                      onChange={(e) => setNewExperience({...newExperience, current: e.target.checked, endDate: e.target.checked ? '' : newExperience.endDate})}
+                      onChange={(e) =>
+                        setNewExperience({
+                          ...newExperience,
+                          current: e.target.checked,
+                          endDate: e.target.checked ? "" : newExperience.endDate,
+                        })
+                      }
                     />
                     <Label htmlFor="exp-current">Poste actuel</Label>
                   </div>
@@ -949,7 +909,7 @@ const TrainerProfile = () => {
                     <Textarea
                       id="exp-desc"
                       value={newExperience.description}
-                      onChange={(e) => setNewExperience({...newExperience, description: e.target.value})}
+                      onChange={(e) => setNewExperience({ ...newExperience, description: e.target.value })}
                       rows={3}
                       placeholder="Décrivez vos responsabilités et réalisations..."
                     />
@@ -959,9 +919,7 @@ const TrainerProfile = () => {
                   <Button variant="outline" onClick={() => setIsAddingExperience(false)}>
                     Annuler
                   </Button>
-                  <Button onClick={handleAddExperience}>
-                    Ajouter
-                  </Button>
+                  <Button onClick={handleAddExperience}>Ajouter</Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
@@ -975,17 +933,11 @@ const TrainerProfile = () => {
                   <h4 className="font-semibold">{exp.title}</h4>
                   <p className="text-sm font-medium text-blue-600">{exp.company}</p>
                   <p className="text-xs text-muted-foreground">
-                    {formatDate(exp.startDate)} - {exp.current ? 'Présent' : formatDate(exp.endDate || '')}
+                    {formatDate(exp.startDate)} - {exp.current ? "Présent" : formatDate(exp.endDate || "")}
                   </p>
-                  {exp.description && (
-                    <p className="text-sm text-gray-600 mt-2">{exp.description}</p>
-                  )}
+                  {exp.description && <p className="text-sm text-gray-600 mt-2">{exp.description}</p>}
                 </div>
-                <Button 
-                  size="sm" 
-                  variant="ghost" 
-                  onClick={() => removeExperience(exp.id)}
-                >
+                <Button size="sm" variant="ghost" onClick={() => removeExperience(exp.id)}>
                   <X className="h-4 w-4" />
                 </Button>
               </div>
