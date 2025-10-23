@@ -228,6 +228,9 @@ export interface HTTPValidationError {
 export type CourseStatus = 'draft' | 'published';
 export type CourseOwnerType = 'learneezy' | 'of';
 
+// Import types from quiz.ts for better type safety
+import type { QuizConfig, AssignmentConfig } from './quiz';
+
 export interface QuizQuestion {
   question: string;
   options: string[];
@@ -245,6 +248,7 @@ export interface Content {
   description: string;
   video_url?: string;
   transcription?: string;
+  quiz?: QuizConfig; // Quiz optionnel par leçon
 }
 
 export interface Module {
@@ -252,7 +256,8 @@ export interface Module {
   description?: string;
   duration: string;
   content: Content[];
-  quizzes?: Quiz[];
+  quizzes?: Quiz[]; // Legacy support
+  assignment?: AssignmentConfig; // Devoir à la fin du module
 }
 
 export interface Resource {
@@ -271,6 +276,7 @@ export interface Course {
   image_url?: string;
   resources?: Resource[];
   modules: Module[];
+  certification?: import('./quiz').CertificationConfig; // Certification finale du cours
 }
 
 export interface CourseResponse extends Course {
