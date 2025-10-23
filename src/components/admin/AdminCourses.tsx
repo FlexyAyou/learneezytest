@@ -9,7 +9,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Search, Plus, Eye, Edit, Trash2, BookOpen, Users, Star, Clock, Check, X, AlertTriangle, History, Globe, Lock, Settings, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
-import { CreateCourseModal } from './CreateCourseModal';
 import { CourseRejectionModal } from './CourseRejectionModal';
 import { CourseViewModal } from './CourseViewModal';
 import { CourseVisibilityModal } from './CourseVisibilityModal';
@@ -21,7 +20,6 @@ const AdminCourses = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [visibilityFilter, setVisibilityFilter] = useState('all');
   const [selectedCourse, setSelectedCourse] = useState(null);
-  const [showCreateCourseModal, setShowCreateCourseModal] = useState(false);
   const [showRejectionModal, setShowRejectionModal] = useState(false);
   const [courseToReject, setCourseToReject] = useState(null);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
@@ -291,7 +289,7 @@ const AdminCourses = () => {
             Historique des rejets
           </Button>
           <Button 
-            onClick={() => setShowCreateCourseModal(true)}
+            onClick={() => navigate('/dashboard/superadmin/courses/create')}
             className="bg-pink-600 hover:bg-pink-700"
           >
             <Plus className="h-4 w-4 mr-2" />
@@ -348,15 +346,15 @@ const AdminCourses = () => {
         </Card>
       </div>
 
-      {/* Cours nécessitant une validation */}
+      {/* Cours nécessitant une validation - Grisé temporairement */}
       {pendingCourses.length > 0 && (
-        <Card className="border-orange-200 bg-orange-50">
+        <Card className="border-gray-300 bg-gray-100 opacity-60 pointer-events-none">
           <CardHeader>
-            <CardTitle className="flex items-center text-orange-800">
+            <CardTitle className="flex items-center text-gray-600">
               <AlertTriangle className="h-5 w-5 mr-2" />
               Cours nécessitant une validation ({pendingCourses.length})
             </CardTitle>
-            <p className="text-sm text-orange-700">Ces cours nécessitent votre approbation avant publication</p>
+            <p className="text-sm text-gray-500">Fonctionnalité en cours de développement</p>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -581,13 +579,6 @@ const AdminCourses = () => {
           </Table>
         </CardContent>
       </Card>
-
-      {/* Manual Course Creator Modal */}
-      <CreateCourseModal
-        isOpen={showCreateCourseModal}
-        onClose={() => setShowCreateCourseModal(false)}
-        onCourseCreated={handleCourseCreated}
-      />
 
       {/* Course Rejection Modal */}
       {courseToReject && (

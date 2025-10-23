@@ -59,6 +59,7 @@ import {
   GraduationCap
 } from 'lucide-react';
 import CreateOrganisme from './admin/CreateOrganisme';
+import CreateCoursePage from './admin/CreateCoursePage';
 
 const AdminDashboard = () => {
   return (
@@ -94,6 +95,7 @@ const AdminDashboard = () => {
               <Route path="organisations/create" element={<CreateOrganisme />} />
               <Route path="organisations/:id" element={<OrganismeDetail />} />
               <Route path="courses" element={<AdminCourses />} />
+              <Route path="courses/create" element={<CreateCoursePage />} />
               <Route path="inscriptions" element={<AdminInscriptions />} />
               <Route path="of-documents" element={<AdminDocumentsOF />} />
               <Route path="conventions" element={<AdminConventionGenerator />} />
