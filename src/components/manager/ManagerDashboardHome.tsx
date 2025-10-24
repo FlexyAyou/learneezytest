@@ -228,32 +228,32 @@ export const ManagerDashboardHome = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatsCard
           title="Apprenants Actifs"
-          value="124"
-          change="+12 ce mois"
+          value="0"
+          change=""
           icon={Users}
           trend="up"
           onClick={() => navigate('/dashboard/gestionnaire/apprenants')}
         />
         <StatsCard
           title="Formations En Cours"
-          value="8"
-          change="+2 ce mois"
+          value="0"
+          change=""
           icon={BookOpen}
           trend="up"
           onClick={() => navigate('/dashboard/gestionnaire/formations')}
         />
         <StatsCard
           title="Taux de Réussite"
-          value="87%"
-          change="+5% ce mois"
+          value="0%"
+          change=""
           icon={TrendingUp}
           trend="up"
           onClick={() => navigate('/dashboard/gestionnaire/rapports')}
         />
         <StatsCard
           title="Sessions Planifiées"
-          value="15"
-          change="+3 ce mois"
+          value="0"
+          change=""
           icon={Calendar}
           trend="up"
           onClick={() => navigate('/dashboard/gestionnaire/planning')}
