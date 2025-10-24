@@ -145,10 +145,6 @@ const CourseDetail = () => {
                 <Download className="h-4 w-4 mr-2" />
                 Télécharger le programme
               </Button>
-              
-              <div className="text-center text-sm text-gray-600 mb-6">
-                Garantie satisfait ou remboursé 30 jours
-              </div>
 
               <div className="border-t pt-6">
                 <h3 className="font-semibold text-gray-900 mb-4">Ce cours inclut :</h3>
