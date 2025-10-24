@@ -430,30 +430,48 @@ const InscriptionForm = () => {
                           form.setValue('acceptTerms', checked as boolean)
                         }
                       />
-                      <Label htmlFor="acceptTerms" className="text-sm leading-relaxed">
-                        J'accepte les{' '}
-                        <button
-                          type="button"
+                      <div className="text-sm leading-relaxed">
+                        <Label htmlFor="acceptTerms" className="inline">J'accepte les </Label>
+                        <span
+                          role="button"
+                          tabIndex={0}
                           onClick={(e) => {
                             e.preventDefault();
+                            e.stopPropagation();
                             setShowCGVDialog(true);
                           }}
-                          className="text-primary hover:underline font-medium"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setShowCGVDialog(true);
+                            }
+                          }}
+                          className="text-primary hover:underline font-medium cursor-pointer"
                         >
                           conditions d'utilisation
-                        </button>{' '}
-                        et la{' '}
-                        <button
-                          type="button"
+                        </span>
+                        <span> et la </span>
+                        <span
+                          role="button"
+                          tabIndex={0}
                           onClick={(e) => {
                             e.preventDefault();
+                            e.stopPropagation();
                             setShowPrivacyDialog(true);
                           }}
-                          className="text-primary hover:underline font-medium"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setShowPrivacyDialog(true);
+                            }
+                          }}
+                          className="text-primary hover:underline font-medium cursor-pointer"
                         >
                           politique de confidentialité
-                        </button>
-                      </Label>
+                        </span>
+                      </div>
                     </div>
                     {form.formState.errors.acceptTerms && (
                       <p className="text-red-500 text-sm">
