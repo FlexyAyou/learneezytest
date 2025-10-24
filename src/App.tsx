@@ -31,6 +31,9 @@ import CourseViewer from "./pages/student/CourseViewer";
 import LessonViewer from "./pages/student/LessonViewer";
 import StudentPayment from "./pages/student/StudentPayment";
 import CourseReviewPage from "@/pages/admin/CourseReviewPage";
+import StudentDetailPage from "./pages/admin/StudentDetailPage";
+import ManagerDetailPage from "./pages/admin/ManagerDetailPage";
+import ContentCreatorDetailPage from "./pages/admin/ContentCreatorDetailPage";
 import SystemArchitecture from "./pages/SystemArchitecture";
 import FastAPIProtectedRoute from "./components/common/FastAPIProtectedRoute";
 import NotFound from "./pages/NotFound";
@@ -155,6 +158,22 @@ function App() {
             element={
               <FastAPIProtectedRoute requiredRole="superadmin">
                 <CourseReviewPage />
+              </FastAPIProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/superadmin/users/:userSlug/gestionnaire"
+            element={
+              <FastAPIProtectedRoute requiredRole="superadmin">
+                <ManagerDetailPage />
+              </FastAPIProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/superadmin/users/:userSlug/createur-contenu"
+            element={
+              <FastAPIProtectedRoute requiredRole="superadmin">
+                <ContentCreatorDetailPage />
               </FastAPIProtectedRoute>
             }
           />
