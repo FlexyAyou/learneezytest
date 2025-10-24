@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -37,8 +37,13 @@ interface ModuleWithLessons {
 
 const CreateCoursePage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState<'info' | 'modules' | 'certification' | 'review'>('info');
+  
+  // Détecter si on est dans le contexte gestionnaire ou superadmin
+  const isManagerContext = location.pathname.includes('/gestionnaire/');
+  const coursesBasePath = isManagerContext ? '/dashboard/gestionnaire/courses' : '/dashboard/superadmin/courses';
   
   const [courseData, setCourseData] = useState({
     title: '',
@@ -286,7 +291,7 @@ const CreateCoursePage = () => {
       description: "Le cours a été créé avec succès",
     });
     
-    navigate('/dashboard/superadmin/courses');
+    navigate(coursesBasePath);
   };
 
   const canProceedToNextStep = () => {
@@ -324,7 +329,7 @@ const CreateCoursePage = () => {
           <div>
             <Button
               variant="ghost"
-              onClick={() => navigate('/dashboard/superadmin/courses')}
+              onClick={() => navigate(coursesBasePath)}
               className="mb-2"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
