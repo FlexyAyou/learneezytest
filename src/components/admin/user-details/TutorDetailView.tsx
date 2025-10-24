@@ -12,24 +12,24 @@ export const TutorDetailView = ({ user }: TutorDetailViewProps) => {
   // Mock data pour les tuteurs
   const tutorData = {
     students: [
-      { id: 1, name: 'Alice Dupont', progress: 75, status: 'active', lastActivity: '2024-01-20' },
-      { id: 2, name: 'Bob Martin', progress: 60, status: 'active', lastActivity: '2024-01-19' },
-      { id: 3, name: 'Claire Leroy', progress: 90, status: 'active', lastActivity: '2024-01-20' }
+      { id: 1, name: 'Alice Dupont', progress: 0, status: 'active', lastActivity: '2024-01-20' },
+      { id: 2, name: 'Bob Martin', progress: 0, status: 'active', lastActivity: '2024-01-19' },
+      { id: 3, name: 'Claire Leroy', progress: 0, status: 'active', lastActivity: '2024-01-20' }
     ],
     courses: [
-      { id: 1, name: 'React Avancé', students: 5, completionRate: 70 },
-      { id: 2, name: 'JavaScript ES6+', students: 3, completionRate: 85 },
-      { id: 3, name: 'HTML/CSS', students: 2, completionRate: 95 }
+      { id: 1, name: 'React Avancé', students: 0, completionRate: 0 },
+      { id: 2, name: 'JavaScript ES6+', students: 0, completionRate: 0 },
+      { id: 3, name: 'HTML/CSS', students: 0, completionRate: 0 }
     ],
     communications: [
       { id: 1, student: 'Alice Dupont', subject: 'Question sur le module 3', date: '2024-01-20', status: 'answered' },
       { id: 2, student: 'Bob Martin', subject: 'Demande de rendez-vous', date: '2024-01-19', status: 'pending' }
     ],
     stats: {
-      totalStudents: 10,
-      activeStudents: 8,
-      averageProgress: 75,
-      messagesThisWeek: 15
+      totalStudents: 0,
+      activeStudents: 0,
+      averageProgress: 0,
+      messagesThisWeek: 0
     }
   };
 
