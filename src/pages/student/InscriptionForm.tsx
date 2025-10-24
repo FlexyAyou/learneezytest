@@ -28,9 +28,8 @@ const inscriptionSchema = z.object({
   motivations: z.string().optional(),
   hasHandicap: z.boolean().default(false),
   handicapDetails: z.string().optional(),
-  acceptTerms: z.boolean().refine(val => val === true, 'Vous devez accepter les conditions'),
+  acceptTerms: z.boolean().refine(val => val === true, 'Vous devez accepter les conditions d\'utilisation et la politique de confidentialité'),
   acceptReglement: z.boolean().refine(val => val === true, 'Vous devez accepter le règlement'),
-  acceptData: z.boolean().refine(val => val === true, 'Vous devez accepter le traitement des données'),
 });
 
 type InscriptionForm = z.infer<typeof inscriptionSchema>;
@@ -49,7 +48,6 @@ const InscriptionForm = () => {
       hasHandicap: false,
       acceptTerms: false,
       acceptReglement: false,
-      acceptData: false,
     }
   });
 
@@ -432,16 +430,29 @@ const InscriptionForm = () => {
                           form.setValue('acceptTerms', checked as boolean)
                         }
                       />
-                      <Label htmlFor="acceptTerms" className="text-sm">
+                      <Label htmlFor="acceptTerms" className="text-sm leading-relaxed">
                         J'accepte les{' '}
                         <button
                           type="button"
-                          onClick={() => setShowCGVDialog(true)}
-                          className="text-blue-600 hover:underline font-medium"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setShowCGVDialog(true);
+                          }}
+                          className="text-primary hover:underline font-medium"
                         >
-                          conditions générales de vente
+                          conditions d'utilisation
                         </button>{' '}
-                        *
+                        et la{' '}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setShowPrivacyDialog(true);
+                          }}
+                          className="text-primary hover:underline font-medium"
+                        >
+                          politique de confidentialité
+                        </button>
                       </Label>
                     </div>
                     {form.formState.errors.acceptTerms && (
@@ -465,32 +476,6 @@ const InscriptionForm = () => {
                     {form.formState.errors.acceptReglement && (
                       <p className="text-red-500 text-sm">
                         {form.formState.errors.acceptReglement.message}
-                      </p>
-                    )}
-                    
-                    <div className="flex items-start space-x-2">
-                      <Checkbox
-                        id="acceptData"
-                        checked={form.watch('acceptData')}
-                        onCheckedChange={(checked) => 
-                          form.setValue('acceptData', checked as boolean)
-                        }
-                      />
-                      <Label htmlFor="acceptData" className="text-sm">
-                        J'accepte le traitement de mes données personnelles conformément à la{' '}
-                        <button
-                          type="button"
-                          onClick={() => setShowPrivacyDialog(true)}
-                          className="text-blue-600 hover:underline font-medium"
-                        >
-                          politique de confidentialité
-                        </button>{' '}
-                        *
-                      </Label>
-                    </div>
-                    {form.formState.errors.acceptData && (
-                      <p className="text-red-500 text-sm">
-                        {form.formState.errors.acceptData.message}
                       </p>
                     )}
                   </div>
