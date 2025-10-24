@@ -37,12 +37,14 @@ import TrainerDiplomas from "./TrainerDiplomas";
 import { useTrainerActivation } from "@/hooks/useTrainerActivation";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { useFastAPIAuth } from "@/hooks/useFastAPIAuth";
+import { useUpdateProfile } from "@/hooks/useApi";
 
 const TrainerProfile = () => {
   const { toast } = useToast();
-  const { user, isLoading: authLoading } = useFastAPIAuth();
+  const { user, isLoading: authLoading, updateUser } = useFastAPIAuth();
   const userId = user?.id?.toString() || "mock-trainer-id";
   const { fiscalInfo, updateFiscalInfo, isLoading: fiscalLoading } = useTrainerActivation(userId);
+  const updateProfileMutation = useUpdateProfile();
 
   const [isEditingBasic, setIsEditingBasic] = useState(false);
   const [isEditingLanguages, setIsEditingLanguages] = useState(false);
@@ -68,16 +70,26 @@ const TrainerProfile = () => {
   }, [fiscalInfo]);
 
   const [profile, setProfile] = useState({
-    firstName: user?.first_name || "Jean",
-    lastName: user?.last_name || "Martin",
-    email: user?.email || "jean.martin@email.com",
-    phone: "+33 6 12 34 56 78",
-    address: "Paris, France",
-    bio: "Développeur Full-Stack avec plus de 8 ans d'expérience dans les technologies web modernes. Passionné par l'enseignement et le partage de connaissances, j'ai formé plus de 150 étudiants dans divers domaines du développement web.",
-    avatar: "",
+    firstName: user?.first_name || "",
+    lastName: user?.last_name || "",
+    email: user?.email || "",
+    phone: user?.phone || "",
+    address: user?.address || "",
+    bio: user?.bio || "",
+    avatar: user?.image || "",
     languages: ["Français", "Anglais", "Espagnol"],
     availableDays: ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi"],
     timeZone: "Europe/Paris",
+  });
+
+  // Valeurs initiales pour détecter les changements
+  const [initialValues, setInitialValues] = useState({
+    firstName: "",
+    lastName: "",
+    phone: "",
+    address: "",
+    bio: "",
+    avatar: "",
   });
 
   // Liste des langues disponibles
@@ -102,22 +114,38 @@ const TrainerProfile = () => {
   // Mettre à jour le profil avec les données de l'utilisateur connecté
   useEffect(() => {
     if (user) {
+      const values = {
+        firstName: user.first_name || "",
+        lastName: user.last_name || "",
+        phone: user.phone || "",
+        address: user.address || "",
+        bio: user.bio || "",
+        avatar: user.image || "",
+      };
+
       setProfile((prev) => ({
         ...prev,
-        firstName: user.first_name || prev.firstName,
-        lastName: user.last_name || prev.lastName,
-        email: user.email || prev.email,
+        firstName: values.firstName,
+        lastName: values.lastName,
+        email: user.email || "",
+        phone: values.phone,
+        address: values.address,
+        bio: values.bio,
+        avatar: values.avatar,
       }));
+
+      setInitialValues(values);
     }
   }, [user]);
 
-  // Charger la photo depuis localStorage au montage
-  useEffect(() => {
-    const savedAvatar = localStorage.getItem("trainer-avatar");
-    if (savedAvatar) {
-      setProfile((prev) => ({ ...prev, avatar: savedAvatar }));
-    }
-  }, []);
+  // Détection des changements
+  const hasChanges =
+    profile.firstName !== initialValues.firstName ||
+    profile.lastName !== initialValues.lastName ||
+    profile.phone !== initialValues.phone ||
+    profile.address !== initialValues.address ||
+    profile.bio !== initialValues.bio ||
+    profile.avatar !== initialValues.avatar;
 
   const [certifications, setCertifications] = useState([
     {
@@ -196,12 +224,42 @@ const TrainerProfile = () => {
     description: "",
   });
 
-  const handleSaveProfile = () => {
-    toast({
-      title: "Profil mis à jour",
-      description: "Vos informations ont été sauvegardées avec succès",
-    });
-    setIsEditingBasic(false);
+  const handleSaveProfile = async () => {
+    try {
+      const updatedData = await updateProfileMutation.mutateAsync({
+        first_name: profile.firstName,
+        last_name: profile.lastName,
+        phone: profile.phone,
+        address: profile.address,
+        bio: profile.bio,
+        image: profile.avatar,
+      });
+
+      // Mettre à jour le contexte utilisateur local
+      updateUser(updatedData);
+
+      // Mettre à jour les valeurs initiales
+      setInitialValues({
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        phone: profile.phone,
+        address: profile.address,
+        bio: profile.bio,
+        avatar: profile.avatar,
+      });
+
+      toast({
+        title: "Profil mis à jour",
+        description: "Vos informations ont été sauvegardées avec succès",
+      });
+      setIsEditingBasic(false);
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de mettre à jour le profil.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleAddCertification = () => {
@@ -353,12 +411,9 @@ const TrainerProfile = () => {
       const base64String = reader.result as string;
       setProfile({ ...profile, avatar: base64String });
 
-      // Sauvegarde dans localStorage pour persistance
-      localStorage.setItem("trainer-avatar", base64String);
-
       toast({
-        title: "Photo mise à jour",
-        description: "Votre photo de profil a été changée avec succès",
+        title: "Photo sélectionnée",
+        description: "N'oubliez pas de sauvegarder vos modifications",
       });
     };
 
@@ -367,10 +422,9 @@ const TrainerProfile = () => {
 
   const handleRemovePhoto = () => {
     setProfile({ ...profile, avatar: "" });
-    localStorage.removeItem("trainer-avatar");
     toast({
       title: "Photo supprimée",
-      description: "Votre photo de profil a été supprimée",
+      description: "N'oubliez pas de sauvegarder vos modifications",
     });
   };
 
@@ -580,8 +634,12 @@ const TrainerProfile = () => {
                     rows={4}
                   />
                 </div>
-                <Button onClick={handleSaveProfile} className="w-full">
-                  Sauvegarder les modifications
+                <Button 
+                  onClick={handleSaveProfile} 
+                  className="w-full"
+                  disabled={!hasChanges || updateProfileMutation.isPending}
+                >
+                  {updateProfileMutation.isPending ? "Mise à jour..." : "Sauvegarder les modifications"}
                 </Button>
               </div>
             ) : (
