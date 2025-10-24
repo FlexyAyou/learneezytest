@@ -1,0 +1,261 @@
+================================================================================
+          DOCUMENT DE LIVRAISON – LIVRABLE LEARNEEZY N°1
+================================================================================
+
+1. INFORMATIONS GÉNÉRALES
+================================================================================
+
+• Nom du projet         : Learneezy – Plateforme de Formation en Ligne
+• Numéro du livrable    : Livrable n°1
+• Objet du livrable     : Mise en place du socle technique de la plateforme 
+                          et des modules de base (authentification, gestion 
+                          utilisateurs, cours, organisations)
+• Date de livraison     : [À compléter]
+• Version du livrable   : v1.0
+• Chef de projet/Équipe : [À compléter]
+• Destinataire(s)       : [Client / MOA / MOE]
+
+
+2. DESCRIPTION DU LIVRABLE
+================================================================================
+
+Contenu du livrable :
+
+A. MODULE D'AUTHENTIFICATION
+   - Inscription utilisateur avec validation par email
+   - Connexion (login/logout) avec JWT (access token + refresh token)
+   - Réinitialisation de mot de passe (forgot password / reset password)
+   - Vérification d'email
+   - Gestion automatique du rafraîchissement des tokens
+   - Redirection automatique selon le rôle utilisateur
+
+B. GESTION DES UTILISATEURS ET RÔLES
+   - Système multi-rôles :
+     * Superadmin (administration globale)
+     * OF Admin (administrateur d'organisme de formation)
+     * Gestionnaire
+     * Formateur interne
+     * Créateur de contenu
+     * Formateur indépendant
+     * Apprenant
+     * Tuteur
+   - Profils utilisateurs personnalisables (photo, bio, coordonnées)
+   - Validation des formateurs par le superadmin
+   - Gestion du statut utilisateur (actif/inactif)
+   - Système d'alertes utilisateur (validation, rejet)
+
+C. GESTION DES ORGANISATIONS DE FORMATION (OF)
+   - Création d'organismes de formation par le superadmin
+   - Configuration des OF (informations légales, agrément, logo)
+   - Sous-domaines personnalisés (slug.learneezy.com)
+   - Gestion des utilisateurs affiliés à un OF
+   - Système d'abonnements (Starter, Gold, Premium)
+   - Attribution de tokens IA par OF
+
+D. GESTION DES COURS
+   - Création de cours (CRUD complet)
+   - Structure hiérarchique : Cours > Modules > Leçons > Quiz
+   - Upload de médias (images, vidéos)
+   - Gestion du statut des cours (draft, published)
+   - Inscription aux cours (enrollment)
+   - Statistiques des cours (nombre d'inscrits, revenus, scores moyens)
+   - Suivi de progression par apprenant
+
+E. SYSTÈME DE CATALOGUES
+   - Catalogues globaux et spécifiques aux OF
+   - Attribution de catalogues aux apprenants
+   - Filtrage des cours selon l'abonnement
+
+F. SYSTÈME DE TOKENS
+   - Consultation du solde de tokens
+   - Achat de tokens (intégration Stripe simulée)
+   - Historique des transactions
+
+G. STRUCTURE DE LA BASE DE DONNÉES
+   - Base PostgreSQL avec les tables principales :
+     * users (utilisateurs)
+     * organizations (organismes de formation)
+     * subscriptions (abonnements)
+     * catalogues (catalogues de formation)
+     * token_transactions (transactions de tokens)
+   - Cours stockés dans MongoDB (structure flexible)
+
+H. API REST FASTAPI
+   - Documentation OpenAPI complète disponible
+   - Endpoints d'authentification (/api/auth/*)
+   - Endpoints de gestion des cours (/api/courses/*)
+   - Endpoints de gestion des OF (/api/organizations/*)
+   - Endpoints d'abonnements (/api/subscriptions-and-catalogues/*)
+   - Endpoints de tokens (/api/tokens/*)
+   - Endpoints d'administration (/api/auth/superadmin/*)
+
+I. INTERFACES UTILISATEUR
+   - Page d'accueil publique (hero, témoignages, partenaires)
+   - Pages d'inscription et de connexion
+   - Formulaire d'inscription apprenant complet
+   - Dashboards différenciés par rôle :
+     * Dashboard Superadmin
+     * Dashboard OF Admin
+     * Dashboard Apprenant
+     * Dashboard Tuteur
+     * Dashboard Formateur indépendant
+     * Dashboard Gestionnaire
+     * Dashboard Formateur interne
+     * Dashboard Créateur de contenu
+   - Système de navigation avec sidebars personnalisées
+   - Mode sombre/clair
+   - Gestion des CGV et politique de confidentialité (modals)
+
+Objectifs du livrable : 
+Fournir la première version fonctionnelle du socle technique de la plateforme
+Learneezy avec les modules de base permettant l'inscription, l'authentification
+et la gestion des cours par différents types d'utilisateurs.
+
+
+3. ENVIRONNEMENT DE LIVRAISON ET D'INSTALLATION
+================================================================================
+
+• Environnement concerné : Développement / Test
+• Lien d'accès / URL     : [À compléter - ex: https://learneezy.lovable.app]
+• Backend API            : [À compléter - URL de l'API FastAPI]
+
+• Identifiants de test :
+  - Superadmin : [À compléter]
+  - OF Admin   : [À compléter]
+  - Apprenant  : [À compléter]
+  - Formateur  : [À compléter]
+
+• Pré-requis techniques :
+  - Frontend : React 18.3.1, TypeScript, Vite
+  - UI Framework : Tailwind CSS, shadcn/ui, Radix UI
+  - State Management : TanStack Query
+  - Routing : React Router DOM v6
+  - Backend : FastAPI (Python)
+  - Base de données : PostgreSQL + MongoDB
+  - Authentification : JWT (access + refresh tokens)
+  - Navigateurs supportés : Chrome, Firefox, Safari, Edge (dernières versions)
+
+
+4. ARCHITECTURE TECHNIQUE
+================================================================================
+
+• Frontend :
+  - Architecture basée sur React avec routing multi-pages
+  - Hooks personnalisés pour l'authentification (useFastAPIAuth, useAuthForm)
+  - Client API centralisé (fastapi-client.ts)
+  - Gestion automatique des tokens JWT avec refresh
+  - Components réutilisables et modulaires
+  - Design system cohérent (index.css + tailwind.config.ts)
+
+• Backend :
+  - API RESTful avec FastAPI
+  - Documentation OpenAPI auto-générée
+  - Authentification OAuth2 avec JWT
+  - Validation des données avec Pydantic
+  - Gestion des emails (vérification, reset password, notifications)
+  - Système de rôles et permissions
+
+• Sécurité :
+  - Tokens JWT avec expiration
+  - Refresh tokens pour renouvellement automatique
+  - Validation email obligatoire
+  - Routes protégées par rôle
+  - Hashage des mots de passe
+  - Protection CORS
+
+
+5. TESTS ET VALIDATION
+================================================================================
+
+• Tests effectués : 
+  - Tests fonctionnels manuels sur les parcours principaux
+  - Tests d'intégration Frontend-Backend
+  - Tests d'authentification (inscription, login, logout, reset password)
+  - Tests de navigation selon les rôles
+  - Tests de création et gestion de cours
+  - Tests de gestion des organisations
+
+• Résultats des tests : 
+  [À compléter selon les résultats des tests]
+
+• État de validation : 
+  [Validé / En attente / Partiellement validé]
+
+• Anomalies connues / Limitations :
+  - Les emails de vérification nécessitent une configuration SMTP en production
+  - L'intégration Stripe pour les tokens est en mode simulation
+  - Les vidéos des cours nécessitent un serveur de streaming pour la production
+  - Certains modules avancés (reporting, analytics détaillés) ne sont pas encore
+    implémentés dans cette version
+
+
+6. FONCTIONNALITÉS NON INCLUSES (PRÉVUES POUR LES PROCHAINS LIVRABLES)
+================================================================================
+
+Les fonctionnalités suivantes ne sont pas incluses dans le Livrable n°1 :
+
+• Système de messagerie interne entre utilisateurs
+• Visioconférences intégrées
+• Génération automatique de documents (conventions, attestations)
+• Système d'émargement électronique
+• Module de reporting avancé
+• Intégration complète des paiements Stripe
+• Application mobile native
+• Système de gamification avancé
+• Certificats de formation automatiques
+• Intégration avec des outils tiers (Zoom, Teams, etc.)
+
+
+7. DOCUMENTATION TECHNIQUE DISPONIBLE
+================================================================================
+
+• API_COURSES_SPECIFICATION.md : Spécifications détaillées de l'API des cours
+• API_COURSES_CHECKLIST.md : Checklist de développement de l'API
+• DOCUMENTATION.md : Documentation générale du projet
+• README.md : Guide de démarrage rapide
+• Documentation OpenAPI : Disponible sur l'endpoint /docs de l'API
+
+
+8. PLANNING ET PROCHAINES ÉTAPES
+================================================================================
+
+• Étapes suivantes :
+  - Phase de recette avec les utilisateurs pilotes
+  - Corrections des anomalies remontées
+  - Développement du module de messagerie (Livrable n°2)
+  - Développement du module de visioconférence (Livrable n°2)
+  - Intégration complète des paiements
+  - Module de reporting et analytics avancés
+
+• Prochain livrable prévu : 
+  Livrable n°2 – [JJ/MM/AAAA]
+  Contenu prévu : Messagerie, Visioconférences, Documents administratifs
+
+
+9. NOTES IMPORTANTES
+================================================================================
+
+• Le système est actuellement configuré pour un environnement de développement
+• Une configuration spécifique sera nécessaire pour la mise en production
+• Les variables d'environnement doivent être configurées (fichier .env)
+• Un backup régulier des bases de données est recommandé
+
+
+10. APPROBATIONS
+================================================================================
+
+Responsable livraison (émetteur) :
+Nom : _______________________________  
+Signature : _________________________  
+Date : ___/___/____
+
+
+Client ou destinataire (réceptionnaire) :
+Nom : _______________________________  
+Signature : _________________________  
+Date : ___/___/____
+
+
+================================================================================
+                            FIN DU DOCUMENT
+================================================================================
