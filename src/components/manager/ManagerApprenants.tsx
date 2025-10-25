@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -8,6 +8,10 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Users, Eye, Edit, Plus, Search, Filter, Mail, Phone, BookOpen } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useUsers } from '@/hooks/useApi';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
+import { AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const ManagerApprenants = () => {
   const { toast } = useToast();
@@ -15,56 +19,27 @@ const ManagerApprenants = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedApprenant, setSelectedApprenant] = useState<any>(null);
 
-  const [apprenants, setApprenants] = useState([
-    { 
-      id: '1', 
-      nom: 'Dupont', 
-      prenom: 'Marie', 
-      email: 'marie.dupont@email.com', 
-      phone: '06 12 34 56 78',
-      status: 'active', 
-      formation: 'React Avancé', 
-      progression: 78,
-      dateInscription: '2024-01-15',
-      derniereConnexion: '2024-01-20'
-    },
-    { 
-      id: '2', 
-      nom: 'Martin', 
-      prenom: 'Jean', 
-      email: 'jean.martin@email.com', 
-      phone: '06 23 45 67 89',
-      status: 'completed', 
-      formation: 'JavaScript Fondamentaux', 
-      progression: 100,
-      dateInscription: '2024-01-10',
-      derniereConnexion: '2024-01-19'
-    },
-    { 
-      id: '3', 
-      nom: 'Bernard', 
-      prenom: 'Sophie', 
-      email: 'sophie.bernard@email.com', 
-      phone: '06 34 56 78 90',
-      status: 'pending', 
-      formation: 'Angular', 
-      progression: 45,
-      dateInscription: '2024-01-12',
-      derniereConnexion: '2024-01-18'
-    },
-    { 
-      id: '4', 
-      nom: 'Durand', 
-      prenom: 'Pierre', 
-      email: 'pierre.durand@email.com', 
-      phone: '06 45 67 89 01',
-      status: 'active', 
-      formation: 'Vue.js', 
-      progression: 62,
-      dateInscription: '2024-01-08',
-      derniereConnexion: '2024-01-21'
-    },
-  ]);
+  // Récupération dynamique des utilisateurs
+  const { data: allUsers, isLoading, error } = useUsers();
+
+  // Filtrer uniquement les apprenants et mapper les données
+  const apprenants = useMemo(() => {
+    if (!allUsers) return [];
+    return allUsers
+      .filter(user => user.role === 'apprenant' || user.role === 'student')
+      .map(user => ({
+        id: user.id.toString(),
+        nom: user.last_name || '',
+        prenom: user.first_name || '',
+        email: user.email,
+        phone: 'N/A', // TODO: récupérer depuis le profil utilisateur
+        status: user.status || 'active',
+        formation: 'Formation en cours', // TODO: récupérer depuis les enrollments
+        progression: 0, // TODO: calculer depuis les enrollments
+        dateInscription: new Date(user.id * 1000).toISOString().split('T')[0],
+        derniereConnexion: user.last_login ? new Date(user.last_login).toISOString().split('T')[0] : 'Jamais'
+      }));
+  }, [allUsers]);
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -78,12 +53,27 @@ const ManagerApprenants = () => {
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
-  const filteredApprenants = apprenants.filter(apprenant => {
-    const matchesSearch = `${apprenant.prenom} ${apprenant.nom}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         apprenant.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || apprenant.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  // Filtrer les apprenants selon la recherche et le statut
+  const filteredApprenants = useMemo(() => {
+    return apprenants.filter(apprenant => {
+      const matchesSearch = `${apprenant.prenom} ${apprenant.nom}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           apprenant.email.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = statusFilter === 'all' || apprenant.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [apprenants, searchTerm, statusFilter]);
+
+  // Calculer les statistiques dynamiquement
+  const stats = useMemo(() => {
+    const total = apprenants.length;
+    const active = apprenants.filter(a => a.status === 'active').length;
+    const completed = apprenants.filter(a => a.status === 'completed').length;
+    const avgProgression = total > 0 
+      ? Math.round(apprenants.reduce((sum, a) => sum + a.progression, 0) / total)
+      : 0;
+
+    return { total, active, completed, avgProgression };
+  }, [apprenants]);
 
   const handleContactApprenant = (apprenant: any) => {
     toast({
@@ -106,6 +96,32 @@ const ManagerApprenants = () => {
       description: `Affichage du détail de progression pour ${apprenant.prenom} ${apprenant.nom}`,
     });
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Alert variant="destructive" className="max-w-2xl">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Accès refusé</AlertTitle>
+          <AlertDescription>
+            Vous n'avez pas les permissions nécessaires pour accéder à cette ressource.
+            <br /><br />
+            <strong>Solution requise :</strong> Le backend doit être mis à jour pour autoriser le rôle "gestionnaire" à accéder à la liste des utilisateurs.
+            <br /><br />
+            Veuillez contacter l'administrateur système pour ajouter un endpoint <code>/api/auth/manager/users</code> ou modifier les permissions de l'endpoint existant.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -165,7 +181,7 @@ const ManagerApprenants = () => {
             <div className="flex items-center">
               <Users className="h-8 w-8 text-blue-600" />
               <div className="ml-4">
-                <p className="text-2xl font-bold">{apprenants.length}</p>
+                <p className="text-2xl font-bold">{stats.total}</p>
                 <p className="text-sm text-muted-foreground">Total Apprenants</p>
               </div>
             </div>
@@ -176,7 +192,7 @@ const ManagerApprenants = () => {
             <div className="flex items-center">
               <Users className="h-8 w-8 text-green-600" />
               <div className="ml-4">
-                <p className="text-2xl font-bold">{apprenants.filter(a => a.status === 'active').length}</p>
+                <p className="text-2xl font-bold">{stats.active}</p>
                 <p className="text-sm text-muted-foreground">Actifs</p>
               </div>
             </div>
@@ -187,7 +203,7 @@ const ManagerApprenants = () => {
             <div className="flex items-center">
               <BookOpen className="h-8 w-8 text-purple-600" />
               <div className="ml-4">
-                <p className="text-2xl font-bold">{apprenants.filter(a => a.status === 'completed').length}</p>
+                <p className="text-2xl font-bold">{stats.completed}</p>
                 <p className="text-sm text-muted-foreground">Terminés</p>
               </div>
             </div>
@@ -198,7 +214,7 @@ const ManagerApprenants = () => {
             <div className="flex items-center">
               <Users className="h-8 w-8 text-orange-600" />
               <div className="ml-4">
-                <p className="text-2xl font-bold">{Math.round(apprenants.reduce((acc, a) => acc + a.progression, 0) / apprenants.length)}%</p>
+                <p className="text-2xl font-bold">{stats.avgProgression}%</p>
                 <p className="text-sm text-muted-foreground">Progression Moyenne</p>
               </div>
             </div>
