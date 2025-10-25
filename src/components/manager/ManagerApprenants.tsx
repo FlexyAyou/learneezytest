@@ -8,8 +8,10 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Users, Eye, Edit, Plus, Search, Filter, Mail, Phone, BookOpen } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useSuperadminUsers } from '@/hooks/useApi';
+import { useUsers } from '@/hooks/useApi';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
+import { AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const ManagerApprenants = () => {
   const { toast } = useToast();
@@ -18,7 +20,7 @@ const ManagerApprenants = () => {
   const [selectedApprenant, setSelectedApprenant] = useState<any>(null);
 
   // Récupération dynamique des utilisateurs
-  const { data: allUsers, isLoading, error } = useSuperadminUsers();
+  const { data: allUsers, isLoading, error } = useUsers();
 
   // Filtrer uniquement les apprenants et mapper les données
   const apprenants = useMemo(() => {
@@ -106,9 +108,17 @@ const ManagerApprenants = () => {
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Card className="p-6">
-          <p className="text-destructive">Erreur lors du chargement des apprenants</p>
-        </Card>
+        <Alert variant="destructive" className="max-w-2xl">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Accès refusé</AlertTitle>
+          <AlertDescription>
+            Vous n'avez pas les permissions nécessaires pour accéder à cette ressource.
+            <br /><br />
+            <strong>Solution requise :</strong> Le backend doit être mis à jour pour autoriser le rôle "gestionnaire" à accéder à la liste des utilisateurs.
+            <br /><br />
+            Veuillez contacter l'administrateur système pour ajouter un endpoint <code>/api/auth/manager/users</code> ou modifier les permissions de l'endpoint existant.
+          </AlertDescription>
+        </Alert>
       </div>
     );
   }
