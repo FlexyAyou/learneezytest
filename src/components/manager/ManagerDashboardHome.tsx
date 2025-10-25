@@ -140,8 +140,6 @@ export const ManagerDashboardHome = () => {
           title="Apprenants Actifs"
           value="0"
           change="Aucune donnée"
-          value="0"
-          change=""
           icon={Users}
           trend="neutral"
           onClick={() => navigate('/dashboard/gestionnaire/apprenants')}
@@ -150,8 +148,6 @@ export const ManagerDashboardHome = () => {
           title="Formations En Cours"
           value="0"
           change="Aucune donnée"
-          value="0"
-          change=""
           icon={BookOpen}
           trend="neutral"
           onClick={() => navigate('/dashboard/gestionnaire/formations')}
@@ -160,8 +156,6 @@ export const ManagerDashboardHome = () => {
           title="Taux de Réussite"
           value="0%"
           change="Aucune donnée"
-          value="0%"
-          change=""
           icon={TrendingUp}
           trend="neutral"
           onClick={() => navigate('/dashboard/gestionnaire/rapports')}
@@ -170,8 +164,6 @@ export const ManagerDashboardHome = () => {
           title="Sessions Planifiées"
           value="0"
           change="Aucune donnée"
-          value="0"
-          change=""
           icon={Calendar}
           trend="neutral"
           onClick={() => navigate('/dashboard/gestionnaire/planning')}
