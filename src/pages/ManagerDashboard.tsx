@@ -10,7 +10,7 @@ import ManagerSettings from '@/components/manager/ManagerSettings';
 import ManagerMessaging from '@/components/manager/ManagerMessaging';
 import ManagerReports from '@/components/manager/ManagerReports';
 import ManagerApprenants from '@/components/manager/ManagerApprenants';
-import ManagerFormations from '@/components/manager/ManagerFormations';
+import ManagerTrainers from '@/components/manager/ManagerTrainers';
 import { ManagerDashboardHome } from '@/components/manager/ManagerDashboardHome';
 import ManagerCourses from '@/components/manager/ManagerCourses';
 import CreateCoursePage from './admin/CreateCoursePage';
@@ -32,7 +32,7 @@ const ManagerDashboard = () => {
             <Routes>
               <Route index element={<ManagerDashboardHome />} />
               <Route path="apprenants" element={<ManagerApprenants />} />
-              <Route path="formations" element={<ManagerFormations />} />
+              <Route path="formateurs" element={<ManagerTrainers />} />
               <Route path="courses" element={<ManagerCourses />} />
               <Route path="courses/create" element={<CreateCoursePage />} />
               <Route path="planning" element={<ManagerPlanning />} />
