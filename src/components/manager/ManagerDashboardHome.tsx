@@ -31,53 +31,8 @@ export const ManagerDashboardHome = () => {
   const { toast } = useToast();
   const { user } = useFastAPIAuth();
 
-  const chartData = [
-    { name: 'Jan', value: 45, inscriptions: 45, abandons: 5 },
-    { name: 'Fév', value: 52, inscriptions: 52, abandons: 8 },
-    { name: 'Mar', value: 48, inscriptions: 48, abandons: 3 },
-    { name: 'Avr', value: 61, inscriptions: 61, abandons: 7 },
-    { name: 'Mai', value: 55, inscriptions: 55, abandons: 4 },
-    { name: 'Jun', value: 67, inscriptions: 67, abandons: 6 },
-  ];
-
-  const timelineItems = [
-    { 
-      id: '1', 
-      title: 'Nouvelle inscription',
-      description: 'Marie Dupont s\'est inscrite en React Avancé',
-      time: '2h',
-      icon: UserCheck,
-      color: 'text-green-600',
-      type: 'success' as const
-    },
-    { 
-      id: '2', 
-      title: 'Formation terminée',
-      description: 'Jean Martin a terminé la formation JavaScript',
-      time: '3h',
-      icon: CheckCircle,
-      color: 'text-blue-600',
-      type: 'info' as const
-    },
-    { 
-      id: '3', 
-      title: 'Absence signalée',
-      description: 'Sophie Bernard absente à la session Angular',
-      time: '4h',
-      icon: XCircle,
-      color: 'text-red-600',
-      type: 'error' as const
-    },
-    { 
-      id: '4', 
-      title: 'Session planifiée',
-      description: 'Nouvelle session Vue.js pour le 15 février',
-      time: '5h',
-      icon: Calendar,
-      color: 'text-purple-600',
-      type: 'info' as const
-    },
-  ];
+  const chartData: any[] = [];
+  const timelineItems: any[] = [];
 
   const quickActions = [
     {
@@ -130,53 +85,8 @@ export const ManagerDashboardHome = () => {
     },
   ];
 
-  const upcomingEvents = [
-    {
-      id: 1,
-      title: 'Session React Avancé',
-      date: '2024-01-25',
-      time: '09:00',
-      participants: 15,
-      formateur: 'Marie Dubois'
-    },
-    {
-      id: 2,
-      title: 'Évaluation JavaScript',
-      date: '2024-01-26',
-      time: '14:00',
-      participants: 18,
-      formateur: 'Jean Martin'
-    },
-    {
-      id: 3,
-      title: 'Début formation Angular',
-      date: '2024-01-27',
-      time: '10:00',
-      participants: 12,
-      formateur: 'Sophie Laurent'
-    },
-  ];
-
-  const pendingTasks = [
-    {
-      id: 1,
-      task: 'Valider 3 nouvelles inscriptions',
-      priority: 'high',
-      deadline: '2024-01-25'
-    },
-    {
-      id: 2,
-      task: 'Préparer rapport mensuel',
-      priority: 'medium',
-      deadline: '2024-01-30'
-    },
-    {
-      id: 3,
-      task: 'Planifier réunion formateurs',
-      priority: 'low',
-      deadline: '2024-02-01'
-    },
-  ];
+  const upcomingEvents: any[] = [];
+  const pendingTasks: any[] = [];
 
   const getPriorityColor = (priority: string) => {
     switch(priority) {
@@ -229,139 +139,56 @@ export const ManagerDashboardHome = () => {
         <StatsCard
           title="Apprenants Actifs"
           value="0"
+          change="Aucune donnée"
+          value="0"
           change=""
           icon={Users}
-          trend="up"
+          trend="neutral"
           onClick={() => navigate('/dashboard/gestionnaire/apprenants')}
         />
         <StatsCard
           title="Formations En Cours"
           value="0"
+          change="Aucune donnée"
+          value="0"
           change=""
           icon={BookOpen}
-          trend="up"
+          trend="neutral"
           onClick={() => navigate('/dashboard/gestionnaire/formations')}
         />
         <StatsCard
           title="Taux de Réussite"
           value="0%"
+          change="Aucune donnée"
+          value="0%"
           change=""
           icon={TrendingUp}
-          trend="up"
+          trend="neutral"
           onClick={() => navigate('/dashboard/gestionnaire/rapports')}
         />
         <StatsCard
           title="Sessions Planifiées"
           value="0"
+          change="Aucune donnée"
+          value="0"
           change=""
           icon={Calendar}
-          trend="up"
+          trend="neutral"
           onClick={() => navigate('/dashboard/gestionnaire/planning')}
         />
       </div>
 
-      {/* Graphiques interactifs */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <InteractiveChart
-          title="Évolution des Inscriptions"
-          data={chartData}
-          type="line"
-          dataKey="inscriptions"
-          color="#3b82f6"
-          showControls={true}
-        />
-        <InteractiveChart
-          title="Taux d'Abandon"
-          data={chartData}
-          type="bar"
-          dataKey="abandons"
-          color="#ef4444"
-          showControls={true}
-        />
-      </div>
-
-      {/* Timeline et événements */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <TimelineComponent
-          items={timelineItems}
-          title="Activités Récentes"
-        />
-
-        {/* Événements à venir améliorés */}
-        <Card className="hover:shadow-lg transition-all duration-300">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span className="flex items-center">
-                <Calendar className="h-5 w-5 mr-2 text-pink-600" />
-                Événements à Venir
-              </span>
-              <Button variant="ghost" size="sm" className="hover:bg-pink-50 transition-colors">
-                <Eye className="h-4 w-4" />
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {upcomingEvents.map((event) => (
-                <div 
-                  key={event.id} 
-                  className="p-4 border rounded-lg hover:bg-gradient-to-r hover:from-pink-50 hover:to-purple-50 hover:shadow-md cursor-pointer transition-all duration-300 group"
-                  onClick={() => handleViewEvent(event)}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium text-gray-900 group-hover:text-pink-700 transition-colors">{event.title}</h4>
-                    <Badge variant="outline" className="group-hover:border-pink-300 group-hover:text-pink-700 transition-colors">
-                      {event.participants} participants
-                    </Badge>
-                  </div>
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Clock className="h-3 w-3 mr-1" />
-                    {event.date} à {event.time}
-                  </div>
-                  <p className="text-sm text-gray-500 mt-1">Par {event.formateur}</p>
-                </div>
-              ))}
+      {/* Message d'information */}
+      <Card className="border-blue-200 bg-blue-50">
+        <CardContent className="pt-6">
+          <div className="flex items-start space-x-3">
+            <Bell className="h-5 w-5 text-blue-600 mt-0.5" />
+            <div>
+              <h3 className="font-medium text-blue-900 mb-1">Aucune donnée disponible</h3>
+              <p className="text-sm text-blue-700">
+                Commencez par ajouter des apprenants et des formations pour voir les statistiques et activités apparaître ici.
+              </p>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Tâches en attente améliorées */}
-      <Card className="hover:shadow-lg transition-all duration-300">
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span className="flex items-center">
-              <ClipboardList className="h-5 w-5 mr-2 text-pink-600" />
-              Tâches en Attente
-            </span>
-            <Button variant="ghost" size="sm" className="hover:bg-pink-50 transition-colors">
-              <Plus className="h-4 w-4" />
-            </Button>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {pendingTasks.map((task) => (
-              <div key={task.id} className="flex items-center justify-between p-3 border rounded-lg hover:shadow-md hover:bg-gradient-to-r hover:from-gray-50 hover:to-pink-50 transition-all duration-300 group">
-                <div className="flex-1">
-                  <p className="font-medium text-gray-900 group-hover:text-pink-700 transition-colors">{task.task}</p>
-                  <p className="text-sm text-gray-500">Échéance: {task.deadline}</p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Badge className={`${getPriorityColor(task.priority)} transition-all duration-300`}>
-                    {task.priority}
-                  </Badge>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => handleCompleteTask(task.id)}
-                    className="hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-all duration-300"
-                  >
-                    <CheckCircle className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
           </div>
         </CardContent>
       </Card>

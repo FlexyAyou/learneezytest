@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ManagerDetailView } from '@/components/admin/user-details/ManagerDetailView';
+import { ContentCreatorDetailView } from '@/components/admin/user-details/ContentCreatorDetailView';
 import { useUserBySlug } from '@/hooks/useApi';
 import { Loader2 } from 'lucide-react';
 import { 
@@ -16,7 +16,7 @@ import {
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { SuperAdminSidebar } from "@/components/admin/SuperAdminSidebar";
 
-const ManagerDetailPage = () => {
+const ContentCreatorDetailPage = () => {
   const { userSlug } = useParams();
   const navigate = useNavigate();
 
@@ -51,14 +51,14 @@ const ManagerDetailPage = () => {
     id: foundUser.id,
     name: `${foundUser.first_name} ${foundUser.last_name}`,
     email: foundUser.email,
-    phone: '+33 6 45 67 89 01', // Mock pour le moment
-    role: 'Gestionnaire',
+    phone: '+33 6 12 34 56 78', // Mock pour le moment
+    role: 'Créateur de contenu',
     status: foundUser.status || 'inactive',
-    lastLogin: foundUser.last_login || '2024-01-19',
+    lastLogin: foundUser.last_login || '2024-01-15',
     joinDate: foundUser.created_at,
-    organisation: foundUser.of_id ? `Organisation ${foundUser.of_id}` : 'Formation Excellence',
+    organisation: foundUser.of_id ? `Organisation ${foundUser.of_id}` : 'Learneezy',
     organisationType: foundUser.of_id ? 'OF' : 'Direct',
-    address: '321 Boulevard des Managers, 13000 Marseille' // Mock pour le moment
+    address: '123 Rue de la Formation, 75001 Paris' // Mock pour le moment
   };
 
   const getStatusBadge = (status: string) => {
@@ -73,7 +73,7 @@ const ManagerDetailPage = () => {
   };
 
   const getRoleColor = (role: string) => {
-    return 'bg-orange-100 text-orange-800';
+    return 'bg-purple-100 text-purple-800';
   };
 
   const getOrganisationColor = (organisationType: string) => {
@@ -174,8 +174,8 @@ const ManagerDetailPage = () => {
               </CardContent>
             </Card>
 
-            {/* Contenu spécialisé pour le gestionnaire */}
-            <ManagerDetailView user={user} />
+            {/* Contenu spécialisé pour le créateur de contenu */}
+            <ContentCreatorDetailView user={user} />
           </div>
         </main>
       </div>
@@ -183,4 +183,4 @@ const ManagerDetailPage = () => {
   );
 };
 
-export default ManagerDetailPage;
+export default ContentCreatorDetailPage;

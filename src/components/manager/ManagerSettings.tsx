@@ -25,18 +25,32 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
+import { useUpdateProfile } from '@/hooks/useApi';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
 
 const ManagerSettings = () => {
   const { toast } = useToast();
-  const { user } = useFastAPIAuth();
+  const { user, isLoading: authLoading, updateUser } = useFastAPIAuth();
+  const updateProfileMutation = useUpdateProfile();
+  
+  // États du formulaire
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+  const [bio, setBio] = useState('');
   const [avatar, setAvatar] = useState<string>('');
-  const [formData, setFormData] = useState({
-    firstName: user?.first_name || '',
-    lastName: user?.last_name || '',
-    phone: user?.phone || '',
-    address: user?.address || '',
-    bio: user?.bio || '',
+  
+  // Valeurs initiales pour détecter les changements
+  const [initialValues, setInitialValues] = useState({
+    firstName: '',
+    lastName: '',
+    phone: '',
+    address: '',
+    bio: '',
+    avatar: ''
   });
+  
   const [settings, setSettings] = useState({
     // Notifications
     emailNotifications: true,
@@ -54,26 +68,36 @@ const ManagerSettings = () => {
     timezone: 'Europe/Paris'
   });
 
-  // Charger la photo depuis localStorage
-  useEffect(() => {
-    const savedAvatar = localStorage.getItem('manager-avatar');
-    if (savedAvatar) {
-      setAvatar(savedAvatar);
-    }
-  }, []);
-
-  // Mettre à jour formData quand user change
+  // Initialiser les champs avec les données utilisateur
   useEffect(() => {
     if (user) {
-      setFormData({
+      const values = {
         firstName: user.first_name || '',
         lastName: user.last_name || '',
         phone: user.phone || '',
         address: user.address || '',
         bio: user.bio || '',
-      });
+        avatar: user.image || ''
+      };
+      
+      setFirstName(values.firstName);
+      setLastName(values.lastName);
+      setPhone(values.phone);
+      setAddress(values.address);
+      setBio(values.bio);
+      setAvatar(values.avatar);
+      setInitialValues(values);
     }
   }, [user]);
+
+  // Détection des changements
+  const hasChanges = 
+    firstName !== initialValues.firstName ||
+    lastName !== initialValues.lastName ||
+    phone !== initialValues.phone ||
+    address !== initialValues.address ||
+    bio !== initialValues.bio ||
+    avatar !== initialValues.avatar;
 
   const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -105,12 +129,9 @@ const ManagerSettings = () => {
       const base64String = reader.result as string;
       setAvatar(base64String);
       
-      // Sauvegarde dans localStorage pour persistance
-      localStorage.setItem('manager-avatar', base64String);
-      
       toast({
-        title: "Photo mise à jour",
-        description: "Votre photo de profil a été changée avec succès",
+        title: "Photo sélectionnée",
+        description: "Cliquez sur 'Sauvegarder' pour enregistrer les modifications",
       });
     };
     
@@ -119,27 +140,48 @@ const ManagerSettings = () => {
 
   const handleRemovePhoto = () => {
     setAvatar('');
-    localStorage.removeItem('manager-avatar');
     toast({
-      title: "Photo supprimée",
-      description: "Votre photo de profil a été supprimée",
+      title: "Photo retirée",
+      description: "Cliquez sur 'Sauvegarder' pour enregistrer les modifications",
     });
   };
 
-  const handleSave = () => {
-    // TODO: Implémenter l'appel API pour sauvegarder les modifications
-    toast({
-      title: "Paramètres sauvegardés",
-      description: "Vos préférences ont été mises à jour avec succès.",
-    });
-  };
-
-  const handleFormDataChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { id, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [id]: value
-    }));
+  const handleSaveProfile = async () => {
+    try {
+      const updatedUser = await updateProfileMutation.mutateAsync({
+        first_name: firstName,
+        last_name: lastName,
+        phone,
+        address,
+        bio,
+        image: avatar,
+      });
+      
+      // Mettre à jour immédiatement la sidebar sans rechargement
+      updateUser(updatedUser);
+      
+      // Mettre à jour les valeurs initiales
+      const newValues = {
+        firstName: updatedUser.first_name || '',
+        lastName: updatedUser.last_name || '',
+        phone: updatedUser.phone || '',
+        address: updatedUser.address || '',
+        bio: updatedUser.bio || '',
+        avatar: updatedUser.image || ''
+      };
+      setInitialValues(newValues);
+      
+      toast({
+        title: "Profil mis à jour",
+        description: "Vos informations ont été enregistrées avec succès",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: error.response?.data?.detail || "Impossible de mettre à jour le profil",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleInputChange = (field: string, value: string | boolean) => {
@@ -150,12 +192,19 @@ const ManagerSettings = () => {
   };
 
   const handleChangePassword = () => {
-    // TODO: Implémenter le changement de mot de passe
     toast({
-      title: "Mot de passe modifié",
-      description: "Votre mot de passe a été changé avec succès",
+      title: "Mot de passe",
+      description: "Fonctionnalité de changement de mot de passe à venir",
     });
   };
+
+  if (authLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -165,10 +214,6 @@ const ManagerSettings = () => {
           <h1 className="text-3xl font-bold text-gray-900">Paramètres</h1>
           <p className="text-gray-600">Gérez vos préférences et paramètres de compte</p>
         </div>
-        <Button onClick={handleSave} className="flex items-center">
-          <Settings className="mr-2 h-4 w-4" />
-          Sauvegarder
-        </Button>
       </div>
 
       {/* Photo de profil et Informations personnelles */}
@@ -236,16 +281,16 @@ const ManagerSettings = () => {
                 <Label htmlFor="firstName">Prénom</Label>
                 <Input 
                   id="firstName" 
-                  value={formData.firstName}
-                  onChange={handleFormDataChange}
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="lastName">Nom</Label>
                 <Input 
                   id="lastName" 
-                  value={formData.lastName}
-                  onChange={handleFormDataChange}
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
                 />
               </div>
             </div>
@@ -264,17 +309,17 @@ const ManagerSettings = () => {
               <Label htmlFor="phone">Téléphone</Label>
               <Input 
                 id="phone" 
-                value={formData.phone}
-                onChange={handleFormDataChange}
-                placeholder="Votre numéro de téléphone"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="Ex: 06 12 34 56 78"
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="address">Adresse</Label>
               <Input 
                 id="address" 
-                value={formData.address}
-                onChange={handleFormDataChange}
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
                 placeholder="Votre adresse complète" 
               />
             </div>
@@ -284,12 +329,16 @@ const ManagerSettings = () => {
                 id="bio"
                 className="min-h-[100px]"
                 placeholder="Parlez-nous de vous, de votre expertise..."
-                value={formData.bio}
-                onChange={handleFormDataChange}
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
               />
             </div>
-            <Button onClick={handleSave} className="w-full">
-              Sauvegarder les modifications
+            <Button 
+              className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
+              onClick={handleSaveProfile}
+              disabled={!hasChanges || updateProfileMutation.isPending}
+            >
+              {updateProfileMutation.isPending ? 'Enregistrement...' : 'Sauvegarder les modifications'}
             </Button>
           </CardContent>
         </Card>

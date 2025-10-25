@@ -5,6 +5,7 @@ import { LucideIcon, BookOpen, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import LanguageSelector from '@/components/common/LanguageSelector';
+import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 
 interface SidebarItem {
   title: string;
@@ -27,9 +28,14 @@ interface DashboardSidebarProps {
 
 export const DashboardSidebar = ({ title, subtitle, items, userInfo }: DashboardSidebarProps) => {
   const location = useLocation();
+  const { logout } = useFastAPIAuth();
   
   const isActiveRoute = (href: string) => {
     return location.pathname === href;
+  };
+
+  const handleLogout = async () => {
+    await logout();
   };
   return (
     <div className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen overflow-hidden">
@@ -102,6 +108,7 @@ export const DashboardSidebar = ({ title, subtitle, items, userInfo }: Dashboard
         <Button
           variant="ghost"
           className="w-full justify-start text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+          onClick={handleLogout}
         >
           <LogOut className="mr-3 h-5 w-5" />
           Se déconnecter
