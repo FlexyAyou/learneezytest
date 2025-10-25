@@ -32,7 +32,7 @@ import { useFastAPIAuth } from "@/hooks/useFastAPIAuth";
 const mainNavigationItems = [
   { title: "Vue d'ensemble", href: "/dashboard/gestionnaire", icon: Home },
   { title: "Apprenants", href: "/dashboard/gestionnaire/apprenants", icon: Users },
-  { title: "Formateurs", href: "/dashboard/gestionnaire/formateurs", icon: UserCheck },
+  { title: "Formations", href: "/dashboard/gestionnaire/formations", icon: BookOpen },
   { title: "Cours", href: "/dashboard/gestionnaire/courses", icon: BookOpen },
   { title: "Planning", href: "/dashboard/gestionnaire/planning", icon: Calendar },
   { title: "Inscriptions", href: "/dashboard/gestionnaire/inscriptions", icon: UserCheck },

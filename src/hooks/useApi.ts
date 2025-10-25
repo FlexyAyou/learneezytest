@@ -350,35 +350,6 @@ export const useSuperadminUsers = () => {
   });
 };
 
-// Hook pour récupérer les utilisateurs (compatible avec manager et superadmin)
-export const useUsers = () => {
-  const { data: currentUser } = useQuery({
-    queryKey: ['currentUser'],
-    queryFn: () => fastAPIClient.getCurrentUser(),
-    enabled: !!localStorage.getItem('access_token'),
-  });
-
-  return useQuery({
-    queryKey: ['users', currentUser?.role],
-    queryFn: async () => {
-      // Pour le moment, on essaie toujours l'endpoint superadmin
-      // Le backend devra être mis à jour pour supporter les gestionnaires
-      try {
-        return await fastAPIClient.get<ListAllUsersResponse[]>('/api/auth/superadmin/users');
-      } catch (error: any) {
-        if (error.response?.status === 403) {
-          // Si 403, c'est que l'utilisateur n'a pas les permissions
-          // On retourne un tableau vide et on laisse le composant gérer l'affichage
-          throw new Error('PERMISSION_DENIED');
-        }
-        throw error;
-      }
-    },
-    enabled: !!currentUser,
-    retry: false,
-  });
-};
-
 /**
  * Hook pour récupérer les détails d'un utilisateur spécifique
  */
