@@ -416,6 +416,18 @@ class FastAPIClient {
   async updateOrganization(orgId: number, update: Partial<OrganizationCreate>): Promise<OrganizationResponse> {
     return this.put<OrganizationResponse>(`/api/organizations/${orgId}`, update);
   }
+
+  // ============= USER MANAGEMENT =============
+
+  /**
+   * Changer le statut d'un utilisateur (superadmin uniquement)
+   */
+  async updateUserStatus(userId: number, status: 'active' | 'inactive'): Promise<UserResponse> {
+    return this.patch<UserResponse>(
+      `/api/auth/superadmin/users/${userId}/status`,
+      { status }
+    );
+  }
 }
 
 // Instance singleton

@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ContentCreatorDetailView } from '@/components/admin/user-details/ContentCreatorDetailView';
 import { useUserBySlug } from '@/hooks/useApi';
+import { UserStatusToggleButton } from '@/components/admin/UserStatusToggleButton';
+import { useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { 
   ArrowLeft, 
@@ -19,6 +21,7 @@ import { SuperAdminSidebar } from "@/components/admin/SuperAdminSidebar";
 const ContentCreatorDetailPage = () => {
   const { userSlug } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   // Récupérer l'utilisateur par son slug
   const { data: foundUser, isLoading: usersLoading, error } = useUserBySlug(userSlug);
@@ -93,19 +96,30 @@ const ContentCreatorDetailPage = () => {
         <main className="flex-1 overflow-y-auto">
           <div className="p-6 space-y-6">
             {/* En-tête avec bouton retour */}
-            <div className="flex items-center gap-4">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => navigate('/dashboard/superadmin/users')}
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Retour
-              </Button>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">{user.name}</h1>
-                <p className="text-gray-600">{user.email}</p>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => navigate('/dashboard/superadmin/users')}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Retour
+                </Button>
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900">{user.name}</h1>
+                  <p className="text-gray-600">{user.email}</p>
+                </div>
               </div>
+              
+              <UserStatusToggleButton
+                userId={user.id}
+                currentStatus={user.status}
+                userName={user.name}
+                onStatusChanged={() => {
+                  queryClient.invalidateQueries({ queryKey: ['userBySlug', userSlug] });
+                }}
+              />
             </div>
 
             {/* Informations générales de l'utilisateur */}

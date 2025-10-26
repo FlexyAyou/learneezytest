@@ -118,6 +118,13 @@ export interface ResetPasswordRequest {
   new_password: string;
 }
 
+// ============= USER STATUS =============
+export type UserStatus = 'active' | 'inactive';
+
+export interface StatusUpdate {
+  status: UserStatus;
+}
+
 // ============= TOKENS (BOUTIQUE) =============
 export interface TokenBalanceResponse {
   balance: number;

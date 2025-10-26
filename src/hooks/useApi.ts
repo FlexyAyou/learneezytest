@@ -496,3 +496,37 @@ export const useUpdateProfile = () => {
     },
   });
 };
+
+/**
+ * Hook pour changer le statut d'un utilisateur (activation/désactivation)
+ */
+export const useUpdateUserStatus = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ userId, status }: { userId: number; status: 'active' | 'inactive' }) =>
+      fastAPIClient.updateUserStatus(userId, status),
+    onSuccess: (data, variables) => {
+      // Invalider les queries liées aux utilisateurs
+      queryClient.invalidateQueries({ queryKey: ['superadmin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['user', variables.userId] });
+      
+      // Invalider aussi les queries par slug
+      queryClient.invalidateQueries({ queryKey: ['userBySlug'] });
+
+      const statusLabel = variables.status === 'active' ? 'activé' : 'désactivé';
+      toast({
+        title: 'Statut mis à jour',
+        description: `L'utilisateur a été ${statusLabel} avec succès.`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erreur',
+        description: error.response?.data?.detail || 'Impossible de modifier le statut de l\'utilisateur.',
+        variant: 'destructive',
+      });
+    },
+  });
+};

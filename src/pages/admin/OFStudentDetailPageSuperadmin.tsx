@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { StudentDetailView } from '@/components/admin/user-details/StudentDetailView';
 import { useSuperadminUsers } from '@/hooks/useApi';
+import { UserStatusToggleButton } from '@/components/admin/UserStatusToggleButton';
+import { useQueryClient } from '@tanstack/react-query';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { 
   ArrowLeft, 
@@ -17,6 +19,7 @@ import {
 const OFStudentDetailPageSuperadmin = () => {
   const { userSlug } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   // Récupérer la liste des utilisateurs
   const { data: allUsers, isLoading: usersLoading } = useSuperadminUsers();
@@ -88,6 +91,15 @@ const OFStudentDetailPageSuperadmin = () => {
           <ArrowLeft className="h-4 w-4" />
           Retour aux utilisateurs
         </Button>
+        
+        <UserStatusToggleButton
+          userId={user.id}
+          currentStatus={user.status}
+          userName={user.name}
+          onStatusChanged={() => {
+            queryClient.invalidateQueries({ queryKey: ['superadmin-users'] });
+          }}
+        />
       </div>
 
       {/* En-tête de profil */}

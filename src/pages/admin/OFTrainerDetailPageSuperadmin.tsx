@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { TrainerDetailView } from '@/components/admin/user-details/TrainerDetailView';
 import { useSuperadminUsers } from '@/hooks/useApi';
+import { UserStatusToggleButton } from '@/components/admin/UserStatusToggleButton';
+import { useQueryClient } from '@tanstack/react-query';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { 
   ArrowLeft, 
@@ -17,6 +19,7 @@ import {
 const OFTrainerDetailPageSuperadmin = () => {
   const { userSlug } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { data: allUsers, isLoading: usersLoading } = useSuperadminUsers();
   
@@ -84,6 +87,15 @@ const OFTrainerDetailPageSuperadmin = () => {
           <ArrowLeft className="h-4 w-4" />
           Retour aux utilisateurs
         </Button>
+        
+        <UserStatusToggleButton
+          userId={user.id}
+          currentStatus={user.status}
+          userName={user.name}
+          onStatusChanged={() => {
+            queryClient.invalidateQueries({ queryKey: ['superadmin-users'] });
+          }}
+        />
       </div>
 
       <Card>
