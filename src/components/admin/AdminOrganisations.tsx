@@ -36,7 +36,7 @@ const AdminOrganisations = () => {
       email: org.email || org.contact_email || 'Non renseigné',
       siret: org.siret || 'Non renseigné',
       numeroDeclaration: org.numero_declaration || 'Non renseigné',
-      agrements: org.agrement ? [org.agrement] : [],
+      agrements: Array.isArray(org.agrement) ? org.agrement : (org.agrement ? [org.agrement] : []),
       usersCount: 0, // TODO: récupérer depuis l'API
       userBreakdown: {
         apprenants: 0,

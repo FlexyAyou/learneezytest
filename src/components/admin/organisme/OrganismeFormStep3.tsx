@@ -1,10 +1,13 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { OrganismeFormData } from '@/types/organisme';
-import { FileText, Award, Hash } from 'lucide-react';
+import { FileText, Award, Hash, Plus } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface OrganismeFormStep3Props {
   formData: OrganismeFormData;
@@ -15,6 +18,48 @@ export const OrganismeFormStep3: React.FC<OrganismeFormStep3Props> = ({
   formData,
   updateFormData
 }) => {
+  const { toast } = useToast();
+  const [isCustomAgrementDialogOpen, setIsCustomAgrementDialogOpen] = useState(false);
+  const [customAgrementValue, setCustomAgrementValue] = useState('');
+  const [customAgrements, setCustomAgrements] = useState<string[]>([]);
+
+  const handleAddCustomAgrement = () => {
+    if (!customAgrementValue.trim()) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez entrer un nom d'agrément",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const newAgrement = customAgrementValue.trim();
+    
+    // Vérifier si l'agrément existe déjà
+    if (customAgrements.includes(newAgrement) || ['Qualiopi', 'OPCO', 'Datadock', 'ISQ'].includes(newAgrement)) {
+      toast({
+        title: "Erreur",
+        description: "Cet agrément existe déjà",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setCustomAgrements([...customAgrements, newAgrement]);
+    const currentAgrements = formData.agrement || [];
+    updateFormData({ agrement: [...currentAgrements, newAgrement] });
+    
+    toast({
+      title: "Agrément ajouté",
+      description: `L'agrément "${newAgrement}" a été ajouté avec succès`
+    });
+    
+    setCustomAgrementValue('');
+    setIsCustomAgrementDialogOpen(false);
+  };
+
+  const allAgrements = ['Qualiopi', 'OPCO', 'Datadock', 'ISQ', ...customAgrements];
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -49,12 +94,24 @@ export const OrganismeFormStep3: React.FC<OrganismeFormStep3Props> = ({
       </div>
 
       <div className="space-y-2">
-        <Label className="flex items-center">
-          <Award className="w-4 h-4 mr-2" />
-          Agrément / Certification qualité
+        <Label className="flex items-center justify-between">
+          <span className="flex items-center">
+            <Award className="w-4 h-4 mr-2" />
+            Agrément / Certification qualité
+          </span>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setIsCustomAgrementDialogOpen(true)}
+            className="h-8"
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            Ajouter un agrément
+          </Button>
         </Label>
         <div className="space-y-3 border rounded-lg p-4">
-          {['Qualiopi', 'OPCO', 'Datadock', 'ISQ', 'Autre'].map((agrement) => (
+          {allAgrements.map((agrement) => (
             <div key={agrement} className="flex items-center space-x-2">
               <Checkbox
                 id={agrement}
@@ -76,10 +133,56 @@ export const OrganismeFormStep3: React.FC<OrganismeFormStep3Props> = ({
               >
                 {agrement}
               </Label>
+              {customAgrements.includes(agrement) && (
+                <span className="text-xs text-muted-foreground">(personnalisé)</span>
+              )}
             </div>
           ))}
         </div>
       </div>
+
+      <Dialog open={isCustomAgrementDialogOpen} onOpenChange={setIsCustomAgrementDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Ajouter un agrément personnalisé</DialogTitle>
+            <DialogDescription>
+              Entrez le nom de l'agrément ou certification que vous souhaitez ajouter.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="custom-agrement">Nom de l'agrément</Label>
+              <Input
+                id="custom-agrement"
+                placeholder="Ex: ISO 9001, RNCP, etc."
+                value={customAgrementValue}
+                onChange={(e) => setCustomAgrementValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddCustomAgrement();
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setCustomAgrementValue('');
+                setIsCustomAgrementDialogOpen(false);
+              }}
+            >
+              Annuler
+            </Button>
+            <Button type="button" onClick={handleAddCustomAgrement}>
+              Ajouter
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <div className="bg-green-50 p-4 rounded-lg">
         <h4 className="font-medium text-green-900 mb-2">Documents requis</h4>
