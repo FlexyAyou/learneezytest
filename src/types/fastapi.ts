@@ -95,6 +95,10 @@ export interface ListAllUsersResponse {
   is_major?: boolean | null;
   accessible_catalogues?: string[];
   of_name?: string | null;
+  phone?: string;
+  address?: string;
+  bio?: string;
+  image?: string;
   alert_message?: {
     type: string | null;
     message: string | null;
