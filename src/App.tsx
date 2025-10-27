@@ -27,6 +27,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { AdminUsers } from "./components/admin/AdminUsers";
 import UserDetailPage from "./components/admin/UserDetailPage";
 import { LanguageProvider } from "./contexts/LanguageContext";
+import { OrganizationProvider } from "./contexts/OrganizationContext";
+import SubdomainRouter from "./components/common/SubdomainRouter";
 import CourseViewer from "./pages/student/CourseViewer";
 import LessonViewer from "./pages/student/LessonViewer";
 import StudentPayment from "./pages/student/StudentPayment";
@@ -36,14 +38,18 @@ import ManagerDetailPage from "./pages/admin/ManagerDetailPage";
 import ContentCreatorDetailPage from "./pages/admin/ContentCreatorDetailPage";
 import SystemArchitecture from "./pages/SystemArchitecture";
 import FastAPIProtectedRoute from "./components/common/FastAPIProtectedRoute";
+import OFHomePage from "./pages/OFHomePage";
 import NotFound from "./pages/NotFound";
 
 function App() {
   return (
     <LanguageProvider>
-      <BrowserRouter>
-        <Routes>
+      <OrganizationProvider>
+        <BrowserRouter>
+          <SubdomainRouter>
+            <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/of-home" element={<OFHomePage />} />
           <Route path="/apropos" element={<About />} />
           <Route path="/cours" element={<Courses />} />
           <Route path="/nos-formations" element={<Courses />} />
@@ -252,10 +258,12 @@ function App() {
           <Route path="/architecture" element={<SystemArchitecture />} />
           
           {/* 404 Route - Must be last */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-        <Toaster />
-      </BrowserRouter>
+            <Route path="*" element={<NotFound />} />
+            </Routes>
+            <Toaster />
+          </SubdomainRouter>
+        </BrowserRouter>
+      </OrganizationProvider>
     </LanguageProvider>
   );
 }

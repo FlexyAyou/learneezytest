@@ -44,7 +44,7 @@ export const useFastAPIAuth = () => {
   /**
    * Redirection automatique basée sur le rôle
    */
-  const redirectByRole = (role: UserRole) => {
+  const redirectByRole = (role: UserRole, userOfId?: number | null) => {
     const roleRedirects: Record<UserRole, string> = {
       apprenant: '/dashboard/apprenant',
       student: '/dashboard/apprenant',

@@ -219,6 +219,7 @@ export interface JWTPayload {
   user_id: number;
   role: UserRole;
   email: string;
+  of_id?: number | null;
   exp: number;
   sub: string;
 }
@@ -232,6 +233,25 @@ export interface ValidationError {
 
 export interface HTTPValidationError {
   detail?: ValidationError[];
+}
+
+// ============= SOUS-DOMAINES & ORGANISATIONS =============
+
+export interface SubdomainVerification {
+  exists: boolean;
+  slug?: string;
+  organizationId?: number;
+  organizationName?: string;
+  logoUrl?: string;
+  login_url?: string;
+  detail?: string;
+}
+
+export interface OrganizationContextData {
+  organization: SubdomainVerification | null;
+  isOFContext: boolean;
+  isLoading: boolean;
+  error: string | null;
 }
 
 // ============= COURSES =============

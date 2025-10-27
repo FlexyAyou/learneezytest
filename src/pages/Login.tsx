@@ -10,6 +10,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuthForm } from "@/hooks/useAuthForm";
 import { useToast } from "@/hooks/use-toast";
 import { fastAPIClient } from "@/services/fastapi-client";
+import { useOrganization } from "@/contexts/OrganizationContext";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Veuillez entrer une adresse email valide." }),
@@ -28,6 +29,7 @@ const Login = () => {
   const { toast } = useToast();
   const { showPassword, setShowPassword, isLoading, handleLogin } = useAuthForm();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { organization, isOFContext } = useOrganization();
 
   const [loginError, setLoginError] = React.useState<string>("");
   const [verificationSuccess, setVerificationSuccess] = React.useState<boolean>(false);
@@ -126,8 +128,12 @@ const Login = () => {
           <div className="flex justify-center mb-8">
             <Link to="/">
               <img
-                src="/lovable-uploads/52aaa383-7635-46d0-ac37-eb3ee6b878d1.png"
-                alt="Learneezy"
+                src={
+                  isOFContext && organization?.logoUrl 
+                    ? organization.logoUrl 
+                    : "/lovable-uploads/52aaa383-7635-46d0-ac37-eb3ee6b878d1.png"
+                }
+                alt={isOFContext && organization?.organizationName ? organization.organizationName : "Learneezy"}
                 className="h-24 w-auto"
               />
             </Link>
@@ -135,7 +141,12 @@ const Login = () => {
 
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Bienvenue ! Connectez-vous à votre compte</h1>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              {isOFContext && organization?.organizationName 
+                ? `Bienvenue chez ${organization.organizationName}` 
+                : "Bienvenue ! Connectez-vous à votre compte"
+              }
+            </h1>
             <p className="text-gray-600">Entrez vos informations pour accéder à votre espace d'apprentissage</p>
           </div>
 

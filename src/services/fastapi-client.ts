@@ -428,6 +428,30 @@ class FastAPIClient {
       { status }
     );
   }
+
+  // ============= SUBDOMAIN VERIFICATION =============
+
+  /**
+   * Vérifier si un sous-domaine existe
+   */
+  async verifySubdomain(host: string): Promise<{
+    exists: boolean;
+    slug?: string;
+    organizationId?: number;
+    organizationName?: string;
+    logoUrl?: string;
+    login_url?: string;
+    detail?: string;
+  }> {
+    return this.get('/api/organizations/verify-subdomain', { params: { host } });
+  }
+
+  /**
+   * Récupérer les informations publiques d'un OF par slug
+   */
+  async getOrganizationBySlug(slug: string): Promise<OrganizationResponse> {
+    return this.get<OrganizationResponse>(`/api/organizations/slug/${slug}`);
+  }
 }
 
 // Instance singleton

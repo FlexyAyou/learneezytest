@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useApi';
 import { useToast } from '@/hooks/use-toast';
 import { UserCreate, UserRole } from '@/types/fastapi';
+import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 
 export const useAuthForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -10,42 +11,27 @@ export const useAuthForm = () => {
   const navigate = useNavigate();
   const { login, register } = useAuth();
   const { toast } = useToast();
+  const { redirectByRole } = useFastAPIAuth();
 
   const handleLogin = async (email: string, password: string) => {
     setIsSubmitting(true);
     try {
       const tokenData = await login.mutateAsync({ email, password });
       
-      // Décoder le JWT pour obtenir le rôle et rediriger
+      // Décoder le JWT pour obtenir le rôle et l'of_id
       const token = localStorage.getItem('access_token');
       if (token) {
         const decoded = JSON.parse(atob(token.split('.')[1]));
         const role = decoded.role as UserRole;
+        const ofId = decoded.of_id || null;
         
         toast({
           title: "Connexion réussie",
           description: "Redirection vers votre espace...",
         });
         
-        // Rediriger selon le rôle avec React Router
-        const roleRedirects: Record<UserRole, string> = {
-          apprenant: '/dashboard/apprenant',
-          student: '/dashboard/apprenant',
-          tutor: '/dashboard/tuteur',
-          independent_trainer: '/formateur-independant',
-          trainer: '/formateur-independant',
-          superadmin: '/dashboard/superadmin',
-          administrator: '/dashboard/admin',
-          of_admin: '/dashboard/organisme-formation',
-          gestionnaire: '/dashboard/gestionnaire',
-          formateur_interne: '/dashboard/formateur-interne',
-          createur_contenu: '/dashboard/createur-contenu',
-          facilitator: '/dashboard/animateur',
-          manager: '/dashboard/gestionnaire',
-        };
-        
-        const redirectPath = roleRedirects[role] || '/dashboard/apprenant';
-        navigate(redirectPath, { replace: true });
+        // Utiliser redirectByRole avec of_id pour gérer les sous-domaines
+        redirectByRole(role, ofId);
       }
     } catch (error: any) {
       throw error;

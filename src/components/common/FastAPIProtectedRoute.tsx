@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 import { UserRole } from '@/types/fastapi';
+import { useOrganization } from '@/contexts/OrganizationContext';
 import LoadingSpinner from './LoadingSpinner';
 
 interface FastAPIProtectedRouteProps {
@@ -16,6 +17,7 @@ const FastAPIProtectedRoute = ({
   redirectTo = '/connexion' 
 }: FastAPIProtectedRouteProps) => {
   const { user, isLoading, isAuthenticated, getUserRole } = useFastAPIAuth();
+  const { organization, isOFContext } = useOrganization();
   const location = useLocation();
 
   // Vérification supplémentaire : si pas de token, forcer la redirection
@@ -38,6 +40,26 @@ const FastAPIProtectedRoute = ({
   // Rediriger vers la page de connexion si non authentifié
   if (!isAuthenticated || !user) {
     return <Navigate to={redirectTo} state={{ from: location }} replace />;
+  }
+
+  // Vérification d'appartenance à l'OF si on est sur un sous-domaine OF
+  if (isOFContext && organization?.organizationId) {
+    // Autoriser les superadmins à accéder à n'importe quel OF
+    if (user.role !== 'superadmin') {
+      // Vérifier que l'utilisateur appartient à cet OF
+      if (user.of_id !== organization.organizationId) {
+        return (
+          <Navigate 
+            to="/" 
+            state={{ 
+              error: "Vous n'avez pas accès à cet organisme de formation",
+              from: location 
+            }} 
+            replace 
+          />
+        );
+      }
+    }
   }
 
   // Vérifier le rôle si requis
