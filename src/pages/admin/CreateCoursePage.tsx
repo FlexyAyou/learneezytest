@@ -277,17 +277,34 @@ const CreateCoursePage = () => {
       return;
     }
 
-    if (modules.length === 0 || modules.every(m => m.lessons.length === 0)) {
+    if (modules.length === 0) {
       toast({
         title: "Erreur",
-        description: "Veuillez ajouter au moins un module avec une leçon",
+        description: "Veuillez ajouter au moins un module",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (modules.every(m => m.lessons.length === 0)) {
+      toast({
+        title: "Erreur",
+        description: "Chaque module doit contenir au moins une leçon",
         variant: "destructive"
       });
       return;
     }
 
     try {
-      // 2. Créer le cours (structure backend)
+      const { fastAPIClient } = await import('@/services/fastapi-client');
+      const { calculateModuleDuration, uploadFileToPresignedUrl } = await import('@/utils/courseHelpers');
+      
+      toast({
+        title: "Création en cours...",
+        description: "Préparation du cours avec tous les modules",
+      });
+
+      // 2. Construire le payload complet avec tous les modules et leçons
       const coursePayload = {
         title: courseData.title,
         description: courseData.description,
@@ -295,87 +312,60 @@ const CreateCoursePage = () => {
         category: courseData.category || 'development',
         duration: courseData.duration || '10h',
         level: courseData.level,
-        image_url: courseData.imagePreview || '',
-        modules: [], // Vide au début, on les créera après
+        image_url: '', // Vide pour l'instant, on upload après
+        modules: modules.map(module => ({
+          title: module.title,
+          description: module.description || `Description du ${module.title}`,
+          duration: calculateModuleDuration(module.lessons),
+          content: module.lessons.map(lesson => ({
+            title: lesson.title,
+            duration: lesson.duration.toString() + 'min',
+            description: lesson.content,
+            video_url: undefined, // On gérera l'upload après si nécessaire
+            transcription: undefined
+          })),
+          quizzes: [] // TODO: Sprint 2 - Ajouter les quizzes
+        })),
         resources: []
       };
 
-      const { fastAPIClient } = await import('@/services/fastapi-client');
-      const { calculateModuleDuration, uploadFileToPresignedUrl } = await import('@/utils/courseHelpers');
-      
+      // 3. Créer le cours avec tous les modules et leçons en une seule requête
+      const courseResponse = await fastAPIClient.createCourse(coursePayload);
+      const courseId = courseResponse.id;
+
       toast({
-        title: "Création en cours...",
-        description: "Création du cours",
+        title: "Cours créé",
+        description: `Le cours "${courseData.title}" a été créé avec ${modules.length} module(s)`,
       });
 
-      const courseResponse = await fastAPIClient.createCourse(coursePayload);
-      const courseId = courseResponse.id; // Backend retourne l'ID
-
-      // 3. Uploader l'image si présente
+      // 4. Uploader l'image si présente
       if (courseData.image) {
         try {
+          toast({
+            title: "Upload en cours...",
+            description: "Téléchargement de l'image du cours",
+          });
+
           const uploadUrlResponse = await fastAPIClient.uploadMedia(courseId, 'image', courseData.image.name);
           await uploadFileToPresignedUrl(uploadUrlResponse.url, courseData.image);
           
           toast({
             title: "Image uploadée",
-            description: "L'image du cours a été téléchargée",
+            description: "L'image du cours a été ajoutée",
           });
         } catch (uploadError) {
           console.error('Erreur upload image:', uploadError);
-          // Ne pas bloquer si l'upload échoue
-        }
-      }
-
-      // 4. Créer chaque module
-      for (const [moduleIndex, module] of modules.entries()) {
-        toast({
-          title: "Création en cours...",
-          description: `Création du module ${moduleIndex + 1}/${modules.length}`,
-        });
-
-        const moduleResponse = await fastAPIClient.createModule(courseId, {
-          title: module.title,
-          description: module.description || `Description du module ${moduleIndex + 1}`,
-          duration: calculateModuleDuration(module.lessons),
-          content: [], // Vide pour l'instant
-          quizzes: []
-        });
-
-        const moduleId = (moduleResponse as any).id || moduleIndex + 1; // Fallback si pas d'ID
-
-        // 5. Créer chaque leçon du module
-        for (const [lessonIndex, lesson] of module.lessons.entries()) {
-          const lessonResponse = await fastAPIClient.createLesson(courseId, moduleId, {
-            title: lesson.title,
-            duration: lesson.duration.toString() + 'min',
-            description: lesson.content,
-            video_url: lesson.filePreview || undefined,
-            transcription: undefined
+          toast({
+            title: "Avertissement",
+            description: "Le cours est créé mais l'image n'a pas pu être uploadée",
+            variant: "destructive"
           });
-
-          const lessonId = (lessonResponse as any).id || lessonIndex + 1; // Fallback si pas d'ID
-
-          // 6. TODO: Créer le quiz de la leçon (Sprint 2)
-          // if (lesson.quiz) {
-          //   await fastAPIClient.createQuiz(courseId, moduleResponse.id, lessonResponse.id, mapQuizConfigToBackend(lesson.quiz));
-          // }
         }
-
-        // 7. TODO: Sauvegarder le devoir du module (Sprint 3)
-        // if (module.assignment) {
-        //   // Nécessite endpoint backend: POST /api/courses/{courseId}/modules/{moduleId}/assignments
-        // }
       }
-
-      // 8. TODO: Sauvegarder la certification finale (Sprint 4)
-      // if (courseData.certification) {
-      //   // Nécessite endpoint backend: POST /api/courses/{courseId}/certification
-      // }
 
       toast({
         title: "✅ Cours créé avec succès",
-        description: `Le cours "${courseData.title}" a été créé avec ${modules.length} module(s)`,
+        description: `Le cours "${courseData.title}" est maintenant disponible`,
       });
       
       navigate(coursesBasePath);
@@ -384,7 +374,7 @@ const CreateCoursePage = () => {
       console.error('Erreur création cours:', error);
       toast({
         title: "Erreur",
-        description: error?.message || "Une erreur est survenue lors de la création du cours",
+        description: error?.response?.data?.detail || error?.message || "Une erreur est survenue lors de la création du cours",
         variant: "destructive"
       });
     }
