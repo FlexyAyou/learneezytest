@@ -31,7 +31,7 @@ const AdminCourses = () => {
       setLoading(true);
       setError(null);
       try {
-        const coursesData = await fastAPIClient.getCourses(1, 100);
+        const coursesData = await fastAPIClient.getCourses(1, 20);
         setCourses(coursesData);
         
         // Si on vient de créer un cours, afficher un toast de confirmation
