@@ -337,8 +337,13 @@ const CreateCoursePage = () => {
       console.log('📦 Type de courseResponse:', typeof courseResponse);
       console.log('🗂️ Clés disponibles:', Object.keys(courseResponse));
       
-      // Gérer différents formats de réponse du backend (id, course_id, _id)
-      const courseId = courseResponse.id || (courseResponse as any).course_id || (courseResponse as any)._id;
+      // Gérer différents formats de réponse du backend (id, course.id, course._id, course_id, _id)
+      const courseId = 
+        courseResponse.id || 
+        (courseResponse as any).course?.id || 
+        (courseResponse as any).course?._id || 
+        (courseResponse as any).course_id || 
+        (courseResponse as any)._id;
       console.log('🔑 CourseId extrait:', courseId);
 
       // Vérifier que l'ID existe avant de continuer
