@@ -278,6 +278,8 @@ export interface Content {
   duration: string;
   description: string;
   video_url?: string;
+  video_key?: string; // New: MinIO/S3 key for presigned upload
+  key?: string; // Alias for video_key
   transcription?: string;
   quiz?: QuizConfig; // Quiz optionnel par leçon
 }
@@ -344,6 +346,7 @@ export interface QuizCreate {
   questions: QuizQuestion[];
 }
 
+// ============= STORAGE (DEPRECATED) =============
 export interface UploadRequest {
   file_type: 'image' | 'video';
   file_name: string;
@@ -351,6 +354,49 @@ export interface UploadRequest {
 
 export interface UploadResponse {
   url: string;
+}
+
+// ============= NEW PRESIGNED UPLOAD FLOW =============
+
+export type UploadStrategy = 'single' | 'multipart';
+
+export interface PrepareUploadResponse {
+  strategy: UploadStrategy;
+  key: string;
+  url?: string;
+  headers?: Record<string, string>;
+  expires_in?: number;
+  upload_id?: string;
+  part_size?: number;
+  parts?: Array<{
+    partNumber: number;
+    url: string;
+  }>;
+}
+
+export interface MultipartPart {
+  ETag: string;
+  PartNumber: number;
+}
+
+export interface CompleteUploadParams {
+  strategy: UploadStrategy;
+  key: string;
+  content_type: string;
+  size: number;
+  upload_id?: string;
+  parts?: MultipartPart[];
+}
+
+export interface CompleteUploadResponse {
+  status: string;
+  key: string;
+  etag?: string;
+}
+
+export interface VideoPlayResponse {
+  url: string;
+  expires_in: number;
 }
 
 export interface EnrollRequest {

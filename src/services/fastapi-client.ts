@@ -26,6 +26,10 @@ import {
   OrganizationResponse,
   OrganizationUpdate,
   UserUpdate,
+  PrepareUploadResponse,
+  CompleteUploadParams,
+  CompleteUploadResponse,
+  VideoPlayResponse,
 } from '@/types/fastapi';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.plateforme-test-infinitiax.com';
@@ -365,10 +369,38 @@ class FastAPIClient {
   }
 
   /**
-   * Upload de média (image ou vidéo)
+   * Upload de média (image ou vidéo) - DEPRECATED
+   * @deprecated Use prepareUpload + completeUpload instead
    */
   async uploadMedia(courseId: string, fileType: 'image' | 'video', fileName: string): Promise<UploadResponse> {
     return this.post<UploadResponse>(`/api/courses/${courseId}/upload`, { file_type: fileType, file_name: fileName });
+  }
+
+  // ============= NEW PRESIGNED UPLOAD FLOW =============
+
+  /**
+   * Préparer un upload présigné (single ou multipart)
+   */
+  async prepareUpload(filename: string, contentType: string, size: number): Promise<PrepareUploadResponse> {
+    return this.post<PrepareUploadResponse>('/api/storage/prepare-upload', {
+      filename,
+      content_type: contentType,
+      size
+    });
+  }
+
+  /**
+   * Finaliser un upload présigné
+   */
+  async completeUpload(params: CompleteUploadParams): Promise<CompleteUploadResponse> {
+    return this.post<CompleteUploadResponse>('/api/storage/complete-upload', params);
+  }
+
+  /**
+   * Obtenir l'URL de lecture d'une vidéo
+   */
+  async getVideoPlayUrl(key: string): Promise<VideoPlayResponse> {
+    return this.get<VideoPlayResponse>('/api/storage/play', { params: { key } });
   }
 
   /**

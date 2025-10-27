@@ -24,6 +24,8 @@ interface Lesson {
   fileType: 'video' | 'pdf' | 'image' | null;
   fileName: string;
   filePreview?: string;
+  file?: File; // Store the actual file for upload
+  uploadedVideoKey?: string; // Store the video_key after upload
   quiz?: QuizConfig; // Quiz optionnel par leçon
 }
 
@@ -198,7 +200,8 @@ const CreateCoursePage = () => {
       updateLesson(moduleId, lessonId, {
         fileType,
         fileName: file.name,
-        filePreview: e.target?.result as string
+        filePreview: e.target?.result as string,
+        file: file // Store the actual file
       });
     };
     reader.readAsDataURL(file);
@@ -297,14 +300,109 @@ const CreateCoursePage = () => {
 
     try {
       const { fastAPIClient } = await import('@/services/fastapi-client');
-      const { calculateModuleDuration, uploadFileToPresignedUrl } = await import('@/utils/courseHelpers');
+      const { calculateModuleDuration } = await import('@/utils/courseHelpers');
       
       toast({
-        title: "Création en cours...",
-        description: "Préparation du cours avec tous les modules",
+        title: "Upload des vidéos...",
+        description: "Téléchargement des vidéos des leçons",
       });
 
-      // 2. Construire le payload complet avec tous les modules et leçons
+      // 2. UPLOADER TOUTES LES VIDÉOS DES LEÇONS AVANT LA CRÉATION DU COURS
+      for (const module of modules) {
+        for (const lesson of module.lessons) {
+          if (lesson.file && lesson.fileType === 'video') {
+            try {
+              console.log(`📤 Upload vidéo: ${lesson.fileName}`);
+              
+              // a) Préparer l'upload
+              const prepareResponse = await fastAPIClient.prepareUpload(
+                lesson.file.name,
+                lesson.file.type,
+                lesson.file.size
+              );
+
+              console.log('✅ Prepare response:', prepareResponse);
+
+              // b) Upload direct vers URL présignée
+              if (prepareResponse.strategy === 'single' && prepareResponse.url && prepareResponse.headers) {
+                // Single-part upload
+                const uploadHeaders = new Headers(prepareResponse.headers);
+                await fetch(prepareResponse.url, {
+                  method: 'PUT',
+                  headers: uploadHeaders,
+                  body: lesson.file
+                });
+              } else if (prepareResponse.strategy === 'multipart' && prepareResponse.parts) {
+                // Multipart upload
+                const parts = [];
+                const partSize = prepareResponse.part_size || 5 * 1024 * 1024;
+                
+                for (let i = 0; i < prepareResponse.parts.length; i++) {
+                  const part = prepareResponse.parts[i];
+                  const start = (part.partNumber - 1) * partSize;
+                  const end = Math.min(start + partSize, lesson.file.size);
+                  const blob = lesson.file.slice(start, end);
+
+                  const response = await fetch(part.url, {
+                    method: 'PUT',
+                    body: blob
+                  });
+
+                  const etag = response.headers.get('ETag')?.replace(/"/g, '') || '';
+                  parts.push({
+                    ETag: etag,
+                    PartNumber: part.partNumber
+                  });
+                }
+
+                // c) Finaliser l'upload multipart
+                await fastAPIClient.completeUpload({
+                  strategy: 'multipart',
+                  key: prepareResponse.key,
+                  upload_id: prepareResponse.upload_id!,
+                  parts,
+                  content_type: lesson.file.type,
+                  size: lesson.file.size
+                });
+              }
+
+              // c) Finaliser l'upload (single)
+              if (prepareResponse.strategy === 'single') {
+                await fastAPIClient.completeUpload({
+                  strategy: 'single',
+                  key: prepareResponse.key,
+                  content_type: lesson.file.type,
+                  size: lesson.file.size
+                });
+              }
+
+              // d) Stocker la key dans la leçon
+              lesson.uploadedVideoKey = prepareResponse.key;
+              
+              console.log(`✅ Vidéo uploadée: ${lesson.fileName} → ${prepareResponse.key}`);
+              
+              toast({
+                title: "Vidéo uploadée",
+                description: `${lesson.fileName} est prête`,
+              });
+            } catch (uploadError: any) {
+              console.error(`❌ Erreur upload vidéo ${lesson.fileName}:`, uploadError);
+              toast({
+                title: "Erreur d'upload",
+                description: `Impossible d'uploader ${lesson.fileName}. Continuer sans cette vidéo ?`,
+                variant: "destructive"
+              });
+            }
+          }
+        }
+      }
+
+      toast({
+        title: "Création du cours...",
+        description: "Envoi des données au serveur",
+      });
+
+      // 3. Construire le payload complet avec toutes les video_key
       const coursePayload = {
         title: courseData.title,
         description: courseData.description,
@@ -312,7 +410,7 @@ const CreateCoursePage = () => {
         category: courseData.category || 'development',
         duration: courseData.duration || '10h',
         level: courseData.level,
-        image_url: '', // Vide pour l'instant, on upload après
+        image_url: courseData.imagePreview || '', // Use preview URL if available
         modules: modules.map(module => ({
           title: module.title,
           description: module.description || `Description du ${module.title}`,
@@ -321,7 +419,7 @@ const CreateCoursePage = () => {
             title: lesson.title,
             duration: lesson.duration.toString() + 'min',
             description: lesson.content,
-            video_url: undefined, // On gérera l'upload après si nécessaire
+            video_key: lesson.uploadedVideoKey, // 🔑 INCLURE LA KEY ICI
             transcription: undefined
           })),
           quizzes: [] // TODO: Sprint 2 - Ajouter les quizzes
@@ -329,7 +427,7 @@ const CreateCoursePage = () => {
         resources: []
       };
 
-      // 3. Créer le cours avec tous les modules et leçons en une seule requête
+      // 4. Créer le cours avec tous les modules et leçons en une seule requête
       const courseResponse = await fastAPIClient.createCourse(coursePayload);
       
       // Logs de débogage pour comprendre la réponse du backend
@@ -357,40 +455,6 @@ const CreateCoursePage = () => {
         title: "Cours créé",
         description: `Le cours "${courseData.title}" a été créé avec ${modules.length} module(s)`,
       });
-
-      // 4. Uploader l'image si présente
-      if (courseData.image) {
-        try {
-          toast({
-            title: "Upload en cours...",
-            description: "Téléchargement de l'image du cours",
-          });
-
-          // Vérifier que courseId est valide AVANT l'upload
-          if (!courseId) {
-            throw new Error('Impossible d\'uploader l\'image : ID de cours manquant');
-          }
-
-          console.log('📤 Upload image pour courseId:', courseId);
-          const uploadUrlResponse = await fastAPIClient.uploadMedia(courseId, 'image', courseData.image.name);
-          await uploadFileToPresignedUrl(uploadUrlResponse.url, courseData.image);
-          
-          toast({
-            title: "Image uploadée",
-            description: "L'image du cours a été ajoutée",
-          });
-        } catch (uploadError: any) {
-          console.error('❌ Erreur upload image:', uploadError);
-          console.error('CourseId utilisé:', courseId);
-          console.error('Réponse complète du backend:', courseResponse);
-          
-          toast({
-            title: "Avertissement",
-            description: uploadError.message || "Le cours est créé mais l'image n'a pas pu être uploadée",
-            variant: "default"
-          });
-        }
-      }
 
       toast({
         title: "✅ Cours créé avec succès",
