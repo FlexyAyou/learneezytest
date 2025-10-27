@@ -4,11 +4,90 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { ArrowLeft, Edit, Trash2, Eye, EyeOff, Clock, BookOpen, PlayCircle, FileText } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Eye, EyeOff, Clock, BookOpen, PlayCircle, FileText, CheckCircle, XCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { fastAPIClient } from '@/services/fastapi-client';
-import { CourseResponse } from '@/types/fastapi';
+import { CourseResponse, Content } from '@/types/fastapi';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
+
+interface VideoPlayerProps {
+  videoKey?: string;
+  videoUrl?: string;
+  title: string;
+}
+
+const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoKey, videoUrl, title }) => {
+  const [playUrl, setPlayUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadVideo = async () => {
+      if (!videoKey && !videoUrl) {
+        setError('Aucune vidéo disponible');
+        return;
+      }
+
+      if (videoUrl) {
+        setPlayUrl(videoUrl);
+        return;
+      }
+
+      if (videoKey) {
+        setLoading(true);
+        setError(null);
+        try {
+          const response = await fastAPIClient.getVideoPlayUrl(videoKey);
+          setPlayUrl(response.url);
+        } catch (err: any) {
+          setError('Erreur lors du chargement de la vidéo');
+          console.error(err);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadVideo();
+  }, [videoKey, videoUrl]);
+
+  if (loading) {
+    return (
+      <div className="w-full aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="w-full aspect-video bg-red-50 rounded-lg flex items-center justify-center">
+        <p className="text-red-600">{error}</p>
+      </div>
+    );
+  }
+
+  if (!playUrl) {
+    return (
+      <div className="w-full aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
+        <p className="text-gray-500">Aucune vidéo disponible</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full aspect-video bg-black rounded-lg overflow-hidden">
+      <video 
+        src={playUrl} 
+        controls 
+        className="w-full h-full"
+        title={title}
+      >
+        Votre navigateur ne supporte pas la lecture vidéo.
+      </video>
+    </div>
+  );
+};
 
 const CourseDetailPage = () => {
   const { courseId } = useParams<{ courseId: string }>();
@@ -18,6 +97,7 @@ const CourseDetailPage = () => {
   const [course, setCourse] = useState<CourseResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedLesson, setSelectedLesson] = useState<Content | null>(null);
 
   useEffect(() => {
     const loadCourse = async () => {
@@ -232,12 +312,49 @@ const CourseDetailPage = () => {
                             <div className="space-y-2">
                               <h4 className="font-medium text-sm">Leçons</h4>
                               {module.content.map((lesson, lessonIndex) => (
-                                <div key={lessonIndex} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                  <div className="flex items-center space-x-2">
-                                    <PlayCircle className="h-4 w-4 text-gray-500" />
-                                    <span className="text-sm">{lesson.title}</span>
+                                <div key={lessonIndex} className="space-y-3">
+                                  <div 
+                                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
+                                    onClick={() => setSelectedLesson(selectedLesson?.title === lesson.title ? null : lesson)}
+                                  >
+                                    <div className="flex items-center space-x-2">
+                                      <PlayCircle className="h-4 w-4 text-primary" />
+                                      <span className="text-sm font-medium">{lesson.title}</span>
+                                      {(lesson.video_key || lesson.key) && (
+                                        <Badge variant="secondary" className="text-xs">Vidéo</Badge>
+                                      )}
+                                    </div>
+                                    <span className="text-xs text-gray-500">{lesson.duration}</span>
                                   </div>
-                                  <span className="text-xs text-gray-500">{lesson.duration}</span>
+                                  
+                                  {selectedLesson?.title === lesson.title && (
+                                    <div className="pl-4 space-y-3 border-l-2 border-primary">
+                                      {lesson.description && (
+                                        <div>
+                                          <h5 className="font-medium text-sm mb-1">Description</h5>
+                                          <p className="text-sm text-gray-600">{lesson.description}</p>
+                                        </div>
+                                      )}
+                                      
+                                      {(lesson.video_key || lesson.key) && (
+                                        <div>
+                                          <h5 className="font-medium text-sm mb-2">Vidéo</h5>
+                                          <VideoPlayer 
+                                            videoKey={lesson.video_key || lesson.key}
+                                            videoUrl={lesson.video_url}
+                                            title={lesson.title}
+                                          />
+                                        </div>
+                                      )}
+                                      
+                                      {lesson.transcription && (
+                                        <div>
+                                          <h5 className="font-medium text-sm mb-1">Transcription</h5>
+                                          <p className="text-sm text-gray-600 max-h-40 overflow-y-auto">{lesson.transcription}</p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
                                 </div>
                               ))}
                             </div>
@@ -248,12 +365,48 @@ const CourseDetailPage = () => {
                             <div className="space-y-2">
                               <h4 className="font-medium text-sm">Quiz</h4>
                               {module.quizzes.map((quiz, quizIndex) => (
-                                <div key={quizIndex} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                                  <div className="flex items-center space-x-2">
-                                    <FileText className="h-4 w-4 text-blue-600" />
-                                    <span className="text-sm">{quiz.title}</span>
+                                <div key={quizIndex} className="space-y-2">
+                                  <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                                    <div className="flex items-center space-x-2">
+                                      <FileText className="h-4 w-4 text-blue-600" />
+                                      <span className="text-sm font-medium">{quiz.title}</span>
+                                    </div>
+                                    <Badge variant="outline">{quiz.questions?.length || 0} questions</Badge>
                                   </div>
-                                  <Badge variant="outline">{quiz.questions?.length || 0} questions</Badge>
+                                  
+                                  {quiz.questions && quiz.questions.length > 0 && (
+                                    <div className="pl-4 space-y-3 border-l-2 border-blue-200">
+                                      {quiz.questions.map((question, qIndex) => (
+                                        <div key={qIndex} className="space-y-2">
+                                          <p className="text-sm font-medium">
+                                            {qIndex + 1}. {question.question}
+                                          </p>
+                                          <div className="space-y-1 pl-4">
+                                            {question.options.map((option, optIndex) => {
+                                              const isCorrect = option === question.correct_answer;
+                                              return (
+                                                <div 
+                                                  key={optIndex} 
+                                                  className={`text-sm p-2 rounded flex items-center space-x-2 ${
+                                                    isCorrect 
+                                                      ? 'bg-green-50 text-green-700 border border-green-200' 
+                                                      : 'bg-gray-50 text-gray-600'
+                                                  }`}
+                                                >
+                                                  {isCorrect ? (
+                                                    <CheckCircle className="h-3 w-3" />
+                                                  ) : (
+                                                    <XCircle className="h-3 w-3 text-gray-400" />
+                                                  )}
+                                                  <span>{option}</span>
+                                                </div>
+                                              );
+                                            })}
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
                                 </div>
                               ))}
                             </div>
