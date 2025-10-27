@@ -331,7 +331,22 @@ const CreateCoursePage = () => {
 
       // 3. Créer le cours avec tous les modules et leçons en une seule requête
       const courseResponse = await fastAPIClient.createCourse(coursePayload);
-      const courseId = courseResponse.id;
+      
+      // Logs de débogage pour comprendre la réponse du backend
+      console.log('🔍 Réponse complète de createCourse:', courseResponse);
+      console.log('📦 Type de courseResponse:', typeof courseResponse);
+      console.log('🗂️ Clés disponibles:', Object.keys(courseResponse));
+      
+      // Gérer différents formats de réponse du backend (id, course_id, _id)
+      const courseId = courseResponse.id || (courseResponse as any).course_id || (courseResponse as any)._id;
+      console.log('🔑 CourseId extrait:', courseId);
+
+      // Vérifier que l'ID existe avant de continuer
+      if (!courseId) {
+        console.error('❌ Le backend n\'a pas retourné d\'ID de cours valide');
+        console.error('Réponse du backend:', courseResponse);
+        throw new Error('Le backend n\'a pas retourné d\'ID de cours valide');
+      }
 
       toast({
         title: "Cours créé",
@@ -346,6 +361,12 @@ const CreateCoursePage = () => {
             description: "Téléchargement de l'image du cours",
           });
 
+          // Vérifier que courseId est valide AVANT l'upload
+          if (!courseId) {
+            throw new Error('Impossible d\'uploader l\'image : ID de cours manquant');
+          }
+
+          console.log('📤 Upload image pour courseId:', courseId);
           const uploadUrlResponse = await fastAPIClient.uploadMedia(courseId, 'image', courseData.image.name);
           await uploadFileToPresignedUrl(uploadUrlResponse.url, courseData.image);
           
@@ -353,12 +374,15 @@ const CreateCoursePage = () => {
             title: "Image uploadée",
             description: "L'image du cours a été ajoutée",
           });
-        } catch (uploadError) {
-          console.error('Erreur upload image:', uploadError);
+        } catch (uploadError: any) {
+          console.error('❌ Erreur upload image:', uploadError);
+          console.error('CourseId utilisé:', courseId);
+          console.error('Réponse complète du backend:', courseResponse);
+          
           toast({
             title: "Avertissement",
-            description: "Le cours est créé mais l'image n'a pas pu être uploadée",
-            variant: "destructive"
+            description: uploadError.message || "Le cours est créé mais l'image n'a pas pu être uploadée",
+            variant: "default"
           });
         }
       }
@@ -368,7 +392,10 @@ const CreateCoursePage = () => {
         description: `Le cours "${courseData.title}" est maintenant disponible`,
       });
       
-      navigate(coursesBasePath);
+      // Naviguer avec un state pour déclencher le rechargement de la liste
+      navigate(coursesBasePath, { 
+        state: { courseCreated: true, courseId } 
+      });
       
     } catch (error: any) {
       console.error('Erreur création cours:', error);

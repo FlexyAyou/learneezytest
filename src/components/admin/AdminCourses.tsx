@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Search, Plus, Eye, Edit, Trash2, BookOpen, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { fastAPIClient } from '@/services/fastapi-client';
 import { CourseResponse } from '@/types/fastapi';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
@@ -15,6 +15,7 @@ import LoadingSpinner from '@/components/common/LoadingSpinner';
 const AdminCourses = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [ownerFilter, setOwnerFilter] = useState('all');
@@ -32,6 +33,16 @@ const AdminCourses = () => {
       try {
         const coursesData = await fastAPIClient.getCourses(1, 100);
         setCourses(coursesData);
+        
+        // Si on vient de créer un cours, afficher un toast de confirmation
+        if (location.state?.courseCreated) {
+          toast({
+            title: "✅ Cours créé avec succès",
+            description: `Votre cours est maintenant visible dans la liste`,
+          });
+          // Nettoyer le state pour éviter le toast à chaque refresh
+          window.history.replaceState({}, document.title);
+        }
       } catch (err: any) {
         setError(err.message || 'Erreur lors du chargement des cours');
         toast({
@@ -44,7 +55,7 @@ const AdminCourses = () => {
       }
     };
     loadCourses();
-  }, []);
+  }, [location.state]);
 
   // Separate published and draft courses
   const publishedCourses = courses.filter(c => c.status === 'published');
