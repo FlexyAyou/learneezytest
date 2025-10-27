@@ -313,6 +313,7 @@ export interface Course {
 export interface CourseResponse extends Course {
   owner_type: CourseOwnerType;
   owner_id: number;
+  status?: CourseStatus;
 }
 
 export interface CourseUpdate {
