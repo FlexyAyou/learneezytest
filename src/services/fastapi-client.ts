@@ -241,6 +241,24 @@ class FastAPIClient {
   }
 
   /**
+   * Récupère tous les utilisateurs avec le rôle "trainer" ou "independent_trainer"
+   */
+  async getTrainers(): Promise<UserResponse[]> {
+    try {
+      const response = await this.get<UserResponse[]>('/api/auth/superadmin/users');
+      // Filter to get only trainers
+      return response.filter(user => 
+        user.role === 'trainer' || 
+        user.role === 'independent_trainer' ||
+        user.role === 'formateur_interne'
+      );
+    } catch (error) {
+      console.error('Error fetching trainers:', error);
+      return [];
+    }
+  }
+
+  /**
    * Rafraîchir le token
    */
   async refreshToken(refreshRequest: RefreshRequest): Promise<Token> {

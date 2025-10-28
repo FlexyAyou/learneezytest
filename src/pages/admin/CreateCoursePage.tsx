@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,11 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Progress } from '@/components/ui/progress';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Upload, Plus, X, Save, ArrowLeft, ArrowRight, Video, FileText, Image as ImageIcon, Edit2, Trash2, Check, BookOpen, Award, ClipboardList, HelpCircle } from 'lucide-react';
+import { Upload, Plus, X, Save, ArrowLeft, ArrowRight, Video, FileText, Image as ImageIcon, Edit2, Trash2, Check, BookOpen, ClipboardList, HelpCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { QuizBuilder, AssignmentBuilder, CertificationBuilder } from '@/components/quiz';
-import type { QuizConfig, AssignmentConfig, CertificationConfig, QuestionType } from '@/types/quiz';
+import { QuizBuilder, AssignmentBuilder } from '@/components/quiz';
+import type { QuizConfig, AssignmentConfig, QuestionType } from '@/types/quiz';
 
 interface Lesson {
   id: string;
@@ -41,7 +41,8 @@ const CreateCoursePage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
-  const [currentStep, setCurrentStep] = useState<'info' | 'modules' | 'certification' | 'review'>('info');
+  const [currentStep, setCurrentStep] = useState<'info' | 'modules' | 'review'>('info');
+  const [trainers, setTrainers] = useState<Array<{ id: string; name: string }>>([]);
   
   // Détecter si on est dans le contexte gestionnaire ou superadmin
   const isManagerContext = location.pathname.includes('/gestionnaire/');
@@ -52,12 +53,15 @@ const CreateCoursePage = () => {
     description: '',
     price: '',
     category: '',
+    customCategory: '',
     duration: '',
     level: 'débutant',
     image: null as File | null,
     imagePreview: null as string | null,
     objectives: [''],
-    certification: null as CertificationConfig | null,
+    programFile: null as File | null,
+    programFileName: '',
+    ownerId: 'learneezy', // 'learneezy' or trainer user id
   });
 
   const [modules, setModules] = useState<ModuleWithLessons[]>([
@@ -75,8 +79,23 @@ const CreateCoursePage = () => {
   // États pour les builders
   const [showQuizBuilder, setShowQuizBuilder] = useState<{ moduleId: string; lessonId: string } | null>(null);
   const [showAssignmentBuilder, setShowAssignmentBuilder] = useState<string | null>(null);
-  const [showCertificationBuilder, setShowCertificationBuilder] = useState(false);
-  const [enableCertification, setEnableCertification] = useState(false);
+
+  // Load trainers on mount
+  useEffect(() => {
+    const loadTrainers = async () => {
+      try {
+        const { fastAPIClient } = await import('@/services/fastapi-client');
+        const trainersList = await fastAPIClient.getTrainers();
+        setTrainers(trainersList.map(t => ({
+          id: t.id.toString(),
+          name: `${t.first_name} ${t.last_name}`
+        })));
+      } catch (error) {
+        console.error('Error loading trainers:', error);
+      }
+    };
+    loadTrainers();
+  }, []);
 
   const handleInputChange = (field: string, value: string) => {
     setCourseData(prev => ({ ...prev, [field]: value }));
@@ -94,6 +113,29 @@ const CreateCoursePage = () => {
         }));
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleProgramUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.type !== 'application/pdf') {
+        toast({
+          title: "Format invalide",
+          description: "Veuillez uploader un fichier PDF",
+          variant: "destructive"
+        });
+        return;
+      }
+      setCourseData(prev => ({ 
+        ...prev, 
+        programFile: file,
+        programFileName: file.name
+      }));
+      toast({
+        title: "Programme ajouté",
+        description: file.name
+      });
     }
   };
 
@@ -251,23 +293,6 @@ const CreateCoursePage = () => {
     });
   };
 
-  const handleSaveCertification = (certification: CertificationConfig) => {
-    setCourseData(prev => ({ ...prev, certification }));
-    setShowCertificationBuilder(false);
-    toast({
-      title: "Certification sauvegardée",
-      description: "La certification a été configurée",
-    });
-  };
-
-  const handleRemoveCertification = () => {
-    setCourseData(prev => ({ ...prev, certification: null }));
-    setEnableCertification(false);
-    toast({
-      title: "Certification supprimée",
-      description: "La certification a été retirée du cours",
-    });
-  };
 
   const handleCreateCourse = async () => {
     // 1. Valider les données
@@ -403,14 +428,19 @@ const CreateCoursePage = () => {
       });
 
       // 3. Construire le payload complet avec toutes les video_key
+      const finalCategory = courseData.category === 'custom' 
+        ? courseData.customCategory 
+        : courseData.category;
+
       const coursePayload = {
         title: courseData.title,
         description: courseData.description,
         price: parseFloat(courseData.price) || 0,
-        category: courseData.category || 'development',
+        category: finalCategory || 'development',
         duration: courseData.duration || '10h',
         level: courseData.level,
         image_url: courseData.imagePreview || '', // Use preview URL if available
+        owner_id: courseData.ownerId === 'learneezy' ? null : parseInt(courseData.ownerId),
         modules: modules.map(module => ({
           title: module.title,
           description: module.description || `Description du ${module.title}`,
@@ -483,20 +513,12 @@ const CreateCoursePage = () => {
     if (currentStep === 'modules') {
       return modules.length > 0 && modules.some(m => m.lessons.length > 0);
     }
-    if (currentStep === 'certification') {
-      // Si certification activée, au moins 10 questions requises
-      if (enableCertification && courseData.certification) {
-        return courseData.certification.questions.length >= 10;
-      }
-      return true; // Peut passer si certification non activée
-    }
     return true;
   };
 
   const steps = [
     { id: 'info', label: 'Informations', icon: BookOpen },
     { id: 'modules', label: 'Modules & Leçons', icon: FileText },
-    { id: 'certification', label: 'Certification', icon: Award },
     { id: 'review', label: 'Révision', icon: Check }
   ];
 
@@ -539,7 +561,7 @@ const CreateCoursePage = () => {
               </div>
             </div>
             
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               {steps.map((step, index) => {
                 const Icon = step.icon;
                 const isActive = step.id === currentStep;
@@ -623,7 +645,17 @@ const CreateCoursePage = () => {
 
                   <div>
                     <Label className="text-base">Catégorie</Label>
-                    <Select value={courseData.category} onValueChange={(value) => handleInputChange('category', value)}>
+                    <Select 
+                      value={courseData.category === 'custom' ? 'custom' : courseData.category} 
+                      onValueChange={(value) => {
+                        if (value === 'custom') {
+                          handleInputChange('category', 'custom');
+                        } else {
+                          handleInputChange('category', value);
+                          handleInputChange('customCategory', '');
+                        }
+                      }}
+                    >
                       <SelectTrigger className="mt-2">
                         <SelectValue placeholder="Sélectionner" />
                       </SelectTrigger>
@@ -632,8 +664,17 @@ const CreateCoursePage = () => {
                         <SelectItem value="design">Design</SelectItem>
                         <SelectItem value="marketing">Marketing</SelectItem>
                         <SelectItem value="business">Business</SelectItem>
+                        <SelectItem value="custom">Autre (personnalisé)</SelectItem>
                       </SelectContent>
                     </Select>
+                    {courseData.category === 'custom' && (
+                      <Input
+                        value={courseData.customCategory}
+                        onChange={(e) => handleInputChange('customCategory', e.target.value)}
+                        placeholder="Entrez une catégorie personnalisée"
+                        className="mt-2"
+                      />
+                    )}
                   </div>
 
                   <div>
@@ -687,6 +728,72 @@ const CreateCoursePage = () => {
                       Ajouter un objectif
                     </Button>
                   </div>
+                </div>
+
+                <div>
+                  <Label className="text-base">Programme de formation (PDF)</Label>
+                  <div className="mt-2 border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-pink-400 transition-colors">
+                    {courseData.programFileName ? (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-center gap-2 text-green-600">
+                          <FileText className="h-6 w-6" />
+                          <span className="font-medium">{courseData.programFileName}</span>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCourseData(prev => ({ 
+                            ...prev, 
+                            programFile: null, 
+                            programFileName: '' 
+                          }))}
+                        >
+                          <X className="h-4 w-4 mr-2" />
+                          Supprimer
+                        </Button>
+                      </div>
+                    ) : (
+                      <>
+                        <Upload className="mx-auto h-10 w-10 text-gray-400 mb-3" />
+                        <p className="text-gray-600 mb-3">Glissez votre PDF ici ou cliquez pour sélectionner</p>
+                        <input
+                          type="file"
+                          accept="application/pdf"
+                          onChange={handleProgramUpload}
+                          className="hidden"
+                          id="program-upload"
+                        />
+                        <label htmlFor="program-upload">
+                          <Button variant="outline" size="sm" className="cursor-pointer" type="button" asChild>
+                            <span>Choisir un fichier PDF</span>
+                          </Button>
+                        </label>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-base">Propriétaire du cours</Label>
+                  <Select 
+                    value={courseData.ownerId} 
+                    onValueChange={(value) => handleInputChange('ownerId', value)}
+                  >
+                    <SelectTrigger className="mt-2">
+                      <SelectValue placeholder="Sélectionner le propriétaire" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="learneezy">Learneezy</SelectItem>
+                      {trainers.map(trainer => (
+                        <SelectItem key={trainer.id} value={trainer.id}>
+                          {trainer.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Le propriétaire est le formateur responsable du cours
+                  </p>
                 </div>
 
                 <div>
@@ -1061,126 +1168,6 @@ const CreateCoursePage = () => {
               </div>
             )}
 
-            {currentStep === 'certification' && (
-              <div className="space-y-6">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-800">Certification du cours</h2>
-                    <p className="text-gray-600 mt-1">
-                      La certification permet de valider les compétences acquises dans l'ensemble du cours
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Label>Activer la certification</Label>
-                    <Switch
-                      checked={enableCertification}
-                      onCheckedChange={(checked) => {
-                        setEnableCertification(checked);
-                        if (checked && !courseData.certification) {
-                          setShowCertificationBuilder(true);
-                        }
-                      }}
-                    />
-                  </div>
-                </div>
-
-                {!enableCertification ? (
-                  <Card className="bg-gradient-to-br from-gray-50 to-gray-100">
-                    <CardContent className="pt-12 pb-12 text-center">
-                      <Award className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-xl font-semibold text-gray-700 mb-2">
-                        Certification désactivée
-                      </h3>
-                      <p className="text-gray-600 mb-6">
-                        Activez la certification pour permettre aux apprenants d'obtenir un certificat à la fin du cours
-                      </p>
-                    </CardContent>
-                  </Card>
-                ) : courseData.certification ? (
-                  <Card className="bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200">
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <CardTitle className="text-xl flex items-center gap-2">
-                            <Award className="h-6 w-6 text-amber-600" />
-                            {courseData.certification.title}
-                          </CardTitle>
-                          <p className="text-sm text-gray-600 mt-2">
-                            {courseData.certification.questions.length} questions • 
-                            Durée: {courseData.certification.settings.timeLimit} min • 
-                            Note de passage: {courseData.certification.settings.passingScore}%
-                          </p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setShowCertificationBuilder(true)}
-                          >
-                            <Edit2 className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={handleRemoveCertification}
-                          >
-                            <Trash2 className="h-4 w-4 text-red-500" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        <div className="grid grid-cols-3 gap-4">
-                          <div className="p-3 bg-white rounded-lg border">
-                            <div className="text-sm text-gray-600">Mode examen</div>
-                            <div className="text-lg font-semibold">
-                              {courseData.certification.settings.examMode ? 'Activé' : 'Désactivé'}
-                            </div>
-                          </div>
-                          <div className="p-3 bg-white rounded-lg border">
-                            <div className="text-sm text-gray-600">Tentatives max</div>
-                            <div className="text-lg font-semibold">
-                              {courseData.certification.settings.maxAttempts}
-                            </div>
-                          </div>
-                          <div className="p-3 bg-white rounded-lg border">
-                            <div className="text-sm text-gray-600">Questions aléatoires</div>
-                            <div className="text-lg font-semibold">
-                              {courseData.certification.settings.randomizeQuestions ? 'Oui' : 'Non'}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="p-4 bg-white rounded-lg border">
-                          <div className="text-sm text-gray-600 mb-2">Description</div>
-                          <p className="text-sm">{courseData.certification.description}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <Card className="bg-gradient-to-br from-blue-50 to-purple-50">
-                    <CardContent className="pt-12 pb-12 text-center">
-                      <Award className="h-16 w-16 text-purple-400 mx-auto mb-4" />
-                      <h3 className="text-xl font-semibold text-gray-700 mb-2">
-                        Configurer la certification
-                      </h3>
-                      <p className="text-gray-600 mb-6">
-                        Créez un examen final pour certifier les compétences des apprenants
-                      </p>
-                      <Button
-                        onClick={() => setShowCertificationBuilder(true)}
-                        className="bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700"
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Créer la certification
-                      </Button>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-            )}
-
             {currentStep === 'review' && (
               <div className="space-y-6">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">Révision finale</h2>
@@ -1274,38 +1261,6 @@ const CreateCoursePage = () => {
                   </CardContent>
                 </Card>
 
-                {courseData.certification && (
-                  <Card className="bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Award className="h-6 w-6 text-amber-600" />
-                        Certification finale
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label className="text-gray-600">Titre</Label>
-                            <p className="font-medium">{courseData.certification.title}</p>
-                          </div>
-                          <div>
-                            <Label className="text-gray-600">Questions</Label>
-                            <p className="font-medium">{courseData.certification.questions.length} questions</p>
-                          </div>
-                          <div>
-                            <Label className="text-gray-600">Durée</Label>
-                            <p className="font-medium">{courseData.certification.settings.timeLimit} minutes</p>
-                          </div>
-                          <div>
-                            <Label className="text-gray-600">Note de passage</Label>
-                            <p className="font-medium">{courseData.certification.settings.passingScore}%</p>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
               </div>
             )}
           </CardContent>
@@ -1319,8 +1274,7 @@ const CreateCoursePage = () => {
                 variant="outline"
                 onClick={() => {
                   if (currentStep === 'modules') setCurrentStep('info');
-                  else if (currentStep === 'certification') setCurrentStep('modules');
-                  else if (currentStep === 'review') setCurrentStep('certification');
+                  else if (currentStep === 'review') setCurrentStep('modules');
                 }}
                 disabled={currentStep === 'info'}
               >
@@ -1332,8 +1286,7 @@ const CreateCoursePage = () => {
                 <Button
                   onClick={() => {
                     if (currentStep === 'info') setCurrentStep('modules');
-                    else if (currentStep === 'modules') setCurrentStep('certification');
-                    else if (currentStep === 'certification') setCurrentStep('review');
+                    else if (currentStep === 'modules') setCurrentStep('review');
                   }}
                   disabled={!canProceedToNextStep()}
                   className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700"
@@ -1386,23 +1339,6 @@ const CreateCoursePage = () => {
                 assignment={modules.find(m => m.id === showAssignmentBuilder)?.assignment}
                 onSave={(assignment) => handleSaveAssignment(showAssignmentBuilder, assignment)}
                 onCancel={() => setShowAssignmentBuilder(null)}
-              />
-            </DialogContent>
-          </Dialog>
-        )}
-
-        {/* Certification Builder Modal */}
-        {showCertificationBuilder && (
-          <Dialog open={showCertificationBuilder} onOpenChange={setShowCertificationBuilder}>
-            <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Configurer la certification du cours</DialogTitle>
-              </DialogHeader>
-              <CertificationBuilder
-                certification={courseData.certification || undefined}
-                onSave={handleSaveCertification}
-                onCancel={() => setShowCertificationBuilder(false)}
-                availableModules={modules.map(m => ({ id: m.id, title: m.title }))}
               />
             </DialogContent>
           </Dialog>
