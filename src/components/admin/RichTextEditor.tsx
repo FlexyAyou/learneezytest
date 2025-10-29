@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+import React, { useRef, useEffect } from 'react';
+import { Bold, Italic, Underline, List, ListOrdered, Link as LinkIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 
 interface RichTextEditorProps {
   value: string;
@@ -15,62 +16,118 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   placeholder = 'Écrivez votre contenu ici...',
   height = '200px'
 }) => {
-  const modules = useMemo(() => ({
-    toolbar: [
-      [{ 'header': [1, 2, 3, false] }],
-      ['bold', 'italic', 'underline', 'strike'],
-      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-      [{ 'color': [] }, { 'background': [] }],
-      ['link'],
-      ['clean']
-    ]
-  }), []);
+  const editorRef = useRef<HTMLDivElement>(null);
 
-  const formats = [
-    'header',
-    'bold', 'italic', 'underline', 'strike',
-    'list', 'bullet',
-    'color', 'background',
-    'link'
-  ];
+  useEffect(() => {
+    if (editorRef.current && editorRef.current.innerHTML !== value) {
+      editorRef.current.innerHTML = value;
+    }
+  }, [value]);
+
+  const handleInput = () => {
+    if (editorRef.current) {
+      onChange(editorRef.current.innerHTML);
+    }
+  };
+
+  const executeCommand = (command: string, value?: string) => {
+    document.execCommand(command, false, value);
+    editorRef.current?.focus();
+  };
+
+  const insertLink = () => {
+    const url = prompt('Entrez l\'URL:');
+    if (url) {
+      executeCommand('createLink', url);
+    }
+  };
 
   return (
-    <div className="rich-text-editor">
+    <div className="rich-text-editor border rounded-lg overflow-hidden">
+      {/* Toolbar */}
+      <div className="flex gap-1 p-2 border-b bg-muted">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => executeCommand('bold')}
+          className="h-8 w-8 p-0"
+        >
+          <Bold className="h-4 w-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => executeCommand('italic')}
+          className="h-8 w-8 p-0"
+        >
+          <Italic className="h-4 w-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => executeCommand('underline')}
+          className="h-8 w-8 p-0"
+        >
+          <Underline className="h-4 w-4" />
+        </Button>
+        <div className="w-px h-8 bg-border mx-1" />
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => executeCommand('insertUnorderedList')}
+          className="h-8 w-8 p-0"
+        >
+          <List className="h-4 w-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => executeCommand('insertOrderedList')}
+          className="h-8 w-8 p-0"
+        >
+          <ListOrdered className="h-4 w-4" />
+        </Button>
+        <div className="w-px h-8 bg-border mx-1" />
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={insertLink}
+          className="h-8 w-8 p-0"
+        >
+          <LinkIcon className="h-4 w-4" />
+        </Button>
+      </div>
+
+      {/* Editor */}
+      <div
+        ref={editorRef}
+        contentEditable
+        onInput={handleInput}
+        className="p-4 min-h-[200px] focus:outline-none bg-background prose prose-sm max-w-none"
+        style={{ minHeight: height }}
+        data-placeholder={placeholder}
+      />
+
       <style>{`
-        .rich-text-editor .quill {
-          background: white;
-          border-radius: 0.5rem;
-        }
-        .rich-text-editor .ql-toolbar {
-          border-top-left-radius: 0.5rem;
-          border-top-right-radius: 0.5rem;
-          border: 1px solid hsl(var(--border));
-          background: hsl(var(--muted));
-        }
-        .rich-text-editor .ql-container {
-          border-bottom-left-radius: 0.5rem;
-          border-bottom-right-radius: 0.5rem;
-          border: 1px solid hsl(var(--border));
-          border-top: none;
-          font-size: 14px;
-          min-height: ${height};
-        }
-        .rich-text-editor .ql-editor {
-          min-height: ${height};
-        }
-        .rich-text-editor .ql-editor.ql-blank::before {
+        .rich-text-editor [contenteditable]:empty:before {
+          content: attr(data-placeholder);
           color: hsl(var(--muted-foreground));
-          font-style: normal;
+          pointer-events: none;
+        }
+        .rich-text-editor [contenteditable] {
+          outline: none;
+        }
+        .rich-text-editor a {
+          color: hsl(var(--primary));
+          text-decoration: underline;
         }
       `}</style>
-      <ReactQuill
-        theme="snow"
-        value={value}
-        onChange={onChange}
-        modules={modules}
-        formats={formats}
-        placeholder={placeholder}
-      />
     </div>
   );
 };
