@@ -49,6 +49,7 @@ const CreateCoursePage = () => {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState<'info' | 'modules' | 'review'>('info');
   const [trainers, setTrainers] = useState<Array<{ id: string; name: string }>>([]);
+  const [customCategories, setCustomCategories] = useState<string[]>([]);
   
   // Détecter si on est dans le contexte gestionnaire ou superadmin
   const isManagerContext = location.pathname.includes('/gestionnaire/');
@@ -105,6 +106,54 @@ const CreateCoursePage = () => {
     };
     loadTrainers();
   }, []);
+
+  // Load custom categories from localStorage on mount
+  useEffect(() => {
+    const savedCategories = localStorage.getItem('customCourseCategories');
+    if (savedCategories) {
+      try {
+        setCustomCategories(JSON.parse(savedCategories));
+      } catch (error) {
+        console.error('Error loading custom categories:', error);
+      }
+    }
+  }, []);
+
+  const saveCustomCategory = () => {
+    if (!courseData.customCategory.trim()) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez entrer un nom de catégorie",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const newCategory = courseData.customCategory.trim();
+    
+    // Check if category already exists
+    if (customCategories.includes(newCategory)) {
+      toast({
+        title: "Catégorie existante",
+        description: "Cette catégorie existe déjà dans la liste",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const updatedCategories = [...customCategories, newCategory];
+    setCustomCategories(updatedCategories);
+    localStorage.setItem('customCourseCategories', JSON.stringify(updatedCategories));
+    
+    // Switch to the newly added category
+    handleInputChange('category', newCategory);
+    handleInputChange('customCategory', '');
+
+    toast({
+      title: "Catégorie enregistrée",
+      description: `"${newCategory}" a été ajoutée à la liste des catégories`
+    });
+  };
 
   const handleInputChange = (field: string, value: string) => {
     setCourseData(prev => ({ ...prev, [field]: value }));
@@ -717,16 +766,31 @@ const CreateCoursePage = () => {
                         <SelectItem value="design">Design</SelectItem>
                         <SelectItem value="marketing">Marketing</SelectItem>
                         <SelectItem value="business">Business</SelectItem>
-                        <SelectItem value="custom">Autre (personnalisé)</SelectItem>
+                        {customCategories.map(cat => (
+                          <SelectItem key={cat} value={cat}>
+                            {cat}
+                          </SelectItem>
+                        ))}
+                        <SelectItem value="custom">➕ Ajouter une nouvelle catégorie</SelectItem>
                       </SelectContent>
                     </Select>
                     {courseData.category === 'custom' && (
-                      <Input
-                        value={courseData.customCategory}
-                        onChange={(e) => handleInputChange('customCategory', e.target.value)}
-                        placeholder="Entrez une catégorie personnalisée"
-                        className="mt-2"
-                      />
+                      <div className="mt-2 space-y-2">
+                        <Input
+                          value={courseData.customCategory}
+                          onChange={(e) => handleInputChange('customCategory', e.target.value)}
+                          placeholder="Entrez une catégorie personnalisée"
+                        />
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={saveCustomCategory}
+                          className="w-full"
+                        >
+                          <Save className="h-4 w-4 mr-2" />
+                          Enregistrer et ajouter à la liste
+                        </Button>
+                      </div>
                     )}
                   </div>
 
