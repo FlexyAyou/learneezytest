@@ -10,12 +10,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Progress } from '@/components/ui/progress';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Upload, Plus, X, Save, ArrowLeft, ArrowRight, Video, FileText, Image as ImageIcon, Edit2, Trash2, Check, BookOpen, ClipboardList, HelpCircle } from 'lucide-react';
+import { Upload, Plus, X, Save, ArrowLeft, ArrowRight, Video, FileText, Image as ImageIcon, Edit2, Trash2, Check, BookOpen, ClipboardList, HelpCircle, Link as LinkIcon } from 'lucide-react';
 import { CycleTagSelector } from '@/components/admin/CycleTagSelector';
 import { useToast } from '@/hooks/use-toast';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { QuizBuilder, AssignmentBuilder } from '@/components/quiz';
 import type { QuizConfig, AssignmentConfig, QuestionType } from '@/types/quiz';
+import RichTextEditor from '@/components/admin/RichTextEditor';
 
 interface Lesson {
   id: string;
@@ -28,6 +29,8 @@ interface Lesson {
   file?: File; // Store the actual file for upload
   uploadedVideoKey?: string; // Store the video_key after upload
   quiz?: QuizConfig; // Quiz optionnel par leçon
+  mediaUrl?: string; // URL du média (alternative à l'upload)
+  useMediaUrl?: boolean; // Indique si on utilise l'URL au lieu de l'upload
 }
 
 interface ModuleWithLessons {
@@ -753,13 +756,14 @@ const CreateCoursePage = () => {
                   
                   <div className="md:col-span-2">
                     <Label className="text-base">Description *</Label>
-                    <Textarea
-                      value={courseData.description}
-                      onChange={(e) => handleInputChange('description', e.target.value)}
-                      placeholder="Décrivez votre cours en détail..."
-                      rows={5}
-                      className="mt-2"
-                    />
+                    <div className="mt-2">
+                      <RichTextEditor
+                        value={courseData.description}
+                        onChange={(value) => handleInputChange('description', value)}
+                        placeholder="Décrivez votre cours en détail..."
+                        height="200px"
+                      />
+                    </div>
                   </div>
 
                   <div>
@@ -1046,13 +1050,14 @@ const CreateCoursePage = () => {
                             </div>
                             <div>
                               <Label>Description</Label>
-                              <Textarea
-                                value={module.description}
-                                onChange={(e) => updateModule(module.id, 'description', e.target.value)}
-                                placeholder="Description du module"
-                                rows={3}
-                                className="mt-2"
-                              />
+                              <div className="mt-2">
+                                <RichTextEditor
+                                  value={module.description}
+                                  onChange={(value) => updateModule(module.id, 'description', value)}
+                                  placeholder="Description du module"
+                                  height="150px"
+                                />
+                              </div>
                             </div>
                           </div>
 
@@ -1141,58 +1146,185 @@ const CreateCoursePage = () => {
                                         </div>
                                         <div>
                                           <Label>Contenu de la leçon</Label>
-                                          <Textarea
-                                            value={lesson.content}
-                                            onChange={(e) => updateLesson(module.id, lesson.id, { content: e.target.value })}
-                                            placeholder="Description du contenu..."
-                                            rows={4}
-                                            className="mt-2"
-                                          />
+                                          <div className="mt-2">
+                                            <RichTextEditor
+                                              value={lesson.content}
+                                              onChange={(value) => updateLesson(module.id, lesson.id, { content: value })}
+                                              placeholder="Description du contenu..."
+                                              height="150px"
+                                            />
+                                          </div>
                                         </div>
                                         <div>
                                           <Label>Média (Vidéo, PDF ou Image)</Label>
-                                          <div className="mt-2">
-                                            {lesson.filePreview ? (
-                                              <div className="space-y-2">
-                                                <div className="flex items-center justify-between p-3 bg-white rounded border">
-                                                  <div className="flex items-center space-x-3">
-                                                    {lesson.fileType === 'video' && <Video className="h-5 w-5 text-blue-500" />}
-                                                    {lesson.fileType === 'pdf' && <FileText className="h-5 w-5 text-red-500" />}
-                                                    {lesson.fileType === 'image' && <ImageIcon className="h-5 w-5 text-green-500" />}
-                                                    <span className="text-sm font-medium">{lesson.fileName}</span>
+                                          <div className="mt-2 space-y-3">
+                                            {/* Toggle entre Upload et URL */}
+                                            <div className="flex items-center gap-2">
+                                              <Button
+                                                type="button"
+                                                variant={!lesson.useMediaUrl ? "default" : "outline"}
+                                                size="sm"
+                                                onClick={() => updateLesson(module.id, lesson.id, { 
+                                                  useMediaUrl: false,
+                                                  mediaUrl: '',
+                                                  fileType: null,
+                                                  fileName: '',
+                                                  filePreview: undefined
+                                                })}
+                                              >
+                                                <Upload className="h-4 w-4 mr-2" />
+                                                Upload fichier
+                                              </Button>
+                                              <Button
+                                                type="button"
+                                                variant={lesson.useMediaUrl ? "default" : "outline"}
+                                                size="sm"
+                                                onClick={() => updateLesson(module.id, lesson.id, { 
+                                                  useMediaUrl: true,
+                                                  file: undefined,
+                                                  fileType: null,
+                                                  fileName: '',
+                                                  filePreview: undefined
+                                                })}
+                                              >
+                                                <LinkIcon className="h-4 w-4 mr-2" />
+                                                Lien URL
+                                              </Button>
+                                            </div>
+
+                                            {/* Upload Mode */}
+                                            {!lesson.useMediaUrl && (
+                                              <>
+                                                {lesson.filePreview ? (
+                                                  <div className="space-y-2">
+                                                    <div className="flex items-center justify-between p-3 bg-white rounded border">
+                                                      <div className="flex items-center space-x-3">
+                                                        {lesson.fileType === 'video' && <Video className="h-5 w-5 text-blue-500" />}
+                                                        {lesson.fileType === 'pdf' && <FileText className="h-5 w-5 text-red-500" />}
+                                                        {lesson.fileType === 'image' && <ImageIcon className="h-5 w-5 text-green-500" />}
+                                                        <span className="text-sm font-medium">{lesson.fileName}</span>
+                                                      </div>
+                                                      <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => updateLesson(module.id, lesson.id, { 
+                                                          fileType: null, 
+                                                          fileName: '', 
+                                                          filePreview: undefined,
+                                                          file: undefined
+                                                        })}
+                                                      >
+                                                        <X className="h-4 w-4" />
+                                                      </Button>
+                                                    </div>
+                                                    {lesson.fileType === 'image' && (
+                                                      <img src={lesson.filePreview} alt="Preview" className="max-h-48 rounded border" />
+                                                    )}
                                                   </div>
-                                                  <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => updateLesson(module.id, lesson.id, { 
-                                                      fileType: null, 
-                                                      fileName: '', 
-                                                      filePreview: undefined 
-                                                    })}
-                                                  >
-                                                    <X className="h-4 w-4" />
-                                                  </Button>
-                                                </div>
-                                                {lesson.fileType === 'image' && (
-                                                  <img src={lesson.filePreview} alt="Preview" className="max-h-48 rounded" />
+                                                ) : (
+                                                  <div className="border-2 border-dashed rounded-lg p-6 text-center">
+                                                    <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                                                    <p className="text-sm text-gray-600 mb-3">Vidéo, PDF ou Image</p>
+                                                    <input
+                                                      type="file"
+                                                      accept="video/*,application/pdf,image/*"
+                                                      onChange={(e) => handleFileUpload(module.id, lesson.id, e)}
+                                                      className="hidden"
+                                                      id={`file-${lesson.id}`}
+                                                    />
+                                                    <label htmlFor={`file-${lesson.id}`}>
+                                                      <Button variant="outline" size="sm" type="button" asChild>
+                                                        <span>Choisir un fichier</span>
+                                                      </Button>
+                                                    </label>
+                                                  </div>
                                                 )}
-                                              </div>
-                                            ) : (
-                                              <div className="border-2 border-dashed rounded-lg p-6 text-center">
-                                                <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                                                <p className="text-sm text-gray-600 mb-3">Vidéo, PDF ou Image</p>
-                                                <input
-                                                  type="file"
-                                                  accept="video/*,application/pdf,image/*"
-                                                  onChange={(e) => handleFileUpload(module.id, lesson.id, e)}
-                                                  className="hidden"
-                                                  id={`file-${lesson.id}`}
-                                                />
-                                                <label htmlFor={`file-${lesson.id}`}>
-                                                  <Button variant="outline" size="sm" type="button" asChild>
-                                                    <span>Choisir un fichier</span>
-                                                  </Button>
-                                                </label>
+                                              </>
+                                            )}
+
+                                            {/* URL Mode */}
+                                            {lesson.useMediaUrl && (
+                                              <div className="space-y-3">
+                                                <div className="flex gap-2">
+                                                  <Input
+                                                    value={lesson.mediaUrl || ''}
+                                                    onChange={(e) => updateLesson(module.id, lesson.id, { mediaUrl: e.target.value })}
+                                                    placeholder="https://example.com/video.mp4 ou https://youtube.com/..."
+                                                    className="flex-1"
+                                                  />
+                                                  {lesson.mediaUrl && (
+                                                    <Button
+                                                      type="button"
+                                                      variant="ghost"
+                                                      size="sm"
+                                                      onClick={() => updateLesson(module.id, lesson.id, { mediaUrl: '' })}
+                                                    >
+                                                      <X className="h-4 w-4" />
+                                                    </Button>
+                                                  )}
+                                                </div>
+
+                                                {/* Aperçu de l'URL */}
+                                                {lesson.mediaUrl && (
+                                                  <div className="border rounded-lg p-3 bg-gray-50">
+                                                    <div className="text-sm font-medium mb-2">Aperçu :</div>
+                                                    {/* Image preview */}
+                                                    {/\.(jpg|jpeg|png|gif|webp|svg)$/i.test(lesson.mediaUrl) && (
+                                                      <img 
+                                                        src={lesson.mediaUrl} 
+                                                        alt="Preview" 
+                                                        className="max-h-48 rounded border"
+                                                        onError={(e) => {
+                                                          (e.target as HTMLImageElement).style.display = 'none';
+                                                        }}
+                                                      />
+                                                    )}
+                                                    {/* Video preview */}
+                                                    {/\.(mp4|webm|ogg)$/i.test(lesson.mediaUrl) && (
+                                                      <video 
+                                                        src={lesson.mediaUrl} 
+                                                        controls 
+                                                        className="max-h-48 rounded border w-full"
+                                                        onError={(e) => {
+                                                          (e.target as HTMLVideoElement).style.display = 'none';
+                                                        }}
+                                                      >
+                                                        Votre navigateur ne supporte pas la lecture vidéo.
+                                                      </video>
+                                                    )}
+                                                    {/* YouTube/Vimeo embed preview */}
+                                                    {(/youtube\.com|youtu\.be|vimeo\.com/i.test(lesson.mediaUrl)) && (
+                                                      <div className="aspect-video">
+                                                        <iframe
+                                                          src={
+                                                            lesson.mediaUrl.includes('youtube.com') || lesson.mediaUrl.includes('youtu.be')
+                                                              ? `https://www.youtube.com/embed/${lesson.mediaUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/)?.[1] || ''}`
+                                                              : lesson.mediaUrl.includes('vimeo.com')
+                                                              ? `https://player.vimeo.com/video/${lesson.mediaUrl.match(/vimeo\.com\/(\d+)/)?.[1] || ''}`
+                                                              : lesson.mediaUrl
+                                                          }
+                                                          className="w-full h-full rounded border"
+                                                          allowFullScreen
+                                                        />
+                                                      </div>
+                                                    )}
+                                                    {/* PDF preview */}
+                                                    {/\.pdf$/i.test(lesson.mediaUrl) && (
+                                                      <div className="flex items-center gap-2 text-sm">
+                                                        <FileText className="h-5 w-5 text-red-500" />
+                                                        <span>Fichier PDF</span>
+                                                        <a 
+                                                          href={lesson.mediaUrl} 
+                                                          target="_blank" 
+                                                          rel="noopener noreferrer"
+                                                          className="text-blue-600 hover:underline"
+                                                        >
+                                                          Ouvrir
+                                                        </a>
+                                                      </div>
+                                                    )}
+                                                  </div>
+                                                )}
                                               </div>
                                             )}
                                           </div>
