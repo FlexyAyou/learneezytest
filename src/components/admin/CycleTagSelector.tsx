@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { X } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { X, Plus } from 'lucide-react';
 
 type Cycle = 'primaire' | 'college' | 'lycee' | 'formation_pro' | '';
 
@@ -51,9 +53,13 @@ export const CycleTagSelector: React.FC<CycleTagSelectorProps> = ({
   onCycleChange,
   onTagsChange,
 }) => {
+  const [customTag, setCustomTag] = useState('');
+  const [customTags, setCustomTags] = useState<string[]>([]);
+
   const handleCycleChange = (value: string) => {
     onCycleChange(value as Cycle);
     onTagsChange([]); // Reset tags when cycle changes
+    setCustomTags([]); // Reset custom tags when cycle changes
   };
 
   const toggleTag = (tag: string) => {
@@ -68,7 +74,17 @@ export const CycleTagSelector: React.FC<CycleTagSelectorProps> = ({
     onTagsChange(selectedTags.filter(t => t !== tag));
   };
 
+  const addCustomTag = () => {
+    if (customTag.trim() && !selectedTags.includes(customTag.trim())) {
+      const newTag = customTag.trim();
+      setCustomTags([...customTags, newTag]);
+      onTagsChange([...selectedTags, newTag]);
+      setCustomTag('');
+    }
+  };
+
   const availableTags = selectedCycle ? cycleTagsMap[selectedCycle as Exclude<Cycle, ''>] || [] : [];
+  const allAvailableTags = [...availableTags, ...customTags];
 
   return (
     <div className="space-y-4">
@@ -113,7 +129,7 @@ export const CycleTagSelector: React.FC<CycleTagSelectorProps> = ({
 
           {/* Available tags to select */}
           <div className="flex flex-wrap gap-2 p-3 bg-background rounded-lg border border-border">
-            {availableTags.map(tag => {
+            {allAvailableTags.map(tag => {
               const isSelected = selectedTags.includes(tag);
               return (
                 <Badge
@@ -131,6 +147,37 @@ export const CycleTagSelector: React.FC<CycleTagSelectorProps> = ({
               );
             })}
           </div>
+
+          {/* Add custom tag for formation_pro */}
+          {selectedCycle === 'formation_pro' && (
+            <div className="mt-4 p-4 bg-muted/30 rounded-lg border border-border">
+              <Label className="text-sm font-medium mb-2 block">Ajouter un tag personnalisé</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={customTag}
+                  onChange={(e) => setCustomTag(e.target.value)}
+                  placeholder="Ex: Master, Doctorat..."
+                  className="flex-1"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addCustomTag();
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addCustomTag}
+                  disabled={!customTag.trim()}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Ajouter
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

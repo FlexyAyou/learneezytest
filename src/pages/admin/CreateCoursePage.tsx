@@ -36,6 +36,11 @@ interface ModuleWithLessons {
   description: string;
   lessons: Lesson[];
   assignment?: AssignmentConfig; // Devoir optionnel par module
+  pedagogicalResources: Array<{
+    id: string;
+    fileName: string;
+    file: File;
+  }>; // Ressources pédagogiques en PDF
 }
 
 const CreateCoursePage = () => {
@@ -73,6 +78,7 @@ const CreateCoursePage = () => {
       title: 'Module 1',
       description: '',
       lessons: [],
+      pedagogicalResources: [],
     }
   ]);
 
@@ -172,6 +178,7 @@ const CreateCoursePage = () => {
       title: `Module ${modules.length + 1}`,
       description: '',
       lessons: [],
+      pedagogicalResources: [],
     };
     setModules([...modules, newModule]);
     setExpandedModule(newModule.id);
@@ -293,6 +300,47 @@ const CreateCoursePage = () => {
     toast({
       title: "Devoir supprimé",
       description: "Le devoir a été retiré du module",
+    });
+  };
+
+  // Pedagogical Resources functions
+  const handleAddPedagogicalResource = (moduleId: string, file: File) => {
+    if (file.type !== 'application/pdf') {
+      toast({
+        title: "Format invalide",
+        description: "Veuillez uploader un fichier PDF",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const resource = {
+      id: `resource-${Date.now()}`,
+      fileName: file.name,
+      file: file
+    };
+
+    setModules(modules.map(m => 
+      m.id === moduleId 
+        ? { ...m, pedagogicalResources: [...m.pedagogicalResources, resource] } 
+        : m
+    ));
+
+    toast({
+      title: "Ressource ajoutée",
+      description: file.name
+    });
+  };
+
+  const handleRemovePedagogicalResource = (moduleId: string, resourceId: string) => {
+    setModules(modules.map(m => 
+      m.id === moduleId 
+        ? { ...m, pedagogicalResources: m.pedagogicalResources.filter(r => r.id !== resourceId) } 
+        : m
+    ));
+    toast({
+      title: "Ressource supprimée",
+      description: "La ressource a été retirée du module",
     });
   };
 
@@ -1120,59 +1168,122 @@ const CreateCoursePage = () => {
                              </div>
                            </div>
 
-                           {/* Assignment Section for Module */}
-                           <div className="space-y-4 border-t pt-6">
-                             <div className="flex items-center justify-between">
-                               <div className="flex items-center gap-2">
-                                 <ClipboardList className="h-5 w-5 text-purple-600" />
-                                 <h4 className="font-semibold text-lg">Devoir de fin de module</h4>
-                               </div>
-                             </div>
-                             <div className="text-sm text-gray-600 mb-4">
-                               Un devoir permet d'évaluer l'ensemble des compétences acquises dans ce module.
-                             </div>
-                             {module.assignment ? (
-                               <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
-                                 <CardHeader>
-                                   <div className="flex items-center justify-between">
-                                     <div>
-                                       <CardTitle className="text-lg">{module.assignment.title}</CardTitle>
-                                       <p className="text-sm text-gray-600 mt-1">
-                                         {module.assignment.questions.length} questions • 
-                                         Note de passage: {module.assignment.settings.passingScore}%
-                                       </p>
-                                     </div>
-                                     <div className="flex gap-2">
-                                       <Button
-                                         variant="ghost"
-                                         size="sm"
-                                         onClick={() => setShowAssignmentBuilder(module.id)}
-                                       >
-                                         <Edit2 className="h-4 w-4" />
-                                       </Button>
-                                       <Button
-                                         variant="ghost"
-                                         size="sm"
-                                         onClick={() => handleRemoveAssignment(module.id)}
-                                       >
-                                         <Trash2 className="h-4 w-4 text-red-500" />
-                                       </Button>
-                                     </div>
-                                   </div>
-                                 </CardHeader>
-                               </Card>
-                             ) : (
-                               <Button
-                                 variant="outline"
-                                 onClick={() => setShowAssignmentBuilder(module.id)}
-                                 className="w-full"
-                               >
-                                 <Plus className="h-4 w-4 mr-2" />
-                                 Créer un devoir pour ce module
-                               </Button>
-                             )}
-                           </div>
-                        </div>
+                            {/* Assignment Section for Module */}
+                            <div className="space-y-4 border-t pt-6">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <ClipboardList className="h-5 w-5 text-purple-600" />
+                                  <h4 className="font-semibold text-lg">Devoir de fin de module</h4>
+                                </div>
+                              </div>
+                              <div className="text-sm text-gray-600 mb-4">
+                                Un devoir permet d'évaluer l'ensemble des compétences acquises dans ce module.
+                              </div>
+                              {module.assignment ? (
+                                <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
+                                  <CardHeader>
+                                    <div className="flex items-center justify-between">
+                                      <div>
+                                        <CardTitle className="text-lg">{module.assignment.title}</CardTitle>
+                                        <p className="text-sm text-gray-600 mt-1">
+                                          {module.assignment.questions.length} questions • 
+                                          Note de passage: {module.assignment.settings.passingScore}%
+                                        </p>
+                                      </div>
+                                      <div className="flex gap-2">
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => setShowAssignmentBuilder(module.id)}
+                                        >
+                                          <Edit2 className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => handleRemoveAssignment(module.id)}
+                                        >
+                                          <Trash2 className="h-4 w-4 text-red-500" />
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  </CardHeader>
+                                </Card>
+                              ) : (
+                                <Button
+                                  variant="outline"
+                                  onClick={() => setShowAssignmentBuilder(module.id)}
+                                  className="w-full"
+                                >
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Créer un devoir pour ce module
+                                </Button>
+                              )}
+                            </div>
+
+                            {/* Pedagogical Resources Section */}
+                            <div className="space-y-4 border-t pt-6">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <FileText className="h-5 w-5 text-orange-600" />
+                                  <h4 className="font-semibold text-lg">Ressources pédagogiques</h4>
+                                </div>
+                              </div>
+                              <div className="text-sm text-gray-600 mb-4">
+                                Ajoutez des documents PDF supplémentaires pour enrichir ce module (guides, fiches de synthèse, etc.).
+                              </div>
+                              
+                              {/* Display existing resources */}
+                              {module.pedagogicalResources.length > 0 && (
+                                <div className="space-y-2">
+                                  {module.pedagogicalResources.map((resource) => (
+                                    <Card key={resource.id} className="bg-white">
+                                      <CardContent className="p-4">
+                                        <div className="flex items-center justify-between">
+                                          <div className="flex items-center gap-3">
+                                            <FileText className="h-5 w-5 text-red-500" />
+                                            <span className="font-medium">{resource.fileName}</span>
+                                          </div>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => handleRemovePedagogicalResource(module.id, resource.id)}
+                                          >
+                                            <Trash2 className="h-4 w-4 text-red-500" />
+                                          </Button>
+                                        </div>
+                                      </CardContent>
+                                    </Card>
+                                  ))}
+                                </div>
+                              )}
+
+                              {/* Add new resource */}
+                              <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-orange-400 transition-colors">
+                                <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                                <p className="text-sm text-gray-600 mb-3">Fichier PDF uniquement</p>
+                                <input
+                                  type="file"
+                                  accept="application/pdf"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) handleAddPedagogicalResource(module.id, file);
+                                    e.target.value = ''; // Reset input
+                                  }}
+                                  className="hidden"
+                                  id={`pedagogical-resource-${module.id}`}
+                                />
+                                <label htmlFor={`pedagogical-resource-${module.id}`}>
+                                  <Button variant="outline" size="sm" type="button" asChild>
+                                    <span>
+                                      <Plus className="h-4 w-4 mr-2" />
+                                      Ajouter une ressource PDF
+                                    </span>
+                                  </Button>
+                                </label>
+                              </div>
+                            </div>
+                         </div>
                       </AccordionContent>
                     </AccordionItem>
                   ))}
