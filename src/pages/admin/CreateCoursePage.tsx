@@ -35,6 +35,7 @@ interface ModuleWithLessons {
   title: string;
   description: string;
   lessons: Lesson[];
+  quiz?: QuizConfig; // Quiz optionnel au niveau du module
   assignment?: AssignmentConfig; // Devoir optionnel par module
   pedagogicalResources: Array<{
     id: string;
@@ -88,6 +89,7 @@ const CreateCoursePage = () => {
   
   // États pour les builders
   const [showQuizBuilder, setShowQuizBuilder] = useState<{ moduleId: string; lessonId: string } | null>(null);
+  const [showModuleQuizBuilder, setShowModuleQuizBuilder] = useState<string | null>(null);
   const [showAssignmentBuilder, setShowAssignmentBuilder] = useState<string | null>(null);
 
   // Load trainers on mount
@@ -352,6 +354,27 @@ const CreateCoursePage = () => {
     });
   };
 
+  const handleSaveModuleQuiz = (moduleId: string, quiz: QuizConfig) => {
+    setModules(modules.map(m => 
+      m.id === moduleId ? { ...m, quiz } : m
+    ));
+    setShowModuleQuizBuilder(null);
+    toast({
+      title: "Quiz sauvegardé",
+      description: "Le quiz a été ajouté au module",
+    });
+  };
+
+  const handleRemoveModuleQuiz = (moduleId: string) => {
+    setModules(modules.map(m => 
+      m.id === moduleId ? { ...m, quiz: undefined } : m
+    ));
+    toast({
+      title: "Quiz supprimé",
+      description: "Le quiz a été retiré du module",
+    });
+  };
+
   // Pedagogical Resources functions
   const handleAddPedagogicalResource = (moduleId: string, file: File) => {
     if (file.type !== 'application/pdf') {
@@ -414,10 +437,15 @@ const CreateCoursePage = () => {
       return;
     }
 
-    if (modules.every(m => m.lessons.length === 0)) {
+    // Valider que chaque module a au moins un contenu (leçon, quiz ou devoir)
+    const invalidModules = modules.filter(m => 
+      m.lessons.length === 0 && !m.quiz && !m.assignment
+    );
+    
+    if (invalidModules.length > 0) {
       toast({
         title: "Erreur",
-        description: "Chaque module doit contenir au moins une leçon",
+        description: "Chaque module doit contenir au moins une leçon, un quiz ou un devoir",
         variant: "destructive"
       });
       return;
@@ -1177,60 +1205,115 @@ const CreateCoursePage = () => {
                              )}
                            </div>
 
-                           {/* Quiz Section for Lessons */}
-                           <div className="space-y-4 border-t pt-6">
-                             <div className="flex items-center justify-between">
-                               <div className="flex items-center gap-2">
-                                 <HelpCircle className="h-5 w-5 text-blue-600" />
-                                 <h4 className="font-semibold text-lg">Quiz des leçons</h4>
-                               </div>
-                             </div>
-                             <div className="text-sm text-gray-600 mb-4">
-                               Ajoutez des quiz aux leçons pour évaluer la compréhension après chaque contenu.
-                             </div>
-                             <div className="space-y-2">
-                               {module.lessons.map((lesson, idx) => (
-                                 <div key={lesson.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
-                                   <div className="flex items-center gap-3">
-                                     <Badge variant="outline">Leçon {idx + 1}</Badge>
-                                     <span className="font-medium">{lesson.title || 'Sans titre'}</span>
-                                   </div>
-                                   <div className="flex items-center gap-2">
-                                     {lesson.quiz ? (
-                                       <>
-                                         <Badge className="bg-green-100 text-green-800">
-                                           {lesson.quiz.questions.length} questions
-                                         </Badge>
-                                         <Button
-                                           variant="ghost"
-                                           size="sm"
-                                           onClick={() => setShowQuizBuilder({ moduleId: module.id, lessonId: lesson.id })}
-                                         >
-                                           <Edit2 className="h-4 w-4" />
-                                         </Button>
-                                         <Button
-                                           variant="ghost"
-                                           size="sm"
-                                           onClick={() => handleRemoveQuiz(module.id, lesson.id)}
-                                         >
-                                           <Trash2 className="h-4 w-4 text-red-500" />
-                                         </Button>
-                                       </>
-                                     ) : (
-                                       <Button
-                                         variant="outline"
-                                         size="sm"
-                                         onClick={() => setShowQuizBuilder({ moduleId: module.id, lessonId: lesson.id })}
-                                       >
-                                         <Plus className="h-4 w-4 mr-2" />
-                                         Ajouter un quiz
-                                       </Button>
-                                     )}
-                                   </div>
-                                 </div>
-                               ))}
-                             </div>
-                           </div>
+                            {/* Quiz Section for Module (Direct) */}
+                            <div className="space-y-4 border-t pt-6">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <HelpCircle className="h-5 w-5 text-blue-600" />
+                                  <h4 className="font-semibold text-lg">Quiz du module</h4>
+                                </div>
+                              </div>
+                              <div className="text-sm text-gray-600 mb-4">
+                                Ajoutez un quiz directement au module (sans créer de leçon).
+                              </div>
+                              {module.quiz ? (
+                                <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200">
+                                  <CardHeader>
+                                    <div className="flex items-center justify-between">
+                                      <div>
+                                        <CardTitle className="text-lg">{module.quiz.title}</CardTitle>
+                                        <p className="text-sm text-gray-600 mt-1">
+                                          {module.quiz.questions.length} questions • 
+                                          Note de passage: {module.quiz.settings.passingScore}%
+                                        </p>
+                                      </div>
+                                      <div className="flex gap-2">
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => setShowModuleQuizBuilder(module.id)}
+                                        >
+                                          <Edit2 className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => handleRemoveModuleQuiz(module.id)}
+                                        >
+                                          <Trash2 className="h-4 w-4 text-red-500" />
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  </CardHeader>
+                                </Card>
+                              ) : (
+                                <Button
+                                  variant="outline"
+                                  onClick={() => setShowModuleQuizBuilder(module.id)}
+                                  className="w-full"
+                                >
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Créer un quiz pour ce module
+                                </Button>
+                              )}
+                            </div>
+
+                            {/* Quiz Section for Lessons */}
+                            {module.lessons.length > 0 && (
+                              <div className="space-y-4 border-t pt-6">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <HelpCircle className="h-5 w-5 text-blue-600" />
+                                    <h4 className="font-semibold text-lg">Quiz des leçons</h4>
+                                  </div>
+                                </div>
+                                <div className="text-sm text-gray-600 mb-4">
+                                  Ajoutez des quiz aux leçons pour évaluer la compréhension après chaque contenu.
+                                </div>
+                                <div className="space-y-2">
+                                  {module.lessons.map((lesson, idx) => (
+                                    <div key={lesson.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                                      <div className="flex items-center gap-3">
+                                        <Badge variant="outline">Leçon {idx + 1}</Badge>
+                                        <span className="font-medium">{lesson.title || 'Sans titre'}</span>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        {lesson.quiz ? (
+                                          <>
+                                            <Badge className="bg-green-100 text-green-800">
+                                              {lesson.quiz.questions.length} questions
+                                            </Badge>
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              onClick={() => setShowQuizBuilder({ moduleId: module.id, lessonId: lesson.id })}
+                                            >
+                                              <Edit2 className="h-4 w-4" />
+                                            </Button>
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              onClick={() => handleRemoveQuiz(module.id, lesson.id)}
+                                            >
+                                              <Trash2 className="h-4 w-4 text-red-500" />
+                                            </Button>
+                                          </>
+                                        ) : (
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => setShowQuizBuilder({ moduleId: module.id, lessonId: lesson.id })}
+                                          >
+                                            <Plus className="h-4 w-4 mr-2" />
+                                            Ajouter un quiz
+                                          </Button>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
 
                             {/* Assignment Section for Module */}
                             <div className="space-y-4 border-t pt-6">
@@ -1424,9 +1507,9 @@ const CreateCoursePage = () => {
                           </div>
                           <div className="text-sm text-gray-600">Leçons</div>
                         </div>
-                        <div className="p-4 bg-white rounded-lg">
+                         <div className="p-4 bg-white rounded-lg">
                           <div className="text-3xl font-bold text-purple-600">
-                            {modules.reduce((sum, m) => sum + m.lessons.filter(l => l.quiz).length, 0)}
+                            {modules.reduce((sum, m) => sum + m.lessons.filter(l => l.quiz).length + (m.quiz ? 1 : 0), 0)}
                           </div>
                           <div className="text-sm text-gray-600">Quiz</div>
                         </div>
@@ -1452,6 +1535,12 @@ const CreateCoursePage = () => {
                                   </span>
                                 )}
                               </div>
+                              {module.quiz && (
+                                <div className="flex items-center gap-2 text-sm text-blue-600">
+                                  <HelpCircle className="h-4 w-4" />
+                                  <span>Quiz du module: {module.quiz.title} ({module.quiz.questions.length} questions)</span>
+                                </div>
+                              )}
                               {module.assignment && (
                                 <div className="flex items-center gap-2 text-sm text-purple-600">
                                   <ClipboardList className="h-4 w-4" />
@@ -1527,6 +1616,23 @@ const CreateCoursePage = () => {
                 }
                 onSave={(quiz) => handleSaveQuiz(showQuizBuilder.moduleId, showQuizBuilder.lessonId, quiz)}
                 onCancel={() => setShowQuizBuilder(null)}
+                availableTypes={['single-choice', 'multiple-choice', 'true-false', 'short-answer'] as QuestionType[]}
+              />
+            </DialogContent>
+          </Dialog>
+        )}
+
+        {/* Module Quiz Builder Modal */}
+        {showModuleQuizBuilder && (
+          <Dialog open={!!showModuleQuizBuilder} onOpenChange={() => setShowModuleQuizBuilder(null)}>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Configurer le quiz du module</DialogTitle>
+              </DialogHeader>
+              <QuizBuilder
+                quiz={modules.find(m => m.id === showModuleQuizBuilder)?.quiz}
+                onSave={(quiz) => handleSaveModuleQuiz(showModuleQuizBuilder, quiz)}
+                onCancel={() => setShowModuleQuizBuilder(null)}
                 availableTypes={['single-choice', 'multiple-choice', 'true-false', 'short-answer'] as QuestionType[]}
               />
             </DialogContent>
