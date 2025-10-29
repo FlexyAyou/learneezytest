@@ -1216,10 +1216,41 @@ const CreateCoursePage = () => {
                                                       >
                                                         <X className="h-4 w-4" />
                                                       </Button>
+                                                     </div>
+                                                    
+                                                    {/* Aperçu du fichier uploadé */}
+                                                    <div className="mt-3 border rounded-lg p-3 bg-gray-50">
+                                                      <div className="text-sm font-medium mb-2">Aperçu :</div>
+                                                      
+                                                      {/* Image preview */}
+                                                      {lesson.fileType === 'image' && lesson.filePreview && (
+                                                        <img 
+                                                          src={lesson.filePreview} 
+                                                          alt="Preview" 
+                                                          className="max-h-48 rounded border w-full object-contain"
+                                                        />
+                                                      )}
+                                                      
+                                                      {/* Video preview */}
+                                                      {lesson.fileType === 'video' && lesson.filePreview && (
+                                                        <video 
+                                                          src={lesson.filePreview} 
+                                                          controls 
+                                                          className="max-h-64 rounded border w-full"
+                                                        >
+                                                          Votre navigateur ne supporte pas la lecture vidéo.
+                                                        </video>
+                                                      )}
+                                                      
+                                                      {/* PDF preview */}
+                                                      {lesson.fileType === 'pdf' && lesson.filePreview && (
+                                                        <embed
+                                                          src={lesson.filePreview}
+                                                          type="application/pdf"
+                                                          className="w-full h-96 rounded border"
+                                                        />
+                                                      )}
                                                     </div>
-                                                    {lesson.fileType === 'image' && (
-                                                      <img src={lesson.filePreview} alt="Preview" className="max-h-48 rounded border" />
-                                                    )}
                                                   </div>
                                                 ) : (
                                                   <div className="border-2 border-dashed rounded-lg p-6 text-center">
