@@ -11,6 +11,7 @@ import { Progress } from '@/components/ui/progress';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Upload, Plus, X, Save, ArrowLeft, ArrowRight, Video, FileText, Image as ImageIcon, Edit2, Trash2, Check, BookOpen, ClipboardList, HelpCircle } from 'lucide-react';
+import { CycleTagSelector } from '@/components/admin/CycleTagSelector';
 import { useToast } from '@/hooks/use-toast';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { QuizBuilder, AssignmentBuilder } from '@/components/quiz';
@@ -56,6 +57,8 @@ const CreateCoursePage = () => {
     customCategory: '',
     duration: '',
     level: 'débutant',
+    cycle: '' as '' | 'primaire' | 'college' | 'lycee' | 'formation_pro',
+    cycleTags: [] as string[],
     image: null as File | null,
     imagePreview: null as string | null,
     objectives: [''],
@@ -439,6 +442,8 @@ const CreateCoursePage = () => {
         category: finalCategory || 'development',
         duration: courseData.duration || '10h',
         level: courseData.level,
+        cycle: courseData.cycle || undefined,
+        cycle_tags: courseData.cycleTags.length > 0 ? courseData.cycleTags : undefined,
         image_url: courseData.imagePreview || '', // Use preview URL if available
         owner_id: courseData.ownerId === 'learneezy' ? null : parseInt(courseData.ownerId),
         modules: modules.map(module => ({
@@ -701,6 +706,13 @@ const CreateCoursePage = () => {
                     </Select>
                   </div>
                 </div>
+
+                <CycleTagSelector
+                  selectedCycle={courseData.cycle}
+                  selectedTags={courseData.cycleTags}
+                  onCycleChange={(cycle) => setCourseData(prev => ({ ...prev, cycle }))}
+                  onTagsChange={(tags) => setCourseData(prev => ({ ...prev, cycleTags: tags }))}
+                />
 
                 <div>
                   <Label className="text-base">Objectifs pédagogiques</Label>
@@ -1194,6 +1206,24 @@ const CreateCoursePage = () => {
                         <Label className="text-gray-600">Niveau</Label>
                         <p className="font-medium capitalize">{courseData.level}</p>
                       </div>
+                      {courseData.cycle && (
+                        <>
+                          <div>
+                            <Label className="text-gray-600">Cycle</Label>
+                            <p className="font-medium capitalize">{courseData.cycle.replace('_', ' ')}</p>
+                          </div>
+                          {courseData.cycleTags.length > 0 && (
+                            <div className="col-span-2">
+                              <Label className="text-gray-600">Niveaux du cycle</Label>
+                              <div className="flex flex-wrap gap-2 mt-1">
+                                {courseData.cycleTags.map(tag => (
+                                  <Badge key={tag} variant="secondary">{tag}</Badge>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      )}
                     </div>
                     <div>
                       <Label className="text-gray-600">Description</Label>

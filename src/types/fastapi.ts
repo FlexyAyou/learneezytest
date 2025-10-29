@@ -306,6 +306,8 @@ export interface Course {
   category?: string;
   duration?: string;
   level: string;
+  cycle?: string; // Cycle d'apprentissage (primaire, collège, lycée, formation_pro)
+  cycle_tags?: string[]; // Niveaux dans le cycle
   image_url?: string;
   resources?: Resource[];
   modules: Module[];
