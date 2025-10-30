@@ -827,7 +827,7 @@ const CreateCoursePage = () => {
                   </div>
 
                   <div>
-                    <Label className="text-base">Durée estimée</Label>
+                    <Label className="text-base">Durée </Label>
                     <Input
                       value={courseData.duration}
                       onChange={(e) => handleInputChange('duration', e.target.value)}
