@@ -32,7 +32,7 @@ LearnEezy est une plateforme LMS (Learning Management System) moderne et complè
 4. **Managers/Tuteurs** : Supervision des équipes, rapports de progression
 5. **Administrateurs** : Gestion globale de la plateforme
 6. **Organismes de formation** : Gestion complète des formations et apprenants
-7. **Parents** : Suivi de la progression de leurs enfants (pour formations jeunes)
+7. **Parents** : Suivi de la progression de leurs enfants (pour formations enfants)
 
 ### Cas d'usage principaux
 
