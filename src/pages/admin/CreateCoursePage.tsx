@@ -594,15 +594,42 @@ const CreateCoursePage = () => {
           quizzes: module.quiz ? [{
             title: module.quiz.title,
             questions: module.quiz.questions
-              .filter(q => q.type === 'single-choice' && 'correctAnswer' in q && 'options' in q)
-              .map(q => {
-                const scq = q as any; // Type assertion pour accéder aux propriétés
-                return {
-                  question: scq.question,
-                  options: scq.options,
-                  correct_answer: scq.options[scq.correctAnswer]
-                };
+              .filter(q => {
+                // Garder les questions compatibles avec l'API backend
+                return q.type === 'single-choice' || q.type === 'true-false' || q.type === 'multiple-choice';
               })
+              .map(q => {
+                // Gérer les différents types de questions
+                if (q.type === 'single-choice') {
+                  const scq = q as any;
+                  return {
+                    question: scq.question,
+                    options: scq.options,
+                    correct_answer: scq.options[scq.correctAnswer]
+                  };
+                } else if (q.type === 'true-false') {
+                  const tfq = q as any;
+                  return {
+                    question: tfq.question,
+                    options: ['Vrai', 'Faux'],
+                    correct_answer: tfq.correctAnswer === 0 ? 'Vrai' : 'Faux'
+                  };
+                } else if (q.type === 'multiple-choice') {
+                  const mcq = q as any;
+                  // Pour multiple-choice, prendre la première bonne réponse
+                  const firstCorrectIndex = mcq.correctAnswers && mcq.correctAnswers.length > 0 
+                    ? mcq.correctAnswers[0] 
+                    : 0;
+                  return {
+                    question: mcq.question,
+                    options: mcq.options,
+                    correct_answer: mcq.options[firstCorrectIndex]
+                  };
+                }
+                // Fallback (ne devrait pas arriver à cause du filter)
+                return null;
+              })
+              .filter(q => q !== null) // Enlever les questions null
           }] : []
         })),
         resources: []
