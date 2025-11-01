@@ -324,10 +324,10 @@ class FastAPIClient {
   // ============= COURSES ENDPOINTS =============
 
   /**
-   * Récupérer la liste des cours avec pagination
+   * Récupérer la liste des cours avec pagination (returns CourseSummary[])
    */
-  async getCourses(page = 1, perPage = 10): Promise<CourseResponse[]> {
-    return this.get<CourseResponse[]>(`/api/courses/?page=${page}&per_page=${perPage}`);
+  async getCourses(page = 1, perPage = 10): Promise<any[]> {
+    return this.get<any[]>(`/api/courses/?page=${page}&per_page=${perPage}`);
   }
 
   /**

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Save, Eye, Upload, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,34 +9,95 @@ import { Label } from '@/components/ui/label';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/Header';
+import { fastAPIClient } from '@/services/fastapi-client';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
 
 const EditCourse = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { id } = useParams();
 
-  // Mock data - sera remplacé par l'API
-  const [courseData, setCourseData] = useState({
-    title: 'React pour Débutants',
-    description: 'Apprenez les bases de React de manière simple et efficace.',
-    price: 99,
-    category: 'Développement Web',
-    level: 'Débutant',
-    duration: 480, // en minutes
-    image: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400&h=200&fit=crop'
-  });
+  // States for the course and editing
+  const [courseData, setCourseData] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [lessons, setLessons] = useState<any[]>([]);
 
-  const [lessons, setLessons] = useState([
-    { id: 1, title: 'Introduction à React', duration: 30, order: 1 },
-    { id: 2, title: 'Les composants', duration: 45, order: 2 },
-    { id: 3, title: 'Props et State', duration: 60, order: 3 }
-  ]);
+  // Load the course data from the API
+  useEffect(() => {
+    const loadCourse = async () => {
+      if (!id) return;
+      
+      setLoading(true);
+      try {
+        const course = await fastAPIClient.getCourse(id);
+        console.log('Loaded course:', course);
+        
+        // Extract the course data
+        setCourseData({
+          title: course.title || '',
+          description: course.description || '',
+          price: course.price || 0,
+          category: course.category || '',
+          level: course.level || 'Débutant',
+          duration: course.duration || '',
+          image: course.image_url || course.cover_key || '',
+          status: course.status || 'draft',
+          owner_type: course.owner_type || 'learneezy',
+          modules: course.modules || []
+        });
 
-  const handleSave = () => {
-    toast({
-      title: "Cours mis à jour",
-      description: "Les modifications ont été sauvegardées avec succès.",
-    });
+        // Extract lessons from modules for display
+        const allLessons = course.modules?.flatMap((module: any, moduleIndex: number) =>
+          module.content?.map((content: any, lessonIndex: number) => ({
+            id: `${moduleIndex}-${lessonIndex}`,
+            title: content.title || '',
+            duration: parseInt(content.duration) || 30,
+            order: lessonIndex + 1,
+            moduleTitle: module.title
+          })) || []
+        ) || [];
+        
+        setLessons(allLessons);
+      } catch (error) {
+        console.error('Error loading course:', error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger le cours",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCourse();
+  }, [id, toast]);
+
+  const handleSave = async () => {
+    if (!id || !courseData) return;
+    
+    try {
+      const updates = {
+        title: courseData.title,
+        description: courseData.description,
+        price: courseData.price,
+        status: courseData.status
+      };
+      
+      await fastAPIClient.updateCourse(id, updates);
+      
+      toast({
+        title: "Cours mis à jour",
+        description: "Les modifications ont été sauvegardées avec succès.",
+      });
+    } catch (error) {
+      console.error('Error updating course:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de sauvegarder les modifications",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleAddLesson = () => {
@@ -67,7 +128,16 @@ const EditCourse = () => {
     <div className="min-h-screen bg-gray-50">
       <Header />
       
-      <div className="pt-20 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {loading ? (
+        <div className="flex items-center justify-center min-h-screen">
+          <LoadingSpinner size="lg" />
+        </div>
+      ) : !courseData ? (
+        <div className="pt-20 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <p className="text-center text-gray-500">Cours introuvable</p>
+        </div>
+      ) : (
+        <div className="pt-20 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center">
             <Button 
@@ -219,41 +289,43 @@ const EditCourse = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <img
-                    src={courseData.image}
-                    alt="Aperçu du cours"
-                    className="w-full h-40 object-cover rounded-lg"
-                  />
-                  <Button variant="outline" className="w-full">
-                    <Upload className="h-4 w-4 mr-2" />
-                    Changer l'image
-                  </Button>
+                  {courseData.image && (
+                    <img
+                      src={courseData.image}
+                      alt="Aperçu du cours"
+                      className="w-full h-40 object-cover rounded-lg"
+                    />
+                  )}
+                  <p className="text-sm text-gray-500">
+                    Modification de l'image disponible prochainement
+                  </p>
                 </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Statistiques</CardTitle>
+                <CardTitle>Informations du cours</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Étudiants inscrits</span>
-                  <span className="font-medium">1,250</span>
+                  <span className="text-sm text-gray-600">Statut</span>
+                  <span className="font-medium capitalize">{courseData.status}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Note moyenne</span>
-                  <span className="font-medium">4.8/5</span>
+                  <span className="text-sm text-gray-600">Propriétaire</span>
+                  <span className="font-medium capitalize">{courseData.owner_type}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Revenus</span>
-                  <span className="font-medium text-green-600">€15,000</span>
+                  <span className="text-sm text-gray-600">Modules</span>
+                  <span className="font-medium">{courseData.modules?.length || 0}</span>
                 </div>
               </CardContent>
             </Card>
           </div>
         </div>
-      </div>
+        </div>
+      )}
     </div>
   );
 };

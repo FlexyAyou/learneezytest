@@ -563,17 +563,22 @@ const CreateCoursePage = () => {
         ? courseData.customCategory 
         : courseData.category;
 
+      // Préparer les category_names pour la nouvelle API
+      const categoryNames = finalCategory ? [finalCategory] : null;
+
       const coursePayload = {
         title: courseData.title,
         description: courseData.description,
-        price: parseFloat(courseData.price) || 0,
-        category: finalCategory || 'development',
-        duration: courseData.duration || '10h',
-        level: courseData.level,
-        cycle: courseData.cycle || undefined,
-        cycle_tags: courseData.cycleTags.length > 0 ? courseData.cycleTags : undefined,
-        image_url: courseData.imagePreview || '', // Use preview URL if available
-        owner_id: courseData.ownerId === 'learneezy' ? null : parseInt(courseData.ownerId),
+        price: parseFloat(courseData.price) || null,
+        category: finalCategory || null, // Legacy field
+        category_names: categoryNames, // New field
+        allow_create_categories: true, // Allow creating new categories
+        duration: courseData.duration || null,
+        level: courseData.level || null,
+        learning_cycle: courseData.cycle || null,
+        levels: courseData.cycleTags.length > 0 ? courseData.cycleTags : null,
+        cover_key: null, // TODO: Upload cover image
+        program_pdf_key: null, // TODO: Upload program PDF
         modules: modules.map(module => ({
           title: module.title,
           description: module.description || `Description du ${module.title}`,
@@ -582,10 +587,11 @@ const CreateCoursePage = () => {
             title: lesson.title,
             duration: lesson.duration.toString() + 'min',
             description: lesson.content,
-            video_key: lesson.uploadedVideoKey, // 🔑 INCLURE LA KEY ICI
-            transcription: undefined
+            video_key: lesson.uploadedVideoKey || null, // 🔑 Storage key
+            video_url: lesson.mediaUrl || null, // External URL fallback
+            transcription: null
           })),
-          quizzes: [] // TODO: Sprint 2 - Ajouter les quizzes
+          quizzes: [] // TODO: Ajouter les quizzes
         })),
         resources: []
       };

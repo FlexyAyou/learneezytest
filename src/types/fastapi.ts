@@ -254,70 +254,117 @@ export interface OrganizationContextData {
   error: string | null;
 }
 
-// ============= COURSES =============
+// ============= COURSE STRUCTURE =============
 
 export type CourseStatus = 'draft' | 'published';
 export type CourseOwnerType = 'learneezy' | 'of';
 
-// Import types from quiz.ts for better type safety
-import type { QuizConfig, AssignmentConfig } from './quiz';
-
+/**
+ * Question d'un quiz
+ */
 export interface QuizQuestion {
   question: string;
   options: string[];
   correct_answer: string;
 }
 
+/**
+ * Quiz associé à un module
+ */
 export interface Quiz {
   title: string;
   questions: QuizQuestion[];
 }
 
+/**
+ * Contenu d'une leçon (vidéo, texte, etc.)
+ */
 export interface Content {
   title: string;
   duration: string;
   description: string;
-  video_url?: string;
-  video_key?: string; // New: MinIO/S3 key for presigned upload
-  key?: string; // Alias for video_key
-  transcription?: string;
-  quiz?: QuizConfig; // Quiz optionnel par leçon
+  video_url?: string | null;
+  video_key?: string | null; // Storage key for video in MinIO/S3
+  key?: string | null; // Alias for video_key
+  transcription?: string | null;
 }
 
+/**
+ * Module d'un cours
+ */
 export interface Module {
   title: string;
-  description?: string;
+  description?: string | null;
   duration: string;
   content: Content[];
-  quizzes?: Quiz[]; // Legacy support
-  assignment?: AssignmentConfig; // Devoir à la fin du module
+  quizzes?: Quiz[];
 }
 
+/**
+ * Ressource téléchargeable (PDF, etc.)
+ */
 export interface Resource {
   name: string;
   url: string;
 }
 
+/**
+ * Structure complète d'un cours (pour création)
+ */
 export interface Course {
-  id?: string;
   title: string;
   description: string;
-  price?: number;
-  category?: string;
-  duration?: string;
-  level: string;
-  cycle?: string; // Cycle d'apprentissage (primaire, collège, lycée, formation_pro)
-  cycle_tags?: string[]; // Niveaux dans le cycle
-  image_url?: string;
+  price?: number | null;
+  category?: string | null; // Legacy text category (deprecated)
+  category_ids?: number[] | null; // List of category IDs
+  category_names?: string[] | null; // Category names to resolve/create
+  allow_create_categories?: boolean | null; // If true, create missing categories
+  duration?: string | null;
+  level?: string | null; // Legacy difficulty level
+  image_url?: string | null; // Deprecated
+  cover_key?: string | null; // Storage key for cover image (MinIO/S3)
+  program_pdf_key?: string | null; // Storage key for program PDF (MinIO/S3)
+  learning_cycle?: string | null; // primaire|college|lycee|pro
+  levels?: string[] | null; // Available levels for the selected learning cycle
   resources?: Resource[];
-  modules: Module[];
-  certification?: import('./quiz').CertificationConfig; // Certification finale du cours
+  modules: Module[]; // minItems 1
+  id?: string | null;
 }
 
+/**
+ * Réponse du backend après création/récupération d'un cours
+ */
 export interface CourseResponse extends Course {
-  owner_type: CourseOwnerType;
-  owner_id: number;
+  id: string;
+  owner_type?: CourseOwnerType;
+  owner_id?: number | null;
   status?: CourseStatus;
+  created_by?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+/**
+ * Summary view of a course (for listing)
+ */
+export interface CourseSummary {
+  id: string;
+  title: string;
+  description?: string;
+  price?: number | null;
+  category?: string | null;
+  category_ids?: number[] | null;
+  category_names?: string[] | null;
+  duration?: string | null;
+  level?: string | null;
+  cover_key?: string | null;
+  learning_cycle?: string | null;
+  levels?: string[] | null;
+  owner_type?: CourseOwnerType;
+  owner_id?: number | null;
+  status?: CourseStatus;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface CourseUpdate {
