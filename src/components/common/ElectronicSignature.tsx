@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Canvas as FabricCanvas } from 'fabric';
+import { fabric } from 'fabric';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
@@ -17,7 +17,7 @@ export const ElectronicSignature: React.FC<ElectronicSignatureProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [fabricCanvas, setFabricCanvas] = useState<FabricCanvas | null>(null);
+  const [fabricCanvas, setFabricCanvas] = useState<fabric.Canvas | null>(null);
   const [isSigned, setIsSigned] = useState(false);
   const [uploadedSignature, setUploadedSignature] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>("draw");
@@ -25,7 +25,7 @@ export const ElectronicSignature: React.FC<ElectronicSignatureProps> = ({
   useEffect(() => {
     if (!canvasRef.current || disabled) return;
 
-    const canvas = new FabricCanvas(canvasRef.current, {
+    const canvas = new fabric.Canvas(canvasRef.current, {
       width: 400,
       height: 150,
       backgroundColor: '#ffffff',
