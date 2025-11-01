@@ -16,7 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { QuizBuilder, AssignmentBuilder } from '@/components/quiz';
 import type { QuizConfig, AssignmentConfig, QuestionType } from '@/types/quiz';
-// RichTextEditor removed - using Textarea for plain text
+import RichTextEditor from '@/components/admin/RichTextEditor';
 
 interface Lesson {
   id: string;
@@ -801,12 +801,11 @@ const CreateCoursePage = () => {
                   
                   <div className="md:col-span-2">
                     <Label className="text-base">Description *</Label>
-                    <Textarea
+                    <RichTextEditor
                       value={courseData.description}
-                      onChange={(e) => handleInputChange('description', e.target.value)}
+                      onChange={(value) => handleInputChange('description', value)}
                       placeholder="Décrivez votre cours en détail..."
-                      rows={8}
-                      className="mt-2"
+                      height="200px"
                     />
                   </div>
 
@@ -1094,12 +1093,11 @@ const CreateCoursePage = () => {
                             </div>
                             <div>
                               <Label>Description</Label>
-                              <Textarea
+                              <RichTextEditor
                                 value={module.description}
-                                onChange={(e) => updateModule(module.id, 'description', e.target.value)}
+                                onChange={(value) => updateModule(module.id, 'description', value)}
                                 placeholder="Description du module"
-                                rows={5}
-                                className="mt-2"
+                                height="150px"
                               />
                             </div>
                           </div>
@@ -1189,12 +1187,11 @@ const CreateCoursePage = () => {
                                         </div>
                                         <div>
                                           <Label>Contenu de la leçon</Label>
-                                          <Textarea
+                                          <RichTextEditor
                                             value={lesson.content}
-                                            onChange={(e) => updateLesson(module.id, lesson.id, { content: e.target.value })}
+                                            onChange={(value) => updateLesson(module.id, lesson.id, { content: value })}
                                             placeholder="Description du contenu..."
-                                            rows={5}
-                                            className="mt-2"
+                                            height="150px"
                                           />
                                         </div>
                                         <div>

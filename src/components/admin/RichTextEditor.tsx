@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { Bold, Italic, Underline, List, ListOrdered, Link as LinkIcon } from 'lucide-react';
+import { Bold, Italic, Underline, List, ListOrdered } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -19,27 +19,34 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   const editorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (editorRef.current && editorRef.current.innerHTML !== value) {
-      editorRef.current.innerHTML = value;
+    if (editorRef.current && editorRef.current.textContent !== value) {
+      editorRef.current.textContent = value;
     }
   }, [value]);
 
   const handleInput = () => {
     if (editorRef.current) {
-      onChange(editorRef.current.innerHTML);
+      // Renvoyer seulement le texte brut, sans balises HTML
+      onChange(editorRef.current.textContent || '');
     }
   };
 
-  const executeCommand = (command: string, value?: string) => {
-    document.execCommand(command, false, value);
+  const insertFormatting = (prefix: string, suffix: string = prefix) => {
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0 && editorRef.current?.contains(selection.anchorNode)) {
+      const range = selection.getRangeAt(0);
+      const selectedText = range.toString();
+      const formattedText = prefix + selectedText + suffix;
+      
+      range.deleteContents();
+      range.insertNode(document.createTextNode(formattedText));
+      
+      // Mettre à jour la valeur
+      if (editorRef.current) {
+        onChange(editorRef.current.textContent || '');
+      }
+    }
     editorRef.current?.focus();
-  };
-
-  const insertLink = () => {
-    const url = prompt('Entrez l\'URL:');
-    if (url) {
-      executeCommand('createLink', url);
-    }
   };
 
   return (
@@ -50,8 +57,9 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => executeCommand('bold')}
+          onClick={() => insertFormatting('**')}
           className="h-8 w-8 p-0"
+          title="Gras (ajoute **texte**)"
         >
           <Bold className="h-4 w-4" />
         </Button>
@@ -59,8 +67,9 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => executeCommand('italic')}
+          onClick={() => insertFormatting('*')}
           className="h-8 w-8 p-0"
+          title="Italique (ajoute *texte*)"
         >
           <Italic className="h-4 w-4" />
         </Button>
@@ -68,8 +77,9 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => executeCommand('underline')}
+          onClick={() => insertFormatting('_')}
           className="h-8 w-8 p-0"
+          title="Souligné (ajoute _texte_)"
         >
           <Underline className="h-4 w-4" />
         </Button>
@@ -78,8 +88,9 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => executeCommand('insertUnorderedList')}
+          onClick={() => insertFormatting('\n• ')}
           className="h-8 w-8 p-0"
+          title="Liste à puces"
         >
           <List className="h-4 w-4" />
         </Button>
@@ -87,20 +98,11 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => executeCommand('insertOrderedList')}
+          onClick={() => insertFormatting('\n1. ')}
           className="h-8 w-8 p-0"
+          title="Liste numérotée"
         >
           <ListOrdered className="h-4 w-4" />
-        </Button>
-        <div className="w-px h-8 bg-border mx-1" />
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={insertLink}
-          className="h-8 w-8 p-0"
-        >
-          <LinkIcon className="h-4 w-4" />
         </Button>
       </div>
 
@@ -109,7 +111,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
         ref={editorRef}
         contentEditable
         onInput={handleInput}
-        className="p-4 min-h-[200px] focus:outline-none bg-background prose prose-sm max-w-none"
+        className="p-4 min-h-[200px] focus:outline-none bg-background whitespace-pre-wrap"
         style={{ minHeight: height }}
         data-placeholder={placeholder}
       />
@@ -122,10 +124,8 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
         }
         .rich-text-editor [contenteditable] {
           outline: none;
-        }
-        .rich-text-editor a {
-          color: hsl(var(--primary));
-          text-decoration: underline;
+          font-family: inherit;
+          line-height: 1.6;
         }
       `}</style>
     </div>
