@@ -591,7 +591,19 @@ const CreateCoursePage = () => {
             video_url: lesson.mediaUrl || null, // External URL fallback
             transcription: null
           })),
-          quizzes: [] // TODO: Ajouter les quizzes
+          quizzes: module.quiz ? [{
+            title: module.quiz.title,
+            questions: module.quiz.questions
+              .filter(q => q.type === 'single-choice' && 'correctAnswer' in q && 'options' in q)
+              .map(q => {
+                const scq = q as any; // Type assertion pour accéder aux propriétés
+                return {
+                  question: scq.question,
+                  options: scq.options,
+                  correct_answer: scq.options[scq.correctAnswer]
+                };
+              })
+          }] : []
         })),
         resources: []
       };
