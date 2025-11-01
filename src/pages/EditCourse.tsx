@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Save, Eye, Upload, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,60 +8,118 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { fastAPIClient } from '@/services/fastapi-client';
+import type { CourseResponse, CourseUpdate } from '@/types/fastapi';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
 import Header from '@/components/Header';
 
 const EditCourse = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { id } = useParams();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [course, setCourse] = useState<CourseResponse | null>(null);
 
-  // Mock data - sera remplacé par l'API
   const [courseData, setCourseData] = useState({
-    title: 'React pour Débutants',
-    description: 'Apprenez les bases de React de manière simple et efficace.',
-    price: 99,
-    category: 'Développement Web',
-    level: 'Débutant',
-    duration: 480, // en minutes
-    image: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400&h=200&fit=crop'
+    title: '',
+    description: '',
+    price: 0,
+    category: '',
+    level: '',
+    duration: '',
+    status: 'draft' as 'draft' | 'published'
   });
 
-  const [lessons, setLessons] = useState([
-    { id: 1, title: 'Introduction à React', duration: 30, order: 1 },
-    { id: 2, title: 'Les composants', duration: 45, order: 2 },
-    { id: 3, title: 'Props et State', duration: 60, order: 3 }
-  ]);
-
-  const handleSave = () => {
-    toast({
-      title: "Cours mis à jour",
-      description: "Les modifications ont été sauvegardées avec succès.",
-    });
-  };
-
-  const handleAddLesson = () => {
-    const newLesson = {
-      id: lessons.length + 1,
-      title: 'Nouvelle leçon',
-      duration: 30,
-      order: lessons.length + 1
+  // Charger le cours depuis l'API
+  useEffect(() => {
+    const loadCourse = async () => {
+      if (!id) return;
+      
+      setLoading(true);
+      try {
+        const courseResponse = await fastAPIClient.getCourse(id);
+        setCourse(courseResponse);
+        
+        // Pré-remplir le formulaire
+        setCourseData({
+          title: courseResponse.title,
+          description: courseResponse.description,
+          price: courseResponse.price || 0,
+          category: courseResponse.category || '',
+          level: courseResponse.level,
+          duration: courseResponse.duration || '',
+          status: courseResponse.status || 'draft'
+        });
+        
+        console.log('✅ Cours chargé:', courseResponse);
+      } catch (error: any) {
+        console.error('❌ Erreur chargement cours:', error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger le cours",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
     };
-    setLessons([...lessons, newLesson]);
-  };
+    
+    loadCourse();
+  }, [id, toast]);
 
-  const handleDeleteLesson = (lessonId: number) => {
-    setLessons(lessons.filter(lesson => lesson.id !== lessonId));
-    toast({
-      title: "Leçon supprimée",
-      description: "La leçon a été supprimée du cours.",
-    });
+  const handleSave = async () => {
+    if (!id) return;
+    
+    setSaving(true);
+    try {
+      const updates: CourseUpdate = {
+        title: courseData.title,
+        description: courseData.description,
+        price: courseData.price,
+        status: courseData.status
+      };
+      
+      await fastAPIClient.updateCourse(id, updates);
+      
+      toast({
+        title: "Cours mis à jour",
+        description: "Les modifications ont été sauvegardées avec succès.",
+      });
+    } catch (error: any) {
+      console.error('❌ Erreur mise à jour cours:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de mettre à jour le cours",
+        variant: "destructive"
+      });
+    } finally {
+      setSaving(false);
+    }
   };
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="flex items-center justify-center pt-32">
+          <LoadingSpinner size="lg" />
+        </div>
+      </div>
+    );
+  }
+  
+  if (!course) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="pt-20 max-w-4xl mx-auto px-4 py-8">
+          <p className="text-center text-gray-600">Cours introuvable</p>
+        </div>
+      </div>
+    );
+  }
 
-  const handleLessonChange = (lessonId: number, field: string, value: string | number) => {
-    setLessons(lessons.map(lesson => 
-      lesson.id === lessonId ? { ...lesson, [field]: value } : lesson
-    ));
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -72,7 +130,7 @@ const EditCourse = () => {
           <div className="flex items-center">
             <Button 
               variant="ghost" 
-              onClick={() => navigate('/dashboard/instructeur')}
+              onClick={() => navigate('/dashboard/superadmin/courses')}
               className="mr-4"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -88,9 +146,13 @@ const EditCourse = () => {
               <Eye className="h-4 w-4 mr-2" />
               Prévisualiser
             </Button>
-            <Button onClick={handleSave} className="bg-pink-600 hover:bg-pink-700">
+            <Button 
+              onClick={handleSave} 
+              className="bg-pink-600 hover:bg-pink-700"
+              disabled={saving}
+            >
               <Save className="h-4 w-4 mr-2" />
-              Sauvegarder
+              {saving ? 'Enregistrement...' : 'Sauvegarder'}
             </Button>
           </div>
         </div>
@@ -124,15 +186,15 @@ const EditCourse = () => {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="price">Prix (€)</Label>
-                    <Input
-                      id="price"
-                      type="number"
-                      value={courseData.price}
-                      onChange={(e) => setCourseData({...courseData, price: parseInt(e.target.value)})}
-                    />
-                  </div>
+                <div>
+                  <Label htmlFor="price">Prix (€)</Label>
+                  <Input
+                    id="price"
+                    type="number"
+                    value={courseData.price}
+                    onChange={(e) => setCourseData({...courseData, price: parseFloat(e.target.value) || 0})}
+                  />
+                </div>
                   <div>
                     <Label htmlFor="category">Catégorie</Label>
                     <Input
@@ -159,53 +221,35 @@ const EditCourse = () => {
               </CardContent>
             </Card>
 
-            {/* Leçons */}
+            {/* Modules */}
             <Card>
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <div>
-                    <CardTitle>Leçons</CardTitle>
-                    <CardDescription>Contenu du cours</CardDescription>
+                    <CardTitle>Modules du cours</CardTitle>
+                    <CardDescription>Contenu du cours ({course.modules?.length || 0} modules)</CardDescription>
                   </div>
-                  <Button onClick={handleAddLesson} variant="outline" size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Ajouter une leçon
-                  </Button>
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {lessons.map((lesson, index) => (
-                    <div key={lesson.id} className="p-4 border rounded-lg">
+                  {course.modules?.map((module, index) => (
+                    <div key={index} className="p-4 border rounded-lg">
                       <div className="flex items-center justify-between mb-3">
-                        <span className="text-sm font-medium text-gray-500">Leçon {index + 1}</span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteLesson(lesson.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-500" />
-                        </Button>
+                        <span className="text-sm font-medium text-gray-700">{module.title}</span>
+                        <span className="text-xs text-gray-500">{module.duration}</span>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label>Titre de la leçon</Label>
-                          <Input
-                            value={lesson.title}
-                            onChange={(e) => handleLessonChange(lesson.id, 'title', e.target.value)}
-                          />
-                        </div>
-                        <div>
-                          <Label>Durée (minutes)</Label>
-                          <Input
-                            type="number"
-                            value={lesson.duration}
-                            onChange={(e) => handleLessonChange(lesson.id, 'duration', parseInt(e.target.value))}
-                          />
-                        </div>
+                      <p className="text-sm text-gray-600">{module.description}</p>
+                      <div className="mt-2 text-xs text-gray-500">
+                        {module.content?.length || 0} leçon(s)
                       </div>
                     </div>
                   ))}
+                  {(!course.modules || course.modules.length === 0) && (
+                    <p className="text-sm text-gray-500 text-center py-4">
+                      Aucun module dans ce cours
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -219,14 +263,16 @@ const EditCourse = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <img
-                    src={courseData.image}
-                    alt="Aperçu du cours"
-                    className="w-full h-40 object-cover rounded-lg"
-                  />
-                  <Button variant="outline" className="w-full">
+                  {course.image_url && (
+                    <img
+                      src={course.image_url}
+                      alt="Aperçu du cours"
+                      className="w-full h-40 object-cover rounded-lg"
+                    />
+                  )}
+                  <Button variant="outline" className="w-full" disabled>
                     <Upload className="h-4 w-4 mr-2" />
-                    Changer l'image
+                    Changer l'image (bientôt disponible)
                   </Button>
                 </div>
               </CardContent>
@@ -234,20 +280,20 @@ const EditCourse = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>Statistiques</CardTitle>
+                <CardTitle>Informations</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Étudiants inscrits</span>
-                  <span className="font-medium">1,250</span>
+                  <span className="text-sm text-gray-600">Statut</span>
+                  <span className="font-medium capitalize">{courseData.status}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Note moyenne</span>
-                  <span className="font-medium">4.8/5</span>
+                  <span className="text-sm text-gray-600">Propriétaire</span>
+                  <span className="font-medium capitalize">{course.owner_type}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Revenus</span>
-                  <span className="font-medium text-green-600">€15,000</span>
+                  <span className="text-sm text-gray-600">Modules</span>
+                  <span className="font-medium">{course.modules?.length || 0}</span>
                 </div>
               </CardContent>
             </Card>
