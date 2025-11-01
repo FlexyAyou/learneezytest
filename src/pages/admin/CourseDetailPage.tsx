@@ -50,7 +50,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoKey, videoUrl, title }) 
         if (youtubeEmbedUrl) {
           setPlayUrl(youtubeEmbedUrl);
         } else {
-          setPlayUrl(videoUrl);
+          // Force HTTPS for all video URLs to prevent Mixed Content errors
+          const httpsUrl = videoUrl.replace(/^http:\/\//i, 'https://');
+          setPlayUrl(httpsUrl);
         }
         return;
       }
@@ -60,7 +62,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoKey, videoUrl, title }) 
         setError(null);
         try {
           const response = await fastAPIClient.getVideoPlayUrl(videoKey);
-          setPlayUrl(response.url);
+          // Force HTTPS for all video URLs to prevent Mixed Content errors
+          const httpsUrl = response.url.replace(/^http:\/\//i, 'https://');
+          setPlayUrl(httpsUrl);
         } catch (err: any) {
           setError('Erreur lors du chargement de la vidéo');
           console.error(err);
