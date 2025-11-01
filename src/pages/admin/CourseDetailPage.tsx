@@ -21,6 +21,22 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoKey, videoUrl, title }) 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Function to convert YouTube URL to embed URL
+  const getYouTubeEmbedUrl = (url: string): string | null => {
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/,
+      /youtube\.com\/embed\/([^&\n?#]+)/,
+    ];
+    
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match && match[1]) {
+        return `https://www.youtube.com/embed/${match[1]}`;
+      }
+    }
+    return null;
+  };
+
   useEffect(() => {
     const loadVideo = async () => {
       if (!videoKey && !videoUrl) {
@@ -29,7 +45,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoKey, videoUrl, title }) 
       }
 
       if (videoUrl) {
-        setPlayUrl(videoUrl);
+        // Check if it's a YouTube URL
+        const youtubeEmbedUrl = getYouTubeEmbedUrl(videoUrl);
+        if (youtubeEmbedUrl) {
+          setPlayUrl(youtubeEmbedUrl);
+        } else {
+          setPlayUrl(videoUrl);
+        }
         return;
       }
 
@@ -86,14 +108,24 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoKey, videoUrl, title }) 
 
   return (
     <div className="w-full aspect-video bg-black rounded-lg overflow-hidden shadow-2xl border-4 border-gray-800">
-      <video 
-        src={playUrl} 
-        controls 
-        className="w-full h-full"
-        title={title}
-      >
-        Votre navigateur ne supporte pas la lecture vidéo.
-      </video>
+      {playUrl.includes('youtube.com/embed') ? (
+        <iframe
+          src={playUrl}
+          title={title}
+          className="w-full h-full"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+      ) : (
+        <video 
+          src={playUrl} 
+          controls 
+          className="w-full h-full"
+          title={title}
+        >
+          Votre navigateur ne supporte pas la lecture vidéo.
+        </video>
+      )}
     </div>
   );
 };
