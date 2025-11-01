@@ -689,24 +689,22 @@ const EditCoursePage = () => {
         description: "Envoi des données au serveur",
       });
 
-      const finalCategory = courseData.category === 'custom' 
-        ? courseData.customCategory 
-        : courseData.category;
-
-      const categoryNames = finalCategory ? [finalCategory] : null;
-
-      const coursePayload = {
+      // Prepare update payload (only fields accepted by CourseUpdate interface)
+      const coursePayload: {
+        title?: string;
+        description?: string;
+        price?: number | null;
+        status?: 'draft' | 'published';
+      } = {
         title: courseData.title,
         description: courseData.description,
-        price: parseFloat(courseData.price) || null,
-        category: finalCategory || null,
-        category_names: categoryNames,
-        allow_create_categories: true,
-        duration: courseData.duration || null,
-        level: courseData.level || null,
-        image_url: imageUrl,
         status: courseData.status,
       };
+
+      // Only include price if it's a valid number
+      if (courseData.price && !isNaN(parseFloat(courseData.price))) {
+        coursePayload.price = parseFloat(courseData.price);
+      }
 
       // Use the update endpoint (only updates top-level fields)
       await fastAPIClient.updateCourse(id, coursePayload);
