@@ -79,7 +79,7 @@ const CreateCoursePage = () => {
     programFileName: '',
   });
 
-  const [modules, setModules] = useState<ModuleWithLessons>([
+  const [modules, setModules] = useState<ModuleWithLessons[]>([
     {
       id: '1',
       title: 'Module 1',
