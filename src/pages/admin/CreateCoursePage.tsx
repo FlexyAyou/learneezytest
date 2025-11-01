@@ -1,17 +1,16 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Upload, Plus, X, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
+import Header from '@/components/Header';
 import { fastAPIClient } from '@/services/fastapi-client';
-import type { Course } from '@/types/fastapi';
 
 const CreateCoursePage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
   
   const [courseData, setCourseData] = useState({
     title: '',
@@ -84,23 +83,22 @@ const CreateCoursePage = () => {
       return;
     }
 
-    setLoading(true);
-    
     try {
-      // Transformer les données au format attendu par l'API
-      const coursePayload: Course = {
+      // Transformer les données au format attendu par FastAPI
+      const coursePayload = {
         title: courseData.title,
         description: courseData.description,
         price: courseData.price ? parseFloat(courseData.price) : undefined,
         category: courseData.category || undefined,
         duration: courseData.duration || undefined,
         level: courseData.level,
+        image_url: courseData.image ? 'uploaded-image-url' : undefined,
         modules: courseData.modules
-          .filter(m => m.title) // Filtrer les modules vides
+          .filter(m => m.title)
           .map(m => ({
             title: m.title,
             duration: m.duration || '1h',
-            description: m.content,
+            description: m.content || '',
             content: [{
               title: m.title,
               duration: m.duration || '1h',
@@ -109,37 +107,29 @@ const CreateCoursePage = () => {
           }))
       };
 
-      console.log('📤 Envoi du cours:', coursePayload);
-      
-      const courseResponse = await fastAPIClient.createCourse(coursePayload);
-      
-      console.log('✅ Cours créé:', courseResponse);
+      const createdCourse = await fastAPIClient.createCourse(coursePayload);
       
       toast({
-        title: "✅ Cours créé avec succès",
-        description: `Le cours "${courseData.title}" a été créé avec ${courseData.modules.length} module(s)`,
+        title: "Cours créé",
+        description: "Le cours a été créé avec succès",
       });
       
-      // Rediriger vers la liste des cours avec un state pour afficher le toast
-      navigate('/dashboard/superadmin/courses', { 
-        state: { courseCreated: true, courseId: courseResponse.id } 
-      });
-      
+      navigate('/dashboard/superadmin/courses');
     } catch (error: any) {
-      console.error('❌ Erreur lors de la création du cours:', error);
+      console.error('Erreur lors de la création du cours:', error);
       toast({
         title: "Erreur",
-        description: error?.response?.data?.detail || error?.message || "Impossible de créer le cours",
+        description: error.message || "Impossible de créer le cours",
         variant: "destructive"
       });
-    } finally {
-      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-background">
+      <Header />
+      
+      <div className="pt-20 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center mb-6">
           <Button 
             variant="ghost" 
@@ -149,7 +139,7 @@ const CreateCoursePage = () => {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Retour au tableau de bord
           </Button>
-          <h1 className="text-3xl font-bold text-gray-900">Créer un nouveau cours</h1>
+          <h1 className="text-3xl font-bold">Créer un nouveau cours</h1>
         </div>
 
         <div className="space-y-6">
@@ -160,7 +150,7 @@ const CreateCoursePage = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium mb-2">
                   Titre du cours *
                 </label>
                 <Input
@@ -171,11 +161,11 @@ const CreateCoursePage = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium mb-2">
                   Description *
                 </label>
                 <textarea
-                  className="w-full min-h-[120px] px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
+                  className="w-full min-h-[120px] px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                   value={courseData.description}
                   onChange={(e) => handleInputChange('description', e.target.value)}
                   placeholder="Décrivez votre cours en détail..."
@@ -184,7 +174,7 @@ const CreateCoursePage = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium mb-2">
                     Prix (€)
                   </label>
                   <Input
@@ -195,11 +185,11 @@ const CreateCoursePage = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium mb-2">
                     Catégorie
                   </label>
                   <select
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
+                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                     value={courseData.category}
                     onChange={(e) => handleInputChange('category', e.target.value)}
                   >
@@ -211,11 +201,11 @@ const CreateCoursePage = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium mb-2">
                     Niveau
                   </label>
                   <select
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
+                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                     value={courseData.level}
                     onChange={(e) => handleInputChange('level', e.target.value)}
                   >
@@ -227,23 +217,12 @@ const CreateCoursePage = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Durée totale
-                </label>
-                <Input
-                  value={courseData.duration}
-                  onChange={(e) => handleInputChange('duration', e.target.value)}
-                  placeholder="Ex: 10h"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium mb-2">
                   Image de couverture
                 </label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                  <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <p className="text-gray-600 mb-2">Glissez votre image ici ou cliquez pour sélectionner</p>
+                <div className="border-2 border-dashed rounded-lg p-6 text-center">
+                  <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground mb-2">Glissez votre image ici ou cliquez pour sélectionner</p>
                   <input
                     type="file"
                     accept="image/*"
@@ -252,7 +231,7 @@ const CreateCoursePage = () => {
                     id="image-upload"
                   />
                   <label htmlFor="image-upload">
-                    <Button variant="outline" className="cursor-pointer" type="button">
+                    <Button variant="outline" className="cursor-pointer">
                       Choisir un fichier
                     </Button>
                   </label>
@@ -271,7 +250,7 @@ const CreateCoursePage = () => {
             <CardHeader>
               <div className="flex justify-between items-center">
                 <CardTitle>Modules du cours</CardTitle>
-                <Button onClick={addModule} size="sm" type="button">
+                <Button onClick={addModule} size="sm">
                   <Plus className="h-4 w-4 mr-2" />
                   Ajouter un module
                 </Button>
@@ -287,7 +266,6 @@ const CreateCoursePage = () => {
                         variant="ghost"
                         size="sm"
                         onClick={() => removeModule(index)}
-                        type="button"
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -295,7 +273,7 @@ const CreateCoursePage = () => {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium mb-1">
                         Titre du module
                       </label>
                       <Input
@@ -305,7 +283,7 @@ const CreateCoursePage = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium mb-1">
                         Durée
                       </label>
                       <Input
@@ -316,11 +294,11 @@ const CreateCoursePage = () => {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium mb-1">
                       Contenu du module
                     </label>
                     <textarea
-                      className="w-full min-h-[80px] px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
+                      className="w-full min-h-[80px] px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                       value={module.content}
                       onChange={(e) => updateModule(index, 'content', e.target.value)}
                       placeholder="Décrivez le contenu de ce module..."
@@ -333,17 +311,12 @@ const CreateCoursePage = () => {
 
           {/* Actions */}
           <div className="flex justify-end space-x-4">
-            <Button variant="outline" onClick={handleSaveDraft} disabled={loading} type="button">
+            <Button variant="outline" onClick={handleSaveDraft}>
               <Save className="h-4 w-4 mr-2" />
               Sauvegarder en brouillon
             </Button>
-            <Button 
-              onClick={handlePublish} 
-              className="bg-pink-600 hover:bg-pink-700"
-              disabled={loading}
-              type="button"
-            >
-              {loading ? 'Création...' : 'Publier le cours'}
+            <Button onClick={handlePublish} className="bg-primary">
+              Publier le cours
             </Button>
           </div>
         </div>

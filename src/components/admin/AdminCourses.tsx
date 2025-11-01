@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Search, Plus, Eye, Edit, Trash2, BookOpen, Clock } from 'lucide-react';
+import { Search, Plus, Eye, Edit, Trash2, BookOpen, Clock, Check, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { fastAPIClient } from '@/services/fastapi-client';
@@ -327,6 +327,61 @@ const AdminCourses = () => {
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
+                        {course.status === 'draft' ? (
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            title="Publier"
+                            onClick={async () => {
+                              try {
+                                await fastAPIClient.updateCourseStatus(course.id, 'published');
+                                setCourses(courses.map(c => 
+                                  c.id === course.id ? { ...c, status: 'published' } : c
+                                ));
+                                toast({
+                                  title: "Cours publié",
+                                  description: "Le cours est maintenant visible publiquement",
+                                });
+                              } catch (err: any) {
+                                toast({
+                                  title: "Erreur",
+                                  description: err.message || "Impossible de publier le cours",
+                                  variant: "destructive"
+                                });
+                              }
+                            }}
+                            className="hover:bg-green-50 hover:text-green-600"
+                          >
+                            <Check className="h-4 w-4" />
+                          </Button>
+                        ) : (
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            title="Dépublier"
+                            onClick={async () => {
+                              try {
+                                await fastAPIClient.updateCourseStatus(course.id, 'draft');
+                                setCourses(courses.map(c => 
+                                  c.id === course.id ? { ...c, status: 'draft' } : c
+                                ));
+                                toast({
+                                  title: "Cours dépublié",
+                                  description: "Le cours est maintenant en brouillon",
+                                });
+                              } catch (err: any) {
+                                toast({
+                                  title: "Erreur",
+                                  description: err.message || "Impossible de dépublier le cours",
+                                  variant: "destructive"
+                                });
+                              }
+                            }}
+                            className="hover:bg-yellow-50 hover:text-yellow-600"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button 
                           size="sm" 
                           variant="outline" 

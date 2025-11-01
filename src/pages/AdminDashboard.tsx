@@ -61,7 +61,6 @@ import {
 import CreateOrganisme from './admin/CreateOrganisme';
 import CreateCoursePage from './admin/CreateCoursePage';
 import CourseDetailPage from './admin/CourseDetailPage';
-import EditCourse from './EditCourse';
 
 const AdminDashboard = () => {
   return (
@@ -99,7 +98,6 @@ const AdminDashboard = () => {
               <Route path="courses" element={<AdminCourses />} />
               <Route path="courses/create" element={<CreateCoursePage />} />
               <Route path="courses/:courseId" element={<CourseDetailPage />} />
-              <Route path="courses/:courseId/edit" element={<EditCourse />} />
               <Route path="inscriptions" element={<AdminInscriptions />} />
               <Route path="of-documents" element={<AdminDocumentsOF />} />
               <Route path="conventions" element={<AdminConventionGenerator />} />

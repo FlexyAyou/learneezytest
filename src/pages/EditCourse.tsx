@@ -1,125 +1,262 @@
-
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Save, Eye, Upload, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Save, Eye, Upload, Plus, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { fastAPIClient } from '@/services/fastapi-client';
-import type { CourseResponse, CourseUpdate } from '@/types/fastapi';
-import LoadingSpinner from '@/components/common/LoadingSpinner';
 import Header from '@/components/Header';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
+import { fastAPIClient } from '@/services/fastapi-client';
+import { CourseResponse } from '@/types/fastapi';
+
+interface Lesson {
+  id: string;
+  title: string;
+  duration: number;
+  description: string;
+  video_key?: string;
+  video_url?: string;
+  file?: File;
+}
+
+interface Module {
+  id: string;
+  title: string;
+  description: string;
+  lessons: Lesson[];
+}
 
 const EditCourse = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [course, setCourse] = useState<CourseResponse | null>(null);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
+  const [levels, setLevels] = useState<any[]>([]);
 
   const [courseData, setCourseData] = useState({
     title: '',
     description: '',
     price: 0,
-    category: '',
-    level: '',
+    learning_cycle: '' as '' | 'primaire' | 'college' | 'lycee' | 'pro',
+    selectedLevels: [] as string[],
+    level: 'débutant',
     duration: '',
-    status: 'draft' as 'draft' | 'published'
+    image_url: ''
   });
 
-  // Charger le cours depuis l'API
+  const [modules, setModules] = useState<Module[]>([]);
+
+  // Charger le cours existant
   useEffect(() => {
     const loadCourse = async () => {
       if (!id) return;
       
-      setLoading(true);
       try {
-        const courseResponse = await fastAPIClient.getCourse(id);
-        setCourse(courseResponse);
-        
-        // Pré-remplir le formulaire
+        setLoading(true);
+        const courseData = await fastAPIClient.getCourse(id);
+        setCourse(courseData);
+
+        // Pré-remplir les données
         setCourseData({
-          title: courseResponse.title,
-          description: courseResponse.description,
-          price: courseResponse.price || 0,
-          category: courseResponse.category || '',
-          level: courseResponse.level,
-          duration: courseResponse.duration || '',
-          status: courseResponse.status || 'draft'
+          title: courseData.title,
+          description: courseData.description,
+          price: courseData.price || 0,
+          learning_cycle: (courseData as any).learning_cycle || '',
+          selectedLevels: (courseData as any).levels || [],
+          level: courseData.level,
+          duration: courseData.duration || '',
+          image_url: courseData.image_url || ''
         });
-        
-        console.log('✅ Cours chargé:', courseResponse);
+
+        // Mapper les modules
+        if (courseData.modules) {
+          setModules(courseData.modules.map((m, idx) => ({
+            id: `module-${idx}`,
+            title: m.title,
+            description: m.description || '',
+            lessons: m.content.map((l, lidx) => ({
+              id: `lesson-${idx}-${lidx}`,
+              title: l.title,
+              duration: parseInt(l.duration) || 0,
+              description: l.description,
+              video_key: l.video_key || l.key,
+              video_url: l.video_url
+            }))
+          })));
+        }
+
+        // Charger les catégories
+        const cats = await fastAPIClient.getCategories();
+        setCategories(cats);
+
       } catch (error: any) {
-        console.error('❌ Erreur chargement cours:', error);
         toast({
           title: "Erreur",
           description: "Impossible de charger le cours",
           variant: "destructive"
         });
+        console.error(error);
       } finally {
         setLoading(false);
       }
     };
-    
+
     loadCourse();
-  }, [id, toast]);
+  }, [id]);
+
+  // Charger les niveaux quand le cycle change
+  useEffect(() => {
+    const loadLevels = async () => {
+      if (!courseData.learning_cycle) {
+        setLevels([]);
+        return;
+      }
+      try {
+        const lvls = await fastAPIClient.getLevels(courseData.learning_cycle);
+        setLevels(lvls);
+      } catch (error) {
+        console.error('Error loading levels:', error);
+        setLevels([]);
+      }
+    };
+    loadLevels();
+  }, [courseData.learning_cycle]);
 
   const handleSave = async () => {
     if (!id) return;
-    
-    setSaving(true);
+
     try {
-      const updates: CourseUpdate = {
+      setSaving(true);
+
+      // Uploader les nouvelles vidéos si nécessaire
+      for (const module of modules) {
+        for (const lesson of module.lessons) {
+          if (lesson.file) {
+            try {
+              const prepareResponse = await fastAPIClient.prepareUpload(
+                lesson.file.name,
+                lesson.file.type,
+                lesson.file.size
+              );
+
+              if (prepareResponse.url && prepareResponse.headers) {
+                const uploadHeaders = new Headers(prepareResponse.headers);
+                await fetch(prepareResponse.url, {
+                  method: 'PUT',
+                  headers: uploadHeaders,
+                  body: lesson.file
+                });
+              }
+
+              const completeResp = await fastAPIClient.completeUpload({
+                strategy: prepareResponse.strategy,
+                key: prepareResponse.key,
+                content_type: lesson.file.type,
+                size: lesson.file.size,
+                upload_id: prepareResponse.upload_id,
+              });
+
+              lesson.video_key = completeResp.key;
+              lesson.file = undefined;
+            } catch (error) {
+              console.error(`Erreur upload vidéo:`, error);
+            }
+          }
+        }
+      }
+
+      // Mettre à jour le cours
+      await fastAPIClient.updateCourse(id, {
         title: courseData.title,
         description: courseData.description,
         price: courseData.price,
-        status: courseData.status
-      };
-      
-      await fastAPIClient.updateCourse(id, updates);
-      
+      });
+
       toast({
         title: "Cours mis à jour",
         description: "Les modifications ont été sauvegardées avec succès.",
       });
+
+      navigate('/dashboard/superadmin/courses');
     } catch (error: any) {
-      console.error('❌ Erreur mise à jour cours:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de mettre à jour le cours",
+        description: error.message || "Impossible de mettre à jour le cours",
         variant: "destructive"
       });
     } finally {
       setSaving(false);
     }
   };
-  
+
+  const handleAddLesson = (moduleId: string) => {
+    const newLesson: Lesson = {
+      id: `lesson-${Date.now()}`,
+      title: 'Nouvelle leçon',
+      duration: 30,
+      description: ''
+    };
+    setModules(modules.map(m => 
+      m.id === moduleId ? { ...m, lessons: [...m.lessons, newLesson] } : m
+    ));
+  };
+
+  const handleDeleteLesson = (moduleId: string, lessonId: string) => {
+    setModules(modules.map(m =>
+      m.id === moduleId ? { ...m, lessons: m.lessons.filter(l => l.id !== lessonId) } : m
+    ));
+    toast({
+      title: "Leçon supprimée",
+      description: "La leçon a été supprimée du cours.",
+    });
+  };
+
+  const handleLessonChange = (moduleId: string, lessonId: string, field: keyof Lesson, value: any) => {
+    setModules(modules.map(m =>
+      m.id === moduleId
+        ? {
+            ...m,
+            lessons: m.lessons.map(l =>
+              l.id === lessonId ? { ...l, [field]: value } : l
+            )
+          }
+        : m
+    ));
+  };
+
+  const handleFileUpload = (moduleId: string, lessonId: string, file: File) => {
+    handleLessonChange(moduleId, lessonId, 'file', file);
+    toast({
+      title: "Fichier ajouté",
+      description: `${file.name} sera uploadé lors de la sauvegarde`,
+    });
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <div className="flex items-center justify-center pt-32">
-          <LoadingSpinner size="lg" />
-        </div>
-      </div>
-    );
-  }
-  
-  if (!course) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <div className="pt-20 max-w-4xl mx-auto px-4 py-8">
-          <p className="text-center text-gray-600">Cours introuvable</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSpinner size="lg" />
       </div>
     );
   }
 
+  if (!course) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-red-600">Cours introuvable</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -142,17 +279,13 @@ const EditCourse = () => {
             </div>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => navigate(`/cours/${id}`)}>
+            <Button variant="outline" onClick={() => navigate(`/dashboard/superadmin/courses/${id}`)}>
               <Eye className="h-4 w-4 mr-2" />
               Prévisualiser
             </Button>
-            <Button 
-              onClick={handleSave} 
-              className="bg-pink-600 hover:bg-pink-700"
-              disabled={saving}
-            >
-              <Save className="h-4 w-4 mr-2" />
-              {saving ? 'Enregistrement...' : 'Sauvegarder'}
+            <Button onClick={handleSave} disabled={saving} className="bg-pink-600 hover:bg-pink-700">
+              {saving ? <LoadingSpinner size="sm" /> : <Save className="h-4 w-4 mr-2" />}
+              Sauvegarder
             </Button>
           </div>
         </div>
@@ -186,37 +319,40 @@ const EditCourse = () => {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="price">Prix (€)</Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    value={courseData.price}
-                    onChange={(e) => setCourseData({...courseData, price: parseFloat(e.target.value) || 0})}
-                  />
-                </div>
                   <div>
-                    <Label htmlFor="category">Catégorie</Label>
+                    <Label htmlFor="price">Prix (€)</Label>
                     <Input
-                      id="category"
-                      value={courseData.category}
-                      onChange={(e) => setCourseData({...courseData, category: e.target.value})}
+                      id="price"
+                      type="number"
+                      value={courseData.price}
+                      onChange={(e) => setCourseData({...courseData, price: parseFloat(e.target.value)})}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="duration">Durée</Label>
+                    <Input
+                      id="duration"
+                      value={courseData.duration}
+                      onChange={(e) => setCourseData({...courseData, duration: e.target.value})}
                     />
                   </div>
                 </div>
 
                 <div>
                   <Label htmlFor="level">Niveau</Label>
-                  <select
-                    id="level"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
+                  <Select
                     value={courseData.level}
-                    onChange={(e) => setCourseData({...courseData, level: e.target.value})}
+                    onValueChange={(value) => setCourseData({...courseData, level: value})}
                   >
-                    <option value="Débutant">Débutant</option>
-                    <option value="Intermédiaire">Intermédiaire</option>
-                    <option value="Avancé">Avancé</option>
-                  </select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Niveau" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="débutant">Débutant</SelectItem>
+                      <SelectItem value="intermédiaire">Intermédiaire</SelectItem>
+                      <SelectItem value="avancé">Avancé</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </CardContent>
             </Card>
@@ -226,30 +362,85 @@ const EditCourse = () => {
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <div>
-                    <CardTitle>Modules du cours</CardTitle>
-                    <CardDescription>Contenu du cours ({course.modules?.length || 0} modules)</CardDescription>
+                    <CardTitle>Modules et Leçons</CardTitle>
+                    <CardDescription>Contenu du cours</CardDescription>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {course.modules?.map((module, index) => (
-                    <div key={index} className="p-4 border rounded-lg">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-sm font-medium text-gray-700">{module.title}</span>
-                        <span className="text-xs text-gray-500">{module.duration}</span>
+                <div className="space-y-6">
+                  {modules.map((module, moduleIndex) => (
+                    <div key={module.id} className="border rounded-lg p-4 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-semibold">{module.title}</h3>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleAddLesson(module.id)}
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Ajouter une leçon
+                        </Button>
                       </div>
-                      <p className="text-sm text-gray-600">{module.description}</p>
-                      <div className="mt-2 text-xs text-gray-500">
-                        {module.content?.length || 0} leçon(s)
+
+                      <div className="space-y-4">
+                        {module.lessons.map((lesson) => (
+                          <div key={lesson.id} className="p-4 border rounded-lg bg-gray-50">
+                            <div className="flex items-center justify-between mb-3">
+                              <span className="text-sm font-medium text-gray-500">
+                                {lesson.title}
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteLesson(module.id, lesson.id)}
+                              >
+                                <Trash2 className="h-4 w-4 text-red-500" />
+                              </Button>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <Label>Titre de la leçon</Label>
+                                <Input
+                                  value={lesson.title}
+                                  onChange={(e) => handleLessonChange(module.id, lesson.id, 'title', e.target.value)}
+                                />
+                              </div>
+                              <div>
+                                <Label>Durée (minutes)</Label>
+                                <Input
+                                  type="number"
+                                  value={lesson.duration}
+                                  onChange={(e) => handleLessonChange(module.id, lesson.id, 'duration', parseInt(e.target.value))}
+                                />
+                              </div>
+                            </div>
+
+                            {lesson.video_key && (
+                              <div className="mt-2">
+                                <Badge variant="outline">
+                                  📹 Vidéo: {lesson.video_key}
+                                </Badge>
+                              </div>
+                            )}
+
+                            <div className="mt-2">
+                              <Label>Nouvelle vidéo (remplacera l'ancienne)</Label>
+                              <input
+                                type="file"
+                                accept="video/*"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) handleFileUpload(module.id, lesson.id, file);
+                                }}
+                                className="block w-full text-sm"
+                              />
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   ))}
-                  {(!course.modules || course.modules.length === 0) && (
-                    <p className="text-sm text-gray-500 text-center py-4">
-                      Aucun module dans ce cours
-                    </p>
-                  )}
                 </div>
               </CardContent>
             </Card>
@@ -263,16 +454,20 @@ const EditCourse = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {course.image_url && (
+                  {courseData.image_url ? (
                     <img
-                      src={course.image_url}
+                      src={courseData.image_url}
                       alt="Aperçu du cours"
                       className="w-full h-40 object-cover rounded-lg"
                     />
+                  ) : (
+                    <div className="w-full h-40 bg-gray-200 rounded-lg flex items-center justify-center">
+                      <span className="text-gray-500">Pas d'image</span>
+                    </div>
                   )}
-                  <Button variant="outline" className="w-full" disabled>
+                  <Button variant="outline" className="w-full">
                     <Upload className="h-4 w-4 mr-2" />
-                    Changer l'image (bientôt disponible)
+                    Changer l'image
                   </Button>
                 </div>
               </CardContent>
@@ -280,21 +475,14 @@ const EditCourse = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>Informations</CardTitle>
+                <CardTitle>Statut</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Statut</span>
-                  <span className="font-medium capitalize">{courseData.status}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Propriétaire</span>
-                  <span className="font-medium capitalize">{course.owner_type}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Modules</span>
-                  <span className="font-medium">{course.modules?.length || 0}</span>
-                </div>
+              <CardContent>
+                <Badge
+                  variant={course.status === 'published' ? 'default' : 'outline'}
+                >
+                  {course.status === 'published' ? 'Publié' : 'Brouillon'}
+                </Badge>
               </CardContent>
             </Card>
           </div>
