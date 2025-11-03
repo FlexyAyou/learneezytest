@@ -18,13 +18,33 @@ export const useAuthForm = () => {
     try {
       const tokenData = await login.mutateAsync({ email, password });
       
-      // Décoder le JWT pour obtenir le rôle et l'of_id
       toast({
         title: "Connexion réussie",
         description: "Redirection vers votre espace...",
       });
       
-      // La redirection est gérée par SubdomainRouter pour éviter les conflits
+      // Forcer un petit délai pour laisser les tokens se synchroniser
+      setTimeout(async () => {
+        try {
+          // Récupérer les données de l'utilisateur avec le nouveau token
+          const userData = await import('@/services/fastapi-client').then(m => m.fastAPIClient.getCurrentUser());
+          
+          // Redirection basée sur le rôle
+          redirectByRole(userData.role as UserRole, userData.of_id);
+        } catch (error) {
+          console.error('Erreur lors de la récupération des données utilisateur:', error);
+          // Fallback: essayer de rediriger quand même avec le token
+          const token = localStorage.getItem('access_token');
+          if (token) {
+            const { fastAPIClient } = await import('@/services/fastapi-client');
+            const decoded = fastAPIClient.decodeToken(token);
+            if (decoded?.role) {
+              redirectByRole(decoded.role as UserRole);
+            }
+          }
+        }
+      }, 300);
+      
     } catch (error: any) {
       throw error;
     } finally {
