@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,176 +7,167 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Progress } from '@/components/ui/progress';
 import { Switch } from '@/components/ui/switch';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Upload, Plus, X, Save, ArrowLeft, ArrowRight, Video, FileText, Image as ImageIcon, Edit2, Trash2, Check, BookOpen, ClipboardList, HelpCircle, Link as LinkIcon, Eye } from 'lucide-react';
-import { CycleTagSelector } from '@/components/admin/CycleTagSelector';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  ArrowLeft, 
+  Save, 
+  Loader2, 
+  Image as ImageIcon, 
+  FileText, 
+  Video, 
+  Plus, 
+  Trash2, 
+  Edit2, 
+  Check, 
+  X,
+  Upload,
+  Eye,
+  Clock,
+  BookOpen,
+  HelpCircle,
+  ClipboardList,
+  ChevronDown,
+  ChevronUp
+} from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { QuizBuilder, AssignmentBuilder } from '@/components/quiz';
-import type { QuizConfig, AssignmentConfig, QuestionType } from '@/types/quiz';
-import RichTextEditor from '@/components/admin/RichTextEditor';
+import { useAutoSave } from '@/hooks/useAutoSave';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { fastAPIClient } from '@/services/fastapi-client';
+import type { CourseResponse, Module, Content } from '@/types/fastapi';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import RichTextEditor from '@/components/admin/RichTextEditor';
+import { QuizBuilder } from '@/components/quiz';
+import type { QuizConfig } from '@/types/quiz';
 
-interface Lesson {
-  id: string;
-  title: string;
-  duration: number;
-  content: string;
-  fileType: 'video' | 'pdf' | 'image' | null;
-  fileName: string;
-  filePreview?: string;
-  file?: File;
-  uploadedVideoKey?: string;
-  quiz?: QuizConfig;
-  mediaUrl?: string;
-  useMediaUrl?: boolean;
-  video_key?: string; // Existing video key from backend
-}
-
-interface ModuleWithLessons {
-  id: string;
+interface EditableCourseData {
   title: string;
   description: string;
-  lessons: Lesson[];
-  quiz?: QuizConfig;
-  assignment?: AssignmentConfig;
-  pedagogicalResources: Array<{
-    id: string;
-    fileName: string;
-    file: File;
-  }>;
+  price: string;
+  category: string;
+  duration: string;
+  level: string;
+  status: 'draft' | 'published';
+  imagePreview: string | null;
+  programFileName: string;
+}
+
+interface EditableModule {
+  index: number;
+  title: string;
+  description: string;
+  duration: string;
+  lessons: EditableLesson[];
+}
+
+interface EditableLesson {
+  index: number;
+  title: string;
+  description: string;
+  duration: string;
+  video_key?: string;
+  videoFileName?: string;
+}
+
+interface PedagogicalResource {
+  id: string;
+  name: string;
+  key?: string;
+  size?: number;
+  file?: File;
 }
 
 const EditCoursePage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
-  const [currentStep, setCurrentStep] = useState<'info' | 'modules' | 'review'>('info');
-  const [trainers, setTrainers] = useState<Array<{ id: string; name: string }>>([]);
-  const [customCategories, setCustomCategories] = useState<string[]>([]);
+  
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState('general');
+  const [course, setCourse] = useState<CourseResponse | null>(null);
   
-  // Détecter si on est dans le contexte gestionnaire ou superadmin
-  const isManagerContext = location.pathname.includes('/gestionnaire/');
-  const coursesBasePath = isManagerContext ? '/dashboard/gestionnaire/courses' : '/dashboard/superadmin/courses';
-  
-  const [courseData, setCourseData] = useState({
+  // Editable course data
+  const [courseData, setCourseData] = useState<EditableCourseData>({
     title: '',
     description: '',
     price: '',
     category: '',
-    customCategory: '',
     duration: '',
     level: 'débutant',
-    cycle: '' as '' | 'primaire' | 'college' | 'lycee' | 'formation_pro',
-    cycleTags: [] as string[],
-    image: null as File | null,
-    imagePreview: null as string | null,
-    objectives: [''],
-    programFile: null as File | null,
+    status: 'draft',
+    imagePreview: null,
     programFileName: '',
-    ownerId: 'learneezy',
-    status: 'draft' as 'draft' | 'published',
   });
 
-  const [modules, setModules] = useState<ModuleWithLessons[]>([]);
-  const [expandedModule, setExpandedModule] = useState<string | null>(null);
-  const [editingLesson, setEditingLesson] = useState<{ moduleId: string; lessonId: string | null } | null>(null);
+  const [modules, setModules] = useState<EditableModule[]>([]);
+  const [resources, setResources] = useState<PedagogicalResource[]>([]);
+  const [newImage, setNewImage] = useState<File | null>(null);
+  const [newProgram, setNewProgram] = useState<File | null>(null);
   
-  const [showQuizBuilder, setShowQuizBuilder] = useState<{ moduleId: string; lessonId: string } | null>(null);
-  const [showModuleQuizBuilder, setShowModuleQuizBuilder] = useState<string | null>(null);
-  const [showAssignmentBuilder, setShowAssignmentBuilder] = useState<string | null>(null);
+  // Editing states
+  const [editingModuleId, setEditingModuleId] = useState<number | null>(null);
+  const [editingLessonId, setEditingLessonId] = useState<{ moduleIdx: number; lessonIdx: number } | null>(null);
+  const [expandedModules, setExpandedModules] = useState<string[]>([]);
+  const [showQuizBuilder, setShowQuizBuilder] = useState<{ moduleIdx: number; lessonIdx?: number } | null>(null);
 
-  // Load existing course data
+  // Detect context path
+  const isManagerContext = location.pathname.includes('/gestionnaire/');
+  const coursesBasePath = isManagerContext ? '/dashboard/gestionnaire/courses' : '/dashboard/superadmin/courses';
+
+  // Load course data
   useEffect(() => {
     const loadCourse = async () => {
       if (!id) return;
       
       setLoading(true);
       try {
-        const course = await fastAPIClient.getCourse(id);
-        console.log('Loaded course:', course);
+        const courseData = await fastAPIClient.getCourse(id);
+        setCourse(courseData);
         
-        // Populate course data
+        // Populate editable data
         setCourseData({
-          title: course.title || '',
-          description: course.description || '',
-          price: course.price?.toString() || '',
-          category: course.category || '',
-          customCategory: '',
-          duration: course.duration || '',
-          level: course.level || 'débutant',
-          cycle: '' as any,
-          cycleTags: [],
-          image: null,
-          imagePreview: course.image_url || null,
-          objectives: [''],
-          programFile: null,
-          programFileName: '',
-          ownerId: course.owner_type || 'learneezy',
-          status: course.status || 'draft',
+          title: courseData.title || '',
+          description: courseData.description || '',
+          price: courseData.price?.toString() || '',
+          category: courseData.category || '',
+          duration: courseData.duration || '',
+          level: courseData.level || 'débutant',
+          status: (courseData.status as any) || 'draft',
+          imagePreview: courseData.image_url || courseData.cover_key ? 
+            `${import.meta.env.VITE_API_URL}/api/storage/${courseData.cover_key || courseData.image_url}` : null,
+          programFileName: courseData.program_pdf_key ? 'Programme.pdf' : '',
         });
 
-        // Populate modules and lessons
-        if (course.modules && course.modules.length > 0) {
-          const loadedModules: ModuleWithLessons[] = course.modules.map((mod: any, idx: number) => ({
-            id: `module-${idx}`,
-            title: mod.title || `Module ${idx + 1}`,
-            description: mod.description || '',
-            lessons: (mod.content || []).map((lesson: any, lessonIdx: number) => ({
-              id: `lesson-${idx}-${lessonIdx}`,
-              title: lesson.title || `Leçon ${lessonIdx + 1}`,
-              duration: parseInt(lesson.duration) || 0,
-              content: lesson.description || '',
-              fileType: lesson.video_key || lesson.video_url ? 'video' : null,
-              fileName: lesson.video_key ? 'Vidéo existante' : '',
-              video_key: lesson.video_key,
-              mediaUrl: lesson.video_url || '',
-              useMediaUrl: !!lesson.video_url,
-            })),
-            pedagogicalResources: [],
-            quiz: mod.quizzes && mod.quizzes.length > 0 ? {
-              id: `quiz-${idx}`,
-              type: 'quiz' as const,
-              title: mod.quizzes[0].title || 'Quiz',
-              settings: {
-                showFeedback: 'after-submit' as const,
-                allowRetry: true,
-                maxAttempts: 3,
-                randomizeQuestions: false,
-                randomizeOptions: false,
-                timeLimit: undefined,
-                passingScore: 70,
-              },
-              questions: (mod.quizzes[0].questions || []).map((q: any, qIdx: number) => ({
-                id: `q-${idx}-${qIdx}`,
-                type: 'single-choice' as const,
-                question: q.question || '',
-                options: q.options || [],
-                correctAnswer: q.options?.indexOf(q.correct_answer) || 0,
-                points: 1,
-                explanation: '',
-              }))
-            } : undefined,
-          }));
-          setModules(loadedModules);
-          if (loadedModules.length > 0) {
-            setExpandedModule(loadedModules[0].id);
-          }
-        } else {
-          setModules([{
-            id: 'module-1',
-            title: 'Module 1',
-            description: '',
-            lessons: [],
-            pedagogicalResources: [],
-          }]);
-          setExpandedModule('module-1');
+        // Populate modules
+        const editableModules: EditableModule[] = (courseData.modules || []).map((mod: Module, idx: number) => ({
+          index: idx,
+          title: mod.title || '',
+          description: mod.description || '',
+          duration: mod.duration || '',
+          lessons: (mod.content || []).map((lesson: Content, lessonIdx: number) => ({
+            index: lessonIdx,
+            title: lesson.title || '',
+            description: lesson.description || '',
+            duration: lesson.duration || '',
+            video_key: lesson.video_key,
+            videoFileName: lesson.video_key ? 'Vidéo existante' : undefined,
+          })),
+        }));
+        setModules(editableModules);
+
+        // Populate resources
+        const editableResources: PedagogicalResource[] = (courseData.resources || []).map((res, idx) => ({
+          id: `resource-${idx}`,
+          name: res.name || 'Ressource',
+          key: res.key || undefined,
+          size: res.size || undefined,
+        }));
+        setResources(editableResources);
+
+        // Expand first module by default
+        if (editableModules.length > 0) {
+          setExpandedModules(['module-0']);
         }
       } catch (error) {
         console.error('Error loading course:', error);
@@ -192,560 +183,319 @@ const EditCoursePage = () => {
     loadCourse();
   }, [id, toast]);
 
-  // Load trainers on mount
-  useEffect(() => {
-    const loadTrainers = async () => {
-      try {
-        const trainersList = await fastAPIClient.getTrainers();
-        setTrainers(trainersList.map(t => ({
-          id: t.id.toString(),
-          name: `${t.first_name} ${t.last_name}`
-        })));
-      } catch (error) {
-        console.error('Error loading trainers:', error);
-      }
-    };
-    loadTrainers();
-  }, []);
-
-  // Load custom categories from localStorage
-  useEffect(() => {
-    const savedCategories = localStorage.getItem('customCourseCategories');
-    if (savedCategories) {
-      try {
-        setCustomCategories(JSON.parse(savedCategories));
-      } catch (error) {
-        console.error('Error loading custom categories:', error);
-      }
-    }
-  }, []);
-
-  const saveCustomCategory = () => {
-    if (!courseData.customCategory.trim()) {
-      toast({
-        title: "Erreur",
-        description: "Veuillez entrer un nom de catégorie",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const newCategory = courseData.customCategory.trim();
+  // Auto-save for general info
+  const saveCourseInfo = async (data: EditableCourseData) => {
+    if (!id) return;
     
-    if (customCategories.includes(newCategory)) {
-      toast({
-        title: "Catégorie existante",
-        description: "Cette catégorie existe déjà dans la liste",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const updatedCategories = [...customCategories, newCategory];
-    setCustomCategories(updatedCategories);
-    localStorage.setItem('customCourseCategories', JSON.stringify(updatedCategories));
-    
-    handleInputChange('category', newCategory);
-    handleInputChange('customCategory', '');
-
-    toast({
-      title: "Catégorie enregistrée",
-      description: `"${newCategory}" a été ajoutée à la liste des catégories`
-    });
-  };
-
-  const handleInputChange = (field: string, value: string) => {
-    setCourseData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setCourseData(prev => ({ 
-          ...prev, 
-          image: file,
-          imagePreview: e.target?.result as string
-        }));
+    try {
+      const updatePayload: any = {
+        title: data.title,
+        description: data.description,
+        status: data.status,
       };
-      reader.readAsDataURL(file);
-    }
-  };
 
-  const handleProgramUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.type !== 'application/pdf') {
-        toast({
-          title: "Format invalide",
-          description: "Veuillez uploader un fichier PDF",
-          variant: "destructive"
-        });
-        return;
+      if (data.price && !isNaN(parseFloat(data.price))) {
+        updatePayload.price = parseFloat(data.price);
       }
-      setCourseData(prev => ({ 
-        ...prev, 
-        programFile: file,
-        programFileName: file.name
-      }));
-      toast({
-        title: "Programme ajouté",
-        description: file.name
-      });
+
+      await fastAPIClient.updateCourse(id, updatePayload);
+    } catch (error) {
+      console.error('Auto-save error:', error);
+      throw error;
     }
   };
 
-  const addObjective = () => {
-    setCourseData(prev => ({
-      ...prev,
-      objectives: [...prev.objectives, '']
-    }));
-  };
+  const { isSaving, lastSaved, forceSave } = useAutoSave({
+    data: courseData,
+    onSave: saveCourseInfo,
+    delay: 2000,
+    enabled: activeTab === 'general' && !loading
+  });
 
-  const updateObjective = (index: number, value: string) => {
-    setCourseData(prev => ({
-      ...prev,
-      objectives: prev.objectives.map((obj, i) => i === index ? value : obj)
-    }));
-  };
-
-  const removeObjective = (index: number) => {
-    if (courseData.objectives.length > 1) {
-      setCourseData(prev => ({
-        ...prev,
-        objectives: prev.objectives.filter((_, i) => i !== index)
-      }));
-    }
-  };
-
-  const addModule = () => {
-    const newModule: ModuleWithLessons = {
-      id: `module-${Date.now()}`,
-      title: `Module ${modules.length + 1}`,
-      description: '',
-      lessons: [],
-      pedagogicalResources: [],
-    };
-    setModules([...modules, newModule]);
-    setExpandedModule(newModule.id);
-  };
-
-  const removeModule = (moduleId: string) => {
-    setModules(modules.filter(m => m.id !== moduleId));
-  };
-
-  const updateModule = (moduleId: string, field: 'title' | 'description', value: string) => {
-    setModules(modules.map(m => 
-      m.id === moduleId ? { ...m, [field]: value } : m
-    ));
-  };
-
-  const addLesson = (moduleId: string) => {
-    const newLesson: Lesson = {
-      id: `lesson-${Date.now()}`,
-      title: '',
-      duration: 0,
-      content: '',
-      fileType: null,
-      fileName: ''
-    };
-    setModules(modules.map(m => 
-      m.id === moduleId ? { ...m, lessons: [...m.lessons, newLesson] } : m
-    ));
-    setEditingLesson({ moduleId, lessonId: newLesson.id });
-  };
-
-  const removeLesson = (moduleId: string, lessonId: string) => {
-    setModules(modules.map(m => 
-      m.id === moduleId ? { ...m, lessons: m.lessons.filter(l => l.id !== lessonId) } : m
-    ));
-  };
-
-  const updateLesson = (moduleId: string, lessonId: string, updates: Partial<Lesson>) => {
-    setModules(modules.map(m => 
-      m.id === moduleId 
-        ? { 
-            ...m, 
-            lessons: m.lessons.map(l => 
-              l.id === lessonId ? { ...l, ...updates } : l
-            ) 
-          } 
-        : m
-    ));
-  };
-
-  const handleFileUpload = (moduleId: string, lessonId: string, event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const fileType = file.type.startsWith('video/') ? 'video' 
-      : file.type === 'application/pdf' ? 'pdf' 
-      : file.type.startsWith('image/') ? 'image' 
-      : null;
-
-    if (!fileType) {
-      toast({
-        title: "Format non supporté",
-        description: "Veuillez uploader une vidéo, PDF ou image",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      updateLesson(moduleId, lessonId, {
-        fileType,
-        fileName: file.name,
-        filePreview: e.target?.result as string,
-        file: file
-      });
-    };
-    reader.readAsDataURL(file);
-
-    toast({
-      title: "Fichier ajouté",
-      description: `${file.name} a été ajouté à la leçon`
-    });
-  };
-
-  const handleSaveQuiz = (moduleId: string, lessonId: string, quiz: QuizConfig) => {
-    updateLesson(moduleId, lessonId, { quiz });
-    setShowQuizBuilder(null);
-    toast({
-      title: "Quiz sauvegardé",
-      description: "Le quiz a été ajouté à la leçon",
-    });
-  };
-
-  const handleRemoveQuiz = (moduleId: string, lessonId: string) => {
-    updateLesson(moduleId, lessonId, { quiz: undefined });
-    toast({
-      title: "Quiz supprimé",
-      description: "Le quiz a été retiré de la leçon",
-    });
-  };
-
-  const handleSaveAssignment = (moduleId: string, assignment: AssignmentConfig) => {
-    setModules(modules.map(m => 
-      m.id === moduleId ? { ...m, assignment } : m
-    ));
-    setShowAssignmentBuilder(null);
-    toast({
-      title: "Devoir sauvegardé",
-      description: "Le devoir a été ajouté au module",
-    });
-  };
-
-  const handleRemoveAssignment = (moduleId: string) => {
-    setModules(modules.map(m => 
-      m.id === moduleId ? { ...m, assignment: undefined } : m
-    ));
-    toast({
-      title: "Devoir supprimé",
-      description: "Le devoir a été retiré du module",
-    });
-  };
-
-  const handleSaveModuleQuiz = (moduleId: string, quiz: QuizConfig) => {
-    setModules(modules.map(m => 
-      m.id === moduleId ? { ...m, quiz } : m
-    ));
-    setShowModuleQuizBuilder(null);
-    toast({
-      title: "Quiz sauvegardé",
-      description: "Le quiz a été ajouté au module",
-    });
-  };
-
-  const handleRemoveModuleQuiz = (moduleId: string) => {
-    setModules(modules.map(m => 
-      m.id === moduleId ? { ...m, quiz: undefined } : m
-    ));
-    toast({
-      title: "Quiz supprimé",
-      description: "Le quiz a été retiré du module",
-    });
-  };
-
-  const handleAddPedagogicalResource = (moduleId: string, file: File) => {
-    if (file.type !== 'application/pdf') {
-      toast({
-        title: "Format invalide",
-        description: "Veuillez uploader un fichier PDF",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const resource = {
-      id: `resource-${Date.now()}`,
-      fileName: file.name,
-      file: file
-    };
-
-    setModules(modules.map(m => 
-      m.id === moduleId 
-        ? { ...m, pedagogicalResources: [...m.pedagogicalResources, resource] } 
-        : m
-    ));
-
-    toast({
-      title: "Ressource ajoutée",
-      description: file.name
-    });
-  };
-
-  const handleRemovePedagogicalResource = (moduleId: string, resourceId: string) => {
-    setModules(modules.map(m => 
-      m.id === moduleId 
-        ? { ...m, pedagogicalResources: m.pedagogicalResources.filter(r => r.id !== resourceId) } 
-        : m
-    ));
-    toast({
-      title: "Ressource supprimée",
-      description: "La ressource a été retirée du module",
-    });
-  };
-
+  // Toggle course status
   const handleToggleStatus = async () => {
     if (!id) return;
     
     try {
       const newStatus = courseData.status === 'published' ? 'draft' : 'published';
-      const updatedCourse = await fastAPIClient.updateCourseStatus(id, newStatus);
+      await fastAPIClient.updateCourseStatus(id, newStatus);
       setCourseData(prev => ({ ...prev, status: newStatus }));
       toast({
-        title: newStatus === 'published' ? "✅ Cours publié" : "📝 Cours en brouillon",
-        description: `Le cours est maintenant ${newStatus === 'published' ? 'visible par tous' : 'masqué du public'}.`,
+        title: newStatus === 'published' ? "✅ Cours publié" : "📝 Brouillon",
+        description: `Le cours est maintenant ${newStatus === 'published' ? 'visible' : 'masqué'}`,
       });
     } catch (error) {
-      console.error('Error updating status:', error);
+      console.error('Error toggling status:', error);
       toast({
-        title: "❌ Erreur",
+        title: "Erreur",
         description: "Impossible de modifier le statut",
         variant: "destructive"
       });
     }
   };
 
-  const handleUpdateCourse = async () => {
-    if (!id || !courseData.title || !courseData.description) {
-      toast({
-        title: "Erreur",
-        description: "Veuillez remplir tous les champs obligatoires (titre et description)",
-        variant: "destructive"
-      });
-      return;
-    }
+  // Upload new course image
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !id) return;
 
-    if (modules.length === 0) {
-      toast({
-        title: "Erreur",
-        description: "Veuillez ajouter au moins un module",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const invalidModules = modules.filter(m => 
-      m.lessons.length === 0 && !m.quiz && !m.assignment
-    );
-    
-    if (invalidModules.length > 0) {
-      toast({
-        title: "Erreur",
-        description: "Chaque module doit contenir au moins une leçon, un quiz ou un devoir",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setSaving(true);
     try {
-      const { calculateModuleDuration } = await import('@/utils/courseHelpers');
-      
-      // Upload new videos
-      toast({
-        title: "Upload des vidéos...",
-        description: "Téléchargement des nouvelles vidéos",
-      });
+      toast({ title: "Upload en cours...", description: "Téléchargement de l'image" });
 
-      for (const module of modules) {
-        for (const lesson of module.lessons) {
-          if (lesson.file && lesson.fileType === 'video' && !lesson.uploadedVideoKey) {
-            try {
-              console.log(`📤 Upload vidéo: ${lesson.fileName}`);
-              
-              const prepareResponse = await fastAPIClient.prepareUpload(
-                lesson.file.name,
-                lesson.file.type,
-                lesson.file.size
-              );
+      const prepareResponse = await fastAPIClient.prepareUpload(
+        file.name,
+        file.type,
+        file.size
+      );
 
-              if (prepareResponse.strategy === 'single' && prepareResponse.url && prepareResponse.headers) {
-                const uploadHeaders = new Headers(prepareResponse.headers);
-                await fetch(prepareResponse.url, {
-                  method: 'PUT',
-                  headers: uploadHeaders,
-                  body: lesson.file
-                });
-              } else if (prepareResponse.strategy === 'multipart' && prepareResponse.parts) {
-                const parts = [];
-                const partSize = prepareResponse.part_size || 5 * 1024 * 1024;
-                
-                for (let i = 0; i < prepareResponse.parts.length; i++) {
-                  const part = prepareResponse.parts[i];
-                  const start = (part.partNumber - 1) * partSize;
-                  const end = Math.min(start + partSize, lesson.file.size);
-                  const blob = lesson.file.slice(start, end);
+      if (prepareResponse.strategy === 'single' && prepareResponse.url) {
+        await fetch(prepareResponse.url, {
+          method: 'PUT',
+          body: file,
+          headers: prepareResponse.headers || {},
+        });
 
-                  const response = await fetch(part.url, {
-                    method: 'PUT',
-                    body: blob
-                  });
+        await fastAPIClient.completeUpload({
+          strategy: 'single',
+          key: prepareResponse.key,
+          content_type: file.type,
+          size: file.size,
+        });
 
-                  const etag = response.headers.get('ETag')?.replace(/"/g, '') || '';
-                  parts.push({
-                    ETag: etag,
-                    PartNumber: part.partNumber
-                  });
-                }
+        // Update course with new cover key
+        await fastAPIClient.updateCourse(id, { cover_key: prepareResponse.key });
+        
+        const imageUrl = `${import.meta.env.VITE_API_URL}/api/storage/${prepareResponse.key}`;
+        setCourseData(prev => ({ ...prev, imagePreview: imageUrl }));
 
-                await fastAPIClient.completeUpload({
-                  strategy: 'multipart',
-                  key: prepareResponse.key,
-                  upload_id: prepareResponse.upload_id!,
-                  parts,
-                  content_type: lesson.file.type,
-                  size: lesson.file.size
-                });
-              }
-
-              if (prepareResponse.strategy === 'single') {
-                await fastAPIClient.completeUpload({
-                  strategy: 'single',
-                  key: prepareResponse.key,
-                  content_type: lesson.file.type,
-                  size: lesson.file.size
-                });
-              }
-
-              lesson.uploadedVideoKey = prepareResponse.key;
-              
-              console.log(`✅ Vidéo uploadée: ${lesson.fileName} → ${prepareResponse.key}`);
-              
-              toast({
-                title: "Vidéo uploadée",
-                description: `${lesson.fileName} est prête`,
-              });
-            } catch (uploadError: any) {
-              console.error(`❌ Erreur upload vidéo ${lesson.fileName}:`, uploadError);
-              toast({
-                title: "Erreur d'upload",
-                description: `Impossible d'uploader ${lesson.fileName}`,
-                variant: "destructive"
-              });
-            }
-          }
-        }
+        toast({ title: "✅ Image mise à jour", description: "La couverture a été modifiée" });
       }
-
-      // Upload image if new one selected
-      let imageUrl = courseData.imagePreview;
-      if (courseData.image) {
-        try {
-          const prepareResponse = await fastAPIClient.prepareUpload(
-            courseData.image.name,
-            courseData.image.type,
-            courseData.image.size
-          );
-
-          if (prepareResponse.strategy === 'single' && prepareResponse.url) {
-            await fetch(prepareResponse.url, {
-              method: 'PUT',
-              body: courseData.image,
-              headers: prepareResponse.headers || {},
-            });
-          }
-
-          const completeResponse = await fastAPIClient.completeUpload({
-            strategy: prepareResponse.strategy,
-            key: prepareResponse.key,
-            content_type: courseData.image.type,
-            size: courseData.image.size,
-            upload_id: prepareResponse.upload_id,
-          });
-
-          imageUrl = `${import.meta.env.VITE_API_URL || 'https://api.plateforme-test-infinitiax.com'}/api/storage/${completeResponse.key}`;
-        } catch (error) {
-          console.error('Error uploading image:', error);
-        }
-      }
-
-      toast({
-        title: "Mise à jour du cours...",
-        description: "Envoi des données au serveur",
-      });
-
-      // Prepare update payload (only fields accepted by CourseUpdate interface)
-      const coursePayload: {
-        title?: string;
-        description?: string;
-        price?: number | null;
-        status?: 'draft' | 'published';
-      } = {
-        title: courseData.title,
-        description: courseData.description,
-        status: courseData.status,
-      };
-
-      // Only include price if it's a valid number
-      if (courseData.price && !isNaN(parseFloat(courseData.price))) {
-        coursePayload.price = parseFloat(courseData.price);
-      }
-
-      // Use the update endpoint (only updates top-level fields)
-      await fastAPIClient.updateCourse(id, coursePayload);
-      
-      toast({
-        title: "✅ Cours mis à jour",
-        description: `Le cours "${courseData.title}" a été mis à jour avec succès`,
-      });
-      
-      navigate(`${coursesBasePath}/${id}`);
-      
-    } catch (error: any) {
-      console.error('Erreur mise à jour cours:', error);
-      toast({
-        title: "Erreur",
-        description: error?.response?.data?.detail || error?.message || "Une erreur est survenue lors de la mise à jour du cours",
-        variant: "destructive"
-      });
-    } finally {
-      setSaving(false);
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast({ title: "Erreur", description: "Impossible d'uploader l'image", variant: "destructive" });
     }
   };
 
-  const canProceedToNextStep = () => {
-    if (currentStep === 'info') {
-      return courseData.title && courseData.description;
+  // Upload new program PDF
+  const handleProgramUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !id) return;
+
+    if (file.type !== 'application/pdf') {
+      toast({ title: "Format invalide", description: "Veuillez uploader un PDF", variant: "destructive" });
+      return;
     }
-    if (currentStep === 'modules') {
-      return modules.length > 0 && modules.some(m => m.lessons.length > 0);
+
+    try {
+      toast({ title: "Upload en cours...", description: "Téléchargement du programme" });
+
+      const prepareResponse = await fastAPIClient.prepareUpload(file.name, file.type, file.size);
+
+      if (prepareResponse.strategy === 'single' && prepareResponse.url) {
+        await fetch(prepareResponse.url, {
+          method: 'PUT',
+          body: file,
+          headers: prepareResponse.headers || {},
+        });
+
+        await fastAPIClient.completeUpload({
+          strategy: 'single',
+          key: prepareResponse.key,
+          content_type: file.type,
+          size: file.size,
+        });
+
+        await fastAPIClient.updateCourse(id, { program_pdf_key: prepareResponse.key });
+        setCourseData(prev => ({ ...prev, programFileName: file.name }));
+
+        toast({ title: "✅ Programme mis à jour", description: file.name });
+      }
+    } catch (error) {
+      console.error('Error uploading program:', error);
+      toast({ title: "Erreur", description: "Impossible d'uploader le programme", variant: "destructive" });
     }
-    return true;
   };
 
-  const steps = [
-    { id: 'info', label: 'Informations', icon: BookOpen },
-    { id: 'modules', label: 'Modules & Leçons', icon: FileText },
-    { id: 'review', label: 'Révision', icon: Check }
-  ];
+  // Save module changes
+  const handleSaveModule = async (moduleIdx: number) => {
+    if (!id || !course) return;
 
-  const currentStepIndex = steps.findIndex(s => s.id === currentStep);
-  const progressPercentage = ((currentStepIndex + 1) / steps.length) * 100;
+    try {
+      const moduleToSave = modules[moduleIdx];
+      await fastAPIClient.updateModule(id, moduleIdx, {
+        title: moduleToSave.title,
+        description: moduleToSave.description,
+        duration: moduleToSave.duration,
+        content: moduleToSave.lessons.map(l => ({
+          title: l.title,
+          description: l.description,
+          duration: l.duration,
+          video_url: l.video_key,
+        })),
+      });
+
+      setEditingModuleId(null);
+      toast({ title: "✅ Module sauvegardé", description: moduleToSave.title });
+    } catch (error) {
+      console.error('Error saving module:', error);
+      toast({ title: "Erreur", description: "Impossible de sauvegarder le module", variant: "destructive" });
+    }
+  };
+
+  // Save lesson changes
+  const handleSaveLesson = async (moduleIdx: number, lessonIdx: number) => {
+    if (!id) return;
+
+    try {
+      const lesson = modules[moduleIdx].lessons[lessonIdx];
+      await fastAPIClient.updateLesson(id, moduleIdx, lessonIdx, {
+        title: lesson.title,
+        description: lesson.description,
+        duration: lesson.duration,
+        video_url: lesson.video_key,
+      });
+
+      setEditingLessonId(null);
+      toast({ title: "✅ Leçon sauvegardée", description: lesson.title });
+    } catch (error) {
+      console.error('Error saving lesson:', error);
+      toast({ title: "Erreur", description: "Impossible de sauvegarder la leçon", variant: "destructive" });
+    }
+  };
+
+  // Delete module
+  const handleDeleteModule = async (moduleIdx: number) => {
+    if (!id || !confirm('Supprimer ce module ?')) return;
+
+    try {
+      await fastAPIClient.deleteModule(id, moduleIdx);
+      setModules(prev => prev.filter((_, idx) => idx !== moduleIdx));
+      toast({ title: "✅ Module supprimé" });
+    } catch (error) {
+      console.error('Error deleting module:', error);
+      toast({ title: "Erreur", description: "Impossible de supprimer le module", variant: "destructive" });
+    }
+  };
+
+  // Delete lesson
+  const handleDeleteLesson = async (moduleIdx: number, lessonIdx: number) => {
+    if (!id || !confirm('Supprimer cette leçon ?')) return;
+
+    try {
+      await fastAPIClient.deleteLesson(id, moduleIdx, lessonIdx);
+      setModules(prev => prev.map((mod, idx) => 
+        idx === moduleIdx 
+          ? { ...mod, lessons: mod.lessons.filter((_, lIdx) => lIdx !== lessonIdx) }
+          : mod
+      ));
+      toast({ title: "✅ Leçon supprimée" });
+    } catch (error) {
+      console.error('Error deleting lesson:', error);
+      toast({ title: "Erreur", description: "Impossible de supprimer la leçon", variant: "destructive" });
+    }
+  };
+
+  // Upload lesson video
+  const handleLessonVideoUpload = async (moduleIdx: number, lessonIdx: number, file: File) => {
+    if (!id) return;
+
+    try {
+      toast({ title: "Upload vidéo...", description: file.name });
+
+      const prepareResponse = await fastAPIClient.prepareUpload(file.name, file.type, file.size);
+
+      if (prepareResponse.strategy === 'single' && prepareResponse.url) {
+        await fetch(prepareResponse.url, {
+          method: 'PUT',
+          body: file,
+          headers: prepareResponse.headers || {},
+        });
+
+        await fastAPIClient.completeUpload({
+          strategy: 'single',
+          key: prepareResponse.key,
+          content_type: file.type,
+          size: file.size,
+        });
+
+        // Attach video to lesson
+        await fastAPIClient.attachLessonVideo(id, moduleIdx, lessonIdx, prepareResponse.key);
+
+        setModules(prev => prev.map((mod, mIdx) => 
+          mIdx === moduleIdx 
+            ? {
+                ...mod,
+                lessons: mod.lessons.map((lesson, lIdx) =>
+                  lIdx === lessonIdx
+                    ? { ...lesson, video_key: prepareResponse.key, videoFileName: file.name }
+                    : lesson
+                )
+              }
+            : mod
+        ));
+
+        toast({ title: "✅ Vidéo uploadée", description: file.name });
+      }
+    } catch (error) {
+      console.error('Error uploading video:', error);
+      toast({ title: "Erreur", description: "Impossible d'uploader la vidéo", variant: "destructive" });
+    }
+  };
+
+  // Add new resource
+  const handleAddResource = async (file: File) => {
+    if (!id || file.type !== 'application/pdf') {
+      toast({ title: "Format invalide", description: "Veuillez uploader un PDF", variant: "destructive" });
+      return;
+    }
+
+    try {
+      toast({ title: "Upload ressource...", description: file.name });
+
+      const prepareResponse = await fastAPIClient.prepareUpload(file.name, file.type, file.size);
+
+      if (prepareResponse.strategy === 'single' && prepareResponse.url) {
+        await fetch(prepareResponse.url, {
+          method: 'PUT',
+          body: file,
+          headers: prepareResponse.headers || {},
+        });
+
+        await fastAPIClient.completeUpload({
+          strategy: 'single',
+          key: prepareResponse.key,
+          content_type: file.type,
+          size: file.size,
+        });
+
+        await fastAPIClient.attachCourseResource(id, prepareResponse.key, file.name, file.size);
+
+        setResources(prev => [
+          ...prev,
+          { id: `resource-${Date.now()}`, name: file.name, key: prepareResponse.key, size: file.size }
+        ]);
+
+        toast({ title: "✅ Ressource ajoutée", description: file.name });
+      }
+    } catch (error) {
+      console.error('Error uploading resource:', error);
+      toast({ title: "Erreur", description: "Impossible d'uploader la ressource", variant: "destructive" });
+    }
+  };
+
+  // Delete resource
+  const handleDeleteResource = async (resourceKey: string) => {
+    if (!id || !confirm('Supprimer cette ressource ?')) return;
+
+    try {
+      await fastAPIClient.detachCourseResource(id, resourceKey);
+      setResources(prev => prev.filter(r => r.key !== resourceKey));
+      toast({ title: "✅ Ressource supprimée" });
+    } catch (error) {
+      console.error('Error deleting resource:', error);
+      toast({ title: "Erreur", description: "Impossible de supprimer la ressource", variant: "destructive" });
+    }
+  };
 
   if (loading) {
     return (
@@ -761,20 +511,31 @@ const EditCoursePage = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <Button
-              variant="ghost"
-              onClick={() => navigate(coursesBasePath)}
-              className="mb-2"
-            >
+            <Button variant="ghost" onClick={() => navigate(coursesBasePath)} className="mb-2">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Retour aux cours
             </Button>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-              Éditer le cours
+              Édition du cours
             </h1>
-            <p className="text-gray-600 mt-1">Modifiez tous les aspects de votre cours</p>
+            <p className="text-gray-600 mt-1">{courseData.title || 'Sans titre'}</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
+            {/* Save indicator */}
+            {isSaving && (
+              <div className="flex items-center gap-2 text-orange-600">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-sm">Sauvegarde...</span>
+              </div>
+            )}
+            {lastSaved && !isSaving && (
+              <div className="flex items-center gap-2 text-green-600">
+                <Check className="h-4 w-4" />
+                <span className="text-sm">Sauvegardé à {lastSaved.toLocaleTimeString()}</span>
+              </div>
+            )}
+            
+            {/* Status toggle */}
             <div className="flex items-center gap-2">
               <Label htmlFor="status-toggle" className="text-sm font-medium">
                 {courseData.status === 'draft' ? 'Publier' : 'Brouillon'}
@@ -785,6 +546,8 @@ const EditCoursePage = () => {
                 onCheckedChange={handleToggleStatus}
               />
             </div>
+
+            {/* Preview button */}
             <Button variant="outline" onClick={() => navigate(`${coursesBasePath}/${id}`)}>
               <Eye className="h-4 w-4 mr-2" />
               Prévisualiser
@@ -792,165 +555,107 @@ const EditCoursePage = () => {
           </div>
         </div>
 
-        {/* Progress Steps */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="mb-4">
-              <Progress value={progressPercentage} className="h-2" />
-              <div className="flex justify-between items-center mt-2">
-                <span className="text-sm font-medium text-gray-700">
-                  Étape {currentStepIndex + 1} sur {steps.length}
-                </span>
-                <span className="text-sm text-gray-500">
-                  {Math.round(progressPercentage)}% complété
-                </span>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-3 gap-4">
-              {steps.map((step, index) => {
-                const Icon = step.icon;
-                const isActive = step.id === currentStep;
-                const isCompleted = index < currentStepIndex;
-                
-                return (
-                  <div
-                    key={step.id}
-                    className={`flex flex-col items-center text-center p-4 rounded-lg transition-all ${
-                      isActive 
-                        ? 'bg-gradient-to-br from-pink-100 to-purple-100 border-2 border-pink-300' 
-                        : isCompleted 
-                          ? 'bg-green-50 border border-green-200' 
-                          : 'bg-gray-50 border border-gray-200'
-                    }`}
-                  >
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 ${
-                      isCompleted 
-                        ? 'bg-green-500 text-white' 
-                        : isActive 
-                          ? 'bg-gradient-to-br from-pink-600 to-purple-600 text-white' 
-                          : 'bg-gray-200 text-gray-400'
-                    }`}>
-                      {isCompleted ? (
-                        <Check className="h-6 w-6" />
-                      ) : (
-                        <Icon className="h-6 w-6" />
-                      )}
-                    </div>
-                    <div className={`font-semibold ${
-                      isActive ? 'text-pink-600' : isCompleted ? 'text-green-600' : 'text-gray-400'
-                    }`}>
-                      {step.label}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-4 mb-6">
+            <TabsTrigger value="general">
+              <BookOpen className="h-4 w-4 mr-2" />
+              Informations générales
+            </TabsTrigger>
+            <TabsTrigger value="modules">
+              <FileText className="h-4 w-4 mr-2" />
+              Modules & Leçons
+            </TabsTrigger>
+            <TabsTrigger value="resources">
+              <ClipboardList className="h-4 w-4 mr-2" />
+              Ressources
+            </TabsTrigger>
+            <TabsTrigger value="preview">
+              <Eye className="h-4 w-4 mr-2" />
+              Prévisualisation
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Step Content - Réutiliser la même structure que CreateCoursePage */}
-        <Card>
-          <CardContent className="pt-6">
-            {currentStep === 'info' && (
-              <div className="space-y-6">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">Informations générales du cours</h2>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="md:col-span-2">
-                    <Label className="text-base">Titre du cours *</Label>
-                    <Input
-                      value={courseData.title}
-                      onChange={(e) => handleInputChange('title', e.target.value)}
-                      placeholder="Ex: Maîtrisez React de A à Z"
-                      className="mt-2"
-                    />
-                  </div>
-                  
-                  <div className="md:col-span-2">
-                    <Label className="text-base">Description *</Label>
-                    <RichTextEditor
-                      value={courseData.description}
-                      onChange={(value) => handleInputChange('description', value)}
-                      placeholder="Décrivez votre cours en détail..."
-                      height="200px"
-                    />
-                  </div>
+          {/* General Info Tab */}
+          <TabsContent value="general" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Informations générales du cours</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Title */}
+                <div>
+                  <Label htmlFor="title">Titre du cours *</Label>
+                  <Input
+                    id="title"
+                    value={courseData.title}
+                    onChange={(e) => setCourseData(prev => ({ ...prev, title: e.target.value }))}
+                    placeholder="Ex: Maîtrisez React de A à Z"
+                  />
+                </div>
 
+                {/* Description */}
+                <div>
+                  <Label htmlFor="description">Description *</Label>
+                  <Textarea
+                    id="description"
+                    value={courseData.description}
+                    onChange={(e) => setCourseData(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Décrivez votre cours..."
+                    rows={5}
+                  />
+                </div>
+
+                {/* Price & Category */}
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-base">Prix (€)</Label>
+                    <Label htmlFor="price">Prix (€)</Label>
                     <Input
+                      id="price"
                       type="number"
                       value={courseData.price}
-                      onChange={(e) => handleInputChange('price', e.target.value)}
-                      placeholder="89"
-                      className="mt-2"
+                      onChange={(e) => setCourseData(prev => ({ ...prev, price: e.target.value }))}
+                      placeholder="89.99"
                     />
                   </div>
-
                   <div>
-                    <Label className="text-base">Catégorie</Label>
-                    <Select 
-                      value={courseData.category === 'custom' ? 'custom' : courseData.category} 
-                      onValueChange={(value) => {
-                        if (value === 'custom') {
-                          handleInputChange('category', 'custom');
-                        } else {
-                          handleInputChange('category', value);
-                          handleInputChange('customCategory', '');
-                        }
-                      }}
+                    <Label htmlFor="category">Catégorie</Label>
+                    <Select
+                      value={courseData.category}
+                      onValueChange={(value) => setCourseData(prev => ({ ...prev, category: value }))}
                     >
-                      <SelectTrigger className="mt-2">
-                        <SelectValue placeholder="Sélectionner" />
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choisir une catégorie" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="development">Développement</SelectItem>
                         <SelectItem value="design">Design</SelectItem>
                         <SelectItem value="marketing">Marketing</SelectItem>
                         <SelectItem value="business">Business</SelectItem>
-                        {customCategories.map(cat => (
-                          <SelectItem key={cat} value={cat}>
-                            {cat}
-                          </SelectItem>
-                        ))}
-                        <SelectItem value="custom">➕ Ajouter une nouvelle catégorie</SelectItem>
+                        <SelectItem value="other">Autre</SelectItem>
                       </SelectContent>
                     </Select>
-                    {courseData.category === 'custom' && (
-                      <div className="mt-2 space-y-2">
-                        <Input
-                          value={courseData.customCategory}
-                          onChange={(e) => handleInputChange('customCategory', e.target.value)}
-                          placeholder="Entrez une catégorie personnalisée"
-                        />
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={saveCustomCategory}
-                          className="w-full"
-                        >
-                          <Save className="h-4 w-4 mr-2" />
-                          Enregistrer et ajouter à la liste
-                        </Button>
-                      </div>
-                    )}
                   </div>
+                </div>
 
+                {/* Duration & Level */}
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-base">Durée totale</Label>
+                    <Label htmlFor="duration">Durée totale</Label>
                     <Input
+                      id="duration"
                       value={courseData.duration}
-                      onChange={(e) => handleInputChange('duration', e.target.value)}
-                      placeholder="Ex: 20h"
-                      className="mt-2"
+                      onChange={(e) => setCourseData(prev => ({ ...prev, duration: e.target.value }))}
+                      placeholder="10h 30min"
                     />
                   </div>
-
                   <div>
-                    <Label className="text-base">Niveau</Label>
-                    <Select value={courseData.level} onValueChange={(value) => handleInputChange('level', value)}>
-                      <SelectTrigger className="mt-2">
+                    <Label htmlFor="level">Niveau</Label>
+                    <Select
+                      value={courseData.level}
+                      onValueChange={(value) => setCourseData(prev => ({ ...prev, level: value }))}
+                    >
+                      <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -962,314 +667,282 @@ const EditCoursePage = () => {
                   </div>
                 </div>
 
+                {/* Course Image */}
                 <div>
-                  <Label className="text-base">Image de couverture</Label>
-                  <div className="mt-2 border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-pink-400 transition-colors">
-                    {courseData.imagePreview ? (
-                      <div className="space-y-4">
-                        <img 
-                          src={courseData.imagePreview} 
-                          alt="Preview" 
-                          className="max-h-48 mx-auto rounded-lg"
-                        />
-                        <Button
-                          variant="outline"
-                          onClick={() => setCourseData(prev => ({ ...prev, image: null, imagePreview: null }))}
-                        >
-                          Changer l'image
-                        </Button>
-                      </div>
-                    ) : (
-                      <>
-                        <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                        <p className="text-gray-600 mb-4">Glissez votre image ici ou cliquez pour sélectionner</p>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageUpload}
-                          className="hidden"
-                          id="course-image-upload"
-                        />
-                        <label htmlFor="course-image-upload">
-                          <Button variant="outline" className="cursor-pointer" type="button" asChild>
-                            <span>Choisir un fichier</span>
-                          </Button>
-                        </label>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Modules Step - Code identique à CreateCoursePage mais trop long pour tout inclure ici */}
-            {currentStep === 'modules' && (
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold text-gray-800">Modules et contenus</h2>
-                  <Button onClick={addModule} className="bg-pink-600 hover:bg-pink-700">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Ajouter un module
-                  </Button>
-                </div>
-
-                <p className="text-sm text-gray-600">
-                  📚 {modules.length} module{modules.length > 1 ? 's' : ''} • 
-                  📝 {modules.reduce((acc, m) => acc + m.lessons.length, 0)} leçon{modules.reduce((acc, m) => acc + m.lessons.length, 0) > 1 ? 's' : ''}
-                </p>
-
-                {modules.length === 0 ? (
-                  <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed">
-                    <BookOpen className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-                    <p className="text-gray-500 mb-4">Aucun module pour le moment</p>
-                    <Button onClick={addModule} className="bg-pink-600 hover:bg-pink-700">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Créer le premier module
+                  <Label>Image de couverture</Label>
+                  {courseData.imagePreview && (
+                    <div className="mt-2 mb-3">
+                      <img 
+                        src={courseData.imagePreview} 
+                        alt="Couverture" 
+                        className="w-64 h-40 object-cover rounded-lg border"
+                      />
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      id="course-image-upload"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => document.getElementById('course-image-upload')?.click()}
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      {courseData.imagePreview ? 'Remplacer l\'image' : 'Uploader une image'}
                     </Button>
                   </div>
+                </div>
+
+                {/* Program PDF */}
+                <div>
+                  <Label>Programme de formation (PDF)</Label>
+                  {courseData.programFileName && (
+                    <div className="flex items-center gap-2 mt-2 mb-3 p-2 bg-blue-50 rounded">
+                      <FileText className="h-5 w-5 text-blue-600" />
+                      <span className="text-sm">{courseData.programFileName}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="file"
+                      accept="application/pdf"
+                      onChange={handleProgramUpload}
+                      className="hidden"
+                      id="program-pdf-upload"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => document.getElementById('program-pdf-upload')?.click()}
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      {courseData.programFileName ? 'Remplacer le PDF' : 'Uploader un PDF'}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Modules & Lessons Tab */}
+          <TabsContent value="modules" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Modules et leçons du cours</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {modules.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <BookOpen className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+                    <p>Aucun module disponible</p>
+                    <p className="text-sm">Les modules doivent être créés via l'API</p>
+                  </div>
                 ) : (
-                  <Accordion type="single" collapsible value={expandedModule || undefined} onValueChange={setExpandedModule}>
-                    {modules.map((module, moduleIndex) => (
-                      <AccordionItem key={module.id} value={module.id} className="border rounded-lg mb-4 overflow-hidden">
-                        <AccordionTrigger className="hover:no-underline px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100">
+                  <Accordion type="multiple" value={expandedModules} onValueChange={setExpandedModules}>
+                    {modules.map((module, moduleIdx) => (
+                      <AccordionItem key={`module-${moduleIdx}`} value={`module-${moduleIdx}`}>
+                        <AccordionTrigger className="hover:no-underline">
                           <div className="flex items-center justify-between w-full pr-4">
-                            <div className="flex items-center space-x-4">
-                              <Badge className="bg-gradient-to-r from-pink-600 to-purple-600">
-                                Module {moduleIndex + 1}
-                              </Badge>
+                            <div className="flex items-center gap-3">
+                              <BookOpen className="h-5 w-5 text-purple-600" />
                               <div className="text-left">
-                                <div className="font-semibold text-lg">{module.title || 'Sans titre'}</div>
-                                <div className="text-sm text-gray-600 font-normal">
-                                  {module.lessons.length} leçon{module.lessons.length !== 1 ? 's' : ''}
+                                <div className="font-semibold">{module.title || `Module ${moduleIdx + 1}`}</div>
+                                <div className="text-sm text-gray-500">
+                                  {module.lessons.length} leçon{module.lessons.length > 1 ? 's' : ''}
+                                  {module.duration && ` • ${module.duration}`}
                                 </div>
                               </div>
                             </div>
-                            {modules.length > 1 && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  removeModule(module.id);
-                                }}
-                                className="hover:bg-red-50"
-                              >
-                                <Trash2 className="h-4 w-4 text-red-500" />
-                              </Button>
-                            )}
                           </div>
                         </AccordionTrigger>
-                        <AccordionContent className="px-6 py-6 bg-white">
-                          <div className="space-y-6">
-                            <div className="space-y-4">
-                              <div>
-                                <Label>Titre du module</Label>
-                                <Input
-                                  value={module.title}
-                                  onChange={(e) => updateModule(module.id, 'title', e.target.value)}
-                                  placeholder="Titre du module"
-                                  className="mt-2"
-                                />
-                              </div>
-                              <div>
-                                <Label>Description</Label>
-                                <RichTextEditor
-                                  value={module.description}
-                                  onChange={(value) => updateModule(module.id, 'description', value)}
-                                  placeholder="Description du module"
-                                  height="150px"
-                                />
-                              </div>
-                            </div>
-
-                            <div className="space-y-4 border-t pt-6">
-                              <div className="flex items-center justify-between">
-                                <h4 className="font-semibold text-lg">Leçons</h4>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => addLesson(module.id)}
-                                >
-                                  <Plus className="h-4 w-4 mr-2" />
-                                  Ajouter une leçon
-                                </Button>
-                              </div>
-
-                              {module.lessons.length === 0 ? (
-                                <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed">
-                                  <FileText className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                                  <p className="text-gray-500">Aucune leçon pour le moment</p>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => addLesson(module.id)}
-                                    className="mt-4"
+                        <AccordionContent>
+                          <div className="pl-8 pr-4 pt-4 space-y-4">
+                            {/* Module Edit Form */}
+                            {editingModuleId === moduleIdx ? (
+                              <Card className="bg-gray-50">
+                                <CardContent className="pt-6 space-y-3">
+                                  <Input
+                                    value={module.title}
+                                    onChange={(e) => setModules(prev => prev.map((m, idx) => 
+                                      idx === moduleIdx ? { ...m, title: e.target.value } : m
+                                    ))}
+                                    placeholder="Titre du module"
+                                  />
+                                  <Textarea
+                                    value={module.description}
+                                    onChange={(e) => setModules(prev => prev.map((m, idx) => 
+                                      idx === moduleIdx ? { ...m, description: e.target.value } : m
+                                    ))}
+                                    placeholder="Description du module"
+                                    rows={3}
+                                  />
+                                  <div className="flex gap-2">
+                                    <Button size="sm" onClick={() => handleSaveModule(moduleIdx)}>
+                                      <Check className="h-4 w-4 mr-2" />
+                                      Sauvegarder
+                                    </Button>
+                                    <Button size="sm" variant="ghost" onClick={() => setEditingModuleId(null)}>
+                                      <X className="h-4 w-4 mr-2" />
+                                      Annuler
+                                    </Button>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            ) : (
+                              <div className="flex items-start justify-between">
+                                <div>
+                                  <p className="text-sm text-gray-600">{module.description || 'Aucune description'}</p>
+                                </div>
+                                <div className="flex gap-2">
+                                  <Button 
+                                    size="sm" 
+                                    variant="ghost"
+                                    onClick={() => setEditingModuleId(moduleIdx)}
                                   >
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    Créer la première leçon
+                                    <Edit2 className="h-4 w-4" />
+                                  </Button>
+                                  <Button 
+                                    size="sm" 
+                                    variant="ghost"
+                                    onClick={() => handleDeleteModule(moduleIdx)}
+                                  >
+                                    <Trash2 className="h-4 w-4 text-red-500" />
                                   </Button>
                                 </div>
-                              ) : (
-                                <div className="space-y-3">
-                                  {module.lessons.map((lesson, lessonIndex) => (
-                                    <Card key={lesson.id} className="bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200">
-                                      <CardHeader className="pb-3">
-                                        <div className="flex items-center justify-between">
-                                          <div className="flex items-center space-x-2">
-                                            <Badge variant="outline" className="bg-white">
-                                              Leçon {lessonIndex + 1}
-                                            </Badge>
-                                            <span className="font-medium">{lesson.title || 'Sans titre'}</span>
-                                          </div>
-                                          <div className="flex gap-2">
-                                            <Button
-                                              variant="ghost"
-                                              size="sm"
-                                              onClick={() => setEditingLesson(
-                                                editingLesson?.lessonId === lesson.id ? null : { moduleId: module.id, lessonId: lesson.id }
-                                              )}
-                                            >
-                                              <Edit2 className="h-4 w-4" />
-                                            </Button>
-                                            <Button
-                                              variant="ghost"
-                                              size="sm"
-                                              onClick={() => removeLesson(module.id, lesson.id)}
-                                            >
-                                              <Trash2 className="h-4 w-4 text-red-500" />
-                                            </Button>
+                              </div>
+                            )}
+
+                            {/* Lessons */}
+                            <div className="space-y-3 mt-4">
+                              <h4 className="font-semibold text-sm text-gray-700">Leçons</h4>
+                              {module.lessons.map((lesson, lessonIdx) => (
+                                <Card key={`lesson-${moduleIdx}-${lessonIdx}`} className="bg-white">
+                                  <CardContent className="pt-4">
+                                    {editingLessonId?.moduleIdx === moduleIdx && editingLessonId?.lessonIdx === lessonIdx ? (
+                                      <div className="space-y-3">
+                                        <Input
+                                          value={lesson.title}
+                                          onChange={(e) => setModules(prev => prev.map((m, mIdx) => 
+                                            mIdx === moduleIdx 
+                                              ? {
+                                                  ...m,
+                                                  lessons: m.lessons.map((l, lIdx) =>
+                                                    lIdx === lessonIdx ? { ...l, title: e.target.value } : l
+                                                  )
+                                                }
+                                              : m
+                                          ))}
+                                          placeholder="Titre de la leçon"
+                                        />
+                                        <Textarea
+                                          value={lesson.description}
+                                          onChange={(e) => setModules(prev => prev.map((m, mIdx) => 
+                                            mIdx === moduleIdx 
+                                              ? {
+                                                  ...m,
+                                                  lessons: m.lessons.map((l, lIdx) =>
+                                                    lIdx === lessonIdx ? { ...l, description: e.target.value } : l
+                                                  )
+                                                }
+                                              : m
+                                          ))}
+                                          placeholder="Description de la leçon"
+                                          rows={2}
+                                        />
+                                        <Input
+                                          value={lesson.duration}
+                                          onChange={(e) => setModules(prev => prev.map((m, mIdx) => 
+                                            mIdx === moduleIdx 
+                                              ? {
+                                                  ...m,
+                                                  lessons: m.lessons.map((l, lIdx) =>
+                                                    lIdx === lessonIdx ? { ...l, duration: e.target.value } : l
+                                                  )
+                                                }
+                                              : m
+                                          ))}
+                                          placeholder="Durée (ex: 45min)"
+                                        />
+                                        
+                                        {/* Video upload */}
+                                        <div>
+                                          <Label className="text-sm">Vidéo de la leçon</Label>
+                                          {lesson.videoFileName && (
+                                            <div className="flex items-center gap-2 mt-2 mb-2 p-2 bg-blue-50 rounded">
+                                              <Video className="h-4 w-4 text-blue-600" />
+                                              <span className="text-sm">{lesson.videoFileName}</span>
+                                            </div>
+                                          )}
+                                          <input
+                                            type="file"
+                                            accept="video/*"
+                                            onChange={(e) => {
+                                              const file = e.target.files?.[0];
+                                              if (file) handleLessonVideoUpload(moduleIdx, lessonIdx, file);
+                                            }}
+                                            className="hidden"
+                                            id={`lesson-video-${moduleIdx}-${lessonIdx}`}
+                                          />
+                                          <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => document.getElementById(`lesson-video-${moduleIdx}-${lessonIdx}`)?.click()}
+                                          >
+                                            <Upload className="h-4 w-4 mr-2" />
+                                            {lesson.videoFileName ? 'Remplacer' : 'Uploader'} une vidéo
+                                          </Button>
+                                        </div>
+
+                                        <div className="flex gap-2">
+                                          <Button size="sm" onClick={() => handleSaveLesson(moduleIdx, lessonIdx)}>
+                                            <Check className="h-4 w-4 mr-2" />
+                                            Sauvegarder
+                                          </Button>
+                                          <Button size="sm" variant="ghost" onClick={() => setEditingLessonId(null)}>
+                                            <X className="h-4 w-4 mr-2" />
+                                            Annuler
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <div className="flex items-start justify-between">
+                                        <div className="flex items-center gap-3">
+                                          <Video className="h-5 w-5 text-blue-600" />
+                                          <div>
+                                            <div className="font-medium">{lesson.title || `Leçon ${lessonIdx + 1}`}</div>
+                                            <div className="text-sm text-gray-500">
+                                              {lesson.duration && `${lesson.duration}`}
+                                              {lesson.videoFileName && ` • ${lesson.videoFileName}`}
+                                            </div>
                                           </div>
                                         </div>
-                                      </CardHeader>
-                                      {editingLesson?.lessonId === lesson.id && (
-                                        <CardContent className="space-y-4">
-                                          <div className="grid grid-cols-2 gap-4">
-                                            <div>
-                                              <Label>Titre de la leçon</Label>
-                                              <Input
-                                                value={lesson.title}
-                                                onChange={(e) => updateLesson(module.id, lesson.id, { title: e.target.value })}
-                                                placeholder="Titre"
-                                                className="mt-2"
-                                              />
-                                            </div>
-                                            <div>
-                                              <Label>Durée (minutes)</Label>
-                                              <Input
-                                                type="number"
-                                                value={lesson.duration || ''}
-                                                onChange={(e) => updateLesson(module.id, lesson.id, { duration: parseInt(e.target.value) || 0 })}
-                                                placeholder="30"
-                                                className="mt-2"
-                                              />
-                                            </div>
-                                          </div>
-                                          <div>
-                                            <Label>Contenu de la leçon</Label>
-                                            <RichTextEditor
-                                              value={lesson.content}
-                                              onChange={(value) => updateLesson(module.id, lesson.id, { content: value })}
-                                              placeholder="Description du contenu..."
-                                              height="150px"
-                                            />
-                                          </div>
-                                          <div>
-                                            <Label>Média (Vidéo, PDF ou Image)</Label>
-                                            <div className="mt-2 space-y-3">
-                                              <div className="flex items-center gap-2">
-                                                <Button
-                                                  type="button"
-                                                  variant={!lesson.useMediaUrl ? "default" : "outline"}
-                                                  size="sm"
-                                                  onClick={() => updateLesson(module.id, lesson.id, { 
-                                                    useMediaUrl: false,
-                                                    mediaUrl: '',
-                                                    fileType: null,
-                                                    fileName: '',
-                                                    filePreview: undefined
-                                                  })}
-                                                >
-                                                  <Upload className="h-4 w-4 mr-2" />
-                                                  Upload fichier
-                                                </Button>
-                                                <Button
-                                                  type="button"
-                                                  variant={lesson.useMediaUrl ? "default" : "outline"}
-                                                  size="sm"
-                                                  onClick={() => updateLesson(module.id, lesson.id, { 
-                                                    useMediaUrl: true,
-                                                    file: undefined,
-                                                    fileType: null,
-                                                    fileName: '',
-                                                    filePreview: undefined
-                                                  })}
-                                                >
-                                                  <LinkIcon className="h-4 w-4 mr-2" />
-                                                  Lien URL
-                                                </Button>
-                                              </div>
-
-                                              {!lesson.useMediaUrl ? (
-                                                <>
-                                                  {lesson.filePreview || lesson.video_key ? (
-                                                    <div className="space-y-2">
-                                                      <div className="flex items-center justify-between p-3 bg-white rounded border">
-                                                        <div className="flex items-center space-x-3">
-                                                          <Video className="h-5 w-5 text-blue-500" />
-                                                          <span className="text-sm font-medium">
-                                                            {lesson.fileName || 'Vidéo existante'}
-                                                          </span>
-                                                        </div>
-                                                        <Button
-                                                          variant="ghost"
-                                                          size="sm"
-                                                          onClick={() => updateLesson(module.id, lesson.id, { 
-                                                            fileType: null, 
-                                                            fileName: '', 
-                                                            filePreview: undefined,
-                                                            file: undefined,
-                                                            video_key: undefined
-                                                          })}
-                                                        >
-                                                          <X className="h-4 w-4" />
-                                                        </Button>
-                                                      </div>
-                                                    </div>
-                                                  ) : (
-                                                    <div className="border-2 border-dashed rounded-lg p-6">
-                                                      <input
-                                                        type="file"
-                                                        accept="video/*,application/pdf,image/*"
-                                                        onChange={(e) => handleFileUpload(module.id, lesson.id, e)}
-                                                        className="hidden"
-                                                        id={`file-${module.id}-${lesson.id}`}
-                                                      />
-                                                      <label htmlFor={`file-${module.id}-${lesson.id}`}>
-                                                        <Button variant="outline" type="button" asChild>
-                                                          <span>
-                                                            <Upload className="h-4 w-4 mr-2" />
-                                                            Choisir un fichier
-                                                          </span>
-                                                        </Button>
-                                                      </label>
-                                                    </div>
-                                                  )}
-                                                </>
-                                              ) : (
-                                                <Input
-                                                  value={lesson.mediaUrl || ''}
-                                                  onChange={(e) => updateLesson(module.id, lesson.id, { mediaUrl: e.target.value })}
-                                                  placeholder="https://youtube.com/..."
-                                                />
-                                              )}
-                                            </div>
-                                          </div>
-                                        </CardContent>
-                                      )}
-                                    </Card>
-                                  ))}
-                                </div>
-                              )}
+                                        <div className="flex gap-2">
+                                          <Button 
+                                            size="sm" 
+                                            variant="ghost"
+                                            onClick={() => setEditingLessonId({ moduleIdx, lessonIdx })}
+                                          >
+                                            <Edit2 className="h-4 w-4" />
+                                          </Button>
+                                          <Button 
+                                            size="sm" 
+                                            variant="ghost"
+                                            onClick={() => handleDeleteLesson(moduleIdx, lessonIdx)}
+                                          >
+                                            <Trash2 className="h-4 w-4 text-red-500" />
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </CardContent>
+                                </Card>
+                              ))}
                             </div>
                           </div>
                         </AccordionContent>
@@ -1277,162 +950,154 @@ const EditCoursePage = () => {
                     ))}
                   </Accordion>
                 )}
-              </div>
-            )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-            {currentStep === 'review' && (
-              <div className="space-y-6">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">Révision finale</h2>
-                
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Résumé du cours</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <Label className="text-sm text-gray-600">Titre</Label>
-                      <p className="font-semibold">{courseData.title}</p>
-                    </div>
-                    <div>
-                      <Label className="text-sm text-gray-600">Description</Label>
-                      <p className="text-sm">{courseData.description.substring(0, 200)}...</p>
-                    </div>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div>
-                        <Label className="text-sm text-gray-600">Prix</Label>
-                        <p className="font-semibold">{courseData.price ? `${courseData.price}€` : 'Gratuit'}</p>
-                      </div>
-                      <div>
-                        <Label className="text-sm text-gray-600">Niveau</Label>
-                        <p className="font-semibold capitalize">{courseData.level}</p>
-                      </div>
-                      <div>
-                        <Label className="text-sm text-gray-600">Durée</Label>
-                        <p className="font-semibold">{courseData.duration || '-'}</p>
-                      </div>
-                    </div>
-                    <div>
-                      <Label className="text-sm text-gray-600">Statut</Label>
-                      <Badge className={courseData.status === 'published' ? 'bg-green-500' : 'bg-yellow-500'}>
-                        {courseData.status === 'published' ? 'Publié' : 'Brouillon'}
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Contenu</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="flex items-center space-x-3 p-4 bg-blue-50 rounded-lg">
-                          <BookOpen className="h-8 w-8 text-blue-600" />
-                          <div>
-                            <div className="text-2xl font-bold">{modules.length}</div>
-                            <div className="text-sm text-gray-600">Module{modules.length > 1 ? 's' : ''}</div>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-3 p-4 bg-green-50 rounded-lg">
-                          <FileText className="h-8 w-8 text-green-600" />
-                          <div>
-                            <div className="text-2xl font-bold">
-                              {modules.reduce((acc, m) => acc + m.lessons.length, 0)}
+          {/* Resources Tab */}
+          <TabsContent value="resources" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Ressources pédagogiques</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {resources.length > 0 && (
+                  <div className="space-y-2">
+                    {resources.map((resource) => (
+                      <Card key={resource.id} className="bg-gray-50">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <FileText className="h-5 w-5 text-red-500" />
+                              <div>
+                                <div className="font-medium">{resource.name}</div>
+                                {resource.size && (
+                                  <div className="text-sm text-gray-500">
+                                    {(resource.size / 1024 / 1024).toFixed(2)} MB
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                            <div className="text-sm text-gray-600">Leçon{modules.reduce((acc, m) => acc + m.lessons.length, 0) > 1 ? 's' : ''}</div>
+                            <Button 
+                              size="sm" 
+                              variant="ghost"
+                              onClick={() => resource.key && handleDeleteResource(resource.key)}
+                            >
+                              <Trash2 className="h-4 w-4 text-red-500" />
+                            </Button>
                           </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+
+                <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-orange-400 transition-colors">
+                  <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600 mb-3">Fichiers PDF uniquement</p>
+                  <input
+                    type="file"
+                    accept="application/pdf"
+                    multiple
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files || []);
+                      files.forEach(file => handleAddResource(file));
+                      e.target.value = '';
+                    }}
+                    className="hidden"
+                    id="resources-upload"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => document.getElementById('resources-upload')?.click()}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Ajouter des ressources
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Preview Tab */}
+          <TabsContent value="preview" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Prévisualisation du cours</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Course Header */}
+                <div className="flex gap-6">
+                  {courseData.imagePreview && (
+                    <img 
+                      src={courseData.imagePreview} 
+                      alt={courseData.title}
+                      className="w-64 h-40 object-cover rounded-lg border"
+                    />
+                  )}
+                  <div className="flex-1">
+                    <h2 className="text-2xl font-bold mb-2">{courseData.title || 'Sans titre'}</h2>
+                    <p className="text-gray-600 mb-4">{courseData.description || 'Aucune description'}</p>
+                    <div className="flex items-center gap-4 text-sm">
+                      <Badge>{courseData.level}</Badge>
+                      <Badge variant="outline">{courseData.category || 'Non catégorisé'}</Badge>
+                      {courseData.duration && (
+                        <div className="flex items-center gap-1 text-gray-600">
+                          <Clock className="h-4 w-4" />
+                          {courseData.duration}
                         </div>
-                      </div>
+                      )}
+                      {courseData.price && (
+                        <div className="text-lg font-bold text-purple-600">
+                          {courseData.price} €
+                        </div>
+                      )}
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  </div>
+                </div>
 
-        {/* Navigation */}
-        <div className="flex justify-between">
-          <Button
-            variant="outline"
-            onClick={() => {
-              if (currentStep === 'modules') setCurrentStep('info');
-              else if (currentStep === 'review') setCurrentStep('modules');
-            }}
-            disabled={currentStep === 'info'}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Précédent
-          </Button>
-          
-          {currentStep !== 'review' ? (
-            <Button
-              onClick={() => {
-                if (currentStep === 'info') setCurrentStep('modules');
-                else if (currentStep === 'modules') setCurrentStep('review');
-              }}
-              disabled={!canProceedToNextStep()}
-              className="bg-pink-600 hover:bg-pink-700"
-            >
-              Suivant
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
-          ) : (
-            <Button
-              onClick={handleUpdateCourse}
-              disabled={saving}
-              className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700"
-            >
-              <Save className="h-4 w-4 mr-2" />
-              {saving ? 'Sauvegarde...' : 'Sauvegarder les modifications'}
-            </Button>
-          )}
-        </div>
+                {/* Modules Preview */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Contenu du cours</h3>
+                  <div className="space-y-2">
+                    {modules.map((module, idx) => (
+                      <Card key={`preview-${idx}`}>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="font-semibold">{module.title}</div>
+                              <div className="text-sm text-gray-500">
+                                {module.lessons.length} leçon{module.lessons.length > 1 ? 's' : ''}
+                                {module.duration && ` • ${module.duration}`}
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Resources Preview */}
+                {resources.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">Ressources disponibles</h3>
+                    <div className="grid grid-cols-2 gap-2">
+                      {resources.map((resource) => (
+                        <div key={resource.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
+                          <FileText className="h-4 w-4 text-red-500" />
+                          <span className="text-sm">{resource.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
-
-      {/* Quiz Builders (same as CreateCoursePage) */}
-      {showQuizBuilder && (
-        <Dialog open={!!showQuizBuilder} onOpenChange={() => setShowQuizBuilder(null)}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Créer un quiz pour la leçon</DialogTitle>
-            </DialogHeader>
-            <QuizBuilder
-              onSave={(quiz) => handleSaveQuiz(showQuizBuilder.moduleId, showQuizBuilder.lessonId, quiz)}
-              onCancel={() => setShowQuizBuilder(null)}
-            />
-          </DialogContent>
-        </Dialog>
-      )}
-
-      {showModuleQuizBuilder && (
-        <Dialog open={!!showModuleQuizBuilder} onOpenChange={() => setShowModuleQuizBuilder(null)}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Créer un quiz pour le module</DialogTitle>
-            </DialogHeader>
-            <QuizBuilder
-              onSave={(quiz) => handleSaveModuleQuiz(showModuleQuizBuilder, quiz)}
-              onCancel={() => setShowModuleQuizBuilder(null)}
-            />
-          </DialogContent>
-        </Dialog>
-      )}
-
-      {showAssignmentBuilder && (
-        <Dialog open={!!showAssignmentBuilder} onOpenChange={() => setShowAssignmentBuilder(null)}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Créer un devoir pour le module</DialogTitle>
-            </DialogHeader>
-            <AssignmentBuilder
-              onSave={(assignment) => handleSaveAssignment(showAssignmentBuilder, assignment)}
-              onCancel={() => setShowAssignmentBuilder(null)}
-            />
-          </DialogContent>
-        </Dialog>
-      )}
     </div>
   );
 };

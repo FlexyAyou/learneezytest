@@ -373,8 +373,19 @@ export interface CourseSummary {
 export interface CourseUpdate {
   title?: string;
   description?: string;
-  price?: number;
+  price?: number | null;
   status?: CourseStatus;
+  category?: string | null;
+  category_ids?: number[] | null;
+  category_names?: string[] | null;
+  duration?: string | null;
+  level?: string | null;
+  cover_key?: string | null;
+  program_pdf_key?: string | null;
+  learning_cycle?: string | null;
+  levels?: string[] | null;
+  resources?: Resource[];
+  modules?: Module[];
 }
 
 export interface ModuleCreate {
