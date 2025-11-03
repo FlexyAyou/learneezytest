@@ -16,7 +16,39 @@ const SubdomainRouter: React.FC<SubdomainRouterProps> = ({ children }) => {
   const { isAuthenticated, user, isLoading: authLoading } = useFastAPIAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [wasAuthenticated, setWasAuthenticated] = React.useState(isAuthenticated);
 
+  // Effet pour détecter le changement d'authentification (connexion réussie)
+  useEffect(() => {
+    if (!wasAuthenticated && isAuthenticated && user && !orgLoading && !authLoading) {
+      // L'utilisateur vient de se connecter
+      const userBelongsToOF = user.role === 'superadmin' || 
+        (user.of_id !== null && organization?.organizationId !== null &&
+         Number(user.of_id) === Number(organization.organizationId));
+
+      if (isOFContext && organization?.exists && userBelongsToOF) {
+        console.log('[SubdomainRouter] User just logged in, redirecting to dashboard', {
+          role: user.role,
+          of_id: user.of_id,
+          org_id: organization.organizationId
+        });
+        
+        const roleRedirects: Record<string, string> = {
+          of_admin: '/dashboard/organisme-formation',
+          gestionnaire: '/dashboard/gestionnaire',
+          formateur_interne: '/dashboard/formateur-interne',
+          apprenant: '/dashboard/apprenant',
+          student: '/dashboard/apprenant',
+        };
+        const dashboardPath = roleRedirects[user.role] || '/dashboard/apprenant';
+        navigate(dashboardPath, { replace: true });
+      }
+    }
+    
+    setWasAuthenticated(isAuthenticated);
+  }, [isAuthenticated, user?.role, user?.of_id, organization?.organizationId, organization?.exists, isOFContext, orgLoading, authLoading, navigate, wasAuthenticated]);
+
+  // Effet pour gérer les pages publiques et la vérification d'appartenance OF
   useEffect(() => {
     // Attendre que les deux soient chargés
     if (orgLoading || authLoading) return;
@@ -33,7 +65,10 @@ const SubdomainRouter: React.FC<SubdomainRouterProps> = ({ children }) => {
 
         if (!userBelongsToOF) {
           // L'utilisateur n'appartient pas à cet OF - le déconnecter
-          console.warn('User does not belong to this organization');
+          console.warn('[SubdomainRouter] User does not belong to this organization', {
+            userOfId: user.of_id,
+            orgId: organization.organizationId
+          });
           localStorage.removeItem('access_token');
           localStorage.removeItem('refresh_token');
           if (location.pathname !== '/connexion') {
@@ -42,8 +77,8 @@ const SubdomainRouter: React.FC<SubdomainRouterProps> = ({ children }) => {
           return;
         }
         
-        // Si sur la homepage, of-home ou connexion, rediriger vers dashboard
-        if (location.pathname === '/' || location.pathname === '/of-home' || location.pathname === '/connexion') {
+        // Si sur la homepage ou of-home, rediriger vers dashboard
+        if (location.pathname === '/' || location.pathname === '/of-home') {
           const roleRedirects: Record<string, string> = {
             of_admin: '/dashboard/organisme-formation',
             gestionnaire: '/dashboard/gestionnaire',

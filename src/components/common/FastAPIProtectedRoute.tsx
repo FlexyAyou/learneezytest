@@ -46,11 +46,17 @@ const FastAPIProtectedRoute = ({
   if (isOFContext && organization?.organizationId) {
     // Autoriser les superadmins à accéder à n'importe quel OF
     if (user.role !== 'superadmin') {
-      // Vérifier que l'utilisateur appartient à cet OF
-      if (user.of_id !== organization.organizationId) {
+      // Vérifier que l'utilisateur appartient à cet OF avec comparaison stricte
+      if (Number(user.of_id) !== Number(organization.organizationId)) {
+        console.error('[FastAPIProtectedRoute] OF ID mismatch:', {
+          userOfId: user.of_id,
+          orgId: organization.organizationId,
+          userRole: user.role,
+          location: location.pathname
+        });
         return (
           <Navigate 
-            to="/" 
+            to="/connexion" 
             state={{ 
               error: "Vous n'avez pas accès à cet organisme de formation",
               from: location 
@@ -58,6 +64,12 @@ const FastAPIProtectedRoute = ({
             replace 
           />
         );
+      } else {
+        console.log('[FastAPIProtectedRoute] OF verification passed:', {
+          userOfId: user.of_id,
+          orgId: organization.organizationId,
+          userRole: user.role
+        });
       }
     }
   }
