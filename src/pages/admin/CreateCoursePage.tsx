@@ -458,12 +458,109 @@ const CreateCoursePage = () => {
       const { fastAPIClient } = await import('@/services/fastapi-client');
       const { calculateModuleDuration } = await import('@/utils/courseHelpers');
       
+      let uploadedCoverKey: string | null = null;
+      let uploadedProgramKey: string | null = null;
+
+      // 1. UPLOADER L'IMAGE DE COUVERTURE
+      if (courseData.image) {
+        try {
+          console.log('📤 Upload image de couverture:', courseData.image.name);
+          toast({
+            title: "Upload de l'image...",
+            description: "Téléchargement de l'image de couverture",
+          });
+          
+          const prepareResponse = await fastAPIClient.prepareUpload(
+            courseData.image.name,
+            courseData.image.type,
+            courseData.image.size
+          );
+
+          if (prepareResponse.strategy === 'single' && prepareResponse.url && prepareResponse.headers) {
+            const uploadHeaders = new Headers(prepareResponse.headers);
+            await fetch(prepareResponse.url, {
+              method: 'PUT',
+              headers: uploadHeaders,
+              body: courseData.image
+            });
+            
+            await fastAPIClient.completeUpload({
+              strategy: 'single',
+              key: prepareResponse.key,
+              content_type: courseData.image.type,
+              size: courseData.image.size
+            });
+
+            uploadedCoverKey = prepareResponse.key;
+            console.log('✅ Image de couverture uploadée:', uploadedCoverKey);
+            toast({
+              title: "Image uploadée",
+              description: "L'image de couverture est prête",
+            });
+          }
+        } catch (error) {
+          console.error('❌ Erreur upload image:', error);
+          toast({
+            title: "Erreur d'upload",
+            description: "Impossible d'uploader l'image de couverture",
+            variant: "destructive"
+          });
+        }
+      }
+
+      // 2. UPLOADER LE PROGRAMME PDF
+      if (courseData.programFile) {
+        try {
+          console.log('📤 Upload programme PDF:', courseData.programFile.name);
+          toast({
+            title: "Upload du programme...",
+            description: "Téléchargement du programme PDF",
+          });
+          
+          const prepareResponse = await fastAPIClient.prepareUpload(
+            courseData.programFile.name,
+            courseData.programFile.type,
+            courseData.programFile.size
+          );
+
+          if (prepareResponse.strategy === 'single' && prepareResponse.url && prepareResponse.headers) {
+            const uploadHeaders = new Headers(prepareResponse.headers);
+            await fetch(prepareResponse.url, {
+              method: 'PUT',
+              headers: uploadHeaders,
+              body: courseData.programFile
+            });
+            
+            await fastAPIClient.completeUpload({
+              strategy: 'single',
+              key: prepareResponse.key,
+              content_type: courseData.programFile.type,
+              size: courseData.programFile.size
+            });
+
+            uploadedProgramKey = prepareResponse.key;
+            console.log('✅ Programme PDF uploadé:', uploadedProgramKey);
+            toast({
+              title: "Programme uploadé",
+              description: "Le programme PDF est prêt",
+            });
+          }
+        } catch (error) {
+          console.error('❌ Erreur upload programme:', error);
+          toast({
+            title: "Erreur d'upload",
+            description: "Impossible d'uploader le programme PDF",
+            variant: "destructive"
+          });
+        }
+      }
+
       toast({
         title: "Upload des vidéos...",
         description: "Téléchargement des vidéos des leçons",
       });
 
-      // 2. UPLOADER TOUTES LES VIDÉOS DES LEÇONS AVANT LA CRÉATION DU COURS
+      // 3. UPLOADER TOUTES LES VIDÉOS DES LEÇONS AVANT LA CRÉATION DU COURS
       for (const module of modules) {
         for (const lesson of module.lessons) {
           if (lesson.file && lesson.fileType === 'video') {
@@ -553,12 +650,54 @@ const CreateCoursePage = () => {
         }
       }
 
+      // 4. UPLOADER LES RESSOURCES PÉDAGOGIQUES
+      const uploadedResources: Array<{ name: string; resource_key?: string }> = [];
+
+      for (const module of modules) {
+        for (const resource of module.pedagogicalResources) {
+          try {
+            console.log(`📤 Upload ressource: ${resource.fileName}`);
+            
+            const prepareResponse = await fastAPIClient.prepareUpload(
+              resource.file.name,
+              resource.file.type,
+              resource.file.size
+            );
+
+            if (prepareResponse.strategy === 'single' && prepareResponse.url && prepareResponse.headers) {
+              const uploadHeaders = new Headers(prepareResponse.headers);
+              await fetch(prepareResponse.url, {
+                method: 'PUT',
+                headers: uploadHeaders,
+                body: resource.file
+              });
+              
+              await fastAPIClient.completeUpload({
+                strategy: 'single',
+                key: prepareResponse.key,
+                content_type: resource.file.type,
+                size: resource.file.size
+              });
+
+              uploadedResources.push({
+                name: resource.fileName,
+                resource_key: prepareResponse.key
+              });
+              
+              console.log(`✅ Ressource uploadée: ${resource.fileName} → ${prepareResponse.key}`);
+            }
+          } catch (error) {
+            console.error(`❌ Erreur upload ressource ${resource.fileName}:`, error);
+          }
+        }
+      }
+
       toast({
         title: "Création du cours...",
         description: "Envoi des données au serveur",
       });
 
-      // 3. Construire le payload complet avec toutes les video_key
+      // 5. Construire le payload complet avec toutes les keys
       const finalCategory = courseData.category === 'custom' 
         ? courseData.customCategory 
         : courseData.category;
@@ -577,8 +716,8 @@ const CreateCoursePage = () => {
         level: courseData.level || null,
         learning_cycle: courseData.cycle || null,
         levels: courseData.cycleTags.length > 0 ? courseData.cycleTags : null,
-        cover_key: null, // TODO: Upload cover image
-        program_pdf_key: null, // TODO: Upload program PDF
+        cover_key: uploadedCoverKey,
+        program_pdf_key: uploadedProgramKey,
         modules: modules.map(module => ({
           title: module.title,
           description: module.description || `Description du ${module.title}`,
@@ -632,7 +771,7 @@ const CreateCoursePage = () => {
               .filter(q => q !== null) // Enlever les questions null
           }] : []
         })),
-        resources: []
+        resources: uploadedResources
       };
 
       // 4. Créer le cours avec tous les modules et leçons en une seule requête

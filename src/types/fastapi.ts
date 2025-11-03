@@ -305,7 +305,8 @@ export interface Module {
  */
 export interface Resource {
   name: string;
-  url: string;
+  url?: string;
+  resource_key?: string;
 }
 
 /**
