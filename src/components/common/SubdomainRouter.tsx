@@ -31,35 +31,28 @@ const SubdomainRouter: React.FC<SubdomainRouterProps> = ({ children }) => {
            organization.organizationId !== null && organization.organizationId !== undefined &&
            Number(user.of_id) === Number(organization.organizationId));
 
-        if (userBelongsToOF) {
-          // L'utilisateur peut accéder - ne rien faire si déjà sur une route dashboard ou connexion
-          if (location.pathname.startsWith('/dashboard') || 
-              location.pathname === '/connexion' ||
-              location.pathname === '/reset-password' ||
-              location.pathname === '/mot-de-passe-oublie') {
-            return;
-          }
-          
-          // Si sur la homepage ou of-home, rediriger vers dashboard
-          if (location.pathname === '/' || location.pathname === '/of-home') {
-            const roleRedirects: Record<string, string> = {
-              of_admin: '/dashboard/organisme-formation',
-              gestionnaire: '/dashboard/gestionnaire',
-              formateur_interne: '/dashboard/formateur-interne',
-              apprenant: '/dashboard/apprenant',
-              student: '/dashboard/apprenant',
-            };
-            const dashboardPath = roleRedirects[user.role] || '/dashboard/apprenant';
-            navigate(dashboardPath, { replace: true });
-          }
-        } else {
-          // L'utilisateur n'appartient pas à cet OF - le déconnecter et rediriger vers la page de connexion
+        if (!userBelongsToOF) {
+          // L'utilisateur n'appartient pas à cet OF - le déconnecter
           console.warn('User does not belong to this organization');
           localStorage.removeItem('access_token');
           localStorage.removeItem('refresh_token');
           if (location.pathname !== '/connexion') {
             navigate('/connexion', { replace: true });
           }
+          return;
+        }
+        
+        // Si sur la homepage ou of-home, rediriger vers dashboard
+        if (location.pathname === '/' || location.pathname === '/of-home') {
+          const roleRedirects: Record<string, string> = {
+            of_admin: '/dashboard/organisme-formation',
+            gestionnaire: '/dashboard/gestionnaire',
+            formateur_interne: '/dashboard/formateur-interne',
+            apprenant: '/dashboard/apprenant',
+            student: '/dashboard/apprenant',
+          };
+          const dashboardPath = roleRedirects[user.role] || '/dashboard/apprenant';
+          navigate(dashboardPath, { replace: true });
         }
       } else {
         // Utilisateur non connecté sur sous-domaine OF

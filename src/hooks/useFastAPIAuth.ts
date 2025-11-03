@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { fastAPIClient } from '@/services/fastapi-client';
 import { UserResponse, UserRole } from '@/types/fastapi';
 
@@ -10,6 +11,7 @@ export const useFastAPIAuth = () => {
   const [user, setUser] = useState<UserResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const navigate = useNavigate();
 
   /**
    * Charge l'utilisateur au montage si token présent
@@ -62,7 +64,7 @@ export const useFastAPIAuth = () => {
     };
 
     const redirectPath = roleRedirects[role] || '/dashboard/apprenant';
-    window.location.href = redirectPath;
+    navigate(redirectPath, { replace: true });
   };
 
   /**
@@ -73,12 +75,13 @@ export const useFastAPIAuth = () => {
       await fastAPIClient.logoutUser();
     } catch (error) {
       console.error('Erreur lors de la déconnexion:', error);
-      // Forcer le nettoyage local même en cas d'erreur
+    } finally {
+      // Forcer le nettoyage local
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
       setUser(null);
       setIsAuthenticated(false);
-      window.location.replace('/connexion');
+      navigate('/connexion', { replace: true });
     }
   };
 
