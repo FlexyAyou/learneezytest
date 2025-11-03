@@ -20,6 +20,20 @@ const SubdomainRouter: React.FC<SubdomainRouterProps> = ({ children }) => {
 
   // Effet pour détecter le changement d'authentification (connexion réussie)
   useEffect(() => {
+    console.log('[SubdomainRouter - Login Detection]', {
+      wasAuthenticated,
+      isAuthenticated,
+      hasUser: !!user,
+      userRole: user?.role,
+      userOfId: user?.of_id,
+      orgLoading,
+      authLoading,
+      isOFContext,
+      orgExists: organization?.exists,
+      orgId: organization?.organizationId,
+      currentPath: location.pathname
+    });
+
     if (!wasAuthenticated && isAuthenticated && user && !orgLoading && !authLoading) {
       // L'utilisateur vient de se connecter
       const userBelongsToOF = user.role === 'superadmin' || 
@@ -27,13 +41,15 @@ const SubdomainRouter: React.FC<SubdomainRouterProps> = ({ children }) => {
          organization?.organizationId !== null && organization?.organizationId !== undefined &&
          Number(user.of_id) === Number(organization.organizationId));
 
+      console.log('[SubdomainRouter - Belongs Check]', {
+        userBelongsToOF,
+        userRole: user.role,
+        isSuperadmin: user.role === 'superadmin',
+        userOfId: user.of_id,
+        orgId: organization?.organizationId
+      });
+
       if (isOFContext && organization?.exists && userBelongsToOF) {
-        console.log('[SubdomainRouter] User just logged in, redirecting to dashboard', {
-          role: user.role,
-          of_id: user.of_id,
-          org_id: organization.organizationId
-        });
-        
         const roleRedirects: Record<string, string> = {
           of_admin: '/dashboard/organisme-formation',
           gestionnaire: '/dashboard/gestionnaire',
@@ -42,12 +58,20 @@ const SubdomainRouter: React.FC<SubdomainRouterProps> = ({ children }) => {
           student: '/dashboard/apprenant',
         };
         const dashboardPath = roleRedirects[user.role] || '/dashboard/apprenant';
+        
+        console.log('[SubdomainRouter] 🚀 REDIRECTING TO:', dashboardPath);
         navigate(dashboardPath, { replace: true });
+      } else {
+        console.log('[SubdomainRouter] ❌ Redirection blocked', {
+          isOFContext,
+          orgExists: organization?.exists,
+          userBelongsToOF
+        });
       }
     }
     
     setWasAuthenticated(isAuthenticated);
-  }, [isAuthenticated, user?.role, user?.of_id, organization?.organizationId, organization?.exists, isOFContext, orgLoading, authLoading, navigate, wasAuthenticated]);
+  }, [isAuthenticated, user?.role, user?.of_id, organization?.organizationId, organization?.exists, isOFContext, orgLoading, authLoading, navigate, wasAuthenticated, location.pathname]);
 
   // Effet pour gérer les pages publiques et la vérification d'appartenance OF
   useEffect(() => {
