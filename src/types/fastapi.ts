@@ -305,8 +305,10 @@ export interface Module {
  */
 export interface Resource {
   name: string;
+  key?: string | null;
+  size?: number | null;
   url?: string;
-  resource_key?: string;
+  resource_key?: string; // Alias for key (backend compatibility)
 }
 
 /**

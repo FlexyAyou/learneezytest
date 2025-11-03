@@ -40,11 +40,6 @@ interface ModuleWithLessons {
   lessons: Lesson[];
   quiz?: QuizConfig; // Quiz optionnel au niveau du module
   assignment?: AssignmentConfig; // Devoir optionnel par module
-  pedagogicalResources: Array<{
-    id: string;
-    fileName: string;
-    file: File;
-  }>; // Ressources pédagogiques en PDF
 }
 
 const CreateCoursePage = () => {
@@ -75,6 +70,14 @@ const CreateCoursePage = () => {
     programFile: null as File | null,
     programFileName: '',
     ownerId: 'learneezy', // 'learneezy' or trainer user id
+    pedagogicalResources: [] as Array<{
+      id: string;
+      name: string;
+      file: File;
+      key: string | null;
+      size: number | null;
+      url: string | null;
+    }>,
   });
 
   const [modules, setModules] = useState<ModuleWithLessons[]>([
@@ -83,7 +86,6 @@ const CreateCoursePage = () => {
       title: 'Module 1',
       description: '',
       lessons: [],
-      pedagogicalResources: [],
     }
   ]);
 
@@ -232,7 +234,6 @@ const CreateCoursePage = () => {
       title: `Module ${modules.length + 1}`,
       description: '',
       lessons: [],
-      pedagogicalResources: [],
     };
     setModules([...modules, newModule]);
     setExpandedModule(newModule.id);
@@ -379,7 +380,7 @@ const CreateCoursePage = () => {
   };
 
   // Pedagogical Resources functions
-  const handleAddPedagogicalResource = (moduleId: string, file: File) => {
+  const handleAddPedagogicalResource = (file: File) => {
     if (file.type !== 'application/pdf') {
       toast({
         title: "Format invalide",
@@ -391,15 +392,17 @@ const CreateCoursePage = () => {
 
     const resource = {
       id: `resource-${Date.now()}`,
-      fileName: file.name,
-      file: file
+      name: file.name,
+      file: file,
+      key: null,
+      size: null,
+      url: null,
     };
 
-    setModules(modules.map(m => 
-      m.id === moduleId 
-        ? { ...m, pedagogicalResources: [...m.pedagogicalResources, resource] } 
-        : m
-    ));
+    setCourseData({
+      ...courseData,
+      pedagogicalResources: [...courseData.pedagogicalResources, resource]
+    });
 
     toast({
       title: "Ressource ajoutée",
@@ -407,15 +410,15 @@ const CreateCoursePage = () => {
     });
   };
 
-  const handleRemovePedagogicalResource = (moduleId: string, resourceId: string) => {
-    setModules(modules.map(m => 
-      m.id === moduleId 
-        ? { ...m, pedagogicalResources: m.pedagogicalResources.filter(r => r.id !== resourceId) } 
-        : m
-    ));
+  const handleRemovePedagogicalResource = (resourceId: string) => {
+    setCourseData({
+      ...courseData,
+      pedagogicalResources: courseData.pedagogicalResources.filter(r => r.id !== resourceId)
+    });
+    
     toast({
       title: "Ressource supprimée",
-      description: "La ressource a été retirée du module",
+      description: "La ressource a été retirée du cours",
     });
   };
 
@@ -651,44 +654,58 @@ const CreateCoursePage = () => {
       }
 
       // 4. UPLOADER LES RESSOURCES PÉDAGOGIQUES
-      const uploadedResources: Array<{ name: string; resource_key?: string }> = [];
+      const uploadedResources: Array<{ 
+        name: string; 
+        key: string; 
+        size: number; 
+        url?: string; 
+      }> = [];
 
-      for (const module of modules) {
-        for (const resource of module.pedagogicalResources) {
-          try {
-            console.log(`📤 Upload ressource: ${resource.fileName}`);
+      for (const resource of courseData.pedagogicalResources) {
+        try {
+          console.log(`📤 Upload ressource: ${resource.name}`);
+          
+          const prepareResponse = await fastAPIClient.prepareUpload(
+            resource.file.name,
+            resource.file.type,
+            resource.file.size
+          );
+
+          if (prepareResponse.strategy === 'single' && prepareResponse.url && prepareResponse.headers) {
+            const uploadHeaders = new Headers(prepareResponse.headers);
+            await fetch(prepareResponse.url, {
+              method: 'PUT',
+              headers: uploadHeaders,
+              body: resource.file
+            });
             
-            const prepareResponse = await fastAPIClient.prepareUpload(
-              resource.file.name,
-              resource.file.type,
-              resource.file.size
-            );
+            await fastAPIClient.completeUpload({
+              strategy: 'single',
+              key: prepareResponse.key,
+              content_type: resource.file.type,
+              size: resource.file.size
+            });
 
-            if (prepareResponse.strategy === 'single' && prepareResponse.url && prepareResponse.headers) {
-              const uploadHeaders = new Headers(prepareResponse.headers);
-              await fetch(prepareResponse.url, {
-                method: 'PUT',
-                headers: uploadHeaders,
-                body: resource.file
-              });
-              
-              await fastAPIClient.completeUpload({
-                strategy: 'single',
-                key: prepareResponse.key,
-                content_type: resource.file.type,
-                size: resource.file.size
-              });
-
-              uploadedResources.push({
-                name: resource.fileName,
-                resource_key: prepareResponse.key
-              });
-              
-              console.log(`✅ Ressource uploadée: ${resource.fileName} → ${prepareResponse.key}`);
-            }
-          } catch (error) {
-            console.error(`❌ Erreur upload ressource ${resource.fileName}:`, error);
+            uploadedResources.push({
+              name: resource.file.name,
+              key: prepareResponse.key,
+              size: resource.file.size,
+              url: prepareResponse.url || undefined
+            });
+            
+            console.log(`✅ Ressource uploadée: ${resource.file.name}`, {
+              key: prepareResponse.key,
+              size: resource.file.size,
+              url: prepareResponse.url
+            });
           }
+        } catch (error) {
+          console.error(`❌ Erreur upload ressource ${resource.name}:`, error);
+          toast({
+            title: "Erreur d'upload",
+            description: `Impossible d'uploader ${resource.name}`,
+            variant: "destructive"
+          });
         }
       }
 
@@ -1108,6 +1125,71 @@ const CreateCoursePage = () => {
                         </label>
                       </>
                     )}
+                  </div>
+                </div>
+
+                {/* Pedagogical Resources Section - NEW LOCATION */}
+                <div className="space-y-4">
+                  <Label className="text-lg font-semibold flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-orange-600" />
+                    Ressources pédagogiques (facultatif)
+                  </Label>
+                  <p className="text-sm text-gray-600">
+                    Ajoutez des documents PDF supplémentaires (guides, fiches de synthèse, etc.)
+                  </p>
+                  
+                  {/* Display existing resources */}
+                  {courseData.pedagogicalResources.length > 0 && (
+                    <div className="space-y-2">
+                      {courseData.pedagogicalResources.map((resource) => (
+                        <Card key={resource.id} className="bg-white">
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <FileText className="h-5 w-5 text-red-500" />
+                                <span className="font-medium">{resource.name}</span>
+                                <Badge variant="outline" className="text-xs">
+                                  {(resource.file.size / 1024 / 1024).toFixed(2)} MB
+                                </Badge>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleRemovePedagogicalResource(resource.id)}
+                              >
+                                <Trash2 className="h-4 w-4 text-red-500" />
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Add new resource */}
+                  <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-orange-400 transition-colors">
+                    <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-sm text-gray-600 mb-3">Fichiers PDF uniquement</p>
+                    <input
+                      type="file"
+                      accept="application/pdf"
+                      multiple
+                      onChange={(e) => {
+                        const files = Array.from(e.target.files || []);
+                        files.forEach(file => handleAddPedagogicalResource(file));
+                        e.target.value = '';
+                      }}
+                      className="hidden"
+                      id="course-resources-upload"
+                    />
+                    <label htmlFor="course-resources-upload">
+                      <Button type="button" variant="outline" size="sm" asChild>
+                        <span>
+                          <Plus className="h-4 w-4 mr-2" />
+                          Ajouter des ressources
+                        </span>
+                      </Button>
+                    </label>
                   </div>
                 </div>
 
@@ -1709,68 +1791,6 @@ const CreateCoursePage = () => {
                               )}
                             </div>
 
-                            {/* Pedagogical Resources Section */}
-                            <div className="space-y-4 border-t pt-6">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  <FileText className="h-5 w-5 text-orange-600" />
-                                  <h4 className="font-semibold text-lg">Ressources pédagogiques</h4>
-                                </div>
-                              </div>
-                              <div className="text-sm text-gray-600 mb-4">
-                                Ajoutez des documents PDF supplémentaires pour enrichir ce module (guides, fiches de synthèse, etc.).
-                              </div>
-                              
-                              {/* Display existing resources */}
-                              {module.pedagogicalResources.length > 0 && (
-                                <div className="space-y-2">
-                                  {module.pedagogicalResources.map((resource) => (
-                                    <Card key={resource.id} className="bg-white">
-                                      <CardContent className="p-4">
-                                        <div className="flex items-center justify-between">
-                                          <div className="flex items-center gap-3">
-                                            <FileText className="h-5 w-5 text-red-500" />
-                                            <span className="font-medium">{resource.fileName}</span>
-                                          </div>
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => handleRemovePedagogicalResource(module.id, resource.id)}
-                                          >
-                                            <Trash2 className="h-4 w-4 text-red-500" />
-                                          </Button>
-                                        </div>
-                                      </CardContent>
-                                    </Card>
-                                  ))}
-                                </div>
-                              )}
-
-                              {/* Add new resource */}
-                              <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-orange-400 transition-colors">
-                                <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                                <p className="text-sm text-gray-600 mb-3">Fichier PDF uniquement</p>
-                                <input
-                                  type="file"
-                                  accept="application/pdf"
-                                  onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) handleAddPedagogicalResource(module.id, file);
-                                    e.target.value = ''; // Reset input
-                                  }}
-                                  className="hidden"
-                                  id={`pedagogical-resource-${module.id}`}
-                                />
-                                <label htmlFor={`pedagogical-resource-${module.id}`}>
-                                  <Button variant="outline" size="sm" type="button" asChild>
-                                    <span>
-                                      <Plus className="h-4 w-4 mr-2" />
-                                      Ajouter une ressource PDF
-                                    </span>
-                                  </Button>
-                                </label>
-                              </div>
-                            </div>
                          </div>
                       </AccordionContent>
                     </AccordionItem>
