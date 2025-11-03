@@ -26,13 +26,22 @@ const SubdomainRouter: React.FC<SubdomainRouterProps> = ({ children }) => {
       // Si l'utilisateur est connecté
       if (isAuthenticated && user) {
         // Vérifier qu'il appartient à cet OF (sauf superadmin)
-        if (user.role === 'superadmin' || user.of_id === organization.organizationId) {
-          // L'utilisateur peut accéder - ne rien faire si déjà sur une route dashboard
-          if (location.pathname.startsWith('/dashboard')) {
+        const userBelongsToOF = user.role === 'superadmin' || 
+          (user.of_id !== null && user.of_id !== undefined && 
+           organization.organizationId !== null && organization.organizationId !== undefined &&
+           Number(user.of_id) === Number(organization.organizationId));
+
+        if (userBelongsToOF) {
+          // L'utilisateur peut accéder - ne rien faire si déjà sur une route dashboard ou connexion
+          if (location.pathname.startsWith('/dashboard') || 
+              location.pathname === '/connexion' ||
+              location.pathname === '/reset-password' ||
+              location.pathname === '/mot-de-passe-oublie') {
             return;
           }
-          // Si sur la homepage, rediriger vers dashboard
-          if (location.pathname === '/') {
+          
+          // Si sur la homepage ou of-home, rediriger vers dashboard
+          if (location.pathname === '/' || location.pathname === '/of-home') {
             const roleRedirects: Record<string, string> = {
               of_admin: '/dashboard/organisme-formation',
               gestionnaire: '/dashboard/gestionnaire',
@@ -44,20 +53,27 @@ const SubdomainRouter: React.FC<SubdomainRouterProps> = ({ children }) => {
             navigate(dashboardPath, { replace: true });
           }
         } else {
-          // L'utilisateur n'appartient pas à cet OF
-          navigate('/', { replace: true });
+          // L'utilisateur n'appartient pas à cet OF - le déconnecter et rediriger vers la page de connexion
+          console.warn('User does not belong to this organization');
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          if (location.pathname !== '/connexion') {
+            navigate('/connexion', { replace: true });
+          }
         }
       } else {
         // Utilisateur non connecté sur sous-domaine OF
-        // Rediriger vers la page d'accueil de l'OF sauf si déjà sur /connexion
-        if (location.pathname !== '/connexion' && location.pathname !== '/of-home' && location.pathname !== '/') {
+        // Autoriser les pages publiques : /of-home, /connexion, /mot-de-passe-oublie, /reset-password
+        const allowedPaths = ['/of-home', '/connexion', '/mot-de-passe-oublie', '/reset-password'];
+        
+        if (!allowedPaths.includes(location.pathname) && location.pathname !== '/') {
           navigate('/of-home', { replace: true });
         } else if (location.pathname === '/') {
           navigate('/of-home', { replace: true });
         }
       }
     }
-  }, [isOFContext, organization, isAuthenticated, user, navigate, location, orgLoading, authLoading]);
+  }, [isOFContext, organization?.exists, organization?.organizationId, isAuthenticated, user?.role, user?.of_id, location.pathname, orgLoading, authLoading, navigate]);
 
   if (orgLoading || authLoading) {
     return (
