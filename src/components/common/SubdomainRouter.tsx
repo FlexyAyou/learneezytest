@@ -16,7 +16,7 @@ const SubdomainRouter: React.FC<SubdomainRouterProps> = ({ children }) => {
   const { isAuthenticated, user, isLoading: authLoading } = useFastAPIAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [wasAuthenticated, setWasAuthenticated] = React.useState(isAuthenticated);
+  const [wasAuthenticated, setWasAuthenticated] = React.useState(false);
 
   // Effet pour détecter le changement d'authentification (connexion réussie)
   useEffect(() => {
