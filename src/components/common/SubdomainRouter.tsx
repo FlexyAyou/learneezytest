@@ -42,8 +42,8 @@ const SubdomainRouter: React.FC<SubdomainRouterProps> = ({ children }) => {
           return;
         }
         
-        // Si sur la homepage ou of-home, rediriger vers dashboard
-        if (location.pathname === '/' || location.pathname === '/of-home') {
+        // Si sur la homepage, of-home ou connexion, rediriger vers dashboard
+        if (location.pathname === '/' || location.pathname === '/of-home' || location.pathname === '/connexion') {
           const roleRedirects: Record<string, string> = {
             of_admin: '/dashboard/organisme-formation',
             gestionnaire: '/dashboard/gestionnaire',

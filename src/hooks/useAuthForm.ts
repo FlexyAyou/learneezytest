@@ -19,20 +19,12 @@ export const useAuthForm = () => {
       const tokenData = await login.mutateAsync({ email, password });
       
       // Décoder le JWT pour obtenir le rôle et l'of_id
-      const token = localStorage.getItem('access_token');
-      if (token) {
-        const decoded = JSON.parse(atob(token.split('.')[1]));
-        const role = decoded.role as UserRole;
-        const ofId = decoded.of_id || null;
-        
-        toast({
-          title: "Connexion réussie",
-          description: "Redirection vers votre espace...",
-        });
-        
-        // Utiliser redirectByRole avec of_id pour gérer les sous-domaines
-        redirectByRole(role, ofId);
-      }
+      toast({
+        title: "Connexion réussie",
+        description: "Redirection vers votre espace...",
+      });
+      
+      // La redirection est gérée par SubdomainRouter pour éviter les conflits
     } catch (error: any) {
       throw error;
     } finally {
