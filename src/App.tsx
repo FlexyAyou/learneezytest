@@ -49,7 +49,6 @@ function App() {
           <SubdomainRouter>
             <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/of-home" element={<OFHomePage />} />
           <Route path="/apropos" element={<About />} />
           <Route path="/cours" element={<Courses />} />
           <Route path="/nos-formations" element={<Courses />} />

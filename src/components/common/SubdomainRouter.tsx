@@ -78,8 +78,8 @@ const SubdomainRouter: React.FC<SubdomainRouterProps> = ({ children }) => {
           return;
         }
         
-        // Si sur la homepage ou of-home, rediriger vers dashboard
-        if (location.pathname === '/' || location.pathname === '/of-home') {
+        // Si sur la homepage, rediriger vers dashboard
+        if (location.pathname === '/') {
           const roleRedirects: Record<string, string> = {
             of_admin: '/dashboard/organisme-formation',
             gestionnaire: '/dashboard/gestionnaire',
@@ -92,13 +92,11 @@ const SubdomainRouter: React.FC<SubdomainRouterProps> = ({ children }) => {
         }
       } else {
         // Utilisateur non connecté sur sous-domaine OF
-        // Autoriser les pages publiques : /of-home, /connexion, /mot-de-passe-oublie, /reset-password
-        const allowedPaths = ['/of-home', '/connexion', '/mot-de-passe-oublie', '/reset-password'];
+        // Autoriser seulement : /connexion, /mot-de-passe-oublie, /reset-password
+        const allowedPaths = ['/connexion', '/mot-de-passe-oublie', '/reset-password'];
         
-        if (!allowedPaths.includes(location.pathname) && location.pathname !== '/') {
-          navigate('/of-home', { replace: true });
-        } else if (location.pathname === '/') {
-          navigate('/of-home', { replace: true });
+        if (!allowedPaths.includes(location.pathname)) {
+          navigate('/connexion', { replace: true });
         }
       }
     }
