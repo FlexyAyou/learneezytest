@@ -73,59 +73,6 @@ const SubdomainRouter: React.FC<SubdomainRouterProps> = ({ children }) => {
     setWasAuthenticated(isAuthenticated);
   }, [isAuthenticated, user?.role, user?.of_id, organization?.organizationId, organization?.exists, isOFContext, orgLoading, authLoading, navigate, wasAuthenticated, location.pathname]);
 
-  // Effet pour gérer les pages publiques et la vérification d'appartenance OF
-  useEffect(() => {
-    // Attendre que les deux soient chargés
-    if (orgLoading || authLoading) return;
-
-    // Si on est sur un sous-domaine OF
-    if (isOFContext && organization?.exists) {
-      // Si l'utilisateur est connecté
-      if (isAuthenticated && user) {
-        // Vérifier qu'il appartient à cet OF (sauf superadmin)
-        const userBelongsToOF = user.role === 'superadmin' || 
-          (user.of_id !== null && user.of_id !== undefined && 
-           organization?.organizationId !== null && organization?.organizationId !== undefined &&
-           Number(user.of_id) === Number(organization.organizationId));
-
-        if (!userBelongsToOF) {
-          // L'utilisateur n'appartient pas à cet OF - le déconnecter
-          console.warn('[SubdomainRouter] User does not belong to this organization', {
-            userOfId: user.of_id,
-            orgId: organization.organizationId
-          });
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
-          if (location.pathname !== '/connexion') {
-            navigate('/connexion', { replace: true });
-          }
-          return;
-        }
-        
-        // Si sur la homepage, rediriger vers dashboard
-        if (location.pathname === '/') {
-          const roleRedirects: Record<string, string> = {
-            of_admin: '/dashboard/organisme-formation',
-            gestionnaire: '/dashboard/gestionnaire',
-            formateur_interne: '/dashboard/formateur-interne',
-            apprenant: '/dashboard/apprenant',
-            student: '/dashboard/apprenant',
-          };
-          const dashboardPath = roleRedirects[user.role] || '/dashboard/apprenant';
-          navigate(dashboardPath, { replace: true });
-        }
-      } else {
-        // Utilisateur non connecté sur sous-domaine OF
-        // Autoriser les pages publiques d'authentification
-        const allowedPaths = ['/connexion', '/mot-de-passe-oublie', '/reset-password', '/reinitialiser-mot-de-passe'];
-        
-        if (!allowedPaths.includes(location.pathname)) {
-          navigate('/connexion', { replace: true });
-        }
-      }
-    }
-  }, [isOFContext, organization?.exists, organization?.organizationId, isAuthenticated, user?.role, user?.of_id, location.pathname, orgLoading, authLoading, navigate]);
-
   if (orgLoading || authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
