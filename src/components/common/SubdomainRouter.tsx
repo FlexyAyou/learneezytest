@@ -23,7 +23,8 @@ const SubdomainRouter: React.FC<SubdomainRouterProps> = ({ children }) => {
     if (!wasAuthenticated && isAuthenticated && user && !orgLoading && !authLoading) {
       // L'utilisateur vient de se connecter
       const userBelongsToOF = user.role === 'superadmin' || 
-        (user.of_id !== null && organization?.organizationId !== null &&
+        (user.of_id !== null && user.of_id !== undefined && 
+         organization?.organizationId !== null && organization?.organizationId !== undefined &&
          Number(user.of_id) === Number(organization.organizationId));
 
       if (isOFContext && organization?.exists && userBelongsToOF) {
@@ -60,7 +61,7 @@ const SubdomainRouter: React.FC<SubdomainRouterProps> = ({ children }) => {
         // Vérifier qu'il appartient à cet OF (sauf superadmin)
         const userBelongsToOF = user.role === 'superadmin' || 
           (user.of_id !== null && user.of_id !== undefined && 
-           organization.organizationId !== null && organization.organizationId !== undefined &&
+           organization?.organizationId !== null && organization?.organizationId !== undefined &&
            Number(user.of_id) === Number(organization.organizationId));
 
         if (!userBelongsToOF) {
