@@ -92,8 +92,8 @@ const SubdomainRouter: React.FC<SubdomainRouterProps> = ({ children }) => {
         }
       } else {
         // Utilisateur non connecté sur sous-domaine OF
-        // Autoriser seulement : /connexion, /mot-de-passe-oublie, /reset-password
-        const allowedPaths = ['/connexion', '/mot-de-passe-oublie', '/reset-password'];
+        // Autoriser les pages publiques d'authentification
+        const allowedPaths = ['/connexion', '/mot-de-passe-oublie', '/reset-password', '/reinitialiser-mot-de-passe'];
         
         if (!allowedPaths.includes(location.pathname)) {
           navigate('/connexion', { replace: true });
