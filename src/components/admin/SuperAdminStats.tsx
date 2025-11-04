@@ -7,7 +7,7 @@ import { useOrganizations, useCourses, useSuperadminUsers } from '@/hooks/useApi
 export const SuperAdminStats = () => {
   // Récupération des données depuis l'API
   const { data: organizations, isLoading: loadingOrgs } = useOrganizations();
-  const { data: coursesData, isLoading: loadingCourses } = useCourses(1, 100);
+  const { data: coursesData, isLoading: loadingCourses } = useCourses(1, 20);
   const { data: users, isLoading: loadingUsers } = useSuperadminUsers();
 
   // Calcul des statistiques dynamiques

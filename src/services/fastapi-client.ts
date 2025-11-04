@@ -327,7 +327,21 @@ class FastAPIClient {
    * Récupérer la liste des cours avec pagination (returns CourseSummary[])
    */
   async getCourses(page = 1, perPage = 10): Promise<any[]> {
-    return this.get<any[]>(`/api/courses/?page=${page}&per_page=${perPage}`);
+    try {
+      const response = await this.get<any[]>(`/api/courses/?page=${page}&per_page=${perPage}`);
+      console.log(`[FastAPI] Courses fetched: ${response.length} items (page ${page}, per_page ${perPage})`);
+      return response;
+    } catch (error: any) {
+      console.error('[FastAPI] Error fetching courses:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        detail: error.response?.data?.detail,
+        message: error.message,
+        page,
+        perPage
+      });
+      throw error;
+    }
   }
 
   /**
