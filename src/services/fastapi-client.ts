@@ -32,7 +32,7 @@ import {
   VideoPlayResponse,
 } from '@/types/fastapi';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.plateforme-test-infinitiax.com';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://api.plateforme-test-infinitiax.com';
 
 /**
  * Client API FastAPI avec gestion automatique des JWT
@@ -327,21 +327,7 @@ class FastAPIClient {
    * Récupérer la liste des cours avec pagination (returns CourseSummary[])
    */
   async getCourses(page = 1, perPage = 10): Promise<any[]> {
-    try {
-      const response = await this.get<any[]>(`/api/courses/?page=${page}&per_page=${perPage}`);
-      console.log(`[FastAPI] Courses fetched: ${response.length} items (page ${page}, per_page ${perPage})`);
-      return response;
-    } catch (error: any) {
-      console.error('[FastAPI] Error fetching courses:', {
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        detail: error.response?.data?.detail,
-        message: error.message,
-        page,
-        perPage
-      });
-      throw error;
-    }
+    return this.get<any[]>(`/api/courses/?page=${page}&per_page=${perPage}`);
   }
 
   /**
