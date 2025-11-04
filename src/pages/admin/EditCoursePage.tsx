@@ -506,40 +506,51 @@ const EditCoursePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50">
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
+    <div className="min-h-screen bg-background">
+      <div className="max-w-7xl mx-auto p-8 space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <Button variant="ghost" onClick={() => navigate(coursesBasePath)} className="mb-2">
+        <div className="flex items-center justify-between animate-fade-in">
+          <div className="space-y-3">
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate(coursesBasePath)} 
+              className="hover:bg-accent/50 transition-all"
+            >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Retour aux cours
             </Button>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-              Édition du cours
-            </h1>
-            <p className="text-gray-600 mt-1">{courseData.title || 'Sans titre'}</p>
+            <div>
+              <h1 className="text-4xl font-bold text-foreground">
+                Édition du cours
+              </h1>
+              <p className="text-muted-foreground text-lg mt-2 flex items-center gap-2">
+                <BookOpen className="h-5 w-5" />
+                {courseData.title || 'Sans titre'}
+              </p>
+            </div>
           </div>
           <div className="flex items-center gap-4">
             {/* Save indicator */}
             {isSaving && (
-              <div className="flex items-center gap-2 text-orange-600">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span className="text-sm">Sauvegarde...</span>
+              <div className="flex items-center gap-2 px-4 py-2 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 rounded-lg animate-pulse">
+                <Loader2 className="h-4 w-4 animate-spin text-orange-600 dark:text-orange-400" />
+                <span className="text-sm font-medium text-orange-600 dark:text-orange-400">Sauvegarde en cours...</span>
               </div>
             )}
             {lastSaved && !isSaving && (
-              <div className="flex items-center gap-2 text-green-600">
-                <Check className="h-4 w-4" />
-                <span className="text-sm">Sauvegardé à {lastSaved.toLocaleTimeString()}</span>
+              <div className="flex items-center gap-2 px-4 py-2 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg animate-scale-in">
+                <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <span className="text-sm font-medium text-green-600 dark:text-green-400">
+                  Sauvegardé à {lastSaved.toLocaleTimeString()}
+                </span>
               </div>
             )}
             
             {/* Status toggle */}
-            <div className="flex items-center gap-2">
-              <Label htmlFor="status-toggle" className="text-sm font-medium">
-                {courseData.status === 'draft' ? 'Publier' : 'Brouillon'}
-              </Label>
+            <div className="flex items-center gap-3 px-4 py-2 bg-card border rounded-lg shadow-sm">
+              <Badge variant={courseData.status === 'published' ? 'default' : 'secondary'} className="font-medium">
+                {courseData.status === 'published' ? 'Publié' : 'Brouillon'}
+              </Badge>
               <Switch
                 id="status-toggle"
                 checked={courseData.status === 'published'}
@@ -548,7 +559,11 @@ const EditCoursePage = () => {
             </div>
 
             {/* Preview button */}
-            <Button variant="outline" onClick={() => navigate(`${coursesBasePath}/${id}`)}>
+            <Button 
+              variant="outline" 
+              onClick={() => navigate(`${coursesBasePath}/${id}`)}
+              className="hover-scale shadow-sm"
+            >
               <Eye className="h-4 w-4 mr-2" />
               Prévisualiser
             </Button>
@@ -557,129 +572,170 @@ const EditCoursePage = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-6">
-            <TabsTrigger value="general">
+          <TabsList className="grid w-full grid-cols-4 mb-8 h-auto p-1 bg-card shadow-md rounded-xl">
+            <TabsTrigger 
+              value="general"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-all py-3 rounded-lg"
+            >
               <BookOpen className="h-4 w-4 mr-2" />
-              Informations générales
+              <span className="font-medium">Informations</span>
             </TabsTrigger>
-            <TabsTrigger value="modules">
+            <TabsTrigger 
+              value="modules"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-all py-3 rounded-lg"
+            >
               <FileText className="h-4 w-4 mr-2" />
-              Modules & Leçons
+              <span className="font-medium">Modules & Leçons</span>
             </TabsTrigger>
-            <TabsTrigger value="resources">
+            <TabsTrigger 
+              value="resources"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-all py-3 rounded-lg"
+            >
               <ClipboardList className="h-4 w-4 mr-2" />
-              Ressources
+              <span className="font-medium">Ressources</span>
             </TabsTrigger>
-            <TabsTrigger value="preview">
+            <TabsTrigger 
+              value="preview"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-all py-3 rounded-lg"
+            >
               <Eye className="h-4 w-4 mr-2" />
-              Prévisualisation
+              <span className="font-medium">Prévisualisation</span>
             </TabsTrigger>
           </TabsList>
 
           {/* General Info Tab */}
-          <TabsContent value="general" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Informations générales du cours</CardTitle>
+          <TabsContent value="general" className="space-y-6 animate-fade-in">
+            <Card className="shadow-lg border-2 hover:shadow-xl transition-shadow duration-300">
+              <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b">
+                <CardTitle className="flex items-center gap-2 text-2xl">
+                  <BookOpen className="h-6 w-6 text-primary" />
+                  Informations générales du cours
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6 p-8">
                 {/* Title */}
-                <div>
-                  <Label htmlFor="title">Titre du cours *</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="title" className="text-base font-semibold">
+                    Titre du cours *
+                  </Label>
                   <Input
                     id="title"
                     value={courseData.title}
                     onChange={(e) => setCourseData(prev => ({ ...prev, title: e.target.value }))}
                     placeholder="Ex: Maîtrisez React de A à Z"
+                    className="text-lg h-12 focus:ring-2 focus:ring-primary transition-all"
                   />
                 </div>
 
                 {/* Description */}
-                <div>
-                  <Label htmlFor="description">Description *</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="description" className="text-base font-semibold">
+                    Description *
+                  </Label>
                   <Textarea
                     id="description"
                     value={courseData.description}
                     onChange={(e) => setCourseData(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Décrivez votre cours..."
-                    rows={5}
+                    placeholder="Décrivez votre cours de manière détaillée..."
+                    rows={6}
+                    className="focus:ring-2 focus:ring-primary transition-all resize-none"
                   />
                 </div>
 
                 {/* Price & Category */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="price">Prix (€)</Label>
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="price" className="text-base font-semibold">
+                      Prix (€)
+                    </Label>
                     <Input
                       id="price"
                       type="number"
+                      step="0.01"
                       value={courseData.price}
                       onChange={(e) => setCourseData(prev => ({ ...prev, price: e.target.value }))}
                       placeholder="89.99"
+                      className="h-11 focus:ring-2 focus:ring-primary transition-all"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="category">Catégorie</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="category" className="text-base font-semibold">
+                      Catégorie
+                    </Label>
                     <Select
                       value={courseData.category}
                       onValueChange={(value) => setCourseData(prev => ({ ...prev, category: value }))}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="h-11 focus:ring-2 focus:ring-primary transition-all">
                         <SelectValue placeholder="Choisir une catégorie" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="development">Développement</SelectItem>
-                        <SelectItem value="design">Design</SelectItem>
-                        <SelectItem value="marketing">Marketing</SelectItem>
-                        <SelectItem value="business">Business</SelectItem>
-                        <SelectItem value="other">Autre</SelectItem>
+                        <SelectItem value="development">📱 Développement</SelectItem>
+                        <SelectItem value="design">🎨 Design</SelectItem>
+                        <SelectItem value="marketing">📊 Marketing</SelectItem>
+                        <SelectItem value="business">💼 Business</SelectItem>
+                        <SelectItem value="other">🔧 Autre</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
 
                 {/* Duration & Level */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="duration">Durée totale</Label>
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="duration" className="text-base font-semibold flex items-center gap-2">
+                      <Clock className="h-4 w-4" />
+                      Durée totale
+                    </Label>
                     <Input
                       id="duration"
                       value={courseData.duration}
                       onChange={(e) => setCourseData(prev => ({ ...prev, duration: e.target.value }))}
                       placeholder="10h 30min"
+                      className="h-11 focus:ring-2 focus:ring-primary transition-all"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="level">Niveau</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="level" className="text-base font-semibold">
+                      Niveau
+                    </Label>
                     <Select
                       value={courseData.level}
                       onValueChange={(value) => setCourseData(prev => ({ ...prev, level: value }))}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="h-11 focus:ring-2 focus:ring-primary transition-all">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="débutant">Débutant</SelectItem>
-                        <SelectItem value="intermédiaire">Intermédiaire</SelectItem>
-                        <SelectItem value="avancé">Avancé</SelectItem>
+                        <SelectItem value="débutant">🌱 Débutant</SelectItem>
+                        <SelectItem value="intermédiaire">📈 Intermédiaire</SelectItem>
+                        <SelectItem value="avancé">🚀 Avancé</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
 
                 {/* Course Image */}
-                <div>
-                  <Label>Image de couverture</Label>
+                <div className="space-y-2">
+                  <Label className="text-base font-semibold flex items-center gap-2">
+                    <ImageIcon className="h-4 w-4" />
+                    Image de couverture
+                  </Label>
                   {courseData.imagePreview && (
-                    <div className="mt-2 mb-3">
-                      <img 
-                        src={courseData.imagePreview} 
-                        alt="Couverture" 
-                        className="w-64 h-40 object-cover rounded-lg border"
-                      />
+                    <div className="mt-3 mb-4">
+                      <div className="relative group w-full max-w-2xl">
+                        <img 
+                          src={courseData.imagePreview} 
+                          alt="Couverture" 
+                          className="w-full h-64 object-cover rounded-xl border-2 shadow-lg group-hover:shadow-2xl transition-all duration-300"
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center">
+                          <p className="text-white font-medium">Cliquez pour changer</p>
+                        </div>
+                      </div>
                     </div>
                   )}
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     <input
                       type="file"
                       accept="image/*"
@@ -691,23 +747,35 @@ const EditCoursePage = () => {
                       type="button"
                       variant="outline"
                       onClick={() => document.getElementById('course-image-upload')?.click()}
+                      className="hover-scale shadow-sm"
                     >
                       <Upload className="h-4 w-4 mr-2" />
                       {courseData.imagePreview ? 'Remplacer l\'image' : 'Uploader une image'}
                     </Button>
+                    {courseData.imagePreview && (
+                      <span className="text-sm text-muted-foreground">Format recommandé: 16:9 (1920x1080)</span>
+                    )}
                   </div>
                 </div>
 
                 {/* Program PDF */}
-                <div>
-                  <Label>Programme de formation (PDF)</Label>
+                <div className="space-y-2">
+                  <Label className="text-base font-semibold flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Programme de formation (PDF)
+                  </Label>
                   {courseData.programFileName && (
-                    <div className="flex items-center gap-2 mt-2 mb-3 p-2 bg-blue-50 rounded">
-                      <FileText className="h-5 w-5 text-blue-600" />
-                      <span className="text-sm">{courseData.programFileName}</span>
+                    <div className="flex items-center gap-3 mt-3 mb-4 p-4 bg-primary/5 border border-primary/20 rounded-lg hover:bg-primary/10 transition-colors">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <FileText className="h-6 w-6 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium">{courseData.programFileName}</p>
+                        <p className="text-sm text-muted-foreground">PDF de formation</p>
+                      </div>
                     </div>
                   )}
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     <input
                       type="file"
                       accept="application/pdf"
@@ -719,6 +787,7 @@ const EditCoursePage = () => {
                       type="button"
                       variant="outline"
                       onClick={() => document.getElementById('program-pdf-upload')?.click()}
+                      className="hover-scale shadow-sm"
                     >
                       <Upload className="h-4 w-4 mr-2" />
                       {courseData.programFileName ? 'Remplacer le PDF' : 'Uploader un PDF'}
@@ -730,63 +799,97 @@ const EditCoursePage = () => {
           </TabsContent>
 
           {/* Modules & Lessons Tab */}
-          <TabsContent value="modules" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Modules et leçons du cours</CardTitle>
+          <TabsContent value="modules" className="space-y-6 animate-fade-in">
+            <Card className="shadow-lg border-2">
+              <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b">
+                <CardTitle className="flex items-center gap-2 text-2xl">
+                  <FileText className="h-6 w-6 text-primary" />
+                  Modules et leçons du cours
+                </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-8">
                 {modules.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    <BookOpen className="h-12 w-12 mx-auto mb-3 text-gray-400" />
-                    <p>Aucun module disponible</p>
+                  <div className="text-center py-16 text-muted-foreground">
+                    <div className="inline-flex p-6 bg-muted rounded-full mb-4">
+                      <BookOpen className="h-16 w-16" />
+                    </div>
+                    <p className="text-lg font-medium mb-2">Aucun module disponible</p>
                     <p className="text-sm">Les modules doivent être créés via l'API</p>
                   </div>
                 ) : (
-                  <Accordion type="multiple" value={expandedModules} onValueChange={setExpandedModules}>
+                  <Accordion type="multiple" value={expandedModules} onValueChange={setExpandedModules} className="space-y-4">
                     {modules.map((module, moduleIdx) => (
-                      <AccordionItem key={`module-${moduleIdx}`} value={`module-${moduleIdx}`}>
-                        <AccordionTrigger className="hover:no-underline">
+                      <AccordionItem 
+                        key={`module-${moduleIdx}`} 
+                        value={`module-${moduleIdx}`}
+                        className="border-2 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all bg-card"
+                      >
+                        <AccordionTrigger className="hover:no-underline px-6 py-4 hover:bg-accent/50 transition-colors">
                           <div className="flex items-center justify-between w-full pr-4">
-                            <div className="flex items-center gap-3">
-                              <BookOpen className="h-5 w-5 text-purple-600" />
+                            <div className="flex items-center gap-4">
+                              <div className="p-3 bg-primary/10 rounded-lg">
+                                <BookOpen className="h-6 w-6 text-primary" />
+                              </div>
                               <div className="text-left">
-                                <div className="font-semibold">{module.title || `Module ${moduleIdx + 1}`}</div>
-                                <div className="text-sm text-gray-500">
-                                  {module.lessons.length} leçon{module.lessons.length > 1 ? 's' : ''}
-                                  {module.duration && ` • ${module.duration}`}
+                                <div className="font-bold text-lg">{module.title || `Module ${moduleIdx + 1}`}</div>
+                                <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
+                                  <Badge variant="secondary" className="font-normal">
+                                    {module.lessons.length} leçon{module.lessons.length > 1 ? 's' : ''}
+                                  </Badge>
+                                  {module.duration && (
+                                    <span className="flex items-center gap-1">
+                                      <Clock className="h-3 w-3" />
+                                      {module.duration}
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                             </div>
                           </div>
                         </AccordionTrigger>
-                        <AccordionContent>
-                          <div className="pl-8 pr-4 pt-4 space-y-4">
+                        <AccordionContent className="px-6 pb-6">
+                          <div className="pt-4 space-y-6">
                             {/* Module Edit Form */}
                             {editingModuleId === moduleIdx ? (
-                              <Card className="bg-gray-50">
-                                <CardContent className="pt-6 space-y-3">
-                                  <Input
-                                    value={module.title}
-                                    onChange={(e) => setModules(prev => prev.map((m, idx) => 
-                                      idx === moduleIdx ? { ...m, title: e.target.value } : m
-                                    ))}
-                                    placeholder="Titre du module"
-                                  />
-                                  <Textarea
-                                    value={module.description}
-                                    onChange={(e) => setModules(prev => prev.map((m, idx) => 
-                                      idx === moduleIdx ? { ...m, description: e.target.value } : m
-                                    ))}
-                                    placeholder="Description du module"
-                                    rows={3}
-                                  />
+                              <Card className="bg-accent/30 border-2 border-primary/20">
+                                <CardContent className="pt-6 space-y-4">
+                                  <div className="space-y-2">
+                                    <Label className="font-semibold">Titre du module</Label>
+                                    <Input
+                                      value={module.title}
+                                      onChange={(e) => setModules(prev => prev.map((m, idx) => 
+                                        idx === moduleIdx ? { ...m, title: e.target.value } : m
+                                      ))}
+                                      placeholder="Titre du module"
+                                      className="h-11 focus:ring-2 focus:ring-primary"
+                                    />
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label className="font-semibold">Description</Label>
+                                    <Textarea
+                                      value={module.description}
+                                      onChange={(e) => setModules(prev => prev.map((m, idx) => 
+                                        idx === moduleIdx ? { ...m, description: e.target.value } : m
+                                      ))}
+                                      placeholder="Description du module"
+                                      rows={3}
+                                      className="focus:ring-2 focus:ring-primary"
+                                    />
+                                  </div>
                                   <div className="flex gap-2">
-                                    <Button size="sm" onClick={() => handleSaveModule(moduleIdx)}>
+                                    <Button 
+                                      size="sm" 
+                                      onClick={() => handleSaveModule(moduleIdx)}
+                                      className="hover-scale"
+                                    >
                                       <Check className="h-4 w-4 mr-2" />
                                       Sauvegarder
                                     </Button>
-                                    <Button size="sm" variant="ghost" onClick={() => setEditingModuleId(null)}>
+                                    <Button 
+                                      size="sm" 
+                                      variant="ghost" 
+                                      onClick={() => setEditingModuleId(null)}
+                                    >
                                       <X className="h-4 w-4 mr-2" />
                                       Annuler
                                     </Button>
@@ -794,15 +897,16 @@ const EditCoursePage = () => {
                                 </CardContent>
                               </Card>
                             ) : (
-                              <div className="flex items-start justify-between">
-                                <div>
-                                  <p className="text-sm text-gray-600">{module.description || 'Aucune description'}</p>
+                              <div className="flex items-start justify-between p-4 bg-accent/20 rounded-lg">
+                                <div className="flex-1">
+                                  <p className="text-sm text-muted-foreground">{module.description || 'Aucune description'}</p>
                                 </div>
-                                <div className="flex gap-2">
+                                <div className="flex gap-2 ml-4">
                                   <Button 
                                     size="sm" 
                                     variant="ghost"
                                     onClick={() => setEditingModuleId(moduleIdx)}
+                                    className="hover:bg-primary/10"
                                   >
                                     <Edit2 className="h-4 w-4" />
                                   </Button>
@@ -810,72 +914,100 @@ const EditCoursePage = () => {
                                     size="sm" 
                                     variant="ghost"
                                     onClick={() => handleDeleteModule(moduleIdx)}
+                                    className="hover:bg-destructive/10"
                                   >
-                                    <Trash2 className="h-4 w-4 text-red-500" />
+                                    <Trash2 className="h-4 w-4 text-destructive" />
                                   </Button>
                                 </div>
                               </div>
                             )}
 
                             {/* Lessons */}
-                            <div className="space-y-3 mt-4">
-                              <h4 className="font-semibold text-sm text-gray-700">Leçons</h4>
+                            <div className="space-y-4 mt-6">
+                              <div className="flex items-center gap-2">
+                                <div className="h-px flex-1 bg-border"></div>
+                                <h4 className="font-bold text-sm text-foreground px-3 py-1 bg-muted rounded-full">
+                                  Leçons ({module.lessons.length})
+                                </h4>
+                                <div className="h-px flex-1 bg-border"></div>
+                              </div>
                               {module.lessons.map((lesson, lessonIdx) => (
-                                <Card key={`lesson-${moduleIdx}-${lessonIdx}`} className="bg-white">
-                                  <CardContent className="pt-4">
+                                <Card 
+                                  key={`lesson-${moduleIdx}-${lessonIdx}`} 
+                                  className="bg-card border-2 hover:border-primary/50 transition-all hover-scale shadow-sm"
+                                >
+                                  <CardContent className="pt-6">
                                     {editingLessonId?.moduleIdx === moduleIdx && editingLessonId?.lessonIdx === lessonIdx ? (
-                                      <div className="space-y-3">
-                                        <Input
-                                          value={lesson.title}
-                                          onChange={(e) => setModules(prev => prev.map((m, mIdx) => 
-                                            mIdx === moduleIdx 
-                                              ? {
-                                                  ...m,
-                                                  lessons: m.lessons.map((l, lIdx) =>
-                                                    lIdx === lessonIdx ? { ...l, title: e.target.value } : l
-                                                  )
-                                                }
-                                              : m
-                                          ))}
-                                          placeholder="Titre de la leçon"
-                                        />
-                                        <Textarea
-                                          value={lesson.description}
-                                          onChange={(e) => setModules(prev => prev.map((m, mIdx) => 
-                                            mIdx === moduleIdx 
-                                              ? {
-                                                  ...m,
-                                                  lessons: m.lessons.map((l, lIdx) =>
-                                                    lIdx === lessonIdx ? { ...l, description: e.target.value } : l
-                                                  )
-                                                }
-                                              : m
-                                          ))}
-                                          placeholder="Description de la leçon"
-                                          rows={2}
-                                        />
-                                        <Input
-                                          value={lesson.duration}
-                                          onChange={(e) => setModules(prev => prev.map((m, mIdx) => 
-                                            mIdx === moduleIdx 
-                                              ? {
-                                                  ...m,
-                                                  lessons: m.lessons.map((l, lIdx) =>
-                                                    lIdx === lessonIdx ? { ...l, duration: e.target.value } : l
-                                                  )
-                                                }
-                                              : m
-                                          ))}
-                                          placeholder="Durée (ex: 45min)"
-                                        />
+                                      <div className="space-y-4">
+                                        <div className="space-y-2">
+                                          <Label className="font-semibold">Titre de la leçon</Label>
+                                          <Input
+                                            value={lesson.title}
+                                            onChange={(e) => setModules(prev => prev.map((m, mIdx) => 
+                                              mIdx === moduleIdx 
+                                                ? {
+                                                    ...m,
+                                                    lessons: m.lessons.map((l, lIdx) =>
+                                                      lIdx === lessonIdx ? { ...l, title: e.target.value } : l
+                                                    )
+                                                  }
+                                                : m
+                                            ))}
+                                            placeholder="Titre de la leçon"
+                                            className="h-11 focus:ring-2 focus:ring-primary"
+                                          />
+                                        </div>
+                                        <div className="space-y-2">
+                                          <Label className="font-semibold">Description</Label>
+                                          <Textarea
+                                            value={lesson.description}
+                                            onChange={(e) => setModules(prev => prev.map((m, mIdx) => 
+                                              mIdx === moduleIdx 
+                                                ? {
+                                                    ...m,
+                                                    lessons: m.lessons.map((l, lIdx) =>
+                                                      lIdx === lessonIdx ? { ...l, description: e.target.value } : l
+                                                    )
+                                                  }
+                                                : m
+                                            ))}
+                                            placeholder="Description de la leçon"
+                                            rows={2}
+                                            className="focus:ring-2 focus:ring-primary"
+                                          />
+                                        </div>
+                                        <div className="space-y-2">
+                                          <Label className="font-semibold flex items-center gap-2">
+                                            <Clock className="h-4 w-4" />
+                                            Durée
+                                          </Label>
+                                          <Input
+                                            value={lesson.duration}
+                                            onChange={(e) => setModules(prev => prev.map((m, mIdx) => 
+                                              mIdx === moduleIdx 
+                                                ? {
+                                                    ...m,
+                                                    lessons: m.lessons.map((l, lIdx) =>
+                                                      lIdx === lessonIdx ? { ...l, duration: e.target.value } : l
+                                                    )
+                                                  }
+                                                : m
+                                            ))}
+                                            placeholder="Durée (ex: 45min)"
+                                            className="h-11 focus:ring-2 focus:ring-primary"
+                                          />
+                                        </div>
                                         
                                         {/* Video upload */}
-                                        <div>
-                                          <Label className="text-sm">Vidéo de la leçon</Label>
+                                        <div className="space-y-2">
+                                          <Label className="font-semibold flex items-center gap-2">
+                                            <Video className="h-4 w-4" />
+                                            Vidéo de la leçon
+                                          </Label>
                                           {lesson.videoFileName && (
-                                            <div className="flex items-center gap-2 mt-2 mb-2 p-2 bg-blue-50 rounded">
-                                              <Video className="h-4 w-4 text-blue-600" />
-                                              <span className="text-sm">{lesson.videoFileName}</span>
+                                            <div className="flex items-center gap-3 p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                                              <Video className="h-5 w-5 text-primary" />
+                                              <span className="text-sm font-medium">{lesson.videoFileName}</span>
                                             </div>
                                           )}
                                           <input
@@ -893,14 +1025,19 @@ const EditCoursePage = () => {
                                             size="sm"
                                             variant="outline"
                                             onClick={() => document.getElementById(`lesson-video-${moduleIdx}-${lessonIdx}`)?.click()}
+                                            className="hover-scale"
                                           >
                                             <Upload className="h-4 w-4 mr-2" />
                                             {lesson.videoFileName ? 'Remplacer' : 'Uploader'} une vidéo
                                           </Button>
                                         </div>
 
-                                        <div className="flex gap-2">
-                                          <Button size="sm" onClick={() => handleSaveLesson(moduleIdx, lessonIdx)}>
+                                        <div className="flex gap-2 pt-2">
+                                          <Button 
+                                            size="sm" 
+                                            onClick={() => handleSaveLesson(moduleIdx, lessonIdx)}
+                                            className="hover-scale"
+                                          >
                                             <Check className="h-4 w-4 mr-2" />
                                             Sauvegarder
                                           </Button>
@@ -912,13 +1049,25 @@ const EditCoursePage = () => {
                                       </div>
                                     ) : (
                                       <div className="flex items-start justify-between">
-                                        <div className="flex items-center gap-3">
-                                          <Video className="h-5 w-5 text-blue-600" />
+                                        <div className="flex items-center gap-4">
+                                          <div className="p-2 bg-primary/10 rounded-lg">
+                                            <Video className="h-5 w-5 text-primary" />
+                                          </div>
                                           <div>
-                                            <div className="font-medium">{lesson.title || `Leçon ${lessonIdx + 1}`}</div>
-                                            <div className="text-sm text-gray-500">
-                                              {lesson.duration && `${lesson.duration}`}
-                                              {lesson.videoFileName && ` • ${lesson.videoFileName}`}
+                                            <div className="font-semibold text-base">{lesson.title || `Leçon ${lessonIdx + 1}`}</div>
+                                            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                                              {lesson.duration && (
+                                                <Badge variant="outline" className="font-normal">
+                                                  <Clock className="h-3 w-3 mr-1" />
+                                                  {lesson.duration}
+                                                </Badge>
+                                              )}
+                                              {lesson.videoFileName && (
+                                                <Badge variant="secondary" className="font-normal">
+                                                  <Video className="h-3 w-3 mr-1" />
+                                                  {lesson.videoFileName}
+                                                </Badge>
+                                              )}
                                             </div>
                                           </div>
                                         </div>
@@ -927,6 +1076,7 @@ const EditCoursePage = () => {
                                             size="sm" 
                                             variant="ghost"
                                             onClick={() => setEditingLessonId({ moduleIdx, lessonIdx })}
+                                            className="hover:bg-primary/10"
                                           >
                                             <Edit2 className="h-4 w-4" />
                                           </Button>
@@ -934,8 +1084,9 @@ const EditCoursePage = () => {
                                             size="sm" 
                                             variant="ghost"
                                             onClick={() => handleDeleteLesson(moduleIdx, lessonIdx)}
+                                            className="hover:bg-destructive/10"
                                           >
-                                            <Trash2 className="h-4 w-4 text-red-500" />
+                                            <Trash2 className="h-4 w-4 text-destructive" />
                                           </Button>
                                         </div>
                                       </div>
@@ -955,26 +1106,31 @@ const EditCoursePage = () => {
           </TabsContent>
 
           {/* Resources Tab */}
-          <TabsContent value="resources" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Ressources pédagogiques</CardTitle>
+          <TabsContent value="resources" className="space-y-6 animate-fade-in">
+            <Card className="shadow-lg border-2">
+              <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b">
+                <CardTitle className="flex items-center gap-2 text-2xl">
+                  <ClipboardList className="h-6 w-6 text-primary" />
+                  Ressources pédagogiques
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="p-8 space-y-6">
                 {resources.length > 0 && (
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {resources.map((resource) => (
-                      <Card key={resource.id} className="bg-gray-50">
-                        <CardContent className="p-4">
+                      <Card key={resource.id} className="bg-card border-2 hover:border-primary/50 transition-all hover-scale">
+                        <CardContent className="p-5">
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <FileText className="h-5 w-5 text-red-500" />
+                            <div className="flex items-center gap-4">
+                              <div className="p-3 bg-destructive/10 rounded-lg">
+                                <FileText className="h-6 w-6 text-destructive" />
+                              </div>
                               <div>
-                                <div className="font-medium">{resource.name}</div>
+                                <div className="font-semibold text-base">{resource.name}</div>
                                 {resource.size && (
-                                  <div className="text-sm text-gray-500">
+                                  <Badge variant="outline" className="mt-1 font-normal">
                                     {(resource.size / 1024 / 1024).toFixed(2)} MB
-                                  </div>
+                                  </Badge>
                                 )}
                               </div>
                             </div>
@@ -982,8 +1138,9 @@ const EditCoursePage = () => {
                               size="sm" 
                               variant="ghost"
                               onClick={() => resource.key && handleDeleteResource(resource.key)}
+                              className="hover:bg-destructive/10"
                             >
-                              <Trash2 className="h-4 w-4 text-red-500" />
+                              <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
                           </div>
                         </CardContent>
@@ -992,9 +1149,13 @@ const EditCoursePage = () => {
                   </div>
                 )}
 
-                <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-orange-400 transition-colors">
-                  <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm text-gray-600 mb-3">Fichiers PDF uniquement</p>
+
+                <div className="border-2 border-dashed border-muted-foreground/25 rounded-xl p-8 text-center hover:border-primary hover:bg-primary/5 transition-all duration-300 cursor-pointer group">
+                  <div className="inline-flex p-4 bg-primary/10 rounded-full mb-4 group-hover:scale-110 transition-transform">
+                    <Upload className="h-8 w-8 text-primary" />
+                  </div>
+                  <p className="text-base font-semibold mb-2">Ajouter des ressources pédagogiques</p>
+                  <p className="text-sm text-muted-foreground mb-4">Fichiers PDF uniquement • Glissez-déposez ou cliquez</p>
                   <input
                     type="file"
                     accept="application/pdf"
@@ -1009,11 +1170,12 @@ const EditCoursePage = () => {
                   />
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="default"
                     onClick={() => document.getElementById('resources-upload')?.click()}
+                    className="hover-scale"
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    Ajouter des ressources
+                    Sélectionner des fichiers
                   </Button>
                 </div>
               </CardContent>
@@ -1021,35 +1183,45 @@ const EditCoursePage = () => {
           </TabsContent>
 
           {/* Preview Tab */}
-          <TabsContent value="preview" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Prévisualisation du cours</CardTitle>
+          <TabsContent value="preview" className="space-y-6 animate-fade-in">
+            <Card className="shadow-lg border-2">
+              <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b">
+                <CardTitle className="flex items-center gap-2 text-2xl">
+                  <Eye className="h-6 w-6 text-primary" />
+                  Prévisualisation du cours
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="p-8 space-y-8">
                 {/* Course Header */}
-                <div className="flex gap-6">
+                <div className="flex gap-6 items-start">
                   {courseData.imagePreview && (
-                    <img 
-                      src={courseData.imagePreview} 
-                      alt={courseData.title}
-                      className="w-64 h-40 object-cover rounded-lg border"
-                    />
+                    <div className="relative group">
+                      <img 
+                        src={courseData.imagePreview} 
+                        alt={courseData.title}
+                        className="w-80 h-48 object-cover rounded-xl border-2 shadow-lg"
+                      />
+                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+                    </div>
                   )}
                   <div className="flex-1">
-                    <h2 className="text-2xl font-bold mb-2">{courseData.title || 'Sans titre'}</h2>
-                    <p className="text-gray-600 mb-4">{courseData.description || 'Aucune description'}</p>
-                    <div className="flex items-center gap-4 text-sm">
-                      <Badge>{courseData.level}</Badge>
-                      <Badge variant="outline">{courseData.category || 'Non catégorisé'}</Badge>
+                    <h2 className="text-3xl font-bold mb-3">{courseData.title || 'Sans titre'}</h2>
+                    <p className="text-muted-foreground mb-6 text-base leading-relaxed">{courseData.description || 'Aucune description'}</p>
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <Badge variant="default" className="text-base px-3 py-1">
+                        {courseData.level}
+                      </Badge>
+                      <Badge variant="outline" className="text-base px-3 py-1">
+                        {courseData.category || 'Non catégorisé'}
+                      </Badge>
                       {courseData.duration && (
-                        <div className="flex items-center gap-1 text-gray-600">
-                          <Clock className="h-4 w-4" />
+                        <Badge variant="secondary" className="text-base px-3 py-1">
+                          <Clock className="h-4 w-4 mr-1" />
                           {courseData.duration}
-                        </div>
+                        </Badge>
                       )}
                       {courseData.price && (
-                        <div className="text-lg font-bold text-purple-600">
+                        <div className="text-2xl font-bold text-primary">
                           {courseData.price} €
                         </div>
                       )}
@@ -1059,17 +1231,33 @@ const EditCoursePage = () => {
 
                 {/* Modules Preview */}
                 <div>
-                  <h3 className="text-lg font-semibold mb-4">Contenu du cours</h3>
-                  <div className="space-y-2">
+                  <div className="flex items-center gap-3 mb-6">
+                    <BookOpen className="h-6 w-6 text-primary" />
+                    <h3 className="text-xl font-bold">Contenu du cours</h3>
+                    <Badge variant="secondary">{modules.length} modules</Badge>
+                  </div>
+                  <div className="space-y-3">
                     {modules.map((module, idx) => (
-                      <Card key={`preview-${idx}`}>
-                        <CardContent className="p-4">
+                      <Card key={`preview-${idx}`} className="bg-card border-2 hover:border-primary/50 transition-all">
+                        <CardContent className="p-5">
                           <div className="flex items-center justify-between">
-                            <div>
-                              <div className="font-semibold">{module.title}</div>
-                              <div className="text-sm text-gray-500">
-                                {module.lessons.length} leçon{module.lessons.length > 1 ? 's' : ''}
-                                {module.duration && ` • ${module.duration}`}
+                            <div className="flex items-center gap-3">
+                              <div className="p-2 bg-primary/10 rounded-lg">
+                                <BookOpen className="h-5 w-5 text-primary" />
+                              </div>
+                              <div>
+                                <div className="font-semibold text-base">{module.title}</div>
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                                  <Badge variant="outline" className="font-normal">
+                                    {module.lessons.length} leçon{module.lessons.length > 1 ? 's' : ''}
+                                  </Badge>
+                                  {module.duration && (
+                                    <span className="flex items-center gap-1">
+                                      <Clock className="h-3 w-3" />
+                                      {module.duration}
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -1082,12 +1270,18 @@ const EditCoursePage = () => {
                 {/* Resources Preview */}
                 {resources.length > 0 && (
                   <div>
-                    <h3 className="text-lg font-semibold mb-4">Ressources disponibles</h3>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="flex items-center gap-3 mb-6">
+                      <FileText className="h-6 w-6 text-primary" />
+                      <h3 className="text-xl font-bold">Ressources disponibles</h3>
+                      <Badge variant="secondary">{resources.length} fichiers</Badge>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
                       {resources.map((resource) => (
-                        <div key={resource.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                          <FileText className="h-4 w-4 text-red-500" />
-                          <span className="text-sm">{resource.name}</span>
+                        <div key={resource.id} className="flex items-center gap-3 p-4 bg-accent/50 border rounded-lg hover:bg-accent transition-colors">
+                          <div className="p-2 bg-destructive/10 rounded-lg">
+                            <FileText className="h-5 w-5 text-destructive" />
+                          </div>
+                          <span className="text-sm font-medium">{resource.name}</span>
                         </div>
                       ))}
                     </div>
