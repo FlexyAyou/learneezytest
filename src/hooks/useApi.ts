@@ -398,7 +398,7 @@ export const useUserDetail = (userId: string | number) => {
 /**
  * Hook pour récupérer la liste des organisations
  */
-export const useOrganizations = (page = 1, perPage = 100) => {
+export const useOrganizations = (page = 1, perPage = 20) => {
   return useQuery({
     queryKey: ['organizations', page, perPage],
     queryFn: () => fastAPIClient.listOrganizations(page, perPage),
