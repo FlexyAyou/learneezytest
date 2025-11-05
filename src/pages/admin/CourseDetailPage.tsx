@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { ArrowLeft, Edit, Trash2, Eye, EyeOff, Clock, BookOpen, PlayCircle, FileText, CheckCircle, XCircle, Video, Download, Users, Award } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { ArrowLeft, Edit, Trash2, Eye, EyeOff, Clock, BookOpen, PlayCircle, FileText, CheckCircle, XCircle, Video, Download, Users, Award, Save, Tags } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { fastAPIClient } from '@/services/fastapi-client';
 import { CourseResponse, Content } from '@/types/fastapi';
@@ -144,6 +145,17 @@ const CourseDetailPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<Content | null>(null);
   const [statusUpdating, setStatusUpdating] = useState(false);
+  
+  // States pour édition inline
+  const [editingLevel, setEditingLevel] = useState(false);
+  const [editingTags, setEditingTags] = useState(false);
+  const [levelValue, setLevelValue] = useState('');
+  const [tagsValue, setTagsValue] = useState('');
+  const [saving, setSaving] = useState(false);
+  
+  // States pour les URLs de téléchargement
+  const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
+  const [programUrl, setProgramUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const loadCourse = async () => {
@@ -155,6 +167,26 @@ const CourseDetailPage = () => {
       try {
         const courseData = await fastAPIClient.getCourse(courseId);
         setCourse(courseData);
+        setLevelValue(courseData.level || '');
+        setTagsValue(courseData.category || '');
+        
+        // Charger l'image de couverture avec download_url
+        if (courseData.cover_key) {
+          try {
+            const { download_url } = await fastAPIClient.getDownloadUrl(courseData.cover_key);
+            setCoverImageUrl(download_url);
+          } catch (err) {
+            console.error('Erreur chargement image de couverture:', err);
+          }
+        }
+        
+        // Charger l'URL du programme PDF
+        try {
+          const programData = await fastAPIClient.getCourseProgramUrl(courseId);
+          setProgramUrl(programData.download_url);
+        } catch (err) {
+          console.error('Erreur chargement programme:', err);
+        }
       } catch (err: any) {
         setError(err.message || 'Erreur lors du chargement du cours');
         toast({
@@ -209,6 +241,52 @@ const CourseDetailPage = () => {
       });
     } finally {
       setStatusUpdating(false);
+    }
+  };
+
+  const handleSaveLevel = async () => {
+    if (!courseId || !course) return;
+    
+    setSaving(true);
+    try {
+      const updatedCourse = await fastAPIClient.updateCourse(courseId, { level: levelValue });
+      setCourse(updatedCourse);
+      setEditingLevel(false);
+      toast({
+        title: "✅ Niveau mis à jour",
+        description: "Le niveau du cours a été modifié avec succès.",
+      });
+    } catch (err: any) {
+      toast({
+        title: "❌ Erreur",
+        description: "Impossible de modifier le niveau",
+        variant: "destructive"
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSaveTags = async () => {
+    if (!courseId || !course) return;
+    
+    setSaving(true);
+    try {
+      const updatedCourse = await fastAPIClient.updateCourse(courseId, { category: tagsValue });
+      setCourse(updatedCourse);
+      setEditingTags(false);
+      toast({
+        title: "✅ Tags mis à jour",
+        description: "Les tags du cours ont été modifiés avec succès.",
+      });
+    } catch (err: any) {
+      toast({
+        title: "❌ Erreur",
+        description: "Impossible de modifier les tags",
+        variant: "destructive"
+      });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -321,9 +399,6 @@ const CourseDetailPage = () => {
                       : 'bg-purple-500 hover:bg-purple-600 text-white'}>
                       {course.owner_type === 'learneezy' ? '🏢 Learneezy' : '🎓 Organisme'}
                     </Badge>
-                    <Badge variant="outline" className="border-2 border-pink-300 text-pink-700">
-                      {course.level}
-                    </Badge>
                   </div>
                 </div>
               </div>
@@ -336,12 +411,84 @@ const CourseDetailPage = () => {
                 </h3>
                 <p className="text-gray-700 leading-relaxed">{course.description}</p>
               </div>
+
+              {/* Niveau - Éditable en mode brouillon */}
+              <div className="pt-4 border-t-2">
+                <h3 className="font-semibold text-lg mb-2 flex items-center justify-between">
+                  <span className="flex items-center">
+                    <Award className="h-5 w-5 mr-2 text-gray-600" />
+                    Niveau
+                  </span>
+                  {course.status === 'draft' && !editingLevel && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setEditingLevel(true)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  )}
+                </h3>
+                {editingLevel && course.status === 'draft' ? (
+                  <div className="flex gap-2">
+                    <Input
+                      value={levelValue}
+                      onChange={(e) => setLevelValue(e.target.value)}
+                      placeholder="Ex: Débutant, Intermédiaire, Avancé"
+                    />
+                    <Button onClick={handleSaveLevel} disabled={saving}>
+                      {saving ? <LoadingSpinner size="sm" /> : <Save className="h-4 w-4" />}
+                    </Button>
+                    <Button variant="outline" onClick={() => setEditingLevel(false)}>
+                      <XCircle className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <Badge variant="outline" className="border-2 border-pink-300 text-pink-700">
+                    {course.level || 'Non défini'}
+                  </Badge>
+                )}
+              </div>
+
+              {/* Tags/Catégorie - Éditable en mode brouillon */}
+              <div className="pt-4 border-t-2">
+                <h3 className="font-semibold text-lg mb-2 flex items-center justify-between">
+                  <span className="flex items-center">
+                    <Tags className="h-5 w-5 mr-2 text-gray-600" />
+                    Tags / Catégorie
+                  </span>
+                  {course.status === 'draft' && !editingTags && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setEditingTags(true)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  )}
+                </h3>
+                {editingTags && course.status === 'draft' ? (
+                  <div className="flex gap-2">
+                    <Input
+                      value={tagsValue}
+                      onChange={(e) => setTagsValue(e.target.value)}
+                      placeholder="Ex: Développement, React, Frontend"
+                    />
+                    <Button onClick={handleSaveTags} disabled={saving}>
+                      {saving ? <LoadingSpinner size="sm" /> : <Save className="h-4 w-4" />}
+                    </Button>
+                    <Button variant="outline" onClick={() => setEditingTags(false)}>
+                      <XCircle className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <Badge variant="outline" className="border-2 border-blue-300 text-blue-700">
+                    {course.category || 'Non défini'}
+                  </Badge>
+                )}
+              </div>
               
-              <div className="grid grid-cols-3 gap-4 pt-4 border-t-2">
-                <div className="text-center p-3 bg-blue-50 rounded-lg">
-                  <p className="text-xs text-gray-600 mb-1">Catégorie</p>
-                  <p className="font-bold text-blue-700">{course.category || '-'}</p>
-                </div>
+              <div className="grid grid-cols-2 gap-4 pt-4 border-t-2">
                 <div className="text-center p-3 bg-purple-50 rounded-lg">
                   <p className="text-xs text-gray-600 mb-1">Durée totale</p>
                   <p className="font-bold text-purple-700 flex items-center justify-center">
@@ -596,20 +743,42 @@ const CourseDetailPage = () => {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Course Image */}
-          {course.image_url && (
+          {(coverImageUrl || course.image_url) && (
             <Card className="border-2 overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-pink-50 to-purple-50">
                 <CardTitle className="text-sm flex items-center">
                   <Eye className="h-4 w-4 mr-2" />
-                  Image du cours
+                  Image de couverture
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 <img 
-                  src={course.image_url} 
+                  src={coverImageUrl || course.image_url || ''} 
                   alt={course.title}
                   className="w-full h-48 object-cover"
                 />
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Programme de formation */}
+          {programUrl && (
+            <Card className="border-2">
+              <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
+                <CardTitle className="text-sm flex items-center">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Programme de formation
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <Button
+                  className="w-full"
+                  variant="outline"
+                  onClick={() => window.open(programUrl, '_blank')}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Télécharger le programme (PDF)
+                </Button>
               </CardContent>
             </Card>
           )}

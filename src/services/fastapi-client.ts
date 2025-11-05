@@ -422,6 +422,20 @@ class FastAPIClient {
   }
 
   /**
+   * Obtenir l'URL de téléchargement d'un fichier par sa clé
+   */
+  async getDownloadUrl(key: string): Promise<{ url: string; download_url: string }> {
+    return this.get(`/api/storage/download`, { params: { key } });
+  }
+
+  /**
+   * Récupérer le programme d'un cours avec download_url
+   */
+  async getCourseProgramUrl(courseId: string): Promise<{ url: string; download_url: string; expires_in: number }> {
+    return this.get(`/api/courses/${courseId}/program`);
+  }
+
+  /**
    * Récupérer les statistiques d'un cours
    */
   async getCourseStats(courseId: string): Promise<CourseStatsResponse> {
