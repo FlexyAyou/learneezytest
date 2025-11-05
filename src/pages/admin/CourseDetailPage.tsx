@@ -157,6 +157,7 @@ const CourseDetailPage = () => {
   const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
   const [programUrl, setProgramUrl] = useState<string | null>(null);
   const [programError, setProgramError] = useState(false);
+  const [resources, setResources] = useState<Array<{ name: string; key?: string; size?: number; url?: string }>>([]);
 
   useEffect(() => {
     const loadCourse = async () => {
@@ -190,6 +191,15 @@ const CourseDetailPage = () => {
           console.log('Programme non disponible:', err.response?.status);
           setProgramUrl(null);
           setProgramError(true);
+        }
+
+        // Charger les ressources pédagogiques
+        try {
+          const resourcesData = await fastAPIClient.listCourseResources(courseId);
+          setResources(resourcesData || []);
+        } catch (err) {
+          console.error('Erreur chargement ressources:', err);
+          setResources([]);
         }
       } catch (err: any) {
         setError(err.message || 'Erreur lors du chargement du cours');
@@ -844,31 +854,54 @@ const CourseDetailPage = () => {
             </CardContent>
           </Card>
 
-          {/* Resources */}
-          {course.resources && course.resources.length > 0 && (
+          {/* Ressources pédagogiques */}
+          {resources.length > 0 && (
             <Card className="border-2">
-              <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50">
+              <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50">
                 <CardTitle className="text-sm flex items-center">
-                  <Download className="h-4 w-4 mr-2" />
-                  Ressources ({course.resources.length})
+                  <FileText className="h-4 w-4 mr-2" />
+                  Ressources pédagogiques ({resources.length})
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-4">
-                <ul className="space-y-2">
-                  {course.resources.map((resource: any, index: number) => (
-                    <li key={index}>
-                      <a 
-                        href={resource.url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 hover:underline text-sm flex items-center p-2 rounded hover:bg-blue-50 transition-colors"
-                      >
-                        <FileText className="h-4 w-4 mr-2 flex-shrink-0" />
-                        <span className="truncate">{resource.name}</span>
-                      </a>
-                    </li>
+                <div className="space-y-2">
+                  {resources.map((resource, index) => (
+                    <Button
+                      key={index}
+                      variant="outline"
+                      className="w-full justify-between h-auto py-3 hover:bg-purple-50"
+                      onClick={async () => {
+                        try {
+                          await fastAPIClient.downloadCourseResource(courseId, index);
+                          toast({
+                            title: "✅ Téléchargement démarré",
+                            description: `Téléchargement de ${resource.name}`,
+                          });
+                        } catch (err) {
+                          console.error('Erreur téléchargement:', err);
+                          toast({
+                            title: "❌ Erreur",
+                            description: "Impossible de télécharger cette ressource",
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                    >
+                      <div className="flex items-center gap-2 flex-1 text-left">
+                        <FileText className="h-4 w-4 flex-shrink-0 text-purple-600" />
+                        <span className="text-sm truncate font-medium">{resource.name}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {resource.size && (
+                          <span className="text-xs text-muted-foreground">
+                            {(resource.size / 1024 / 1024).toFixed(2)} MB
+                          </span>
+                        )}
+                        <Download className="h-4 w-4 text-purple-600" />
+                      </div>
+                    </Button>
                   ))}
-                </ul>
+                </div>
               </CardContent>
             </Card>
           )}

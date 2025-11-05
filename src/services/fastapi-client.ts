@@ -649,9 +649,8 @@ class FastAPIClient {
   /**
    * Lister les ressources pédagogiques d'un cours
    */
-  async listCourseResources(courseId: string): Promise<Array<{ name?: string; key?: string; size?: number; url?: string }>> {
-    const course = await this.getCourse(courseId);
-    return course.resources || [];
+  async listCourseResources(courseId: string): Promise<Array<{ name: string; key?: string; size?: number; url?: string }>> {
+    return this.get(`/api/courses/${courseId}/resources`);
   }
 
   /**
@@ -661,23 +660,45 @@ class FastAPIClient {
     courseId: string,
     resourceKey: string,
     resourceName: string,
-    size: number
-  ): Promise<void> {
-    const course = await this.getCourse(courseId);
-    const updatedResources = [
-      ...(course.resources || []),
-      { name: resourceName, key: resourceKey, size, url: undefined }
-    ];
-    await this.updateCourse(courseId, { resources: updatedResources as any });
+    size?: number
+  ): Promise<{ status: string; attached?: any; message?: string }> {
+    return this.post(`/api/courses/${courseId}/resources`, {
+      name: resourceName,
+      key: resourceKey,
+      size: size || null
+    });
   }
 
   /**
    * Détacher une ressource pédagogique du cours
    */
-  async detachCourseResource(courseId: string, resourceKey: string): Promise<void> {
-    const course = await this.getCourse(courseId);
-    const updatedResources = (course.resources || []).filter(r => r.key !== resourceKey);
-    await this.updateCourse(courseId, { resources: updatedResources as any });
+  async detachCourseResource(
+    courseId: string, 
+    resourceKey: string,
+    force: boolean = false
+  ): Promise<{ status: string; detached_key: string; deleted_from_storage: boolean }> {
+    return this.delete(`/api/courses/${courseId}/resources`, {
+      params: { key: resourceKey, force }
+    });
+  }
+
+  /**
+   * Télécharger une ressource par index
+   */
+  async downloadCourseResource(courseId: string, index: number): Promise<void> {
+    const response = await this.axiosInstance.get(
+      `/api/courses/${courseId}/resources/${index}/download`,
+      { responseType: 'blob' }
+    );
+    
+    // Créer un lien de téléchargement
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `resource-${index}`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
   }
 }
 
