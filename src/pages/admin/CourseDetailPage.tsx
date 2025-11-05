@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, Edit, Trash2, Eye, EyeOff, Clock, BookOpen, PlayCircle, FileText, CheckCircle, XCircle, Video, Download, Users, Award, Save, Tags } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -154,7 +153,6 @@ const CourseDetailPage = () => {
   const [tagsValue, setTagsValue] = useState('');
   const [saving, setSaving] = useState(false);
 
-  // States pour les URLs de téléchargement
   const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
   const [programAvailable, setProgramAvailable] = useState<boolean>(false);
   const [resources, setResources] = useState<Array<{ name: string; key?: string; size?: number; url?: string }>>([]);
@@ -278,7 +276,6 @@ const CourseDetailPage = () => {
   const handleSaveLevel = async () => {
     if (!courseId || !course) return;
 
-    setSaving(true);
     try {
       const updatedCourse = await fastAPIClient.updateCourse(courseId, { level: levelValue });
       setCourse(updatedCourse);
@@ -379,114 +376,59 @@ const CourseDetailPage = () => {
                 Mettre en brouillon
               </>
             ) : (
+              className = "hover:bg-blue-50 hover:text-blue-700"
+              < Badge variant="outline" className="border-2 border-pink-300 text-pink-700">
+            {course.level || 'Non défini'}
+          </>
+          <div className="flex items-center flex-wrap gap-2 mb-4">
+            {course.status === 'published' ? (
+              <Badge className="bg-green-500 hover:bg-green-600 text-white">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Publié
+              </Badge>
+                    Tags / Catégorie
+            <Badge className="bg-yellow-500 hover:bg-yellow-600 text-white">
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {Array.isArray(course.levels) && course.levels.length > 0 ? (
+              course.levels.map((lvl, i) => (
+                <Badge key={i} variant="secondary" className="border-2 border-blue-200 text-blue-800">
+                  {lvl}
+                </Badge>
+              ))
+            ) : (
+              <span className="text-sm text-gray-500">Aucun tag</span>
+            )}
+            {course.category && (
               <>
-                <Eye className="h-4 w-4 mr-2" />
-                Publier le cours
+                <span className="text-gray-400">/</span>
+                <Badge variant="outline" className="border-2 border-blue-300 text-blue-700">
+                  {course.category}
+                </Badge>
               </>
             )}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => navigate(`/dashboard/superadmin/courses/${course.id}/edit`)}
-            className="hover:bg-blue-50 hover:text-blue-700"
-          >
-            <Edit className="h-4 w-4 mr-2" />
-            Modifier
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleDelete}
-            className="hover:bg-red-50 hover:text-red-600"
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            Supprimer
-          </Button>
-        </div>
+          </div>
+          <SelectContent>
+            <SelectItem value="débutant">Débutant</SelectItem>
+            <SelectItem value="intermédiaire">Intermédiaire</SelectItem>
+            <SelectItem value="avancé">Avancé</SelectItem>
+          </SelectContent>
+        </Select>
+        <Button onClick={handleSaveLevel} disabled={saving}>
+          {saving ? <LoadingSpinner size="sm" /> : <Save className="h-4 w-4" />}
+        </Button>
+        <Button variant="outline" onClick={() => setEditingLevel(false)}>
+          <XCircle className="h-4 w-4" />
+        </Button>
       </div>
-
-      {/* Course Info */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          {/* Main Info Card */}
-          <Card className="border-2">
-            <CardHeader className="bg-gradient-to-r from-pink-50 to-purple-50">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <CardTitle className="text-3xl mb-3">{course.title}</CardTitle>
-                  <div className="flex items-center flex-wrap gap-2 mb-4">
-                    {course.status === 'published' ? (
-                      <Badge className="bg-green-500 hover:bg-green-600 text-white">
-                        <CheckCircle className="h-3 w-3 mr-1" />
-                        Publié
-                      </Badge>
-                    ) : (
-                      <Badge className="bg-yellow-500 hover:bg-yellow-600 text-white">
-                        <XCircle className="h-3 w-3 mr-1" />
-                        Brouillon
-                      </Badge>
-                    )}
-                    <Badge className={course.owner_type === 'learneezy'
-                      ? 'bg-blue-500 hover:bg-blue-600 text-white'
-                      : 'bg-purple-500 hover:bg-purple-600 text-white'}>
-                      {course.owner_type === 'learneezy' ? '🏢 Learneezy' : '🎓 Organisme'}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4 pt-6">
-              <div>
-                <h3 className="font-semibold text-lg mb-2 flex items-center">
-                  <FileText className="h-5 w-5 mr-2 text-gray-600" />
-                  Description
-                </h3>
-                <p className="text-gray-700 leading-relaxed">{course.description}</p>
-              </div>
-
-              {/* Niveau - Éditable en mode brouillon */}
-              <div className="pt-4 border-t-2">
-                <h3 className="font-semibold text-lg mb-2 flex items-center justify-between">
-                  <span className="flex items-center">
-                    <Award className="h-5 w-5 mr-2 text-gray-600" />
-                    Niveau
-                  </span>
-                  {course.status === 'draft' && !editingLevel && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setEditingLevel(true)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                  )}
-                </h3>
-                {editingLevel && course.status === 'draft' ? (
-                  <div className="flex gap-2 items-center">
-                    <Select value={levelValue} onValueChange={(v) => setLevelValue(v)}>
-                      <SelectTrigger className="w-56">
-                        <SelectValue placeholder="Choisir un niveau" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="débutant">Débutant</SelectItem>
-                        <SelectItem value="intermédiaire">Intermédiaire</SelectItem>
-                        <SelectItem value="avancé">Avancé</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Button onClick={handleSaveLevel} disabled={saving}>
-                      {saving ? <LoadingSpinner size="sm" /> : <Save className="h-4 w-4" />}
-                    </Button>
-                    <Button variant="outline" onClick={() => setEditingLevel(false)}>
-                      <XCircle className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ) : (
-                  <Badge variant="outline" className="border-2 border-pink-300 text-pink-700">
-                    {course.level || 'Non défini'}
-                  </Badge>
+      ) : (
+      <Badge variant="outline" className="border-2 border-pink-300 text-pink-700">
+        {course.level || 'Non défini'}
+      </Badge>
                 )}
-              </div>
+    </div>
 
-              {/* Tags (à partir de course.levels) et Catégorie - Éditable en mode brouillon pour la catégorie seulement */}
+              {/* Tags (à partir de course.levels) et Catégorie - Éditable en mode brouillon pour la catégorie seulement */ }
               <div className="pt-4 border-t-2">
                 <h3 className="font-semibold text-lg mb-2 flex items-center justify-between">
                   <span className="flex items-center">
@@ -555,11 +497,11 @@ const CourseDetailPage = () => {
                   </p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </CardContent >
+          </Card >
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-4 gap-4">
+  {/* Stats Cards */ }
+  < div className = "grid grid-cols-4 gap-4" >
             <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200">
               <CardContent className="pt-6 text-center">
                 <BookOpen className="h-8 w-8 text-blue-600 mx-auto mb-2" />
@@ -588,10 +530,10 @@ const CourseDetailPage = () => {
                 <p className="text-xs text-orange-700 font-medium">Quiz</p>
               </CardContent>
             </Card>
-          </div>
+          </ >
 
-          {/* Modules */}
-          <Card className="border-2">
+  {/* Modules */ }
+  < Card className = "border-2" >
             <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50">
               <CardTitle className="flex items-center">
                 <BookOpen className="h-5 w-5 mr-2" />
@@ -788,220 +730,224 @@ const CourseDetailPage = () => {
                 </Accordion>
               )}
             </CardContent>
-          </Card>
-        </div>
+          </ >
+        </div >
 
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Course Image */}
-          {(coverImageUrl || course.image_url) && (
-            <Card className="border-2 overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-pink-50 to-purple-50">
-                <CardTitle className="text-sm flex items-center">
-                  <Eye className="h-4 w-4 mr-2" />
-                  Image de couverture
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                <img
-                  src={coverImageUrl || course.image_url || ''}
-                  alt={course.title}
-                  className="w-full h-48 object-cover"
-                />
-              </CardContent>
-            </Card>
-          )}
+  {/* Sidebar */ }
+  < div className = "space-y-6" >
+    {/* Course Image */ }
+{
+  (coverImageUrl || course.image_url) && (
+    <Card className="border-2 overflow-hidden">
+      <CardHeader className="bg-gradient-to-r from-pink-50 to-purple-50">
+        <CardTitle className="text-sm flex items-center">
+          <Eye className="h-4 w-4 mr-2" />
+          Image de couverture
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-0">
+        <img
+          src={coverImageUrl || course.image_url || ''}
+          alt={course.title}
+          className="w-full h-48 object-cover"
+        />
+      </CardContent>
+    </Card>
+  )
+}
 
-          {/* Programme de formation */}
-          <Card className="border-2">
-            <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
-              <CardTitle className="text-sm flex items-center">
-                <FileText className="h-4 w-4 mr-2" />
-                Programme de formation
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-4">
-              {programAvailable ? (
-                <Button
-                  className="w-full"
-                  variant="outline"
-                  onClick={async () => {
-                    try {
-                      await fastAPIClient.downloadCourseProgram(courseId);
-                      toast({
-                        title: "✅ Téléchargement démarré",
-                        description: "Téléchargement du programme de formation",
-                      });
-                    } catch (err) {
-                      console.error('Erreur téléchargement programme:', err);
-                      toast({
-                        title: "❌ Erreur",
-                        description: "Impossible de télécharger le programme",
-                        variant: "destructive",
-                      });
-                    }
-                  }}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Télécharger le programme (PDF)
-                </Button>
-              ) : (
-                <div className="text-center py-4 text-muted-foreground">
-                  <FileText className="h-8 w-8 mx-auto mb-2 opacity-30" />
-                  <p className="text-sm">Aucun programme disponible</p>
-                  {course.status === 'draft' && (
-                    <p className="text-xs mt-1">Ajoutez-le depuis la page d'édition</p>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Quick Actions */}
-          <Card className="border-2">
-            <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50">
-              <CardTitle className="text-sm">Actions rapides</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 pt-4">
-              <Button
-                className="w-full justify-start hover:bg-blue-50"
-                variant="outline"
-                onClick={() => navigate(`/dashboard/superadmin/courses/${course.id}/edit`)}
-              >
-                <Edit className="h-4 w-4 mr-2" />
-                Modifier le cours
-              </Button>
-              <Button
-                className={`w-full justify-start ${course.status === 'published'
-                  ? 'hover:bg-yellow-50'
-                  : 'hover:bg-green-50'
-                  }`}
-                variant="outline"
-                onClick={handleToggleStatus}
-                disabled={statusUpdating}
-              >
-                {statusUpdating ? (
-                  <LoadingSpinner size="sm" className="mr-2" />
-                ) : course.status === 'published' ? (
-                  <>
-                    <EyeOff className="h-4 w-4 mr-2" />
-                    Mettre en brouillon
-                  </>
-                ) : (
-                  <>
-                    <Eye className="h-4 w-4 mr-2" />
-                    Publier
-                  </>
-                )}
-              </Button>
-              <Button
-                className="w-full justify-start hover:bg-red-50 hover:text-red-600"
-                variant="outline"
-                onClick={handleDelete}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Supprimer
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Ressources pédagogiques */}
-          {resources.length > 0 && (
-            <Card className="border-2">
-              <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50">
-                <CardTitle className="text-sm flex items-center">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Ressources pédagogiques ({resources.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-4">
-                <div className="space-y-2">
-                  {resources.map((resource, index) => (
-                    <Button
-                      key={index}
-                      variant="outline"
-                      className="w-full justify-between h-auto py-3 hover:bg-purple-50"
-                      onClick={async () => {
-                        try {
-                          await fastAPIClient.downloadCourseResource(courseId, index);
-                          toast({
-                            title: "✅ Téléchargement démarré",
-                            description: `Téléchargement de ${resource.name}`,
-                          });
-                        } catch (err) {
-                          console.error('Erreur téléchargement:', err);
-                          toast({
-                            title: "❌ Erreur",
-                            description: "Impossible de télécharger cette ressource",
-                            variant: "destructive",
-                          });
-                        }
-                      }}
-                    >
-                      <div className="flex items-center gap-2 flex-1 text-left">
-                        <FileText className="h-4 w-4 flex-shrink-0 text-purple-600" />
-                        <span className="text-sm truncate font-medium">{resource.name}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {resource.size && (
-                          <span className="text-xs text-muted-foreground">
-                            {(resource.size / 1024 / 1024).toFixed(2)} MB
-                          </span>
-                        )}
-                        <Download className="h-4 w-4 text-purple-600" />
-                      </div>
-                    </Button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Metadata */}
-          <Card className="border-2">
-            <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100">
-              <CardTitle className="text-sm">Métadonnées</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 pt-4">
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                  <span className="text-gray-600 font-medium">ID du cours</span>
-                  <span className="font-mono text-xs bg-gray-200 px-2 py-1 rounded">{course.id}</span>
-                </div>
-                <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                  <span className="text-gray-600 font-medium">Statut</span>
-                  {course.status === 'published' ? (
-                    <Badge className="bg-green-500 text-white">
-                      <CheckCircle className="h-3 w-3 mr-1" />
-                      Publié
-                    </Badge>
-                  ) : (
-                    <Badge className="bg-yellow-500 text-white">
-                      <XCircle className="h-3 w-3 mr-1" />
-                      Brouillon
-                    </Badge>
-                  )}
-                </div>
-                <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                  <span className="text-gray-600 font-medium">Propriétaire</span>
-                  <Badge className={course.owner_type === 'learneezy'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-purple-500 text-white'}>
-                    {course.owner_type === 'learneezy' ? '🏢 Learneezy' : '🎓 Organisme'}
-                  </Badge>
-                </div>
-                {course.owner_id && (
-                  <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                    <span className="text-gray-600 font-medium">ID Propriétaire</span>
-                    <span className="font-mono text-xs">{course.owner_id}</span>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+{/* Programme de formation */ }
+<Card className="border-2">
+  <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
+    <CardTitle className="text-sm flex items-center">
+      <FileText className="h-4 w-4 mr-2" />
+      Programme de formation
+    </CardTitle>
+  </CardHeader>
+  <CardContent className="pt-4">
+    {programAvailable ? (
+      <Button
+        className="w-full"
+        variant="outline"
+        onClick={async () => {
+          try {
+            await fastAPIClient.downloadCourseProgram(courseId);
+            toast({
+              title: "✅ Téléchargement démarré",
+              description: "Téléchargement du programme de formation",
+            });
+          } catch (err) {
+            console.error('Erreur téléchargement programme:', err);
+            toast({
+              title: "❌ Erreur",
+              description: "Impossible de télécharger le programme",
+              variant: "destructive",
+            });
+          }
+        }}
+      >
+        <Download className="h-4 w-4 mr-2" />
+        Télécharger le programme (PDF)
+      </Button>
+    ) : (
+      <div className="text-center py-4 text-muted-foreground">
+        <FileText className="h-8 w-8 mx-auto mb-2 opacity-30" />
+        <p className="text-sm">Aucun programme disponible</p>
+        {course.status === 'draft' && (
+          <p className="text-xs mt-1">Ajoutez-le depuis la page d'édition</p>
+        )}
       </div>
+    )}
+  </CardContent>
+</Card>
+
+{/* Quick Actions */ }
+<Card className="border-2">
+  <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50">
+    <CardTitle className="text-sm">Actions rapides</CardTitle>
+  </CardHeader>
+  <CardContent className="space-y-2 pt-4">
+    <Button
+      className="w-full justify-start hover:bg-blue-50"
+      variant="outline"
+      onClick={() => navigate(`/dashboard/superadmin/courses/${course.id}/edit`)}
+    >
+      <Edit className="h-4 w-4 mr-2" />
+      Modifier le cours
+    </Button>
+    <Button
+      className={`w-full justify-start ${course.status === 'published'
+        ? 'hover:bg-yellow-50'
+        : 'hover:bg-green-50'
+        }`}
+      variant="outline"
+      onClick={handleToggleStatus}
+      disabled={statusUpdating}
+    >
+      {statusUpdating ? (
+        <LoadingSpinner size="sm" className="mr-2" />
+      ) : course.status === 'published' ? (
+        <>
+          <EyeOff className="h-4 w-4 mr-2" />
+          Mettre en brouillon
+        </>
+      ) : (
+        <>
+          <Eye className="h-4 w-4 mr-2" />
+          Publier
+        </>
+      )}
+    </Button>
+    <Button
+      className="w-full justify-start hover:bg-red-50 hover:text-red-600"
+      variant="outline"
+      onClick={handleDelete}
+    >
+      <Trash2 className="h-4 w-4 mr-2" />
+      Supprimer
+    </Button>
+  </CardContent>
+</Card>
+
+{/* Ressources pédagogiques */ }
+{
+  resources.length > 0 && (
+    <Card className="border-2">
+      <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50">
+        <CardTitle className="text-sm flex items-center">
+          <FileText className="h-4 w-4 mr-2" />
+          Ressources pédagogiques ({resources.length})
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="pt-4">
+        <div className="space-y-2">
+          {resources.map((resource, index) => (
+            <Button
+              key={index}
+              variant="outline"
+              className="w-full justify-between h-auto py-3 hover:bg-purple-50"
+              onClick={async () => {
+                try {
+                  await fastAPIClient.downloadCourseResource(courseId, index);
+                  toast({
+                    title: "✅ Téléchargement démarré",
+                    description: `Téléchargement de ${resource.name}`,
+                  });
+                } catch (err) {
+                  console.error('Erreur téléchargement:', err);
+                  toast({
+                    title: "❌ Erreur",
+                    description: "Impossible de télécharger cette ressource",
+                    variant: "destructive",
+                  });
+                }
+              }}
+            >
+              <div className="flex items-center gap-2 flex-1 text-left">
+                <FileText className="h-4 w-4 flex-shrink-0 text-purple-600" />
+                <span className="text-sm truncate font-medium">{resource.name}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                {resource.size && (
+                  <span className="text-xs text-muted-foreground">
+                    {(resource.size / 1024 / 1024).toFixed(2)} MB
+                  </span>
+                )}
+                <Download className="h-4 w-4 text-purple-600" />
+              </div>
+            </Button>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+{/* Metadata */ }
+<Card className="border-2">
+  <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100">
+    <CardTitle className="text-sm">Métadonnées</CardTitle>
+  </CardHeader>
+  <CardContent className="space-y-3 pt-4">
+    <div className="space-y-3 text-sm">
+      <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+        <span className="text-gray-600 font-medium">ID du cours</span>
+        <span className="font-mono text-xs bg-gray-200 px-2 py-1 rounded">{course.id}</span>
+      </div>
+      <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+        <span className="text-gray-600 font-medium">Statut</span>
+        {course.status === 'published' ? (
+          <Badge className="bg-green-500 text-white">
+            <CheckCircle className="h-3 w-3 mr-1" />
+            Publié
+          </Badge>
+        ) : (
+          <Badge className="bg-yellow-500 text-white">
+            <XCircle className="h-3 w-3 mr-1" />
+            Brouillon
+          </Badge>
+        )}
+      </div>
+      <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+        <span className="text-gray-600 font-medium">Propriétaire</span>
+        <Badge className={course.owner_type === 'learneezy'
+          ? 'bg-blue-500 text-white'
+          : 'bg-purple-500 text-white'}>
+          {course.owner_type === 'learneezy' ? '🏢 Learneezy' : '🎓 Organisme'}
+        </Badge>
+      </div>
+      {course.owner_id && (
+        <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+          <span className="text-gray-600 font-medium">ID Propriétaire</span>
+          <span className="font-mono text-xs">{course.owner_id}</span>
+        </div>
+      )}
     </div>
+  </CardContent>
+</Card>
+        </ >
+      </div >
+    </div >
   );
 };
 
