@@ -683,7 +683,7 @@ class FastAPIClient {
   }
 
   /**
-   * Télécharger une ressource par index
+   * Télécharger une ressource par index avec le bon nom de fichier
    */
   async downloadCourseResource(courseId: string, index: number): Promise<void> {
     const response = await this.axiosInstance.get(
@@ -691,14 +691,57 @@ class FastAPIClient {
       { responseType: 'blob' }
     );
     
+    // Extraire le nom du fichier depuis Content-Disposition
+    const contentDisposition = response.headers['content-disposition'];
+    let filename = `resource-${index}.pdf`; // Fallback avec extension
+    
+    if (contentDisposition) {
+      const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
+      if (matches && matches[1]) {
+        filename = matches[1].replace(/['"]/g, '');
+      }
+    }
+    
     // Créer un lien de téléchargement
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `resource-${index}`);
+    link.setAttribute('download', filename);
     document.body.appendChild(link);
     link.click();
     link.remove();
+    window.URL.revokeObjectURL(url);
+  }
+
+  /**
+   * Télécharger le programme PDF du cours
+   */
+  async downloadCourseProgram(courseId: string): Promise<void> {
+    const response = await this.axiosInstance.get(
+      `/api/courses/${courseId}/program/download`,
+      { responseType: 'blob' }
+    );
+    
+    // Extraire le nom du fichier depuis Content-Disposition
+    const contentDisposition = response.headers['content-disposition'];
+    let filename = 'programme.pdf';
+    
+    if (contentDisposition) {
+      const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
+      if (matches && matches[1]) {
+        filename = matches[1].replace(/['"]/g, '');
+      }
+    }
+    
+    // Créer un lien de téléchargement
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
   }
 }
 

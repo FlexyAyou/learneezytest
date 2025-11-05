@@ -155,8 +155,7 @@ const CourseDetailPage = () => {
   
   // States pour les URLs de téléchargement
   const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
-  const [programUrl, setProgramUrl] = useState<string | null>(null);
-  const [programError, setProgramError] = useState(false);
+  const [programAvailable, setProgramAvailable] = useState<boolean>(false);
   const [resources, setResources] = useState<Array<{ name: string; key?: string; size?: number; url?: string }>>([]);
 
   useEffect(() => {
@@ -182,15 +181,13 @@ const CourseDetailPage = () => {
           }
         }
         
-        // Charger l'URL du programme PDF
+        // Vérifier la disponibilité du programme PDF
         try {
-          const programData = await fastAPIClient.getCourseProgramUrl(courseId);
-          setProgramUrl(programData.download_url);
-          setProgramError(false);
+          await fastAPIClient.getCourseProgramUrl(courseId);
+          setProgramAvailable(true);
         } catch (err: any) {
           console.log('Programme non disponible:', err.response?.status);
-          setProgramUrl(null);
-          setProgramError(true);
+          setProgramAvailable(false);
         }
 
         // Charger les ressources pédagogiques
@@ -784,11 +781,26 @@ const CourseDetailPage = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-4">
-              {programUrl ? (
+              {programAvailable ? (
                 <Button
                   className="w-full"
                   variant="outline"
-                  onClick={() => window.open(programUrl, '_blank')}
+                  onClick={async () => {
+                    try {
+                      await fastAPIClient.downloadCourseProgram(courseId);
+                      toast({
+                        title: "✅ Téléchargement démarré",
+                        description: "Téléchargement du programme de formation",
+                      });
+                    } catch (err) {
+                      console.error('Erreur téléchargement programme:', err);
+                      toast({
+                        title: "❌ Erreur",
+                        description: "Impossible de télécharger le programme",
+                        variant: "destructive",
+                      });
+                    }
+                  }}
                 >
                   <Download className="h-4 w-4 mr-2" />
                   Télécharger le programme (PDF)
