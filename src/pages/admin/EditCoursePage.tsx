@@ -125,17 +125,6 @@ const EditCoursePage = () => {
         const courseData = await fastAPIClient.getCourse(id);
         setCourse(courseData);
         
-        // Charger l'image de couverture avec download_url
-        let coverImageUrl = null;
-        if (courseData.cover_key) {
-          try {
-            const { download_url } = await fastAPIClient.getDownloadUrl(courseData.cover_key);
-            coverImageUrl = download_url;
-          } catch (err) {
-            console.error('Erreur chargement image de couverture:', err);
-          }
-        }
-        
         // Populate editable data
         setCourseData({
           title: courseData.title || '',
@@ -145,7 +134,8 @@ const EditCoursePage = () => {
           duration: courseData.duration || '',
           level: courseData.level || 'débutant',
           status: (courseData.status as any) || 'draft',
-          imagePreview: coverImageUrl,
+          imagePreview: courseData.image_url || courseData.cover_key ? 
+            `${import.meta.env.VITE_API_URL}/api/storage/${courseData.cover_key || courseData.image_url}` : null,
           programFileName: courseData.program_pdf_key ? 'Programme.pdf' : '',
         });
 
@@ -275,9 +265,8 @@ const EditCoursePage = () => {
         // Update course with new cover key
         await fastAPIClient.updateCourse(id, { cover_key: prepareResponse.key });
         
-        // Récupérer l'URL de téléchargement de l'image
-        const { download_url } = await fastAPIClient.getDownloadUrl(prepareResponse.key);
-        setCourseData(prev => ({ ...prev, imagePreview: download_url }));
+        const imageUrl = `${import.meta.env.VITE_API_URL}/api/storage/${prepareResponse.key}`;
+        setCourseData(prev => ({ ...prev, imagePreview: imageUrl }));
 
         toast({ title: "✅ Image mise à jour", description: "La couverture a été modifiée" });
       }
