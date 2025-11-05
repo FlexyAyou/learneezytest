@@ -32,7 +32,7 @@ import {
   VideoPlayResponse,
 } from '@/types/fastapi';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://api.plateforme-test-infinitiax.com';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.plateforme-test-infinitiax.com';
 
 /**
  * Client API FastAPI avec gestion automatique des JWT
