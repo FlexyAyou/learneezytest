@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, Edit, Trash2, Eye, EyeOff, Clock, BookOpen, PlayCircle, FileText, CheckCircle, XCircle, Video, Download, Users, Award, Save, Tags } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { fastAPIClient } from '@/services/fastapi-client';
@@ -460,12 +461,17 @@ const CourseDetailPage = () => {
                   )}
                 </h3>
                 {editingLevel && course.status === 'draft' ? (
-                  <div className="flex gap-2">
-                    <Input
-                      value={levelValue}
-                      onChange={(e) => setLevelValue(e.target.value)}
-                      placeholder="Ex: Débutant, Intermédiaire, Avancé"
-                    />
+                  <div className="flex gap-2 items-center">
+                    <Select value={levelValue} onValueChange={(v) => setLevelValue(v)}>
+                      <SelectTrigger className="w-56">
+                        <SelectValue placeholder="Choisir un niveau" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="débutant">Débutant</SelectItem>
+                        <SelectItem value="intermédiaire">Intermédiaire</SelectItem>
+                        <SelectItem value="avancé">Avancé</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <Button onClick={handleSaveLevel} disabled={saving}>
                       {saving ? <LoadingSpinner size="sm" /> : <Save className="h-4 w-4" />}
                     </Button>
@@ -512,25 +518,23 @@ const CourseDetailPage = () => {
                     </Button>
                   </div>
                 ) : (
-                  <div className="space-y-2">
-                    <div className="flex flex-wrap gap-2">
-                      {Array.isArray(course.levels) && course.levels.length > 0 ? (
-                        course.levels.map((lvl, i) => (
-                          <Badge key={i} variant="secondary" className="border-2 border-blue-200 text-blue-800">
-                            {lvl}
-                          </Badge>
-                        ))
-                      ) : (
-                        <span className="text-sm text-gray-500">Aucun tag</span>
-                      )}
-                    </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {Array.isArray(course.levels) && course.levels.length > 0 ? (
+                      course.levels.map((lvl, i) => (
+                        <Badge key={i} variant="secondary" className="border-2 border-blue-200 text-blue-800">
+                          {lvl}
+                        </Badge>
+                      ))
+                    ) : (
+                      <span className="text-sm text-gray-500">Aucun tag</span>
+                    )}
                     {course.category && (
-                      <div>
-                        <span className="text-xs text-gray-500 mr-2">Catégorie:</span>
+                      <>
+                        <span className="text-gray-400">/</span>
                         <Badge variant="outline" className="border-2 border-blue-300 text-blue-700">
                           {course.category}
                         </Badge>
-                      </div>
+                      </>
                     )}
                   </div>
                 )}
