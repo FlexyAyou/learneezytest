@@ -462,6 +462,33 @@ export interface VideoPlayResponse {
   expires_in: number;
 }
 
+// Nouveau: programme PDF (lecture inline)
+export interface ProgramUrlResponse {
+  url: string;
+  expires_in: number;
+}
+
+// Nouveau: ressources cours depuis endpoint dédié
+export interface CourseResourcesResponse {
+  resources: Resource[];
+}
+
+// Nouveau: statistiques évaluations (agrégats)
+export interface CourseEvaluationStatsResponse {
+  course_id: string;
+  total_attempts: number;
+  completed_attempts: number;
+  average_score: number;
+  passing_rate: number;
+  average_time_spent: number;
+  question_stats: Array<{
+    question_id: string;
+    avg_score: number;
+    attempts: number;
+    correct_rate: number;
+  }>;
+}
+
 export interface EnrollRequest {
   course_id: string;
 }

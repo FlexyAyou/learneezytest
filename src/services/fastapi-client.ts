@@ -30,9 +30,10 @@ import {
   CompleteUploadParams,
   CompleteUploadResponse,
   VideoPlayResponse,
+  ProgramUrlResponse,
 } from '@/types/fastapi';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.plateforme-test-infinitiax.com';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 /**
  * Client API FastAPI avec gestion automatique des JWT
@@ -100,7 +101,7 @@ class FastAPIClient {
       async (error) => {
         // Ne pas rediriger si c'est une erreur de login (identifiants incorrects)
         const isLoginError = error.config?.url?.includes('/api/auth/login');
-        
+
         if (error.response?.status === 401 && !isLoginError) {
           this.clearLocalAuth();
         }
@@ -171,7 +172,7 @@ class FastAPIClient {
   async logoutUser(): Promise<void> {
     try {
       const refreshToken = localStorage.getItem('refresh_token');
-      
+
       // Appeler l'endpoint de logout avec le refresh_token
       await this.post('/api/auth/logout', null, {
         params: { refresh_token: refreshToken }
@@ -225,11 +226,11 @@ class FastAPIClient {
    */
   async login(credentials: UserLogin): Promise<Token> {
     const response = await this.post<Token>('/api/auth/login', credentials);
-    
+
     // Stocker les tokens
     localStorage.setItem('access_token', response.access_token);
     localStorage.setItem('refresh_token', response.refresh_token);
-    
+
     return response;
   }
 
@@ -247,8 +248,8 @@ class FastAPIClient {
     try {
       const response = await this.get<UserResponse[]>('/api/auth/superadmin/users');
       // Filter to get only trainers
-      return response.filter(user => 
-        user.role === 'trainer' || 
+      return response.filter(user =>
+        user.role === 'trainer' ||
         user.role === 'independent_trainer' ||
         user.role === 'formateur_interne'
       );
@@ -327,7 +328,8 @@ class FastAPIClient {
    * Récupérer la liste des cours avec pagination (returns CourseSummary[])
    */
   async getCourses(page = 1, perPage = 10): Promise<any[]> {
-    return this.get<any[]>(`/api/courses/?page=${page}&per_page=${perPage}`);
+    const safePerPage = Math.min(Math.max(perPage, 1), 20);
+    return this.get<any[]>(`/api/courses/?page=${page}&per_page=${safePerPage}`);
   }
 
   /**
@@ -335,6 +337,13 @@ class FastAPIClient {
    */
   async getCourse(courseId: string): Promise<CourseResponse> {
     return this.get<CourseResponse>(`/api/courses/${courseId}`);
+  }
+
+  /**
+   * Fiche publique allégée d'un cours (pas de JWT requis)
+   */
+  async getCourseSummary(courseId: string): Promise<any> {
+    return this.get<any>(`/api/courses/${courseId}/summary`);
   }
 
   /**
@@ -399,11 +408,18 @@ class FastAPIClient {
   /**
    * Préparer un upload présigné (single ou multipart)
    */
-  async prepareUpload(filename: string, contentType: string, size: number): Promise<PrepareUploadResponse> {
+  async prepareUpload(
+    filename: string,
+    contentType: string,
+    size: number,
+    // Backend attend: 'image' | 'video' | 'resource' (alias de PDF)
+    kind: 'image' | 'video' | 'resource'
+  ): Promise<PrepareUploadResponse> {
     return this.post<PrepareUploadResponse>('/api/storage/prepare-upload', {
       filename,
       content_type: contentType,
-      size
+      size,
+      kind,
     });
   }
 
@@ -418,7 +434,17 @@ class FastAPIClient {
    * Obtenir l'URL de lecture d'une vidéo
    */
   async getVideoPlayUrl(key: string): Promise<VideoPlayResponse> {
-    return this.get<VideoPlayResponse>('/api/storage/play', { params: { key } });
+    const raw: any = await this.get<any>('/api/storage/play', { params: { key } });
+    return { url: raw.play_url ?? raw.url, expires_in: raw.expires_in };
+  }
+
+  /**
+   * Obtenir une URL de lecture pour n'importe quel asset (image, pdf, vidéo)
+   * Note: alias générique de getVideoPlayUrl afin de l'utiliser aussi pour les images/PDF
+   */
+  async getPlayUrl(key: string): Promise<{ url: string; expires_in: number }> {
+    const raw: any = await this.get<any>('/api/storage/play', { params: { key } });
+    return { url: raw.play_url ?? raw.url, expires_in: raw.expires_in };
   }
 
   /**
@@ -436,10 +462,24 @@ class FastAPIClient {
   }
 
   /**
+   * URL de lecture inline du programme PDF (spec canonique)
+   */
+  async getCourseProgram(courseId: string): Promise<ProgramUrlResponse> {
+    return this.get<ProgramUrlResponse>(`/api/courses/${courseId}/program`);
+  }
+
+  /**
    * Récupérer les statistiques d'un cours
    */
   async getCourseStats(courseId: string): Promise<CourseStatsResponse> {
     return this.get<CourseStatsResponse>(`/api/courses/${courseId}/stats`);
+  }
+
+  /**
+   * Statistiques agrégées des évaluations d'un cours (endpoint canonique)
+   */
+  async getCourseEvaluationStats(courseId: string): Promise<any> {
+    return this.get<any>(`/api/courses/${courseId}/stats/evaluations`);
   }
 
   /**
@@ -531,7 +571,7 @@ class FastAPIClient {
     const course = await this.getCourse(courseId);
     const updatedModules = [...course.modules];
     updatedModules[moduleIndex] = { ...updatedModules[moduleIndex], ...moduleData };
-    
+
     const updatedCourse = await this.updateCourse(courseId, { modules: updatedModules as any });
     return updatedCourse.modules[moduleIndex];
   }
@@ -562,7 +602,7 @@ class FastAPIClient {
       ...updatedModules[moduleId].content[lessonId],
       ...lessonData
     };
-    
+
     const updatedCourse = await this.updateCourse(courseId, { modules: updatedModules as any });
     return updatedCourse.modules[moduleId].content[lessonId];
   }
@@ -578,6 +618,18 @@ class FastAPIClient {
   }
 
   /**
+   * Attacher/mettre à jour le média d'une leçon via endpoint dédié
+   */
+  async attachLessonMedia(
+    courseId: string,
+    moduleId: number,
+    lessonId: number,
+    media: { key?: string; url?: string }
+  ): Promise<any> {
+    return this.put(`/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/media`, media);
+  }
+
+  /**
    * Attacher une vidéo à une leçon (mise à jour du video_key)
    */
   async attachLessonVideo(
@@ -585,8 +637,8 @@ class FastAPIClient {
     moduleId: number,
     lessonId: number,
     videoKey: string
-  ): Promise<Content> {
-    return this.updateLesson(courseId, moduleId, lessonId, { video_url: videoKey });
+  ): Promise<any> {
+    return this.attachLessonMedia(courseId, moduleId, lessonId, { key: videoKey });
   }
 
   // ============= QUIZ MANAGEMENT =============
@@ -673,7 +725,7 @@ class FastAPIClient {
    * Détacher une ressource pédagogique du cours
    */
   async detachCourseResource(
-    courseId: string, 
+    courseId: string,
     resourceKey: string,
     force: boolean = false
   ): Promise<{ status: string; detached_key: string; deleted_from_storage: boolean }> {
@@ -690,18 +742,18 @@ class FastAPIClient {
       `/api/courses/${courseId}/resources/${index}/download`,
       { responseType: 'blob' }
     );
-    
+
     // Extraire le nom du fichier depuis Content-Disposition
     const contentDisposition = response.headers['content-disposition'];
     let filename = `resource-${index}.pdf`; // Fallback avec extension
-    
+
     if (contentDisposition) {
       const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
       if (matches && matches[1]) {
         filename = matches[1].replace(/['"]/g, '');
       }
     }
-    
+
     // Créer un lien de téléchargement
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement('a');
@@ -721,18 +773,18 @@ class FastAPIClient {
       `/api/courses/${courseId}/program/download`,
       { responseType: 'blob' }
     );
-    
+
     // Extraire le nom du fichier depuis Content-Disposition
     const contentDisposition = response.headers['content-disposition'];
     let filename = 'programme.pdf';
-    
+
     if (contentDisposition) {
       const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
       if (matches && matches[1]) {
         filename = matches[1].replace(/['"]/g, '');
       }
     }
-    
+
     // Créer un lien de téléchargement
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement('a');
