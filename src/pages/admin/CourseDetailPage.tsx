@@ -156,6 +156,7 @@ const CourseDetailPage = () => {
   // States pour les URLs de téléchargement
   const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
   const [programUrl, setProgramUrl] = useState<string | null>(null);
+  const [programError, setProgramError] = useState(false);
 
   useEffect(() => {
     const loadCourse = async () => {
@@ -184,8 +185,11 @@ const CourseDetailPage = () => {
         try {
           const programData = await fastAPIClient.getCourseProgramUrl(courseId);
           setProgramUrl(programData.download_url);
-        } catch (err) {
-          console.error('Erreur chargement programme:', err);
+          setProgramError(false);
+        } catch (err: any) {
+          console.log('Programme non disponible:', err.response?.status);
+          setProgramUrl(null);
+          setProgramError(true);
         }
       } catch (err: any) {
         setError(err.message || 'Erreur lors du chargement du cours');
@@ -762,15 +766,15 @@ const CourseDetailPage = () => {
           )}
 
           {/* Programme de formation */}
-          {programUrl && (
-            <Card className="border-2">
-              <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
-                <CardTitle className="text-sm flex items-center">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Programme de formation
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-4">
+          <Card className="border-2">
+            <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
+              <CardTitle className="text-sm flex items-center">
+                <FileText className="h-4 w-4 mr-2" />
+                Programme de formation
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-4">
+              {programUrl ? (
                 <Button
                   className="w-full"
                   variant="outline"
@@ -779,9 +783,17 @@ const CourseDetailPage = () => {
                   <Download className="h-4 w-4 mr-2" />
                   Télécharger le programme (PDF)
                 </Button>
-              </CardContent>
-            </Card>
-          )}
+              ) : (
+                <div className="text-center py-4 text-muted-foreground">
+                  <FileText className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                  <p className="text-sm">Aucun programme disponible</p>
+                  {course.status === 'draft' && (
+                    <p className="text-xs mt-1">Ajoutez-le depuis la page d'édition</p>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Quick Actions */}
           <Card className="border-2">
