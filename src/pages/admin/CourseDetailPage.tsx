@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, Edit, Trash2, Eye, EyeOff, Clock, BookOpen, PlayCircle, FileText, CheckCircle, XCircle, Video, Download, Users, Award, Save, Tags } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { fastAPIClient } from '@/services/fastapi-client';
@@ -147,12 +146,7 @@ const CourseDetailPage = () => {
   const [selectedLesson, setSelectedLesson] = useState<Content | null>(null);
   const [statusUpdating, setStatusUpdating] = useState(false);
 
-  // States pour édition inline
-  const [editingLevel, setEditingLevel] = useState(false);
-  const [editingTags, setEditingTags] = useState(false);
-  const [levelValue, setLevelValue] = useState('');
-  const [tagsValue, setTagsValue] = useState('');
-  const [saving, setSaving] = useState(false);
+  // Édition désactivée sur la page de détail (lecture seule)
 
   // States pour les URLs de téléchargement
   const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
@@ -169,8 +163,7 @@ const CourseDetailPage = () => {
       try {
         const courseData = await fastAPIClient.getCourse(courseId);
         setCourse(courseData);
-        setLevelValue(courseData.level || '');
-        setTagsValue(courseData.category || '');
+        // Lecture seule: pas de valeurs éditables ici
 
         // Charger l'image de couverture avec une URL présignée (lecture)
         if (courseData.cover_key) {
@@ -275,51 +268,7 @@ const CourseDetailPage = () => {
     }
   };
 
-  const handleSaveLevel = async () => {
-    if (!courseId || !course) return;
-
-    setSaving(true);
-    try {
-      const updatedCourse = await fastAPIClient.updateCourse(courseId, { level: levelValue });
-      setCourse(updatedCourse);
-      setEditingLevel(false);
-      toast({
-        title: "✅ Niveau mis à jour",
-        description: "Le niveau du cours a été modifié avec succès.",
-      });
-    } catch (err: any) {
-      toast({
-        title: "❌ Erreur",
-        description: "Impossible de modifier le niveau",
-        variant: "destructive"
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleSaveTags = async () => {
-    if (!courseId || !course) return;
-
-    setSaving(true);
-    try {
-      const updatedCourse = await fastAPIClient.updateCourse(courseId, { category: tagsValue });
-      setCourse(updatedCourse);
-      setEditingTags(false);
-      toast({
-        title: "✅ Tags mis à jour",
-        description: "Les tags du cours ont été modifiés avec succès.",
-      });
-    } catch (err: any) {
-      toast({
-        title: "❌ Erreur",
-        description: "Impossible de modifier les tags",
-        variant: "destructive"
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
+  // Plus d'édition du niveau, des tags ou de la catégorie depuis cette page
 
   // Calculer les statistiques
   const totalLessons = course?.modules?.reduce((acc, mod) => acc + (mod.content?.length || 0), 0) || 0;
@@ -443,96 +392,44 @@ const CourseDetailPage = () => {
                 <p className="text-gray-700 leading-relaxed">{course.description}</p>
               </div>
 
-              {/* Niveau - Éditable en mode brouillon */}
+              {/* Niveau - Lecture seule */}
               <div className="pt-4 border-t-2">
                 <h3 className="font-semibold text-lg mb-2 flex items-center justify-between">
                   <span className="flex items-center">
                     <Award className="h-5 w-5 mr-2 text-gray-600" />
                     Niveau
                   </span>
-                  {course.status === 'draft' && !editingLevel && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setEditingLevel(true)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                  )}
                 </h3>
-                {editingLevel && course.status === 'draft' ? (
-                  <div className="flex gap-2 items-center">
-                    <Select value={levelValue} onValueChange={(v) => setLevelValue(v)}>
-                      <SelectTrigger className="w-[220px]">
-                        <SelectValue placeholder="Sélectionner un niveau" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="débutant">Débutant</SelectItem>
-                        <SelectItem value="intermédiaire">Intermédiaire</SelectItem>
-                        <SelectItem value="avancé">Avancé</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Button onClick={handleSaveLevel} disabled={saving}>
-                      {saving ? <LoadingSpinner size="sm" /> : <Save className="h-4 w-4" />}
-                    </Button>
-                    <Button variant="outline" onClick={() => setEditingLevel(false)}>
-                      <XCircle className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ) : (
-                  <Badge variant="outline" className="border-2 border-pink-300 text-pink-700">
-                    {course.level || 'Non défini'}
-                  </Badge>
-                )}
+                <Badge variant="outline" className="border-2 border-pink-300 text-pink-700">
+                  {course.level || 'Non défini'}
+                </Badge>
               </div>
 
-              {/* Tags (à partir de course.levels) et Catégorie - Éditable en mode brouillon pour la catégorie seulement */}
+              {/* Cycle, Tags (levels) et Catégorie - Lecture seule */}
               <div className="pt-4 border-t-2">
                 <h3 className="font-semibold text-lg mb-2 flex items-center justify-between">
                   <span className="flex items-center">
                     <Tags className="h-5 w-5 mr-2 text-gray-600" />
-                    Tags / Catégorie
+                    Cycle, tags & catégorie
                   </span>
-                  {course.status === 'draft' && !editingTags && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setEditingTags(true)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                  )}
                 </h3>
-                {editingTags && course.status === 'draft' ? (
-                  <div className="flex gap-2">
-                    <Input
-                      value={tagsValue}
-                      onChange={(e) => setTagsValue(e.target.value)}
-                      placeholder="Ex: Développement, React, Frontend"
-                    />
-                    <Button onClick={handleSaveTags} disabled={saving}>
-                      {saving ? <LoadingSpinner size="sm" /> : <Save className="h-4 w-4" />}
-                    </Button>
-                    <Button variant="outline" onClick={() => setEditingTags(false)}>
-                      <XCircle className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex flex-wrap items-center gap-2">
-                    {Array.isArray(course.levels) && course.levels.length > 0 ? (
-                      course.levels.map((lvl, i) => (
-                        <Badge key={i} variant="secondary" className="border-2 border-blue-200 text-blue-800">
-                          {lvl}
-                        </Badge>
-                      ))
-                    ) : (
-                      <span className="text-sm text-gray-500">Aucun tag</span>
-                    )}
-                    {course.category && (
-                      <span className="text-sm text-gray-700">/ {course.category}</span>
-                    )}
-                  </div>
+                {course.learning_cycle && (
+                  <p className="text-sm text-gray-600 mb-2">Cycle: {String(course.learning_cycle).replace('_', ' ')}</p>
                 )}
+                <div className="flex flex-wrap items-center gap-2">
+                  {Array.isArray(course.levels) && course.levels.length > 0 ? (
+                    course.levels.map((lvl, i) => (
+                      <Badge key={i} variant="secondary" className="border-2 border-blue-200 text-blue-800">
+                        {lvl}
+                      </Badge>
+                    ))
+                  ) : (
+                    <span className="text-sm text-gray-500">Aucun tag</span>
+                  )}
+                  {course.category && (
+                    <span className="text-sm text-gray-700">/ {course.category}</span>
+                  )}
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4 pt-4 border-t-2">
