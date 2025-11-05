@@ -32,7 +32,7 @@ import {
   VideoPlayResponse,
 } from '@/types/fastapi';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.plateforme-test-infinitiax.com';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://api.plateforme-test-infinitiax.com';
 
 /**
  * Client API FastAPI avec gestion automatique des JWT
@@ -419,6 +419,20 @@ class FastAPIClient {
    */
   async getVideoPlayUrl(key: string): Promise<VideoPlayResponse> {
     return this.get<VideoPlayResponse>('/api/storage/play', { params: { key } });
+  }
+
+  /**
+   * Obtenir l'URL de téléchargement d'un fichier par sa clé
+   */
+  async getDownloadUrl(key: string): Promise<{ url: string; download_url: string }> {
+    return this.get(`/api/storage/download`, { params: { key } });
+  }
+
+  /**
+   * Récupérer le programme d'un cours avec download_url
+   */
+  async getCourseProgramUrl(courseId: string): Promise<{ url: string; download_url: string; expires_in: number }> {
+    return this.get(`/api/courses/${courseId}/program`);
   }
 
   /**
