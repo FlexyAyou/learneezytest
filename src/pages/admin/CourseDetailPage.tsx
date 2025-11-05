@@ -480,7 +480,7 @@ const CourseDetailPage = () => {
                 )}
               </div>
 
-              {/* Tags/Catégorie - Éditable en mode brouillon */}
+              {/* Tags (à partir de course.levels) et Catégorie - Éditable en mode brouillon pour la catégorie seulement */}
               <div className="pt-4 border-t-2">
                 <h3 className="font-semibold text-lg mb-2 flex items-center justify-between">
                   <span className="flex items-center">
@@ -512,9 +512,27 @@ const CourseDetailPage = () => {
                     </Button>
                   </div>
                 ) : (
-                  <Badge variant="outline" className="border-2 border-blue-300 text-blue-700">
-                    {course.category || 'Non défini'}
-                  </Badge>
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap gap-2">
+                      {Array.isArray(course.levels) && course.levels.length > 0 ? (
+                        course.levels.map((lvl, i) => (
+                          <Badge key={i} variant="secondary" className="border-2 border-blue-200 text-blue-800">
+                            {lvl}
+                          </Badge>
+                        ))
+                      ) : (
+                        <span className="text-sm text-gray-500">Aucun tag</span>
+                      )}
+                    </div>
+                    {course.category && (
+                      <div>
+                        <span className="text-xs text-gray-500 mr-2">Catégorie:</span>
+                        <Badge variant="outline" className="border-2 border-blue-300 text-blue-700">
+                          {course.category}
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
 
