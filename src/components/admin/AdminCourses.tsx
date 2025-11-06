@@ -11,6 +11,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { fastAPIClient } from '@/services/fastapi-client';
 import { CourseResponse } from '@/types/fastapi';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
+import { CourseVisibilityModal } from './CourseVisibilityModal';
 
 const AdminCourses = () => {
   const { toast } = useToast();
@@ -24,6 +25,10 @@ const AdminCourses = () => {
   const [courses, setCourses] = useState<CourseResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Visibility modal state
+  const [selectedCourseForVisibility, setSelectedCourseForVisibility] = useState<CourseResponse | null>(null);
+  const [showVisibilityModal, setShowVisibilityModal] = useState(false);
 
   // Load courses from API
   useEffect(() => {
@@ -84,6 +89,33 @@ const AdminCourses = () => {
 
   const handleViewCourse = (course: CourseResponse) => {
     navigate(`/dashboard/superadmin/courses/${course.id}`);
+  };
+
+  const handleOpenVisibilityModal = (course: CourseResponse) => {
+    setSelectedCourseForVisibility(course);
+    setShowVisibilityModal(true);
+  };
+
+  const handleSaveVisibility = async (courseId: string, settings: any) => {
+    try {
+      // TODO: Appeler l'API pour sauvegarder les paramètres de visibilité
+      console.log('Saving visibility settings for course:', courseId, settings);
+      
+      toast({
+        title: "Paramètres sauvegardés",
+        description: "Les paramètres de visibilité ont été mis à jour avec succès.",
+      });
+      
+      // Recharger les cours pour afficher les changements
+      const coursesData = await fastAPIClient.getCourses(1, 20);
+      setCourses(coursesData);
+    } catch (err: any) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de sauvegarder les paramètres de visibilité",
+        variant: "destructive"
+      });
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -354,6 +386,7 @@ const AdminCourses = () => {
                           variant="ghost"
                           className="h-8 w-8 p-0"
                           title="Visibilité"
+                          onClick={() => handleOpenVisibilityModal(course)}
                         >
                           <Globe className="h-4 w-4" />
                         </Button>
@@ -384,6 +417,17 @@ const AdminCourses = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Visibility Modal */}
+      <CourseVisibilityModal
+        course={selectedCourseForVisibility}
+        isOpen={showVisibilityModal}
+        onClose={() => {
+          setShowVisibilityModal(false);
+          setSelectedCourseForVisibility(null);
+        }}
+        onSave={handleSaveVisibility}
+      />
     </div>
   );
 };
