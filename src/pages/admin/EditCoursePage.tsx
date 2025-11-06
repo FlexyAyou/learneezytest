@@ -435,13 +435,7 @@ const EditCoursePage = () => {
     }
   };
 
-  // Calculer automatiquement la durée totale
-  useEffect(() => {
-    if (modules.length > 0) {
-      const totalDuration = calculateTotalDuration(modules);
-      setCourseData(prev => ({ ...prev, duration: totalDuration }));
-    }
-  }, [modules]);
+  // Durée totale éditable manuellement par l'utilisateur
 
   // Save module quiz
   const handleSaveModuleQuiz = async (moduleIdx: number, quiz: QuizConfig) => {
@@ -855,12 +849,12 @@ const EditCoursePage = () => {
                     <Input
                       id="duration"
                       value={courseData.duration}
-                      readOnly
-                      placeholder="Calculé automatiquement"
-                      className="h-11 bg-muted cursor-not-allowed"
+                      onChange={(e) => setCourseData(prev => ({ ...prev, duration: e.target.value }))}
+                      placeholder="Ex: 10h, 2h 30min"
+                      className="h-11"
                     />
                     <p className="text-sm text-muted-foreground">
-                      Durée calculée automatiquement à partir des leçons
+                      Durée totale du cours
                     </p>
                   </div>
                   <div className="space-y-2">
