@@ -320,13 +320,23 @@ const AdminCourses = () => {
                   <TableRow key={course.id}>
                     <TableCell>
                       <div className="flex items-center space-x-3">
-                        {course.image_url && (
-                          <img 
-                            src={course.image_url} 
-                            alt={course.title}
-                            className="w-20 h-12 rounded object-cover"
-                          />
-                        )}
+                        {(() => {
+                          // Fallback : cover_key → première vidéo du premier module
+                          let imageUrl = course.image_url;
+                          if (!imageUrl && course.modules && course.modules.length > 0) {
+                            const firstLesson = course.modules[0].content?.[0];
+                            if (firstLesson?.video_key) {
+                              imageUrl = `${import.meta.env.VITE_API_URL}/api/storage/play/${firstLesson.video_key}`;
+                            }
+                          }
+                          return imageUrl ? (
+                            <img 
+                              src={imageUrl} 
+                              alt={course.title}
+                              className="w-12 h-12 rounded object-cover"
+                            />
+                          ) : null;
+                        })()}
                         <div>
                           <div className="font-medium">{course.title}</div>
                           <div className="text-sm text-muted-foreground flex items-center gap-1">
