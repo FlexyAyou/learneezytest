@@ -317,6 +317,7 @@ export interface Resource {
 export interface Course {
   title: string;
   description: string;
+  objectives?: string[] | null; // Liste des objectifs pédagogiques
   price?: number | null;
   category?: string | null; // Legacy text category (deprecated)
   category_ids?: number[] | null; // List of category IDs

@@ -392,6 +392,24 @@ const CourseDetailPage = () => {
                 <p className="text-gray-700 leading-relaxed">{course.description}</p>
               </div>
 
+              {/* Objectifs - Juste après la description */}
+              {course.objectives && Array.isArray(course.objectives) && course.objectives.length > 0 && (
+                <div className="pt-4 border-t-2">
+                  <h3 className="font-semibold text-lg mb-3 flex items-center">
+                    <Award className="h-5 w-5 mr-2 text-gray-600" />
+                    Objectifs pédagogiques
+                  </h3>
+                  <ul className="space-y-2">
+                    {course.objectives.map((objective: string, index: number) => (
+                      <li key={index} className="flex items-start">
+                        <span className="text-green-600 mr-2 mt-1">✓</span>
+                        <span className="text-gray-700">{objective}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               {/* Niveau - Lecture seule */}
               <div className="pt-4 border-t-2">
                 <h3 className="font-semibold text-lg mb-2 flex items-center justify-between">
@@ -405,16 +423,16 @@ const CourseDetailPage = () => {
                 </Badge>
               </div>
 
-              {/* Cycle, Tags (levels) et Catégorie - Lecture seule */}
+              {/* Cycle et Tags - Lecture seule */}
               <div className="pt-4 border-t-2">
                 <h3 className="font-semibold text-lg mb-2 flex items-center justify-between">
                   <span className="flex items-center">
                     <Tags className="h-5 w-5 mr-2 text-gray-600" />
-                    Cycle, tags & catégorie
+                    Cycle & tags
                   </span>
                 </h3>
                 {course.learning_cycle && (
-                  <p className="text-sm text-gray-600 mb-2">Cycle: {String(course.learning_cycle).replace('_', ' ')}</p>
+                  <p className="text-sm text-gray-600 mb-2">Cycle: <span className="font-medium">{String(course.learning_cycle).replace('_', ' ')}</span></p>
                 )}
                 <div className="flex flex-wrap items-center gap-2">
                   {Array.isArray(course.levels) && course.levels.length > 0 ? (
@@ -426,10 +444,22 @@ const CourseDetailPage = () => {
                   ) : (
                     <span className="text-sm text-gray-500">Aucun tag</span>
                   )}
-                  {course.category && (
-                    <span className="text-sm text-gray-700">/ {course.category}</span>
-                  )}
                 </div>
+              </div>
+
+              {/* Catégorie - Séparée dans son propre champ */}
+              <div className="pt-4 border-t-2">
+                <h3 className="font-semibold text-lg mb-2 flex items-center">
+                  <BookOpen className="h-5 w-5 mr-2 text-gray-600" />
+                  Catégorie
+                </h3>
+                {course.category ? (
+                  <Badge variant="outline" className="border-2 border-purple-300 text-purple-700 text-sm">
+                    {course.category}
+                  </Badge>
+                ) : (
+                  <span className="text-sm text-gray-500">Non définie</span>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4 pt-4 border-t-2">

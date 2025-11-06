@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Upload, Plus, X, Save, ArrowLeft, ArrowRight, Video, FileText, Image as ImageIcon, Edit2, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import HtmlTextEditor from '@/components/admin/HtmlTextEditor';
 
 interface CreateCourseModalProps {
   isOpen: boolean;
@@ -293,11 +294,11 @@ export const CreateCourseModal = ({ isOpen, onClose, onCourseCreated }: CreateCo
               
               <div className="md:col-span-2">
                 <Label>Description *</Label>
-                <Textarea
+                <HtmlTextEditor
                   value={courseData.description}
-                  onChange={(e) => handleInputChange('description', e.target.value)}
+                  onChange={(value) => handleInputChange('description', value)}
                   placeholder="Décrivez votre cours en détail..."
-                  rows={4}
+                  height="250px"
                 />
               </div>
 
@@ -458,11 +459,11 @@ export const CreateCourseModal = ({ isOpen, onClose, onCourseCreated }: CreateCo
                         </div>
                         <div>
                           <Label>Description</Label>
-                          <Textarea
+                          <HtmlTextEditor
                             value={module.description}
-                            onChange={(e) => updateModule(module.id, 'description', e.target.value)}
+                            onChange={(value) => updateModule(module.id, 'description', value)}
                             placeholder="Description du module"
-                            rows={3}
+                            height="150px"
                           />
                         </div>
                       </div>
@@ -532,11 +533,11 @@ export const CreateCourseModal = ({ isOpen, onClose, onCourseCreated }: CreateCo
                                 </div>
                                 <div>
                                   <Label>Contenu de la leçon</Label>
-                                  <Textarea
+                                  <HtmlTextEditor
                                     value={lesson.content}
-                                    onChange={(e) => updateLesson(module.id, lesson.id, { content: e.target.value })}
+                                    onChange={(value) => updateLesson(module.id, lesson.id, { content: value })}
                                     placeholder="Contenu de la leçon"
-                                    rows={4}
+                                    height="150px"
                                   />
                                 </div>
                                 
