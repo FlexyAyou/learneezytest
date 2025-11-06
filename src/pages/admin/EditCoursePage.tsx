@@ -35,8 +35,9 @@ import { useAutoSave } from '@/hooks/useAutoSave';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { fastAPIClient } from '@/services/fastapi-client';
 import { uploadDirect } from '@/utils/upload';
-import type { CourseResponse, Module, Content } from '@/types/fastapi';
+import type { CourseResponse, Module, Content, Quiz, QuizCreate } from '@/types/fastapi';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import RichTextEditor from '@/components/admin/RichTextEditor';
 import { QuizBuilder } from '@/components/quiz';
 import type { QuizConfig } from '@/types/quiz';
@@ -59,6 +60,7 @@ interface EditableModule {
   description: string;
   duration: string;
   lessons: EditableLesson[];
+  quizzes?: Quiz[];
 }
 
 interface EditableLesson {
@@ -111,6 +113,7 @@ const EditCoursePage = () => {
   const [editingLessonId, setEditingLessonId] = useState<{ moduleIdx: number; lessonIdx: number } | null>(null);
   const [expandedModules, setExpandedModules] = useState<string[]>([]);
   const [showQuizBuilder, setShowQuizBuilder] = useState<number | null>(null);
+  const [showModuleQuizBuilder, setShowModuleQuizBuilder] = useState<number | null>(null);
 
   // Detect context path
   const isManagerContext = location.pathname.includes('/gestionnaire/');
@@ -187,6 +190,7 @@ const EditCoursePage = () => {
             video_key: lesson.video_key,
             videoFileName: lesson.video_key ? 'Vidéo existante' : undefined,
           })),
+          quizzes: mod.quizzes || [],
         }));
         setModules(editableModules);
 
@@ -401,6 +405,189 @@ const EditCoursePage = () => {
     } catch (error) {
       console.error('Error deleting lesson:', error);
       toast({ title: "Erreur", description: "Impossible de supprimer la leçon", variant: "destructive" });
+    }
+  };
+
+  // Fonction pour calculer la durée totale
+  const calculateTotalDuration = (mods: EditableModule[]): string => {
+    let totalMinutes = 0;
+    
+    mods.forEach(mod => {
+      mod.lessons.forEach(lesson => {
+        const durationStr = lesson.duration.toLowerCase();
+        const hoursMatch = durationStr.match(/(\d+)h/);
+        const minutesMatch = durationStr.match(/(\d+)min/);
+        
+        if (hoursMatch) totalMinutes += parseInt(hoursMatch[1]) * 60;
+        if (minutesMatch) totalMinutes += parseInt(minutesMatch[1]);
+      });
+    });
+    
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    
+    if (hours > 0 && minutes > 0) {
+      return `${hours}h ${minutes}min`;
+    } else if (hours > 0) {
+      return `${hours}h`;
+    } else {
+      return `${minutes}min`;
+    }
+  };
+
+  // Calculer automatiquement la durée totale
+  useEffect(() => {
+    if (modules.length > 0) {
+      const totalDuration = calculateTotalDuration(modules);
+      setCourseData(prev => ({ ...prev, duration: totalDuration }));
+    }
+  }, [modules]);
+
+  // Save module quiz
+  const handleSaveModuleQuiz = async (moduleIdx: number, quiz: QuizConfig) => {
+    if (!id) return;
+    
+    try {
+      const quizPayload: QuizCreate = {
+        title: quiz.title,
+        questions: quiz.questions
+          .filter(q => ['single-choice', 'true-false', 'multiple-choice'].includes(q.type))
+          .map(q => {
+            if (q.type === 'single-choice') {
+              return {
+                question: q.question,
+                options: q.options,
+                correct_answer: q.options[q.correctAnswer]
+              };
+            } else if (q.type === 'true-false') {
+              return {
+                question: q.question,
+                options: ['Vrai', 'Faux'],
+                correct_answer: q.correctAnswer ? 'Vrai' : 'Faux'
+              };
+            } else if (q.type === 'multiple-choice') {
+              return {
+                question: q.question,
+                options: q.options,
+                correct_answer: q.correctAnswers.map(idx => q.options[idx]).join(', ')
+              };
+            }
+            return null;
+          })
+          .filter(q => q !== null) as any[]
+      };
+      
+      await fastAPIClient.updateModuleQuiz(id, moduleIdx, quizPayload);
+      
+      const updatedCourse = await fastAPIClient.getCourse(id);
+      const modulesData: EditableModule[] = updatedCourse.modules.map((mod, idx) => ({
+        index: idx,
+        title: mod.title,
+        description: mod.description || '',
+        duration: mod.duration,
+        lessons: mod.content.map((lesson, lessonIdx) => ({
+          index: lessonIdx,
+          title: lesson.title,
+          description: lesson.description,
+          duration: lesson.duration,
+          video_key: lesson.video_key,
+          videoFileName: lesson.video_key ? 'Vidéo existante' : undefined,
+        })),
+        quizzes: mod.quizzes || []
+      }));
+      setModules(modulesData);
+      
+      setShowModuleQuizBuilder(null);
+      toast({ 
+        title: '✅ Quiz sauvegardé',
+        description: 'Le quiz du module a été enregistré avec succès.'
+      });
+    } catch (error: any) {
+      toast({
+        title: '❌ Erreur',
+        description: error.response?.data?.detail || 'Impossible de sauvegarder le quiz',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  // Delete module quiz
+  const handleDeleteModuleQuiz = async (moduleIdx: number) => {
+    if (!id || !confirm('Supprimer ce quiz ?')) return;
+    
+    try {
+      await fastAPIClient.deleteModuleQuiz(id, moduleIdx);
+      
+      const updatedCourse = await fastAPIClient.getCourse(id);
+      const modulesData: EditableModule[] = updatedCourse.modules.map((mod, idx) => ({
+        index: idx,
+        title: mod.title,
+        description: mod.description || '',
+        duration: mod.duration,
+        lessons: mod.content.map((lesson, lessonIdx) => ({
+          index: lessonIdx,
+          title: lesson.title,
+          description: lesson.description,
+          duration: lesson.duration,
+          video_key: lesson.video_key,
+          videoFileName: lesson.video_key ? 'Vidéo existante' : undefined,
+        })),
+        quizzes: mod.quizzes || []
+      }));
+      setModules(modulesData);
+      
+      toast({ 
+        title: '✅ Quiz supprimé',
+        description: 'Le quiz du module a été supprimé.'
+      });
+    } catch (error: any) {
+      toast({
+        title: '❌ Erreur',
+        description: error.response?.data?.detail || 'Impossible de supprimer le quiz',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  // Add new lesson to module
+  const handleAddLesson = async (moduleIdx: number) => {
+    if (!id) return;
+    
+    try {
+      await fastAPIClient.createLesson(id, moduleIdx, {
+        title: `Leçon ${modules[moduleIdx].lessons.length + 1}`,
+        description: 'Description de la leçon',
+        duration: '30min'
+      });
+      
+      const updatedCourse = await fastAPIClient.getCourse(id);
+      const modulesData: EditableModule[] = updatedCourse.modules.map((mod, idx) => ({
+        index: idx,
+        title: mod.title,
+        description: mod.description || '',
+        duration: mod.duration,
+        lessons: mod.content.map((lesson, lessonIdx) => ({
+          index: lessonIdx,
+          title: lesson.title,
+          description: lesson.description,
+          duration: lesson.duration,
+          video_key: lesson.video_key,
+          videoFileName: lesson.video_key ? 'Vidéo existante' : undefined,
+        })),
+        quizzes: mod.quizzes || []
+      }));
+      setModules(modulesData);
+      
+      toast({ 
+        title: '✅ Leçon créée',
+        description: 'Une nouvelle leçon a été ajoutée au module.'
+      });
+    } catch (error: any) {
+      toast({
+        title: '❌ Erreur',
+        description: error.response?.data?.detail || 'Impossible de créer la leçon',
+        variant: 'destructive'
+      });
     }
   };
 
@@ -668,10 +855,13 @@ const EditCoursePage = () => {
                     <Input
                       id="duration"
                       value={courseData.duration}
-                      onChange={(e) => setCourseData(prev => ({ ...prev, duration: e.target.value }))}
-                      placeholder="10h 30min"
-                      className="h-11 focus:ring-2 focus:ring-primary transition-all"
+                      readOnly
+                      placeholder="Calculé automatiquement"
+                      className="h-11 bg-muted cursor-not-allowed"
                     />
+                    <p className="text-sm text-muted-foreground">
+                      Durée calculée automatiquement à partir des leçons
+                    </p>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="level" className="text-base font-semibold">
@@ -1171,11 +1361,74 @@ const EditCoursePage = () => {
                                     )}
                                   </CardContent>
                                 </Card>
-                              ))}
+                                ))}
+                              </div>
+
+                              {/* Bouton Ajouter une leçon */}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleAddLesson(moduleIdx)}
+                                className="w-full mt-4"
+                              >
+                                <Plus className="h-4 w-4 mr-2" />
+                                Ajouter une leçon
+                              </Button>
+
+                              {/* Quiz Section */}
+                              <div className="space-y-4 border-t pt-6 mt-6">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <HelpCircle className="h-5 w-5 text-blue-600" />
+                                    <h4 className="font-semibold text-lg">Quiz du module</h4>
+                                  </div>
+                                </div>
+                                
+                                {module.quizzes && module.quizzes.length > 0 ? (
+                                  module.quizzes.map((quiz, quizIdx) => (
+                                    <Card key={`quiz-${module.index}-${quizIdx}`} className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950 dark:to-cyan-950">
+                                      <CardHeader>
+                                        <div className="flex items-center justify-between">
+                                          <div>
+                                            <CardTitle className="text-lg">{quiz.title}</CardTitle>
+                                            <p className="text-sm text-muted-foreground mt-1">
+                                              {quiz.questions.length} questions
+                                            </p>
+                                          </div>
+                                          <div className="flex gap-2">
+                                            <Button
+                                              size="sm"
+                                              variant="ghost"
+                                              onClick={() => setShowModuleQuizBuilder(module.index)}
+                                            >
+                                              <Edit2 className="h-4 w-4" />
+                                            </Button>
+                                            <Button
+                                              size="sm"
+                                              variant="ghost"
+                                              onClick={() => handleDeleteModuleQuiz(module.index)}
+                                            >
+                                              <Trash2 className="h-4 w-4 text-destructive" />
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      </CardHeader>
+                                    </Card>
+                                  ))
+                                ) : (
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => setShowModuleQuizBuilder(module.index)}
+                                    className="w-full"
+                                  >
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Ajouter un quiz à ce module
+                                  </Button>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        </AccordionContent>
-                      </AccordionItem>
+                          </AccordionContent>
+                        </AccordionItem>
                     ))}
                   </Accordion>
                 )}
@@ -1370,6 +1623,41 @@ const EditCoursePage = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Module Quiz Builder Dialog */}
+      {showModuleQuizBuilder !== null && (
+        <Dialog open={true} onOpenChange={() => setShowModuleQuizBuilder(null)}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Configurer le quiz du module</DialogTitle>
+            </DialogHeader>
+            <QuizBuilder
+              quiz={modules[showModuleQuizBuilder]?.quizzes?.[0] ? {
+                id: `quiz-${showModuleQuizBuilder}`,
+                type: 'quiz',
+                title: modules[showModuleQuizBuilder].quizzes![0].title,
+                description: '',
+                questions: modules[showModuleQuizBuilder].quizzes![0].questions.map((q, idx) => ({
+                  id: `q-${idx}`,
+                  type: 'single-choice' as const,
+                  question: q.question,
+                  points: 1,
+                  options: q.options,
+                  correctAnswer: q.options.indexOf(q.correct_answer)
+                })),
+                settings: {
+                  showFeedback: 'after-submit' as const,
+                  allowRetry: true,
+                  passingScore: 70,
+                }
+              } : undefined}
+              onSave={(quiz) => handleSaveModuleQuiz(showModuleQuizBuilder, quiz)}
+              onCancel={() => setShowModuleQuizBuilder(null)}
+              availableTypes={['single-choice', 'multiple-choice', 'true-false']}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };

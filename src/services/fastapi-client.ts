@@ -396,6 +396,20 @@ class FastAPIClient {
   }
 
   /**
+   * Mettre à jour ou créer un quiz de module
+   */
+  async updateModuleQuiz(courseId: string, moduleId: number, quizData: QuizCreate): Promise<Quiz> {
+    return this.put<Quiz>(`/api/courses/${courseId}/modules/${moduleId}/quiz`, quizData);
+  }
+
+  /**
+   * Supprimer un quiz de module
+   */
+  async deleteModuleQuiz(courseId: string, moduleId: number): Promise<void> {
+    return this.delete<void>(`/api/courses/${courseId}/modules/${moduleId}/quiz`);
+  }
+
+  /**
    * Upload de média (image ou vidéo) - DEPRECATED
    * @deprecated Use prepareUpload + completeUpload instead
    */
@@ -669,30 +683,6 @@ class FastAPIClient {
     const course = await this.getCourse(courseId);
     const updatedModules = [...course.modules];
     // Remove quiz from lesson (API structure may vary)
-    await this.updateCourse(courseId, { modules: updatedModules as any });
-  }
-
-  /**
-   * Mettre à jour un quiz de module
-   */
-  async updateModuleQuiz(
-    courseId: string,
-    moduleId: number,
-    quizData: QuizCreate
-  ): Promise<void> {
-    const course = await this.getCourse(courseId);
-    const updatedModules = [...course.modules];
-    updatedModules[moduleId].quizzes = [quizData as any];
-    await this.updateCourse(courseId, { modules: updatedModules as any });
-  }
-
-  /**
-   * Supprimer un quiz de module
-   */
-  async deleteModuleQuiz(courseId: string, moduleId: number): Promise<void> {
-    const course = await this.getCourse(courseId);
-    const updatedModules = [...course.modules];
-    updatedModules[moduleId].quizzes = [];
     await this.updateCourse(courseId, { modules: updatedModules as any });
   }
 
