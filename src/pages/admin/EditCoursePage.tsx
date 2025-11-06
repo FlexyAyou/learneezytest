@@ -9,17 +9,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  ArrowLeft, 
-  Save, 
-  Loader2, 
-  Image as ImageIcon, 
-  FileText, 
-  Video, 
-  Plus, 
-  Trash2, 
-  Edit2, 
-  Check, 
+import {
+  ArrowLeft,
+  Save,
+  Loader2,
+  Image as ImageIcon,
+  FileText,
+  Video,
+  Plus,
+  Trash2,
+  Edit2,
+  Check,
   X,
   Upload,
   Eye,
@@ -34,6 +34,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { fastAPIClient } from '@/services/fastapi-client';
+import { uploadDirect } from '@/utils/upload';
 import type { CourseResponse, Module, Content } from '@/types/fastapi';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import RichTextEditor from '@/components/admin/RichTextEditor';
@@ -82,11 +83,11 @@ const EditCoursePage = () => {
   const location = useLocation();
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
-  
+
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('general');
   const [course, setCourse] = useState<CourseResponse | null>(null);
-  
+
   // Editable course data
   const [courseData, setCourseData] = useState<EditableCourseData>({
     title: '',
@@ -104,7 +105,7 @@ const EditCoursePage = () => {
   const [resources, setResources] = useState<PedagogicalResource[]>([]);
   const [newImage, setNewImage] = useState<File | null>(null);
   const [newProgram, setNewProgram] = useState<File | null>(null);
-  
+
   // Editing states
   const [editingModuleId, setEditingModuleId] = useState<number | null>(null);
   const [editingLessonId, setEditingLessonId] = useState<{ moduleIdx: number; lessonIdx: number } | null>(null);
@@ -119,14 +120,14 @@ const EditCoursePage = () => {
   useEffect(() => {
     const loadCourse = async () => {
       if (!id) return;
-      
+
       setLoading(true);
       try {
         const courseData = await fastAPIClient.getCourse(id);
         setCourse(courseData);
-        
+
         // Populate editable data
-        setCourseData({
+        const baseEditable: EditableCourseData = {
           title: courseData.title || '',
           description: courseData.description || '',
           price: courseData.price?.toString() || '',
@@ -134,10 +135,43 @@ const EditCoursePage = () => {
           duration: courseData.duration || '',
           level: courseData.level || 'débutant',
           status: (courseData.status as any) || 'draft',
-          imagePreview: courseData.image_url || courseData.cover_key ? 
-            `${import.meta.env.VITE_API_URL}/api/storage/${courseData.cover_key || courseData.image_url}` : null,
+          imagePreview: null,
           programFileName: courseData.program_pdf_key ? 'Programme.pdf' : '',
-        });
+        };
+
+        // Récupérer une URL de lecture pour l'image de couverture si disponible
+        if (courseData.cover_key) {
+          try {
+            const { url } = await fastAPIClient.getPlayUrl(courseData.cover_key);
+            console.debug('[EditCourse] cover_key → play_url:', url);
+            setCourseData({ ...baseEditable, imagePreview: url });
+          } catch (e) {
+            console.warn('Impossible de générer une URL de lecture pour la couverture, fallback image_url');
+            setCourseData({
+              ...baseEditable,
+              imagePreview: courseData.image_url || null,
+            });
+          }
+        } else if (courseData.image_url) {
+          // Compat: si image_url pointe vers /api/storage/public/<KEY>, dériver la clé et générer une play_url
+          try {
+            const match = courseData.image_url.match(/\/api\/storage\/public\/(.+)$/);
+            if (match && match[1]) {
+              const key = decodeURIComponent(match[1]);
+              const { url } = await fastAPIClient.getPlayUrl(key);
+              console.debug('[EditCourse] image_url public → key → play_url:', { key, url });
+              setCourseData({ ...baseEditable, imagePreview: url });
+            } else {
+              console.debug('[EditCourse] image_url direct (pas de conversion):', courseData.image_url);
+              setCourseData({ ...baseEditable, imagePreview: courseData.image_url });
+            }
+          } catch (e) {
+            console.warn('Fallback direct sur image_url suite à échec de conversion:', e);
+            setCourseData({ ...baseEditable, imagePreview: courseData.image_url });
+          }
+        } else {
+          setCourseData({ ...baseEditable, imagePreview: null });
+        }
 
         // Populate modules
         const editableModules: EditableModule[] = (courseData.modules || []).map((mod: Module, idx: number) => ({
@@ -186,7 +220,7 @@ const EditCoursePage = () => {
   // Auto-save for general info
   const saveCourseInfo = async (data: EditableCourseData) => {
     if (!id) return;
-    
+
     try {
       const updatePayload: any = {
         title: data.title,
@@ -215,7 +249,7 @@ const EditCoursePage = () => {
   // Toggle course status
   const handleToggleStatus = async () => {
     if (!id) return;
-    
+
     try {
       const newStatus = courseData.status === 'published' ? 'draft' : 'published';
       await fastAPIClient.updateCourseStatus(id, newStatus);
@@ -241,35 +275,26 @@ const EditCoursePage = () => {
 
     try {
       toast({ title: "Upload en cours...", description: "Téléchargement de l'image" });
+      // Prévisualisation immédiate locale
+      const objectUrl = URL.createObjectURL(file);
+      setCourseData(prev => ({ ...prev, imagePreview: objectUrl }));
 
-      const prepareResponse = await fastAPIClient.prepareUpload(
-        file.name,
-        file.type,
-        file.size
-      );
+      const up = await uploadDirect(file, 'image');
 
-      if (prepareResponse.strategy === 'single' && prepareResponse.url) {
-        await fetch(prepareResponse.url, {
-          method: 'PUT',
-          body: file,
-          headers: prepareResponse.headers || {},
-        });
+      // Update course with new cover key
+      await fastAPIClient.updateCourse(id, { cover_key: up.key });
 
-        await fastAPIClient.completeUpload({
-          strategy: 'single',
-          key: prepareResponse.key,
-          content_type: file.type,
-          size: file.size,
-        });
-
-        // Update course with new cover key
-        await fastAPIClient.updateCourse(id, { cover_key: prepareResponse.key });
-        
-        const imageUrl = `${import.meta.env.VITE_API_URL}/api/storage/${prepareResponse.key}`;
-        setCourseData(prev => ({ ...prev, imagePreview: imageUrl }));
-
-        toast({ title: "✅ Image mise à jour", description: "La couverture a été modifiée" });
+      // Remplacer la preview locale par l'URL présignée réutilisable
+      try {
+        const { url } = await fastAPIClient.getPlayUrl(up.key);
+        console.debug('[EditCourse] upload image → play_url:', url);
+        setCourseData(prev => ({ ...prev, imagePreview: url }));
+      } finally {
+        // Nettoyer l'URL temporaire
+        URL.revokeObjectURL(objectUrl);
       }
+
+      toast({ title: "✅ Image mise à jour", description: "La couverture a été modifiée" });
     } catch (error) {
       console.error('Error uploading image:', error);
       toast({ title: "Erreur", description: "Impossible d'uploader l'image", variant: "destructive" });
@@ -289,27 +314,11 @@ const EditCoursePage = () => {
     try {
       toast({ title: "Upload en cours...", description: "Téléchargement du programme" });
 
-      const prepareResponse = await fastAPIClient.prepareUpload(file.name, file.type, file.size);
+      const up = await uploadDirect(file, 'pdf');
+      await fastAPIClient.updateCourse(id, { program_pdf_key: up.key });
+      setCourseData(prev => ({ ...prev, programFileName: file.name }));
 
-      if (prepareResponse.strategy === 'single' && prepareResponse.url) {
-        await fetch(prepareResponse.url, {
-          method: 'PUT',
-          body: file,
-          headers: prepareResponse.headers || {},
-        });
-
-        await fastAPIClient.completeUpload({
-          strategy: 'single',
-          key: prepareResponse.key,
-          content_type: file.type,
-          size: file.size,
-        });
-
-        await fastAPIClient.updateCourse(id, { program_pdf_key: prepareResponse.key });
-        setCourseData(prev => ({ ...prev, programFileName: file.name }));
-
-        toast({ title: "✅ Programme mis à jour", description: file.name });
-      }
+      toast({ title: "✅ Programme mis à jour", description: file.name });
     } catch (error) {
       console.error('Error uploading program:', error);
       toast({ title: "Erreur", description: "Impossible d'uploader le programme", variant: "destructive" });
@@ -330,8 +339,8 @@ const EditCoursePage = () => {
           title: l.title,
           description: l.description,
           duration: l.duration,
-          video_url: l.video_key,
-        })),
+          // Ne pas modifier le média ici; passer par attachLessonMedia
+        })) as any,
       });
 
       setEditingModuleId(null);
@@ -352,7 +361,7 @@ const EditCoursePage = () => {
         title: lesson.title,
         description: lesson.description,
         duration: lesson.duration,
-        video_url: lesson.video_key,
+        // Ne pas toucher au média ici
       });
 
       setEditingLessonId(null);
@@ -383,8 +392,8 @@ const EditCoursePage = () => {
 
     try {
       await fastAPIClient.deleteLesson(id, moduleIdx, lessonIdx);
-      setModules(prev => prev.map((mod, idx) => 
-        idx === moduleIdx 
+      setModules(prev => prev.map((mod, idx) =>
+        idx === moduleIdx
           ? { ...mod, lessons: mod.lessons.filter((_, lIdx) => lIdx !== lessonIdx) }
           : mod
       ));
@@ -402,40 +411,25 @@ const EditCoursePage = () => {
     try {
       toast({ title: "Upload vidéo...", description: file.name });
 
-      const prepareResponse = await fastAPIClient.prepareUpload(file.name, file.type, file.size);
+      const up = await uploadDirect(file, 'video');
 
-      if (prepareResponse.strategy === 'single' && prepareResponse.url) {
-        await fetch(prepareResponse.url, {
-          method: 'PUT',
-          body: file,
-          headers: prepareResponse.headers || {},
-        });
+      // Attach video to lesson
+      await fastAPIClient.attachLessonVideo(id, moduleIdx, lessonIdx, up.key);
 
-        await fastAPIClient.completeUpload({
-          strategy: 'single',
-          key: prepareResponse.key,
-          content_type: file.type,
-          size: file.size,
-        });
+      setModules(prev => prev.map((mod, mIdx) =>
+        mIdx === moduleIdx
+          ? {
+            ...mod,
+            lessons: mod.lessons.map((lesson, lIdx) =>
+              lIdx === lessonIdx
+                ? { ...lesson, video_key: up.key, videoFileName: file.name }
+                : lesson
+            )
+          }
+          : mod
+      ));
 
-        // Attach video to lesson
-        await fastAPIClient.attachLessonVideo(id, moduleIdx, lessonIdx, prepareResponse.key);
-
-        setModules(prev => prev.map((mod, mIdx) => 
-          mIdx === moduleIdx 
-            ? {
-                ...mod,
-                lessons: mod.lessons.map((lesson, lIdx) =>
-                  lIdx === lessonIdx
-                    ? { ...lesson, video_key: prepareResponse.key, videoFileName: file.name }
-                    : lesson
-                )
-              }
-            : mod
-        ));
-
-        toast({ title: "✅ Vidéo uploadée", description: file.name });
-      }
+      toast({ title: "✅ Vidéo uploadée", description: file.name });
     } catch (error) {
       console.error('Error uploading video:', error);
       toast({ title: "Erreur", description: "Impossible d'uploader la vidéo", variant: "destructive" });
@@ -452,31 +446,15 @@ const EditCoursePage = () => {
     try {
       toast({ title: "Upload ressource...", description: file.name });
 
-      const prepareResponse = await fastAPIClient.prepareUpload(file.name, file.type, file.size);
+      const up = await uploadDirect(file, 'pdf');
+      await fastAPIClient.attachCourseResource(id, up.key, file.name, file.size);
 
-      if (prepareResponse.strategy === 'single' && prepareResponse.url) {
-        await fetch(prepareResponse.url, {
-          method: 'PUT',
-          body: file,
-          headers: prepareResponse.headers || {},
-        });
+      setResources(prev => [
+        ...prev,
+        { id: `resource-${Date.now()}`, name: file.name, key: up.key, size: file.size }
+      ]);
 
-        await fastAPIClient.completeUpload({
-          strategy: 'single',
-          key: prepareResponse.key,
-          content_type: file.type,
-          size: file.size,
-        });
-
-        await fastAPIClient.attachCourseResource(id, prepareResponse.key, file.name, file.size);
-
-        setResources(prev => [
-          ...prev,
-          { id: `resource-${Date.now()}`, name: file.name, key: prepareResponse.key, size: file.size }
-        ]);
-
-        toast({ title: "✅ Ressource ajoutée", description: file.name });
-      }
+      toast({ title: "✅ Ressource ajoutée", description: file.name });
     } catch (error) {
       console.error('Error uploading resource:', error);
       toast({ title: "Erreur", description: "Impossible d'uploader la ressource", variant: "destructive" });
@@ -511,9 +489,9 @@ const EditCoursePage = () => {
         {/* Header */}
         <div className="flex items-center justify-between animate-fade-in">
           <div className="space-y-3">
-            <Button 
-              variant="ghost" 
-              onClick={() => navigate(coursesBasePath)} 
+            <Button
+              variant="ghost"
+              onClick={() => navigate(coursesBasePath)}
               className="hover:bg-accent/50 transition-all"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -545,7 +523,7 @@ const EditCoursePage = () => {
                 </span>
               </div>
             )}
-            
+
             {/* Status toggle */}
             <div className="flex items-center gap-3 px-4 py-2 bg-card border rounded-lg shadow-sm">
               <Badge variant={courseData.status === 'published' ? 'default' : 'secondary'} className="font-medium">
@@ -559,8 +537,8 @@ const EditCoursePage = () => {
             </div>
 
             {/* Preview button */}
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => navigate(`${coursesBasePath}/${id}`)}
               className="hover-scale shadow-sm"
             >
@@ -573,28 +551,28 @@ const EditCoursePage = () => {
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4 mb-8 h-auto p-1 bg-card shadow-md rounded-xl">
-            <TabsTrigger 
+            <TabsTrigger
               value="general"
               className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-all py-3 rounded-lg"
             >
               <BookOpen className="h-4 w-4 mr-2" />
               <span className="font-medium">Informations</span>
             </TabsTrigger>
-            <TabsTrigger 
+            <TabsTrigger
               value="modules"
               className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-all py-3 rounded-lg"
             >
               <FileText className="h-4 w-4 mr-2" />
               <span className="font-medium">Modules & Leçons</span>
             </TabsTrigger>
-            <TabsTrigger 
+            <TabsTrigger
               value="resources"
               className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-all py-3 rounded-lg"
             >
               <ClipboardList className="h-4 w-4 mr-2" />
               <span className="font-medium">Ressources</span>
             </TabsTrigger>
-            <TabsTrigger 
+            <TabsTrigger
               value="preview"
               className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-all py-3 rounded-lg"
             >
@@ -724,9 +702,9 @@ const EditCoursePage = () => {
                   {courseData.imagePreview && (
                     <div className="mt-3 mb-4">
                       <div className="relative group w-full max-w-2xl">
-                        <img 
-                          src={courseData.imagePreview} 
-                          alt="Couverture" 
+                        <img
+                          src={courseData.imagePreview}
+                          alt="Couverture"
                           className="w-full h-64 object-cover rounded-xl border-2 shadow-lg group-hover:shadow-2xl transition-all duration-300"
                         />
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center">
@@ -819,8 +797,8 @@ const EditCoursePage = () => {
                 ) : (
                   <Accordion type="multiple" value={expandedModules} onValueChange={setExpandedModules} className="space-y-4">
                     {modules.map((module, moduleIdx) => (
-                      <AccordionItem 
-                        key={`module-${moduleIdx}`} 
+                      <AccordionItem
+                        key={`module-${moduleIdx}`}
                         value={`module-${moduleIdx}`}
                         className="border-2 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all bg-card"
                       >
@@ -857,7 +835,7 @@ const EditCoursePage = () => {
                                     <Label className="font-semibold">Titre du module</Label>
                                     <Input
                                       value={module.title}
-                                      onChange={(e) => setModules(prev => prev.map((m, idx) => 
+                                      onChange={(e) => setModules(prev => prev.map((m, idx) =>
                                         idx === moduleIdx ? { ...m, title: e.target.value } : m
                                       ))}
                                       placeholder="Titre du module"
@@ -868,7 +846,7 @@ const EditCoursePage = () => {
                                     <Label className="font-semibold">Description</Label>
                                     <Textarea
                                       value={module.description}
-                                      onChange={(e) => setModules(prev => prev.map((m, idx) => 
+                                      onChange={(e) => setModules(prev => prev.map((m, idx) =>
                                         idx === moduleIdx ? { ...m, description: e.target.value } : m
                                       ))}
                                       placeholder="Description du module"
@@ -877,17 +855,17 @@ const EditCoursePage = () => {
                                     />
                                   </div>
                                   <div className="flex gap-2">
-                                    <Button 
-                                      size="sm" 
+                                    <Button
+                                      size="sm"
                                       onClick={() => handleSaveModule(moduleIdx)}
                                       className="hover-scale"
                                     >
                                       <Check className="h-4 w-4 mr-2" />
                                       Sauvegarder
                                     </Button>
-                                    <Button 
-                                      size="sm" 
-                                      variant="ghost" 
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
                                       onClick={() => setEditingModuleId(null)}
                                     >
                                       <X className="h-4 w-4 mr-2" />
@@ -902,16 +880,16 @@ const EditCoursePage = () => {
                                   <p className="text-sm text-muted-foreground">{module.description || 'Aucune description'}</p>
                                 </div>
                                 <div className="flex gap-2 ml-4">
-                                  <Button 
-                                    size="sm" 
+                                  <Button
+                                    size="sm"
                                     variant="ghost"
                                     onClick={() => setEditingModuleId(moduleIdx)}
                                     className="hover:bg-primary/10"
                                   >
                                     <Edit2 className="h-4 w-4" />
                                   </Button>
-                                  <Button 
-                                    size="sm" 
+                                  <Button
+                                    size="sm"
                                     variant="ghost"
                                     onClick={() => handleDeleteModule(moduleIdx)}
                                     className="hover:bg-destructive/10"
@@ -932,8 +910,8 @@ const EditCoursePage = () => {
                                 <div className="h-px flex-1 bg-border"></div>
                               </div>
                               {module.lessons.map((lesson, lessonIdx) => (
-                                <Card 
-                                  key={`lesson-${moduleIdx}-${lessonIdx}`} 
+                                <Card
+                                  key={`lesson-${moduleIdx}-${lessonIdx}`}
                                   className="bg-card border-2 hover:border-primary/50 transition-all hover-scale shadow-sm"
                                 >
                                   <CardContent className="pt-6">
@@ -943,14 +921,14 @@ const EditCoursePage = () => {
                                           <Label className="font-semibold">Titre de la leçon</Label>
                                           <Input
                                             value={lesson.title}
-                                            onChange={(e) => setModules(prev => prev.map((m, mIdx) => 
-                                              mIdx === moduleIdx 
+                                            onChange={(e) => setModules(prev => prev.map((m, mIdx) =>
+                                              mIdx === moduleIdx
                                                 ? {
-                                                    ...m,
-                                                    lessons: m.lessons.map((l, lIdx) =>
-                                                      lIdx === lessonIdx ? { ...l, title: e.target.value } : l
-                                                    )
-                                                  }
+                                                  ...m,
+                                                  lessons: m.lessons.map((l, lIdx) =>
+                                                    lIdx === lessonIdx ? { ...l, title: e.target.value } : l
+                                                  )
+                                                }
                                                 : m
                                             ))}
                                             placeholder="Titre de la leçon"
@@ -961,14 +939,14 @@ const EditCoursePage = () => {
                                           <Label className="font-semibold">Description</Label>
                                           <Textarea
                                             value={lesson.description}
-                                            onChange={(e) => setModules(prev => prev.map((m, mIdx) => 
-                                              mIdx === moduleIdx 
+                                            onChange={(e) => setModules(prev => prev.map((m, mIdx) =>
+                                              mIdx === moduleIdx
                                                 ? {
-                                                    ...m,
-                                                    lessons: m.lessons.map((l, lIdx) =>
-                                                      lIdx === lessonIdx ? { ...l, description: e.target.value } : l
-                                                    )
-                                                  }
+                                                  ...m,
+                                                  lessons: m.lessons.map((l, lIdx) =>
+                                                    lIdx === lessonIdx ? { ...l, description: e.target.value } : l
+                                                  )
+                                                }
                                                 : m
                                             ))}
                                             placeholder="Description de la leçon"
@@ -983,21 +961,21 @@ const EditCoursePage = () => {
                                           </Label>
                                           <Input
                                             value={lesson.duration}
-                                            onChange={(e) => setModules(prev => prev.map((m, mIdx) => 
-                                              mIdx === moduleIdx 
+                                            onChange={(e) => setModules(prev => prev.map((m, mIdx) =>
+                                              mIdx === moduleIdx
                                                 ? {
-                                                    ...m,
-                                                    lessons: m.lessons.map((l, lIdx) =>
-                                                      lIdx === lessonIdx ? { ...l, duration: e.target.value } : l
-                                                    )
-                                                  }
+                                                  ...m,
+                                                  lessons: m.lessons.map((l, lIdx) =>
+                                                    lIdx === lessonIdx ? { ...l, duration: e.target.value } : l
+                                                  )
+                                                }
                                                 : m
                                             ))}
                                             placeholder="Durée (ex: 45min)"
                                             className="h-11 focus:ring-2 focus:ring-primary"
                                           />
                                         </div>
-                                        
+
                                         {/* Video upload */}
                                         <div className="space-y-2">
                                           <Label className="font-semibold flex items-center gap-2">
@@ -1033,8 +1011,8 @@ const EditCoursePage = () => {
                                         </div>
 
                                         <div className="flex gap-2 pt-2">
-                                          <Button 
-                                            size="sm" 
+                                          <Button
+                                            size="sm"
                                             onClick={() => handleSaveLesson(moduleIdx, lessonIdx)}
                                             className="hover-scale"
                                           >
@@ -1072,16 +1050,16 @@ const EditCoursePage = () => {
                                           </div>
                                         </div>
                                         <div className="flex gap-2">
-                                          <Button 
-                                            size="sm" 
+                                          <Button
+                                            size="sm"
                                             variant="ghost"
                                             onClick={() => setEditingLessonId({ moduleIdx, lessonIdx })}
                                             className="hover:bg-primary/10"
                                           >
                                             <Edit2 className="h-4 w-4" />
                                           </Button>
-                                          <Button 
-                                            size="sm" 
+                                          <Button
+                                            size="sm"
                                             variant="ghost"
                                             onClick={() => handleDeleteLesson(moduleIdx, lessonIdx)}
                                             className="hover:bg-destructive/10"
@@ -1134,8 +1112,8 @@ const EditCoursePage = () => {
                                 )}
                               </div>
                             </div>
-                            <Button 
-                              size="sm" 
+                            <Button
+                              size="sm"
                               variant="ghost"
                               onClick={() => resource.key && handleDeleteResource(resource.key)}
                               className="hover:bg-destructive/10"
@@ -1196,8 +1174,8 @@ const EditCoursePage = () => {
                 <div className="flex gap-6 items-start">
                   {courseData.imagePreview && (
                     <div className="relative group">
-                      <img 
-                        src={courseData.imagePreview} 
+                      <img
+                        src={courseData.imagePreview}
                         alt={courseData.title}
                         className="w-80 h-48 object-cover rounded-xl border-2 shadow-lg"
                       />

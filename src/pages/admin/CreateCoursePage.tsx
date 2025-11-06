@@ -17,6 +17,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { QuizBuilder, AssignmentBuilder } from '@/components/quiz';
 import type { QuizConfig, AssignmentConfig, QuestionType } from '@/types/quiz';
 import RichTextEditor from '@/components/admin/RichTextEditor';
+import { uploadDirect } from '@/utils/upload';
 
 interface Lesson {
   id: string;
@@ -49,11 +50,11 @@ const CreateCoursePage = () => {
   const [currentStep, setCurrentStep] = useState<'info' | 'modules' | 'review'>('info');
   const [trainers, setTrainers] = useState<Array<{ id: string; name: string }>>([]);
   const [customCategories, setCustomCategories] = useState<string[]>([]);
-  
+
   // Détecter si on est dans le contexte gestionnaire ou superadmin
   const isManagerContext = location.pathname.includes('/gestionnaire/');
   const coursesBasePath = isManagerContext ? '/dashboard/gestionnaire/courses' : '/dashboard/superadmin/courses';
-  
+
   const [courseData, setCourseData] = useState({
     title: '',
     description: '',
@@ -91,7 +92,7 @@ const CreateCoursePage = () => {
 
   const [expandedModule, setExpandedModule] = useState<string | null>('1');
   const [editingLesson, setEditingLesson] = useState<{ moduleId: string; lessonId: string | null } | null>(null);
-  
+
   // États pour les builders
   const [showQuizBuilder, setShowQuizBuilder] = useState<{ moduleId: string; lessonId: string } | null>(null);
   const [showModuleQuizBuilder, setShowModuleQuizBuilder] = useState<string | null>(null);
@@ -137,7 +138,7 @@ const CreateCoursePage = () => {
     }
 
     const newCategory = courseData.customCategory.trim();
-    
+
     // Check if category already exists
     if (customCategories.includes(newCategory)) {
       toast({
@@ -151,7 +152,7 @@ const CreateCoursePage = () => {
     const updatedCategories = [...customCategories, newCategory];
     setCustomCategories(updatedCategories);
     localStorage.setItem('customCourseCategories', JSON.stringify(updatedCategories));
-    
+
     // Switch to the newly added category
     handleInputChange('category', newCategory);
     handleInputChange('customCategory', '');
@@ -171,8 +172,8 @@ const CreateCoursePage = () => {
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        setCourseData(prev => ({ 
-          ...prev, 
+        setCourseData(prev => ({
+          ...prev,
           image: file,
           imagePreview: e.target?.result as string
         }));
@@ -192,8 +193,8 @@ const CreateCoursePage = () => {
         });
         return;
       }
-      setCourseData(prev => ({ 
-        ...prev, 
+      setCourseData(prev => ({
+        ...prev,
         programFile: file,
         programFileName: file.name
       }));
@@ -244,7 +245,7 @@ const CreateCoursePage = () => {
   };
 
   const updateModule = (moduleId: string, field: 'title' | 'description', value: string) => {
-    setModules(modules.map(m => 
+    setModules(modules.map(m =>
       m.id === moduleId ? { ...m, [field]: value } : m
     ));
   };
@@ -259,27 +260,27 @@ const CreateCoursePage = () => {
       fileType: null,
       fileName: ''
     };
-    setModules(modules.map(m => 
+    setModules(modules.map(m =>
       m.id === moduleId ? { ...m, lessons: [...m.lessons, newLesson] } : m
     ));
     setEditingLesson({ moduleId, lessonId: newLesson.id });
   };
 
   const removeLesson = (moduleId: string, lessonId: string) => {
-    setModules(modules.map(m => 
+    setModules(modules.map(m =>
       m.id === moduleId ? { ...m, lessons: m.lessons.filter(l => l.id !== lessonId) } : m
     ));
   };
 
   const updateLesson = (moduleId: string, lessonId: string, updates: Partial<Lesson>) => {
-    setModules(modules.map(m => 
-      m.id === moduleId 
-        ? { 
-            ...m, 
-            lessons: m.lessons.map(l => 
-              l.id === lessonId ? { ...l, ...updates } : l
-            ) 
-          } 
+    setModules(modules.map(m =>
+      m.id === moduleId
+        ? {
+          ...m,
+          lessons: m.lessons.map(l =>
+            l.id === lessonId ? { ...l, ...updates } : l
+          )
+        }
         : m
     ));
   };
@@ -288,10 +289,10 @@ const CreateCoursePage = () => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const fileType = file.type.startsWith('video/') ? 'video' 
-      : file.type === 'application/pdf' ? 'pdf' 
-      : file.type.startsWith('image/') ? 'image' 
-      : null;
+    const fileType = file.type.startsWith('video/') ? 'video'
+      : file.type === 'application/pdf' ? 'pdf'
+        : file.type.startsWith('image/') ? 'image'
+          : null;
 
     if (!fileType) {
       toast({
@@ -338,7 +339,7 @@ const CreateCoursePage = () => {
   };
 
   const handleSaveAssignment = (moduleId: string, assignment: AssignmentConfig) => {
-    setModules(modules.map(m => 
+    setModules(modules.map(m =>
       m.id === moduleId ? { ...m, assignment } : m
     ));
     setShowAssignmentBuilder(null);
@@ -349,7 +350,7 @@ const CreateCoursePage = () => {
   };
 
   const handleRemoveAssignment = (moduleId: string) => {
-    setModules(modules.map(m => 
+    setModules(modules.map(m =>
       m.id === moduleId ? { ...m, assignment: undefined } : m
     ));
     toast({
@@ -359,7 +360,7 @@ const CreateCoursePage = () => {
   };
 
   const handleSaveModuleQuiz = (moduleId: string, quiz: QuizConfig) => {
-    setModules(modules.map(m => 
+    setModules(modules.map(m =>
       m.id === moduleId ? { ...m, quiz } : m
     ));
     setShowModuleQuizBuilder(null);
@@ -370,7 +371,7 @@ const CreateCoursePage = () => {
   };
 
   const handleRemoveModuleQuiz = (moduleId: string) => {
-    setModules(modules.map(m => 
+    setModules(modules.map(m =>
       m.id === moduleId ? { ...m, quiz: undefined } : m
     ));
     toast({
@@ -415,7 +416,7 @@ const CreateCoursePage = () => {
       ...courseData,
       pedagogicalResources: courseData.pedagogicalResources.filter(r => r.id !== resourceId)
     });
-    
+
     toast({
       title: "Ressource supprimée",
       description: "La ressource a été retirée du cours",
@@ -444,10 +445,10 @@ const CreateCoursePage = () => {
     }
 
     // Valider que chaque module a au moins un contenu (leçon, quiz ou devoir)
-    const invalidModules = modules.filter(m => 
+    const invalidModules = modules.filter(m =>
       m.lessons.length === 0 && !m.quiz && !m.assignment
     );
-    
+
     if (invalidModules.length > 0) {
       toast({
         title: "Erreur",
@@ -460,7 +461,7 @@ const CreateCoursePage = () => {
     try {
       const { fastAPIClient } = await import('@/services/fastapi-client');
       const { calculateModuleDuration } = await import('@/utils/courseHelpers');
-      
+
       let uploadedCoverKey: string | null = null;
       let uploadedProgramKey: string | null = null;
 
@@ -472,35 +473,14 @@ const CreateCoursePage = () => {
             title: "Upload de l'image...",
             description: "Téléchargement de l'image de couverture",
           });
-          
-          const prepareResponse = await fastAPIClient.prepareUpload(
-            courseData.image.name,
-            courseData.image.type,
-            courseData.image.size
-          );
 
-          if (prepareResponse.strategy === 'single' && prepareResponse.url && prepareResponse.headers) {
-            const uploadHeaders = new Headers(prepareResponse.headers);
-            await fetch(prepareResponse.url, {
-              method: 'PUT',
-              headers: uploadHeaders,
-              body: courseData.image
-            });
-            
-            await fastAPIClient.completeUpload({
-              strategy: 'single',
-              key: prepareResponse.key,
-              content_type: courseData.image.type,
-              size: courseData.image.size
-            });
-
-            uploadedCoverKey = prepareResponse.key;
-            console.log('✅ Image de couverture uploadée:', uploadedCoverKey);
-            toast({
-              title: "Image uploadée",
-              description: "L'image de couverture est prête",
-            });
-          }
+          const up = await uploadDirect(courseData.image, 'image');
+          uploadedCoverKey = up.key;
+          console.log('✅ Image de couverture uploadée:', uploadedCoverKey);
+          toast({
+            title: "Image uploadée",
+            description: "L'image de couverture est prête",
+          });
         } catch (error) {
           console.error('❌ Erreur upload image:', error);
           toast({
@@ -519,35 +499,14 @@ const CreateCoursePage = () => {
             title: "Upload du programme...",
             description: "Téléchargement du programme PDF",
           });
-          
-          const prepareResponse = await fastAPIClient.prepareUpload(
-            courseData.programFile.name,
-            courseData.programFile.type,
-            courseData.programFile.size
-          );
 
-          if (prepareResponse.strategy === 'single' && prepareResponse.url && prepareResponse.headers) {
-            const uploadHeaders = new Headers(prepareResponse.headers);
-            await fetch(prepareResponse.url, {
-              method: 'PUT',
-              headers: uploadHeaders,
-              body: courseData.programFile
-            });
-            
-            await fastAPIClient.completeUpload({
-              strategy: 'single',
-              key: prepareResponse.key,
-              content_type: courseData.programFile.type,
-              size: courseData.programFile.size
-            });
-
-            uploadedProgramKey = prepareResponse.key;
-            console.log('✅ Programme PDF uploadé:', uploadedProgramKey);
-            toast({
-              title: "Programme uploadé",
-              description: "Le programme PDF est prêt",
-            });
-          }
+          const up = await uploadDirect(courseData.programFile, 'pdf');
+          uploadedProgramKey = up.key;
+          console.log('✅ Programme PDF uploadé:', uploadedProgramKey);
+          toast({
+            title: "Programme uploadé",
+            description: "Le programme PDF est prêt",
+          });
         } catch (error) {
           console.error('❌ Erreur upload programme:', error);
           toast({
@@ -569,74 +528,14 @@ const CreateCoursePage = () => {
           if (lesson.file && lesson.fileType === 'video') {
             try {
               console.log(`📤 Upload vidéo: ${lesson.fileName}`);
-              
+
               // a) Préparer l'upload
-              const prepareResponse = await fastAPIClient.prepareUpload(
-                lesson.file.name,
-                lesson.file.type,
-                lesson.file.size
-              );
+              const upVideo = await uploadDirect(lesson.file, 'video');
+              // Stocker la key dans la leçon
+              lesson.uploadedVideoKey = upVideo.key;
 
-              console.log('✅ Prepare response:', prepareResponse);
+              console.log(`✅ Vidéo uploadée: ${lesson.fileName} → ${upVideo.key}`);
 
-              // b) Upload direct vers URL présignée
-              if (prepareResponse.strategy === 'single' && prepareResponse.url && prepareResponse.headers) {
-                // Single-part upload
-                const uploadHeaders = new Headers(prepareResponse.headers);
-                await fetch(prepareResponse.url, {
-                  method: 'PUT',
-                  headers: uploadHeaders,
-                  body: lesson.file
-                });
-              } else if (prepareResponse.strategy === 'multipart' && prepareResponse.parts) {
-                // Multipart upload
-                const parts = [];
-                const partSize = prepareResponse.part_size || 5 * 1024 * 1024;
-                
-                for (let i = 0; i < prepareResponse.parts.length; i++) {
-                  const part = prepareResponse.parts[i];
-                  const start = (part.partNumber - 1) * partSize;
-                  const end = Math.min(start + partSize, lesson.file.size);
-                  const blob = lesson.file.slice(start, end);
-
-                  const response = await fetch(part.url, {
-                    method: 'PUT',
-                    body: blob
-                  });
-
-                  const etag = response.headers.get('ETag')?.replace(/"/g, '') || '';
-                  parts.push({
-                    ETag: etag,
-                    PartNumber: part.partNumber
-                  });
-                }
-
-                // c) Finaliser l'upload multipart
-                await fastAPIClient.completeUpload({
-                  strategy: 'multipart',
-                  key: prepareResponse.key,
-                  upload_id: prepareResponse.upload_id!,
-                  parts,
-                  content_type: lesson.file.type,
-                  size: lesson.file.size
-                });
-              }
-
-              // c) Finaliser l'upload (single)
-              if (prepareResponse.strategy === 'single') {
-                await fastAPIClient.completeUpload({
-                  strategy: 'single',
-                  key: prepareResponse.key,
-                  content_type: lesson.file.type,
-                  size: lesson.file.size
-                });
-              }
-
-              // d) Stocker la key dans la leçon
-              lesson.uploadedVideoKey = prepareResponse.key;
-              
-              console.log(`✅ Vidéo uploadée: ${lesson.fileName} → ${prepareResponse.key}`);
-              
               toast({
                 title: "Vidéo uploadée",
                 description: `${lesson.fileName} est prête`,
@@ -654,51 +553,29 @@ const CreateCoursePage = () => {
       }
 
       // 4. UPLOADER LES RESSOURCES PÉDAGOGIQUES
-      const uploadedResources: Array<{ 
-        name: string; 
-        key: string; 
-        size: number; 
-        url?: string; 
+      const uploadedResources: Array<{
+        name: string;
+        key: string;
+        size: number;
+        url?: string;
       }> = [];
 
       for (const resource of courseData.pedagogicalResources) {
         try {
           console.log(`📤 Upload ressource: ${resource.name}`);
-          
-          const prepareResponse = await fastAPIClient.prepareUpload(
-            resource.file.name,
-            resource.file.type,
-            resource.file.size
-          );
 
-          if (prepareResponse.strategy === 'single' && prepareResponse.url && prepareResponse.headers) {
-            const uploadHeaders = new Headers(prepareResponse.headers);
-            await fetch(prepareResponse.url, {
-              method: 'PUT',
-              headers: uploadHeaders,
-              body: resource.file
-            });
-            
-            await fastAPIClient.completeUpload({
-              strategy: 'single',
-              key: prepareResponse.key,
-              content_type: resource.file.type,
-              size: resource.file.size
-            });
-
-            uploadedResources.push({
-              name: resource.file.name,
-              key: prepareResponse.key,
-              size: resource.file.size,
-              url: prepareResponse.url || undefined
-            });
-            
-            console.log(`✅ Ressource uploadée: ${resource.file.name}`, {
-              key: prepareResponse.key,
-              size: resource.file.size,
-              url: prepareResponse.url
-            });
-          }
+          const upRes = await uploadDirect(resource.file, 'pdf');
+          uploadedResources.push({
+            name: resource.file.name,
+            key: upRes.key,
+            size: resource.file.size,
+            url: upRes.url || undefined
+          });
+          console.log(`✅ Ressource uploadée: ${resource.file.name}`, {
+            key: upRes.key,
+            size: resource.file.size,
+            url: upRes.url
+          });
         } catch (error) {
           console.error(`❌ Erreur upload ressource ${resource.name}:`, error);
           toast({
@@ -715,8 +592,8 @@ const CreateCoursePage = () => {
       });
 
       // 5. Construire le payload complet avec toutes les keys
-      const finalCategory = courseData.category === 'custom' 
-        ? courseData.customCategory 
+      const finalCategory = courseData.category === 'custom'
+        ? courseData.customCategory
         : courseData.category;
 
       // Préparer les category_names pour la nouvelle API
@@ -773,8 +650,8 @@ const CreateCoursePage = () => {
                 } else if (q.type === 'multiple-choice') {
                   const mcq = q as any;
                   // Pour multiple-choice, prendre la première bonne réponse
-                  const firstCorrectIndex = mcq.correctAnswers && mcq.correctAnswers.length > 0 
-                    ? mcq.correctAnswers[0] 
+                  const firstCorrectIndex = mcq.correctAnswers && mcq.correctAnswers.length > 0
+                    ? mcq.correctAnswers[0]
                     : 0;
                   return {
                     question: mcq.question,
@@ -793,18 +670,18 @@ const CreateCoursePage = () => {
 
       // 4. Créer le cours avec tous les modules et leçons en une seule requête
       const courseResponse = await fastAPIClient.createCourse(coursePayload);
-      
+
       // Logs de débogage pour comprendre la réponse du backend
       console.log('🔍 Réponse complète de createCourse:', courseResponse);
       console.log('📦 Type de courseResponse:', typeof courseResponse);
       console.log('🗂️ Clés disponibles:', Object.keys(courseResponse));
-      
+
       // Gérer différents formats de réponse du backend (id, course.id, course._id, course_id, _id)
-      const courseId = 
-        courseResponse.id || 
-        (courseResponse as any).course?.id || 
-        (courseResponse as any).course?._id || 
-        (courseResponse as any).course_id || 
+      const courseId =
+        courseResponse.id ||
+        (courseResponse as any).course?.id ||
+        (courseResponse as any).course?._id ||
+        (courseResponse as any).course_id ||
         (courseResponse as any)._id;
       console.log('🔑 CourseId extrait:', courseId);
 
@@ -824,12 +701,12 @@ const CreateCoursePage = () => {
         title: "✅ Cours créé avec succès",
         description: `Le cours "${courseData.title}" est maintenant disponible`,
       });
-      
+
       // Naviguer avec un state pour déclencher le rechargement de la liste
-      navigate(coursesBasePath, { 
-        state: { courseCreated: true, courseId } 
+      navigate(coursesBasePath, {
+        state: { courseCreated: true, courseId }
       });
-      
+
     } catch (error: any) {
       console.error('Erreur création cours:', error);
       toast({
@@ -894,40 +771,37 @@ const CreateCoursePage = () => {
                 </span>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-3 gap-4">
               {steps.map((step, index) => {
                 const Icon = step.icon;
                 const isActive = step.id === currentStep;
                 const isCompleted = index < currentStepIndex;
-                
+
                 return (
                   <div
                     key={step.id}
-                    className={`flex flex-col items-center text-center p-4 rounded-lg transition-all ${
-                      isActive 
-                        ? 'bg-gradient-to-br from-pink-100 to-purple-100 border-2 border-pink-300' 
-                        : isCompleted 
-                          ? 'bg-green-50 border border-green-200' 
-                          : 'bg-gray-50 border border-gray-200'
-                    }`}
+                    className={`flex flex-col items-center text-center p-4 rounded-lg transition-all ${isActive
+                      ? 'bg-gradient-to-br from-pink-100 to-purple-100 border-2 border-pink-300'
+                      : isCompleted
+                        ? 'bg-green-50 border border-green-200'
+                        : 'bg-gray-50 border border-gray-200'
+                      }`}
                   >
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 ${
-                      isCompleted 
-                        ? 'bg-green-500 text-white' 
-                        : isActive 
-                          ? 'bg-gradient-to-br from-pink-600 to-purple-600 text-white' 
-                          : 'bg-gray-200 text-gray-400'
-                    }`}>
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 ${isCompleted
+                      ? 'bg-green-500 text-white'
+                      : isActive
+                        ? 'bg-gradient-to-br from-pink-600 to-purple-600 text-white'
+                        : 'bg-gray-200 text-gray-400'
+                      }`}>
                       {isCompleted ? (
                         <Check className="h-6 w-6" />
                       ) : (
                         <Icon className="h-6 w-6" />
                       )}
                     </div>
-                    <div className={`font-semibold ${
-                      isActive ? 'text-pink-600' : isCompleted ? 'text-green-600' : 'text-gray-400'
-                    }`}>
+                    <div className={`font-semibold ${isActive ? 'text-pink-600' : isCompleted ? 'text-green-600' : 'text-gray-400'
+                      }`}>
                       {step.label}
                     </div>
                   </div>
@@ -943,7 +817,7 @@ const CreateCoursePage = () => {
             {currentStep === 'info' && (
               <div className="space-y-6">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">Informations générales du cours</h2>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="md:col-span-2">
                     <Label className="text-base">Titre du cours *</Label>
@@ -954,7 +828,7 @@ const CreateCoursePage = () => {
                       className="mt-2"
                     />
                   </div>
-                  
+
                   <div className="md:col-span-2">
                     <Label className="text-base">Description *</Label>
                     <RichTextEditor
@@ -978,8 +852,8 @@ const CreateCoursePage = () => {
 
                   <div>
                     <Label className="text-base">Catégorie</Label>
-                    <Select 
-                      value={courseData.category === 'custom' ? 'custom' : courseData.category} 
+                    <Select
+                      value={courseData.category === 'custom' ? 'custom' : courseData.category}
                       onValueChange={(value) => {
                         if (value === 'custom') {
                           handleInputChange('category', 'custom');
@@ -1012,9 +886,9 @@ const CreateCoursePage = () => {
                           onChange={(e) => handleInputChange('customCategory', e.target.value)}
                           placeholder="Entrez une catégorie personnalisée"
                         />
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
+                        <Button
+                          variant="outline"
+                          size="sm"
                           onClick={saveCustomCategory}
                           className="w-full"
                         >
@@ -1097,10 +971,10 @@ const CreateCoursePage = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => setCourseData(prev => ({ 
-                            ...prev, 
-                            programFile: null, 
-                            programFileName: '' 
+                          onClick={() => setCourseData(prev => ({
+                            ...prev,
+                            programFile: null,
+                            programFileName: ''
                           }))}
                         >
                           <X className="h-4 w-4 mr-2" />
@@ -1137,7 +1011,7 @@ const CreateCoursePage = () => {
                   <p className="text-sm text-gray-600">
                     Ajoutez des documents PDF supplémentaires (guides, fiches de synthèse, etc.)
                   </p>
-                  
+
                   {/* Display existing resources */}
                   {courseData.pedagogicalResources.length > 0 && (
                     <div className="space-y-2">
@@ -1195,8 +1069,8 @@ const CreateCoursePage = () => {
 
                 <div>
                   <Label className="text-base">Propriétaire du cours</Label>
-                  <Select 
-                    value={courseData.ownerId} 
+                  <Select
+                    value={courseData.ownerId}
                     onValueChange={(value) => handleInputChange('ownerId', value)}
                   >
                     <SelectTrigger className="mt-2">
@@ -1221,9 +1095,9 @@ const CreateCoursePage = () => {
                   <div className="mt-2 border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-pink-400 transition-colors">
                     {courseData.imagePreview ? (
                       <div className="space-y-4">
-                        <img 
-                          src={courseData.imagePreview} 
-                          alt="Preview" 
+                        <img
+                          src={courseData.imagePreview}
+                          alt="Preview"
                           className="max-h-48 mx-auto rounded-lg"
                         />
                         <Button
@@ -1271,19 +1145,19 @@ const CreateCoursePage = () => {
                     <AccordionItem key={module.id} value={module.id} className="border rounded-lg mb-4 overflow-hidden">
                       <AccordionTrigger className="hover:no-underline px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100">
                         <div className="flex items-center justify-between w-full pr-4">
-                            <div className="flex items-center space-x-4">
-                              <Badge className="bg-gradient-to-r from-pink-600 to-purple-600">
-                                Module {moduleIndex + 1}
-                              </Badge>
-                              <div className="text-left">
-                                <div className="font-semibold text-lg">{module.title || 'Sans titre'}</div>
-                                <div className="text-sm text-gray-600 font-normal">
-                                  {module.lessons.length} leçon{module.lessons.length !== 1 ? 's' : ''}
-                                  {module.lessons.filter(l => l.quiz).length > 0 && ` • ${module.lessons.filter(l => l.quiz).length} quiz`}
-                                  {module.assignment && ' • 1 devoir'}
-                                </div>
+                          <div className="flex items-center space-x-4">
+                            <Badge className="bg-gradient-to-r from-pink-600 to-purple-600">
+                              Module {moduleIndex + 1}
+                            </Badge>
+                            <div className="text-left">
+                              <div className="font-semibold text-lg">{module.title || 'Sans titre'}</div>
+                              <div className="text-sm text-gray-600 font-normal">
+                                {module.lessons.length} leçon{module.lessons.length !== 1 ? 's' : ''}
+                                {module.lessons.filter(l => l.quiz).length > 0 && ` • ${module.lessons.filter(l => l.quiz).length} quiz`}
+                                {module.assignment && ' • 1 devoir'}
                               </div>
                             </div>
+                          </div>
                           {modules.length > 1 && (
                             <Button
                               variant="ghost"
@@ -1424,7 +1298,7 @@ const CreateCoursePage = () => {
                                                 type="button"
                                                 variant={!lesson.useMediaUrl ? "default" : "outline"}
                                                 size="sm"
-                                                onClick={() => updateLesson(module.id, lesson.id, { 
+                                                onClick={() => updateLesson(module.id, lesson.id, {
                                                   useMediaUrl: false,
                                                   mediaUrl: '',
                                                   fileType: null,
@@ -1439,7 +1313,7 @@ const CreateCoursePage = () => {
                                                 type="button"
                                                 variant={lesson.useMediaUrl ? "default" : "outline"}
                                                 size="sm"
-                                                onClick={() => updateLesson(module.id, lesson.id, { 
+                                                onClick={() => updateLesson(module.id, lesson.id, {
                                                   useMediaUrl: true,
                                                   file: undefined,
                                                   fileType: null,
@@ -1467,41 +1341,41 @@ const CreateCoursePage = () => {
                                                       <Button
                                                         variant="ghost"
                                                         size="sm"
-                                                        onClick={() => updateLesson(module.id, lesson.id, { 
-                                                          fileType: null, 
-                                                          fileName: '', 
+                                                        onClick={() => updateLesson(module.id, lesson.id, {
+                                                          fileType: null,
+                                                          fileName: '',
                                                           filePreview: undefined,
                                                           file: undefined
                                                         })}
                                                       >
                                                         <X className="h-4 w-4" />
                                                       </Button>
-                                                     </div>
-                                                    
+                                                    </div>
+
                                                     {/* Aperçu du fichier uploadé */}
                                                     <div className="mt-3 border rounded-lg p-3 bg-gray-50">
                                                       <div className="text-sm font-medium mb-2">Aperçu :</div>
-                                                      
+
                                                       {/* Image preview */}
                                                       {lesson.fileType === 'image' && lesson.filePreview && (
-                                                        <img 
-                                                          src={lesson.filePreview} 
-                                                          alt="Preview" 
+                                                        <img
+                                                          src={lesson.filePreview}
+                                                          alt="Preview"
                                                           className="max-h-48 rounded border w-full object-contain"
                                                         />
                                                       )}
-                                                      
+
                                                       {/* Video preview */}
                                                       {lesson.fileType === 'video' && lesson.filePreview && (
-                                                        <video 
-                                                          src={lesson.filePreview} 
-                                                          controls 
+                                                        <video
+                                                          src={lesson.filePreview}
+                                                          controls
                                                           className="max-h-64 rounded border w-full"
                                                         >
                                                           Votre navigateur ne supporte pas la lecture vidéo.
                                                         </video>
                                                       )}
-                                                      
+
                                                       {/* PDF preview */}
                                                       {lesson.fileType === 'pdf' && lesson.filePreview && (
                                                         <embed
@@ -1561,9 +1435,9 @@ const CreateCoursePage = () => {
                                                     <div className="text-sm font-medium mb-2">Aperçu :</div>
                                                     {/* Image preview */}
                                                     {/\.(jpg|jpeg|png|gif|webp|svg)$/i.test(lesson.mediaUrl) && (
-                                                      <img 
-                                                        src={lesson.mediaUrl} 
-                                                        alt="Preview" 
+                                                      <img
+                                                        src={lesson.mediaUrl}
+                                                        alt="Preview"
                                                         className="max-h-48 rounded border"
                                                         onError={(e) => {
                                                           (e.target as HTMLImageElement).style.display = 'none';
@@ -1572,9 +1446,9 @@ const CreateCoursePage = () => {
                                                     )}
                                                     {/* Video preview */}
                                                     {/\.(mp4|webm|ogg)$/i.test(lesson.mediaUrl) && (
-                                                      <video 
-                                                        src={lesson.mediaUrl} 
-                                                        controls 
+                                                      <video
+                                                        src={lesson.mediaUrl}
+                                                        controls
                                                         className="max-h-48 rounded border w-full"
                                                         onError={(e) => {
                                                           (e.target as HTMLVideoElement).style.display = 'none';
@@ -1591,8 +1465,8 @@ const CreateCoursePage = () => {
                                                             lesson.mediaUrl.includes('youtube.com') || lesson.mediaUrl.includes('youtu.be')
                                                               ? `https://www.youtube.com/embed/${lesson.mediaUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/)?.[1] || ''}`
                                                               : lesson.mediaUrl.includes('vimeo.com')
-                                                              ? `https://player.vimeo.com/video/${lesson.mediaUrl.match(/vimeo\.com\/(\d+)/)?.[1] || ''}`
-                                                              : lesson.mediaUrl
+                                                                ? `https://player.vimeo.com/video/${lesson.mediaUrl.match(/vimeo\.com\/(\d+)/)?.[1] || ''}`
+                                                                : lesson.mediaUrl
                                                           }
                                                           className="w-full h-full rounded border"
                                                           allowFullScreen
@@ -1604,9 +1478,9 @@ const CreateCoursePage = () => {
                                                       <div className="flex items-center gap-2 text-sm">
                                                         <FileText className="h-5 w-5 text-red-500" />
                                                         <span>Fichier PDF</span>
-                                                        <a 
-                                                          href={lesson.mediaUrl} 
-                                                          target="_blank" 
+                                                        <a
+                                                          href={lesson.mediaUrl}
+                                                          target="_blank"
                                                           rel="noopener noreferrer"
                                                           className="text-blue-600 hover:underline"
                                                         >
@@ -1619,179 +1493,179 @@ const CreateCoursePage = () => {
                                               </div>
                                             )}
                                           </div>
-                                         </div>
-                                       </CardContent>
-                                     )}
-                                   </Card>
-                                 ))}
-                               </div>
-                             )}
-                           </div>
-
-                            {/* Quiz Section for Lessons */}
-                            {module.lessons.length > 0 && (
-                              <div className="space-y-4 border-t pt-6">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <HelpCircle className="h-5 w-5 text-blue-600" />
-                                    <h4 className="font-semibold text-lg">Quiz des leçons</h4>
-                                  </div>
-                                </div>
-                                <div className="text-sm text-gray-600 mb-4">
-                                  Ajoutez des quiz aux leçons pour évaluer la compréhension après chaque contenu.
-                                </div>
-                                <div className="space-y-2">
-                                  {module.lessons.map((lesson, idx) => (
-                                    <div key={lesson.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
-                                      <div className="flex items-center gap-3">
-                                        <Badge variant="outline">Leçon {idx + 1}</Badge>
-                                        <span className="font-medium">{lesson.title || 'Sans titre'}</span>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        {lesson.quiz ? (
-                                          <>
-                                            <Badge className="bg-green-100 text-green-800">
-                                              {lesson.quiz.questions.length} questions
-                                            </Badge>
-                                            <Button
-                                              variant="ghost"
-                                              size="sm"
-                                              onClick={() => setShowQuizBuilder({ moduleId: module.id, lessonId: lesson.id })}
-                                            >
-                                              <Edit2 className="h-4 w-4" />
-                                            </Button>
-                                            <Button
-                                              variant="ghost"
-                                              size="sm"
-                                              onClick={() => handleRemoveQuiz(module.id, lesson.id)}
-                                            >
-                                              <Trash2 className="h-4 w-4 text-red-500" />
-                                            </Button>
-                                          </>
-                                        ) : (
-                                          <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => setShowQuizBuilder({ moduleId: module.id, lessonId: lesson.id })}
-                                          >
-                                            <Plus className="h-4 w-4 mr-2" />
-                                            Ajouter un quiz
-                                          </Button>
-                                        )}
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
+                                        </div>
+                                      </CardContent>
+                                    )}
+                                  </Card>
+                                ))}
                               </div>
                             )}
+                          </div>
 
-                            {/* Quiz Section for Module (Direct) */}
+                          {/* Quiz Section for Lessons */}
+                          {module.lessons.length > 0 && (
                             <div className="space-y-4 border-t pt-6">
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                   <HelpCircle className="h-5 w-5 text-blue-600" />
-                                  <h4 className="font-semibold text-lg">Quiz du module</h4>
+                                  <h4 className="font-semibold text-lg">Quiz des leçons</h4>
                                 </div>
                               </div>
                               <div className="text-sm text-gray-600 mb-4">
-                                Ajoutez un quiz directement au module (sans créer de leçon).
+                                Ajoutez des quiz aux leçons pour évaluer la compréhension après chaque contenu.
                               </div>
-                              {module.quiz ? (
-                                <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200">
-                                  <CardHeader>
-                                    <div className="flex items-center justify-between">
-                                      <div>
-                                        <CardTitle className="text-lg">{module.quiz.title}</CardTitle>
-                                        <p className="text-sm text-gray-600 mt-1">
-                                          {module.quiz.questions.length} questions • 
-                                          Note de passage: {module.quiz.settings.passingScore}%
-                                        </p>
-                                      </div>
-                                      <div className="flex gap-2">
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => setShowModuleQuizBuilder(module.id)}
-                                        >
-                                          <Edit2 className="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => handleRemoveModuleQuiz(module.id)}
-                                        >
-                                          <Trash2 className="h-4 w-4 text-red-500" />
-                                        </Button>
-                                      </div>
+                              <div className="space-y-2">
+                                {module.lessons.map((lesson, idx) => (
+                                  <div key={lesson.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                                    <div className="flex items-center gap-3">
+                                      <Badge variant="outline">Leçon {idx + 1}</Badge>
+                                      <span className="font-medium">{lesson.title || 'Sans titre'}</span>
                                     </div>
-                                  </CardHeader>
-                                </Card>
-                              ) : (
-                                <Button
-                                  variant="outline"
-                                  onClick={() => setShowModuleQuizBuilder(module.id)}
-                                  className="w-full"
-                                >
-                                  <Plus className="h-4 w-4 mr-2" />
-                                  Créer un quiz pour ce module
-                                </Button>
-                              )}
-                            </div>
-
-                            {/* Assignment Section for Module */}
-                            <div className="space-y-4 border-t pt-6">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  <ClipboardList className="h-5 w-5 text-purple-600" />
-                                  <h4 className="font-semibold text-lg">Devoir de fin de module</h4>
-                                </div>
-                              </div>
-                              <div className="text-sm text-gray-600 mb-4">
-                                Un devoir permet d'évaluer l'ensemble des compétences acquises dans ce module.
-                              </div>
-                              {module.assignment ? (
-                                <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
-                                  <CardHeader>
-                                    <div className="flex items-center justify-between">
-                                      <div>
-                                        <CardTitle className="text-lg">{module.assignment.title}</CardTitle>
-                                        <p className="text-sm text-gray-600 mt-1">
-                                          {module.assignment.questions.length} questions • 
-                                          Note de passage: {module.assignment.settings.passingScore}%
-                                        </p>
-                                      </div>
-                                      <div className="flex gap-2">
+                                    <div className="flex items-center gap-2">
+                                      {lesson.quiz ? (
+                                        <>
+                                          <Badge className="bg-green-100 text-green-800">
+                                            {lesson.quiz.questions.length} questions
+                                          </Badge>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => setShowQuizBuilder({ moduleId: module.id, lessonId: lesson.id })}
+                                          >
+                                            <Edit2 className="h-4 w-4" />
+                                          </Button>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => handleRemoveQuiz(module.id, lesson.id)}
+                                          >
+                                            <Trash2 className="h-4 w-4 text-red-500" />
+                                          </Button>
+                                        </>
+                                      ) : (
                                         <Button
-                                          variant="ghost"
+                                          variant="outline"
                                           size="sm"
-                                          onClick={() => setShowAssignmentBuilder(module.id)}
+                                          onClick={() => setShowQuizBuilder({ moduleId: module.id, lessonId: lesson.id })}
                                         >
-                                          <Edit2 className="h-4 w-4" />
+                                          <Plus className="h-4 w-4 mr-2" />
+                                          Ajouter un quiz
                                         </Button>
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => handleRemoveAssignment(module.id)}
-                                        >
-                                          <Trash2 className="h-4 w-4 text-red-500" />
-                                        </Button>
-                                      </div>
+                                      )}
                                     </div>
-                                  </CardHeader>
-                                </Card>
-                              ) : (
-                                <Button
-                                  variant="outline"
-                                  onClick={() => setShowAssignmentBuilder(module.id)}
-                                  className="w-full"
-                                >
-                                  <Plus className="h-4 w-4 mr-2" />
-                                  Créer un devoir pour ce module
-                                </Button>
-                              )}
+                                  </div>
+                                ))}
+                              </div>
                             </div>
+                          )}
 
-                         </div>
+                          {/* Quiz Section for Module (Direct) */}
+                          <div className="space-y-4 border-t pt-6">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <HelpCircle className="h-5 w-5 text-blue-600" />
+                                <h4 className="font-semibold text-lg">Quiz du module</h4>
+                              </div>
+                            </div>
+                            <div className="text-sm text-gray-600 mb-4">
+                              Ajoutez un quiz directement au module (sans créer de leçon).
+                            </div>
+                            {module.quiz ? (
+                              <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200">
+                                <CardHeader>
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <CardTitle className="text-lg">{module.quiz.title}</CardTitle>
+                                      <p className="text-sm text-gray-600 mt-1">
+                                        {module.quiz.questions.length} questions •
+                                        Note de passage: {module.quiz.settings.passingScore}%
+                                      </p>
+                                    </div>
+                                    <div className="flex gap-2">
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setShowModuleQuizBuilder(module.id)}
+                                      >
+                                        <Edit2 className="h-4 w-4" />
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleRemoveModuleQuiz(module.id)}
+                                      >
+                                        <Trash2 className="h-4 w-4 text-red-500" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </CardHeader>
+                              </Card>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                onClick={() => setShowModuleQuizBuilder(module.id)}
+                                className="w-full"
+                              >
+                                <Plus className="h-4 w-4 mr-2" />
+                                Créer un quiz pour ce module
+                              </Button>
+                            )}
+                          </div>
+
+                          {/* Assignment Section for Module */}
+                          <div className="space-y-4 border-t pt-6">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <ClipboardList className="h-5 w-5 text-purple-600" />
+                                <h4 className="font-semibold text-lg">Devoir de fin de module</h4>
+                              </div>
+                            </div>
+                            <div className="text-sm text-gray-600 mb-4">
+                              Un devoir permet d'évaluer l'ensemble des compétences acquises dans ce module.
+                            </div>
+                            {module.assignment ? (
+                              <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
+                                <CardHeader>
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <CardTitle className="text-lg">{module.assignment.title}</CardTitle>
+                                      <p className="text-sm text-gray-600 mt-1">
+                                        {module.assignment.questions.length} questions •
+                                        Note de passage: {module.assignment.settings.passingScore}%
+                                      </p>
+                                    </div>
+                                    <div className="flex gap-2">
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setShowAssignmentBuilder(module.id)}
+                                      >
+                                        <Edit2 className="h-4 w-4" />
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleRemoveAssignment(module.id)}
+                                      >
+                                        <Trash2 className="h-4 w-4 text-red-500" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </CardHeader>
+                              </Card>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                onClick={() => setShowAssignmentBuilder(module.id)}
+                                className="w-full"
+                              >
+                                <Plus className="h-4 w-4 mr-2" />
+                                Créer un devoir pour ce module
+                              </Button>
+                            )}
+                          </div>
+
+                        </div>
                       </AccordionContent>
                     </AccordionItem>
                   ))}
@@ -1802,7 +1676,7 @@ const CreateCoursePage = () => {
             {currentStep === 'review' && (
               <div className="space-y-6">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">Révision finale</h2>
-                
+
                 <Card className="bg-gradient-to-br from-blue-50 to-purple-50">
                   <CardHeader>
                     <CardTitle>Informations du cours</CardTitle>
@@ -1868,7 +1742,7 @@ const CreateCoursePage = () => {
                           </div>
                           <div className="text-sm text-gray-600">Leçons</div>
                         </div>
-                         <div className="p-4 bg-white rounded-lg">
+                        <div className="p-4 bg-white rounded-lg">
                           <div className="text-3xl font-bold text-purple-600">
                             {modules.reduce((sum, m) => sum + m.lessons.filter(l => l.quiz).length + (m.quiz ? 1 : 0), 0)}
                           </div>

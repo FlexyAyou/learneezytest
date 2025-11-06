@@ -28,7 +28,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoKey, videoUrl, title }) 
       /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/,
       /youtube\.com\/embed\/([^&\n?#]+)/,
     ];
-    
+
     for (const pattern of patterns) {
       const match = url.match(pattern);
       if (match && match[1]) {
@@ -122,9 +122,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoKey, videoUrl, title }) 
           allowFullScreen
         />
       ) : (
-        <video 
-          src={playUrl} 
-          controls 
+        <video
+          src={playUrl}
+          controls
           className="w-full h-full"
           title={title}
         >
@@ -139,20 +139,15 @@ const CourseDetailPage = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  
+
   const [course, setCourse] = useState<CourseResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<Content | null>(null);
   const [statusUpdating, setStatusUpdating] = useState(false);
-  
-  // States pour édition inline
-  const [editingLevel, setEditingLevel] = useState(false);
-  const [editingTags, setEditingTags] = useState(false);
-  const [levelValue, setLevelValue] = useState('');
-  const [tagsValue, setTagsValue] = useState('');
-  const [saving, setSaving] = useState(false);
-  
+
+  // Édition désactivée sur la page de détail (lecture seule)
+
   // States pour les URLs de téléchargement
   const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
   const [programAvailable, setProgramAvailable] = useState<boolean>(false);
@@ -161,26 +156,44 @@ const CourseDetailPage = () => {
   useEffect(() => {
     const loadCourse = async () => {
       if (!courseId) return;
-      
+
       setLoading(true);
       setError(null);
-      
+
       try {
         const courseData = await fastAPIClient.getCourse(courseId);
         setCourse(courseData);
-        setLevelValue(courseData.level || '');
-        setTagsValue(courseData.category || '');
-        
-        // Charger l'image de couverture avec download_url
+        // Lecture seule: pas de valeurs éditables ici
+
+        // Charger l'image de couverture avec une URL présignée (lecture)
         if (courseData.cover_key) {
           try {
-            const { download_url } = await fastAPIClient.getDownloadUrl(courseData.cover_key);
-            setCoverImageUrl(download_url);
+            const { url } = await fastAPIClient.getPlayUrl(courseData.cover_key);
+            console.debug('[CourseDetail] cover_key → play_url:', url);
+            setCoverImageUrl(url);
           } catch (err) {
             console.error('Erreur chargement image de couverture:', err);
           }
+        } else if (courseData.image_url) {
+          // Compat: certains anciens cours ont une image_url de type /api/storage/public/<KEY>
+          try {
+            const match = courseData.image_url.match(/\/api\/storage\/public\/(.+)$/);
+            if (match && match[1]) {
+              const key = decodeURIComponent(match[1]);
+              const { url } = await fastAPIClient.getPlayUrl(key);
+              console.debug('[CourseDetail] image_url public → key → play_url:', { key, url });
+              setCoverImageUrl(url);
+            } else {
+              // URL complète déjà accessible publiquement
+              console.debug('[CourseDetail] image_url direct (pas de conversion):', courseData.image_url);
+              setCoverImageUrl(courseData.image_url);
+            }
+          } catch (err) {
+            console.error('Erreur fallback image_url → play_url:', err);
+            setCoverImageUrl(courseData.image_url);
+          }
         }
-        
+
         // Vérifier la disponibilité du programme PDF
         try {
           await fastAPIClient.getCourseProgramUrl(courseId);
@@ -215,7 +228,7 @@ const CourseDetailPage = () => {
 
   const handleDelete = async () => {
     if (!courseId || !confirm('⚠️ Êtes-vous sûr de vouloir supprimer définitivement ce cours ?')) return;
-    
+
     try {
       await fastAPIClient.deleteCourse(courseId);
       toast({
@@ -234,7 +247,7 @@ const CourseDetailPage = () => {
 
   const handleToggleStatus = async () => {
     if (!courseId || !course) return;
-    
+
     setStatusUpdating(true);
     try {
       const newStatus = course.status === 'published' ? 'draft' : 'published';
@@ -255,56 +268,12 @@ const CourseDetailPage = () => {
     }
   };
 
-  const handleSaveLevel = async () => {
-    if (!courseId || !course) return;
-    
-    setSaving(true);
-    try {
-      const updatedCourse = await fastAPIClient.updateCourse(courseId, { level: levelValue });
-      setCourse(updatedCourse);
-      setEditingLevel(false);
-      toast({
-        title: "✅ Niveau mis à jour",
-        description: "Le niveau du cours a été modifié avec succès.",
-      });
-    } catch (err: any) {
-      toast({
-        title: "❌ Erreur",
-        description: "Impossible de modifier le niveau",
-        variant: "destructive"
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleSaveTags = async () => {
-    if (!courseId || !course) return;
-    
-    setSaving(true);
-    try {
-      const updatedCourse = await fastAPIClient.updateCourse(courseId, { category: tagsValue });
-      setCourse(updatedCourse);
-      setEditingTags(false);
-      toast({
-        title: "✅ Tags mis à jour",
-        description: "Les tags du cours ont été modifiés avec succès.",
-      });
-    } catch (err: any) {
-      toast({
-        title: "❌ Erreur",
-        description: "Impossible de modifier les tags",
-        variant: "destructive"
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
+  // Plus d'édition du niveau, des tags ou de la catégorie depuis cette page
 
   // Calculer les statistiques
   const totalLessons = course?.modules?.reduce((acc, mod) => acc + (mod.content?.length || 0), 0) || 0;
   const totalQuizzes = course?.modules?.reduce((acc, mod) => acc + (mod.quizzes?.length || 0), 0) || 0;
-  const totalVideos = course?.modules?.reduce((acc, mod) => 
+  const totalVideos = course?.modules?.reduce((acc, mod) =>
     acc + (mod.content?.filter(c => c.video_key || c.key || c.video_url).length || 0), 0) || 0;
 
   if (loading) {
@@ -347,8 +316,8 @@ const CourseDetailPage = () => {
             variant={course.status === 'published' ? 'outline' : 'default'}
             onClick={handleToggleStatus}
             disabled={statusUpdating}
-            className={course.status === 'published' 
-              ? 'hover:bg-yellow-50 hover:text-yellow-700' 
+            className={course.status === 'published'
+              ? 'hover:bg-yellow-50 hover:text-yellow-700'
               : 'bg-green-600 hover:bg-green-700'}
           >
             {statusUpdating ? (
@@ -405,8 +374,8 @@ const CourseDetailPage = () => {
                         Brouillon
                       </Badge>
                     )}
-                    <Badge className={course.owner_type === 'learneezy' 
-                      ? 'bg-blue-500 hover:bg-blue-600 text-white' 
+                    <Badge className={course.owner_type === 'learneezy'
+                      ? 'bg-blue-500 hover:bg-blue-600 text-white'
                       : 'bg-purple-500 hover:bg-purple-600 text-white'}>
                       {course.owner_type === 'learneezy' ? '🏢 Learneezy' : '🎓 Organisme'}
                     </Badge>
@@ -423,82 +392,46 @@ const CourseDetailPage = () => {
                 <p className="text-gray-700 leading-relaxed">{course.description}</p>
               </div>
 
-              {/* Niveau - Éditable en mode brouillon */}
+              {/* Niveau - Lecture seule */}
               <div className="pt-4 border-t-2">
                 <h3 className="font-semibold text-lg mb-2 flex items-center justify-between">
                   <span className="flex items-center">
                     <Award className="h-5 w-5 mr-2 text-gray-600" />
                     Niveau
                   </span>
-                  {course.status === 'draft' && !editingLevel && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setEditingLevel(true)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                  )}
                 </h3>
-                {editingLevel && course.status === 'draft' ? (
-                  <div className="flex gap-2">
-                    <Input
-                      value={levelValue}
-                      onChange={(e) => setLevelValue(e.target.value)}
-                      placeholder="Ex: Débutant, Intermédiaire, Avancé"
-                    />
-                    <Button onClick={handleSaveLevel} disabled={saving}>
-                      {saving ? <LoadingSpinner size="sm" /> : <Save className="h-4 w-4" />}
-                    </Button>
-                    <Button variant="outline" onClick={() => setEditingLevel(false)}>
-                      <XCircle className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ) : (
-                  <Badge variant="outline" className="border-2 border-pink-300 text-pink-700">
-                    {course.level || 'Non défini'}
-                  </Badge>
-                )}
+                <Badge variant="outline" className="border-2 border-pink-300 text-pink-700">
+                  {course.level || 'Non défini'}
+                </Badge>
               </div>
 
-              {/* Tags/Catégorie - Éditable en mode brouillon */}
+              {/* Cycle, Tags (levels) et Catégorie - Lecture seule */}
               <div className="pt-4 border-t-2">
                 <h3 className="font-semibold text-lg mb-2 flex items-center justify-between">
                   <span className="flex items-center">
                     <Tags className="h-5 w-5 mr-2 text-gray-600" />
-                    Tags / Catégorie
+                    Cycle, tags & catégorie
                   </span>
-                  {course.status === 'draft' && !editingTags && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setEditingTags(true)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                  )}
                 </h3>
-                {editingTags && course.status === 'draft' ? (
-                  <div className="flex gap-2">
-                    <Input
-                      value={tagsValue}
-                      onChange={(e) => setTagsValue(e.target.value)}
-                      placeholder="Ex: Développement, React, Frontend"
-                    />
-                    <Button onClick={handleSaveTags} disabled={saving}>
-                      {saving ? <LoadingSpinner size="sm" /> : <Save className="h-4 w-4" />}
-                    </Button>
-                    <Button variant="outline" onClick={() => setEditingTags(false)}>
-                      <XCircle className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ) : (
-                  <Badge variant="outline" className="border-2 border-blue-300 text-blue-700">
-                    {course.category || 'Non défini'}
-                  </Badge>
+                {course.learning_cycle && (
+                  <p className="text-sm text-gray-600 mb-2">Cycle: {String(course.learning_cycle).replace('_', ' ')}</p>
                 )}
+                <div className="flex flex-wrap items-center gap-2">
+                  {Array.isArray(course.levels) && course.levels.length > 0 ? (
+                    course.levels.map((lvl, i) => (
+                      <Badge key={i} variant="secondary" className="border-2 border-blue-200 text-blue-800">
+                        {lvl}
+                      </Badge>
+                    ))
+                  ) : (
+                    <span className="text-sm text-gray-500">Aucun tag</span>
+                  )}
+                  {course.category && (
+                    <span className="text-sm text-gray-700">/ {course.category}</span>
+                  )}
+                </div>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4 pt-4 border-t-2">
                 <div className="text-center p-3 bg-purple-50 rounded-lg">
                   <p className="text-xs text-gray-600 mb-1">Durée totale</p>
@@ -597,7 +530,7 @@ const CourseDetailPage = () => {
                               <p className="text-gray-700 leading-relaxed">{module.description}</p>
                             </div>
                           )}
-                          
+
                           {/* Lessons */}
                           {module.content && module.content.length > 0 && (
                             <div className="space-y-3">
@@ -607,7 +540,7 @@ const CourseDetailPage = () => {
                               </h4>
                               {module.content.map((lesson, lessonIndex) => (
                                 <div key={lessonIndex} className="space-y-3 bg-white rounded-lg border-2 hover:border-pink-300 transition-all">
-                                  <div 
+                                  <div
                                     className="flex items-center justify-between p-4 cursor-pointer"
                                     onClick={() => setSelectedLesson(selectedLesson?.title === lesson.title ? null : lesson)}
                                   >
@@ -630,7 +563,7 @@ const CourseDetailPage = () => {
                                       {lesson.duration}
                                     </Badge>
                                   </div>
-                                  
+
                                   {selectedLesson?.title === lesson.title && (
                                     <div className="px-4 pb-4 space-y-4 border-t-2 pt-4">
                                       {lesson.description && (
@@ -642,21 +575,21 @@ const CourseDetailPage = () => {
                                           <p className="text-sm text-gray-700 leading-relaxed">{lesson.description}</p>
                                         </div>
                                       )}
-                                      
+
                                       {(lesson.video_key || lesson.key || lesson.video_url) && (
                                         <div>
                                           <h5 className="font-semibold text-sm mb-3 flex items-center text-gray-900">
                                             <Video className="h-4 w-4 mr-2 text-pink-600" />
                                             Vidéo de la leçon
                                           </h5>
-                                          <VideoPlayer 
+                                          <VideoPlayer
                                             videoKey={lesson.video_key || lesson.key}
                                             videoUrl={lesson.video_url}
                                             title={lesson.title}
                                           />
                                         </div>
                                       )}
-                                      
+
                                       {lesson.transcription && (
                                         <div className="bg-gray-100 p-4 rounded-lg border-l-4 border-gray-400">
                                           <h5 className="font-semibold text-sm mb-2 flex items-center text-gray-900">
@@ -674,7 +607,7 @@ const CourseDetailPage = () => {
                               ))}
                             </div>
                           )}
-                          
+
                           {/* Quizzes */}
                           {module.quizzes && module.quizzes.length > 0 && (
                             <div className="space-y-3 mt-6">
@@ -695,7 +628,7 @@ const CourseDetailPage = () => {
                                       {quiz.questions?.length || 0} questions
                                     </Badge>
                                   </div>
-                                  
+
                                   {quiz.questions && quiz.questions.length > 0 && (
                                     <div className="p-4 space-y-4">
                                       {quiz.questions.map((question, qIndex) => (
@@ -710,13 +643,12 @@ const CourseDetailPage = () => {
                                             {question.options.map((option, optIndex) => {
                                               const isCorrect = option === question.correct_answer;
                                               return (
-                                                <div 
-                                                  key={optIndex} 
-                                                  className={`text-sm p-3 rounded-lg flex items-center space-x-3 transition-all ${
-                                                    isCorrect 
-                                                      ? 'bg-green-100 text-green-900 border-2 border-green-400 font-semibold shadow-sm' 
-                                                      : 'bg-white text-gray-700 border border-gray-300'
-                                                  }`}
+                                                <div
+                                                  key={optIndex}
+                                                  className={`text-sm p-3 rounded-lg flex items-center space-x-3 transition-all ${isCorrect
+                                                    ? 'bg-green-100 text-green-900 border-2 border-green-400 font-semibold shadow-sm'
+                                                    : 'bg-white text-gray-700 border border-gray-300'
+                                                    }`}
                                                 >
                                                   {isCorrect ? (
                                                     <CheckCircle className="h-5 w-5 text-green-600" />
@@ -763,8 +695,8 @@ const CourseDetailPage = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
-                <img 
-                  src={coverImageUrl || course.image_url || ''} 
+                <img
+                  src={coverImageUrl || course.image_url || ''}
                   alt={course.title}
                   className="w-full h-48 object-cover"
                 />
@@ -823,20 +755,19 @@ const CourseDetailPage = () => {
               <CardTitle className="text-sm">Actions rapides</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 pt-4">
-              <Button 
-                className="w-full justify-start hover:bg-blue-50" 
+              <Button
+                className="w-full justify-start hover:bg-blue-50"
                 variant="outline"
                 onClick={() => navigate(`/dashboard/superadmin/courses/${course.id}/edit`)}
               >
                 <Edit className="h-4 w-4 mr-2" />
                 Modifier le cours
               </Button>
-              <Button 
-                className={`w-full justify-start ${
-                  course.status === 'published' 
-                    ? 'hover:bg-yellow-50' 
-                    : 'hover:bg-green-50'
-                }`}
+              <Button
+                className={`w-full justify-start ${course.status === 'published'
+                  ? 'hover:bg-yellow-50'
+                  : 'hover:bg-green-50'
+                  }`}
                 variant="outline"
                 onClick={handleToggleStatus}
                 disabled={statusUpdating}
@@ -855,8 +786,8 @@ const CourseDetailPage = () => {
                   </>
                 )}
               </Button>
-              <Button 
-                className="w-full justify-start hover:bg-red-50 hover:text-red-600" 
+              <Button
+                className="w-full justify-start hover:bg-red-50 hover:text-red-600"
                 variant="outline"
                 onClick={handleDelete}
               >
@@ -945,8 +876,8 @@ const CourseDetailPage = () => {
                 </div>
                 <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
                   <span className="text-gray-600 font-medium">Propriétaire</span>
-                  <Badge className={course.owner_type === 'learneezy' 
-                    ? 'bg-blue-500 text-white' 
+                  <Badge className={course.owner_type === 'learneezy'
+                    ? 'bg-blue-500 text-white'
                     : 'bg-purple-500 text-white'}>
                     {course.owner_type === 'learneezy' ? '🏢 Learneezy' : '🎓 Organisme'}
                   </Badge>
