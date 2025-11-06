@@ -324,7 +324,7 @@ const AdminCourses = () => {
                           <img 
                             src={course.image_url} 
                             alt={course.title}
-                            className="w-12 h-12 rounded object-cover"
+                            className="w-20 h-12 rounded object-cover"
                           />
                         )}
                         <div>
