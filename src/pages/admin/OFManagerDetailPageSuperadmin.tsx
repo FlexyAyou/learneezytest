@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ManagerDetailView } from '@/components/admin/user-details/ManagerDetailView';
-import { useSuperadminUsers } from '@/hooks/useApi';
+import { useSuperadminUsers, useOrganizations } from '@/hooks/useApi';
 import { UserStatusToggleButton } from '@/components/admin/UserStatusToggleButton';
 import { useQueryClient } from '@tanstack/react-query';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
@@ -22,11 +22,11 @@ const OFManagerDetailPageSuperadmin = () => {
   const queryClient = useQueryClient();
 
   const { data: allUsers, isLoading: usersLoading } = useSuperadminUsers();
+  const { data: organizations } = useOrganizations(1, 100);
   
   const foundUser = allUsers?.find(u => {
-    const fullName = `${u.first_name || ''} ${u.last_name || ''}`.trim();
-    const userSlugGenerated = fullName.toLowerCase().replace(/\s+/g, '-');
-    return userSlugGenerated === userSlug;
+    const userSlugFromId = `${u.id}-${u.first_name?.toLowerCase()}-${u.last_name?.toLowerCase()}`.replace(/\s+/g, '-');
+    return userSlugFromId === userSlug;
   });
 
   if (usersLoading) {
@@ -51,18 +51,24 @@ const OFManagerDetailPageSuperadmin = () => {
     );
   }
 
+  // Trouver l'organisation correspondante
+  const organisation = foundUser?.of_id && organizations 
+    ? organizations.find(o => o.id === foundUser.of_id)
+    : null;
+
+  // Construire l'objet user avec les données récupérées
   const user = {
-    id: foundUser.id,
-    name: `${foundUser.first_name} ${foundUser.last_name}`,
-    email: foundUser.email,
-    phone: '+33 6 12 34 56 78',
-    role: 'Gestionnaire OF',
-    status: foundUser.is_active ? 'active' : 'inactive',
-    lastLogin: foundUser.last_login || new Date().toISOString(),
-    joinDate: foundUser.created_at,
-    organisation: foundUser.of_id ? `Organisation #${foundUser.of_id}` : 'N/A',
-    organisationType: 'OF',
-    address: 'Non renseignée'
+    id: foundUser?.id || 0,
+    name: `${foundUser?.first_name || ''} ${foundUser?.last_name || ''}`.trim(),
+    email: foundUser?.email || '',
+    status: foundUser?.status || 'active',
+    role: foundUser?.role || 'gestionnaire',
+    organisation: organisation?.name || 'Learneezy Global',
+    organisationType: foundUser?.of_id ? 'of' : 'global',
+    joinDate: foundUser?.last_login ? new Date(foundUser.last_login).toLocaleDateString('fr-FR') : 'Non disponible',
+    phone: foundUser?.phone || 'Non renseigné',
+    address: foundUser?.address || 'Non renseignée',
+    of_id: foundUser?.of_id,
   };
 
   const getStatusBadge = (status: string) => {

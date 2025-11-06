@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { AddApprenantModal } from './AddApprenantModal';
-import { useSuperadminUsers } from '@/hooks/useApi';
+import { useSuperadminUsers, useOrganizations } from '@/hooks/useApi';
 
 export const AdminUsers = () => {
   const navigate = useNavigate();
@@ -27,6 +27,8 @@ export const AdminUsers = () => {
 
   // Récupérer les utilisateurs depuis l'API
   const { data: apiUsers, isLoading, error } = useSuperadminUsers();
+  // Récupérer les organisations pour afficher leurs noms
+  const { data: organizations } = useOrganizations(1, 100);
 
   // Mapper les rôles backend vers frontend pour l'affichage
   const mapBackendRoleToFrontend = (backendRole: string): string => {
@@ -67,18 +69,31 @@ export const AdminUsers = () => {
         return `${day}/${month}/${year} à ${hours}:${minutes}`;
       };
 
+      // Trouver l'organisation correspondante si of_id existe
+      let organisationName = 'Learneezy Direct';
+      if (user.of_id && organizations) {
+        const org = organizations.find(o => o.id === user.of_id);
+        if (org) {
+          organisationName = org.name;
+        }
+      }
+
       return {
         id: user.id,
         name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email.split('@')[0],
         email: user.email,
         role: mapBackendRoleToFrontend(user.role),
-        organisation: user.of_id ? `Organisation ${user.of_id}` : 'Learneezy Direct',
+        organisation: organisationName,
         organisationType: user.of_id ? 'OF' : 'Direct',
         status: user.status || 'inactive',
-        lastLogin: formatLastLogin(user.last_login)
+        lastLogin: formatLastLogin(user.last_login),
+        phone: user.phone,
+        address: user.address,
+        backendRole: user.role,
+        of_id: user.of_id,
       };
     });
-  }, [apiUsers]);
+  }, [apiUsers, organizations]);
 
   // Fonction pour obtenir l'URL de détail selon le rôle
   const getUserDetailUrl = (user: any) => {
