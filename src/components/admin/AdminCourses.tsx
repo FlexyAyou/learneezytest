@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Search, Plus, Eye, Edit, Trash2, BookOpen, Clock } from 'lucide-react';
+import { Search, Plus, Eye, Edit, Trash2, BookOpen, Clock, Settings, Globe } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { fastAPIClient } from '@/services/fastapi-client';
@@ -89,11 +89,24 @@ const AdminCourses = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'published':
-        return <Badge className="bg-green-100 text-green-800">Publié</Badge>;
+        return <Badge className="bg-green-500/10 text-green-700 border-green-500/20">Publié</Badge>;
       case 'draft':
-        return <Badge className="bg-yellow-100 text-yellow-800">Brouillon</Badge>;
+        return <Badge className="bg-yellow-500/10 text-yellow-700 border-yellow-500/20">En attente</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
+  const getVisibilityBadge = (visibility: string) => {
+    switch (visibility) {
+      case 'open_source':
+        return <Badge className="bg-blue-500/10 text-blue-700 border-blue-500/20">Open Source</Badge>;
+      case 'restricted':
+        return <Badge className="bg-orange-500/10 text-orange-700 border-orange-500/20">Restreint</Badge>;
+      case 'masked':
+        return <Badge className="bg-red-500/10 text-red-700 border-red-500/20">Masqué</Badge>;
+      default:
+        return <Badge className="bg-blue-500/10 text-blue-700 border-blue-500/20">Open Source</Badge>;
     }
   };
 
@@ -259,11 +272,12 @@ const AdminCourses = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Cours</TableHead>
+                  <TableHead>Instructeur</TableHead>
                   <TableHead>Catégorie</TableHead>
-                  <TableHead>Niveau</TableHead>
-                  <TableHead>Durée</TableHead>
+                  <TableHead>Étudiants</TableHead>
+                  <TableHead>Note</TableHead>
                   <TableHead>Statut</TableHead>
-                  <TableHead>Propriétaire</TableHead>
+                  <TableHead>Visibilité</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -276,44 +290,52 @@ const AdminCourses = () => {
                           <img 
                             src={course.image_url} 
                             alt={course.title}
-                            className="w-12 h-8 rounded object-cover"
+                            className="w-12 h-12 rounded object-cover"
                           />
                         )}
                         <div>
                           <div className="font-medium">{course.title}</div>
-                          <div className="text-sm text-gray-600 truncate max-w-[200px]">
-                            {course.description}
+                          <div className="text-sm text-muted-foreground flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {course.duration || '15h'}
                           </div>
                         </div>
                       </div>
                     </TableCell>
+                    <TableCell className="text-sm">
+                      {course.owner_type === 'learneezy' ? 'Jean Dupont' : 'Marie Martin'}
+                    </TableCell>
                     <TableCell>
                       {course.category ? (
-                        <Badge variant="outline">{course.category}</Badge>
+                        <span className="text-sm">{course.category}</span>
                       ) : (
                         <span className="text-gray-400">-</span>
                       )}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline">{course.level}</Badge>
+                      <div className="flex items-center text-sm">
+                        <span className="mr-1">👥</span>
+                        {Math.floor(Math.random() * 300)}
+                      </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center text-sm text-gray-600">
-                        <Clock className="h-3 w-3 mr-1" />
-                        {course.duration || '-'}
+                      <div className="flex items-center text-sm">
+                        <span className="mr-1">⭐</span>
+                        {(4 + Math.random()).toFixed(1)}
                       </div>
                     </TableCell>
                     <TableCell>
                       {getStatusBadge(course.status || 'draft')}
                     </TableCell>
                     <TableCell>
-                      {getOwnerBadge(course.owner_type)}
+                      {getVisibilityBadge(course.owner_type === 'learneezy' ? 'open_source' : 'restricted')}
                     </TableCell>
                     <TableCell>
-                      <div className="flex space-x-2">
+                      <div className="flex space-x-1">
                         <Button 
                           size="sm" 
-                          variant="outline" 
+                          variant="ghost"
+                          className="h-8 w-8 p-0"
                           title="Voir le cours"
                           onClick={() => handleViewCourse(course)}
                         >
@@ -321,7 +343,24 @@ const AdminCourses = () => {
                         </Button>
                         <Button 
                           size="sm" 
-                          variant="outline" 
+                          variant="ghost"
+                          className="h-8 w-8 p-0"
+                          title="Paramètres"
+                        >
+                          <Settings className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="ghost"
+                          className="h-8 w-8 p-0"
+                          title="Visibilité"
+                        >
+                          <Globe className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="ghost"
+                          className="h-8 w-8 p-0"
                           title="Modifier"
                           onClick={() => handleEditCourse(course.id)}
                         >
@@ -329,10 +368,10 @@ const AdminCourses = () => {
                         </Button>
                         <Button 
                           size="sm" 
-                          variant="outline" 
+                          variant="ghost"
+                          className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
                           title="Supprimer"
                           onClick={() => handleDeleteCourse(course.id)}
-                          className="hover:bg-red-50 hover:text-red-600"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
