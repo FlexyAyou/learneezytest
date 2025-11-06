@@ -110,7 +110,7 @@ const EditCoursePage = () => {
   const [editingModuleId, setEditingModuleId] = useState<number | null>(null);
   const [editingLessonId, setEditingLessonId] = useState<{ moduleIdx: number; lessonIdx: number } | null>(null);
   const [expandedModules, setExpandedModules] = useState<string[]>([]);
-  const [showQuizBuilder, setShowQuizBuilder] = useState<{ moduleIdx: number; lessonIdx?: number } | null>(null);
+  const [showQuizBuilder, setShowQuizBuilder] = useState<number | null>(null);
 
   // Detect context path
   const isManagerContext = location.pathname.includes('/gestionnaire/');
