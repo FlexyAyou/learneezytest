@@ -745,8 +745,8 @@ const CourseDetailPage = () => {
             <CardContent className="pt-4">
               {programAvailable ? (
                 <Button
-                  className="w-full"
                   variant="outline"
+                  className="w-full justify-between h-auto py-3 hover:bg-blue-50"
                   onClick={async () => {
                     try {
                       await fastAPIClient.downloadCourseProgram(courseId);
@@ -764,8 +764,11 @@ const CourseDetailPage = () => {
                     }
                   }}
                 >
-                  <Download className="h-4 w-4 mr-2" />
-                  Télécharger le programme (PDF)
+                  <div className="flex items-center gap-2 flex-1 text-left">
+                    <FileText className="h-4 w-4 flex-shrink-0 text-blue-600" />
+                    <span className="text-sm truncate font-medium">Programme de formation.pdf</span>
+                  </div>
+                  <Download className="h-4 w-4 text-blue-600" />
                 </Button>
               ) : (
                 <div className="text-center py-4 text-muted-foreground">

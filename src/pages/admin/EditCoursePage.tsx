@@ -786,13 +786,113 @@ const EditCoursePage = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-8">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="font-semibold text-lg">Liste des modules</h3>
+                  <Button
+                    onClick={async () => {
+                      if (!id) return;
+                      try {
+                        const newModuleIndex = modules.length;
+                        await fastAPIClient.createModule(id, {
+                          title: `Module ${newModuleIndex + 1}`,
+                          description: 'Description du nouveau module',
+                          duration: '1h',
+                          content: []
+                        });
+                        
+                        // Recharger le cours pour obtenir le nouveau module
+                        const updatedCourse = await fastAPIClient.getCourse(id);
+                        const editableModules: EditableModule[] = (updatedCourse.modules || []).map((mod, idx) => ({
+                          index: idx,
+                          title: mod.title || '',
+                          description: mod.description || '',
+                          duration: mod.duration || '',
+                          lessons: (mod.content || []).map((lesson, lessonIdx) => ({
+                            index: lessonIdx,
+                            title: lesson.title || '',
+                            description: lesson.description || '',
+                            duration: lesson.duration || '',
+                            video_key: lesson.video_key,
+                            videoFileName: lesson.video_key ? 'Vidéo existante' : undefined,
+                          })),
+                        }));
+                        setModules(editableModules);
+                        setExpandedModules([...expandedModules, `module-${newModuleIndex}`]);
+                        
+                        toast({
+                          title: "✅ Module créé",
+                          description: "Nouveau module ajouté avec succès"
+                        });
+                      } catch (error) {
+                        console.error('Error creating module:', error);
+                        toast({
+                          title: "Erreur",
+                          description: "Impossible de créer le module",
+                          variant: "destructive"
+                        });
+                      }
+                    }}
+                    className="hover-scale"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Ajouter un module
+                  </Button>
+                </div>
+
                 {modules.length === 0 ? (
                   <div className="text-center py-16 text-muted-foreground">
                     <div className="inline-flex p-6 bg-muted rounded-full mb-4">
                       <BookOpen className="h-16 w-16" />
                     </div>
                     <p className="text-lg font-medium mb-2">Aucun module disponible</p>
-                    <p className="text-sm">Les modules doivent être créés via l'API</p>
+                    <p className="text-sm mb-4">Créez votre premier module pour commencer</p>
+                    <Button
+                      onClick={async () => {
+                        if (!id) return;
+                        try {
+                          await fastAPIClient.createModule(id, {
+                            title: 'Module 1',
+                            description: 'Description du module',
+                            duration: '1h',
+                            content: []
+                          });
+                          
+                          const updatedCourse = await fastAPIClient.getCourse(id);
+                          const editableModules: EditableModule[] = (updatedCourse.modules || []).map((mod, idx) => ({
+                            index: idx,
+                            title: mod.title || '',
+                            description: mod.description || '',
+                            duration: mod.duration || '',
+                            lessons: (mod.content || []).map((lesson, lessonIdx) => ({
+                              index: lessonIdx,
+                              title: lesson.title || '',
+                              description: lesson.description || '',
+                              duration: lesson.duration || '',
+                              video_key: lesson.video_key,
+                              videoFileName: lesson.video_key ? 'Vidéo existante' : undefined,
+                            })),
+                          }));
+                          setModules(editableModules);
+                          setExpandedModules(['module-0']);
+                          
+                          toast({
+                            title: "✅ Module créé",
+                            description: "Premier module ajouté avec succès"
+                          });
+                        } catch (error) {
+                          console.error('Error creating module:', error);
+                          toast({
+                            title: "Erreur",
+                            description: "Impossible de créer le module",
+                            variant: "destructive"
+                          });
+                        }
+                      }}
+                      size="lg"
+                    >
+                      <Plus className="h-5 w-5 mr-2" />
+                      Créer le premier module
+                    </Button>
                   </div>
                 ) : (
                   <Accordion type="multiple" value={expandedModules} onValueChange={setExpandedModules} className="space-y-4">
