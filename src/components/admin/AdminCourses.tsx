@@ -37,6 +37,8 @@ const AdminCourses = () => {
       setError(null);
       try {
         const coursesData = await fastAPIClient.getCourses(1, 20);
+        console.log('📚 Courses data from API:', coursesData);
+        console.log('📊 First course details:', coursesData[0]);
         setCourses(coursesData);
         
         // Si on vient de créer un cours, afficher un toast de confirmation
