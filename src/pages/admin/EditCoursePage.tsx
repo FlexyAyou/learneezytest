@@ -230,6 +230,9 @@ const EditCoursePage = () => {
         title: data.title,
         description: data.description,
         status: data.status,
+        duration: data.duration,
+        category: data.category,
+        level: data.level,
       };
 
       if (data.price && !isNaN(parseFloat(data.price))) {
