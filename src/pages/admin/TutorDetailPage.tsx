@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { TutorDetailView } from '@/components/admin/user-details/TutorDetailView';
-import { useUserBySlug } from '@/hooks/useApi';
+import { useUserBySlug, useOrganizations } from '@/hooks/useApi';
 import { UserStatusToggleButton } from '@/components/admin/UserStatusToggleButton';
 import { useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
@@ -20,10 +20,10 @@ const TutorDetailPage = () => {
   const { userSlug } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const currentPath = `/dashboard/superadmin/users/${userSlug}`;
 
   // Récupérer l'utilisateur par son slug
   const { data: foundUser, isLoading: usersLoading, error } = useUserBySlug(userSlug);
+  const { data: organizations } = useOrganizations(1, 100);
 
   if (usersLoading) {
     return (
@@ -48,18 +48,27 @@ const TutorDetailPage = () => {
     );
   }
 
+  // Récupérer le nom réel de l'organisation
+  let organisationName = 'Learneezy Direct';
+  if (foundUser.of_id && organizations) {
+    const org = organizations.find((o: any) => o.id === foundUser.of_id);
+    if (org) {
+      organisationName = org.name;
+    }
+  }
+
   const user = {
     id: foundUser.id,
     name: `${foundUser.first_name} ${foundUser.last_name}`,
     email: foundUser.email,
-    phone: '+33 6 12 34 56 78',
+    phone: foundUser.phone || 'Non renseigné',
     role: 'Tuteur',
     status: foundUser.status || 'inactive',
     lastLogin: foundUser.last_login || '2024-01-15',
     joinDate: foundUser.created_at,
-    organisation: foundUser.of_id ? `Organisation ${foundUser.of_id}` : 'Formation Excellence',
-    organisationType: 'OF',
-    address: '123 Rue de la Formation, 75001 Paris'
+    organisation: organisationName,
+    organisationType: foundUser.of_id ? 'OF' : 'Direct',
+    address: foundUser.address || 'Non renseignée'
   };
 
 

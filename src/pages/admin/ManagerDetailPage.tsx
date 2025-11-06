@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ManagerDetailView } from '@/components/admin/user-details/ManagerDetailView';
-import { useUserBySlug } from '@/hooks/useApi';
+import { useUserBySlug, useOrganizations } from '@/hooks/useApi';
 import { UserStatusToggleButton } from '@/components/admin/UserStatusToggleButton';
 import { useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
@@ -25,6 +25,7 @@ const ManagerDetailPage = () => {
 
   // Récupérer l'utilisateur par son slug
   const { data: foundUser, isLoading: usersLoading, error } = useUserBySlug(userSlug);
+  const { data: organizations } = useOrganizations(1, 100);
 
   if (usersLoading) {
     return (

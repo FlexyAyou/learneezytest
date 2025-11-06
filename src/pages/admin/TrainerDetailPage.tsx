@@ -5,6 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { TrainerDetailView } from '@/components/admin/user-details/TrainerDetailView';
 import { UserStatusToggleButton } from '@/components/admin/UserStatusToggleButton';
+import { useUserBySlug, useOrganizations } from '@/hooks/useApi';
+import { useQueryClient } from '@tanstack/react-query';
+import { Loader2 } from 'lucide-react';
 import { 
   ArrowLeft, 
   Mail,
@@ -16,21 +19,57 @@ import {
 const TrainerDetailPage = () => {
   const { userSlug } = useParams();
   const navigate = useNavigate();
-  const currentPath = `/dashboard/superadmin/users/${userSlug}`;
+  const queryClient = useQueryClient();
 
-  // Mock data pour le formateur
+  // Récupérer l'utilisateur par son slug
+  const { data: foundUser, isLoading: usersLoading, error } = useUserBySlug(userSlug);
+  const { data: organizations } = useOrganizations(1, 100);
+
+  if (usersLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2">Chargement...</span>
+      </div>
+    );
+  }
+
+  if (!foundUser || error) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-center space-y-4">
+          <h2 className="text-2xl font-bold text-gray-900">Utilisateur non trouvé</h2>
+          <p className="text-gray-600">Le slug "{userSlug}" ne correspond à aucun utilisateur</p>
+          <Button onClick={() => navigate('/dashboard/superadmin/users')}>
+            Retour à la liste
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Récupérer le nom réel de l'organisation
+  let organisationName = 'Learneezy Direct';
+  if (foundUser.of_id && organizations) {
+    const org = organizations.find((o: any) => o.id === foundUser.of_id);
+    if (org) {
+      organisationName = org.name;
+    }
+  }
+
+  // Construire l'objet user avec les données backend
   const user = {
-    id: 2,
-    name: 'Marc Dubois',
-    email: 'marc.dubois@email.com',
-    phone: '+33 6 23 45 67 89',
+    id: foundUser.id,
+    name: `${foundUser.first_name} ${foundUser.last_name}`,
+    email: foundUser.email,
+    phone: foundUser.phone || 'Non renseigné',
     role: 'Formateur',
-    status: 'active',
-    lastLogin: '2024-01-20',
-    joinDate: '2023-06-10',
-    organisation: 'Formation Excellence',
-    organisationType: 'OF',
-    address: '456 Avenue des Formateurs, 69000 Lyon'
+    status: foundUser.status || 'inactive',
+    lastLogin: foundUser.last_login || '2024-01-20',
+    joinDate: foundUser.created_at,
+    organisation: organisationName,
+    organisationType: foundUser.of_id ? 'OF' : 'Direct',
+    address: foundUser.address || 'Non renseignée'
   };
 
 
@@ -82,7 +121,7 @@ const TrainerDetailPage = () => {
           currentStatus={user.status}
           userName={user.name}
           onStatusChanged={() => {
-            // TODO: Recharger les données avec API réelle
+            queryClient.invalidateQueries({ queryKey: ['userBySlug', userSlug] });
           }}
         />
       </div>

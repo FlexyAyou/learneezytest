@@ -7,6 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
 import { AdminDetailView } from '@/components/admin/user-details/AdminDetailView';
 import { UserStatusToggleButton } from '@/components/admin/UserStatusToggleButton';
+import { useUserBySlug, useOrganizations } from '@/hooks/useApi';
+import { useQueryClient } from '@tanstack/react-query';
+import { Loader2 } from 'lucide-react';
 import { 
   ArrowLeft, 
   Mail,
@@ -34,21 +37,58 @@ import {
 const AdminDetailPage = () => {
   const { userSlug } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const currentPath = `/dashboard/superadmin/users/${userSlug}`;
 
-  // Mock data pour l'administrateur
+  // Récupérer l'utilisateur par son slug
+  const { data: foundUser, isLoading: usersLoading, error } = useUserBySlug(userSlug);
+  const { data: organizations } = useOrganizations(1, 100);
+
+  if (usersLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2">Chargement...</span>
+      </div>
+    );
+  }
+
+  if (!foundUser || error) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-center space-y-4">
+          <h2 className="text-2xl font-bold text-gray-900">Utilisateur non trouvé</h2>
+          <p className="text-gray-600">Le slug "{userSlug}" ne correspond à aucun utilisateur</p>
+          <Button onClick={() => navigate('/dashboard/superadmin/users')}>
+            Retour à la liste
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Récupérer le nom réel de l'organisation
+  let organisationName = 'Learneezy Administration';
+  if (foundUser.of_id && organizations) {
+    const org = organizations.find((o: any) => o.id === foundUser.of_id);
+    if (org) {
+      organisationName = org.name;
+    }
+  }
+
+  // Construire l'objet user avec les données backend
   const user = {
-    id: 6,
-    name: 'Thomas Bernard',
-    email: 'thomas.bernard@learneezy.com',
-    phone: '+33 6 67 89 01 23',
+    id: foundUser.id,
+    name: `${foundUser.first_name} ${foundUser.last_name}`,
+    email: foundUser.email,
+    phone: foundUser.phone || 'Non renseigné',
     role: 'Administrateur',
-    status: 'active',
-    lastLogin: '2024-01-22',
-    joinDate: '2023-01-10',
-    organisation: 'Learneezy Administration',
-    organisationType: 'Admin',
-    address: '987 Avenue de l\'Administration, 75002 Paris'
+    status: foundUser.status || 'inactive',
+    lastLogin: foundUser.last_login || '2024-01-22',
+    joinDate: foundUser.created_at,
+    organisation: organisationName,
+    organisationType: foundUser.of_id ? 'OF' : 'Admin',
+    address: foundUser.address || 'Non renseignée'
   };
 
   const sidebarItems = [
@@ -139,7 +179,7 @@ const AdminDetailPage = () => {
                   currentStatus={user.status}
                   userName={user.name}
                   onStatusChanged={() => {
-                    // TODO: Recharger les données avec API réelle
+                    queryClient.invalidateQueries({ queryKey: ['userBySlug', userSlug] });
                   }}
                 />
               </div>
