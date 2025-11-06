@@ -445,6 +445,8 @@ const EditCoursePage = () => {
     if (!id) return;
     
     try {
+      const module = modules[moduleIdx];
+      
       const quizPayload: QuizCreate = {
         title: quiz.title,
         questions: quiz.questions
@@ -474,7 +476,20 @@ const EditCoursePage = () => {
           .filter(q => q !== null) as any[]
       };
       
-      await fastAPIClient.updateModuleQuiz(id, moduleIdx, quizPayload);
+      // Utiliser updateModule avec le payload complet incluant le quiz
+      const updatedModuleData = {
+        title: module.title,
+        description: module.description,
+        duration: module.duration,
+        content: module.lessons.map(l => ({
+          title: l.title,
+          description: l.description,
+          duration: l.duration,
+        })) as any,
+        quizzes: [quizPayload],
+      };
+
+      await fastAPIClient.updateModule(id, moduleIdx, updatedModuleData);
       
       const updatedCourse = await fastAPIClient.getCourse(id);
       const modulesData: EditableModule[] = updatedCourse.modules.map((mod, idx) => ({
@@ -513,7 +528,22 @@ const EditCoursePage = () => {
     if (!id || !confirm('Supprimer ce quiz ?')) return;
     
     try {
-      await fastAPIClient.deleteModuleQuiz(id, moduleIdx);
+      const module = modules[moduleIdx];
+      
+      // Utiliser updateModule avec le payload complet sans quiz
+      const updatedModuleData = {
+        title: module.title,
+        description: module.description,
+        duration: module.duration,
+        content: module.lessons.map(l => ({
+          title: l.title,
+          description: l.description,
+          duration: l.duration,
+        })) as any,
+        quizzes: [],
+      };
+
+      await fastAPIClient.updateModule(id, moduleIdx, updatedModuleData);
       
       const updatedCourse = await fastAPIClient.getCourse(id);
       const modulesData: EditableModule[] = updatedCourse.modules.map((mod, idx) => ({
