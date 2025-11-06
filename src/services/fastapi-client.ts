@@ -14,6 +14,7 @@ import {
   CourseUpdate,
   CourseStatus,
   ModuleCreate,
+  ModuleFullUpdate,
   Module,
   LessonCreate,
   Content,
@@ -572,31 +573,22 @@ class FastAPIClient {
   }
 
   // ============= MODULE MANAGEMENT =============
-
-  /**
-   * Mettre à jour un module spécifique
-   * Note: L'API ne fournit pas d'endpoint dédié, on utilise le PUT global
-   */
   async updateModule(
     courseId: string,
-    moduleIndex: number,
-    moduleData: Partial<ModuleCreate>
+    moduleId: number,
+    moduleData: ModuleFullUpdate
   ): Promise<Module> {
-    const course = await this.getCourse(courseId);
-    const updatedModules = [...course.modules];
-    updatedModules[moduleIndex] = { ...updatedModules[moduleIndex], ...moduleData };
-
-    const updatedCourse = await this.updateCourse(courseId, { modules: updatedModules as any });
-    return updatedCourse.modules[moduleIndex];
+    return this.put(`/api/courses/${courseId}/modules/${moduleId}`, moduleData);
   }
 
-  /**
-   * Supprimer un module
-   */
-  async deleteModule(courseId: string, moduleIndex: number): Promise<void> {
-    const course = await this.getCourse(courseId);
-    const updatedModules = course.modules.filter((_, idx) => idx !== moduleIndex);
-    await this.updateCourse(courseId, { modules: updatedModules as any });
+  async deleteModule(
+    courseId: string,
+    moduleId: number,
+    forceMediaDelete: boolean = false
+  ): Promise<void> {
+    return this.delete(`/api/courses/${courseId}/modules/${moduleId}`, {
+      params: { force_media_delete: forceMediaDelete }
+    });
   }
 
   // ============= LESSON MANAGEMENT =============

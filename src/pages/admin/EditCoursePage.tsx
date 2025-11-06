@@ -70,6 +70,7 @@ interface EditableLesson {
   duration: string;
   video_key?: string;
   videoFileName?: string;
+  transcription?: string;
 }
 
 interface PedagogicalResource {
@@ -189,6 +190,7 @@ const EditCoursePage = () => {
             duration: lesson.duration || '',
             video_key: lesson.video_key,
             videoFileName: lesson.video_key ? 'Vidéo existante' : undefined,
+            transcription: lesson.transcription || undefined,
           })),
           quizzes: mod.quizzes || [],
         }));
@@ -346,12 +348,33 @@ const EditCoursePage = () => {
           title: l.title,
           description: l.description,
           duration: l.duration,
-          // Ne pas modifier le média ici; passer par attachLessonMedia
-        })) as any,
+          video_key: l.video_key,
+          transcription: l.transcription,
+        })),
+        quizzes: moduleToSave.quizzes
       });
 
       setEditingModuleId(null);
       toast({ title: "✅ Module sauvegardé", description: moduleToSave.title });
+      
+      // Refresh course data
+      const updatedCourse = await fastAPIClient.getCourse(id);
+      const modulesData: EditableModule[] = updatedCourse.modules.map((mod, idx) => ({
+        index: idx,
+        title: mod.title,
+        description: mod.description || '',
+        duration: mod.duration,
+        lessons: mod.content.map((lesson, lessonIdx) => ({
+          index: lessonIdx,
+          title: lesson.title,
+          description: lesson.description,
+          duration: lesson.duration,
+          video_key: lesson.video_key,
+          videoFileName: lesson.video_key ? 'Vidéo existante' : undefined,
+        })),
+        quizzes: mod.quizzes || []
+      }));
+      setModules(modulesData);
     } catch (error) {
       console.error('Error saving module:', error);
       toast({ title: "Erreur", description: "Impossible de sauvegarder le module", variant: "destructive" });
@@ -384,9 +407,27 @@ const EditCoursePage = () => {
     if (!id || !confirm('Supprimer ce module ?')) return;
 
     try {
-      await fastAPIClient.deleteModule(id, moduleIdx);
-      setModules(prev => prev.filter((_, idx) => idx !== moduleIdx));
+      await fastAPIClient.deleteModule(id, moduleIdx, true);
       toast({ title: "✅ Module supprimé" });
+      
+      // Refresh course data
+      const updatedCourse = await fastAPIClient.getCourse(id);
+      const modulesData: EditableModule[] = updatedCourse.modules.map((mod, idx) => ({
+        index: idx,
+        title: mod.title,
+        description: mod.description || '',
+        duration: mod.duration,
+        lessons: mod.content.map((lesson, lessonIdx) => ({
+          index: lessonIdx,
+          title: lesson.title,
+          description: lesson.description,
+          duration: lesson.duration,
+          video_key: lesson.video_key,
+          videoFileName: lesson.video_key ? 'Vidéo existante' : undefined,
+        })),
+        quizzes: mod.quizzes || []
+      }));
+      setModules(modulesData);
     } catch (error) {
       console.error('Error deleting module:', error);
       toast({ title: "Erreur", description: "Impossible de supprimer le module", variant: "destructive" });

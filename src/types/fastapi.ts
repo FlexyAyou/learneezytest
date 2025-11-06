@@ -397,6 +397,14 @@ export interface ModuleCreate {
   quizzes?: Quiz[];
 }
 
+export interface ModuleFullUpdate {
+  title?: string;
+  description?: string;
+  duration?: string;
+  content?: Content[];
+  quizzes?: Quiz[];
+}
+
 export interface LessonCreate {
   title: string;
   duration: string;
