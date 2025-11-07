@@ -150,6 +150,34 @@ const AdminCourses = () => {
       : <Badge className="bg-purple-100 text-purple-800">OF</Badge>;
   };
 
+  const getOwnerDisplay = (course: CourseResponse) => {
+    if (course.owner_type === 'learneezy') {
+      return 'Learneezy';
+    }
+    return course.owner_id ? `OF #${course.owner_id}` : 'Organisme';
+  };
+
+  const getCategoryDisplay = (course: CourseResponse) => {
+    if (course.category_names && course.category_names.length > 0) {
+      return course.category_names.join(', ');
+    }
+    return course.category || '-';
+  };
+
+  const getCycleBadge = (cycle: string | null | undefined) => {
+    if (!cycle) return <Badge variant="outline">Non défini</Badge>;
+    
+    const cycleConfig: Record<string, { label: string; className: string }> = {
+      primaire: { label: 'Primaire', className: 'bg-blue-500/10 text-blue-700 border-blue-500/20' },
+      college: { label: 'Collège', className: 'bg-green-500/10 text-green-700 border-green-500/20' },
+      lycee: { label: 'Lycée', className: 'bg-purple-500/10 text-purple-700 border-purple-500/20' },
+      pro: { label: 'Professionnel', className: 'bg-orange-500/10 text-orange-700 border-orange-500/20' }
+    };
+
+    const config = cycleConfig[cycle] || { label: cycle, className: 'bg-gray-500/10 text-gray-700 border-gray-500/20' };
+    return <Badge className={config.className}>{config.label}</Badge>;
+  };
+
   const filteredCourses = courses.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (course.category?.toLowerCase() || '').includes(searchTerm.toLowerCase());
@@ -306,12 +334,12 @@ const AdminCourses = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Cours</TableHead>
-                  <TableHead>Instructeur</TableHead>
+                  <TableHead>Propriétaire</TableHead>
                   <TableHead>Catégorie</TableHead>
                   <TableHead>Étudiants</TableHead>
                   <TableHead>Note</TableHead>
                   <TableHead>Statut</TableHead>
-                  <TableHead>Visibilité</TableHead>
+                  <TableHead>Cycle</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -347,14 +375,10 @@ const AdminCourses = () => {
                       </div>
                     </TableCell>
                     <TableCell className="text-sm">
-                      {course.owner_type === 'learneezy' ? 'Jean Dupont' : 'Marie Martin'}
+                      {getOwnerDisplay(course)}
                     </TableCell>
                     <TableCell>
-                      {course.category ? (
-                        <span className="text-sm">{course.category}</span>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
+                      <span className="text-sm">{getCategoryDisplay(course)}</span>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center text-sm">
@@ -372,7 +396,7 @@ const AdminCourses = () => {
                       {getStatusBadge(course.status || 'draft')}
                     </TableCell>
                     <TableCell>
-                      {getVisibilityBadge(course.owner_type === 'learneezy' ? 'open_source' : 'restricted')}
+                      {getCycleBadge(course.learning_cycle)}
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-1">
