@@ -750,7 +750,9 @@ const CreateCoursePage = () => {
       return courseData.title && courseData.description;
     }
     if (currentStep === 'modules') {
-      return modules.length > 0 && modules.some(m => m.lessons.length > 0);
+      return modules.length > 0 && modules.some(m => 
+        m.lessons.length > 0 || m.quiz || m.assignment
+      );
     }
     return true;
   };
