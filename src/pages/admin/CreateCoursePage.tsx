@@ -18,6 +18,7 @@ import { QuizBuilder, AssignmentBuilder } from '@/components/quiz';
 import type { QuizConfig, AssignmentConfig, QuestionType } from '@/types/quiz';
 import RichTextEditor from '@/components/admin/RichTextEditor';
 import { uploadDirect } from '@/utils/upload';
+import { UploadProgressModal } from '@/components/course-creation/UploadProgressModal';
 
 interface Lesson {
   id: string;
@@ -95,6 +96,15 @@ const CreateCoursePage = () => {
   // États pour les builders
   const [showModuleQuizBuilder, setShowModuleQuizBuilder] = useState<string | null>(null);
   const [showAssignmentBuilder, setShowAssignmentBuilder] = useState<string | null>(null);
+
+  // États pour le tracking des uploads
+  const [uploadProgress, setUploadProgress] = useState({
+    isUploading: false,
+    currentFile: '',
+    uploadedFiles: [] as string[],
+    totalFiles: 0,
+    progress: 0
+  });
 
   // Load trainers on mount
   useEffect(() => {
@@ -498,39 +508,76 @@ const CreateCoursePage = () => {
         }
       }
 
-      toast({
-        title: "Upload des vidéos...",
-        description: "Téléchargement des vidéos des leçons",
-      });
+      // Compter le nombre total de vidéos à uploader
+      const videoLessons = modules.flatMap(m => 
+        m.lessons.filter(l => l.file && l.fileType === 'video')
+      );
+      const totalVideos = videoLessons.length;
 
-      // 3. UPLOADER TOUTES LES VIDÉOS DES LEÇONS AVANT LA CRÉATION DU COURS
-      for (const module of modules) {
-        for (const lesson of module.lessons) {
-          if (lesson.file && lesson.fileType === 'video') {
-            try {
-              console.log(`📤 Upload vidéo: ${lesson.fileName}`);
+      if (totalVideos > 0) {
+        setUploadProgress({
+          isUploading: true,
+          currentFile: '',
+          uploadedFiles: [],
+          totalFiles: totalVideos,
+          progress: 0
+        });
 
-              // a) Préparer l'upload
-              const upVideo = await uploadDirect(lesson.file, 'video');
-              // Stocker la key dans la leçon
-              lesson.uploadedVideoKey = upVideo.key;
+        let uploadedCount = 0;
 
-              console.log(`✅ Vidéo uploadée: ${lesson.fileName} → ${upVideo.key}`);
+        // 3. UPLOADER TOUTES LES VIDÉOS DES LEÇONS AVANT LA CRÉATION DU COURS
+        for (const module of modules) {
+          for (const lesson of module.lessons) {
+            if (lesson.file && lesson.fileType === 'video') {
+              try {
+                // Mettre à jour le fichier en cours
+                setUploadProgress(prev => ({
+                  ...prev,
+                  currentFile: lesson.fileName,
+                  progress: Math.round((uploadedCount / totalVideos) * 100)
+                }));
 
-              toast({
-                title: "Vidéo uploadée",
-                description: `${lesson.fileName} est prête`,
-              });
-            } catch (uploadError: any) {
-              console.error(`❌ Erreur upload vidéo ${lesson.fileName}:`, uploadError);
-              toast({
-                title: "Erreur d'upload",
-                description: `Impossible d'uploader ${lesson.fileName}. Continuer sans cette vidéo ?`,
-                variant: "destructive"
-              });
+                console.log(`📤 Upload vidéo: ${lesson.fileName}`);
+
+                // Upload avec callback de progression
+                const upVideo = await uploadDirect(lesson.file, 'video', {
+                  onProgress: (uploaded, total) => {
+                    const fileProgress = (uploaded / total) * 100;
+                    const globalProgress = ((uploadedCount + fileProgress / 100) / totalVideos) * 100;
+                    setUploadProgress(prev => ({
+                      ...prev,
+                      progress: Math.round(globalProgress)
+                    }));
+                  }
+                });
+
+                // Stocker la key
+                lesson.uploadedVideoKey = upVideo.key;
+                uploadedCount++;
+
+                // Ajouter à la liste des fichiers uploadés
+                setUploadProgress(prev => ({
+                  ...prev,
+                  uploadedFiles: [...prev.uploadedFiles, lesson.fileName],
+                  progress: Math.round((uploadedCount / totalVideos) * 100)
+                }));
+
+                console.log(`✅ Vidéo uploadée: ${lesson.fileName} → ${upVideo.key}`);
+
+              } catch (uploadError: any) {
+                console.error(`❌ Erreur upload vidéo ${lesson.fileName}:`, uploadError);
+                toast({
+                  title: "Erreur d'upload",
+                  description: `Impossible d'uploader ${lesson.fileName}`,
+                  variant: "destructive"
+                });
+              }
             }
           }
         }
+
+        // Fermer le modal de progression
+        setUploadProgress(prev => ({ ...prev, isUploading: false }));
       }
 
       // 4. UPLOADER LES RESSOURCES PÉDAGOGIQUES
@@ -1753,6 +1800,15 @@ const CreateCoursePage = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Upload Progress Modal */}
+        <UploadProgressModal
+          isOpen={uploadProgress.isUploading}
+          currentFile={uploadProgress.currentFile}
+          uploadedFiles={uploadProgress.uploadedFiles}
+          totalFiles={uploadProgress.totalFiles}
+          progress={uploadProgress.progress}
+        />
 
         {/* Module Quiz Builder Modal */}
         {showModuleQuizBuilder && (
