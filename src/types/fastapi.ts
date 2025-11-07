@@ -287,6 +287,10 @@ export interface Content {
   video_key?: string | null; // Storage key for video in MinIO/S3
   key?: string | null; // Alias for video_key
   transcription?: string | null;
+  // NOUVEAUX CHAMPS pour les types de contenu alternatifs
+  image_key?: string | null; // Storage key for image content
+  resource_key?: string | null; // Storage key for PDF/file resources
+  content_type?: 'video' | 'image' | 'pdf' | 'url'; // Type de contenu principal
 }
 
 /**

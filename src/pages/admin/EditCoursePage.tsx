@@ -28,7 +28,8 @@ import {
   HelpCircle,
   ClipboardList,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Link as LinkIcon
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAutoSave } from '@/hooks/useAutoSave';
@@ -71,6 +72,13 @@ interface EditableLesson {
   video_key?: string;
   videoFileName?: string;
   transcription?: string;
+  // NOUVEAUX CHAMPS
+  image_key?: string;
+  imageFileName?: string;
+  resource_key?: string;
+  resourceFileName?: string;
+  video_url?: string;
+  content_type?: 'video' | 'image' | 'pdf' | 'url';
 }
 
 interface PedagogicalResource {
@@ -191,6 +199,13 @@ const EditCoursePage = () => {
             video_key: lesson.video_key,
             videoFileName: lesson.video_key ? 'Vidéo existante' : undefined,
             transcription: lesson.transcription || undefined,
+            // NOUVEAUX CHAMPS
+            image_key: (lesson as any).image_key,
+            imageFileName: (lesson as any).image_key ? 'Image existante' : undefined,
+            resource_key: (lesson as any).resource_key,
+            resourceFileName: (lesson as any).resource_key ? 'Fichier existant' : undefined,
+            video_url: (lesson as any).video_url,
+            content_type: (lesson as any).content_type || 'video',
           })),
           quizzes: mod.quizzes || [],
         }));
@@ -677,7 +692,7 @@ const EditCoursePage = () => {
             ...mod,
             lessons: mod.lessons.map((lesson, lIdx) =>
               lIdx === lessonIdx
-                ? { ...lesson, video_key: up.key, videoFileName: file.name }
+                ? { ...lesson, video_key: up.key, videoFileName: file.name, content_type: 'video' }
                 : lesson
             )
           }
@@ -688,6 +703,93 @@ const EditCoursePage = () => {
     } catch (error) {
       console.error('Error uploading video:', error);
       toast({ title: "Erreur", description: "Impossible d'uploader la vidéo", variant: "destructive" });
+    }
+  };
+
+  // Upload lesson image
+  const handleLessonImageUpload = async (moduleIdx: number, lessonIdx: number, file: File) => {
+    if (!id) return;
+
+    try {
+      toast({ title: "Upload image...", description: file.name });
+      const up = await uploadDirect(file, 'image');
+      
+      await fastAPIClient.attachLessonMedia(id, moduleIdx, lessonIdx, { key: up.key });
+      
+      setModules(prev => prev.map((mod, mIdx) =>
+        mIdx === moduleIdx
+          ? {
+              ...mod,
+              lessons: mod.lessons.map((lesson, lIdx) =>
+                lIdx === lessonIdx
+                  ? { ...lesson, image_key: up.key, imageFileName: file.name, content_type: 'image' }
+                  : lesson
+              )
+            }
+          : mod
+      ));
+
+      toast({ title: "✅ Image uploadée", description: file.name });
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast({ title: "Erreur", description: "Impossible d'uploader l'image", variant: "destructive" });
+    }
+  };
+
+  // Upload lesson PDF/resource
+  const handleLessonResourceUpload = async (moduleIdx: number, lessonIdx: number, file: File) => {
+    if (!id) return;
+
+    try {
+      toast({ title: "Upload fichier...", description: file.name });
+      const up = await uploadDirect(file, 'pdf');
+      
+      await fastAPIClient.attachLessonMedia(id, moduleIdx, lessonIdx, { key: up.key });
+      
+      setModules(prev => prev.map((mod, mIdx) =>
+        mIdx === moduleIdx
+          ? {
+              ...mod,
+              lessons: mod.lessons.map((lesson, lIdx) =>
+                lIdx === lessonIdx
+                  ? { ...lesson, resource_key: up.key, resourceFileName: file.name, content_type: 'pdf' }
+                  : lesson
+              )
+            }
+          : mod
+      ));
+
+      toast({ title: "✅ Fichier uploadé", description: file.name });
+    } catch (error) {
+      console.error('Error uploading resource:', error);
+      toast({ title: "Erreur", description: "Impossible d'uploader le fichier", variant: "destructive" });
+    }
+  };
+
+  // Set video URL
+  const handleLessonVideoUrl = async (moduleIdx: number, lessonIdx: number, url: string) => {
+    if (!id) return;
+
+    try {
+      await fastAPIClient.attachLessonMedia(id, moduleIdx, lessonIdx, { url });
+      
+      setModules(prev => prev.map((mod, mIdx) =>
+        mIdx === moduleIdx
+          ? {
+              ...mod,
+              lessons: mod.lessons.map((lesson, lIdx) =>
+                lIdx === lessonIdx
+                  ? { ...lesson, video_url: url, content_type: 'url' }
+                  : lesson
+              )
+            }
+          : mod
+      ));
+
+      toast({ title: "✅ URL enregistrée", description: "Lien vidéo sauvegardé" });
+    } catch (error) {
+      console.error('Error setting video URL:', error);
+      toast({ title: "Erreur", description: "Impossible d'enregistrer l'URL", variant: "destructive" });
     }
   };
 
@@ -1334,38 +1436,170 @@ const EditCoursePage = () => {
                                           />
                                         </div>
 
-                                        {/* Video upload */}
-                                        <div className="space-y-2">
+                                        {/* Contenu de la leçon - Section enrichie */}
+                                        <div className="space-y-4 border-t pt-4">
                                           <Label className="font-semibold flex items-center gap-2">
-                                            <Video className="h-4 w-4" />
-                                            Vidéo de la leçon
+                                            <FileText className="h-4 w-4" />
+                                            Contenu de la leçon
                                           </Label>
-                                          {lesson.videoFileName && (
-                                            <div className="flex items-center gap-3 p-3 bg-primary/5 border border-primary/20 rounded-lg">
-                                              <Video className="h-5 w-5 text-primary" />
-                                              <span className="text-sm font-medium">{lesson.videoFileName}</span>
-                                            </div>
-                                          )}
-                                          <input
-                                            type="file"
-                                            accept="video/*"
-                                            onChange={(e) => {
-                                              const file = e.target.files?.[0];
-                                              if (file) handleLessonVideoUpload(moduleIdx, lessonIdx, file);
-                                            }}
-                                            className="hidden"
-                                            id={`lesson-video-${moduleIdx}-${lessonIdx}`}
-                                          />
-                                          <Button
-                                            type="button"
-                                            size="sm"
-                                            variant="outline"
-                                            onClick={() => document.getElementById(`lesson-video-${moduleIdx}-${lessonIdx}`)?.click()}
-                                            className="hover-scale"
-                                          >
-                                            <Upload className="h-4 w-4 mr-2" />
-                                            {lesson.videoFileName ? 'Remplacer' : 'Uploader'} une vidéo
-                                          </Button>
+                                          
+                                          {/* Tabs pour choisir le type de contenu */}
+                                          <Tabs defaultValue="video" className="w-full">
+                                            <TabsList className="grid w-full grid-cols-4">
+                                              <TabsTrigger value="video">
+                                                <Video className="h-4 w-4 mr-2" />
+                                                Vidéo
+                                              </TabsTrigger>
+                                              <TabsTrigger value="url">
+                                                <LinkIcon className="h-4 w-4 mr-2" />
+                                                URL
+                                              </TabsTrigger>
+                                              <TabsTrigger value="image">
+                                                <ImageIcon className="h-4 w-4 mr-2" />
+                                                Image
+                                              </TabsTrigger>
+                                              <TabsTrigger value="pdf">
+                                                <FileText className="h-4 w-4 mr-2" />
+                                                Fichier
+                                              </TabsTrigger>
+                                            </TabsList>
+                                            
+                                            {/* Tab: Upload vidéo */}
+                                            <TabsContent value="video" className="space-y-3">
+                                              {lesson.videoFileName && (
+                                                <div className="flex items-center gap-3 p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                                                  <Video className="h-5 w-5 text-primary" />
+                                                  <span className="text-sm font-medium">{lesson.videoFileName}</span>
+                                                </div>
+                                              )}
+                                              <input
+                                                type="file"
+                                                accept="video/*"
+                                                onChange={(e) => {
+                                                  const file = e.target.files?.[0];
+                                                  if (file) handleLessonVideoUpload(moduleIdx, lessonIdx, file);
+                                                }}
+                                                className="hidden"
+                                                id={`lesson-video-${moduleIdx}-${lessonIdx}`}
+                                              />
+                                              <Button
+                                                type="button"
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() => document.getElementById(`lesson-video-${moduleIdx}-${lessonIdx}`)?.click()}
+                                                className="w-full"
+                                              >
+                                                <Upload className="h-4 w-4 mr-2" />
+                                                {lesson.videoFileName ? 'Remplacer' : 'Uploader'} une vidéo
+                                              </Button>
+                                              <p className="text-xs text-muted-foreground">
+                                                Formats acceptés : MP4, MOV, AVI, WebM
+                                              </p>
+                                            </TabsContent>
+                                            
+                                            {/* Tab: URL vidéo */}
+                                            <TabsContent value="url" className="space-y-3">
+                                              <Input
+                                                placeholder="https://youtube.com/watch?v=..."
+                                                value={lesson.video_url || ''}
+                                                onChange={(e) => setModules(prev => prev.map((m, mIdx) =>
+                                                  mIdx === moduleIdx
+                                                    ? {
+                                                        ...m,
+                                                        lessons: m.lessons.map((l, lIdx) =>
+                                                          lIdx === lessonIdx ? { ...l, video_url: e.target.value } : l
+                                                        )
+                                                      }
+                                                    : m
+                                                ))}
+                                                className="h-11"
+                                              />
+                                              <Button
+                                                type="button"
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() => {
+                                                  if (lesson.video_url) {
+                                                    handleLessonVideoUrl(moduleIdx, lessonIdx, lesson.video_url);
+                                                  }
+                                                }}
+                                                disabled={!lesson.video_url}
+                                                className="w-full"
+                                              >
+                                                <Check className="h-4 w-4 mr-2" />
+                                                Enregistrer l'URL
+                                              </Button>
+                                              <p className="text-xs text-muted-foreground">
+                                                YouTube, Vimeo, Dailymotion, ou lien direct
+                                              </p>
+                                            </TabsContent>
+                                            
+                                            {/* Tab: Upload image */}
+                                            <TabsContent value="image" className="space-y-3">
+                                              {lesson.imageFileName && (
+                                                <div className="flex items-center gap-3 p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                                                  <ImageIcon className="h-5 w-5 text-primary" />
+                                                  <span className="text-sm font-medium">{lesson.imageFileName}</span>
+                                                </div>
+                                              )}
+                                              <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={(e) => {
+                                                  const file = e.target.files?.[0];
+                                                  if (file) handleLessonImageUpload(moduleIdx, lessonIdx, file);
+                                                }}
+                                                className="hidden"
+                                                id={`lesson-image-${moduleIdx}-${lessonIdx}`}
+                                              />
+                                              <Button
+                                                type="button"
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() => document.getElementById(`lesson-image-${moduleIdx}-${lessonIdx}`)?.click()}
+                                                className="w-full"
+                                              >
+                                                <Upload className="h-4 w-4 mr-2" />
+                                                {lesson.imageFileName ? 'Remplacer' : 'Uploader'} une image
+                                              </Button>
+                                              <p className="text-xs text-muted-foreground">
+                                                Formats acceptés : JPG, PNG, WebP, GIF
+                                              </p>
+                                            </TabsContent>
+                                            
+                                            {/* Tab: Upload PDF/fichier */}
+                                            <TabsContent value="pdf" className="space-y-3">
+                                              {lesson.resourceFileName && (
+                                                <div className="flex items-center gap-3 p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                                                  <FileText className="h-5 w-5 text-primary" />
+                                                  <span className="text-sm font-medium">{lesson.resourceFileName}</span>
+                                                </div>
+                                              )}
+                                              <input
+                                                type="file"
+                                                accept=".pdf,.doc,.docx,.ppt,.pptx"
+                                                onChange={(e) => {
+                                                  const file = e.target.files?.[0];
+                                                  if (file) handleLessonResourceUpload(moduleIdx, lessonIdx, file);
+                                                }}
+                                                className="hidden"
+                                                id={`lesson-resource-${moduleIdx}-${lessonIdx}`}
+                                              />
+                                              <Button
+                                                type="button"
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() => document.getElementById(`lesson-resource-${moduleIdx}-${lessonIdx}`)?.click()}
+                                                className="w-full"
+                                              >
+                                                <Upload className="h-4 w-4 mr-2" />
+                                                {lesson.resourceFileName ? 'Remplacer' : 'Uploader'} un fichier
+                                              </Button>
+                                              <p className="text-xs text-muted-foreground">
+                                                Formats acceptés : PDF, DOC, DOCX, PPT, PPTX
+                                              </p>
+                                            </TabsContent>
+                                          </Tabs>
                                         </div>
 
                                         <div className="flex gap-2 pt-2">
@@ -1386,22 +1620,44 @@ const EditCoursePage = () => {
                                     ) : (
                                       <div className="flex items-start justify-between">
                                         <div className="flex items-center gap-4">
+                                          {/* Icône dynamique selon le type de contenu */}
                                           <div className="p-2 bg-primary/10 rounded-lg">
-                                            <Video className="h-5 w-5 text-primary" />
+                                            {lesson.content_type === 'image' && <ImageIcon className="h-5 w-5 text-primary" />}
+                                            {lesson.content_type === 'pdf' && <FileText className="h-5 w-5 text-primary" />}
+                                            {lesson.content_type === 'url' && <LinkIcon className="h-5 w-5 text-primary" />}
+                                            {(!lesson.content_type || lesson.content_type === 'video') && <Video className="h-5 w-5 text-primary" />}
                                           </div>
                                           <div>
                                             <div className="font-semibold text-base">{lesson.title || `Leçon ${lessonIdx + 1}`}</div>
                                             <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                                               {lesson.duration && (
-                                                <Badge variant="outline" className="font-normal">
+                                                <Badge variant="outline" className="font-normal text-xs">
                                                   <Clock className="h-3 w-3 mr-1" />
                                                   {lesson.duration}
                                                 </Badge>
                                               )}
                                               {lesson.videoFileName && (
-                                                <Badge variant="secondary" className="font-normal">
+                                                <Badge variant="secondary" className="font-normal text-xs">
                                                   <Video className="h-3 w-3 mr-1" />
-                                                  {lesson.videoFileName}
+                                                  Vidéo
+                                                </Badge>
+                                              )}
+                                              {lesson.imageFileName && (
+                                                <Badge variant="secondary" className="font-normal text-xs">
+                                                  <ImageIcon className="h-3 w-3 mr-1" />
+                                                  Image
+                                                </Badge>
+                                              )}
+                                              {lesson.resourceFileName && (
+                                                <Badge variant="secondary" className="font-normal text-xs">
+                                                  <FileText className="h-3 w-3 mr-1" />
+                                                  Fichier
+                                                </Badge>
+                                              )}
+                                              {lesson.video_url && (
+                                                <Badge variant="secondary" className="font-normal text-xs">
+                                                  <LinkIcon className="h-3 w-3 mr-1" />
+                                                  URL
                                                 </Badge>
                                               )}
                                             </div>
