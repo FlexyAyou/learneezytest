@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ArrowLeft, Edit, Trash2, Eye, EyeOff, Clock, BookOpen, PlayCircle, FileText, CheckCircle, XCircle, Video, Download, Users, Award, Save, Tags } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Eye, EyeOff, Clock, BookOpen, PlayCircle, FileText, CheckCircle, XCircle, Video, Download, Users, Award, Save, Tags, ImageIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { fastAPIClient } from '@/services/fastapi-client';
 import { CourseResponse, Content } from '@/types/fastapi';
@@ -133,6 +133,104 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoKey, videoUrl, title }) 
           Votre navigateur ne supporte pas la lecture vidéo.
         </video>
       )}
+    </div>
+  );
+};
+
+interface ImageViewerProps {
+  imageKey?: string;
+  imageUrl?: string;
+  title: string;
+}
+
+const ImageViewer: React.FC<ImageViewerProps> = ({ imageKey, imageUrl, title }) => {
+  const [displayUrl, setDisplayUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadImage = async () => {
+      if (!imageKey && !imageUrl) {
+        setError('Aucune image disponible');
+        return;
+      }
+
+      if (imageUrl) {
+        // URL directe - force HTTPS
+        const httpsUrl = imageUrl.replace(/^http:\/\//i, 'https://');
+        setDisplayUrl(httpsUrl);
+        return;
+      }
+
+      if (imageKey) {
+        setLoading(true);
+        setError(null);
+        try {
+          const response = await fastAPIClient.getPlayUrl(imageKey);
+          const httpsUrl = response.url.replace(/^http:\/\//i, 'https://');
+          setDisplayUrl(httpsUrl);
+        } catch (err: any) {
+          setError('Erreur lors du chargement de l\'image');
+          console.error(err);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadImage();
+  }, [imageKey, imageUrl]);
+
+  if (loading) {
+    return (
+      <div className="w-full bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center p-12">
+        <div className="text-center">
+          <LoadingSpinner />
+          <p className="text-sm text-gray-600 mt-2">Chargement de l'image...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="w-full bg-gradient-to-br from-red-50 to-red-100 rounded-lg flex items-center justify-center border-2 border-red-200 p-12">
+        <div className="text-center">
+          <ImageIcon className="h-12 w-12 text-red-400 mx-auto mb-2" />
+          <p className="text-red-600 font-medium">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!displayUrl) {
+    return (
+      <div className="w-full bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center border-2 border-gray-300 p-12">
+        <div className="text-center">
+          <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+          <p className="text-gray-500">Aucune image disponible</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <h5 className="font-semibold text-sm mb-3 flex items-center text-gray-900">
+        <ImageIcon className="h-4 w-4 mr-2 text-blue-600" />
+        Image
+      </h5>
+      <div className="w-full rounded-lg overflow-hidden shadow-lg border-2 border-gray-300">
+        <img
+          src={displayUrl}
+          alt={title}
+          className="w-full h-auto object-contain max-h-[500px] bg-gray-100"
+          onError={(e) => {
+            (e.target as HTMLImageElement).style.display = 'none';
+            setError('Impossible de charger l\'image');
+          }}
+        />
+      </div>
     </div>
   );
 };
@@ -600,14 +698,36 @@ const CourseDetailPage = () => {
                                       <span className="bg-green-100 text-green-700 rounded-full w-7 h-7 flex items-center justify-center text-xs font-bold">
                                         {lessonIndex + 1}
                                       </span>
-                                      <div>
+                                       <div>
                                         <p className="font-medium">{lesson.title}</p>
-                                        {(lesson.video_key || lesson.key || lesson.video_url) && (
-                                          <Badge variant="secondary" className="text-xs mt-1">
-                                            <Video className="h-3 w-3 mr-1" />
-                                            Vidéo disponible
-                                          </Badge>
-                                        )}
+                                        {(lesson.video_key || lesson.key || lesson.video_url) && (() => {
+                                          const contentType = getContentType(lesson);
+                                          if (contentType === 'video') {
+                                            return (
+                                              <Badge variant="secondary" className="text-xs mt-1">
+                                                <Video className="h-3 w-3 mr-1" />
+                                                Vidéo disponible
+                                              </Badge>
+                                            );
+                                          }
+                                          if (contentType === 'pdf') {
+                                            return (
+                                              <Badge variant="secondary" className="text-xs mt-1 bg-red-100 text-red-700">
+                                                <FileText className="h-3 w-3 mr-1" />
+                                                Fichier PDF disponible
+                                              </Badge>
+                                            );
+                                          }
+                                          if (contentType === 'image') {
+                                            return (
+                                              <Badge variant="secondary" className="text-xs mt-1 bg-blue-100 text-blue-700">
+                                                <ImageIcon className="h-3 w-3 mr-1" />
+                                                Image disponible
+                                              </Badge>
+                                            );
+                                          }
+                                          return null;
+                                        })()}
                                       </div>
                                     </div>
                                     <Badge variant="outline" className="text-xs">
@@ -650,17 +770,11 @@ const CourseDetailPage = () => {
                                         
                                         if (contentType === 'image') {
                                           return (
-                                            <div>
-                                              <h5 className="font-semibold text-sm mb-3 flex items-center text-gray-900">
-                                                <FileText className="h-4 w-4 mr-2 text-green-600" />
-                                                Image
-                                              </h5>
-                                              <img
-                                                src={lesson.video_url || ''}
-                                                alt={lesson.title}
-                                                className="w-full rounded-lg border-2 border-gray-300"
-                                              />
-                                            </div>
+                                            <ImageViewer
+                                              imageKey={lesson.video_key || lesson.key}
+                                              imageUrl={lesson.video_url}
+                                              title={lesson.title}
+                                            />
                                           );
                                         }
                                         
