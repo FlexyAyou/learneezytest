@@ -35,9 +35,9 @@ export const OrganizationProvider: React.FC<OrganizationProviderProps> = ({ chil
 /**
  * Hook pour accéder au contexte de l'organisation
  */
-export const useOrganization = () => {
+export const useOrganization = (): OrganizationContextData => {
   const context = useContext(OrganizationContext);
-  if (!context) {
+  if (context === null) {
     throw new Error('useOrganization must be used within OrganizationProvider');
   }
   return context;

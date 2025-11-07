@@ -44,8 +44,8 @@ import NotFound from "./pages/NotFound";
 function App() {
   return (
     <LanguageProvider>
-      <OrganizationProvider>
-        <BrowserRouter>
+      <BrowserRouter>
+        <OrganizationProvider>
           <SubdomainRouter>
             <Routes>
           <Route path="/" element={<Index />} />
@@ -261,8 +261,8 @@ function App() {
             </Routes>
             <Toaster />
           </SubdomainRouter>
-        </BrowserRouter>
-      </OrganizationProvider>
+        </OrganizationProvider>
+      </BrowserRouter>
     </LanguageProvider>
   );
 }
