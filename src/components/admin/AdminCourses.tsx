@@ -333,7 +333,7 @@ const AdminCourses = () => {
                             <img 
                               src={imageUrl} 
                               alt={course.title}
-                              className="w-16 h-10 rounded object-cover"
+                              className="w-12 h-8 rounded object-cover"
                             />
                           ) : null;
                         })()}
