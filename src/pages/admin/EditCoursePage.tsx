@@ -81,6 +81,7 @@ interface EditableLesson {
   resourceFileName?: string;
   video_url?: string;
   content_type?: 'video' | 'image' | 'pdf' | 'url';
+  useMediaUrl?: boolean;
 }
 
 interface PedagogicalResource {
@@ -1180,12 +1181,12 @@ const EditCoursePage = () => {
               <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b">
                 <CardTitle className="flex items-center gap-2 text-2xl">
                   <FileText className="h-6 w-6 text-primary" />
-                  Modules et leçons du cours
+                  Modules et contenus
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-8">
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="font-semibold text-lg">Liste des modules</h3>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-gray-800">Modules et contenus</h2>
                   <Button
                     onClick={() => {
                       const tempId = `temp-${Date.now()}`;
@@ -1208,198 +1209,183 @@ const EditCoursePage = () => {
                         description: "Le module sera enregistré lorsque vous ajouterez du contenu"
                       });
                     }}
-                    className="hover-scale"
+                    className="bg-pink-600 hover:bg-pink-700"
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Ajouter un module
                   </Button>
                 </div>
 
-                {modules.length === 0 ? (
-                  <div className="text-center py-16 text-muted-foreground">
-                    <div className="inline-flex p-6 bg-muted rounded-full mb-4">
-                      <BookOpen className="h-16 w-16" />
-                    </div>
-                    <p className="text-lg font-medium mb-2">Aucun module disponible</p>
-                    <p className="text-sm mb-4">Créez votre premier module pour commencer</p>
-                    <Button
-                      onClick={() => {
-                        const tempId = `temp-${Date.now()}`;
-                        const newModule: EditableModule = {
-                          index: 0,
-                          title: 'Module 1',
-                          description: 'Description du module',
-                          duration: '1h',
-                          lessons: [],
-                          quizzes: [],
-                          isPending: true,
-                          tempId: tempId
-                        };
-                        
-                        setModules([newModule]);
-                        setExpandedModules(['module-0']);
-                        
-                        toast({
-                          title: "📝 Module créé localement",
-                          description: "Le module sera enregistré lorsque vous ajouterez du contenu"
-                        });
-                      }}
-                      size="lg"
-                    >
-                      <Plus className="h-5 w-5 mr-2" />
-                      Créer le premier module
-                    </Button>
-                  </div>
-                ) : (
-                  <Accordion type="multiple" value={expandedModules} onValueChange={setExpandedModules} className="space-y-4">
-                    {modules.map((module, moduleIdx) => (
-                      <AccordionItem
-                        key={`module-${moduleIdx}`}
-                        value={`module-${moduleIdx}`}
-                        className="border-2 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all bg-card"
-                      >
-                        <AccordionTrigger className="hover:no-underline px-6 py-4 hover:bg-accent/50 transition-colors">
-                          <div className="flex items-center justify-between w-full pr-4">
-                            <div className="flex items-center gap-4">
-                              <div className="p-3 bg-primary/10 rounded-lg">
-                                <BookOpen className="h-6 w-6 text-primary" />
-                              </div>
-                              <div className="text-left">
-                                <div className="font-bold text-lg flex items-center gap-2">
-                                  <span>{module.title || `Module ${moduleIdx + 1}`}</span>
-                                  {module.isPending && (
-                                    <Badge variant="outline" className="text-yellow-600 border-yellow-600">
-                                      📝 Non enregistré
-                                    </Badge>
-                                  )}
-                                </div>
-                                <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
-                                  <Badge variant="secondary" className="font-normal">
-                                    {module.lessons.length} leçon{module.lessons.length > 1 ? 's' : ''}
+                <Accordion type="single" collapsible value={expandedModules[0] || undefined} onValueChange={(value) => setExpandedModules(value ? [value] : [])}>
+                  {modules.map((module, moduleIdx) => (
+                    <AccordionItem key={`module-${moduleIdx}`} value={`module-${moduleIdx}`} className="border rounded-lg mb-4 overflow-hidden">
+                      <AccordionTrigger className="hover:no-underline px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100">
+                        <div className="flex items-center justify-between w-full pr-4">
+                          <div className="flex items-center space-x-4">
+                            <Badge className="bg-gradient-to-r from-pink-600 to-purple-600">
+                              Module {moduleIdx + 1}
+                            </Badge>
+                            <div className="text-left">
+                              <div className="font-semibold text-lg flex items-center gap-2">
+                                {module.title || 'Sans titre'}
+                                {module.isPending && (
+                                  <Badge variant="outline" className="ml-2 text-yellow-600 border-yellow-600">
+                                    📝 Non enregistré
                                   </Badge>
-                                  {module.duration && (
-                                    <span className="flex items-center gap-1">
-                                      <Clock className="h-3 w-3" />
-                                      {module.duration}
-                                    </span>
-                                  )}
-                                </div>
+                                )}
+                              </div>
+                              <div className="text-sm text-gray-600 font-normal">
+                                {module.lessons.length} leçon{module.lessons.length !== 1 ? 's' : ''}
                               </div>
                             </div>
                           </div>
-                        </AccordionTrigger>
-                        <AccordionContent className="px-6 pb-6">
-                          <div className="pt-4 space-y-6">
-                            {/* Module Edit Form */}
-                            {editingModuleId === moduleIdx ? (
-                              <Card className="bg-accent/30 border-2 border-primary/20">
-                                <CardContent className="pt-6 space-y-4">
-                                  <div className="space-y-2">
-                                    <Label className="font-semibold">Titre du module</Label>
-                                    <Input
-                                      value={module.title}
-                                      onChange={(e) => setModules(prev => prev.map((m, idx) =>
-                                        idx === moduleIdx ? { ...m, title: e.target.value } : m
-                                      ))}
-                                      placeholder="Titre du module"
-                                      className="h-11 focus:ring-2 focus:ring-primary"
-                                    />
-                                  </div>
-                                  <div className="space-y-2">
-                                    <Label className="font-semibold">Description</Label>
-                                    <Textarea
-                                      value={module.description}
-                                      onChange={(e) => setModules(prev => prev.map((m, idx) =>
-                                        idx === moduleIdx ? { ...m, description: e.target.value } : m
-                                      ))}
-                                      placeholder="Description du module"
-                                      rows={3}
-                                      className="focus:ring-2 focus:ring-primary"
-                                    />
-                                  </div>
-                                  <div className="flex gap-2">
-                                    <Button
-                                      size="sm"
-                                      onClick={() => handleSaveModule(moduleIdx)}
-                                      className="hover-scale"
-                                    >
-                                      <Check className="h-4 w-4 mr-2" />
-                                      Sauvegarder
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() => setEditingModuleId(null)}
-                                    >
-                                      <X className="h-4 w-4 mr-2" />
-                                      Annuler
-                                    </Button>
-                                  </div>
-                                </CardContent>
-                              </Card>
-                            ) : (
-                              <div className="flex items-start justify-between p-4 bg-accent/20 rounded-lg">
-                                <div className="flex-1">
-                                  <p className="text-sm text-muted-foreground">{module.description || 'Aucune description'}</p>
-                                </div>
-                                <div className="flex gap-2 ml-4">
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => setEditingModuleId(moduleIdx)}
-                                    className="hover:bg-primary/10"
-                                  >
-                                    <Edit2 className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => handleDeleteModule(moduleIdx)}
-                                    className="hover:bg-destructive/10"
-                                  >
-                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                  </Button>
-                                </div>
-                              </div>
-                            )}
+                          {modules.length > 1 && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteModule(moduleIdx);
+                              }}
+                              className="hover:bg-red-50"
+                            >
+                              <Trash2 className="h-4 w-4 text-red-500" />
+                            </Button>
+                          )}
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="px-6 py-6 bg-white">
+                        <div className="space-y-6">
+                          {/* Module Info */}
+                          <div className="space-y-4">
+                            <div>
+                              <Label>Titre du module</Label>
+                              <Input
+                                value={module.title}
+                                onChange={(e) => setModules(prev => prev.map((m, idx) =>
+                                  idx === moduleIdx ? { ...m, title: e.target.value } : m
+                                ))}
+                                placeholder="Titre du module"
+                                className="mt-2"
+                              />
+                            </div>
+                            <div>
+                              <Label>Description</Label>
+                              <RichTextEditor
+                                value={module.description}
+                                onChange={(value) => setModules(prev => prev.map((m, idx) =>
+                                  idx === moduleIdx ? { ...m, description: value } : m
+                                ))}
+                                placeholder="Description du module"
+                                height="150px"
+                              />
+                            </div>
+                          </div>
 
-                            {/* Lessons */}
-                            <div className="space-y-4 mt-6">
-                              <div className="flex items-center gap-2">
-                                <div className="h-px flex-1 bg-border"></div>
-                                <h4 className="font-bold text-sm text-foreground px-3 py-1 bg-muted rounded-full">
-                                  Leçons ({module.lessons.length})
-                                </h4>
-                                <div className="h-px flex-1 bg-border"></div>
-                              </div>
-                              {module.lessons.map((lesson, lessonIdx) => (
-                                <Card
-                                  key={`lesson-${moduleIdx}-${lessonIdx}`}
-                                  className="bg-card border-2 hover:border-primary/50 transition-all hover-scale shadow-sm"
+                          {/* Lessons Section */}
+                          <div className="space-y-4 border-t pt-6">
+                            <div className="flex items-center justify-between">
+                              <h4 className="font-semibold text-lg">Leçons</h4>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleAddLesson(moduleIdx)}
+                              >
+                                <Plus className="h-4 w-4 mr-2" />
+                                Ajouter une leçon
+                              </Button>
+                            </div>
+
+                            {module.lessons.length === 0 ? (
+                              <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed">
+                                <FileText className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                                <p className="text-gray-500">Aucune leçon pour le moment</p>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleAddLesson(moduleIdx)}
+                                  className="mt-4"
                                 >
-                                  <CardContent className="pt-6">
-                                    {editingLessonId?.moduleIdx === moduleIdx && editingLessonId?.lessonIdx === lessonIdx ? (
-                                      <div className="space-y-4">
-                                        <div className="space-y-2">
-                                          <Label className="font-semibold">Titre de la leçon</Label>
-                                          <Input
-                                            value={lesson.title}
-                                            onChange={(e) => setModules(prev => prev.map((m, mIdx) =>
-                                              mIdx === moduleIdx
-                                                ? {
-                                                  ...m,
-                                                  lessons: m.lessons.map((l, lIdx) =>
-                                                    lIdx === lessonIdx ? { ...l, title: e.target.value } : l
-                                                  )
-                                                }
-                                                : m
-                                            ))}
-                                            placeholder="Titre de la leçon"
-                                            className="h-11 focus:ring-2 focus:ring-primary"
-                                          />
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Créer la première leçon
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="space-y-3">
+                                {module.lessons.map((lesson, lessonIdx) => (
+                                  <Card key={`lesson-${moduleIdx}-${lessonIdx}`} className="bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200">
+                                    <CardHeader className="pb-3">
+                                      <div className="flex items-center justify-between">
+                                        <div className="flex items-center space-x-2">
+                                          <Badge variant="outline" className="bg-white">
+                                            Leçon {lessonIdx + 1}
+                                          </Badge>
+                                          <span className="font-medium">{lesson.title || 'Sans titre'}</span>
                                         </div>
-                                        <div className="space-y-2">
-                                          <Label className="font-semibold">Description</Label>
+                                        <div className="flex gap-2">
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => setEditingLessonId(
+                                              editingLessonId?.moduleIdx === moduleIdx && editingLessonId?.lessonIdx === lessonIdx 
+                                                ? null 
+                                                : { moduleIdx, lessonIdx }
+                                            )}
+                                          >
+                                            <Edit2 className="h-4 w-4" />
+                                          </Button>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => handleDeleteLesson(moduleIdx, lessonIdx)}
+                                          >
+                                            <Trash2 className="h-4 w-4 text-red-500" />
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    </CardHeader>
+                                    {editingLessonId?.moduleIdx === moduleIdx && editingLessonId?.lessonIdx === lessonIdx && (
+                                      <CardContent className="space-y-4">
+                                        <div className="grid grid-cols-2 gap-4">
+                                          <div>
+                                            <Label>Titre de la leçon</Label>
+                                            <Input
+                                              value={lesson.title}
+                                              onChange={(e) => setModules(prev => prev.map((m, mIdx) =>
+                                                mIdx === moduleIdx
+                                                  ? {
+                                                    ...m,
+                                                    lessons: m.lessons.map((l, lIdx) =>
+                                                      lIdx === lessonIdx ? { ...l, title: e.target.value } : l
+                                                    )
+                                                  }
+                                                  : m
+                                              ))}
+                                              placeholder="Titre"
+                                              className="mt-2"
+                                            />
+                                          </div>
+                                          <div>
+                                            <Label>Durée</Label>
+                                            <Input
+                                              value={lesson.duration}
+                                              onChange={(e) => setModules(prev => prev.map((m, mIdx) =>
+                                                mIdx === moduleIdx
+                                                  ? {
+                                                    ...m,
+                                                    lessons: m.lessons.map((l, lIdx) =>
+                                                      lIdx === lessonIdx ? { ...l, duration: e.target.value } : l
+                                                    )
+                                                  }
+                                                  : m
+                                              ))}
+                                              placeholder="30min"
+                                              className="mt-2"
+                                            />
+                                          </div>
+                                        </div>
+                                        <div>
+                                          <Label>Description</Label>
                                           <Textarea
                                             value={lesson.description}
                                             onChange={(e) => setModules(prev => prev.map((m, mIdx) =>
@@ -1412,353 +1398,298 @@ const EditCoursePage = () => {
                                                 }
                                                 : m
                                             ))}
-                                            placeholder="Description de la leçon"
-                                            rows={2}
-                                            className="focus:ring-2 focus:ring-primary"
-                                          />
-                                        </div>
-                                        <div className="space-y-2">
-                                          <Label className="font-semibold flex items-center gap-2">
-                                            <Clock className="h-4 w-4" />
-                                            Durée
-                                          </Label>
-                                          <Input
-                                            value={lesson.duration}
-                                            onChange={(e) => setModules(prev => prev.map((m, mIdx) =>
-                                              mIdx === moduleIdx
-                                                ? {
-                                                  ...m,
-                                                  lessons: m.lessons.map((l, lIdx) =>
-                                                    lIdx === lessonIdx ? { ...l, duration: e.target.value } : l
-                                                  )
-                                                }
-                                                : m
-                                            ))}
-                                            placeholder="Durée (ex: 45min)"
-                                            className="h-11 focus:ring-2 focus:ring-primary"
+                                            placeholder="Description de la leçon..."
+                                            rows={3}
+                                            className="mt-2"
                                           />
                                         </div>
 
-                                        {/* Contenu de la leçon - Section enrichie */}
-                                        <div className="space-y-4 border-t pt-4">
-                                          <Label className="font-semibold flex items-center gap-2">
-                                            <FileText className="h-4 w-4" />
-                                            Contenu de la leçon
-                                          </Label>
-                                          
-                                          {/* Tabs pour choisir le type de contenu */}
-                                          <Tabs defaultValue="video" className="w-full">
-                                            <TabsList className="grid w-full grid-cols-4">
-                                              <TabsTrigger value="video">
-                                                <Video className="h-4 w-4 mr-2" />
-                                                Vidéo
-                                              </TabsTrigger>
-                                              <TabsTrigger value="url">
-                                                <LinkIcon className="h-4 w-4 mr-2" />
-                                                URL
-                                              </TabsTrigger>
-                                              <TabsTrigger value="image">
-                                                <ImageIcon className="h-4 w-4 mr-2" />
-                                                Image
-                                              </TabsTrigger>
-                                              <TabsTrigger value="pdf">
-                                                <FileText className="h-4 w-4 mr-2" />
-                                                Fichier
-                                              </TabsTrigger>
-                                            </TabsList>
-                                            
-                                            {/* Tab: Upload vidéo */}
-                                            <TabsContent value="video" className="space-y-3">
-                                              {lesson.videoFileName && (
-                                                <div className="flex items-center gap-3 p-3 bg-primary/5 border border-primary/20 rounded-lg">
-                                                  <Video className="h-5 w-5 text-primary" />
-                                                  <span className="text-sm font-medium">{lesson.videoFileName}</span>
-                                                </div>
-                                              )}
-                                              <input
-                                                type="file"
-                                                accept="video/*"
-                                                onChange={(e) => {
-                                                  const file = e.target.files?.[0];
-                                                  if (file) handleLessonVideoUpload(moduleIdx, lessonIdx, file);
-                                                }}
-                                                className="hidden"
-                                                id={`lesson-video-${moduleIdx}-${lessonIdx}`}
-                                              />
+                                        {/* Section Média - Upload ou URL */}
+                                        <div>
+                                          <Label>Média (Vidéo, PDF ou Image)</Label>
+                                          <div className="mt-2 space-y-3">
+                                            {/* Toggle entre Upload et URL */}
+                                            <div className="flex items-center gap-2">
                                               <Button
                                                 type="button"
+                                                variant={!lesson.useMediaUrl ? "default" : "outline"}
                                                 size="sm"
-                                                variant="outline"
-                                                onClick={() => document.getElementById(`lesson-video-${moduleIdx}-${lessonIdx}`)?.click()}
-                                                className="w-full"
-                                              >
-                                                <Upload className="h-4 w-4 mr-2" />
-                                                {lesson.videoFileName ? 'Remplacer' : 'Uploader'} une vidéo
-                                              </Button>
-                                              <p className="text-xs text-muted-foreground">
-                                                Formats acceptés : MP4, MOV, AVI, WebM
-                                              </p>
-                                            </TabsContent>
-                                            
-                                            {/* Tab: URL vidéo */}
-                                            <TabsContent value="url" className="space-y-3">
-                                              <Input
-                                                placeholder="https://youtube.com/watch?v=..."
-                                                value={lesson.video_url || ''}
-                                                onChange={(e) => setModules(prev => prev.map((m, mIdx) =>
+                                                onClick={() => setModules(prev => prev.map((m, mIdx) =>
                                                   mIdx === moduleIdx
                                                     ? {
-                                                        ...m,
-                                                        lessons: m.lessons.map((l, lIdx) =>
-                                                          lIdx === lessonIdx ? { ...l, video_url: e.target.value } : l
-                                                        )
-                                                      }
+                                                      ...m,
+                                                      lessons: m.lessons.map((l, lIdx) =>
+                                                        lIdx === lessonIdx ? { ...l, useMediaUrl: false, video_url: '' } : l
+                                                      )
+                                                    }
                                                     : m
                                                 ))}
-                                                className="h-11"
-                                              />
-                                              <Button
-                                                type="button"
-                                                size="sm"
-                                                variant="outline"
-                                                onClick={() => {
-                                                  if (lesson.video_url) {
-                                                    handleLessonVideoUrl(moduleIdx, lessonIdx, lesson.video_url);
-                                                  }
-                                                }}
-                                                disabled={!lesson.video_url}
-                                                className="w-full"
-                                              >
-                                                <Check className="h-4 w-4 mr-2" />
-                                                Enregistrer l'URL
-                                              </Button>
-                                              <p className="text-xs text-muted-foreground">
-                                                YouTube, Vimeo, Dailymotion, ou lien direct
-                                              </p>
-                                            </TabsContent>
-                                            
-                                            {/* Tab: Upload image */}
-                                            <TabsContent value="image" className="space-y-3">
-                                              {lesson.imageFileName && (
-                                                <div className="flex items-center gap-3 p-3 bg-primary/5 border border-primary/20 rounded-lg">
-                                                  <ImageIcon className="h-5 w-5 text-primary" />
-                                                  <span className="text-sm font-medium">{lesson.imageFileName}</span>
-                                                </div>
-                                              )}
-                                              <input
-                                                type="file"
-                                                accept="image/*"
-                                                onChange={(e) => {
-                                                  const file = e.target.files?.[0];
-                                                  if (file) handleLessonImageUpload(moduleIdx, lessonIdx, file);
-                                                }}
-                                                className="hidden"
-                                                id={`lesson-image-${moduleIdx}-${lessonIdx}`}
-                                              />
-                                              <Button
-                                                type="button"
-                                                size="sm"
-                                                variant="outline"
-                                                onClick={() => document.getElementById(`lesson-image-${moduleIdx}-${lessonIdx}`)?.click()}
-                                                className="w-full"
                                               >
                                                 <Upload className="h-4 w-4 mr-2" />
-                                                {lesson.imageFileName ? 'Remplacer' : 'Uploader'} une image
+                                                Upload fichier
                                               </Button>
-                                              <p className="text-xs text-muted-foreground">
-                                                Formats acceptés : JPG, PNG, WebP, GIF
-                                              </p>
-                                            </TabsContent>
-                                            
-                                            {/* Tab: Upload PDF/fichier */}
-                                            <TabsContent value="pdf" className="space-y-3">
-                                              {lesson.resourceFileName && (
-                                                <div className="flex items-center gap-3 p-3 bg-primary/5 border border-primary/20 rounded-lg">
-                                                  <FileText className="h-5 w-5 text-primary" />
-                                                  <span className="text-sm font-medium">{lesson.resourceFileName}</span>
-                                                </div>
-                                              )}
-                                              <input
-                                                type="file"
-                                                accept=".pdf,.doc,.docx,.ppt,.pptx"
-                                                onChange={(e) => {
-                                                  const file = e.target.files?.[0];
-                                                  if (file) handleLessonResourceUpload(moduleIdx, lessonIdx, file);
-                                                }}
-                                                className="hidden"
-                                                id={`lesson-resource-${moduleIdx}-${lessonIdx}`}
-                                              />
                                               <Button
                                                 type="button"
+                                                variant={lesson.useMediaUrl ? "default" : "outline"}
                                                 size="sm"
-                                                variant="outline"
-                                                onClick={() => document.getElementById(`lesson-resource-${moduleIdx}-${lessonIdx}`)?.click()}
-                                                className="w-full"
+                                                onClick={() => setModules(prev => prev.map((m, mIdx) =>
+                                                  mIdx === moduleIdx
+                                                    ? {
+                                                      ...m,
+                                                      lessons: m.lessons.map((l, lIdx) =>
+                                                        lIdx === lessonIdx ? { ...l, useMediaUrl: true, videoFileName: '', video_key: undefined } : l
+                                                      )
+                                                    }
+                                                    : m
+                                                ))}
                                               >
-                                                <Upload className="h-4 w-4 mr-2" />
-                                                {lesson.resourceFileName ? 'Remplacer' : 'Uploader'} un fichier
+                                                <LinkIcon className="h-4 w-4 mr-2" />
+                                                Lien URL
                                               </Button>
-                                              <p className="text-xs text-muted-foreground">
-                                                Formats acceptés : PDF, DOC, DOCX, PPT, PPTX
-                                              </p>
-                                            </TabsContent>
-                                          </Tabs>
+                                            </div>
+
+                                            {/* Mode Upload */}
+                                            {!lesson.useMediaUrl && (
+                                              <>
+                                                {lesson.videoFileName || lesson.video_key ? (
+                                                  <div className="space-y-2">
+                                                    <div className="flex items-center justify-between p-3 bg-white rounded border">
+                                                      <div className="flex items-center space-x-3">
+                                                        <Video className="h-5 w-5 text-blue-500" />
+                                                        <span className="text-sm font-medium">{lesson.videoFileName || 'Fichier existant'}</span>
+                                                      </div>
+                                                      <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => setModules(prev => prev.map((m, mIdx) =>
+                                                          mIdx === moduleIdx
+                                                            ? {
+                                                              ...m,
+                                                              lessons: m.lessons.map((l, lIdx) =>
+                                                                lIdx === lessonIdx ? { ...l, videoFileName: '', video_key: undefined } : l
+                                                              )
+                                                            }
+                                                            : m
+                                                        ))}
+                                                      >
+                                                        <X className="h-4 w-4" />
+                                                      </Button>
+                                                    </div>
+                                                  </div>
+                                                ) : (
+                                                  <div className="border-2 border-dashed rounded-lg p-6 text-center">
+                                                    <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                                                    <p className="text-sm text-gray-600 mb-3">Vidéo, PDF ou Image</p>
+                                                    <input
+                                                      type="file"
+                                                      accept="video/*,application/pdf,image/*"
+                                                      onChange={(e) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (file) handleLessonVideoUpload(moduleIdx, lessonIdx, file);
+                                                      }}
+                                                      className="hidden"
+                                                      id={`file-${moduleIdx}-${lessonIdx}`}
+                                                    />
+                                                    <label htmlFor={`file-${moduleIdx}-${lessonIdx}`}>
+                                                      <Button variant="outline" size="sm" type="button" asChild>
+                                                        <span>Choisir un fichier</span>
+                                                      </Button>
+                                                    </label>
+                                                    <p className="text-xs text-muted-foreground mt-3">
+                                                      Limites : Vidéo (500MB) • PDF (50MB) • Image (10MB)
+                                                    </p>
+                                                  </div>
+                                                )}
+                                              </>
+                                            )}
+
+                                            {/* Mode URL */}
+                                            {lesson.useMediaUrl && (
+                                              <div className="space-y-3">
+                                                <div className="flex gap-2">
+                                                  <Input
+                                                    value={lesson.video_url || ''}
+                                                    onChange={(e) => setModules(prev => prev.map((m, mIdx) =>
+                                                      mIdx === moduleIdx
+                                                        ? {
+                                                          ...m,
+                                                          lessons: m.lessons.map((l, lIdx) =>
+                                                            lIdx === lessonIdx ? { ...l, video_url: e.target.value } : l
+                                                          )
+                                                        }
+                                                        : m
+                                                    ))}
+                                                    placeholder="https://example.com/video.mp4 ou https://youtube.com/..."
+                                                    className="flex-1"
+                                                  />
+                                                  {lesson.video_url && (
+                                                    <Button
+                                                      type="button"
+                                                      variant="ghost"
+                                                      size="sm"
+                                                      onClick={() => setModules(prev => prev.map((m, mIdx) =>
+                                                        mIdx === moduleIdx
+                                                          ? {
+                                                            ...m,
+                                                            lessons: m.lessons.map((l, lIdx) =>
+                                                              lIdx === lessonIdx ? { ...l, video_url: '' } : l
+                                                            )
+                                                          }
+                                                          : m
+                                                      ))}
+                                                    >
+                                                      <X className="h-4 w-4" />
+                                                    </Button>
+                                                  )}
+                                                </div>
+
+                                                {/* Aperçu de l'URL */}
+                                                {lesson.video_url && (
+                                                  <div className="border rounded-lg p-3 bg-gray-50">
+                                                    <div className="text-sm font-medium mb-2">Aperçu :</div>
+                                                    {/* Image preview */}
+                                                    {/\.(jpg|jpeg|png|gif|webp|svg)$/i.test(lesson.video_url) && (
+                                                      <img
+                                                        src={lesson.video_url}
+                                                        alt="Preview"
+                                                        className="max-h-48 rounded border"
+                                                        onError={(e) => {
+                                                          (e.target as HTMLImageElement).style.display = 'none';
+                                                        }}
+                                                      />
+                                                    )}
+                                                    {/* Video preview */}
+                                                    {/\.(mp4|webm|ogg)$/i.test(lesson.video_url) && (
+                                                      <video
+                                                        src={lesson.video_url}
+                                                        controls
+                                                        className="max-h-48 rounded border w-full"
+                                                        onError={(e) => {
+                                                          (e.target as HTMLVideoElement).style.display = 'none';
+                                                        }}
+                                                      >
+                                                        Votre navigateur ne supporte pas la lecture vidéo.
+                                                      </video>
+                                                    )}
+                                                    {/* YouTube/Vimeo embed preview */}
+                                                    {(/youtube\.com|youtu\.be|vimeo\.com/i.test(lesson.video_url)) && (
+                                                      <div className="aspect-video">
+                                                        <iframe
+                                                          src={
+                                                            lesson.video_url.includes('youtube.com') || lesson.video_url.includes('youtu.be')
+                                                              ? `https://www.youtube.com/embed/${lesson.video_url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/)?.[1] || ''}`
+                                                              : lesson.video_url.includes('vimeo.com')
+                                                                ? `https://player.vimeo.com/video/${lesson.video_url.match(/vimeo\.com\/(\d+)/)?.[1] || ''}`
+                                                                : lesson.video_url
+                                                          }
+                                                          className="w-full h-full rounded border"
+                                                          allowFullScreen
+                                                        />
+                                                      </div>
+                                                    )}
+                                                    {/* PDF preview */}
+                                                    {/\.pdf$/i.test(lesson.video_url) && (
+                                                      <div className="flex items-center gap-2 text-sm">
+                                                        <FileText className="h-5 w-5 text-red-500" />
+                                                        <span>Fichier PDF</span>
+                                                        <a
+                                                          href={lesson.video_url}
+                                                          target="_blank"
+                                                          rel="noopener noreferrer"
+                                                          className="text-blue-600 hover:underline"
+                                                        >
+                                                          Ouvrir
+                                                        </a>
+                                                      </div>
+                                                    )}
+                                                  </div>
+                                                )}
+                                              </div>
+                                            )}
+                                          </div>
                                         </div>
 
                                         <div className="flex gap-2 pt-2">
                                           <Button
                                             size="sm"
                                             onClick={() => handleSaveLesson(moduleIdx, lessonIdx)}
-                                            className="hover-scale"
                                           >
                                             <Check className="h-4 w-4 mr-2" />
                                             Sauvegarder
                                           </Button>
-                                          <Button size="sm" variant="ghost" onClick={() => setEditingLessonId(null)}>
+                                          <Button 
+                                            size="sm" 
+                                            variant="ghost" 
+                                            onClick={() => setEditingLessonId(null)}
+                                          >
                                             <X className="h-4 w-4 mr-2" />
                                             Annuler
                                           </Button>
                                         </div>
-                                      </div>
-                                    ) : (
-                                      <div className="flex items-start justify-between">
-                                        <div className="flex items-center gap-4">
-                                          {/* Icône dynamique selon le type de contenu */}
-                                          <div className="p-2 bg-primary/10 rounded-lg">
-                                            {lesson.content_type === 'image' && <ImageIcon className="h-5 w-5 text-primary" />}
-                                            {lesson.content_type === 'pdf' && <FileText className="h-5 w-5 text-primary" />}
-                                            {lesson.content_type === 'url' && <LinkIcon className="h-5 w-5 text-primary" />}
-                                            {(!lesson.content_type || lesson.content_type === 'video') && <Video className="h-5 w-5 text-primary" />}
-                                          </div>
-                                          <div>
-                                            <div className="font-semibold text-base">{lesson.title || `Leçon ${lessonIdx + 1}`}</div>
-                                            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                                              {lesson.duration && (
-                                                <Badge variant="outline" className="font-normal text-xs">
-                                                  <Clock className="h-3 w-3 mr-1" />
-                                                  {lesson.duration}
-                                                </Badge>
-                                              )}
-                                              {lesson.videoFileName && (
-                                                <Badge variant="secondary" className="font-normal text-xs">
-                                                  <Video className="h-3 w-3 mr-1" />
-                                                  Vidéo
-                                                </Badge>
-                                              )}
-                                              {lesson.imageFileName && (
-                                                <Badge variant="secondary" className="font-normal text-xs">
-                                                  <ImageIcon className="h-3 w-3 mr-1" />
-                                                  Image
-                                                </Badge>
-                                              )}
-                                              {lesson.resourceFileName && (
-                                                <Badge variant="secondary" className="font-normal text-xs">
-                                                  <FileText className="h-3 w-3 mr-1" />
-                                                  Fichier
-                                                </Badge>
-                                              )}
-                                              {lesson.video_url && (
-                                                <Badge variant="secondary" className="font-normal text-xs">
-                                                  <LinkIcon className="h-3 w-3 mr-1" />
-                                                  URL
-                                                </Badge>
-                                              )}
-                                            </div>
-                                          </div>
-                                        </div>
-                                        <div className="flex gap-2">
-                                          <Button
-                                            size="sm"
-                                            variant="ghost"
-                                            onClick={() => setEditingLessonId({ moduleIdx, lessonIdx })}
-                                            className="hover:bg-primary/10"
-                                          >
-                                            <Edit2 className="h-4 w-4" />
-                                          </Button>
-                                          <Button
-                                            size="sm"
-                                            variant="ghost"
-                                            onClick={() => handleDeleteLesson(moduleIdx, lessonIdx)}
-                                            className="hover:bg-destructive/10"
-                                          >
-                                            <Trash2 className="h-4 w-4 text-destructive" />
-                                          </Button>
-                                        </div>
-                                      </div>
+                                      </CardContent>
                                     )}
-                                  </CardContent>
-                                </Card>
+                                  </Card>
                                 ))}
                               </div>
+                            )}
+                          </div>
 
-                              {/* Bouton Ajouter une leçon */}
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleAddLesson(moduleIdx)}
-                                className="w-full mt-4"
-                              >
-                                <Plus className="h-4 w-4 mr-2" />
-                                Ajouter une leçon
-                              </Button>
-
-                              {/* Quiz Section */}
-                              <div className="space-y-4 border-t pt-6 mt-6">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <HelpCircle className="h-5 w-5 text-blue-600" />
-                                    <h4 className="font-semibold text-lg">Quiz du module</h4>
-                                  </div>
-                                </div>
-                                
-                                {module.quizzes && module.quizzes.length > 0 ? (
-                                  module.quizzes.map((quiz, quizIdx) => (
-                                    <Card key={`quiz-${module.index}-${quizIdx}`} className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950 dark:to-cyan-950">
-                                      <CardHeader>
-                                        <div className="flex items-center justify-between">
-                                          <div>
-                                            <CardTitle className="text-lg">{quiz.title}</CardTitle>
-                                            <p className="text-sm text-muted-foreground mt-1">
-                                              {quiz.questions.length} questions
-                                            </p>
-                                          </div>
-                                          <div className="flex gap-2">
-                                            <Button
-                                              size="sm"
-                                              variant="ghost"
-                                              onClick={() => setShowModuleQuizBuilder(module.index)}
-                                            >
-                                              <Edit2 className="h-4 w-4" />
-                                            </Button>
-                                            <Button
-                                              size="sm"
-                                              variant="ghost"
-                                              onClick={() => handleDeleteModuleQuiz(module.index)}
-                                            >
-                                              <Trash2 className="h-4 w-4 text-destructive" />
-                                            </Button>
-                                          </div>
-                                        </div>
-                                      </CardHeader>
-                                    </Card>
-                                  ))
-                                ) : (
-                                  <Button
-                                    variant="outline"
-                                    onClick={() => setShowModuleQuizBuilder(module.index)}
-                                    className="w-full"
-                                  >
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    Ajouter un quiz à ce module
-                                  </Button>
-                                )}
+                          {/* Quiz Section for Module */}
+                          <div className="space-y-4 border-t pt-6">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <HelpCircle className="h-5 w-5 text-blue-600" />
+                                <h4 className="font-semibold text-lg">Quiz du module</h4>
                               </div>
                             </div>
-                          </AccordionContent>
-                        </AccordionItem>
-                    ))}
-                  </Accordion>
-                )}
+                            <div className="text-sm text-gray-600 mb-4">
+                              Ajoutez un quiz directement au module (sans créer de leçon).
+                            </div>
+                            {module.quizzes && module.quizzes.length > 0 ? (
+                              <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200">
+                                <CardHeader>
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <CardTitle className="text-lg">{module.quizzes[0].title}</CardTitle>
+                                      <p className="text-sm text-gray-600 mt-1">
+                                        {module.quizzes[0].questions.length} questions
+                                      </p>
+                                    </div>
+                                    <div className="flex gap-2">
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setShowModuleQuizBuilder(moduleIdx)}
+                                      >
+                                        <Edit2 className="h-4 w-4" />
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleDeleteModuleQuiz(moduleIdx)}
+                                      >
+                                        <Trash2 className="h-4 w-4 text-red-500" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </CardHeader>
+                              </Card>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                onClick={() => setShowModuleQuizBuilder(moduleIdx)}
+                                className="w-full"
+                              >
+                                <Plus className="h-4 w-4 mr-2" />
+                                Créer un quiz pour ce module
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
               </CardContent>
             </Card>
           </TabsContent>

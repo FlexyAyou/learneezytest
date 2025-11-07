@@ -5,11 +5,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ArrowLeft, Edit, Trash2, Eye, EyeOff, Clock, BookOpen, PlayCircle, FileText, CheckCircle, XCircle, Video, Download, Users, Award, Save, Tags } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { fastAPIClient } from '@/services/fastapi-client';
 import { CourseResponse, Content } from '@/types/fastapi';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
+import PDFViewer from '@/components/common/PDFViewer';
 
 interface VideoPlayerProps {
   videoKey?: string;
@@ -152,6 +154,10 @@ const CourseDetailPage = () => {
   const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
   const [programAvailable, setProgramAvailable] = useState<boolean>(false);
   const [resources, setResources] = useState<Array<{ name: string; key?: string; size?: number; url?: string }>>([]);
+  
+  // States pour les dialogs de visualisation PDF
+  const [viewingProgramPDF, setViewingProgramPDF] = useState(false);
+  const [viewingResourcePDF, setViewingResourcePDF] = useState<{ name: string; index: number } | null>(null);
 
   useEffect(() => {
     const loadCourse = async () => {
@@ -269,6 +275,22 @@ const CourseDetailPage = () => {
   };
 
   // Plus d'édition du niveau, des tags ou de la catégorie depuis cette page
+
+  // Helper pour détecter le type de contenu
+  const getContentType = (lesson: Content): 'video' | 'pdf' | 'image' | 'none' => {
+    if (lesson.video_key || lesson.key) {
+      const key = lesson.video_key || lesson.key || '';
+      if (key.endsWith('.pdf')) return 'pdf';
+      if (/\.(jpg|jpeg|png|gif|webp)$/i.test(key)) return 'image';
+      return 'video';
+    }
+    if (lesson.video_url) {
+      if (lesson.video_url.endsWith('.pdf')) return 'pdf';
+      if (/\.(jpg|jpeg|png|gif|webp)$/i.test(lesson.video_url)) return 'image';
+      return 'video';
+    }
+    return 'none';
+  };
 
   // Calculer les statistiques
   const totalLessons = course?.modules?.reduce((acc, mod) => acc + (mod.content?.length || 0), 0) || 0;
@@ -606,19 +628,56 @@ const CourseDetailPage = () => {
                                         </div>
                                       )}
 
-                                      {(lesson.video_key || lesson.key || lesson.video_url) && (
-                                        <div>
-                                          <h5 className="font-semibold text-sm mb-3 flex items-center text-gray-900">
-                                            <Video className="h-4 w-4 mr-2 text-pink-600" />
-                                            Vidéo de la leçon
-                                          </h5>
-                                          <VideoPlayer
-                                            videoKey={lesson.video_key || lesson.key}
-                                            videoUrl={lesson.video_url}
-                                            title={lesson.title}
-                                          />
-                                        </div>
-                                      )}
+                                      {(lesson.video_key || lesson.key || lesson.video_url) && (() => {
+                                        const contentType = getContentType(lesson);
+                                        
+                                        if (contentType === 'pdf') {
+                                          return (
+                                            <div>
+                                              <h5 className="font-semibold text-sm mb-3 flex items-center text-gray-900">
+                                                <FileText className="h-4 w-4 mr-2 text-red-600" />
+                                                Document PDF
+                                              </h5>
+                                              <PDFViewer
+                                                pdfKey={lesson.video_key || lesson.key}
+                                                pdfUrl={lesson.video_url}
+                                                title={lesson.title}
+                                                height="500px"
+                                              />
+                                            </div>
+                                          );
+                                        }
+                                        
+                                        if (contentType === 'image') {
+                                          return (
+                                            <div>
+                                              <h5 className="font-semibold text-sm mb-3 flex items-center text-gray-900">
+                                                <FileText className="h-4 w-4 mr-2 text-green-600" />
+                                                Image
+                                              </h5>
+                                              <img
+                                                src={lesson.video_url || ''}
+                                                alt={lesson.title}
+                                                className="w-full rounded-lg border-2 border-gray-300"
+                                              />
+                                            </div>
+                                          );
+                                        }
+                                        
+                                        return (
+                                          <div>
+                                            <h5 className="font-semibold text-sm mb-3 flex items-center text-gray-900">
+                                              <Video className="h-4 w-4 mr-2 text-pink-600" />
+                                              Vidéo de la leçon
+                                            </h5>
+                                            <VideoPlayer
+                                              videoKey={lesson.video_key || lesson.key}
+                                              videoUrl={lesson.video_url}
+                                              title={lesson.title}
+                                            />
+                                          </div>
+                                        );
+                                      })()}
 
                                       {lesson.transcription && (
                                         <div className="bg-gray-100 p-4 rounded-lg border-l-4 border-gray-400">
@@ -744,32 +803,43 @@ const CourseDetailPage = () => {
             </CardHeader>
             <CardContent className="pt-4">
               {programAvailable ? (
-                <Button
-                  variant="outline"
-                  className="w-full justify-between h-auto py-3 hover:bg-blue-50"
-                  onClick={async () => {
-                    try {
-                      await fastAPIClient.downloadCourseProgram(courseId);
-                      toast({
-                        title: "✅ Téléchargement démarré",
-                        description: "Téléchargement du programme de formation",
-                      });
-                    } catch (err) {
-                      console.error('Erreur téléchargement programme:', err);
-                      toast({
-                        title: "❌ Erreur",
-                        description: "Impossible de télécharger le programme",
-                        variant: "destructive",
-                      });
-                    }
-                  }}
-                >
-                  <div className="flex items-center gap-2 flex-1 text-left">
-                    <FileText className="h-4 w-4 flex-shrink-0 text-blue-600" />
-                    <span className="text-sm truncate font-medium">Programme de formation.pdf</span>
-                  </div>
-                  <Download className="h-4 w-4 text-blue-600" />
-                </Button>
+                <div className="space-y-2">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-between h-auto py-3 hover:bg-blue-50"
+                    onClick={() => setViewingProgramPDF(true)}
+                  >
+                    <div className="flex items-center gap-2 flex-1 text-left">
+                      <Eye className="h-4 w-4 flex-shrink-0 text-blue-600" />
+                      <span className="text-sm truncate font-medium">Visualiser</span>
+                    </div>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-between h-auto py-3 hover:bg-blue-50"
+                    onClick={async () => {
+                      try {
+                        await fastAPIClient.downloadCourseProgram(courseId);
+                        toast({
+                          title: "✅ Téléchargement démarré",
+                          description: "Téléchargement du programme de formation",
+                        });
+                      } catch (err) {
+                        console.error('Erreur téléchargement programme:', err);
+                        toast({
+                          title: "❌ Erreur",
+                          description: "Impossible de télécharger le programme",
+                          variant: "destructive",
+                        });
+                      }
+                    }}
+                  >
+                    <div className="flex items-center gap-2 flex-1 text-left">
+                      <Download className="h-4 w-4 flex-shrink-0 text-blue-600" />
+                      <span className="text-sm truncate font-medium">Télécharger</span>
+                    </div>
+                  </Button>
+                </div>
               ) : (
                 <div className="text-center py-4 text-muted-foreground">
                   <FileText className="h-8 w-8 mx-auto mb-2 opacity-30" />
@@ -842,40 +912,48 @@ const CourseDetailPage = () => {
               <CardContent className="pt-4">
                 <div className="space-y-2">
                   {resources.map((resource, index) => (
-                    <Button
-                      key={index}
-                      variant="outline"
-                      className="w-full justify-between h-auto py-3 hover:bg-purple-50"
-                      onClick={async () => {
-                        try {
-                          await fastAPIClient.downloadCourseResource(courseId, index);
-                          toast({
-                            title: "✅ Téléchargement démarré",
-                            description: `Téléchargement de ${resource.name}`,
-                          });
-                        } catch (err) {
-                          console.error('Erreur téléchargement:', err);
-                          toast({
-                            title: "❌ Erreur",
-                            description: "Impossible de télécharger cette ressource",
-                            variant: "destructive",
-                          });
-                        }
-                      }}
-                    >
-                      <div className="flex items-center gap-2 flex-1 text-left">
-                        <FileText className="h-4 w-4 flex-shrink-0 text-purple-600" />
-                        <span className="text-sm truncate font-medium">{resource.name}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
+                    <div key={index} className="space-y-2">
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between h-auto py-3 hover:bg-purple-50"
+                        onClick={() => setViewingResourcePDF({ name: resource.name, index })}
+                      >
+                        <div className="flex items-center gap-2 flex-1 text-left">
+                          <Eye className="h-4 w-4 flex-shrink-0 text-purple-600" />
+                          <span className="text-sm truncate font-medium">Visualiser {resource.name}</span>
+                        </div>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between h-auto py-3 hover:bg-purple-50"
+                        onClick={async () => {
+                          try {
+                            await fastAPIClient.downloadCourseResource(courseId, index);
+                            toast({
+                              title: "✅ Téléchargement démarré",
+                              description: `Téléchargement de ${resource.name}`,
+                            });
+                          } catch (err) {
+                            console.error('Erreur téléchargement:', err);
+                            toast({
+                              title: "❌ Erreur",
+                              description: "Impossible de télécharger cette ressource",
+                              variant: "destructive",
+                            });
+                          }
+                        }}
+                      >
+                        <div className="flex items-center gap-2 flex-1 text-left">
+                          <Download className="h-4 w-4 flex-shrink-0 text-purple-600" />
+                          <span className="text-sm truncate font-medium">Télécharger</span>
+                        </div>
                         {resource.size && (
                           <span className="text-xs text-muted-foreground">
                             {(resource.size / 1024 / 1024).toFixed(2)} MB
                           </span>
                         )}
-                        <Download className="h-4 w-4 text-purple-600" />
-                      </div>
-                    </Button>
+                      </Button>
+                    </div>
                   ))}
                 </div>
               </CardContent>
@@ -926,6 +1004,43 @@ const CourseDetailPage = () => {
           </Card>
         </div>
       </div>
+
+      {/* Dialog pour visualiser le programme PDF */}
+      <Dialog open={viewingProgramPDF} onOpenChange={setViewingProgramPDF}>
+        <DialogContent className="max-w-5xl h-[90vh]">
+          <DialogHeader>
+            <DialogTitle>Programme de formation</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-hidden">
+            {viewingProgramPDF && courseId && (
+              <PDFViewer
+                pdfUrl={`/api/courses/${courseId}/program`}
+                title="Programme de formation"
+                height="calc(90vh - 120px)"
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog pour visualiser une ressource pédagogique PDF */}
+      <Dialog open={!!viewingResourcePDF} onOpenChange={() => setViewingResourcePDF(null)}>
+        <DialogContent className="max-w-5xl h-[90vh]">
+          <DialogHeader>
+            <DialogTitle>{viewingResourcePDF?.name || 'Ressource pédagogique'}</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-hidden">
+            {viewingResourcePDF && courseId && (
+              <PDFViewer
+                pdfKey={resources[viewingResourcePDF.index]?.key}
+                pdfUrl={resources[viewingResourcePDF.index]?.url}
+                title={viewingResourcePDF.name}
+                height="calc(90vh - 120px)"
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
