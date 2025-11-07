@@ -62,6 +62,8 @@ interface EditableModule {
   duration: string;
   lessons: EditableLesson[];
   quizzes?: Quiz[];
+  isPending?: boolean;  // Module temporaire non encore enregistré
+  tempId?: string;      // ID temporaire pour les modules pending
 }
 
 interface EditableLesson {
@@ -186,29 +188,7 @@ const EditCoursePage = () => {
         }
 
         // Populate modules
-        const editableModules: EditableModule[] = (courseData.modules || []).map((mod: Module, idx: number) => ({
-          index: idx,
-          title: mod.title || '',
-          description: mod.description || '',
-          duration: mod.duration || '',
-          lessons: (mod.content || []).map((lesson: Content, lessonIdx: number) => ({
-            index: lessonIdx,
-            title: lesson.title || '',
-            description: lesson.description || '',
-            duration: lesson.duration || '',
-            video_key: lesson.video_key,
-            videoFileName: lesson.video_key ? 'Vidéo existante' : undefined,
-            transcription: lesson.transcription || undefined,
-            // NOUVEAUX CHAMPS
-            image_key: (lesson as any).image_key,
-            imageFileName: (lesson as any).image_key ? 'Image existante' : undefined,
-            resource_key: (lesson as any).resource_key,
-            resourceFileName: (lesson as any).resource_key ? 'Fichier existant' : undefined,
-            video_url: (lesson as any).video_url,
-            content_type: (lesson as any).content_type || 'video',
-          })),
-          quizzes: mod.quizzes || [],
-        }));
+        const editableModules = mapCourseToEditableModules(courseData);
         setModules(editableModules);
 
         // Populate resources
@@ -237,6 +217,33 @@ const EditCoursePage = () => {
     };
     loadCourse();
   }, [id, toast]);
+
+  // Helper function to map course data to editable modules
+  const mapCourseToEditableModules = (courseData: CourseResponse): EditableModule[] => {
+    return (courseData.modules || []).map((mod: Module, idx: number) => ({
+      index: idx,
+      title: mod.title || '',
+      description: mod.description || '',
+      duration: mod.duration || '',
+      lessons: (mod.content || []).map((lesson: Content, lessonIdx: number) => ({
+        index: lessonIdx,
+        title: lesson.title || '',
+        description: lesson.description || '',
+        duration: lesson.duration || '',
+        video_key: lesson.video_key,
+        videoFileName: lesson.video_key ? 'Vidéo existante' : undefined,
+        transcription: lesson.transcription || undefined,
+        image_key: (lesson as any).image_key,
+        imageFileName: (lesson as any).image_key ? 'Image existante' : undefined,
+        resource_key: (lesson as any).resource_key,
+        resourceFileName: (lesson as any).resource_key ? 'Fichier existant' : undefined,
+        video_url: (lesson as any).video_url,
+        content_type: (lesson as any).content_type || 'video',
+      })),
+      quizzes: mod.quizzes || [],
+      isPending: false,  // Les modules chargés depuis la DB ne sont jamais pending
+    }));
+  };
 
   // Auto-save for general info
   const saveCourseInfo = async (data: EditableCourseData) => {
@@ -374,22 +381,7 @@ const EditCoursePage = () => {
       
       // Refresh course data
       const updatedCourse = await fastAPIClient.getCourse(id);
-      const modulesData: EditableModule[] = updatedCourse.modules.map((mod, idx) => ({
-        index: idx,
-        title: mod.title,
-        description: mod.description || '',
-        duration: mod.duration,
-        lessons: mod.content.map((lesson, lessonIdx) => ({
-          index: lessonIdx,
-          title: lesson.title,
-          description: lesson.description,
-          duration: lesson.duration,
-          video_key: lesson.video_key,
-          videoFileName: lesson.video_key ? 'Vidéo existante' : undefined,
-        })),
-        quizzes: mod.quizzes || []
-      }));
-      setModules(modulesData);
+      setModules(mapCourseToEditableModules(updatedCourse));
     } catch (error) {
       console.error('Error saving module:', error);
       toast({ title: "Erreur", description: "Impossible de sauvegarder le module", variant: "destructive" });
@@ -419,6 +411,15 @@ const EditCoursePage = () => {
 
   // Delete module
   const handleDeleteModule = async (moduleIdx: number) => {
+    const module = modules[moduleIdx];
+    
+    // Si module en attente, juste le retirer du state local
+    if (module.isPending) {
+      setModules(prev => prev.filter((_, idx) => idx !== moduleIdx));
+      toast({ title: "📝 Module local supprimé" });
+      return;
+    }
+
     if (!id || !confirm('Supprimer ce module ?')) return;
 
     try {
@@ -427,22 +428,7 @@ const EditCoursePage = () => {
       
       // Refresh course data
       const updatedCourse = await fastAPIClient.getCourse(id);
-      const modulesData: EditableModule[] = updatedCourse.modules.map((mod, idx) => ({
-        index: idx,
-        title: mod.title,
-        description: mod.description || '',
-        duration: mod.duration,
-        lessons: mod.content.map((lesson, lessonIdx) => ({
-          index: lessonIdx,
-          title: lesson.title,
-          description: lesson.description,
-          duration: lesson.duration,
-          video_key: lesson.video_key,
-          videoFileName: lesson.video_key ? 'Vidéo existante' : undefined,
-        })),
-        quizzes: mod.quizzes || []
-      }));
-      setModules(modulesData);
+      setModules(mapCourseToEditableModules(updatedCourse));
     } catch (error) {
       console.error('Error deleting module:', error);
       toast({ title: "Erreur", description: "Impossible de supprimer le module", variant: "destructive" });
@@ -502,8 +488,22 @@ const EditCoursePage = () => {
     
     try {
       const module = modules[moduleIdx];
-      
-      const quizPayload: QuizCreate = {
+
+      // Si le module est en attente, le créer d'abord dans la DB
+      if (module.isPending) {
+        await fastAPIClient.createModule(id, {
+          title: module.title,
+          description: module.description,
+          duration: module.duration,
+          content: []
+        });
+        
+        // Recharger pour obtenir l'index réel du module
+        const updatedCourse = await fastAPIClient.getCourse(id);
+        const realModuleIdx = updatedCourse.modules.length - 1;
+        
+        // Créer le quiz sur le module réel
+        const quizPayload: QuizCreate = {
         title: quiz.title,
         questions: quiz.questions
           .filter(q => ['single-choice', 'true-false', 'multiple-choice'].includes(q.type))
@@ -530,46 +530,81 @@ const EditCoursePage = () => {
             return null;
           })
           .filter(q => q !== null) as any[]
-      };
-      
-      // Utiliser updateModule avec le payload complet incluant le quiz
-      const updatedModuleData = {
-        title: module.title,
-        description: module.description,
-        duration: module.duration,
-        content: module.lessons.map(l => ({
-          title: l.title,
-          description: l.description,
-          duration: l.duration,
-        })) as any,
-        quizzes: [quizPayload],
-      };
+        };
+        
+        const updatedModuleData = {
+          title: updatedCourse.modules[realModuleIdx].title,
+          description: updatedCourse.modules[realModuleIdx].description,
+          duration: updatedCourse.modules[realModuleIdx].duration,
+          content: updatedCourse.modules[realModuleIdx].content as any,
+          quizzes: [quizPayload],
+        };
 
-      await fastAPIClient.updateModule(id, moduleIdx, updatedModuleData);
-      
-      const updatedCourse = await fastAPIClient.getCourse(id);
-      const modulesData: EditableModule[] = updatedCourse.modules.map((mod, idx) => ({
-        index: idx,
-        title: mod.title,
-        description: mod.description || '',
-        duration: mod.duration,
-        lessons: mod.content.map((lesson, lessonIdx) => ({
-          index: lessonIdx,
-          title: lesson.title,
-          description: lesson.description,
-          duration: lesson.duration,
-          video_key: lesson.video_key,
-          videoFileName: lesson.video_key ? 'Vidéo existante' : undefined,
-        })),
-        quizzes: mod.quizzes || []
-      }));
-      setModules(modulesData);
-      
-      setShowModuleQuizBuilder(null);
-      toast({ 
-        title: '✅ Quiz sauvegardé',
-        description: 'Le quiz du module a été enregistré avec succès.'
-      });
+        await fastAPIClient.updateModule(id, realModuleIdx, updatedModuleData);
+        
+        // Rafraîchir tout
+        const finalCourse = await fastAPIClient.getCourse(id);
+        setModules(mapCourseToEditableModules(finalCourse));
+        
+        setShowModuleQuizBuilder(null);
+        toast({ 
+          title: '✅ Module et quiz créés',
+          description: 'Le module a été enregistré avec son quiz'
+        });
+      } else {
+        // Comportement actuel pour les modules existants
+        const quizPayload: QuizCreate = {
+          title: quiz.title,
+          questions: quiz.questions
+            .filter(q => ['single-choice', 'true-false', 'multiple-choice'].includes(q.type))
+            .map(q => {
+              if (q.type === 'single-choice') {
+                return {
+                  question: q.question,
+                  options: q.options,
+                  correct_answer: q.options[q.correctAnswer]
+                };
+              } else if (q.type === 'true-false') {
+                return {
+                  question: q.question,
+                  options: ['Vrai', 'Faux'],
+                  correct_answer: q.correctAnswer ? 'Vrai' : 'Faux'
+                };
+              } else if (q.type === 'multiple-choice') {
+                return {
+                  question: q.question,
+                  options: q.options,
+                  correct_answer: q.correctAnswers.map(idx => q.options[idx]).join(', ')
+                };
+              }
+              return null;
+            })
+            .filter(q => q !== null) as any[]
+        };
+        
+        const updatedModuleData = {
+          title: module.title,
+          description: module.description,
+          duration: module.duration,
+          content: module.lessons.map(l => ({
+            title: l.title,
+            description: l.description,
+            duration: l.duration,
+          })) as any,
+          quizzes: [quizPayload],
+        };
+
+        await fastAPIClient.updateModule(id, moduleIdx, updatedModuleData);
+        
+        const updatedCourse = await fastAPIClient.getCourse(id);
+        setModules(mapCourseToEditableModules(updatedCourse));
+        
+        setShowModuleQuizBuilder(null);
+        toast({ 
+          title: '✅ Quiz sauvegardé',
+          description: 'Le quiz du module a été enregistré avec succès.'
+        });
+      }
     } catch (error: any) {
       toast({
         title: '❌ Erreur',
@@ -602,24 +637,9 @@ const EditCoursePage = () => {
       await fastAPIClient.updateModule(id, moduleIdx, updatedModuleData);
       
       const updatedCourse = await fastAPIClient.getCourse(id);
-      const modulesData: EditableModule[] = updatedCourse.modules.map((mod, idx) => ({
-        index: idx,
-        title: mod.title,
-        description: mod.description || '',
-        duration: mod.duration,
-        lessons: mod.content.map((lesson, lessonIdx) => ({
-          index: lessonIdx,
-          title: lesson.title,
-          description: lesson.description,
-          duration: lesson.duration,
-          video_key: lesson.video_key,
-          videoFileName: lesson.video_key ? 'Vidéo existante' : undefined,
-        })),
-        quizzes: mod.quizzes || []
-      }));
-      setModules(modulesData);
+      setModules(mapCourseToEditableModules(updatedCourse));
       
-      toast({ 
+      toast({
         title: '✅ Quiz supprimé',
         description: 'Le quiz du module a été supprimé.'
       });
@@ -637,34 +657,52 @@ const EditCoursePage = () => {
     if (!id) return;
     
     try {
-      await fastAPIClient.createLesson(id, moduleIdx, {
-        title: `Leçon ${modules[moduleIdx].lessons.length + 1}`,
-        description: 'Description de la leçon',
-        duration: '30min'
-      });
+      const module = modules[moduleIdx];
       
-      const updatedCourse = await fastAPIClient.getCourse(id);
-      const modulesData: EditableModule[] = updatedCourse.modules.map((mod, idx) => ({
-        index: idx,
-        title: mod.title,
-        description: mod.description || '',
-        duration: mod.duration,
-        lessons: mod.content.map((lesson, lessonIdx) => ({
-          index: lessonIdx,
-          title: lesson.title,
-          description: lesson.description,
-          duration: lesson.duration,
-          video_key: lesson.video_key,
-          videoFileName: lesson.video_key ? 'Vidéo existante' : undefined,
-        })),
-        quizzes: mod.quizzes || []
-      }));
-      setModules(modulesData);
-      
-      toast({ 
-        title: '✅ Leçon créée',
-        description: 'Une nouvelle leçon a été ajoutée au module.'
-      });
+      // Si le module est en attente, le créer d'abord dans la DB
+      if (module.isPending) {
+        await fastAPIClient.createModule(id, {
+          title: module.title,
+          description: module.description,
+          duration: module.duration,
+          content: []
+        });
+        
+        // Recharger pour obtenir l'index réel du module
+        const updatedCourse = await fastAPIClient.getCourse(id);
+        const realModuleIdx = updatedCourse.modules.length - 1;
+        
+        // Créer la leçon sur le module réel
+        await fastAPIClient.createLesson(id, realModuleIdx, {
+          title: `Leçon 1`,
+          description: 'Description de la leçon',
+          duration: '30min'
+        });
+        
+        // Rafraîchir tout
+        const finalCourse = await fastAPIClient.getCourse(id);
+        setModules(mapCourseToEditableModules(finalCourse));
+        
+        toast({ 
+          title: '✅ Module et leçon créés',
+          description: 'Le module a été enregistré avec sa première leçon'
+        });
+      } else {
+        // Comportement actuel pour les modules existants
+        await fastAPIClient.createLesson(id, moduleIdx, {
+          title: `Leçon ${module.lessons.length + 1}`,
+          description: 'Description de la leçon',
+          duration: '30min'
+        });
+        
+        const updatedCourse = await fastAPIClient.getCourse(id);
+        setModules(mapCourseToEditableModules(updatedCourse));
+        
+        toast({ 
+          title: '✅ Leçon créée',
+          description: 'Une nouvelle leçon a été ajoutée au module.'
+        });
+      }
     } catch (error: any) {
       toast({
         title: '❌ Erreur',
@@ -1149,48 +1187,26 @@ const EditCoursePage = () => {
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="font-semibold text-lg">Liste des modules</h3>
                   <Button
-                    onClick={async () => {
-                      if (!id) return;
-                      try {
-                        const newModuleIndex = modules.length;
-                        await fastAPIClient.createModule(id, {
-                          title: `Module ${newModuleIndex + 1}`,
-                          description: 'Description du nouveau module',
-                          duration: '1h',
-                          content: []
-                        });
-                        
-                        // Recharger le cours pour obtenir le nouveau module
-                        const updatedCourse = await fastAPIClient.getCourse(id);
-                        const editableModules: EditableModule[] = (updatedCourse.modules || []).map((mod, idx) => ({
-                          index: idx,
-                          title: mod.title || '',
-                          description: mod.description || '',
-                          duration: mod.duration || '',
-                          lessons: (mod.content || []).map((lesson, lessonIdx) => ({
-                            index: lessonIdx,
-                            title: lesson.title || '',
-                            description: lesson.description || '',
-                            duration: lesson.duration || '',
-                            video_key: lesson.video_key,
-                            videoFileName: lesson.video_key ? 'Vidéo existante' : undefined,
-                          })),
-                        }));
-                        setModules(editableModules);
-                        setExpandedModules([...expandedModules, `module-${newModuleIndex}`]);
-                        
-                        toast({
-                          title: "✅ Module créé",
-                          description: "Nouveau module ajouté avec succès"
-                        });
-                      } catch (error) {
-                        console.error('Error creating module:', error);
-                        toast({
-                          title: "Erreur",
-                          description: "Impossible de créer le module",
-                          variant: "destructive"
-                        });
-                      }
+                    onClick={() => {
+                      const tempId = `temp-${Date.now()}`;
+                      const newModule: EditableModule = {
+                        index: modules.length,
+                        title: `Module ${modules.length + 1}`,
+                        description: 'Description du nouveau module',
+                        duration: '1h',
+                        lessons: [],
+                        quizzes: [],
+                        isPending: true,
+                        tempId: tempId
+                      };
+                      
+                      setModules(prev => [...prev, newModule]);
+                      setExpandedModules(prev => [...prev, `module-${modules.length}`]);
+                      
+                      toast({
+                        title: "📝 Module créé localement",
+                        description: "Le module sera enregistré lorsque vous ajouterez du contenu"
+                      });
                     }}
                     className="hover-scale"
                   >
@@ -1207,46 +1223,26 @@ const EditCoursePage = () => {
                     <p className="text-lg font-medium mb-2">Aucun module disponible</p>
                     <p className="text-sm mb-4">Créez votre premier module pour commencer</p>
                     <Button
-                      onClick={async () => {
-                        if (!id) return;
-                        try {
-                          await fastAPIClient.createModule(id, {
-                            title: 'Module 1',
-                            description: 'Description du module',
-                            duration: '1h',
-                            content: []
-                          });
-                          
-                          const updatedCourse = await fastAPIClient.getCourse(id);
-                          const editableModules: EditableModule[] = (updatedCourse.modules || []).map((mod, idx) => ({
-                            index: idx,
-                            title: mod.title || '',
-                            description: mod.description || '',
-                            duration: mod.duration || '',
-                            lessons: (mod.content || []).map((lesson, lessonIdx) => ({
-                              index: lessonIdx,
-                              title: lesson.title || '',
-                              description: lesson.description || '',
-                              duration: lesson.duration || '',
-                              video_key: lesson.video_key,
-                              videoFileName: lesson.video_key ? 'Vidéo existante' : undefined,
-                            })),
-                          }));
-                          setModules(editableModules);
-                          setExpandedModules(['module-0']);
-                          
-                          toast({
-                            title: "✅ Module créé",
-                            description: "Premier module ajouté avec succès"
-                          });
-                        } catch (error) {
-                          console.error('Error creating module:', error);
-                          toast({
-                            title: "Erreur",
-                            description: "Impossible de créer le module",
-                            variant: "destructive"
-                          });
-                        }
+                      onClick={() => {
+                        const tempId = `temp-${Date.now()}`;
+                        const newModule: EditableModule = {
+                          index: 0,
+                          title: 'Module 1',
+                          description: 'Description du module',
+                          duration: '1h',
+                          lessons: [],
+                          quizzes: [],
+                          isPending: true,
+                          tempId: tempId
+                        };
+                        
+                        setModules([newModule]);
+                        setExpandedModules(['module-0']);
+                        
+                        toast({
+                          title: "📝 Module créé localement",
+                          description: "Le module sera enregistré lorsque vous ajouterez du contenu"
+                        });
                       }}
                       size="lg"
                     >
@@ -1269,7 +1265,14 @@ const EditCoursePage = () => {
                                 <BookOpen className="h-6 w-6 text-primary" />
                               </div>
                               <div className="text-left">
-                                <div className="font-bold text-lg">{module.title || `Module ${moduleIdx + 1}`}</div>
+                                <div className="font-bold text-lg flex items-center gap-2">
+                                  <span>{module.title || `Module ${moduleIdx + 1}`}</span>
+                                  {module.isPending && (
+                                    <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+                                      📝 Non enregistré
+                                    </Badge>
+                                  )}
+                                </div>
                                 <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
                                   <Badge variant="secondary" className="font-normal">
                                     {module.lessons.length} leçon{module.lessons.length > 1 ? 's' : ''}
