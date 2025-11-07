@@ -316,6 +316,39 @@ const CreateCoursePage = () => {
       return;
     }
 
+    // Validation de taille de fichier
+    const MAX_VIDEO_SIZE = 500 * 1024 * 1024; // 500MB pour les vidéos
+    const MAX_PDF_SIZE = 50 * 1024 * 1024;    // 50MB pour les PDFs
+    const MAX_IMAGE_SIZE = 10 * 1024 * 1024;  // 10MB pour les images
+
+    let maxSize = MAX_VIDEO_SIZE;
+    let maxSizeLabel = "500MB";
+    
+    if (fileType === 'pdf') {
+      maxSize = MAX_PDF_SIZE;
+      maxSizeLabel = "50MB";
+    } else if (fileType === 'image') {
+      maxSize = MAX_IMAGE_SIZE;
+      maxSizeLabel = "10MB";
+    }
+
+    if (file.size > maxSize) {
+      toast({
+        title: "Fichier trop volumineux",
+        description: `La taille maximale pour ${fileType === 'video' ? 'une vidéo' : fileType === 'pdf' ? 'un PDF' : 'une image'} est de ${maxSizeLabel}. Votre fichier fait ${(file.size / (1024 * 1024)).toFixed(2)}MB.`,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Avertissement pour les gros fichiers
+    if (file.size > 100 * 1024 * 1024) {
+      toast({
+        title: "⚠️ Fichier volumineux",
+        description: `Ce fichier de ${(file.size / (1024 * 1024)).toFixed(2)}MB peut prendre plusieurs minutes à uploader. Assurez-vous d'avoir une connexion stable.`,
+      });
+    }
+
     const reader = new FileReader();
     reader.onload = (e) => {
       updateLesson(moduleId, lessonId, {
@@ -1477,6 +1510,9 @@ const CreateCoursePage = () => {
                                                         <span>Choisir un fichier</span>
                                                       </Button>
                                                     </label>
+                                                    <p className="text-xs text-muted-foreground mt-3">
+                                                      Limites : Vidéo (500MB) • PDF (50MB) • Image (10MB)
+                                                    </p>
                                                   </div>
                                                 )}
                                               </>
