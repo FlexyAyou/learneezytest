@@ -32,6 +32,12 @@ import {
   CompleteUploadResponse,
   VideoPlayResponse,
   ProgramUrlResponse,
+  CategoryItem,
+  CategoryCreate,
+  CategoryUpdateActive,
+  ProLevelItem,
+  ProLevelCreate,
+  ProLevelUpdateActive,
 } from '@/types/fastapi';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -776,6 +782,73 @@ class FastAPIClient {
     link.click();
     link.remove();
     window.URL.revokeObjectURL(url);
+  }
+
+  // ============= CATEGORIES =============
+  
+  /**
+   * Lister toutes les catégories (actives uniquement par défaut)
+   */
+  async listCategories(): Promise<CategoryItem[]> {
+    return this.get('/api/categories/');
+  }
+
+  /**
+   * Créer une nouvelle catégorie (OF ou trainer)
+   */
+  async createCategory(data: CategoryCreate): Promise<CategoryItem> {
+    return this.post('/api/categories/', data);
+  }
+
+  /**
+   * Créer une catégorie globale (superadmin uniquement)
+   */
+  async createGlobalCategory(data: CategoryCreate): Promise<CategoryItem> {
+    return this.post('/api/categories/global', data);
+  }
+
+  /**
+   * Toggle l'état actif d'une catégorie
+   */
+  async toggleCategoryActive(categoryId: number, active: boolean): Promise<CategoryItem> {
+    return this.patch(`/api/categories/${categoryId}/toggle`, null, { params: { active } });
+  }
+
+  /**
+   * Supprimer une catégorie
+   */
+  async deleteCategory(categoryId: number): Promise<void> {
+    return this.delete(`/api/categories/${categoryId}`);
+  }
+
+  // ============= NIVEAUX (LEVELS) =============
+  
+  /**
+   * Récupérer les niveaux pour un cycle d'apprentissage
+   */
+  async getLevels(cycle: string): Promise<string[]> {
+    return this.get('/api/levels/', { params: { cycle } });
+  }
+
+  /**
+   * Créer un nouveau niveau pro (formation professionnelle)
+   */
+  async createProLevel(data: ProLevelCreate): Promise<ProLevelItem> {
+    return this.post('/api/levels/', data);
+  }
+
+  /**
+   * Toggle l'état actif d'un niveau pro
+   */
+  async toggleProLevelActive(levelId: number, active: boolean): Promise<ProLevelItem> {
+    return this.patch(`/api/levels/${levelId}/toggle`, null, { params: { active } });
+  }
+
+  /**
+   * Supprimer un niveau pro
+   */
+  async deleteProLevel(levelId: number): Promise<void> {
+    return this.delete(`/api/levels/${levelId}`);
   }
 }
 

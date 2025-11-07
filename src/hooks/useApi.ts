@@ -16,6 +16,10 @@ import {
   OrganizationCreate,
   OrganizationResponse,
   UserUpdate,
+  CategoryItem,
+  CategoryCreate,
+  ProLevelItem,
+  ProLevelCreate,
 } from '@/types/fastapi';
 import { toast } from '@/hooks/use-toast';
 
@@ -526,6 +530,172 @@ export const useUpdateUserStatus = () => {
         title: 'Erreur',
         description: error.response?.data?.detail || 'Impossible de modifier le statut de l\'utilisateur.',
         variant: 'destructive',
+      });
+    },
+  });
+};
+
+// ============= CATEGORIES =============
+
+/**
+ * Hook pour lister toutes les catégories
+ */
+export const useCategories = () => {
+  return useQuery<CategoryItem[]>({
+    queryKey: ['categories'],
+    queryFn: () => fastAPIClient.listCategories(),
+  });
+};
+
+/**
+ * Hook pour créer une nouvelle catégorie
+ */
+export const useCreateCategory = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CategoryCreate) => fastAPIClient.createCategory(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      toast({
+        title: 'Catégorie créée',
+        description: 'La catégorie a été ajoutée avec succès.',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erreur',
+        description: error.response?.data?.detail || 'Impossible de créer la catégorie.',
+        variant: 'destructive',
+      });
+    },
+  });
+};
+
+/**
+ * Hook pour créer une catégorie globale (superadmin uniquement)
+ */
+export const useCreateGlobalCategory = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CategoryCreate) => fastAPIClient.createGlobalCategory(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      toast({
+        title: 'Catégorie globale créée',
+        description: 'La catégorie globale a été ajoutée avec succès.',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erreur',
+        description: error.response?.data?.detail || 'Impossible de créer la catégorie globale.',
+        variant: 'destructive',
+      });
+    },
+  });
+};
+
+/**
+ * Hook pour toggle l'état actif d'une catégorie
+ */
+export const useToggleCategoryActive = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ categoryId, active }: { categoryId: number; active: boolean }) =>
+      fastAPIClient.toggleCategoryActive(categoryId, active),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+    },
+  });
+};
+
+/**
+ * Hook pour supprimer une catégorie
+ */
+export const useDeleteCategory = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (categoryId: number) => fastAPIClient.deleteCategory(categoryId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      toast({
+        title: 'Catégorie supprimée',
+        description: 'La catégorie a été supprimée avec succès.',
+      });
+    },
+  });
+};
+
+// ============= NIVEAUX (LEVELS) =============
+
+/**
+ * Hook pour récupérer les niveaux d'un cycle
+ */
+export const useLevels = (cycle: string) => {
+  return useQuery<string[]>({
+    queryKey: ['levels', cycle],
+    queryFn: () => fastAPIClient.getLevels(cycle),
+    enabled: !!cycle,
+  });
+};
+
+/**
+ * Hook pour créer un nouveau niveau pro (formation professionnelle)
+ */
+export const useCreateProLevel = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: ProLevelCreate) => fastAPIClient.createProLevel(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['levels', 'formation_pro'] });
+      toast({
+        title: 'Niveau créé',
+        description: 'Le niveau de formation professionnelle a été ajouté avec succès.',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erreur',
+        description: error.response?.data?.detail || 'Impossible de créer le niveau.',
+        variant: 'destructive',
+      });
+    },
+  });
+};
+
+/**
+ * Hook pour toggle l'état actif d'un niveau pro
+ */
+export const useToggleProLevelActive = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ levelId, active }: { levelId: number; active: boolean }) =>
+      fastAPIClient.toggleProLevelActive(levelId, active),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['levels', 'formation_pro'] });
+    },
+  });
+};
+
+/**
+ * Hook pour supprimer un niveau pro
+ */
+export const useDeleteProLevel = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (levelId: number) => fastAPIClient.deleteProLevel(levelId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['levels', 'formation_pro'] });
+      toast({
+        title: 'Niveau supprimé',
+        description: 'Le niveau a été supprimé avec succès.',
       });
     },
   });

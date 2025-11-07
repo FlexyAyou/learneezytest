@@ -19,6 +19,7 @@ import type { QuizConfig, AssignmentConfig, QuestionType } from '@/types/quiz';
 import RichTextEditor from '@/components/admin/RichTextEditor';
 import { uploadDirect } from '@/utils/upload';
 import { UploadProgressModal } from '@/components/course-creation/UploadProgressModal';
+import { useCategories, useCreateCategory, useLevels, useCreateProLevel } from '@/hooks/useApi';
 
 interface Lesson {
   id: string;
@@ -49,8 +50,7 @@ const CreateCoursePage = () => {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState<'info' | 'modules' | 'review'>('info');
   const [trainers, setTrainers] = useState<Array<{ id: string; name: string }>>([]);
-  const [customCategories, setCustomCategories] = useState<string[]>([]);
-
+  
   // Détecter si on est dans le contexte gestionnaire ou superadmin
   const isManagerContext = location.pathname.includes('/gestionnaire/');
   const coursesBasePath = isManagerContext ? '/dashboard/gestionnaire/courses' : '/dashboard/superadmin/courses';
@@ -80,6 +80,14 @@ const CreateCoursePage = () => {
       url: string | null;
     }>,
   });
+  
+  // Hooks pour les catégories et niveaux (après courseData)
+  const { data: categories = [], isLoading: isLoadingCategories } = useCategories();
+  const createCategoryMutation = useCreateCategory();
+  const { data: levels = [], isLoading: isLoadingLevels } = useLevels(courseData.cycle || '');
+  const createProLevelMutation = useCreateProLevel();
+  
+  const [customLevel, setCustomLevel] = useState('');
 
   const [modules, setModules] = useState<ModuleWithLessons[]>([
     {
@@ -123,19 +131,7 @@ const CreateCoursePage = () => {
     loadTrainers();
   }, []);
 
-  // Load custom categories from localStorage on mount
-  useEffect(() => {
-    const savedCategories = localStorage.getItem('customCourseCategories');
-    if (savedCategories) {
-      try {
-        setCustomCategories(JSON.parse(savedCategories));
-      } catch (error) {
-        console.error('Error loading custom categories:', error);
-      }
-    }
-  }, []);
-
-  const saveCustomCategory = () => {
+  const saveCustomCategory = async () => {
     if (!courseData.customCategory.trim()) {
       toast({
         title: "Erreur",
@@ -147,28 +143,37 @@ const CreateCoursePage = () => {
 
     const newCategory = courseData.customCategory.trim();
 
-    // Check if category already exists
-    if (customCategories.includes(newCategory)) {
+    try {
+      await createCategoryMutation.mutateAsync({ name: newCategory });
+      
+      // Switch to the newly added category
+      handleInputChange('category', newCategory);
+      handleInputChange('customCategory', '');
+    } catch (error) {
+      // L'erreur est déjà gérée par le hook
+      console.error('Error creating category:', error);
+    }
+  };
+
+  const saveCustomLevel = async () => {
+    if (!customLevel.trim()) {
       toast({
-        title: "Catégorie existante",
-        description: "Cette catégorie existe déjà dans la liste",
+        title: "Erreur",
+        description: "Veuillez entrer un nom de niveau",
         variant: "destructive"
       });
       return;
     }
 
-    const updatedCategories = [...customCategories, newCategory];
-    setCustomCategories(updatedCategories);
-    localStorage.setItem('customCourseCategories', JSON.stringify(updatedCategories));
-
-    // Switch to the newly added category
-    handleInputChange('category', newCategory);
-    handleInputChange('customCategory', '');
-
-    toast({
-      title: "Catégorie enregistrée",
-      description: `"${newCategory}" a été ajoutée à la liste des catégories`
-    });
+    try {
+      await createProLevelMutation.mutateAsync({ label: customLevel.trim() });
+      
+      // Switch to the newly added level
+      handleInputChange('level', customLevel.trim());
+      setCustomLevel('');
+    } catch (error) {
+      console.error('Error creating level:', error);
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -901,9 +906,9 @@ const CreateCoursePage = () => {
                         <SelectItem value="design">Design</SelectItem>
                         <SelectItem value="marketing">Marketing</SelectItem>
                         <SelectItem value="business">Business</SelectItem>
-                        {customCategories.map(cat => (
-                          <SelectItem key={cat} value={cat}>
-                            {cat}
+                        {categories.filter(cat => cat.active).map(cat => (
+                          <SelectItem key={cat.id} value={cat.name}>
+                            {cat.name}
                           </SelectItem>
                         ))}
                         <SelectItem value="custom">➕ Ajouter une nouvelle catégorie</SelectItem>
@@ -941,16 +946,57 @@ const CreateCoursePage = () => {
 
                   <div>
                     <Label className="text-base">Niveau</Label>
-                    <Select value={courseData.level} onValueChange={(value) => handleInputChange('level', value)}>
+                    <Select 
+                      value={courseData.level === 'custom' ? 'custom' : courseData.level} 
+                      onValueChange={(value) => {
+                        if (value === 'custom') {
+                          handleInputChange('level', 'custom');
+                        } else {
+                          handleInputChange('level', value);
+                          setCustomLevel('');
+                        }
+                      }}
+                    >
                       <SelectTrigger className="mt-2">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="débutant">Débutant</SelectItem>
-                        <SelectItem value="intermédiaire">Intermédiaire</SelectItem>
-                        <SelectItem value="avancé">Avancé</SelectItem>
+                        {courseData.cycle === 'formation_pro' ? (
+                          <>
+                            {levels.map(level => (
+                              <SelectItem key={level} value={level}>
+                                {level}
+                              </SelectItem>
+                            ))}
+                            <SelectItem value="custom">➕ Ajouter un nouveau niveau</SelectItem>
+                          </>
+                        ) : (
+                          <>
+                            <SelectItem value="débutant">Débutant</SelectItem>
+                            <SelectItem value="intermédiaire">Intermédiaire</SelectItem>
+                            <SelectItem value="avancé">Avancé</SelectItem>
+                          </>
+                        )}
                       </SelectContent>
                     </Select>
+                    {courseData.level === 'custom' && courseData.cycle === 'formation_pro' && (
+                      <div className="mt-2 space-y-2">
+                        <Input
+                          value={customLevel}
+                          onChange={(e) => setCustomLevel(e.target.value)}
+                          placeholder="Entrez un nouveau niveau"
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={saveCustomLevel}
+                          className="w-full"
+                        >
+                          <Save className="h-4 w-4 mr-2" />
+                          Enregistrer et ajouter à la liste
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
 

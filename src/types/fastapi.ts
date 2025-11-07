@@ -214,6 +214,41 @@ export interface SubscriptionResponse {
   status: string;
 }
 
+// ============= CATEGORIES ET NIVEAUX =============
+export interface CategoryItem {
+  id: number;
+  name: string;
+  active: boolean;
+  owner_type: 'learneezy' | 'of';
+  owner_id: number | null;
+  created_at: string;
+}
+
+export interface CategoryCreate {
+  name: string;
+}
+
+export interface CategoryUpdateActive {
+  active: boolean;
+}
+
+export interface ProLevelItem {
+  id: number;
+  label: string;
+  active: boolean;
+  owner_type: 'learneezy' | 'of';
+  owner_id: number | null;
+  created_at: string;
+}
+
+export interface ProLevelCreate {
+  label: string;
+}
+
+export interface ProLevelUpdateActive {
+  active: boolean;
+}
+
 // ============= JWT PAYLOAD =============
 export interface JWTPayload {
   user_id: number;
