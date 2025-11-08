@@ -907,10 +907,39 @@ const CreateCoursePage = () => {
                     />
                   </div>
 
+                  <div className="md:col-span-2">
+                    <Label className="text-base">Objectifs pédagogiques</Label>
+                    <div className="space-y-3 mt-2">
+                      {courseData.objectives.map((objective, index) => (
+                        <div key={index} className="flex items-center space-x-2">
+                          <Input
+                            value={objective}
+                            onChange={(e) => updateObjective(index, e.target.value)}
+                            placeholder={`Objectif ${index + 1}`}
+                          />
+                          {courseData.objectives.length > 1 && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeObjective(index)}
+                            >
+                              <X className="h-4 w-4 text-red-500" />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                      <Button variant="outline" size="sm" onClick={addObjective} className="w-full">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Ajouter un objectif
+                      </Button>
+                    </div>
+                  </div>
+
                   <div>
                     <Label className="text-base">Prix (€)</Label>
                     <Input
                       type="number"
+                      min="0"
                       value={courseData.price}
                       onChange={(e) => handleInputChange('price', e.target.value)}
                       placeholder="89"
@@ -1039,34 +1068,6 @@ const CreateCoursePage = () => {
                   onCycleChange={(cycle) => setCourseData(prev => ({ ...prev, cycle }))}
                   onTagsChange={(tags) => setCourseData(prev => ({ ...prev, cycleTags: tags }))}
                 />
-
-                <div>
-                  <Label className="text-base">Objectifs pédagogiques</Label>
-                  <div className="space-y-3 mt-2">
-                    {courseData.objectives.map((objective, index) => (
-                      <div key={index} className="flex items-center space-x-2">
-                        <Input
-                          value={objective}
-                          onChange={(e) => updateObjective(index, e.target.value)}
-                          placeholder={`Objectif ${index + 1}`}
-                        />
-                        {courseData.objectives.length > 1 && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeObjective(index)}
-                          >
-                            <X className="h-4 w-4 text-red-500" />
-                          </Button>
-                        )}
-                      </div>
-                    ))}
-                    <Button variant="outline" size="sm" onClick={addObjective} className="w-full">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Ajouter un objectif
-                    </Button>
-                  </div>
-                </div>
 
                 <div>
                   <Label className="text-base">Programme de formation (PDF)</Label>
