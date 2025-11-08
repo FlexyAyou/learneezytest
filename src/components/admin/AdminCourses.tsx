@@ -5,6 +5,16 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Search, Plus, Eye, Edit, Trash2, BookOpen, Clock, Settings, Globe } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -29,6 +39,9 @@ const AdminCourses = () => {
   // Visibility modal state
   const [selectedCourseForVisibility, setSelectedCourseForVisibility] = useState<CourseResponse | null>(null);
   const [showVisibilityModal, setShowVisibilityModal] = useState(false);
+  
+  // Delete confirmation state
+  const [courseToDelete, setCourseToDelete] = useState<string | null>(null);
 
   // Load courses from API
   useEffect(() => {
@@ -68,10 +81,12 @@ const AdminCourses = () => {
   const publishedCourses = courses.filter(c => c.status === 'published');
   const draftCourses = courses.filter(c => c.status === 'draft');
 
-  const handleDeleteCourse = async (courseId: string) => {
+  const confirmDeleteCourse = async () => {
+    if (!courseToDelete) return;
+    
     try {
-      await fastAPIClient.deleteCourse(courseId);
-      setCourses(courses.filter(c => c.id !== courseId));
+      await fastAPIClient.deleteCourse(courseToDelete);
+      setCourses(courses.filter(c => c.id !== courseToDelete));
       toast({
         title: "Cours supprimé",
         description: "Le cours a été supprimé avec succès.",
@@ -82,6 +97,8 @@ const AdminCourses = () => {
         description: "Impossible de supprimer le cours",
         variant: "destructive"
       });
+    } finally {
+      setCourseToDelete(null);
     }
   };
 
@@ -440,7 +457,7 @@ const AdminCourses = () => {
                           variant="ghost"
                           className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
                           title="Supprimer"
-                          onClick={() => handleDeleteCourse(course.id)}
+                          onClick={() => setCourseToDelete(course.id)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -464,6 +481,27 @@ const AdminCourses = () => {
         }}
         onSave={handleSaveVisibility}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!courseToDelete} onOpenChange={(open) => !open && setCourseToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir supprimer définitivement ce cours ? Cette action est irréversible et supprimera tous les modules, leçons et ressources associés.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteCourse}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

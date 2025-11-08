@@ -5,6 +5,16 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Search, Plus, Eye, Edit, Trash2, BookOpen, Users, Star, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
@@ -14,6 +24,9 @@ const ManagerCourses = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  
+  // Delete confirmation state
+  const [courseToDelete, setCourseToDelete] = useState<string | null>(null);
 
   // Mock data for courses
   const publishedCourses = [
@@ -45,12 +58,15 @@ const ManagerCourses = () => {
     }
   ];
 
-  const handleDeleteCourse = (courseId: string) => {
+  const confirmDeleteCourse = () => {
+    if (!courseToDelete) return;
+    
     toast({
       title: "Cours supprimé",
       description: "Le cours a été supprimé avec succès.",
       variant: "destructive"
     });
+    setCourseToDelete(null);
   };
 
   const handleEditCourse = (courseId: string) => {
@@ -251,7 +267,7 @@ const ManagerCourses = () => {
                       <Button 
                         variant="ghost" 
                         size="sm"
-                        onClick={() => handleDeleteCourse(course.id)}
+                        onClick={() => setCourseToDelete(course.id)}
                         className="text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -271,6 +287,27 @@ const ManagerCourses = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!courseToDelete} onOpenChange={(open) => !open && setCourseToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir supprimer définitivement ce cours ? Cette action est irréversible et supprimera tous les modules, leçons et ressources associés.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteCourse}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

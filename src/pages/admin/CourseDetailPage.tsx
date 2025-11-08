@@ -6,6 +6,16 @@ import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { ArrowLeft, Edit, Trash2, Eye, EyeOff, Clock, BookOpen, PlayCircle, FileText, CheckCircle, XCircle, Video, Download, Users, Award, Save, Tags, ImageIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { fastAPIClient } from '@/services/fastapi-client';
@@ -256,6 +266,9 @@ const CourseDetailPage = () => {
   // States pour les dialogs de visualisation PDF
   const [viewingProgramPDF, setViewingProgramPDF] = useState(false);
   const [viewingResourcePDF, setViewingResourcePDF] = useState<{ name: string; index: number } | null>(null);
+  
+  // State pour la confirmation de suppression
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   useEffect(() => {
     const loadCourse = async () => {
@@ -330,8 +343,8 @@ const CourseDetailPage = () => {
     loadCourse();
   }, [courseId]);
 
-  const handleDelete = async () => {
-    if (!courseId || !confirm('⚠️ Êtes-vous sûr de vouloir supprimer définitivement ce cours ?')) return;
+  const confirmDelete = async () => {
+    if (!courseId) return;
 
     try {
       await fastAPIClient.deleteCourse(courseId);
@@ -346,6 +359,8 @@ const CourseDetailPage = () => {
         description: "Impossible de supprimer le cours",
         variant: "destructive"
       });
+    } finally {
+      setShowDeleteDialog(false);
     }
   };
 
@@ -464,7 +479,7 @@ const CourseDetailPage = () => {
           </Button>
           <Button
             variant="outline"
-            onClick={handleDelete}
+            onClick={() => setShowDeleteDialog(true)}
             className="hover:bg-red-50 hover:text-red-600"
           >
             <Trash2 className="h-4 w-4 mr-2" />
@@ -1006,7 +1021,7 @@ const CourseDetailPage = () => {
               <Button
                 className="w-full justify-start hover:bg-red-50 hover:text-red-600"
                 variant="outline"
-                onClick={handleDelete}
+                onClick={() => setShowDeleteDialog(true)}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Supprimer
@@ -1155,6 +1170,27 @@ const CourseDetailPage = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir supprimer définitivement ce cours ? Cette action est irréversible et supprimera tous les modules, leçons et ressources associés.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
