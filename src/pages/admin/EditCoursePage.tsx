@@ -42,6 +42,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import RichTextEditor from '@/components/admin/RichTextEditor';
 import { QuizBuilder } from '@/components/quiz';
 import type { QuizConfig } from '@/types/quiz';
+import { CycleTagSelector } from '@/components/admin/CycleTagSelector';
 
 interface EditableCourseData {
   title: string;
@@ -53,6 +54,9 @@ interface EditableCourseData {
   status: 'draft' | 'published';
   imagePreview: string | null;
   programFileName: string;
+  objectives: string[];
+  cycle: '' | 'primaire' | 'college' | 'lycee' | 'formation_pro';
+  cycleTags: string[];
 }
 
 interface EditableModule {
@@ -113,6 +117,9 @@ const EditCoursePage = () => {
     status: 'draft',
     imagePreview: null,
     programFileName: '',
+    objectives: [''],
+    cycle: '',
+    cycleTags: [],
   });
 
   const [modules, setModules] = useState<EditableModule[]>([]);
@@ -152,6 +159,9 @@ const EditCoursePage = () => {
           status: (courseData.status as any) || 'draft',
           imagePreview: null,
           programFileName: courseData.program_pdf_key ? 'Programme.pdf' : '',
+          objectives: (courseData as any).objectives || [''],
+          cycle: (courseData as any).cycle || '',
+          cycleTags: (courseData as any).cycle_tags || [],
         };
 
         // Récupérer une URL de lecture pour l'image de couverture si disponible
@@ -258,6 +268,9 @@ const EditCoursePage = () => {
         duration: data.duration,
         category: data.category,
         level: data.level,
+        objectives: data.objectives.filter(obj => obj.trim() !== ''),
+        cycle: data.cycle || null,
+        cycle_tags: data.cycleTags,
       };
 
       if (data.price && !isNaN(parseFloat(data.price))) {
@@ -277,6 +290,28 @@ const EditCoursePage = () => {
     delay: 2000,
     enabled: activeTab === 'general' && !loading
   });
+
+  // Functions for managing objectives
+  const addObjective = () => {
+    setCourseData(prev => ({
+      ...prev,
+      objectives: [...prev.objectives, '']
+    }));
+  };
+
+  const updateObjective = (index: number, value: string) => {
+    setCourseData(prev => ({
+      ...prev,
+      objectives: prev.objectives.map((obj, i) => i === index ? value : obj)
+    }));
+  };
+
+  const removeObjective = (index: number) => {
+    setCourseData(prev => ({
+      ...prev,
+      objectives: prev.objectives.filter((_, i) => i !== index)
+    }));
+  };
 
   // Toggle course status
   const handleToggleStatus = async () => {
@@ -1014,6 +1049,51 @@ const EditCoursePage = () => {
                     rows={6}
                     className="focus:ring-2 focus:ring-primary transition-all resize-none"
                   />
+                </div>
+
+                {/* Cycle d'apprentissage */}
+                <div className="space-y-2">
+                  <CycleTagSelector
+                    selectedCycle={courseData.cycle}
+                    selectedTags={courseData.cycleTags}
+                    onCycleChange={(cycle) => setCourseData(prev => ({ ...prev, cycle }))}
+                    onTagsChange={(tags) => setCourseData(prev => ({ ...prev, cycleTags: tags }))}
+                  />
+                </div>
+
+                {/* Objectifs pédagogiques */}
+                <div className="space-y-2">
+                  <Label className="text-base font-semibold">Objectifs pédagogiques</Label>
+                  <div className="space-y-3 mt-2">
+                    {courseData.objectives.map((objective, index) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <Input
+                          value={objective}
+                          onChange={(e) => updateObjective(index, e.target.value)}
+                          placeholder={`Objectif ${index + 1}`}
+                          className="focus:ring-2 focus:ring-primary transition-all"
+                        />
+                        {courseData.objectives.length > 1 && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeObjective(index)}
+                          >
+                            <X className="h-4 w-4 text-red-500" />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={addObjective} 
+                      className="w-full hover-scale"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Ajouter un objectif
+                    </Button>
+                  </div>
                 </div>
 
                 {/* Price & Category */}
