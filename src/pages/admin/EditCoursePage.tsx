@@ -43,6 +43,7 @@ import RichTextEditor from '@/components/admin/RichTextEditor';
 import { QuizBuilder } from '@/components/quiz';
 import type { QuizConfig } from '@/types/quiz';
 import { CycleTagSelector } from '@/components/admin/CycleTagSelector';
+import { UploadNotification, UploadItem } from '@/components/common/UploadNotification';
 
 interface EditableCourseData {
   title: string;
@@ -133,6 +134,9 @@ const EditCoursePage = () => {
   const [expandedModules, setExpandedModules] = useState<string[]>([]);
   const [showQuizBuilder, setShowQuizBuilder] = useState<number | null>(null);
   const [showModuleQuizBuilder, setShowModuleQuizBuilder] = useState<number | null>(null);
+  
+  // Upload notification state
+  const [uploads, setUploads] = useState<UploadItem[]>([]);
 
   // Detect context path
   const isManagerContext = location.pathname.includes('/gestionnaire/');
@@ -752,10 +756,25 @@ const EditCoursePage = () => {
   const handleLessonVideoUpload = async (moduleIdx: number, lessonIdx: number, file: File) => {
     if (!id) return;
 
-    try {
-      toast({ title: "Upload vidéo...", description: file.name });
+    const uploadId = `upload-${Date.now()}`;
+    
+    // Ajouter l'upload à la liste
+    setUploads(prev => [...prev, {
+      id: uploadId,
+      fileName: file.name,
+      progress: 0,
+      status: 'uploading'
+    }]);
 
-      const up = await uploadDirect(file, 'video');
+    try {
+      const up = await uploadDirect(file, 'video', {
+        onProgress: (uploaded, total) => {
+          const progress = Math.round((uploaded / total) * 100);
+          setUploads(prev => prev.map(u =>
+            u.id === uploadId ? { ...u, progress } : u
+          ));
+        }
+      });
 
       // Attach video to lesson
       await fastAPIClient.attachLessonVideo(id, moduleIdx, lessonIdx, up.key);
@@ -773,9 +792,25 @@ const EditCoursePage = () => {
           : mod
       ));
 
+      // Marquer comme complété
+      setUploads(prev => prev.map(u =>
+        u.id === uploadId ? { ...u, status: 'completed', progress: 100 } : u
+      ));
+      
+      // Retirer après 3 secondes
+      setTimeout(() => {
+        setUploads(prev => prev.filter(u => u.id !== uploadId));
+      }, 3000);
+
       toast({ title: "✅ Vidéo uploadée", description: file.name });
     } catch (error) {
       console.error('Error uploading video:', error);
+      
+      // Marquer comme erreur
+      setUploads(prev => prev.map(u =>
+        u.id === uploadId ? { ...u, status: 'error', error: 'Échec de l\'upload' } : u
+      ));
+      
       toast({ title: "Erreur", description: "Impossible d'uploader la vidéo", variant: "destructive" });
     }
   };
@@ -784,28 +819,56 @@ const EditCoursePage = () => {
   const handleLessonImageUpload = async (moduleIdx: number, lessonIdx: number, file: File) => {
     if (!id) return;
 
+    const uploadId = `upload-${Date.now()}`;
+    
+    setUploads(prev => [...prev, {
+      id: uploadId,
+      fileName: file.name,
+      progress: 0,
+      status: 'uploading'
+    }]);
+
     try {
-      toast({ title: "Upload image...", description: file.name });
-      const up = await uploadDirect(file, 'image');
+      const up = await uploadDirect(file, 'image', {
+        onProgress: (uploaded, total) => {
+          const progress = Math.round((uploaded / total) * 100);
+          setUploads(prev => prev.map(u =>
+            u.id === uploadId ? { ...u, progress } : u
+          ));
+        }
+      });
       
       await fastAPIClient.attachLessonMedia(id, moduleIdx, lessonIdx, { key: up.key });
       
       setModules(prev => prev.map((mod, mIdx) =>
         mIdx === moduleIdx
           ? {
-              ...mod,
-              lessons: mod.lessons.map((lesson, lIdx) =>
-                lIdx === lessonIdx
-                  ? { ...lesson, image_key: up.key, imageFileName: file.name, content_type: 'image' }
-                  : lesson
-              )
-            }
+            ...mod,
+            lessons: mod.lessons.map((lesson, lIdx) =>
+              lIdx === lessonIdx
+                ? { ...lesson, image_key: up.key, imageFileName: file.name, content_type: 'image' }
+                : lesson
+            )
+          }
           : mod
       ));
+      
+      setUploads(prev => prev.map(u =>
+        u.id === uploadId ? { ...u, status: 'completed', progress: 100 } : u
+      ));
+      
+      setTimeout(() => {
+        setUploads(prev => prev.filter(u => u.id !== uploadId));
+      }, 3000);
 
       toast({ title: "✅ Image uploadée", description: file.name });
     } catch (error) {
       console.error('Error uploading image:', error);
+      
+      setUploads(prev => prev.map(u =>
+        u.id === uploadId ? { ...u, status: 'error', error: 'Échec de l\'upload' } : u
+      ));
+      
       toast({ title: "Erreur", description: "Impossible d'uploader l'image", variant: "destructive" });
     }
   };
@@ -1996,6 +2059,12 @@ const EditCoursePage = () => {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Upload Notifications */}
+      <UploadNotification 
+        uploads={uploads}
+        onRemove={(id) => setUploads(prev => prev.filter(u => u.id !== id))}
+      />
     </div>
   );
 };

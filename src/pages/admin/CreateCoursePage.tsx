@@ -20,6 +20,7 @@ import RichTextEditor from '@/components/admin/RichTextEditor';
 import { uploadDirect } from '@/utils/upload';
 import { UploadProgressModal } from '@/components/course-creation/UploadProgressModal';
 import { useCategories, useCreateCategory, useLevels, useCreateProLevel } from '@/hooks/useApi';
+import { UploadNotification, UploadItem } from '@/components/common/UploadNotification';
 
 interface Lesson {
   id: string;
@@ -113,6 +114,9 @@ const CreateCoursePage = () => {
     totalFiles: 0,
     progress: 0
   });
+  
+  // Upload notification state pour uploads individuels
+  const [uploads, setUploads] = useState<UploadItem[]>([]);
 
   // Load trainers on mount
   useEffect(() => {
@@ -1928,6 +1932,12 @@ const CreateCoursePage = () => {
           </Dialog>
         )}
       </div>
+
+      {/* Upload Notifications pour uploads individuels (si ajoutés dans le futur) */}
+      <UploadNotification 
+        uploads={uploads}
+        onRemove={(id) => setUploads(prev => prev.filter(u => u.id !== id))}
+      />
     </div>
   );
 };
