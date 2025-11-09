@@ -514,7 +514,7 @@ const AdminCourses = () => {
               </Table>
 
               {/* Pagination */}
-              {totalPages > 1 && (
+              {filteredCourses.length > 0 && (
                 <div className="mt-6 flex items-center justify-between">
                   <p className="text-sm text-muted-foreground">
                     Affichage de {startIndex + 1} à {Math.min(endIndex, filteredCourses.length)} sur {filteredCourses.length} cours
