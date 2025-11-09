@@ -29,29 +29,8 @@ const AdminTrainers = () => {
   
   // Récupérer les utilisateurs depuis l'API
   const { data: allUsers, isLoading } = useSuperadminUsers();
-  
-  // Formateur mocké unique
-  const mockTrainer: TrainerApplication = {
-    id: 'mock-1',
-    userId: 'user-mock-1',
-    firstName: 'Sophie',
-    lastName: 'Martin',
-    email: 'sophie.martin@example.com',
-    phone: '+33 6 12 34 56 78',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
-    location: 'Lyon, France',
-    specialties: ['React', 'TypeScript', 'Node.js'],
-    languages: ['Français', 'Anglais'],
-    experienceYears: 8,
-    hourlyRate: 85,
-    bio: 'Formatrice expérimentée en développement web moderne',
-    status: 'approved',
-    submittedAt: '2024-01-15T10:00:00Z',
-    isVisible: true,
-    isActive: true
-  };
 
-  // Mapper les formateurs de l'API et ajouter le formateur mocké
+  // Mapper les formateurs de l'API
   const applications = useMemo(() => {
     const apiTrainers = (allUsers || [])
       .filter(user => user.role === 'independent_trainer')
@@ -75,7 +54,7 @@ const AdminTrainers = () => {
         isActive: user.is_active || false
       })) as TrainerApplication[];
     
-    return [mockTrainer, ...apiTrainers];
+    return apiTrainers;
   }, [allUsers]);
   
   const [localApplications, setLocalApplications] = useState<TrainerApplication[]>(applications);
