@@ -23,6 +23,7 @@ import {
   UploadResponse,
   EnrollResponse,
   CourseStatsResponse,
+  CourseSummaryPage,
   OrganizationCreate,
   OrganizationResponse,
   OrganizationUpdate,
@@ -332,11 +333,11 @@ class FastAPIClient {
   // ============= COURSES ENDPOINTS =============
 
   /**
-   * Récupérer la liste des cours avec pagination (returns CourseSummary[])
+   * Récupérer la liste des cours avec pagination (returns CourseSummaryPage)
    */
-  async getCourses(page = 1, perPage = 10): Promise<any[]> {
+  async getCourses(page = 1, perPage = 10): Promise<CourseSummaryPage> {
     const safePerPage = Math.min(Math.max(perPage, 1), 20);
-    return this.get<any[]>(`/api/courses/?page=${page}&per_page=${safePerPage}`);
+    return this.get<CourseSummaryPage>(`/api/courses/?page=${page}&per_page=${safePerPage}`);
   }
 
   /**

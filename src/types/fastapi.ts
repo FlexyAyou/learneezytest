@@ -551,3 +551,16 @@ export interface CourseStatsResponse {
   revenue_tokens: number;
   average_score: number;
 }
+
+/**
+ * Paginated response for course listing
+ */
+export interface CourseSummaryPage {
+  items: CourseResponse[];
+  page: number;
+  per_page: number;
+  total_items: number;
+  total_pages: number;
+  has_next: boolean;
+  has_previous: boolean;
+}
