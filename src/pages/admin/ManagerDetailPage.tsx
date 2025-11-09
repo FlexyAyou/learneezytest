@@ -15,8 +15,6 @@ import {
   Calendar,
   Building
 } from 'lucide-react';
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { SuperAdminSidebar } from "@/components/admin/SuperAdminSidebar";
 
 const ManagerDetailPage = () => {
   const { userSlug } = useParams();
@@ -50,19 +48,28 @@ const ManagerDetailPage = () => {
     );
   }
 
+  // Récupérer le nom réel de l'organisation
+  let organisationName = 'Learneezy Direct';
+  if (foundUser.of_id && organizations) {
+    const org = organizations.find((o: any) => o.id === foundUser.of_id);
+    if (org) {
+      organisationName = org.name;
+    }
+  }
+
   // Construire l'objet user avec les données backend
   const user = {
     id: foundUser.id,
     name: `${foundUser.first_name} ${foundUser.last_name}`,
     email: foundUser.email,
-    phone: '+33 6 45 67 89 01', // Mock pour le moment
+    phone: foundUser.phone || 'Non renseigné',
     role: 'Gestionnaire',
     status: foundUser.status || 'inactive',
     lastLogin: foundUser.last_login || '2024-01-19',
     joinDate: foundUser.created_at,
-    organisation: foundUser.of_id ? `Organisation ${foundUser.of_id}` : 'Formation Excellence',
+    organisation: organisationName,
     organisationType: foundUser.of_id ? 'OF' : 'Direct',
-    address: '321 Boulevard des Managers, 13000 Marseille' // Mock pour le moment
+    address: foundUser.address || 'Non renseignée'
   };
 
   const getStatusBadge = (status: string) => {
@@ -90,111 +97,103 @@ const ManagerDetailPage = () => {
   };
 
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full">
-        <SuperAdminSidebar />
+    <div className="space-y-6">
+      {/* En-tête avec bouton retour */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => navigate('/dashboard/superadmin/users')}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Retour
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">{user.name}</h1>
+            <p className="text-gray-600">{user.email}</p>
+          </div>
+        </div>
         
-        <main className="flex-1 overflow-y-auto">
-          <div className="p-6 space-y-6">
-            {/* En-tête avec bouton retour */}
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => navigate('/dashboard/superadmin/users')}
-                >
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Retour
-                </Button>
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900">{user.name}</h1>
-                  <p className="text-gray-600">{user.email}</p>
-                </div>
+        <UserStatusToggleButton
+          userId={user.id}
+          currentStatus={user.status}
+          userName={user.name}
+          onStatusChanged={() => {
+            queryClient.invalidateQueries({ queryKey: ['userBySlug', userSlug] });
+          }}
+        />
+      </div>
+
+      {/* Informations générales de l'utilisateur */}
+      <Card className="w-full">
+        <CardContent className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div>
+              <label className="text-sm font-medium text-gray-600">Rôle</label>
+              <div className="mt-1">
+                <Badge className={getRoleColor(user.role)}>
+                  {user.role}
+                </Badge>
               </div>
-              
-              <UserStatusToggleButton
-                userId={user.id}
-                currentStatus={user.status}
-                userName={user.name}
-                onStatusChanged={() => {
-                  queryClient.invalidateQueries({ queryKey: ['userBySlug', userSlug] });
-                }}
-              />
+            </div>
+            
+            <div>
+              <label className="text-sm font-medium text-gray-600">Statut</label>
+              <div className="mt-1">
+                {getStatusBadge(user.status)}
+              </div>
             </div>
 
-            {/* Informations générales de l'utilisateur */}
-            <Card className="w-full">
-              <CardContent className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Rôle</label>
-                    <div className="mt-1">
-                      <Badge className={getRoleColor(user.role)}>
-                        {user.role}
-                      </Badge>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Statut</label>
-                    <div className="mt-1">
-                      {getStatusBadge(user.status)}
-                    </div>
-                  </div>
+            <div>
+              <label className="text-sm font-medium text-gray-600">Organisation</label>
+              <div className="mt-1">
+                <Badge className={getOrganisationColor(user.organisationType)}>
+                  {user.organisation}
+                </Badge>
+              </div>
+            </div>
 
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Organisation</label>
-                    <div className="mt-1">
-                      <Badge className={getOrganisationColor(user.organisationType)}>
-                        {user.organisation}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium text-gray-600 flex items-center gap-2">
-                      <Calendar className="h-4 w-4" />
-                      Membre depuis
-                    </label>
-                    <p className="font-medium">{new Date(user.joinDate).toLocaleDateString()}</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-6 border-t">
-                  <div>
-                    <label className="text-sm font-medium text-gray-600 flex items-center gap-2">
-                      <Mail className="h-4 w-4" />
-                      Email
-                    </label>
-                    <p className="font-medium">{user.email}</p>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium text-gray-600 flex items-center gap-2">
-                      <Phone className="h-4 w-4" />
-                      Téléphone
-                    </label>
-                    <p className="font-medium">{user.phone}</p>
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <label className="text-sm font-medium text-gray-600 flex items-center gap-2">
-                      <Building className="h-4 w-4" />
-                      Adresse
-                    </label>
-                    <p className="font-medium">{user.address}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Contenu spécialisé pour le gestionnaire */}
-            <ManagerDetailView user={user} />
+            <div>
+              <label className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Membre depuis
+              </label>
+              <p className="font-medium">{new Date(user.joinDate).toLocaleDateString()}</p>
+            </div>
           </div>
-        </main>
-      </div>
-    </SidebarProvider>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-6 border-t">
+            <div>
+              <label className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                <Mail className="h-4 w-4" />
+                Email
+              </label>
+              <p className="font-medium">{user.email}</p>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                <Phone className="h-4 w-4" />
+                Téléphone
+              </label>
+              <p className="font-medium">{user.phone}</p>
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                <Building className="h-4 w-4" />
+                Adresse
+              </label>
+              <p className="font-medium">{user.address}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Contenu spécialisé pour le gestionnaire */}
+      <ManagerDetailView user={user} />
+    </div>
   );
 };
 
