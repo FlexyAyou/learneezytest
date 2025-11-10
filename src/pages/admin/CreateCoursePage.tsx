@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Progress } from '@/components/ui/progress';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Upload, Plus, X, Save, ArrowLeft, ArrowRight, Video, FileText, Image as ImageIcon, Edit2, Trash2, Check, BookOpen, ClipboardList, HelpCircle, Link as LinkIcon } from 'lucide-react';
+import { Upload, Plus, X, Save, ArrowLeft, ArrowRight, Video, FileText, Image as ImageIcon, Edit2, Trash2, Check, BookOpen, ClipboardList, HelpCircle, Link as LinkIcon, Loader2 } from 'lucide-react';
 import { CycleTagSelector } from '@/components/admin/CycleTagSelector';
 import { useToast } from '@/hooks/use-toast';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -122,6 +122,11 @@ const CreateCoursePage = () => {
   
   // Upload notification state pour uploads individuels
   const [uploads, setUploads] = useState<UploadItem[]>([]);
+  
+  // État de chargement local pour les fichiers en mémoire
+  const [fileLoadingState, setFileLoadingState] = useState<{
+    [lessonId: string]: { loading: boolean; fileName: string; progress: number }
+  }>({});
 
   // LocalStorage draft hook
   const draftKey = isManagerContext ? 'course-draft-manager' : 'course-draft-superadmin';
@@ -419,29 +424,128 @@ const CreateCoursePage = () => {
       return;
     }
 
-    // Avertissement pour les gros fichiers
-    if (file.size > 100 * 1024 * 1024) {
+    const isLargeFile = file.size > 50 * 1024 * 1024; // >50MB
+
+    // Initialiser l'état de chargement
+    setFileLoadingState(prev => ({
+      ...prev,
+      [lessonId]: { loading: true, fileName: file.name, progress: 0 }
+    }));
+
+    // Pour les gros fichiers, ajouter à UploadNotification
+    let uploadId: string | null = null;
+    if (isLargeFile) {
+      uploadId = `memory-${lessonId}-${Date.now()}`;
+      setUploads(prev => [...prev, {
+        id: uploadId!,
+        fileName: file.name,
+        progress: 0,
+        status: 'uploading'
+      }]);
+      
       toast({
-        title: "⚠️ Fichier volumineux",
-        description: `Ce fichier de ${(file.size / (1024 * 1024)).toFixed(2)}MB peut prendre plusieurs minutes à uploader. Assurez-vous d'avoir une connexion stable.`,
+        title: "⚠️ Chargement en mémoire",
+        description: `${file.name} (${(file.size / (1024 * 1024)).toFixed(2)}MB) - Veuillez patienter...`,
+      });
+    } else {
+      toast({
+        title: "Chargement du fichier",
+        description: `${file.name} en cours de chargement...`,
       });
     }
 
+    // Simuler la progression pour les gros fichiers
+    let progressInterval: NodeJS.Timeout | null = null;
+    if (isLargeFile) {
+      let simulatedProgress = 0;
+      progressInterval = setInterval(() => {
+        simulatedProgress += 5;
+        if (simulatedProgress > 90) {
+          if (progressInterval) clearInterval(progressInterval);
+          return;
+        }
+        
+        setFileLoadingState(prev => ({
+          ...prev,
+          [lessonId]: { ...prev[lessonId], progress: simulatedProgress }
+        }));
+        
+        if (uploadId) {
+          setUploads(prev => prev.map(u => 
+            u.id === uploadId ? { ...u, progress: simulatedProgress } : u
+          ));
+        }
+      }, 300);
+    }
+
     const reader = new FileReader();
+    
+    reader.onerror = () => {
+      if (progressInterval) clearInterval(progressInterval);
+      
+      setFileLoadingState(prev => {
+        const newState = { ...prev };
+        delete newState[lessonId];
+        return newState;
+      });
+      
+      if (uploadId) {
+        setUploads(prev => prev.map(u => 
+          u.id === uploadId ? { ...u, status: 'error' as const } : u
+        ));
+        setTimeout(() => {
+          setUploads(prev => prev.filter(u => u.id !== uploadId));
+        }, 3000);
+      }
+      
+      toast({
+        title: "Erreur de lecture",
+        description: "Impossible de lire le fichier",
+        variant: "destructive"
+      });
+    };
+    
     reader.onload = (e) => {
+      if (progressInterval) clearInterval(progressInterval);
+      
+      // Compléter la progression à 100%
+      setFileLoadingState(prev => ({
+        ...prev,
+        [lessonId]: { ...prev[lessonId], progress: 100 }
+      }));
+      
+      if (uploadId) {
+        setUploads(prev => prev.map(u => 
+          u.id === uploadId ? { ...u, progress: 100, status: 'completed' as const } : u
+        ));
+        setTimeout(() => {
+          setUploads(prev => prev.filter(u => u.id !== uploadId));
+        }, 2000);
+      }
+      
       updateLesson(moduleId, lessonId, {
         fileType,
         fileName: file.name,
         filePreview: e.target?.result as string,
         file: file // Store the actual file
       });
+      
+      // Nettoyer l'état de chargement
+      setTimeout(() => {
+        setFileLoadingState(prev => {
+          const newState = { ...prev };
+          delete newState[lessonId];
+          return newState;
+        });
+      }, 500);
+      
+      toast({
+        title: "Fichier chargé",
+        description: `${file.name} prêt pour l'upload`,
+      });
     };
+    
     reader.readAsDataURL(file);
-
-    toast({
-      title: "Fichier ajouté",
-      description: `${file.name} a été ajouté à la leçon`
-    });
   };
 
   // Quiz/Assignment/Certification functions
@@ -1600,23 +1704,53 @@ const CreateCoursePage = () => {
                                                   </div>
                                                 ) : (
                                                   <div className="border-2 border-dashed rounded-lg p-6 text-center">
-                                                    <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                                                    <p className="text-sm text-gray-600 mb-3">Vidéo, PDF ou Image</p>
-                                                    <input
-                                                      type="file"
-                                                      accept="video/*,application/pdf,image/*"
-                                                      onChange={(e) => handleFileUpload(module.id, lesson.id, e)}
-                                                      className="hidden"
-                                                      id={`file-${lesson.id}`}
-                                                    />
-                                                    <label htmlFor={`file-${lesson.id}`}>
-                                                      <Button variant="outline" size="sm" type="button" asChild>
-                                                        <span>Choisir un fichier</span>
-                                                      </Button>
-                                                    </label>
-                                                    <p className="text-xs text-muted-foreground mt-3">
-                                                      Limites : Vidéo (500MB) • PDF (50MB) • Image (10MB)
-                                                    </p>
+                                                    {fileLoadingState[lesson.id]?.loading ? (
+                                                      <div className="space-y-3">
+                                                        <div className="flex items-center justify-center space-x-2">
+                                                          <Upload className="h-6 w-6 text-primary animate-pulse" />
+                                                          <span className="text-sm font-medium text-primary">
+                                                            Chargement en cours...
+                                                          </span>
+                                                        </div>
+                                                        <p className="text-xs text-muted-foreground">
+                                                          {fileLoadingState[lesson.id]?.fileName}
+                                                        </p>
+                                                        <Progress 
+                                                          value={fileLoadingState[lesson.id]?.progress || 0} 
+                                                          className="h-2"
+                                                        />
+                                                        <p className="text-xs font-medium text-primary">
+                                                          {fileLoadingState[lesson.id]?.progress}%
+                                                        </p>
+                                                      </div>
+                                                    ) : (
+                                                      <>
+                                                        <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                                                        <p className="text-sm text-gray-600 mb-3">Vidéo, PDF ou Image</p>
+                                                        <input
+                                                          type="file"
+                                                          accept="video/*,application/pdf,image/*"
+                                                          onChange={(e) => handleFileUpload(module.id, lesson.id, e)}
+                                                          className="hidden"
+                                                          id={`file-${lesson.id}`}
+                                                          disabled={fileLoadingState[lesson.id]?.loading}
+                                                        />
+                                                        <label htmlFor={`file-${lesson.id}`}>
+                                                          <Button 
+                                                            variant="outline" 
+                                                            size="sm" 
+                                                            type="button" 
+                                                            asChild
+                                                            disabled={fileLoadingState[lesson.id]?.loading}
+                                                          >
+                                                            <span>Choisir un fichier</span>
+                                                          </Button>
+                                                        </label>
+                                                        <p className="text-xs text-muted-foreground mt-3">
+                                                          Limites : Vidéo (500MB) • PDF (50MB) • Image (10MB)
+                                                        </p>
+                                                      </>
+                                                    )}
                                                   </div>
                                                 )}
                                               </>
