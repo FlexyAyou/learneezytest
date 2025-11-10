@@ -231,24 +231,49 @@ const AdminCourses = () => {
     }
   };
 
-  const getOwnerBadge = (owner_type: string) => {
+  const getOwnerBadge = (owner_type: string, owner_id?: number | null) => {
     return owner_type === 'learneezy' 
-      ? <Badge className="bg-blue-100 text-blue-800">Learneezy</Badge>
-      : <Badge className="bg-purple-100 text-purple-800">OF</Badge>;
+      ? <Badge className="bg-blue-500/10 text-blue-700 border-blue-500/20 font-medium">Learneezy</Badge>
+      : <Badge className="bg-yellow-500/10 text-yellow-700 border-yellow-500/20 font-medium">
+          {owner_id ? `OF #${owner_id}` : 'OF'}
+        </Badge>;
   };
 
-  const getOwnerDisplay = (course: CourseResponse) => {
-    if (course.owner_type === 'learneezy') {
-      return 'Learneezy';
-    }
-    return course.owner_id ? `OF #${course.owner_id}` : 'Organisme';
-  };
-
-  const getCategoryDisplay = (course: CourseResponse) => {
+  const getCategoryBadges = (course: CourseResponse) => {
     if (course.category_names && course.category_names.length > 0) {
-      return course.category_names.join(', ');
+      return (
+        <div className="flex flex-wrap gap-1">
+          {course.category_names.slice(0, 2).map((category, index) => (
+            <Badge 
+              key={index} 
+              className="bg-purple-500/10 text-purple-700 border-purple-500/20 text-xs"
+              variant="outline"
+            >
+              {category}
+            </Badge>
+          ))}
+          {course.category_names.length > 2 && (
+            <Badge 
+              className="bg-gray-500/10 text-gray-700 border-gray-500/20 text-xs"
+              variant="outline"
+            >
+              +{course.category_names.length - 2}
+            </Badge>
+          )}
+        </div>
+      );
     }
-    return course.category || '-';
+    if (course.category) {
+      return (
+        <Badge 
+          className="bg-purple-500/10 text-purple-700 border-purple-500/20 text-xs"
+          variant="outline"
+        >
+          {course.category}
+        </Badge>
+      );
+    }
+    return <span className="text-sm text-muted-foreground">-</span>;
   };
 
   const getCycleBadge = (cycle: string | null | undefined) => {
@@ -551,11 +576,11 @@ const AdminCourses = () => {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="text-sm">
-                      {getOwnerDisplay(course)}
+                    <TableCell>
+                      {getOwnerBadge(course.owner_type || 'learneezy', course.owner_id)}
                     </TableCell>
                     <TableCell>
-                      <span className="text-sm">{getCategoryDisplay(course)}</span>
+                      {getCategoryBadges(course)}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center text-sm">
