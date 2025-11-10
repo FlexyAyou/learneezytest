@@ -1933,6 +1933,15 @@ const CreateCoursePage = () => {
         )}
       </div>
 
+      {/* Upload Progress Modal pour les uploads de vidéos */}
+      <UploadProgressModal
+        isOpen={uploadProgress.isUploading}
+        currentFile={uploadProgress.currentFile}
+        uploadedFiles={uploadProgress.uploadedFiles}
+        totalFiles={uploadProgress.totalFiles}
+        progress={uploadProgress.progress}
+      />
+
       {/* Upload Notifications pour uploads individuels (si ajoutés dans le futur) */}
       <UploadNotification 
         uploads={uploads}
