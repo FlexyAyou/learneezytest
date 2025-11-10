@@ -21,6 +21,11 @@ import { uploadDirect } from '@/utils/upload';
 import { UploadProgressModal } from '@/components/course-creation/UploadProgressModal';
 import { useCategories, useCreateCategory, useLevels, useCreateProLevel } from '@/hooks/useApi';
 import { UploadNotification, UploadItem } from '@/components/common/UploadNotification';
+import { useLocalStorageDraft } from '@/hooks/useLocalStorageDraft';
+import { RestoreDraftDialog } from '@/components/admin/RestoreDraftDialog';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import { Trash2 as TrashIcon } from 'lucide-react';
 
 interface Lesson {
   id: string;
@@ -117,6 +122,75 @@ const CreateCoursePage = () => {
   
   // Upload notification state pour uploads individuels
   const [uploads, setUploads] = useState<UploadItem[]>([]);
+
+  // LocalStorage draft hook
+  const draftKey = isManagerContext ? 'course-draft-manager' : 'course-draft-superadmin';
+  const { saveDraft, loadDraft, clearDraft, hasDraft, lastSaved } = useLocalStorageDraft({ key: draftKey });
+
+  // État pour le dialog de restauration
+  const [showRestoreDraftDialog, setShowRestoreDraftDialog] = useState(false);
+  const [draftToRestore, setDraftToRestore] = useState<any>(null);
+
+  // Charger le brouillon au montage
+  useEffect(() => {
+    const draft = loadDraft();
+    if (draft) {
+      setDraftToRestore(draft);
+      setShowRestoreDraftDialog(true);
+    }
+  }, []);
+
+  // Auto-save avec debounce (toutes les 3 secondes après modification)
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      saveDraft({
+        courseData,
+        modules,
+        currentStep,
+        expandedModule,
+      });
+    }, 3000);
+
+    return () => clearTimeout(timeoutId);
+  }, [courseData, modules, currentStep, expandedModule, saveDraft]);
+
+  // Handlers pour le dialog de restauration
+  const handleRestoreDraft = () => {
+    if (draftToRestore) {
+      setCourseData(draftToRestore.courseData);
+      setModules(draftToRestore.modules);
+      setCurrentStep(draftToRestore.currentStep);
+      setExpandedModule(draftToRestore.expandedModule || null);
+      
+      toast({
+        title: "Brouillon restauré",
+        description: "Vous pouvez continuer votre création de cours",
+      });
+    }
+    setShowRestoreDraftDialog(false);
+    setDraftToRestore(null);
+  };
+
+  const handleDiscardDraft = () => {
+    clearDraft();
+    setShowRestoreDraftDialog(false);
+    setDraftToRestore(null);
+    
+    toast({
+      title: "Brouillon supprimé",
+      description: "Vous repartez avec une création vierge",
+    });
+  };
+
+  const handleClearDraft = () => {
+    if (confirm("Êtes-vous sûr de vouloir supprimer le brouillon sauvegardé ?")) {
+      clearDraft();
+      toast({
+        title: "Brouillon supprimé",
+        description: "Le brouillon a été effacé",
+      });
+    }
+  };
 
   // Load trainers on mount
   useEffect(() => {
@@ -772,6 +846,9 @@ const CreateCoursePage = () => {
         description: `Le cours "${courseData.title}" est maintenant disponible`,
       });
 
+      // Supprimer le brouillon après succès
+      clearDraft();
+
       // Naviguer avec un state pour déclencher le rechargement de la liste
       navigate(coursesBasePath, {
         state: { courseCreated: true, courseId }
@@ -826,6 +903,28 @@ const CreateCoursePage = () => {
               Créer un nouveau cours
             </h1>
             <p className="text-gray-600 mt-1">Suivez les étapes pour créer votre cours</p>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            {/* Indicateur de sauvegarde */}
+            {lastSaved && (
+              <Badge variant="outline" className="animate-in fade-in slide-in-from-right-2">
+                Sauvegardé à {format(lastSaved, 'HH:mm', { locale: fr })}
+              </Badge>
+            )}
+            
+            {/* Bouton effacer le brouillon */}
+            {hasDraft() && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClearDraft}
+                className="text-destructive hover:text-destructive"
+              >
+                <TrashIcon className="h-4 w-4 mr-2" />
+                Effacer le brouillon
+              </Button>
+            )}
           </div>
         </div>
 
@@ -1947,6 +2046,16 @@ const CreateCoursePage = () => {
         uploads={uploads}
         onRemove={(id) => setUploads(prev => prev.filter(u => u.id !== id))}
       />
+
+      {/* Dialog de restauration du brouillon */}
+      {showRestoreDraftDialog && draftToRestore && (
+        <RestoreDraftDialog
+          open={showRestoreDraftDialog}
+          onRestore={handleRestoreDraft}
+          onDiscard={handleDiscardDraft}
+          draftTimestamp={draftToRestore.timestamp}
+        />
+      )}
     </div>
   );
 };
