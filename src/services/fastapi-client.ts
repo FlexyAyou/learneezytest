@@ -18,6 +18,10 @@ import {
   ModuleFullUpdate,
   Module,
   LessonCreate,
+  LessonResponse,
+  LessonUpdate,
+  LessonReorderRequest,
+  AttachMediaRequest,
   Content,
   QuizCreate,
   Quiz,
@@ -446,8 +450,68 @@ class FastAPIClient {
   /**
    * Ajouter une leçon à un module
    */
-  async createLesson(courseId: string, moduleId: number, lessonData: LessonCreate): Promise<Content> {
-    return this.post<Content>(`/api/courses/${courseId}/modules/${moduleId}/lessons`, lessonData);
+  async createLesson(courseId: string, moduleId: string, lessonData: LessonCreate): Promise<LessonResponse> {
+    return this.post<LessonResponse>(`/api/courses/${courseId}/modules/${moduleId}/lessons`, lessonData);
+  }
+
+  /**
+   * Mettre à jour une leçon
+   */
+  async updateLesson(
+    courseId: string,
+    moduleId: string,
+    lessonId: string,
+    lessonData: LessonUpdate
+  ): Promise<LessonResponse> {
+    return this.put<LessonResponse>(
+      `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}`,
+      lessonData
+    );
+  }
+
+  /**
+   * Supprimer une leçon
+   * @param forceMediaDelete - Supprimer aussi le média associé (défaut: false)
+   */
+  async deleteLesson(
+    courseId: string,
+    moduleId: string,
+    lessonId: string,
+    forceMediaDelete: boolean = false
+  ): Promise<void> {
+    const params = forceMediaDelete ? '?force_media_delete=true' : '';
+    return this.delete<void>(
+      `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}${params}`
+    );
+  }
+
+  /**
+   * Réorganiser les leçons d'un module
+   */
+  async reorderLessons(
+    courseId: string,
+    moduleId: string,
+    reorderData: LessonReorderRequest
+  ): Promise<Module> {
+    return this.patch<Module>(
+      `/api/courses/${courseId}/modules/${moduleId}/lessons/reorder`,
+      reorderData
+    );
+  }
+
+  /**
+   * Attacher un média (vidéo/PDF/image) à une leçon
+   */
+  async attachLessonMedia(
+    courseId: string,
+    moduleId: string,
+    lessonId: string,
+    mediaData: AttachMediaRequest
+  ): Promise<LessonResponse> {
+    return this.put<LessonResponse>(
+      `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/media`,
+      mediaData
+    );
   }
 
   // ============= QUIZ ENDPOINTS (NEW) =============
@@ -850,64 +914,6 @@ class FastAPIClient {
       params: { force_media_delete: forceMediaDelete }
     });
   }
-
-  // ============= LESSON MANAGEMENT =============
-
-  /**
-   * Mettre à jour une leçon spécifique
-   */
-  async updateLesson(
-    courseId: string,
-    moduleId: number,
-    lessonId: number,
-    lessonData: Partial<LessonCreate>
-  ): Promise<Content> {
-    const course = await this.getCourse(courseId);
-    const updatedModules = [...course.modules];
-    updatedModules[moduleId].content[lessonId] = {
-      ...updatedModules[moduleId].content[lessonId],
-      ...lessonData
-    };
-
-    const updatedCourse = await this.updateCourse(courseId, { modules: updatedModules as any });
-    return updatedCourse.modules[moduleId].content[lessonId];
-  }
-
-  /**
-   * Supprimer une leçon
-   */
-  async deleteLesson(courseId: string, moduleId: number, lessonId: number): Promise<void> {
-    const course = await this.getCourse(courseId);
-    const updatedModules = [...course.modules];
-    updatedModules[moduleId].content = updatedModules[moduleId].content.filter((_, idx) => idx !== lessonId);
-    await this.updateCourse(courseId, { modules: updatedModules as any });
-  }
-
-  /**
-   * Attacher/mettre à jour le média d'une leçon via endpoint dédié
-   */
-  async attachLessonMedia(
-    courseId: string,
-    moduleId: number,
-    lessonId: number,
-    media: { key?: string; url?: string }
-  ): Promise<any> {
-    return this.put(`/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/media`, media);
-  }
-
-  /**
-   * Attacher une vidéo à une leçon (mise à jour du video_key)
-   */
-  async attachLessonVideo(
-    courseId: string,
-    moduleId: number,
-    lessonId: number,
-    videoKey: string
-  ): Promise<any> {
-    return this.attachLessonMedia(courseId, moduleId, lessonId, { key: videoKey });
-  }
-
-  // Note: QUIZ MANAGEMENT methods have been moved above (lines ~449-669)
 
   // ============= RESOURCE MANAGEMENT =============
 

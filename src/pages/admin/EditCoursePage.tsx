@@ -434,7 +434,13 @@ const EditCoursePage = () => {
 
     try {
       const lesson = modules[moduleIdx].lessons[lessonIdx];
-      await fastAPIClient.updateLesson(id, moduleIdx, lessonIdx, {
+      
+      // Récupérer le cours pour obtenir les vrais IDs
+      const course = await fastAPIClient.getCourse(id);
+      const moduleId = course.modules[moduleIdx].id!;
+      const lessonId = course.modules[moduleIdx].content[lessonIdx].id!;
+      
+      await fastAPIClient.updateLesson(id, moduleId, lessonId, {
         title: lesson.title,
         description: lesson.description,
         duration: lesson.duration,
@@ -480,7 +486,12 @@ const EditCoursePage = () => {
     if (!id || !confirm('Supprimer cette leçon ?')) return;
 
     try {
-      await fastAPIClient.deleteLesson(id, moduleIdx, lessonIdx);
+      // Récupérer le cours pour obtenir les vrais IDs
+      const course = await fastAPIClient.getCourse(id);
+      const moduleId = course.modules[moduleIdx].id!;
+      const lessonId = course.modules[moduleIdx].content[lessonIdx].id!;
+      
+      await fastAPIClient.deleteLesson(id, moduleId, lessonId, false);
       setModules(prev => prev.map((mod, idx) =>
         idx === moduleIdx
           ? { ...mod, lessons: mod.lessons.filter((_, lIdx) => lIdx !== lessonIdx) }
@@ -710,10 +721,10 @@ const EditCoursePage = () => {
         
         // Recharger pour obtenir l'index réel du module
         const updatedCourse = await fastAPIClient.getCourse(id);
-        const realModuleIdx = updatedCourse.modules.length - 1;
+        const realModule = updatedCourse.modules[updatedCourse.modules.length - 1];
         
         // Créer la leçon sur le module réel
-        await fastAPIClient.createLesson(id, realModuleIdx, {
+        await fastAPIClient.createLesson(id, realModule.id!, {
           title: `Leçon 1`,
           description: 'Description de la leçon',
           duration: '30min'
@@ -728,8 +739,11 @@ const EditCoursePage = () => {
           description: 'Le module a été enregistré avec sa première leçon'
         });
       } else {
-        // Comportement actuel pour les modules existants
-        await fastAPIClient.createLesson(id, moduleIdx, {
+        // Comportement actuel pour les modules existants - utiliser l'ID du module
+        const dbModule = await fastAPIClient.getCourse(id);
+        const targetModule = dbModule.modules[moduleIdx];
+        
+        await fastAPIClient.createLesson(id, targetModule.id!, {
           title: `Leçon ${module.lessons.length + 1}`,
           description: 'Description de la leçon',
           duration: '30min'
@@ -776,8 +790,12 @@ const EditCoursePage = () => {
         }
       });
 
-      // Attach video to lesson
-      await fastAPIClient.attachLessonVideo(id, moduleIdx, lessonIdx, up.key);
+      // Attach video to lesson - récupérer les vrais IDs
+      const course = await fastAPIClient.getCourse(id);
+      const moduleId = course.modules[moduleIdx].id!;
+      const lessonId = course.modules[moduleIdx].content[lessonIdx].id!;
+      
+      await fastAPIClient.attachLessonMedia(id, moduleId, lessonId, { video_key: up.key });
 
       setModules(prev => prev.map((mod, mIdx) =>
         mIdx === moduleIdx
@@ -838,7 +856,12 @@ const EditCoursePage = () => {
         }
       });
       
-      await fastAPIClient.attachLessonMedia(id, moduleIdx, lessonIdx, { key: up.key });
+      // Récupérer les vrais IDs
+      const course = await fastAPIClient.getCourse(id);
+      const moduleId = course.modules[moduleIdx].id!;
+      const lessonId = course.modules[moduleIdx].content[lessonIdx].id!;
+      
+      await fastAPIClient.attachLessonMedia(id, moduleId, lessonId, { image_key: up.key });
       
       setModules(prev => prev.map((mod, mIdx) =>
         mIdx === moduleIdx
@@ -881,7 +904,12 @@ const EditCoursePage = () => {
       toast({ title: "Upload fichier...", description: file.name });
       const up = await uploadDirect(file, 'pdf');
       
-      await fastAPIClient.attachLessonMedia(id, moduleIdx, lessonIdx, { key: up.key });
+      // Récupérer les vrais IDs
+      const course = await fastAPIClient.getCourse(id);
+      const moduleId = course.modules[moduleIdx].id!;
+      const lessonId = course.modules[moduleIdx].content[lessonIdx].id!;
+      
+      await fastAPIClient.attachLessonMedia(id, moduleId, lessonId, { pdf_key: up.key });
       
       setModules(prev => prev.map((mod, mIdx) =>
         mIdx === moduleIdx
@@ -908,7 +936,12 @@ const EditCoursePage = () => {
     if (!id) return;
 
     try {
-      await fastAPIClient.attachLessonMedia(id, moduleIdx, lessonIdx, { url });
+      // Récupérer les vrais IDs
+      const course = await fastAPIClient.getCourse(id);
+      const moduleId = course.modules[moduleIdx].id!;
+      const lessonId = course.modules[moduleIdx].content[lessonIdx].id!;
+      
+      await fastAPIClient.updateLesson(id, moduleId, lessonId, { video_url: url });
       
       setModules(prev => prev.map((mod, mIdx) =>
         mIdx === moduleIdx

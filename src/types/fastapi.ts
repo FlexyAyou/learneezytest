@@ -457,6 +457,52 @@ export interface LessonCreate {
   transcription?: string;
 }
 
+/**
+ * Lesson response from backend
+ */
+export interface LessonResponse {
+  id: string;
+  title: string;
+  duration: string;
+  description: string;
+  video_url?: string;
+  video_key?: string;
+  pdf_key?: string;
+  image_key?: string;
+  transcription?: string;
+  module_id?: string;
+  order?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+/**
+ * Lesson update (partial)
+ */
+export interface LessonUpdate {
+  title?: string;
+  duration?: string;
+  description?: string;
+  video_url?: string;
+  transcription?: string;
+}
+
+/**
+ * Reorder lessons request
+ */
+export interface LessonReorderRequest {
+  lesson_ids: string[];
+}
+
+/**
+ * Attach media to lesson request
+ */
+export interface AttachMediaRequest {
+  video_key?: string;
+  pdf_key?: string;
+  image_key?: string;
+}
+
 export interface QuizCreate {
   title: string;
   questions: QuizQuestion[];

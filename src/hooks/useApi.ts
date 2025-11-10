@@ -13,6 +13,8 @@ import {
   CourseFilters,
   ModuleCreate,
   LessonCreate,
+  LessonUpdate,
+  AttachMediaRequest,
   QuizCreate,
   QuizUpdate,
   AssignmentCreate,
@@ -214,7 +216,7 @@ export const useCreateLesson = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: ({ courseId, moduleId, lessonData }: { courseId: string; moduleId: number; lessonData: LessonCreate }) =>
+    mutationFn: ({ courseId, moduleId, lessonData }: { courseId: string; moduleId: string; lessonData: LessonCreate }) =>
       fastAPIClient.createLesson(courseId, moduleId, lessonData),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['course', variables.courseId] });
@@ -227,6 +229,126 @@ export const useCreateLesson = () => {
       toast({
         title: "Erreur",
         description: error.response?.data?.detail || "Impossible de créer la leçon",
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+/**
+ * Hook pour mettre à jour une leçon
+ */
+export const useUpdateLesson = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ courseId, moduleId, lessonId, lessonData }: {
+      courseId: string;
+      moduleId: string;
+      lessonId: string;
+      lessonData: LessonUpdate;
+    }) => fastAPIClient.updateLesson(courseId, moduleId, lessonId, lessonData),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['course', variables.courseId] });
+      toast({
+        title: "Leçon mise à jour",
+        description: "Les modifications ont été enregistrées",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erreur",
+        description: error.response?.data?.detail || "Impossible de mettre à jour la leçon",
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+/**
+ * Hook pour supprimer une leçon
+ */
+export const useDeleteLesson = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ courseId, moduleId, lessonId, forceMediaDelete = false }: {
+      courseId: string;
+      moduleId: string;
+      lessonId: string;
+      forceMediaDelete?: boolean;
+    }) => fastAPIClient.deleteLesson(courseId, moduleId, lessonId, forceMediaDelete),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['course', variables.courseId] });
+      toast({
+        title: "Leçon supprimée",
+        description: "La leçon a été supprimée définitivement",
+        variant: "destructive",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erreur",
+        description: error.response?.data?.detail || "Impossible de supprimer la leçon",
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+/**
+ * Hook pour réorganiser les leçons d'un module
+ */
+export const useReorderLessons = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ courseId, moduleId, lessonIds }: {
+      courseId: string;
+      moduleId: string;
+      lessonIds: string[];
+    }) => fastAPIClient.reorderLessons(courseId, moduleId, { lesson_ids: lessonIds }),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['course', variables.courseId] });
+      toast({
+        title: "Ordre mis à jour",
+        description: "L'ordre des leçons a été enregistré",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erreur",
+        description: error.response?.data?.detail || "Impossible de réorganiser les leçons",
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+/**
+ * Hook pour attacher un média à une leçon
+ */
+export const useAttachLessonMedia = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ courseId, moduleId, lessonId, mediaData }: {
+      courseId: string;
+      moduleId: string;
+      lessonId: string;
+      mediaData: AttachMediaRequest;
+    }) => fastAPIClient.attachLessonMedia(courseId, moduleId, lessonId, mediaData),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['course', variables.courseId] });
+      toast({
+        title: "Média attaché",
+        description: "Le média a été associé à la leçon",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erreur",
+        description: error.response?.data?.detail || "Impossible d'attacher le média",
         variant: "destructive",
       });
     },
