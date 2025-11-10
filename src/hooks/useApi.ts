@@ -10,6 +10,7 @@ import {
   Course,
   CourseUpdate,
   CourseStatus,
+  CourseFilters,
   ModuleCreate,
   LessonCreate,
   QuizCreate,
@@ -75,10 +76,10 @@ export const useAuth = () => {
 
 // ============= COURSES HOOKS =============
 
-export const useCourses = (page = 1, perPage = 10) => {
+export const useCourses = (filters: CourseFilters = {}) => {
   return useQuery({
-    queryKey: ['courses', page, perPage],
-    queryFn: () => fastAPIClient.getCourses(page, perPage),
+    queryKey: ['courses', filters],
+    queryFn: () => fastAPIClient.getCourses(filters),
   });
 };
 

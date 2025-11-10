@@ -553,6 +553,39 @@ export interface CourseStatsResponse {
 }
 
 /**
+ * Course filters for API requests
+ */
+export interface CourseFilters {
+  page?: number;
+  per_page?: number;
+  after?: string; // cursor for keyset pagination
+  sort?: 'newest' | 'price_asc' | 'price_desc';
+  search?: string;
+  level?: string;
+  levels?: string[];
+  status?: 'draft' | 'published';
+  owner_type?: 'learneezy' | 'of';
+  owner_id?: number;
+  price_min?: number;
+  price_max?: number;
+  category_ids?: number[];
+  category?: string; // legacy
+  category_names?: string[];
+  has_intro_video?: boolean;
+  facets?: boolean;
+}
+
+/**
+ * Facets for course filtering (counters by category)
+ */
+export interface CourseFacets {
+  by_level?: Record<string, number>;
+  by_status?: Record<string, number>;
+  by_category?: Record<string, number>;
+  by_cycle?: Record<string, number>;
+}
+
+/**
  * Paginated response for course listing
  */
 export interface CourseSummaryPage {
@@ -563,4 +596,7 @@ export interface CourseSummaryPage {
   total_pages: number;
   has_next: boolean;
   has_previous: boolean;
+  next_cursor?: string | null;
+  applied_filters?: CourseFilters | null;
+  facets?: CourseFacets | null;
 }

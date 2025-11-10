@@ -13,6 +13,7 @@ import {
   CourseResponse,
   CourseUpdate,
   CourseStatus,
+  CourseFilters,
   ModuleCreate,
   ModuleFullUpdate,
   Module,
@@ -333,11 +334,59 @@ class FastAPIClient {
   // ============= COURSES ENDPOINTS =============
 
   /**
-   * Récupérer la liste des cours avec pagination (returns CourseSummaryPage)
+   * Récupérer la liste des cours avec filtres et pagination (returns CourseSummaryPage)
    */
-  async getCourses(page = 1, perPage = 10): Promise<CourseSummaryPage> {
-    const safePerPage = Math.min(Math.max(perPage, 1), 20);
-    return this.get<CourseSummaryPage>(`/api/courses/?page=${page}&per_page=${safePerPage}`);
+  async getCourses(filters: CourseFilters = {}): Promise<CourseSummaryPage> {
+    const params = new URLSearchParams();
+    
+    // Pagination classique
+    if (filters.page) params.append('page', filters.page.toString());
+    if (filters.per_page) params.append('per_page', Math.min(filters.per_page, 20).toString());
+    
+    // Keyset pagination
+    if (filters.after) params.append('after', filters.after);
+    
+    // Tri
+    if (filters.sort) params.append('sort', filters.sort);
+    
+    // Recherche
+    if (filters.search) params.append('search', filters.search.slice(0, 100));
+    
+    // Niveaux
+    if (filters.level) params.append('level', filters.level);
+    if (filters.levels?.length) {
+      filters.levels.forEach(l => params.append('levels[]', l));
+    }
+    
+    // Statut
+    if (filters.status) params.append('status', filters.status);
+    
+    // Propriétaire
+    if (filters.owner_type) params.append('owner_type', filters.owner_type);
+    if (filters.owner_id) params.append('owner_id', filters.owner_id.toString());
+    
+    // Prix
+    if (filters.price_min !== undefined) params.append('price_min', filters.price_min.toString());
+    if (filters.price_max !== undefined) params.append('price_max', filters.price_max.toString());
+    
+    // Catégories
+    if (filters.category_ids?.length) {
+      filters.category_ids.forEach(id => params.append('category_ids[]', id.toString()));
+    }
+    if (filters.category) params.append('category', filters.category);
+    if (filters.category_names?.length) {
+      filters.category_names.forEach(name => params.append('category_names[]', name));
+    }
+    
+    // Vidéo intro
+    if (filters.has_intro_video !== undefined) {
+      params.append('has_intro_video', filters.has_intro_video.toString());
+    }
+    
+    // Facettes
+    if (filters.facets) params.append('facets', 'true');
+    
+    return this.get<CourseSummaryPage>(`/api/courses/?${params.toString()}`);
   }
 
   /**

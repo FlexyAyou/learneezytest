@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
   AlertDialog,
@@ -38,6 +40,10 @@ const AdminCourses = () => {
   const [ownerFilter, setOwnerFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [cycleFilter, setCycleFilter] = useState('all');
+  const [sortOption, setSortOption] = useState<'newest' | 'price_asc' | 'price_desc'>('newest');
+  const [priceMin, setPriceMin] = useState<string>('');
+  const [priceMax, setPriceMax] = useState<string>('');
+  const [hasIntroVideo, setHasIntroVideo] = useState<boolean | undefined>(undefined);
   const [currentPage, setCurrentPage] = useState(1);
   
   // Récupérer les catégories depuis l'API
@@ -57,13 +63,28 @@ const AdminCourses = () => {
   // Delete confirmation state
   const [courseToDelete, setCourseToDelete] = useState<string | null>(null);
 
-  // Load courses from API with server-side pagination
+  // Load courses from API with server-side pagination and filtering
   useEffect(() => {
     const loadCourses = async () => {
       setLoading(true);
       setError(null);
       try {
-        const data = await fastAPIClient.getCourses(currentPage, ITEMS_PER_PAGE);
+        const filters = {
+          page: currentPage,
+          per_page: ITEMS_PER_PAGE,
+          search: searchTerm || undefined,
+          status: statusFilter !== 'all' ? (statusFilter as 'draft' | 'published') : undefined,
+          owner_type: ownerFilter !== 'all' ? (ownerFilter as 'learneezy' | 'of') : undefined,
+          category_names: categoryFilter !== 'all' ? [categoryFilter] : undefined,
+          levels: cycleFilter !== 'all' ? [cycleFilter] : undefined,
+          sort: sortOption,
+          price_min: priceMin ? parseFloat(priceMin) : undefined,
+          price_max: priceMax ? parseFloat(priceMax) : undefined,
+          has_intro_video: hasIntroVideo,
+          facets: true,
+        };
+        
+        const data = await fastAPIClient.getCourses(filters);
         setCoursesPage(data);
         
         // Si on vient de créer un cours, afficher un toast de confirmation
@@ -87,7 +108,7 @@ const AdminCourses = () => {
       }
     };
     loadCourses();
-  }, [currentPage, location.state]);
+  }, [currentPage, searchTerm, statusFilter, ownerFilter, categoryFilter, cycleFilter, sortOption, priceMin, priceMax, hasIntroVideo, location.state]);
 
   // Separate published and draft courses from current page
   const publishedCourses = useMemo(() => {
@@ -104,8 +125,22 @@ const AdminCourses = () => {
     try {
       await fastAPIClient.deleteCourse(courseToDelete);
       
-      // Recharger la page courante
-      const data = await fastAPIClient.getCourses(currentPage, ITEMS_PER_PAGE);
+      // Recharger avec les filtres actuels
+      const filters = {
+        page: currentPage,
+        per_page: ITEMS_PER_PAGE,
+        search: searchTerm || undefined,
+        status: statusFilter !== 'all' ? (statusFilter as 'draft' | 'published') : undefined,
+        owner_type: ownerFilter !== 'all' ? (ownerFilter as 'learneezy' | 'of') : undefined,
+        category_names: categoryFilter !== 'all' ? [categoryFilter] : undefined,
+        levels: cycleFilter !== 'all' ? [cycleFilter] : undefined,
+        sort: sortOption,
+        price_min: priceMin ? parseFloat(priceMin) : undefined,
+        price_max: priceMax ? parseFloat(priceMax) : undefined,
+        has_intro_video: hasIntroVideo,
+        facets: true,
+      };
+      const data = await fastAPIClient.getCourses(filters);
       setCoursesPage(data);
       
       toast({
@@ -146,8 +181,22 @@ const AdminCourses = () => {
         description: "Les paramètres de visibilité ont été mis à jour avec succès.",
       });
       
-      // Recharger la page courante
-      const data = await fastAPIClient.getCourses(currentPage, ITEMS_PER_PAGE);
+      // Recharger avec les filtres actuels
+      const filters = {
+        page: currentPage,
+        per_page: ITEMS_PER_PAGE,
+        search: searchTerm || undefined,
+        status: statusFilter !== 'all' ? (statusFilter as 'draft' | 'published') : undefined,
+        owner_type: ownerFilter !== 'all' ? (ownerFilter as 'learneezy' | 'of') : undefined,
+        category_names: categoryFilter !== 'all' ? [categoryFilter] : undefined,
+        levels: cycleFilter !== 'all' ? [cycleFilter] : undefined,
+        sort: sortOption,
+        price_min: priceMin ? parseFloat(priceMin) : undefined,
+        price_max: priceMax ? parseFloat(priceMax) : undefined,
+        has_intro_video: hasIntroVideo,
+        facets: true,
+      };
+      const data = await fastAPIClient.getCourses(filters);
       setCoursesPage(data);
     } catch (err: any) {
       toast({
@@ -216,31 +265,15 @@ const AdminCourses = () => {
     return <Badge className={config.className}>{config.label}</Badge>;
   };
 
-  // Filter courses on current page
+  // Server-side filtering - display all items from API response
   const filteredCourses = useMemo(() => {
-    if (!coursesPage?.items) return [];
-    
-    return coursesPage.items.filter(course => {
-      const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           (course.category?.toLowerCase() || '').includes(searchTerm.toLowerCase());
-      
-      const matchesStatus = statusFilter === 'all' || course.status === statusFilter;
-      const matchesOwner = ownerFilter === 'all' || course.owner_type === ownerFilter;
-      
-      const matchesCategory = categoryFilter === 'all' || 
-                             (course.category_names && course.category_names.includes(categoryFilter)) ||
-                             course.category === categoryFilter;
-      
-      const matchesCycle = cycleFilter === 'all' || course.learning_cycle === cycleFilter;
-      
-      return matchesSearch && matchesStatus && matchesOwner && matchesCategory && matchesCycle;
-    });
-  }, [coursesPage, searchTerm, statusFilter, ownerFilter, categoryFilter, cycleFilter]);
+    return coursesPage?.items || [];
+  }, [coursesPage]);
 
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, statusFilter, ownerFilter, categoryFilter, cycleFilter]);
+  }, [searchTerm, statusFilter, ownerFilter, categoryFilter, cycleFilter, sortOption, priceMin, priceMax, hasIntroVideo]);
 
   if (loading) {
     return (
@@ -382,6 +415,8 @@ const AdminCourses = () => {
                   {categories.map((cat) => (
                     <SelectItem key={cat.id} value={cat.name}>
                       {cat.name}
+                      {coursesPage?.facets?.by_category?.[cat.name] && 
+                        ` (${coursesPage.facets.by_category[cat.name]})`}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -393,12 +428,70 @@ const AdminCourses = () => {
                 </SelectTrigger>
                 <SelectContent className="bg-background z-50">
                   <SelectItem value="all">Tous les cycles</SelectItem>
-                  <SelectItem value="primaire">Primaire</SelectItem>
-                  <SelectItem value="college">Collège</SelectItem>
-                  <SelectItem value="lycee">Lycée</SelectItem>
-                  <SelectItem value="formation_pro">Professionnel</SelectItem>
+                  <SelectItem value="primaire">
+                    Primaire
+                    {coursesPage?.facets?.by_cycle?.primaire && 
+                      ` (${coursesPage.facets.by_cycle.primaire})`}
+                  </SelectItem>
+                  <SelectItem value="college">
+                    Collège
+                    {coursesPage?.facets?.by_cycle?.college && 
+                      ` (${coursesPage.facets.by_cycle.college})`}
+                  </SelectItem>
+                  <SelectItem value="lycee">
+                    Lycée
+                    {coursesPage?.facets?.by_cycle?.lycee && 
+                      ` (${coursesPage.facets.by_cycle.lycee})`}
+                  </SelectItem>
+                  <SelectItem value="formation_pro">
+                    Professionnel
+                    {coursesPage?.facets?.by_cycle?.formation_pro && 
+                      ` (${coursesPage.facets.by_cycle.formation_pro})`}
+                  </SelectItem>
                 </SelectContent>
               </Select>
+              
+              <Select value={sortOption} onValueChange={(value) => setSortOption(value as 'newest' | 'price_asc' | 'price_desc')}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Trier par..." />
+                </SelectTrigger>
+                <SelectContent className="bg-background z-50">
+                  <SelectItem value="newest">Plus récent</SelectItem>
+                  <SelectItem value="price_asc">Prix croissant</SelectItem>
+                  <SelectItem value="price_desc">Prix décroissant</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  placeholder="Prix min (€)"
+                  value={priceMin}
+                  onChange={(e) => setPriceMin(e.target.value)}
+                  className="w-[150px]"
+                />
+                <span className="text-muted-foreground">-</span>
+                <Input
+                  type="number"
+                  placeholder="Prix max (€)"
+                  value={priceMax}
+                  onChange={(e) => setPriceMax(e.target.value)}
+                  className="w-[150px]"
+                />
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="intro-video"
+                  checked={hasIntroVideo === true}
+                  onCheckedChange={(checked) => setHasIntroVideo(checked ? true : undefined)}
+                />
+                <Label htmlFor="intro-video" className="text-sm cursor-pointer">
+                  Avec vidéo d'intro
+                </Label>
+              </div>
             </div>
           </div>
 

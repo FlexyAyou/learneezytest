@@ -7,12 +7,12 @@ import { useOrganizations, useCourses, useSuperadminUsers } from '@/hooks/useApi
 export const SuperAdminStats = () => {
   // Récupération des données depuis l'API
   const { data: organizations, isLoading: loadingOrgs } = useOrganizations();
-  const { data: coursesData, isLoading: loadingCourses } = useCourses(1, 20);
+  const { data: coursesData, isLoading: loadingCourses } = useCourses({ page: 1, per_page: 20, facets: true });
   const { data: users, isLoading: loadingUsers } = useSuperadminUsers();
 
   // Calcul des statistiques dynamiques
   const totalOrgs = organizations?.length || 0;
-  const totalCourses = Array.isArray(coursesData) ? coursesData.length : 0;
+  const totalCourses = coursesData?.total_items || 0;
   const totalUsers = users?.length || 0;
 
   return (
