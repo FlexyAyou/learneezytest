@@ -133,6 +133,8 @@ export const AdminUsers = () => {
       case 'Gestionnaire':
       case 'Manager':
         return `/dashboard/superadmin/users/manager/${slug}`;
+      case 'Créateur de contenu':
+        return `/dashboard/superadmin/users/${slug}/createur-contenu`;
       case 'Animateur':
         return `/dashboard/superadmin/users/animator/${slug}`;
       case 'Administrateur':
