@@ -539,7 +539,6 @@ const AdminCourses = () => {
                     <TableHead>Propriétaire</TableHead>
                     <TableHead>Catégorie</TableHead>
                     <TableHead>Étudiants</TableHead>
-                    <TableHead>Note</TableHead>
                     <TableHead>Statut</TableHead>
                     <TableHead>Cycle</TableHead>
                     <TableHead>Actions</TableHead>
@@ -585,12 +584,6 @@ const AdminCourses = () => {
                     <TableCell>
                       <div className="flex items-center text-sm text-muted-foreground">
                         <span className="mr-1">👥</span>
-                        <span>-</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <span className="mr-1">⭐</span>
                         <span>-</span>
                       </div>
                     </TableCell>
