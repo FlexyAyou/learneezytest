@@ -25,6 +25,7 @@ import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { CourseVisibilityModal } from './CourseVisibilityModal';
 import { useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
+import { useCategories } from '@/hooks/useApi';
 
 const AdminCourses = () => {
   const { toast } = useToast();
@@ -35,7 +36,12 @@ const AdminCourses = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [ownerFilter, setOwnerFilter] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [cycleFilter, setCycleFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
+  
+  // Récupérer les catégories depuis l'API
+  const { data: categories = [] } = useCategories();
   
   // API state
   const [coursesPage, setCoursesPage] = useState<CourseSummaryPage | null>(null);
@@ -221,14 +227,20 @@ const AdminCourses = () => {
       const matchesStatus = statusFilter === 'all' || course.status === statusFilter;
       const matchesOwner = ownerFilter === 'all' || course.owner_type === ownerFilter;
       
-      return matchesSearch && matchesStatus && matchesOwner;
+      const matchesCategory = categoryFilter === 'all' || 
+                             (course.category_names && course.category_names.includes(categoryFilter)) ||
+                             course.category === categoryFilter;
+      
+      const matchesCycle = cycleFilter === 'all' || course.learning_cycle === cycleFilter;
+      
+      return matchesSearch && matchesStatus && matchesOwner && matchesCategory && matchesCycle;
     });
-  }, [coursesPage, searchTerm, statusFilter, ownerFilter]);
+  }, [coursesPage, searchTerm, statusFilter, ownerFilter, categoryFilter, cycleFilter]);
 
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, statusFilter, ownerFilter]);
+  }, [searchTerm, statusFilter, ownerFilter, categoryFilter, cycleFilter]);
 
   if (loading) {
     return (
@@ -327,36 +339,67 @@ const AdminCourses = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center space-x-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Rechercher par titre ou catégorie..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+          <div className="space-y-4 mb-6">
+            <div className="flex items-center space-x-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  placeholder="Rechercher par titre ou catégorie..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filtrer par statut" />
+                </SelectTrigger>
+                <SelectContent className="bg-background z-50">
+                  <SelectItem value="all">Tous les statuts</SelectItem>
+                  <SelectItem value="published">Publié</SelectItem>
+                  <SelectItem value="draft">Brouillon</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={ownerFilter} onValueChange={setOwnerFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filtrer par propriétaire" />
+                </SelectTrigger>
+                <SelectContent className="bg-background z-50">
+                  <SelectItem value="all">Tous</SelectItem>
+                  <SelectItem value="learneezy">Learneezy</SelectItem>
+                  <SelectItem value="of">Organismes</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filtrer par statut" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tous les statuts</SelectItem>
-                <SelectItem value="published">Publié</SelectItem>
-                <SelectItem value="draft">Brouillon</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={ownerFilter} onValueChange={setOwnerFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filtrer par propriétaire" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tous</SelectItem>
-                <SelectItem value="learneezy">Learneezy</SelectItem>
-                <SelectItem value="of">Organismes</SelectItem>
-              </SelectContent>
-            </Select>
+            
+            <div className="flex items-center space-x-4">
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-[240px]">
+                  <SelectValue placeholder="Toutes les catégories" />
+                </SelectTrigger>
+                <SelectContent className="bg-background z-50">
+                  <SelectItem value="all">Toutes les catégories</SelectItem>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.name}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              <Select value={cycleFilter} onValueChange={setCycleFilter}>
+                <SelectTrigger className="w-[240px]">
+                  <SelectValue placeholder="Tous les cycles" />
+                </SelectTrigger>
+                <SelectContent className="bg-background z-50">
+                  <SelectItem value="all">Tous les cycles</SelectItem>
+                  <SelectItem value="primaire">Primaire</SelectItem>
+                  <SelectItem value="college">Collège</SelectItem>
+                  <SelectItem value="lycee">Lycée</SelectItem>
+                  <SelectItem value="formation_pro">Professionnel</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {filteredCourses.length === 0 ? (
