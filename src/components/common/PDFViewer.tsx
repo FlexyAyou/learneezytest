@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, Maximize2, FileText } from 'lucide-react';
-import { fastAPIClient } from '@/services/fastapi-client';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { useToast } from '@/hooks/use-toast';
+import { usePresignedUrl } from '@/hooks/usePresignedUrl';
 
 interface PDFViewerProps {
   pdfUrl?: string;
@@ -20,44 +20,10 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   height = '600px',
   showDownload = true 
 }) => {
-  const [playUrl, setPlayUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
-
-  useEffect(() => {
-    const loadPDF = async () => {
-      if (!pdfKey && !pdfUrl) {
-        setError('Aucun PDF disponible');
-        return;
-      }
-
-      if (pdfUrl) {
-        // URL directe - force HTTPS
-        const httpsUrl = pdfUrl.replace(/^http:\/\//i, 'https://');
-        setPlayUrl(httpsUrl);
-        return;
-      }
-
-      if (pdfKey) {
-        setLoading(true);
-        setError(null);
-        try {
-          const response = await fastAPIClient.getPlayUrl(pdfKey);
-          // Force HTTPS for all PDF URLs
-          const httpsUrl = response.url.replace(/^http:\/\//i, 'https://');
-          setPlayUrl(httpsUrl);
-        } catch (err: any) {
-          setError('Erreur lors du chargement du PDF');
-          console.error(err);
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-
-    loadPDF();
-  }, [pdfKey, pdfUrl]);
+  
+  // Utiliser le hook pour gérer l'URL avec rafraîchissement automatique
+  const { url: playUrl, loading, error } = usePresignedUrl(pdfKey, pdfUrl);
 
   const handleDownload = async () => {
     if (!playUrl) return;

@@ -22,6 +22,7 @@ import { fastAPIClient } from '@/services/fastapi-client';
 import { CourseResponse, Content } from '@/types/fastapi';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import PDFViewer from '@/components/common/PDFViewer';
+import { usePresignedUrl } from '@/hooks/usePresignedUrl';
 
 interface VideoPlayerProps {
   videoKey?: string;
@@ -30,10 +31,6 @@ interface VideoPlayerProps {
 }
 
 const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoKey, videoUrl, title }) => {
-  const [playUrl, setPlayUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
   // Function to convert YouTube URL to embed URL
   const getYouTubeEmbedUrl = (url: string): string | null => {
     const patterns = [
@@ -50,45 +47,17 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoKey, videoUrl, title }) 
     return null;
   };
 
-  useEffect(() => {
-    const loadVideo = async () => {
-      if (!videoKey && !videoUrl) {
-        setError('Aucune vidéo disponible');
-        return;
-      }
+  // Check if videoUrl is YouTube - if so, use it directly
+  const youtubeUrl = videoUrl ? getYouTubeEmbedUrl(videoUrl) : null;
+  const finalVideoUrl = youtubeUrl || videoUrl;
 
-      if (videoUrl) {
-        // Check if it's a YouTube URL
-        const youtubeEmbedUrl = getYouTubeEmbedUrl(videoUrl);
-        if (youtubeEmbedUrl) {
-          setPlayUrl(youtubeEmbedUrl);
-        } else {
-          // Force HTTPS for all video URLs to prevent Mixed Content errors
-          const httpsUrl = videoUrl.replace(/^http:\/\//i, 'https://');
-          setPlayUrl(httpsUrl);
-        }
-        return;
-      }
+  // Use presigned URL hook with automatic refresh
+  const { url: playUrl, loading, error: urlError } = usePresignedUrl(
+    youtubeUrl ? undefined : videoKey,
+    finalVideoUrl
+  );
 
-      if (videoKey) {
-        setLoading(true);
-        setError(null);
-        try {
-          const response = await fastAPIClient.getVideoPlayUrl(videoKey);
-          // Force HTTPS for all video URLs to prevent Mixed Content errors
-          const httpsUrl = response.url.replace(/^http:\/\//i, 'https://');
-          setPlayUrl(httpsUrl);
-        } catch (err: any) {
-          setError('Erreur lors du chargement de la vidéo');
-          console.error(err);
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-
-    loadVideo();
-  }, [videoKey, videoUrl]);
+  const error = urlError ? 'Erreur lors du chargement de la vidéo' : null;
 
   if (loading) {
     return (
@@ -154,42 +123,10 @@ interface ImageViewerProps {
 }
 
 const ImageViewer: React.FC<ImageViewerProps> = ({ imageKey, imageUrl, title }) => {
-  const [displayUrl, setDisplayUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Use presigned URL hook with automatic refresh
+  const { url: displayUrl, loading, error: urlError } = usePresignedUrl(imageKey, imageUrl);
 
-  useEffect(() => {
-    const loadImage = async () => {
-      if (!imageKey && !imageUrl) {
-        setError('Aucune image disponible');
-        return;
-      }
-
-      if (imageUrl) {
-        // URL directe - force HTTPS
-        const httpsUrl = imageUrl.replace(/^http:\/\//i, 'https://');
-        setDisplayUrl(httpsUrl);
-        return;
-      }
-
-      if (imageKey) {
-        setLoading(true);
-        setError(null);
-        try {
-          const response = await fastAPIClient.getPlayUrl(imageKey);
-          const httpsUrl = response.url.replace(/^http:\/\//i, 'https://');
-          setDisplayUrl(httpsUrl);
-        } catch (err: any) {
-          setError('Erreur lors du chargement de l\'image');
-          console.error(err);
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-
-    loadImage();
-  }, [imageKey, imageUrl]);
+  const error = urlError ? 'Erreur lors du chargement de l\'image' : null;
 
   if (loading) {
     return (
@@ -235,10 +172,6 @@ const ImageViewer: React.FC<ImageViewerProps> = ({ imageKey, imageUrl, title }) 
           src={displayUrl}
           alt={title}
           className="w-full h-auto object-contain max-h-[500px] bg-gray-100"
-          onError={(e) => {
-            (e.target as HTMLImageElement).style.display = 'none';
-            setError('Impossible de charger l\'image');
-          }}
         />
       </div>
     </div>
