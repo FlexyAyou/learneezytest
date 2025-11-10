@@ -79,11 +79,13 @@ interface EditableLesson {
   video_key?: string;
   videoFileName?: string;
   transcription?: string;
-  // NOUVEAUX CHAMPS
+  // Media fields
   image_key?: string;
   imageFileName?: string;
-  resource_key?: string;
-  resourceFileName?: string;
+  pdf_key?: string;
+  pdfFileName?: string;
+  resource_key?: string;  // Legacy, use pdf_key instead
+  resourceFileName?: string;  // Legacy, use pdfFileName instead
   video_url?: string;
   content_type?: 'video' | 'image' | 'pdf' | 'url';
   useMediaUrl?: boolean;
@@ -250,8 +252,10 @@ const EditCoursePage = () => {
         transcription: lesson.transcription || undefined,
         image_key: (lesson as any).image_key,
         imageFileName: (lesson as any).image_key ? 'Image existante' : undefined,
-        resource_key: (lesson as any).resource_key,
-        resourceFileName: (lesson as any).resource_key ? 'Fichier existant' : undefined,
+        pdf_key: lesson.pdf_key,
+        pdfFileName: lesson.pdf_key ? 'PDF existant' : undefined,
+        resource_key: (lesson as any).resource_key,  // Legacy
+        resourceFileName: (lesson as any).resource_key ? 'Fichier existant' : undefined,  // Legacy
         video_url: (lesson as any).video_url,
         content_type: (lesson as any).content_type || 'video',
       })),
@@ -766,9 +770,36 @@ const EditCoursePage = () => {
     }
   };
 
-  // Upload lesson video
+  // Upload lesson media (video, PDF, or image)
   const handleLessonVideoUpload = async (moduleIdx: number, lessonIdx: number, file: File) => {
     if (!id) return;
+
+    // Detect file type from MIME type
+    const mimeType = file.type.toLowerCase();
+    let fileKind: 'video' | 'pdf' | 'image';
+    let mediaKeyField: 'video_key' | 'pdf_key' | 'image_key';
+    let fileTypeLabel: string;
+    
+    if (mimeType.startsWith('video/')) {
+      fileKind = 'video';
+      mediaKeyField = 'video_key';
+      fileTypeLabel = 'Vidéo';
+    } else if (mimeType === 'application/pdf') {
+      fileKind = 'pdf';
+      mediaKeyField = 'pdf_key';
+      fileTypeLabel = 'PDF';
+    } else if (mimeType.startsWith('image/')) {
+      fileKind = 'image';
+      mediaKeyField = 'image_key';
+      fileTypeLabel = 'Image';
+    } else {
+      toast({
+        title: '❌ Type de fichier non supporté',
+        description: `Le type ${mimeType} n'est pas accepté`,
+        variant: 'destructive'
+      });
+      return;
+    }
 
     const uploadId = `upload-${Date.now()}`;
     
@@ -781,7 +812,7 @@ const EditCoursePage = () => {
     }]);
 
     try {
-      const up = await uploadDirect(file, 'video', {
+      const up = await uploadDirect(file, fileKind, {
         onProgress: (uploaded, total) => {
           const progress = Math.round((uploaded / total) * 100);
           setUploads(prev => prev.map(u =>
@@ -790,12 +821,13 @@ const EditCoursePage = () => {
         }
       });
 
-      // Attach video to lesson - récupérer les vrais IDs
+      // Attach media to lesson - récupérer les vrais IDs
       const course = await fastAPIClient.getCourse(id);
       const moduleId = course.modules[moduleIdx].id!;
       const lessonId = course.modules[moduleIdx].content[lessonIdx].id!;
       
-      await fastAPIClient.attachLessonMedia(id, moduleId, lessonId, { video_key: up.key });
+      // Send the correct key field based on file type
+      await fastAPIClient.attachLessonMedia(id, moduleId, lessonId, { [mediaKeyField]: up.key });
 
       setModules(prev => prev.map((mod, mIdx) =>
         mIdx === moduleIdx
@@ -803,7 +835,7 @@ const EditCoursePage = () => {
             ...mod,
             lessons: mod.lessons.map((lesson, lIdx) =>
               lIdx === lessonIdx
-                ? { ...lesson, video_key: up.key, videoFileName: file.name, content_type: 'video' }
+                ? { ...lesson, [mediaKeyField]: up.key, videoFileName: file.name, content_type: fileKind }
                 : lesson
             )
           }
@@ -820,114 +852,16 @@ const EditCoursePage = () => {
         setUploads(prev => prev.filter(u => u.id !== uploadId));
       }, 3000);
 
-      toast({ title: "✅ Vidéo uploadée", description: file.name });
+      toast({ title: `✅ ${fileTypeLabel} uploadé${fileKind === 'image' ? 'e' : ''}`, description: file.name });
     } catch (error) {
-      console.error('Error uploading video:', error);
+      console.error(`Error uploading ${fileKind}:`, error);
       
       // Marquer comme erreur
       setUploads(prev => prev.map(u =>
         u.id === uploadId ? { ...u, status: 'error', error: 'Échec de l\'upload' } : u
       ));
       
-      toast({ title: "Erreur", description: "Impossible d'uploader la vidéo", variant: "destructive" });
-    }
-  };
-
-  // Upload lesson image
-  const handleLessonImageUpload = async (moduleIdx: number, lessonIdx: number, file: File) => {
-    if (!id) return;
-
-    const uploadId = `upload-${Date.now()}`;
-    
-    setUploads(prev => [...prev, {
-      id: uploadId,
-      fileName: file.name,
-      progress: 0,
-      status: 'uploading'
-    }]);
-
-    try {
-      const up = await uploadDirect(file, 'image', {
-        onProgress: (uploaded, total) => {
-          const progress = Math.round((uploaded / total) * 100);
-          setUploads(prev => prev.map(u =>
-            u.id === uploadId ? { ...u, progress } : u
-          ));
-        }
-      });
-      
-      // Récupérer les vrais IDs
-      const course = await fastAPIClient.getCourse(id);
-      const moduleId = course.modules[moduleIdx].id!;
-      const lessonId = course.modules[moduleIdx].content[lessonIdx].id!;
-      
-      await fastAPIClient.attachLessonMedia(id, moduleId, lessonId, { image_key: up.key });
-      
-      setModules(prev => prev.map((mod, mIdx) =>
-        mIdx === moduleIdx
-          ? {
-            ...mod,
-            lessons: mod.lessons.map((lesson, lIdx) =>
-              lIdx === lessonIdx
-                ? { ...lesson, image_key: up.key, imageFileName: file.name, content_type: 'image' }
-                : lesson
-            )
-          }
-          : mod
-      ));
-      
-      setUploads(prev => prev.map(u =>
-        u.id === uploadId ? { ...u, status: 'completed', progress: 100 } : u
-      ));
-      
-      setTimeout(() => {
-        setUploads(prev => prev.filter(u => u.id !== uploadId));
-      }, 3000);
-
-      toast({ title: "✅ Image uploadée", description: file.name });
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      
-      setUploads(prev => prev.map(u =>
-        u.id === uploadId ? { ...u, status: 'error', error: 'Échec de l\'upload' } : u
-      ));
-      
-      toast({ title: "Erreur", description: "Impossible d'uploader l'image", variant: "destructive" });
-    }
-  };
-
-  // Upload lesson PDF/resource
-  const handleLessonResourceUpload = async (moduleIdx: number, lessonIdx: number, file: File) => {
-    if (!id) return;
-
-    try {
-      toast({ title: "Upload fichier...", description: file.name });
-      const up = await uploadDirect(file, 'pdf');
-      
-      // Récupérer les vrais IDs
-      const course = await fastAPIClient.getCourse(id);
-      const moduleId = course.modules[moduleIdx].id!;
-      const lessonId = course.modules[moduleIdx].content[lessonIdx].id!;
-      
-      await fastAPIClient.attachLessonMedia(id, moduleId, lessonId, { pdf_key: up.key });
-      
-      setModules(prev => prev.map((mod, mIdx) =>
-        mIdx === moduleIdx
-          ? {
-              ...mod,
-              lessons: mod.lessons.map((lesson, lIdx) =>
-                lIdx === lessonIdx
-                  ? { ...lesson, resource_key: up.key, resourceFileName: file.name, content_type: 'pdf' }
-                  : lesson
-              )
-            }
-          : mod
-      ));
-
-      toast({ title: "✅ Fichier uploadé", description: file.name });
-    } catch (error) {
-      console.error('Error uploading resource:', error);
-      toast({ title: "Erreur", description: "Impossible d'uploader le fichier", variant: "destructive" });
+      toast({ title: "Erreur", description: `Impossible d'uploader ${fileTypeLabel === 'Image' ? "l'image" : fileTypeLabel === 'PDF' ? 'le PDF' : 'la vidéo'}`, variant: "destructive" });
     }
   };
 
@@ -1627,12 +1561,16 @@ const EditCoursePage = () => {
                                             {/* Mode Upload */}
                                             {!lesson.useMediaUrl && (
                                               <>
-                                                {lesson.videoFileName || lesson.video_key ? (
+                                                {(lesson.videoFileName || lesson.video_key || lesson.pdfFileName || lesson.pdf_key || lesson.imageFileName || lesson.image_key) ? (
                                                   <div className="space-y-2">
                                                     <div className="flex items-center justify-between p-3 bg-white rounded border">
                                                       <div className="flex items-center space-x-3">
-                                                        <Video className="h-5 w-5 text-blue-500" />
-                                                        <span className="text-sm font-medium">{lesson.videoFileName || 'Fichier existant'}</span>
+                                                        {lesson.video_key && <Video className="h-5 w-5 text-blue-500" />}
+                                                        {lesson.pdf_key && <FileText className="h-5 w-5 text-red-500" />}
+                                                        {lesson.image_key && <ImageIcon className="h-5 w-5 text-green-500" />}
+                                                        <span className="text-sm font-medium">
+                                                          {lesson.videoFileName || lesson.pdfFileName || lesson.imageFileName || 'Fichier existant'}
+                                                        </span>
                                                       </div>
                                                       <Button
                                                         variant="ghost"
@@ -1642,7 +1580,17 @@ const EditCoursePage = () => {
                                                             ? {
                                                               ...m,
                                                               lessons: m.lessons.map((l, lIdx) =>
-                                                                lIdx === lessonIdx ? { ...l, videoFileName: '', video_key: undefined } : l
+                                                                lIdx === lessonIdx 
+                                                                  ? { 
+                                                                      ...l, 
+                                                                      videoFileName: '', 
+                                                                      video_key: undefined,
+                                                                      pdfFileName: '',
+                                                                      pdf_key: undefined,
+                                                                      imageFileName: '',
+                                                                      image_key: undefined
+                                                                    } 
+                                                                  : l
                                                               )
                                                             }
                                                             : m
