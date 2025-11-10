@@ -14,6 +14,9 @@ import {
   ModuleCreate,
   LessonCreate,
   QuizCreate,
+  QuizUpdate,
+  AssignmentCreate,
+  AssignmentUpdate,
   OrganizationCreate,
   OrganizationResponse,
   UserUpdate,
@@ -230,6 +233,174 @@ export const useCreateLesson = () => {
   });
 };
 
+// ============= QUIZ HOOKS (NEW) =============
+
+export const useCreateLessonQuiz = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ courseId, moduleId, lessonId, quizData }: { 
+      courseId: string; 
+      moduleId: string; 
+      lessonId: string; 
+      quizData: QuizCreate 
+    }) => fastAPIClient.createLessonQuiz(courseId, moduleId, lessonId, quizData),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['course', variables.courseId] });
+      toast({
+        title: "Quiz créé",
+        description: "Le quiz a été ajouté à la leçon",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erreur",
+        description: error.response?.data?.detail || "Impossible de créer le quiz",
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useUpdateLessonQuiz = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ courseId, moduleId, lessonId, quizData }: { 
+      courseId: string; 
+      moduleId: string; 
+      lessonId: string; 
+      quizData: QuizUpdate 
+    }) => fastAPIClient.updateLessonQuiz(courseId, moduleId, lessonId, quizData),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['course', variables.courseId] });
+      toast({
+        title: "Quiz mis à jour",
+        description: "Les modifications ont été enregistrées",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erreur",
+        description: error.response?.data?.detail || "Impossible de mettre à jour le quiz",
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useDeleteLessonQuiz = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ courseId, moduleId, lessonId }: { 
+      courseId: string; 
+      moduleId: string; 
+      lessonId: string 
+    }) => fastAPIClient.deleteLessonQuiz(courseId, moduleId, lessonId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['course', variables.courseId] });
+      toast({
+        title: "Quiz supprimé",
+        description: "Le quiz a été supprimé définitivement",
+        variant: "destructive",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erreur",
+        description: error.response?.data?.detail || "Impossible de supprimer le quiz",
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+// ============= ASSIGNMENT HOOKS (NEW) =============
+
+export const useCreateAssignment = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ courseId, moduleId, assignmentData }: { 
+      courseId: string; 
+      moduleId: string; 
+      assignmentData: AssignmentCreate 
+    }) => fastAPIClient.createAssignment(courseId, moduleId, assignmentData),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['course', variables.courseId] });
+      toast({
+        title: "Devoir créé",
+        description: "Le devoir a été ajouté au module",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erreur",
+        description: error.response?.data?.detail || "Impossible de créer le devoir",
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useUpdateAssignment = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ courseId, moduleId, assignmentData }: { 
+      courseId: string; 
+      moduleId: string; 
+      assignmentData: AssignmentUpdate 
+    }) => fastAPIClient.updateAssignment(courseId, moduleId, assignmentData),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['course', variables.courseId] });
+      toast({
+        title: "Devoir mis à jour",
+        description: "Les modifications ont été enregistrées",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erreur",
+        description: error.response?.data?.detail || "Impossible de mettre à jour le devoir",
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useDeleteAssignment = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ courseId, moduleId }: { 
+      courseId: string; 
+      moduleId: string 
+    }) => fastAPIClient.deleteAssignment(courseId, moduleId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['course', variables.courseId] });
+      toast({
+        title: "Devoir supprimé",
+        description: "Le devoir a été supprimé définitivement",
+        variant: "destructive",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erreur",
+        description: error.response?.data?.detail || "Impossible de supprimer le devoir",
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+// ============= DEPRECATED QUIZ HOOK =============
+
+/**
+ * @deprecated Use useCreateLessonQuiz instead
+ */
 export const useCreateQuiz = () => {
   const queryClient = useQueryClient();
   

@@ -21,6 +21,11 @@ import {
   Content,
   QuizCreate,
   Quiz,
+  QuizResponse,
+  QuizUpdate,
+  AssignmentCreate,
+  AssignmentResponse,
+  AssignmentUpdate,
   UploadResponse,
   EnrollResponse,
   CourseStatsResponse,
@@ -445,22 +450,221 @@ class FastAPIClient {
     return this.post<Content>(`/api/courses/${courseId}/modules/${moduleId}/lessons`, lessonData);
   }
 
+  // ============= QUIZ ENDPOINTS (NEW) =============
+  
   /**
-   * Ajouter un quiz à une leçon
+   * Créer un quiz pour une leçon
+   */
+  async createLessonQuiz(
+    courseId: string,
+    moduleId: string,
+    lessonId: string,
+    quizData: QuizCreate
+  ): Promise<QuizResponse> {
+    return this.post<QuizResponse>(
+      `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/quiz`,
+      quizData
+    );
+  }
+
+  /**
+   * Récupérer le quiz d'une leçon
+   */
+  async getLessonQuiz(
+    courseId: string,
+    moduleId: string,
+    lessonId: string
+  ): Promise<QuizResponse> {
+    return this.get<QuizResponse>(
+      `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/quiz`
+    );
+  }
+
+  /**
+   * Mettre à jour le quiz d'une leçon
+   */
+  async updateLessonQuiz(
+    courseId: string,
+    moduleId: string,
+    lessonId: string,
+    quizData: QuizUpdate
+  ): Promise<QuizResponse> {
+    return this.put<QuizResponse>(
+      `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/quiz`,
+      quizData
+    );
+  }
+
+  /**
+   * Supprimer le quiz d'une leçon
+   */
+  async deleteLessonQuiz(
+    courseId: string,
+    moduleId: string,
+    lessonId: string
+  ): Promise<void> {
+    return this.delete<void>(
+      `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/quiz`
+    );
+  }
+
+  /**
+   * Récupérer un quiz par son ID
+   */
+  async getQuizById(
+    courseId: string,
+    moduleId: string,
+    lessonId: string,
+    quizId: string
+  ): Promise<QuizResponse> {
+    return this.get<QuizResponse>(
+      `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/quiz/${quizId}`
+    );
+  }
+
+  /**
+   * Mettre à jour un quiz par son ID
+   */
+  async updateQuizById(
+    courseId: string,
+    moduleId: string,
+    lessonId: string,
+    quizId: string,
+    quizData: QuizUpdate
+  ): Promise<QuizResponse> {
+    return this.put<QuizResponse>(
+      `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/quiz/${quizId}`,
+      quizData
+    );
+  }
+
+  /**
+   * Supprimer un quiz par son ID
+   */
+  async deleteQuizById(
+    courseId: string,
+    moduleId: string,
+    lessonId: string,
+    quizId: string
+  ): Promise<void> {
+    return this.delete<void>(
+      `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/quiz/${quizId}`
+    );
+  }
+
+  // ============= ASSIGNMENT ENDPOINTS (NEW) =============
+
+  /**
+   * Créer un assignment pour un module
+   */
+  async createAssignment(
+    courseId: string,
+    moduleId: string,
+    assignmentData: AssignmentCreate
+  ): Promise<AssignmentResponse> {
+    return this.post<AssignmentResponse>(
+      `/api/courses/${courseId}/modules/${moduleId}/assignment`,
+      assignmentData
+    );
+  }
+
+  /**
+   * Récupérer l'assignment d'un module
+   */
+  async getAssignment(
+    courseId: string,
+    moduleId: string
+  ): Promise<AssignmentResponse> {
+    return this.get<AssignmentResponse>(
+      `/api/courses/${courseId}/modules/${moduleId}/assignment`
+    );
+  }
+
+  /**
+   * Mettre à jour l'assignment d'un module
+   */
+  async updateAssignment(
+    courseId: string,
+    moduleId: string,
+    assignmentData: AssignmentUpdate
+  ): Promise<AssignmentResponse> {
+    return this.put<AssignmentResponse>(
+      `/api/courses/${courseId}/modules/${moduleId}/assignment`,
+      assignmentData
+    );
+  }
+
+  /**
+   * Supprimer l'assignment d'un module
+   */
+  async deleteAssignment(
+    courseId: string,
+    moduleId: string
+  ): Promise<void> {
+    return this.delete<void>(
+      `/api/courses/${courseId}/modules/${moduleId}/assignment`
+    );
+  }
+
+  /**
+   * Récupérer un assignment par son ID
+   */
+  async getAssignmentById(
+    courseId: string,
+    moduleId: string,
+    assignmentId: string
+  ): Promise<AssignmentResponse> {
+    return this.get<AssignmentResponse>(
+      `/api/courses/${courseId}/modules/${moduleId}/assignment/${assignmentId}`
+    );
+  }
+
+  /**
+   * Mettre à jour un assignment par son ID
+   */
+  async updateAssignmentById(
+    courseId: string,
+    moduleId: string,
+    assignmentId: string,
+    assignmentData: AssignmentUpdate
+  ): Promise<AssignmentResponse> {
+    return this.put<AssignmentResponse>(
+      `/api/courses/${courseId}/modules/${moduleId}/assignment/${assignmentId}`,
+      assignmentData
+    );
+  }
+
+  /**
+   * Supprimer un assignment par son ID
+   */
+  async deleteAssignmentById(
+    courseId: string,
+    moduleId: string,
+    assignmentId: string
+  ): Promise<void> {
+    return this.delete<void>(
+      `/api/courses/${courseId}/modules/${moduleId}/assignment/${assignmentId}`
+    );
+  }
+
+  // ============= DEPRECATED QUIZ METHODS =============
+  
+  /**
+   * @deprecated Use createLessonQuiz instead
    */
   async createQuiz(courseId: string, moduleId: number, lessonId: number, quizData: QuizCreate): Promise<Quiz> {
     return this.post<Quiz>(`/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/quizzes`, quizData);
   }
 
   /**
-   * Mettre à jour ou créer un quiz de module
+   * @deprecated Use updateLessonQuiz instead
    */
   async updateModuleQuiz(courseId: string, moduleId: number, quizData: QuizCreate): Promise<Quiz> {
     return this.put<Quiz>(`/api/courses/${courseId}/modules/${moduleId}/quiz`, quizData);
   }
 
   /**
-   * Supprimer un quiz de module
+   * @deprecated Use deleteLessonQuiz instead
    */
   async deleteModuleQuiz(courseId: string, moduleId: number): Promise<void> {
     return this.delete<void>(`/api/courses/${courseId}/modules/${moduleId}/quiz`);
@@ -703,36 +907,7 @@ class FastAPIClient {
     return this.attachLessonMedia(courseId, moduleId, lessonId, { key: videoKey });
   }
 
-  // ============= QUIZ MANAGEMENT =============
-
-  /**
-   * Mettre à jour un quiz de leçon
-   */
-  async updateLessonQuiz(
-    courseId: string,
-    moduleId: number,
-    lessonId: number,
-    quizData: QuizCreate
-  ): Promise<Quiz> {
-    return this.post<Quiz>(
-      `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/quizzes`,
-      quizData
-    );
-  }
-
-  /**
-   * Supprimer un quiz de leçon
-   */
-  async deleteLessonQuiz(
-    courseId: string,
-    moduleId: number,
-    lessonId: number
-  ): Promise<void> {
-    const course = await this.getCourse(courseId);
-    const updatedModules = [...course.modules];
-    // Remove quiz from lesson (API structure may vary)
-    await this.updateCourse(courseId, { modules: updatedModules as any });
-  }
+  // Note: QUIZ MANAGEMENT methods have been moved above (lines ~449-669)
 
   // ============= RESOURCE MANAGEMENT =============
 

@@ -307,14 +307,18 @@ export interface QuizQuestion {
  * Quiz associé à un module
  */
 export interface Quiz {
+  id?: string; // ID attribué par le backend
   title: string;
   questions: QuizQuestion[];
+  lesson_id?: string; // ID de la leçon associée
+  module_id?: string; // ID du module associé
 }
 
 /**
  * Contenu d'une leçon (vidéo, texte, etc.)
  */
 export interface Content {
+  id?: string; // ID attribué par le backend
   title: string;
   duration: string;
   description: string;
@@ -332,6 +336,7 @@ export interface Content {
  * Module d'un cours
  */
 export interface Module {
+  id?: string; // ID attribué par le backend
   title: string;
   description?: string | null;
   duration: string;
@@ -455,6 +460,68 @@ export interface LessonCreate {
 export interface QuizCreate {
   title: string;
   questions: QuizQuestion[];
+}
+
+/**
+ * Quiz response from backend
+ */
+export interface QuizResponse {
+  id: string;
+  title: string;
+  questions: QuizQuestion[];
+  lesson_id?: string;
+  module_id?: string;
+  created_at?: string;
+}
+
+/**
+ * Quiz update (partial)
+ */
+export interface QuizUpdate {
+  title?: string;
+  questions?: QuizQuestion[];
+}
+
+// ============= ASSIGNMENTS =============
+
+/**
+ * Assignment creation data
+ */
+export interface AssignmentCreate {
+  title: string;
+  description: string;
+  instructions?: string;
+  due_date?: string; // ISO 8601
+  max_attempts?: number;
+  passing_score?: number;
+  time_limit?: number; // minutes
+  allow_late_submission?: boolean;
+  requires_manual_grading?: boolean;
+}
+
+/**
+ * Assignment response from backend
+ */
+export interface AssignmentResponse extends AssignmentCreate {
+  id: string;
+  module_id: string;
+  created_at: string;
+  updated_at?: string;
+}
+
+/**
+ * Assignment update (partial)
+ */
+export interface AssignmentUpdate {
+  title?: string;
+  description?: string;
+  instructions?: string;
+  due_date?: string;
+  max_attempts?: number;
+  passing_score?: number;
+  time_limit?: number;
+  allow_late_submission?: boolean;
+  requires_manual_grading?: boolean;
 }
 
 // ============= STORAGE (DEPRECATED) =============
