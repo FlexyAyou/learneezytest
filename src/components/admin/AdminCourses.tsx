@@ -583,15 +583,15 @@ const AdminCourses = () => {
                       {getCategoryBadges(course)}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center text-sm">
+                      <div className="flex items-center text-sm text-muted-foreground">
                         <span className="mr-1">👥</span>
-                        {Math.floor(Math.random() * 300)}
+                        <span>-</span>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center text-sm">
+                      <div className="flex items-center text-sm text-muted-foreground">
                         <span className="mr-1">⭐</span>
-                        {(4 + Math.random()).toFixed(1)}
+                        <span>-</span>
                       </div>
                     </TableCell>
                     <TableCell>
