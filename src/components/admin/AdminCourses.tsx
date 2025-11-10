@@ -20,25 +20,22 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { fastAPIClient } from '@/services/fastapi-client';
-import { CourseResponse, CourseSummaryPage } from '@/types/fastapi';
+import { CourseResponse } from '@/types/fastapi';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { CourseVisibilityModal } from './CourseVisibilityModal';
-import { useQueryClient } from '@tanstack/react-query';
-import { useMemo } from 'react';
 
 const AdminCourses = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
-  const queryClient = useQueryClient();
-  
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [ownerFilter, setOwnerFilter] = useState('all');
-  const [currentPage, setCurrentPage] = useState(1);
   
   // API state
-  const [coursesPage, setCoursesPage] = useState<CourseSummaryPage | null>(null);
+  const [courses, setCourses] = useState<CourseResponse[]>([]);
+  const [totalCourses, setTotalCourses] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -51,14 +48,32 @@ const AdminCourses = () => {
   // Delete confirmation state
   const [courseToDelete, setCourseToDelete] = useState<string | null>(null);
 
-  // Load courses from API with server-side pagination
+  // Load ALL courses from API to get accurate total count
   useEffect(() => {
-    const loadCourses = async () => {
+    const loadAllCourses = async () => {
       setLoading(true);
       setError(null);
       try {
-        const data = await fastAPIClient.getCourses(currentPage, ITEMS_PER_PAGE);
-        setCoursesPage(data);
+        let allCourses: CourseResponse[] = [];
+        let page = 1;
+        const perPage = 100; // Maximum allowed by API
+        
+        // Load all courses by paginating through API
+        while (true) {
+          const coursesData = await fastAPIClient.getCourses(page, perPage);
+          if (!coursesData || coursesData.length === 0) break;
+          
+          allCourses = [...allCourses, ...coursesData];
+          
+          // If we got less than perPage, we've reached the end
+          if (coursesData.length < perPage) break;
+          
+          page++;
+        }
+        
+        console.log('📚 Total courses loaded from API:', allCourses.length);
+        setCourses(allCourses);
+        setTotalCourses(allCourses.length);
         
         // Si on vient de créer un cours, afficher un toast de confirmation
         if (location.state?.courseCreated) {
@@ -80,28 +95,19 @@ const AdminCourses = () => {
         setLoading(false);
       }
     };
-    loadCourses();
-  }, [currentPage, location.state]);
+    loadAllCourses();
+  }, [location.state]);
 
-  // Separate published and draft courses from current page
-  const publishedCourses = useMemo(() => {
-    return coursesPage?.items.filter(c => c.status === 'published') || [];
-  }, [coursesPage]);
-  
-  const draftCourses = useMemo(() => {
-    return coursesPage?.items.filter(c => c.status === 'draft') || [];
-  }, [coursesPage]);
+  // Separate published and draft courses
+  const publishedCourses = courses.filter(c => c.status === 'published');
+  const draftCourses = courses.filter(c => c.status === 'draft');
 
   const confirmDeleteCourse = async () => {
     if (!courseToDelete) return;
     
     try {
       await fastAPIClient.deleteCourse(courseToDelete);
-      
-      // Recharger la page courante
-      const data = await fastAPIClient.getCourses(currentPage, ITEMS_PER_PAGE);
-      setCoursesPage(data);
-      
+      setCourses(courses.filter(c => c.id !== courseToDelete));
       toast({
         title: "Cours supprimé",
         description: "Le cours a été supprimé avec succès.",
@@ -140,9 +146,21 @@ const AdminCourses = () => {
         description: "Les paramètres de visibilité ont été mis à jour avec succès.",
       });
       
-      // Recharger la page courante
-      const data = await fastAPIClient.getCourses(currentPage, ITEMS_PER_PAGE);
-      setCoursesPage(data);
+      // Recharger les cours pour afficher les changements
+      let allCourses: CourseResponse[] = [];
+      let page = 1;
+      const perPage = 100;
+      
+      while (true) {
+        const coursesData = await fastAPIClient.getCourses(page, perPage);
+        if (!coursesData || coursesData.length === 0) break;
+        allCourses = [...allCourses, ...coursesData];
+        if (coursesData.length < perPage) break;
+        page++;
+      }
+      
+      setCourses(allCourses);
+      setTotalCourses(allCourses.length);
     } catch (err: any) {
       toast({
         title: "Erreur",
@@ -210,20 +228,21 @@ const AdminCourses = () => {
     return <Badge className={config.className}>{config.label}</Badge>;
   };
 
-  // Filter courses on current page
-  const filteredCourses = useMemo(() => {
-    if (!coursesPage?.items) return [];
+  const filteredCourses = courses.filter(course => {
+    const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (course.category?.toLowerCase() || '').includes(searchTerm.toLowerCase());
     
-    return coursesPage.items.filter(course => {
-      const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           (course.category?.toLowerCase() || '').includes(searchTerm.toLowerCase());
-      
-      const matchesStatus = statusFilter === 'all' || course.status === statusFilter;
-      const matchesOwner = ownerFilter === 'all' || course.owner_type === ownerFilter;
-      
-      return matchesSearch && matchesStatus && matchesOwner;
-    });
-  }, [coursesPage, searchTerm, statusFilter, ownerFilter]);
+    const matchesStatus = statusFilter === 'all' || course.status === statusFilter;
+    const matchesOwner = ownerFilter === 'all' || course.owner_type === ownerFilter;
+    
+    return matchesSearch && matchesStatus && matchesOwner;
+  });
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredCourses.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedCourses = filteredCourses.slice(startIndex, endIndex);
 
   // Reset to page 1 when filters change
   useEffect(() => {
@@ -279,41 +298,43 @@ const AdminCourses = () => {
             <CardTitle className="text-sm font-medium">Total cours</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{coursesPage?.total_items || 0}</div>
+            <div className="text-2xl font-bold">{totalCourses}</div>
             <p className="text-xs text-muted-foreground">Tous cours confondus</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Cours publiés (page)</CardTitle>
+            <CardTitle className="text-sm font-medium">Cours publiés</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
               {publishedCourses.length}
             </div>
-            <p className="text-xs text-muted-foreground">Sur cette page</p>
+            <p className="text-xs text-muted-foreground">
+              {totalCourses > 0 ? Math.round((publishedCourses.length / totalCourses) * 100) : 0}% du total
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Brouillons (page)</CardTitle>
+            <CardTitle className="text-sm font-medium">Brouillons</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-yellow-600">
               {draftCourses.length}
             </div>
-            <p className="text-xs text-muted-foreground">Sur cette page</p>
+            <p className="text-xs text-muted-foreground">En cours de création</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Page actuelle</CardTitle>
+            <CardTitle className="text-sm font-medium">Cours Learneezy</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">
-              {currentPage} / {coursesPage?.total_pages || 0}
+              {courses.filter(c => c.owner_type === 'learneezy').length}
             </div>
-            <p className="text-xs text-muted-foreground">{coursesPage?.items.length || 0} cours</p>
+            <p className="text-xs text-muted-foreground">Créés par la plateforme</p>
           </CardContent>
         </Card>
       </div>
@@ -364,7 +385,7 @@ const AdminCourses = () => {
               <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p className="text-lg font-medium mb-2">Aucun cours trouvé</p>
               <p className="text-sm">
-                {(coursesPage?.total_items || 0) === 0 
+                {totalCourses === 0 
                   ? "Créez votre premier cours pour commencer" 
                   : "Essayez de modifier vos filtres de recherche"}
               </p>
@@ -385,7 +406,7 @@ const AdminCourses = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredCourses.map((course) => (
+                  {paginatedCourses.map((course) => (
                   <TableRow key={course.id}>
                     <TableCell>
                       <div className="flex items-center space-x-3">
@@ -494,90 +515,85 @@ const AdminCourses = () => {
 
               {/* Pagination */}
               {filteredCourses.length > 0 && (
-                <div className="mt-6 space-y-4">
-                  <div className="text-sm text-muted-foreground text-center">
-                    Affichage de {((currentPage - 1) * ITEMS_PER_PAGE) + 1} à{' '}
-                    {Math.min(currentPage * ITEMS_PER_PAGE, coursesPage?.total_items || 0)} sur{' '}
-                    {coursesPage?.total_items || 0} cours
-                  </div>
-                  
-                  {(coursesPage?.total_pages || 0) > 1 && (
-                    <Pagination>
-                      <PaginationContent>
-                        <PaginationItem>
-                          <PaginationPrevious 
-                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                            className={!coursesPage?.has_previous ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                          />
-                        </PaginationItem>
-                        
-                        {/* First page */}
-                        {currentPage > 2 && (
-                          <>
+                <div className="mt-6 flex items-center justify-between">
+                  <p className="text-sm text-muted-foreground">
+                    Affichage de {startIndex + 1} à {Math.min(endIndex, filteredCourses.length)} sur {filteredCourses.length} cours
+                  </p>
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious 
+                          onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                          className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                        />
+                      </PaginationItem>
+                      
+                      {/* First page */}
+                      {currentPage > 2 && (
+                        <>
+                          <PaginationItem>
+                            <PaginationLink 
+                              onClick={() => setCurrentPage(1)}
+                              className="cursor-pointer"
+                            >
+                              1
+                            </PaginationLink>
+                          </PaginationItem>
+                          {currentPage > 3 && (
                             <PaginationItem>
-                              <PaginationLink 
-                                onClick={() => setCurrentPage(1)}
-                                className="cursor-pointer"
-                              >
-                                1
-                              </PaginationLink>
+                              <PaginationEllipsis />
                             </PaginationItem>
-                            {currentPage > 3 && (
-                              <PaginationItem>
-                                <PaginationEllipsis />
-                              </PaginationItem>
-                            )}
-                          </>
-                        )}
+                          )}
+                        </>
+                      )}
 
-                        {/* Pages around current */}
-                        {Array.from({ length: coursesPage?.total_pages || 0 }, (_, i) => i + 1)
-                          .filter(page => {
-                            return page === currentPage || 
-                                   page === currentPage - 1 || 
-                                   page === currentPage + 1;
-                          })
-                          .map(page => (
-                            <PaginationItem key={page}>
-                              <PaginationLink
-                                onClick={() => setCurrentPage(page)}
-                                isActive={currentPage === page}
-                                className="cursor-pointer"
-                              >
-                                {page}
-                              </PaginationLink>
-                            </PaginationItem>
-                          ))
-                        }
+                      {/* Pages around current */}
+                      {Array.from({ length: totalPages }, (_, i) => i + 1)
+                        .filter(page => {
+                          return page === currentPage || 
+                                 page === currentPage - 1 || 
+                                 page === currentPage + 1;
+                        })
+                        .map(page => (
+                          <PaginationItem key={page}>
+                            <PaginationLink
+                              onClick={() => setCurrentPage(page)}
+                              isActive={currentPage === page}
+                              className="cursor-pointer"
+                            >
+                              {page}
+                            </PaginationLink>
+                          </PaginationItem>
+                        ))
+                      }
 
-                        {/* Last page */}
-                        {(coursesPage?.total_pages || 0) > 0 && currentPage < (coursesPage?.total_pages || 0) - 1 && (
-                          <>
-                            {currentPage < (coursesPage?.total_pages || 0) - 2 && (
-                              <PaginationItem>
-                                <PaginationEllipsis />
-                              </PaginationItem>
-                            )}
+                      {/* Last page */}
+                      {currentPage < totalPages - 1 && (
+                        <>
+                          {currentPage < totalPages - 2 && (
                             <PaginationItem>
-                              <PaginationLink 
-                                onClick={() => setCurrentPage(coursesPage?.total_pages || 1)}
-                                className="cursor-pointer"
-                              >
-                                {coursesPage?.total_pages}
-                              </PaginationLink>
+                              <PaginationEllipsis />
                             </PaginationItem>
-                          </>
-                        )}
+                          )}
+                          <PaginationItem>
+                            <PaginationLink 
+                              onClick={() => setCurrentPage(totalPages)}
+                              className="cursor-pointer"
+                            >
+                              {totalPages}
+                            </PaginationLink>
+                          </PaginationItem>
+                        </>
+                      )}
 
-                        <PaginationItem>
-                          <PaginationNext 
-                            onClick={() => setCurrentPage(p => Math.min(coursesPage?.total_pages || 1, p + 1))}
-                            className={!coursesPage?.has_next ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                          />
-                        </PaginationItem>
-                      </PaginationContent>
-                    </Pagination>
-                  )}
+                      <PaginationItem>
+                        <PaginationNext 
+                          onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                          className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
                 </div>
               )}
             </>
