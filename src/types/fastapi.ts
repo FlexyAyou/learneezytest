@@ -329,6 +329,7 @@ export interface Content {
   // NOUVEAUX CHAMPS pour les types de contenu alternatifs
   image_key?: string | null; // Storage key for image content
   resource_key?: string | null; // Storage key for PDF/file resources
+  pdf_key?: string | null; // Storage key for PDF content
   content_type?: 'video' | 'image' | 'pdf' | 'url'; // Type de contenu principal
 }
 

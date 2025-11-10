@@ -391,17 +391,27 @@ const CourseDetailPage = () => {
 
   // Helper pour détecter le type de contenu
   const getContentType = (lesson: Content): 'video' | 'pdf' | 'image' | 'none' => {
+    // Vérifier d'abord pdf_key
+    if (lesson.pdf_key) return 'pdf';
+    
+    // Puis video_key ou key
     if (lesson.video_key || lesson.key) {
       const key = lesson.video_key || lesson.key || '';
       if (key.endsWith('.pdf')) return 'pdf';
       if (/\.(jpg|jpeg|png|gif|webp)$/i.test(key)) return 'image';
       return 'video';
     }
+    
+    // Puis video_url
     if (lesson.video_url) {
       if (lesson.video_url.endsWith('.pdf')) return 'pdf';
       if (/\.(jpg|jpeg|png|gif|webp)$/i.test(lesson.video_url)) return 'image';
       return 'video';
     }
+    
+    // Enfin image_key
+    if (lesson.image_key) return 'image';
+    
     return 'none';
   };
 
@@ -774,7 +784,7 @@ const CourseDetailPage = () => {
                                                 Document PDF
                                               </h5>
                                               <PDFViewer
-                                                pdfKey={lesson.video_key || lesson.key}
+                                                pdfKey={lesson.pdf_key || lesson.video_key || lesson.key}
                                                 pdfUrl={lesson.video_url}
                                                 title={lesson.title}
                                                 height="500px"
