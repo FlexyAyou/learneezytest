@@ -34,6 +34,7 @@ export function usePlayback(key: string | undefined, opts: UsePlaybackOptions = 
   const intervalRef = useRef<number | undefined>(undefined);
   const lastKeyRef = useRef<string | undefined>(undefined);
   const retryCountRef = useRef(0);
+  const abortRef = useRef<AbortController | null>(null);
 
   const deriveType = (rawUrl: string, streamType?: string): PlaybackState['streamType'] => {
     if (streamType === 'hls') return 'hls';
@@ -49,6 +50,9 @@ export function usePlayback(key: string | undefined, opts: UsePlaybackOptions = 
   const load = useCallback(async () => {
     if (!key) return;
     setState(prev => ({ ...prev, loading: true, error: undefined }));
+    if (abortRef.current) abortRef.current.abort();
+    abortRef.current = new AbortController();
+    const signal = abortRef.current.signal;
     try {
       const raw = await retryWithBackoff(() => fastAPIClient.getPlayUrl(key), {
         maxRetries: 3,
@@ -56,6 +60,7 @@ export function usePlayback(key: string | undefined, opts: UsePlaybackOptions = 
           const status = err?.response?.status;
           return status === 503 || status === 502 || status === 504 || err?.code === 'ECONNABORTED' || err?.message?.includes('timeout');
         },
+        signal,
       });
       const httpsUrl = raw.url.replace(/^http:\/\//i, 'https://');
       const streamType = deriveType(httpsUrl, (raw as any).stream_type);
@@ -76,6 +81,9 @@ export function usePlayback(key: string | undefined, opts: UsePlaybackOptions = 
   const refresh = useCallback(async () => {
     if (!key) return;
     setState(prev => ({ ...prev, refreshing: true }));
+    if (abortRef.current) abortRef.current.abort();
+    abortRef.current = new AbortController();
+    const signal = abortRef.current.signal;
     try {
       const raw = await retryWithBackoff(() => fastAPIClient.getPlayUrl(key), {
         maxRetries: 3,
@@ -83,6 +91,7 @@ export function usePlayback(key: string | undefined, opts: UsePlaybackOptions = 
           const status = err?.response?.status;
           return status === 503 || status === 502 || status === 504 || err?.code === 'ECONNABORTED' || err?.message?.includes('timeout');
         },
+        signal,
       });
       const httpsUrl = raw.url.replace(/^http:\/\//i, 'https://');
       const streamType = deriveType(httpsUrl, (raw as any).stream_type);
@@ -126,6 +135,13 @@ export function usePlayback(key: string | undefined, opts: UsePlaybackOptions = 
       if (intervalRef.current) window.clearInterval(intervalRef.current);
     };
   }, [autoRefresh, refreshThresholdSec, key, refresh]);
+
+  // Abort en unmount
+  useEffect(() => {
+    return () => {
+      if (abortRef.current) abortRef.current.abort();
+    };
+  }, []);
 
   return {
     ...state,

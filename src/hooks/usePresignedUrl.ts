@@ -35,6 +35,7 @@ export const usePresignedUrl = (
 
   const refreshTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const retryCountRef = useRef(0);
+  const abortRef = useRef<AbortController | null>(null);
   const isMountedRef = useRef(true);
 
   // Fonction pour récupérer/rafraîchir l'URL
@@ -58,6 +59,11 @@ export const usePresignedUrl = (
     setLoading(true);
     setError(null);
 
+    // Annuler tentative précédente
+    if (abortRef.current) abortRef.current.abort();
+    abortRef.current = new AbortController();
+    const signal = abortRef.current.signal;
+
     try {
       const response = await retryWithBackoff(() => fastAPIClient.getPlayUrl(storageKey), {
         maxRetries,
@@ -66,6 +72,7 @@ export const usePresignedUrl = (
           const retryable = status === 503 || status === 502 || status === 504 || err?.code === 'ECONNABORTED' || err?.message?.includes('timeout');
           return retryOnFail && retryable;
         },
+        signal,
       });
 
       if (!isMountedRef.current) return;
@@ -118,6 +125,7 @@ export const usePresignedUrl = (
       if (refreshTimeoutRef.current) {
         clearTimeout(refreshTimeoutRef.current);
       }
+      if (abortRef.current) abortRef.current.abort();
     };
   }, [fetchUrl]);
 

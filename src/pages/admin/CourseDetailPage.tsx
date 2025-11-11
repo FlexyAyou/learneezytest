@@ -717,7 +717,7 @@ const CourseDetailPage = () => {
                                                   Vidéo disponible
                                                 </Badge>
                                                 {(lesson.video_key || lesson.key) && (
-                                                  <MediaStatusBadge poll={10} assetKey={lesson.video_key || lesson.key} />
+                                                  <MediaStatusBadge assetKey={lesson.video_key || lesson.key} />
                                                 )}
                                               </div>
                                             );
@@ -730,7 +730,7 @@ const CourseDetailPage = () => {
                                                   Fichier PDF disponible
                                                 </Badge>
                                                 {(lesson.video_key || lesson.key) && (
-                                                  <MediaStatusBadge poll={10} assetKey={lesson.video_key || lesson.key} />
+                                                  <MediaStatusBadge assetKey={lesson.video_key || lesson.key} />
                                                 )}
                                               </div>
                                             );
@@ -743,7 +743,7 @@ const CourseDetailPage = () => {
                                                   Image disponible
                                                 </Badge>
                                                 {(lesson.video_key || lesson.key) && (
-                                                  <MediaStatusBadge poll={10} assetKey={lesson.video_key || lesson.key} />
+                                                  <MediaStatusBadge assetKey={lesson.video_key || lesson.key} />
                                                 )}
                                               </div>
                                             );
