@@ -35,6 +35,7 @@ import { QuizBuilder } from '@/components/quiz';
 import type { QuizConfig } from '@/types/quiz';
 import { CycleTagSelector } from '@/components/admin/CycleTagSelector';
 import { UploadNotification, UploadItem } from '@/components/common/UploadNotification';
+import { useToast } from '@/hooks/use-toast';
 
 interface EditableCourseData {
   title: string;
