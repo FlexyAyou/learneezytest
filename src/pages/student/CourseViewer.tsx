@@ -11,7 +11,6 @@ import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { CourseResponse } from '@/types/fastapi';
 import { sanitizeHTML } from '@/utils/sanitizeHTML';
 import { usePresignedUrl } from '@/hooks/usePresignedUrl';
-import QuizModal from '@/components/student/QuizModal';
 
 const CourseViewer = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,8 +18,6 @@ const CourseViewer = () => {
   const [course, setCourse] = useState<CourseResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [completedLessons, setCompletedLessons] = useState<string[]>([]);
-  const [selectedQuiz, setSelectedQuiz] = useState<any>(null);
-  const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
 
   // Refresh presigned URL for cover image
   const { url: coverUrl } = usePresignedUrl(course?.cover_key);
@@ -116,16 +113,6 @@ const CourseViewer = () => {
 
   const handleLessonClick = (lessonTitle: string) => {
     navigate(`/dashboard/apprenant/courses/${id}/lessons/${lessonTitle}`);
-  };
-
-  const handleQuizClick = (quiz: any) => {
-    setSelectedQuiz(quiz);
-    setIsQuizModalOpen(true);
-  };
-
-  const handleQuizComplete = (score: number, passed: boolean) => {
-    console.log('Quiz completed:', { score, passed });
-    // TODO: Save quiz progress to backend
   };
 
   const getLearningCycle = () => {
@@ -283,7 +270,6 @@ const CourseViewer = () => {
                             <div
                               key={`quiz-${quizIndex}`}
                               className="flex items-center justify-between p-3 border rounded-lg border-purple-200 bg-purple-50 hover:bg-purple-100 cursor-pointer transition-colors"
-                              onClick={() => handleQuizClick(quiz)}
                             >
                               <div className="flex items-center gap-3">
                                 <Book className="w-5 h-5 text-purple-600" />
@@ -298,10 +284,6 @@ const CourseViewer = () => {
                                 size="sm"
                                 variant="outline"
                                 className="border-purple-300 text-purple-700 hover:bg-purple-200"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleQuizClick(quiz);
-                                }}
                               >
                                 Démarrer le quiz
                               </Button>
@@ -425,14 +407,6 @@ const CourseViewer = () => {
           </Card>
         </div>
       </div>
-
-      {/* Quiz Modal */}
-      <QuizModal
-        open={isQuizModalOpen}
-        onOpenChange={setIsQuizModalOpen}
-        quiz={selectedQuiz}
-        onComplete={handleQuizComplete}
-      />
     </div>
   );
 };
