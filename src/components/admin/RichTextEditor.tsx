@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Bold, Italic, Underline, List, ListOrdered, Eraser, Quote, Code, SquareCode, Undo2, Redo2, Heading1, Heading2, Heading3, Type } from 'lucide-react';
+import { Bold, Italic, Underline, List, ListOrdered, Eraser, Quote, Code, SquareCode, Undo2, Redo2, Heading1, Heading2, Heading3, Type, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { sanitizeHTML } from '@/utils/sanitizeHTML';
@@ -30,6 +30,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   const [isFocused, setIsFocused] = useState(false);
   const lastHtmlRef = useRef<string>('');
   const savedRangeRef = useRef<Range | null>(null);
+  const [preferRichPaste, setPreferRichPaste] = useState<boolean>(false);
   const [toolbarState, setToolbarState] = useState({
     bold: false,
     italic: false,
@@ -40,6 +41,12 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   });
   const historyRef = useRef<string[]>([]);
   const historyIndexRef = useRef<number>(-1);
+  const historySizesRef = useRef<number[]>([]);
+  const historyBytesRef = useRef<number>(0);
+  const MAX_HISTORY_BYTES = 1_000_000; // ~1MB
+  const computeByteLength = (s: string) => {
+    try { return new TextEncoder().encode(s).length; } catch { return s.length * 2; }
+  };
   // sanitizeHTML importé depuis util (DOMPurify)
 
   // Initial / external value sync
@@ -65,12 +72,24 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
       onChange(clean);
       // Historique
       const h = historyRef.current;
+      const hs = historySizesRef.current;
       const i = historyIndexRef.current;
       // Trancher la pile si on avait fait undo puis édité
-      if (i < h.length - 1) h.splice(i + 1);
+      if (i < h.length - 1) {
+        const removed = h.splice(i + 1);
+        const removedSizes = hs.splice(i + 1);
+        historyBytesRef.current -= removedSizes.reduce((a, b) => a + b, 0);
+      }
+      const size = computeByteLength(clean);
       h.push(clean);
-      // Limiter à 100 entrées
-      if (h.length > 100) h.shift();
+      hs.push(size);
+      historyBytesRef.current += size;
+      // Limite mémoire (~1MB) et borne de sécurité sur le nombre d'entrées
+      while ((historyBytesRef.current > MAX_HISTORY_BYTES || h.length > 300) && h.length > 1) {
+        historyBytesRef.current -= hs[0] || 0;
+        hs.shift();
+        h.shift();
+      }
       historyIndexRef.current = h.length - 1;
     }
   };
@@ -234,9 +253,82 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
   useEffect(() => {
     // Initialiser l'historique avec la valeur initiale
-    historyRef.current = [value || ''];
+    const initial = value || '';
+    historyRef.current = [initial];
+    const sz = computeByteLength(initial);
+    historySizesRef.current = [sz];
+    historyBytesRef.current = sz;
     historyIndexRef.current = 0;
   }, []);
+
+  // Helpers: trouver le bloc courant et transformer les préfixes Markdown (#, ##, ###, >, ```)
+  const getCurrentBlockElement = (): HTMLElement | null => {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return null;
+    let node: Node | null = sel.getRangeAt(0).startContainer;
+    if (node && node.nodeType === 3) node = node.parentNode; // Text -> parent
+    while (node && node instanceof HTMLElement) {
+      const tag = node.tagName.toLowerCase();
+      if (['p', 'div', 'li', 'h1', 'h2', 'h3', 'blockquote', 'pre'].includes(tag)) return node;
+      node = node.parentElement;
+    }
+    return null;
+  };
+
+  const deletePrefixAtStart = (el: HTMLElement, count: number) => {
+    // Supprime les 'count' premiers caractères textuels du bloc (cas simple)
+    let remaining = count;
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+    const firstText = walker.nextNode() as Text | null;
+    if (firstText && firstText.data.length >= remaining) {
+      const r = document.createRange();
+      r.setStart(firstText, 0);
+      r.setEnd(firstText, remaining);
+      r.deleteContents();
+    }
+  };
+
+  const transformFromPrefix = () => {
+    if (disabled) return;
+    const block = getCurrentBlockElement();
+    if (!block) return;
+    const textStart = (block.innerText || '').slice(0, 6); // assez pour "### " ou ```
+
+    // Ordre: ###, ##, #, >, ```
+    if (/^###\s/.test(textStart)) {
+      deletePrefixAtStart(block, 4);
+      applyHeading('h3');
+      emitChange();
+      return;
+    }
+    if (/^##\s/.test(textStart)) {
+      deletePrefixAtStart(block, 3);
+      applyHeading('h2');
+      emitChange();
+      return;
+    }
+    if (/^#\s/.test(textStart)) {
+      deletePrefixAtStart(block, 2);
+      applyHeading('h1');
+      emitChange();
+      return;
+    }
+    if (/^>\s/.test(textStart)) {
+      deletePrefixAtStart(block, 2);
+      // Basculer en blockquote
+      toggleBlockquote();
+      emitChange();
+      return;
+    }
+    if (/^```/.test(textStart)) {
+      // Supporte ``` ou ``` + espace
+      const rm = textStart.startsWith('``` ') ? 4 : 3;
+      deletePrefixAtStart(block, rm);
+      togglePre();
+      emitChange();
+      return;
+    }
+  };
 
   return (
     <div className={`rich-text-editor border rounded-lg overflow-hidden ${disabled ? 'opacity-60 pointer-events-none' : ''}`}>
@@ -291,6 +383,37 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
         <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={redo} title="Rétablir (Ctrl+Y)">
           <Redo2 className="h-4 w-4" />
         </Button>
+        <div className="w-px h-8 bg-border mx-1" />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button type="button" variant="ghost" size="sm" className={`h-8 px-2 ${preferRichPaste ? 'bg-primary/15 text-primary border border-primary shadow-sm' : ''}`} title="Mode de collage">
+              <span className="text-xs font-medium">Coller</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            <DropdownMenuItem onClick={() => setPreferRichPaste(false)}>Coller sans mise en forme</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setPreferRichPaste(true)}>Coller avec mise en forme</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0"
+          onClick={() => {
+            if (editorRef.current) {
+              editorRef.current.innerHTML = '';
+              lastHtmlRef.current = '';
+              onChange('');
+              historyRef.current = [''];
+              historyIndexRef.current = 0;
+              historyBytesRef.current = 0;
+            }
+          }}
+          title="Effacer tout"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
       </div>
 
       <div
@@ -303,13 +426,18 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
         onInput={handleInput}
         onBlur={handleBlur}
         onFocus={handleFocus}
-        onKeyUp={updateToolbarState}
+        onKeyUp={() => { updateToolbarState(); transformFromPrefix(); }}
         onMouseUp={updateToolbarState}
         onPaste={(e) => {
-          // Coller en texte brut pour éviter styles externes
-          e.preventDefault();
-          const text = (e.clipboardData || (window as any).clipboardData).getData('text/plain');
-          document.execCommand('insertText', false, text);
+          if (!preferRichPaste) {
+            // Coller en texte brut pour éviter styles externes
+            e.preventDefault();
+            const text = (e.clipboardData || (window as any).clipboardData).getData('text/plain');
+            document.execCommand('insertText', false, text);
+          } else {
+            // Laisser le collage riche puis assainir l'HTML
+            setTimeout(() => emitChange(), 0);
+          }
         }}
         onKeyDown={(e) => {
           const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
