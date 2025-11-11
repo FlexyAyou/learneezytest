@@ -64,12 +64,10 @@ const AdminCourses = () => {
   // Delete confirmation state
   const [courseToDelete, setCourseToDelete] = useState<string | null>(null);
 
-  // Debounce de la recherche (300ms) + minLength 2
+  // Debounce de la recherche (300ms) sans contrainte de longueur
   useEffect(() => {
     const id = setTimeout(() => {
-      if (searchTerm.length === 0 || searchTerm.length >= 2) {
-        setDebouncedSearch(searchTerm);
-      }
+      setDebouncedSearch(searchTerm);
     }, 300);
     return () => clearTimeout(id);
   }, [searchTerm]);
@@ -311,31 +309,8 @@ const AdminCourses = () => {
     setCurrentPage(1);
   }, [searchTerm, statusFilter, ownerFilter, categoryFilter, cycleFilter, sortOption, priceMin, priceMax, hasIntroVideo]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestion des cours</h1>
-            <p className="text-gray-600">Gérer et modérer les cours de la plateforme</p>
-          </div>
-        </div>
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-red-600">{error}</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  // On conserve l'affichage global et on limite le rafraîchissement visuel au tableau
+  // L'erreur est affichée dans la carte tableau plutôt que de remplacer toute la page
 
   return (
     <div className="space-y-6">
@@ -409,6 +384,7 @@ const AdminCourses = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4 mb-6">
+            {/* Ligne 1: recherche, statut, propriétaire */}
             <div className="flex items-center space-x-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -441,6 +417,7 @@ const AdminCourses = () => {
               </Select>
             </div>
 
+            {/* Ligne 2: catégorie, cycle, tri */}
             <div className="flex items-center space-x-4">
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                 <SelectTrigger className="w-[240px]">
@@ -499,6 +476,7 @@ const AdminCourses = () => {
               </Select>
             </div>
 
+            {/* Ligne 3: prix min/max, vidéo d'intro */}
             <div className="flex items-center space-x-4">
               <div className="flex items-center gap-2">
                 <Input
@@ -531,7 +509,18 @@ const AdminCourses = () => {
             </div>
           </div>
 
-          {filteredCourses.length === 0 ? (
+          {/* Tableau des cours avec rafraîchissement isolé */}
+          {error && (
+            <div className="mb-4 p-3 rounded border border-red-300 bg-red-50 text-red-700 text-sm">
+              {error}
+            </div>
+          )}
+
+          {loading ? (
+            <div className="flex justify-center py-12">
+              <LoadingSpinner size="lg" />
+            </div>
+          ) : filteredCourses.length === 0 ? (
             <div className="text-center py-12 text-gray-500">
               <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p className="text-lg font-medium mb-2">Aucun cours trouvé</p>
@@ -561,12 +550,10 @@ const AdminCourses = () => {
                       <TableCell>
                         <div className="flex items-center space-x-3">
                           {(() => {
-                            // Fallback : cover_key → première vidéo du premier module
                             let imageUrl = course.image_url;
                             if (!imageUrl && course.modules && course.modules.length > 0) {
                               const firstLesson = course.modules[0].content?.[0];
                               if (firstLesson?.video_key) {
-                                // Utiliser l'endpoint redirect conforme à la spec
                                 imageUrl = `${import.meta.env.VITE_API_URL}/api/storage/play/redirect?key=${encodeURIComponent(firstLesson.video_key)}`;
                               }
                             }
