@@ -19,25 +19,24 @@ import {
   Plus,
   Trash2,
   Edit2,
-  Check,
-  X,
-  Upload,
-  Eye,
-  Clock,
-  BookOpen,
-  HelpCircle,
-  ClipboardList,
-  ChevronDown,
-  ChevronUp,
-  Link as LinkIcon
-} from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { useAutoSave } from '@/hooks/useAutoSave';
-import LoadingSpinner from '@/components/common/LoadingSpinner';
-import { fastAPIClient } from '@/services/fastapi-client';
-import { uploadDirect } from '@/utils/upload';
-import type { CourseResponse, Module, Content, Quiz, QuizCreate } from '@/types/fastapi';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+                                        <div>
+    <Label>Description</Label>
+    <RichTextEditor
+      value={lesson.description}
+      onChange={(value) => setModules(prev => prev.map((m, mIdx) =>
+        mIdx === moduleIdx
+          ? {
+            ...m,
+            lessons: m.lessons.map((l, lIdx) =>
+              lIdx === lessonIdx ? { ...l, description: value } : l
+            )
+          }
+          : m
+      ))}
+      placeholder="Description de la leçon..."
+      height="160px"
+    />
+  </div>
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import RichTextEditor from '@/components/admin/RichTextEditor';
 import { QuizBuilder } from '@/components/quiz';
@@ -136,7 +135,7 @@ const EditCoursePage = () => {
   const [expandedModules, setExpandedModules] = useState<string[]>([]);
   const [showQuizBuilder, setShowQuizBuilder] = useState<number | null>(null);
   const [showModuleQuizBuilder, setShowModuleQuizBuilder] = useState<number | null>(null);
-  
+
   // Upload notification state
   const [uploads, setUploads] = useState<UploadItem[]>([]);
 
@@ -422,7 +421,7 @@ const EditCoursePage = () => {
 
       setEditingModuleId(null);
       toast({ title: "✅ Module sauvegardé", description: moduleToSave.title });
-      
+
       // Refresh course data
       const updatedCourse = await fastAPIClient.getCourse(id);
       setModules(mapCourseToEditableModules(updatedCourse));
@@ -438,12 +437,12 @@ const EditCoursePage = () => {
 
     try {
       const lesson = modules[moduleIdx].lessons[lessonIdx];
-      
+
       // Récupérer le cours pour obtenir les vrais IDs
       const course = await fastAPIClient.getCourse(id);
       const moduleId = course.modules[moduleIdx].id!;
       const lessonId = course.modules[moduleIdx].content[lessonIdx].id!;
-      
+
       await fastAPIClient.updateLesson(id, moduleId, lessonId, {
         title: lesson.title,
         description: lesson.description,
@@ -462,7 +461,7 @@ const EditCoursePage = () => {
   // Delete module
   const handleDeleteModule = async (moduleIdx: number) => {
     const module = modules[moduleIdx];
-    
+
     // Si module en attente, juste le retirer du state local
     if (module.isPending) {
       setModules(prev => prev.filter((_, idx) => idx !== moduleIdx));
@@ -475,7 +474,7 @@ const EditCoursePage = () => {
     try {
       await fastAPIClient.deleteModule(id, moduleIdx, true);
       toast({ title: "✅ Module supprimé" });
-      
+
       // Refresh course data
       const updatedCourse = await fastAPIClient.getCourse(id);
       setModules(mapCourseToEditableModules(updatedCourse));
@@ -494,7 +493,7 @@ const EditCoursePage = () => {
       const course = await fastAPIClient.getCourse(id);
       const moduleId = course.modules[moduleIdx].id!;
       const lessonId = course.modules[moduleIdx].content[lessonIdx].id!;
-      
+
       await fastAPIClient.deleteLesson(id, moduleId, lessonId, false);
       setModules(prev => prev.map((mod, idx) =>
         idx === moduleIdx
@@ -511,21 +510,21 @@ const EditCoursePage = () => {
   // Fonction pour calculer la durée totale
   const calculateTotalDuration = (mods: EditableModule[]): string => {
     let totalMinutes = 0;
-    
+
     mods.forEach(mod => {
       mod.lessons.forEach(lesson => {
         const durationStr = lesson.duration.toLowerCase();
         const hoursMatch = durationStr.match(/(\d+)h/);
         const minutesMatch = durationStr.match(/(\d+)min/);
-        
+
         if (hoursMatch) totalMinutes += parseInt(hoursMatch[1]) * 60;
         if (minutesMatch) totalMinutes += parseInt(minutesMatch[1]);
       });
     });
-    
+
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
-    
+
     if (hours > 0 && minutes > 0) {
       return `${hours}h ${minutes}min`;
     } else if (hours > 0) {
@@ -540,7 +539,7 @@ const EditCoursePage = () => {
   // Save module quiz
   const handleSaveModuleQuiz = async (moduleIdx: number, quiz: QuizConfig) => {
     if (!id) return;
-    
+
     try {
       const module = modules[moduleIdx];
 
@@ -552,41 +551,41 @@ const EditCoursePage = () => {
           duration: module.duration,
           content: []
         });
-        
+
         // Recharger pour obtenir l'index réel du module
         const updatedCourse = await fastAPIClient.getCourse(id);
         const realModuleIdx = updatedCourse.modules.length - 1;
-        
+
         // Créer le quiz sur le module réel
         const quizPayload: QuizCreate = {
-        title: quiz.title,
-        questions: quiz.questions
-          .filter(q => ['single-choice', 'true-false', 'multiple-choice'].includes(q.type))
-          .map(q => {
-            if (q.type === 'single-choice') {
-              return {
-                question: q.question,
-                options: q.options,
-                correct_answer: q.options[q.correctAnswer]
-              };
-            } else if (q.type === 'true-false') {
-              return {
-                question: q.question,
-                options: ['Vrai', 'Faux'],
-                correct_answer: q.correctAnswer ? 'Vrai' : 'Faux'
-              };
-            } else if (q.type === 'multiple-choice') {
-              return {
-                question: q.question,
-                options: q.options,
-                correct_answer: q.correctAnswers.map(idx => q.options[idx]).join(', ')
-              };
-            }
-            return null;
-          })
-          .filter(q => q !== null) as any[]
+          title: quiz.title,
+          questions: quiz.questions
+            .filter(q => ['single-choice', 'true-false', 'multiple-choice'].includes(q.type))
+            .map(q => {
+              if (q.type === 'single-choice') {
+                return {
+                  question: q.question,
+                  options: q.options,
+                  correct_answer: q.options[q.correctAnswer]
+                };
+              } else if (q.type === 'true-false') {
+                return {
+                  question: q.question,
+                  options: ['Vrai', 'Faux'],
+                  correct_answer: q.correctAnswer ? 'Vrai' : 'Faux'
+                };
+              } else if (q.type === 'multiple-choice') {
+                return {
+                  question: q.question,
+                  options: q.options,
+                  correct_answer: q.correctAnswers.map(idx => q.options[idx]).join(', ')
+                };
+              }
+              return null;
+            })
+            .filter(q => q !== null) as any[]
         };
-        
+
         const updatedModuleData = {
           title: updatedCourse.modules[realModuleIdx].title,
           description: updatedCourse.modules[realModuleIdx].description,
@@ -596,13 +595,13 @@ const EditCoursePage = () => {
         };
 
         await fastAPIClient.updateModule(id, realModuleIdx, updatedModuleData);
-        
+
         // Rafraîchir tout
         const finalCourse = await fastAPIClient.getCourse(id);
         setModules(mapCourseToEditableModules(finalCourse));
-        
+
         setShowModuleQuizBuilder(null);
-        toast({ 
+        toast({
           title: '✅ Module et quiz créés',
           description: 'Le module a été enregistré avec son quiz'
         });
@@ -636,7 +635,7 @@ const EditCoursePage = () => {
             })
             .filter(q => q !== null) as any[]
         };
-        
+
         const updatedModuleData = {
           title: module.title,
           description: module.description,
@@ -650,12 +649,12 @@ const EditCoursePage = () => {
         };
 
         await fastAPIClient.updateModule(id, moduleIdx, updatedModuleData);
-        
+
         const updatedCourse = await fastAPIClient.getCourse(id);
         setModules(mapCourseToEditableModules(updatedCourse));
-        
+
         setShowModuleQuizBuilder(null);
-        toast({ 
+        toast({
           title: '✅ Quiz sauvegardé',
           description: 'Le quiz du module a été enregistré avec succès.'
         });
@@ -672,10 +671,10 @@ const EditCoursePage = () => {
   // Delete module quiz
   const handleDeleteModuleQuiz = async (moduleIdx: number) => {
     if (!id || !confirm('Supprimer ce quiz ?')) return;
-    
+
     try {
       const module = modules[moduleIdx];
-      
+
       // Utiliser updateModule avec le payload complet sans quiz
       const updatedModuleData = {
         title: module.title,
@@ -690,10 +689,10 @@ const EditCoursePage = () => {
       };
 
       await fastAPIClient.updateModule(id, moduleIdx, updatedModuleData);
-      
+
       const updatedCourse = await fastAPIClient.getCourse(id);
       setModules(mapCourseToEditableModules(updatedCourse));
-      
+
       toast({
         title: '✅ Quiz supprimé',
         description: 'Le quiz du module a été supprimé.'
@@ -710,10 +709,10 @@ const EditCoursePage = () => {
   // Add new lesson to module
   const handleAddLesson = async (moduleIdx: number) => {
     if (!id) return;
-    
+
     try {
       const module = modules[moduleIdx];
-      
+
       // Si le module est en attente, le créer d'abord dans la DB
       if (module.isPending) {
         await fastAPIClient.createModule(id, {
@@ -722,23 +721,23 @@ const EditCoursePage = () => {
           duration: module.duration,
           content: []
         });
-        
+
         // Recharger pour obtenir l'index réel du module
         const updatedCourse = await fastAPIClient.getCourse(id);
         const realModule = updatedCourse.modules[updatedCourse.modules.length - 1];
-        
+
         // Créer la leçon sur le module réel
         await fastAPIClient.createLesson(id, realModule.id!, {
           title: `Leçon 1`,
           description: 'Description de la leçon',
           duration: '30min'
         });
-        
+
         // Rafraîchir tout
         const finalCourse = await fastAPIClient.getCourse(id);
         setModules(mapCourseToEditableModules(finalCourse));
-        
-        toast({ 
+
+        toast({
           title: '✅ Module et leçon créés',
           description: 'Le module a été enregistré avec sa première leçon'
         });
@@ -746,17 +745,17 @@ const EditCoursePage = () => {
         // Comportement actuel pour les modules existants - utiliser l'ID du module
         const dbModule = await fastAPIClient.getCourse(id);
         const targetModule = dbModule.modules[moduleIdx];
-        
+
         await fastAPIClient.createLesson(id, targetModule.id!, {
           title: `Leçon ${module.lessons.length + 1}`,
           description: 'Description de la leçon',
           duration: '30min'
         });
-        
+
         const updatedCourse = await fastAPIClient.getCourse(id);
         setModules(mapCourseToEditableModules(updatedCourse));
-        
-        toast({ 
+
+        toast({
           title: '✅ Leçon créée',
           description: 'Une nouvelle leçon a été ajoutée au module.'
         });
@@ -779,7 +778,7 @@ const EditCoursePage = () => {
     let fileKind: 'video' | 'pdf' | 'image';
     let mediaKeyField: 'video_key' | 'pdf_key' | 'image_key';
     let fileTypeLabel: string;
-    
+
     if (mimeType.startsWith('video/')) {
       fileKind = 'video';
       mediaKeyField = 'video_key';
@@ -802,7 +801,7 @@ const EditCoursePage = () => {
     }
 
     const uploadId = `upload-${Date.now()}`;
-    
+
     // Ajouter l'upload à la liste
     setUploads(prev => [...prev, {
       id: uploadId,
@@ -825,7 +824,7 @@ const EditCoursePage = () => {
       const course = await fastAPIClient.getCourse(id);
       const moduleId = course.modules[moduleIdx].id!;
       const lessonId = course.modules[moduleIdx].content[lessonIdx].id!;
-      
+
       // Send the correct key field based on file type
       await fastAPIClient.attachLessonMedia(id, moduleId, lessonId, { [mediaKeyField]: up.key });
 
@@ -846,7 +845,7 @@ const EditCoursePage = () => {
       setUploads(prev => prev.map(u =>
         u.id === uploadId ? { ...u, status: 'completed', progress: 100 } : u
       ));
-      
+
       // Retirer après 3 secondes
       setTimeout(() => {
         setUploads(prev => prev.filter(u => u.id !== uploadId));
@@ -855,12 +854,12 @@ const EditCoursePage = () => {
       toast({ title: `✅ ${fileTypeLabel} uploadé${fileKind === 'image' ? 'e' : ''}`, description: file.name });
     } catch (error) {
       console.error(`Error uploading ${fileKind}:`, error);
-      
+
       // Marquer comme erreur
       setUploads(prev => prev.map(u =>
         u.id === uploadId ? { ...u, status: 'error', error: 'Échec de l\'upload' } : u
       ));
-      
+
       toast({ title: "Erreur", description: `Impossible d'uploader ${fileTypeLabel === 'Image' ? "l'image" : fileTypeLabel === 'PDF' ? 'le PDF' : 'la vidéo'}`, variant: "destructive" });
     }
   };
@@ -874,19 +873,19 @@ const EditCoursePage = () => {
       const course = await fastAPIClient.getCourse(id);
       const moduleId = course.modules[moduleIdx].id!;
       const lessonId = course.modules[moduleIdx].content[lessonIdx].id!;
-      
+
       await fastAPIClient.updateLesson(id, moduleId, lessonId, { video_url: url });
-      
+
       setModules(prev => prev.map((mod, mIdx) =>
         mIdx === moduleIdx
           ? {
-              ...mod,
-              lessons: mod.lessons.map((lesson, lIdx) =>
-                lIdx === lessonIdx
-                  ? { ...lesson, video_url: url, content_type: 'url' }
-                  : lesson
-              )
-            }
+            ...mod,
+            lessons: mod.lessons.map((lesson, lIdx) =>
+              lIdx === lessonIdx
+                ? { ...lesson, video_url: url, content_type: 'url' }
+                : lesson
+            )
+          }
           : mod
       ));
 
@@ -1071,13 +1070,11 @@ const EditCoursePage = () => {
                   <Label htmlFor="description" className="text-base font-semibold">
                     Description *
                   </Label>
-                  <Textarea
-                    id="description"
+                  <RichTextEditor
                     value={courseData.description}
-                    onChange={(e) => setCourseData(prev => ({ ...prev, description: e.target.value }))}
+                    onChange={(value) => setCourseData(prev => ({ ...prev, description: value }))}
                     placeholder="Décrivez votre cours de manière détaillée..."
-                    rows={6}
-                    className="focus:ring-2 focus:ring-primary transition-all resize-none"
+                    height="220px"
                   />
                 </div>
 
@@ -1114,10 +1111,10 @@ const EditCoursePage = () => {
                         )}
                       </div>
                     ))}
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={addObjective} 
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={addObjective}
                       className="w-full hover-scale"
                     >
                       <Plus className="h-4 w-4 mr-2" />
@@ -1310,10 +1307,10 @@ const EditCoursePage = () => {
                         isPending: true,
                         tempId: tempId
                       };
-                      
+
                       setModules(prev => [...prev, newModule]);
                       setExpandedModules(prev => [...prev, `module-${modules.length}`]);
-                      
+
                       toast({
                         title: "📝 Module créé localement",
                         description: "Le module sera enregistré lorsque vous ajouterez du contenu"
@@ -1437,8 +1434,8 @@ const EditCoursePage = () => {
                                             variant="ghost"
                                             size="sm"
                                             onClick={() => setEditingLessonId(
-                                              editingLessonId?.moduleIdx === moduleIdx && editingLessonId?.lessonIdx === lessonIdx 
-                                                ? null 
+                                              editingLessonId?.moduleIdx === moduleIdx && editingLessonId?.lessonIdx === lessonIdx
+                                                ? null
                                                 : { moduleIdx, lessonIdx }
                                             )}
                                           >
@@ -1580,16 +1577,16 @@ const EditCoursePage = () => {
                                                             ? {
                                                               ...m,
                                                               lessons: m.lessons.map((l, lIdx) =>
-                                                                lIdx === lessonIdx 
-                                                                  ? { 
-                                                                      ...l, 
-                                                                      videoFileName: '', 
-                                                                      video_key: undefined,
-                                                                      pdfFileName: '',
-                                                                      pdf_key: undefined,
-                                                                      imageFileName: '',
-                                                                      image_key: undefined
-                                                                    } 
+                                                                lIdx === lessonIdx
+                                                                  ? {
+                                                                    ...l,
+                                                                    videoFileName: '',
+                                                                    video_key: undefined,
+                                                                    pdfFileName: '',
+                                                                    pdf_key: undefined,
+                                                                    imageFileName: '',
+                                                                    image_key: undefined
+                                                                  }
                                                                   : l
                                                               )
                                                             }
@@ -1741,9 +1738,9 @@ const EditCoursePage = () => {
                                             <Check className="h-4 w-4 mr-2" />
                                             Sauvegarder
                                           </Button>
-                                          <Button 
-                                            size="sm" 
-                                            variant="ghost" 
+                                          <Button
+                                            size="sm"
+                                            variant="ghost"
                                             onClick={() => setEditingLessonId(null)}
                                           >
                                             <X className="h-4 w-4 mr-2" />
@@ -2042,7 +2039,7 @@ const EditCoursePage = () => {
       )}
 
       {/* Upload Notifications */}
-      <UploadNotification 
+      <UploadNotification
         uploads={uploads}
         onRemove={(id) => setUploads(prev => prev.filter(u => u.id !== id))}
       />

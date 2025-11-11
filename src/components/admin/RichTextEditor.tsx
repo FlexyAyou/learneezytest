@@ -27,6 +27,13 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   const editorRef = useRef<HTMLDivElement>(null);
   const [isFocused, setIsFocused] = useState(false);
   const lastHtmlRef = useRef<string>('');
+  const [toolbarState, setToolbarState] = useState({
+    bold: false,
+    italic: false,
+    underline: false,
+    ul: false,
+    ol: false,
+  });
 
   // Sanitize HTML (simple, évite scripts/événements). Pour besoins avancés: intégrer DOMPurify.
   const sanitizeHTML = (html: string): string => {
@@ -73,7 +80,32 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
   const handleInput = () => emitChange();
   const handleBlur = () => { setIsFocused(false); emitChange(); };
-  const handleFocus = () => setIsFocused(true);
+  const handleFocus = () => { setIsFocused(true); updateToolbarState(); };
+
+  const selectionIsInsideEditor = (): boolean => {
+    const editor = editorRef.current;
+    if (!editor) return false;
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return false;
+    const range = sel.getRangeAt(0);
+    const container = range.commonAncestorContainer as Node;
+    return editor.contains(container.nodeType === 3 ? container.parentNode as Node : container);
+  };
+
+  const updateToolbarState = () => {
+    if (disabled) return;
+    if (!selectionIsInsideEditor()) {
+      setToolbarState(prev => ({ ...prev }));
+      return;
+    }
+    let bold = false, italic = false, underline = false, ul = false, ol = false;
+    try { bold = document.queryCommandState('bold'); } catch { }
+    try { italic = document.queryCommandState('italic'); } catch { }
+    try { underline = document.queryCommandState('underline'); } catch { }
+    try { ul = document.queryCommandState('insertUnorderedList'); } catch { }
+    try { ol = document.queryCommandState('insertOrderedList'); } catch { }
+    setToolbarState({ bold, italic, underline, ul, ol });
+  };
 
   const exec = (command: string) => {
     if (disabled) return;
@@ -81,6 +113,8 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
     // Utiliser document.execCommand (déprécié mais support large)
     try { document.execCommand(command, false); } catch { /* noop */ }
     emitChange();
+    // Mettre à jour l'état de la toolbar après l'action
+    updateToolbarState();
   };
 
   const clearFormatting = () => {
@@ -91,23 +125,31 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
     emitChange();
   };
 
+  // Mettre à jour la toolbar quand la sélection change
+  useEffect(() => {
+    if (!isFocused) return;
+    const handler = () => updateToolbarState();
+    document.addEventListener('selectionchange', handler);
+    return () => document.removeEventListener('selectionchange', handler);
+  }, [isFocused]);
+
   return (
     <div className={`rich-text-editor border rounded-lg overflow-hidden ${disabled ? 'opacity-60 pointer-events-none' : ''}`}>
       <div className="flex flex-wrap gap-1 p-2 border-b bg-muted">
-        <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => exec('bold')} title="Gras (Ctrl+B)">
+        <Button type="button" aria-pressed={toolbarState.bold} variant="ghost" size="sm" className={`h-8 w-8 p-0 ${toolbarState.bold ? 'bg-accent text-accent-foreground' : ''}`} onClick={() => exec('bold')} title="Gras (Ctrl+B)">
           <Bold className="h-4 w-4" />
         </Button>
-        <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => exec('italic')} title="Italique (Ctrl+I)">
+        <Button type="button" aria-pressed={toolbarState.italic} variant="ghost" size="sm" className={`h-8 w-8 p-0 ${toolbarState.italic ? 'bg-accent text-accent-foreground' : ''}`} onClick={() => exec('italic')} title="Italique (Ctrl+I)">
           <Italic className="h-4 w-4" />
         </Button>
-        <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => exec('underline')} title="Souligné (Ctrl+U)">
+        <Button type="button" aria-pressed={toolbarState.underline} variant="ghost" size="sm" className={`h-8 w-8 p-0 ${toolbarState.underline ? 'bg-accent text-accent-foreground' : ''}`} onClick={() => exec('underline')} title="Souligné (Ctrl+U)">
           <Underline className="h-4 w-4" />
         </Button>
         <div className="w-px h-8 bg-border mx-1" />
-        <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => exec('insertUnorderedList')} title="Liste à puces">
+        <Button type="button" aria-pressed={toolbarState.ul} variant="ghost" size="sm" className={`h-8 w-8 p-0 ${toolbarState.ul ? 'bg-accent text-accent-foreground' : ''}`} onClick={() => exec('insertUnorderedList')} title="Liste à puces">
           <List className="h-4 w-4" />
         </Button>
-        <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => exec('insertOrderedList')} title="Liste numérotée">
+        <Button type="button" aria-pressed={toolbarState.ol} variant="ghost" size="sm" className={`h-8 w-8 p-0 ${toolbarState.ol ? 'bg-accent text-accent-foreground' : ''}`} onClick={() => exec('insertOrderedList')} title="Liste numérotée">
           <ListOrdered className="h-4 w-4" />
         </Button>
         <div className="w-px h-8 bg-border mx-1" />
@@ -126,6 +168,8 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
         onInput={handleInput}
         onBlur={handleBlur}
         onFocus={handleFocus}
+        onKeyUp={updateToolbarState}
+        onMouseUp={updateToolbarState}
         onPaste={(e) => {
           // Coller en texte brut pour éviter styles externes
           e.preventDefault();
