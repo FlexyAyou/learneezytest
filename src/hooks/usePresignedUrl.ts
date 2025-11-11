@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { fastAPIClient } from '@/services/fastapi-client';
+import { retryWithBackoff } from '@/lib/retry';
 
 interface UsePresignedUrlOptions {
   enabled?: boolean;
@@ -58,7 +59,14 @@ export const usePresignedUrl = (
     setError(null);
 
     try {
-      const response = await fastAPIClient.getPlayUrl(storageKey);
+      const response = await retryWithBackoff(() => fastAPIClient.getPlayUrl(storageKey), {
+        maxRetries,
+        shouldRetry: (err) => {
+          const status = err?.response?.status;
+          const retryable = status === 503 || status === 502 || status === 504 || err?.code === 'ECONNABORTED' || err?.message?.includes('timeout');
+          return retryOnFail && retryable;
+        },
+      });
 
       if (!isMountedRef.current) return;
 
@@ -91,21 +99,8 @@ export const usePresignedUrl = (
       retryCountRef.current = 0;
     } catch (err: any) {
       if (!isMountedRef.current) return;
-
       console.error('Erreur lors de la récupération de l\'URL présignée:', err);
       setError('Impossible de charger le fichier');
-
-      // Backoff exponentiel sur erreurs 503/timeout
-      const status = err?.response?.status;
-      const isRetryable = status === 503 || status === 502 || status === 504 || err?.code === 'ECONNABORTED' || err?.message?.includes('timeout');
-      if (retryOnFail && isRetryable && retryCountRef.current < maxRetries) {
-        const delay = Math.pow(2, retryCountRef.current) * 1000; // 1s, 2s, 4s
-        retryCountRef.current += 1;
-        if (refreshTimeoutRef.current) clearTimeout(refreshTimeoutRef.current);
-        refreshTimeoutRef.current = setTimeout(() => {
-          if (isMountedRef.current) fetchUrl();
-        }, delay);
-      }
     } finally {
       if (isMountedRef.current) {
         setLoading(false);

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { fastAPIClient } from '@/services/fastapi-client';
+import { retryWithBackoff } from '@/lib/retry';
 
 interface PlaybackState {
   url?: string;
@@ -49,8 +50,13 @@ export function usePlayback(key: string | undefined, opts: UsePlaybackOptions = 
     if (!key) return;
     setState(prev => ({ ...prev, loading: true, error: undefined }));
     try {
-      // Utilise getPlayUrl qui renvoie { url, expires_in } - à étendre si stream_type disponible
-      const raw = await fastAPIClient.getPlayUrl(key);
+      const raw = await retryWithBackoff(() => fastAPIClient.getPlayUrl(key), {
+        maxRetries: 3,
+        shouldRetry: (err) => {
+          const status = err?.response?.status;
+          return status === 503 || status === 502 || status === 504 || err?.code === 'ECONNABORTED' || err?.message?.includes('timeout');
+        },
+      });
       const httpsUrl = raw.url.replace(/^http:\/\//i, 'https://');
       const streamType = deriveType(httpsUrl, (raw as any).stream_type);
       expiresAtRef.current = Date.now() + (raw.expires_in || 0) * 1000;
@@ -62,18 +68,7 @@ export function usePlayback(key: string | undefined, opts: UsePlaybackOptions = 
         refreshing: false,
       });
       if (onUrlChange && httpsUrl) onUrlChange(httpsUrl);
-      retryCountRef.current = 0; // reset après succès
     } catch (e: any) {
-      // Backoff exponentiel sur 503/timeout
-      const status = e?.response?.status;
-      const retryable = status === 503 || status === 502 || status === 504 || e?.code === 'ECONNABORTED' || e?.message?.includes('timeout');
-      if (retryable && retryCountRef.current < 3) {
-        const delay = Math.pow(2, retryCountRef.current) * 1000; // 1s, 2s, 4s
-        retryCountRef.current += 1;
-        setTimeout(() => {
-          if (key === lastKeyRef.current) load();
-        }, delay);
-      }
       setState(prev => ({ ...prev, error: e.message || 'Erreur lecture', loading: false, refreshing: false }));
     }
   }, [key, onUrlChange]);
@@ -82,7 +77,13 @@ export function usePlayback(key: string | undefined, opts: UsePlaybackOptions = 
     if (!key) return;
     setState(prev => ({ ...prev, refreshing: true }));
     try {
-      const raw = await fastAPIClient.getPlayUrl(key);
+      const raw = await retryWithBackoff(() => fastAPIClient.getPlayUrl(key), {
+        maxRetries: 3,
+        shouldRetry: (err) => {
+          const status = err?.response?.status;
+          return status === 503 || status === 502 || status === 504 || err?.code === 'ECONNABORTED' || err?.message?.includes('timeout');
+        },
+      });
       const httpsUrl = raw.url.replace(/^http:\/\//i, 'https://');
       const streamType = deriveType(httpsUrl, (raw as any).stream_type);
       expiresAtRef.current = Date.now() + (raw.expires_in || 0) * 1000;
@@ -95,17 +96,7 @@ export function usePlayback(key: string | undefined, opts: UsePlaybackOptions = 
         error: undefined,
       });
       if (onUrlChange && httpsUrl) onUrlChange(httpsUrl);
-      retryCountRef.current = 0;
     } catch (e: any) {
-      const status = e?.response?.status;
-      const retryable = status === 503 || status === 502 || status === 504 || e?.code === 'ECONNABORTED' || e?.message?.includes('timeout');
-      if (retryable && retryCountRef.current < 3) {
-        const delay = Math.pow(2, retryCountRef.current) * 1000;
-        retryCountRef.current += 1;
-        setTimeout(() => {
-          if (key === lastKeyRef.current) refresh();
-        }, delay);
-      }
       setState(prev => ({ ...prev, error: e.message || 'Erreur refresh', refreshing: false }));
     }
   }, [key, onUrlChange]);

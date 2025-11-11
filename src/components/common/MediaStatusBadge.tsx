@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { fastAPIClient } from '@/services/fastapi-client';
+import { Loader2 } from 'lucide-react';
 
 type Status = 'uploaded' | 'processing' | 'ready' | 'failed' | 'skipped' | 'unknown';
 
@@ -9,12 +10,15 @@ interface Props {
   className?: string;
   /** Rafraîchir automatiquement toutes les X secondes tant que status=processing */
   poll?: number; // en secondes, ex: 10
+  /** Active le polling adaptatif (5s pendant 2 min, puis 15s) */
+  adaptive?: boolean;
 }
 
-export const MediaStatusBadge: React.FC<Props> = ({ assetKey, className, poll }) => {
+export const MediaStatusBadge: React.FC<Props> = ({ assetKey, className, poll, adaptive = true }) => {
   const [status, setStatus] = useState<Status>('unknown');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
+  const processingSinceRef = useRef<number | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -42,12 +46,15 @@ export const MediaStatusBadge: React.FC<Props> = ({ assetKey, className, poll })
     return () => { mounted = false; };
   }, [assetKey]);
 
-  // Poll tant que processing
+  // Poll tant que processing (adaptatif)
   useEffect(() => {
-    if (!assetKey || !poll) return;
-    if (status !== 'processing') return;
+    if (!assetKey) return;
+    if (status !== 'processing') { processingSinceRef.current = null; return; }
     let active = true;
-    const id = setInterval(async () => {
+    if (!processingSinceRef.current) processingSinceRef.current = Date.now();
+
+    let timeout: ReturnType<typeof setTimeout> | null = null;
+    const tick = async () => {
       if (!active) return;
       try {
         const data: any = await fastAPIClient.getAssetByKey(assetKey);
@@ -57,9 +64,16 @@ export const MediaStatusBadge: React.FC<Props> = ({ assetKey, className, poll })
       } catch (e) {
         setError('Erreur statut');
       }
-    }, poll * 1000);
-    return () => { active = false; clearInterval(id); };
-  }, [assetKey, poll, status]);
+      if (!active) return;
+      // Calculer prochain délai
+      const elapsed = processingSinceRef.current ? (Date.now() - processingSinceRef.current) / 1000 : 0;
+      const initial = poll ?? 5; // si poll fourni, on s'en sert comme base initiale
+      const nextSec = adaptive ? (elapsed < 120 ? initial : 15) : (poll ?? 10);
+      timeout = setTimeout(tick, nextSec * 1000);
+    };
+    timeout = setTimeout(tick, (poll ?? 5) * 1000);
+    return () => { active = false; if (timeout) clearTimeout(timeout); };
+  }, [assetKey, poll, adaptive, status]);
 
   if (!assetKey) return null;
 
@@ -77,6 +91,9 @@ export const MediaStatusBadge: React.FC<Props> = ({ assetKey, className, poll })
 
   return (
     <Badge title={error || undefined} variant="outline" className={`${conf.className} ${className || ''}`}>
+      {(status === 'processing' || loading) && (
+        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+      )}
       {text}
     </Badge>
   );
