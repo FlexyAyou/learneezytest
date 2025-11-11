@@ -20,7 +20,7 @@ const CourseViewer = () => {
   const [completedLessons, setCompletedLessons] = useState<string[]>([]);
 
   // Refresh presigned URL for cover image
-  const { url: coverUrl } = usePresignedUrl(undefined, course?.image_url);
+  const { url: coverUrl } = usePresignedUrl(course?.cover_key);
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -165,11 +165,11 @@ const CourseViewer = () => {
                 <Clock className="w-4 h-4 mr-1" />
                 <span>{course.duration || 'Non spécifié'}</span>
               </div>
-              {course.price !== undefined && (
-                <div className="flex items-center">
-                  <span className="font-semibold">{course.price}€</span>
-                </div>
-              )}
+              <div className="flex items-center">
+                <span className="font-semibold">
+                  {course.owner_type === 'learneezy' ? 'Learneezy' : 'Organisme de Formation'}
+                </span>
+              </div>
               <Badge variant="secondary">{course.category}</Badge>
             </div>
           </div>
@@ -397,12 +397,12 @@ const CourseViewer = () => {
                 <span className="text-sm text-gray-600">Leçons</span>
                 <span className="text-sm font-medium">{totalLessons}</span>
               </div>
-              {course.price !== undefined && (
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Prix</span>
-                  <span className="text-sm font-medium">{course.price}€</span>
-                </div>
-              )}
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">Propriétaire</span>
+                <span className="text-sm font-medium">
+                  {course.owner_type === 'learneezy' ? 'Learneezy' : 'OF'}
+                </span>
+              </div>
             </CardContent>
           </Card>
         </div>
