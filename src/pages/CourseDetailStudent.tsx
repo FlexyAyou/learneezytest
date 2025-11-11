@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { sanitizeHTML } from '@/utils/sanitizeHTML';
 
 const CourseDetailStudent = () => {
   const { id } = useParams();
@@ -59,8 +60,8 @@ const CourseDetailStudent = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Header avec image */}
       <div className="relative h-64 bg-gradient-to-r from-pink-600 to-purple-600 overflow-hidden">
-        <img 
-          src={courseData.image} 
+        <img
+          src={courseData.image}
           alt={courseData.title}
           className="w-full h-full object-cover opacity-30"
         />
@@ -99,7 +100,7 @@ const CourseDetailStudent = () => {
                 <TabsTrigger value="overview">Aperçu</TabsTrigger>
                 <TabsTrigger value="reviews">Avis</TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="content" className="space-y-6">
                 <Card>
                   <CardHeader>
@@ -138,8 +139,8 @@ const CourseDetailStudent = () => {
                                   <p className="text-sm text-gray-500">{lesson.duration}</p>
                                 </div>
                               </div>
-                              <Button 
-                                size="sm" 
+                              <Button
+                                size="sm"
                                 variant={lesson.completed ? "outline" : "default"}
                                 className={lesson.completed ? "" : "bg-pink-600 hover:bg-pink-700"}
                                 asChild
@@ -164,7 +165,10 @@ const CourseDetailStudent = () => {
                     <CardTitle>À propos de ce cours</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-gray-700 mb-6">{courseData.description}</p>
+                    <div
+                      className="prose max-w-none text-gray-700 mb-6"
+                      dangerouslySetInnerHTML={{ __html: sanitizeHTML(courseData.description) }}
+                    />
                     <h3 className="font-semibold mb-3">Ce que vous apprendrez :</h3>
                     <ul className="space-y-2">
                       <li className="flex items-center">
@@ -194,7 +198,7 @@ const CourseDetailStudent = () => {
                       <div className="border-b pb-4">
                         <div className="flex items-center space-x-2 mb-2">
                           <div className="flex">
-                            {[1,2,3,4,5].map((star) => (
+                            {[1, 2, 3, 4, 5].map((star) => (
                               <Star key={star} className="h-4 w-4 text-yellow-400 fill-current" />
                             ))}
                           </div>

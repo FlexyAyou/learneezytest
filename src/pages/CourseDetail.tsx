@@ -2,6 +2,7 @@
 import React from 'react';
 import { Play, Clock, Users, Award, Star, BookOpen, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { sanitizeHTML } from '@/utils/sanitizeHTML';
 import { Card } from '@/components/ui/card';
 
 const CourseDetail = () => {
@@ -34,7 +35,7 @@ const CourseDetail = () => {
                 Maîtrisez React de A à Z
               </h1>
               <p className="text-xl text-pink-100 mb-6">
-                Apprenez à créer des applications web modernes avec React, 
+                Apprenez à créer des applications web modernes avec React,
                 du niveau débutant jusqu'aux concepts avancés.
               </p>
               <div className="flex items-center space-x-6 mb-8">
@@ -83,12 +84,10 @@ const CourseDetail = () => {
           <div className="lg:col-span-2">
             <Card className="p-8 mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Description du cours</h2>
-              <p className="text-gray-600 leading-relaxed mb-6">
-                Ce cours complet vous permettra de maîtriser React, la bibliothèque JavaScript 
-                la plus populaire pour créer des interfaces utilisateur interactives. 
-                Vous apprendrez les concepts fondamentaux ainsi que les techniques avancées 
-                utilisées par les développeurs professionnels.
-              </p>
+              <div
+                className="prose max-w-none text-gray-600 leading-relaxed mb-6"
+                dangerouslySetInnerHTML={{ __html: sanitizeHTML(`Ce cours complet vous permettra de maîtriser <strong>React</strong>, la bibliothèque JavaScript la plus populaire pour créer des interfaces utilisateur interactives.<br/>Vous apprendrez les concepts fondamentaux ainsi que les techniques <em>avancées</em> utilisées par les développeurs professionnels.`) }}
+              />
               <h3 className="text-xl font-semibold text-gray-900 mb-4">Ce que vous allez apprendre :</h3>
               <ul className="space-y-2 text-gray-600">
                 <li>• Les bases de React et JSX</li>
@@ -107,9 +106,8 @@ const CourseDetail = () => {
                 {modules.map((module, index) => (
                   <div key={index} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                     <div className="flex items-center">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-4 ${
-                        module.completed ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
-                      }`}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-4 ${module.completed ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
+                        }`}>
                         {module.completed ? '✓' : index + 1}
                       </div>
                       <div>
@@ -132,13 +130,13 @@ const CourseDetail = () => {
                 <div className="text-sm text-gray-500 line-through">1290 Tokens</div>
                 <div className="text-sm text-green-600 font-medium">Économisez 400 Tokens</div>
               </div>
-              
+
               <Button className="w-full bg-pink-600 hover:bg-pink-700 mb-4">
                 S'inscrire maintenant
               </Button>
 
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="w-full mb-4"
                 onClick={handleDownloadProgram}
               >

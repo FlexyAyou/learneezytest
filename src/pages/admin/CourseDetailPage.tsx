@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { ArrowLeft, Edit, Trash2, Eye, EyeOff, Clock, BookOpen, PlayCircle, FileText, CheckCircle, XCircle, Video, Download, Users, Award, Save, Tags, ImageIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { sanitizeHTML } from '@/utils/sanitizeHTML';
 import { fastAPIClient } from '@/services/fastapi-client';
 import { CourseResponse, Content } from '@/types/fastapi';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
@@ -516,7 +517,10 @@ const CourseDetailPage = () => {
                   <FileText className="h-5 w-5 mr-2 text-gray-600" />
                   Description
                 </h3>
-                <p className="text-gray-700 leading-relaxed">{course.description}</p>
+                <div
+                  className="prose max-w-none text-gray-700 leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: sanitizeHTML(course.description || '') }}
+                />
               </div>
 
               {/* Objectifs - Juste après la description */}
@@ -684,7 +688,10 @@ const CourseDetailPage = () => {
                         <div className="space-y-4 p-4">
                           {module.description && (
                             <div className="bg-white p-4 rounded-lg border-l-4 border-pink-500 shadow-sm">
-                              <p className="text-gray-700 leading-relaxed">{module.description}</p>
+                              <div
+                                className="prose max-w-none text-gray-700 leading-relaxed"
+                                dangerouslySetInnerHTML={{ __html: sanitizeHTML(module.description) }}
+                              />
                             </div>
                           )}
 
@@ -766,7 +773,10 @@ const CourseDetailPage = () => {
                                             <FileText className="h-4 w-4 mr-2" />
                                             Description
                                           </h5>
-                                          <p className="text-sm text-gray-700 leading-relaxed">{lesson.description}</p>
+                                          <div
+                                            className="prose max-w-none text-sm text-gray-700 leading-relaxed"
+                                            dangerouslySetInnerHTML={{ __html: sanitizeHTML(lesson.description) }}
+                                          />
                                         </div>
                                       )}
 
