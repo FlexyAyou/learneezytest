@@ -50,16 +50,17 @@ export function usePlayback(key: string | undefined, opts: UsePlaybackOptions = 
     try {
       // Utilise getPlayUrl qui renvoie { url, expires_in } - à étendre si stream_type disponible
       const raw = await fastAPIClient.getPlayUrl(key);
-      const streamType = deriveType(raw.url, (raw as any).stream_type);
+      const httpsUrl = raw.url.replace(/^http:\/\//i, 'https://');
+      const streamType = deriveType(httpsUrl, (raw as any).stream_type);
       expiresAtRef.current = Date.now() + (raw.expires_in || 0) * 1000;
       setState({
-        url: raw.url,
+        url: httpsUrl,
         expiresIn: raw.expires_in,
         streamType,
         loading: false,
         refreshing: false,
       });
-      if (onUrlChange && raw.url) onUrlChange(raw.url);
+      if (onUrlChange && httpsUrl) onUrlChange(httpsUrl);
     } catch (e: any) {
       setState(prev => ({ ...prev, error: e.message || 'Erreur lecture', loading: false, refreshing: false }));
     }
@@ -70,17 +71,18 @@ export function usePlayback(key: string | undefined, opts: UsePlaybackOptions = 
     setState(prev => ({ ...prev, refreshing: true }));
     try {
       const raw = await fastAPIClient.getPlayUrl(key);
-      const streamType = deriveType(raw.url, (raw as any).stream_type);
+      const httpsUrl = raw.url.replace(/^http:\/\//i, 'https://');
+      const streamType = deriveType(httpsUrl, (raw as any).stream_type);
       expiresAtRef.current = Date.now() + (raw.expires_in || 0) * 1000;
       setState({
-        url: raw.url,
+        url: httpsUrl,
         expiresIn: raw.expires_in,
         streamType,
         loading: false,
         refreshing: false,
         error: undefined,
       });
-      if (onUrlChange && raw.url) onUrlChange(raw.url);
+      if (onUrlChange && httpsUrl) onUrlChange(httpsUrl);
     } catch (e: any) {
       setState(prev => ({ ...prev, error: e.message || 'Erreur refresh', refreshing: false }));
     }
