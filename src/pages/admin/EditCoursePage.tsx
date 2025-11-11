@@ -30,6 +30,7 @@ import {
   Link as LinkIcon
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import RichTextEditor from '@/components/admin/RichTextEditor';
 import { QuizBuilder } from '@/components/quiz';
 import type { QuizConfig } from '@/types/quiz';
@@ -37,6 +38,10 @@ import { CycleTagSelector } from '@/components/admin/CycleTagSelector';
 import { UploadNotification, UploadItem } from '@/components/common/UploadNotification';
 import { useToast } from '@/hooks/use-toast';
 import { useAutoSave } from '@/hooks/useAutoSave';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
+import { fastAPIClient } from '@/services/fastapi-client';
+import { uploadDirect } from '@/utils/upload';
+import type { CourseResponse, Module, Content, Quiz, QuizCreate } from '@/types/fastapi';
 
 interface EditableCourseData {
   title: string;
