@@ -391,6 +391,9 @@ export interface CourseResponse extends Course {
   created_by?: number;
   created_at?: string;
   updated_at?: string;
+  thumbnails?: string[];
+  intro_video?: string;
+  modules_count?: number;
 }
 
 /**

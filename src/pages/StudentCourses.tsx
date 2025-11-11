@@ -120,9 +120,9 @@ const StudentCourses = () => {
             courses.map((course) => (
               <Card key={course.id} className="hover:shadow-lg transition-shadow">
                 <div className="relative">
-                  {course.cover_key ? (
+                  {course.image_url || (course.thumbnails && course.thumbnails.length > 0) ? (
                     <img
-                      src={fastAPIClient.getPlayRedirectUrl(course.cover_key)}
+                      src={course.image_url || course.thumbnails![0]}
                       alt={course.title}
                       className="w-full h-48 object-cover rounded-t-lg"
                     />
