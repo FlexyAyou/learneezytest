@@ -1,134 +1,87 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Play, CheckCircle, Lock, Book, Clock, Star, Users, Award } from 'lucide-react';
+import { ArrowLeft, Play, CheckCircle, Lock, Book, Clock, Award, Download, MessageSquare } from 'lucide-react';
+import { fastAPIClient } from '@/services/fastapi-client';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
+import { CourseResponse } from '@/types/fastapi';
+import { sanitizeHTML } from '@/utils/sanitizeHTML';
+import { usePresignedUrl } from '@/hooks/usePresignedUrl';
 
 const CourseViewer = () => {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [completedLessons, setCompletedLessons] = useState<string[]>(['1.1', '1.2', '2.1']);
+  const [course, setCourse] = useState<CourseResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [completedLessons, setCompletedLessons] = useState<string[]>([]);
 
-  const course = {
-    id: 1,
-    title: "Mathématiques CE2",
-    instructor: "Marie Dubois",
-    description: "Ce cours de mathématiques pour CE2 couvre les concepts fondamentaux incluant les nombres, les opérations, la géométrie et la résolution de problèmes. Conçu pour développer progressivement les compétences mathématiques des élèves.",
-    image: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&h=400&fit=crop",
-    progress: 45,
-    rating: 4.8,
-    studentsCount: 1250,
-    duration: "8h 30min",
-    level: "CE2",
-    objectives: [
-      "Maîtriser les nombres jusqu'à 1000",
-      "Effectuer des additions et soustractions",
-      "Comprendre les bases de la multiplication",
-      "Reconnaître les formes géométriques",
-      "Résoudre des problèmes simples"
-    ],
-    modules: [
-      {
-        id: '1',
-        title: 'Les nombres et le calcul',
-        description: 'Introduction aux nombres et aux opérations de base',
-        lessons: [
-          {
-            id: '1.1',
-            title: 'Les nombres de 0 à 100',
-            duration: '15 min',
-            type: 'video',
-            description: 'Apprendre à compter et reconnaître les nombres'
-          },
-          {
-            id: '1.2',
-            title: 'Addition simple',
-            duration: '20 min',
-            type: 'video',
-            description: 'Les bases de l\'addition'
-          },
-          {
-            id: '1.3',
-            title: 'Soustraction simple',
-            duration: '20 min',
-            type: 'video',
-            description: 'Les bases de la soustraction'
-          }
-        ]
-      },
-      {
-        id: '2',
-        title: 'Géométrie de base',
-        description: 'Découverte des formes et de l\'espace',
-        lessons: [
-          {
-            id: '2.1',
-            title: 'Les formes géométriques',
-            duration: '25 min',
-            type: 'interactive',
-            description: 'Reconnaître triangles, carrés, cercles'
-          },
-          {
-            id: '2.2',
-            title: 'Mesures et comparaisons',
-            duration: '30 min',
-            type: 'exercise',
-            description: 'Comparer les tailles et distances'
-          }
-        ]
-      },
-      {
-        id: '3',
-        title: 'Résolution de problèmes',
-        description: 'Application pratique des concepts',
-        lessons: [
-          {
-            id: '3.1',
-            title: 'Problèmes d\'addition',
-            duration: '25 min',
-            type: 'exercise',
-            description: 'Résoudre des situations concrètes'
-          },
-          {
-            id: '3.2',
-            title: 'Problèmes de géométrie',
-            duration: '30 min',
-            type: 'exercise',
-            description: 'Applications géométriques'
-          }
-        ]
+  // Refresh presigned URL for cover image
+  const { url: coverUrl } = usePresignedUrl(undefined, course?.image_url);
+
+  useEffect(() => {
+    const fetchCourse = async () => {
+      if (!id) return;
+      
+      try {
+        setLoading(true);
+        const data = await fastAPIClient.getCourse(id);
+        setCourse(data);
+        
+        // TODO: Fetch user's actual progress from API
+        setCompletedLessons([]);
+      } catch (error) {
+        console.error('Error fetching course:', error);
+      } finally {
+        setLoading(false);
       }
-    ]
-  };
+    };
+
+    fetchCourse();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  if (!course) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <h2 className="text-2xl font-bold mb-4">Cours non trouvé</h2>
+        <Button onClick={() => navigate('/dashboard/apprenant/courses')}>
+          Retour aux cours
+        </Button>
+      </div>
+    );
+  }
 
   const isLessonCompleted = (lessonId: string) => completedLessons.includes(lessonId);
   
   const isLessonAvailable = (moduleIndex: number, lessonIndex: number) => {
     if (moduleIndex === 0 && lessonIndex === 0) return true;
     
-    // Vérifier si la leçon précédente est terminée
     if (lessonIndex > 0) {
-      const previousLesson = course.modules[moduleIndex].lessons[lessonIndex - 1];
-      return isLessonCompleted(previousLesson.id);
+      const previousLesson = course.modules[moduleIndex].content[lessonIndex - 1];
+      return isLessonCompleted(previousLesson.title);
     }
     
-    // Pour les modules suivants, vérifier si le module précédent est terminé
     if (moduleIndex > 0) {
       const previousModule = course.modules[moduleIndex - 1];
-      return previousModule.lessons.every(lesson => isLessonCompleted(lesson.id));
+      return previousModule.content.every(lesson => isLessonCompleted(lesson.title));
     }
     
     return false;
   };
 
-  const markLessonComplete = (lessonId: string) => {
-    if (!completedLessons.includes(lessonId)) {
-      setCompletedLessons(prev => [...prev, lessonId]);
-    }
+  const getTotalLessons = () => {
+    return course.modules.reduce((total, module) => total + module.content.length, 0);
   };
 
   const getTypeIcon = (type: string) => {
@@ -140,26 +93,37 @@ const CourseViewer = () => {
     }
   };
 
-  const totalLessons = course.modules.reduce((total, module) => total + module.lessons.length, 0);
+  const totalLessons = getTotalLessons();
   const completedCount = completedLessons.length;
-  const progressPercentage = Math.round((completedCount / totalLessons) * 100);
+  const progressPercentage = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
 
   const handleContinueCourse = () => {
-    // Trouver la première leçon non terminée
     for (const module of course.modules) {
-      for (const lesson of module.lessons) {
-        if (!isLessonCompleted(lesson.id)) {
-          navigate(`/dashboard/apprenant/courses/${id}/lessons/${lesson.id}`);
+      for (const lesson of module.content) {
+        if (!isLessonCompleted(lesson.title)) {
+          navigate(`/dashboard/apprenant/courses/${id}/lessons/${lesson.title}`);
           return;
         }
       }
     }
-    // Si toutes les leçons sont terminées, aller à la première
-    navigate(`/dashboard/apprenant/courses/${id}/lessons/${course.modules[0].lessons[0].id}`);
+    if (course.modules[0]?.content[0]) {
+      navigate(`/dashboard/apprenant/courses/${id}/lessons/${course.modules[0].content[0].title}`);
+    }
   };
 
-  const handleLessonClick = (lessonId: string) => {
-    navigate(`/dashboard/apprenant/courses/${id}/lessons/${lessonId}`);
+  const handleLessonClick = (lessonTitle: string) => {
+    navigate(`/dashboard/apprenant/courses/${id}/lessons/${lessonTitle}`);
+  };
+
+  const getLearningCycle = () => {
+    if (!course.learning_cycle) return null;
+    const cycles: Record<string, string> = {
+      'primaire': 'Primaire',
+      'college': 'Collège',
+      'lycee': 'Lycée',
+      'pro': 'Professionnel'
+    };
+    return cycles[course.learning_cycle] || course.learning_cycle.charAt(0).toUpperCase() + course.learning_cycle.slice(1);
   };
 
   return (
@@ -176,29 +140,37 @@ const CourseViewer = () => {
       </div>
 
       <div className="relative rounded-lg overflow-hidden">
-        <img
-          src={course.image}
-          alt={course.title}
-          className="w-full h-64 object-cover"
-        />
+        {coverUrl || (course.thumbnails && course.thumbnails.length > 0) ? (
+          <img
+            src={coverUrl || course.thumbnails![0]}
+            alt={course.title}
+            className="w-full h-64 object-cover"
+          />
+        ) : (
+          <div className="w-full h-64 bg-gradient-to-r from-pink-600 to-purple-600" />
+        )}
         <div className="absolute inset-0 bg-black bg-opacity-50 flex items-end">
-          <div className="p-6 text-white">
+          <div className="p-6 text-white w-full">
+            <div className="flex items-center gap-2 mb-2">
+              <Badge variant="secondary">{course.level}</Badge>
+              {getLearningCycle() && (
+                <Badge variant="outline" className="bg-white/20 text-white border-white/30">
+                  {getLearningCycle()}
+                </Badge>
+              )}
+            </div>
             <h1 className="text-3xl font-bold mb-2">{course.title}</h1>
-            <p className="text-lg opacity-90">par {course.instructor}</p>
             <div className="flex items-center gap-4 mt-3">
               <div className="flex items-center">
-                <Star className="w-4 h-4 text-yellow-400 mr-1" />
-                <span>{course.rating}</span>
-              </div>
-              <div className="flex items-center">
-                <Users className="w-4 h-4 mr-1" />
-                <span>{course.studentsCount} étudiants</span>
-              </div>
-              <div className="flex items-center">
                 <Clock className="w-4 h-4 mr-1" />
-                <span>{course.duration}</span>
+                <span>{course.duration || 'Non spécifié'}</span>
               </div>
-              <Badge variant="secondary">{course.level}</Badge>
+              {course.price !== undefined && (
+                <div className="flex items-center">
+                  <span className="font-semibold">{course.price}€</span>
+                </div>
+              )}
+              <Badge variant="secondary">{course.category}</Badge>
             </div>
           </div>
         </div>
@@ -218,7 +190,7 @@ const CourseViewer = () => {
               <span>{completedCount}/{totalLessons} leçons terminées</span>
             </div>
             <Progress value={progressPercentage} className="h-3" />
-            <p className="text-sm text-gray-600">{progressPercentage}% complété</p>
+            <p className="text-sm text-muted-foreground">{progressPercentage}% complété</p>
           </div>
         </CardContent>
       </Card>
@@ -235,23 +207,26 @@ const CourseViewer = () => {
             
             <TabsContent value="content" className="space-y-4">
               {course.modules.map((module, moduleIndex) => (
-                <Card key={module.id}>
+                <Card key={moduleIndex}>
                   <CardHeader>
                     <CardTitle className="text-lg">Module {moduleIndex + 1}: {module.title}</CardTitle>
-                    <CardDescription>{module.description}</CardDescription>
+                    {module.description && (
+                      <CardDescription>{module.description}</CardDescription>
+                    )}
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      {module.lessons.map((lesson, lessonIndex) => {
-                        const isCompleted = isLessonCompleted(lesson.id);
+                      {/* Lessons */}
+                      {module.content.map((lesson, lessonIndex) => {
+                        const isCompleted = isLessonCompleted(lesson.title);
                         const isAvailable = isLessonAvailable(moduleIndex, lessonIndex);
                         
                         return (
                           <div
-                            key={lesson.id}
+                            key={lessonIndex}
                             className={`flex items-center justify-between p-3 border rounded-lg ${
                               isCompleted ? 'bg-green-50 border-green-200' :
-                              isAvailable ? 'hover:bg-gray-50' : 'bg-gray-50'
+                              isAvailable ? 'hover:bg-gray-50 cursor-pointer' : 'bg-gray-50'
                             }`}
                           >
                             <div className="flex items-center gap-3">
@@ -264,7 +239,7 @@ const CourseViewer = () => {
                               )}
                               <div>
                                 <p className={`font-medium ${!isAvailable ? 'text-gray-400' : ''}`}>
-                                  {getTypeIcon(lesson.type)} {lesson.title}
+                                  {getTypeIcon('video')} {lesson.title}
                                 </p>
                                 <p className={`text-sm ${!isAvailable ? 'text-gray-400' : 'text-gray-600'}`}>
                                   {lesson.description} • {lesson.duration}
@@ -276,7 +251,7 @@ const CourseViewer = () => {
                               <Button
                                 size="sm"
                                 variant={isCompleted ? "outline" : "default"}
-                                onClick={() => handleLessonClick(lesson.id)}
+                                onClick={() => handleLessonClick(lesson.title)}
                               >
                                 {isCompleted ? 'Revoir' : 'Commencer'}
                               </Button>
@@ -284,6 +259,38 @@ const CourseViewer = () => {
                           </div>
                         );
                       })}
+
+                      {/* Quizzes */}
+                      {module.quizzes && module.quizzes.length > 0 && (
+                        <>
+                          <div className="pt-2 border-t">
+                            <h4 className="text-sm font-semibold text-gray-700 mb-2">Quiz du module</h4>
+                          </div>
+                          {module.quizzes.map((quiz, quizIndex) => (
+                            <div
+                              key={`quiz-${quizIndex}`}
+                              className="flex items-center justify-between p-3 border rounded-lg border-purple-200 bg-purple-50 hover:bg-purple-100 cursor-pointer transition-colors"
+                            >
+                              <div className="flex items-center gap-3">
+                                <Book className="w-5 h-5 text-purple-600" />
+                                <div>
+                                  <p className="font-medium">📝 {quiz.title}</p>
+                                  <p className="text-sm text-gray-600">
+                                    {quiz.questions.length} question{quiz.questions.length > 1 ? 's' : ''}
+                                  </p>
+                                </div>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="border-purple-300 text-purple-700 hover:bg-purple-200"
+                              >
+                                Démarrer le quiz
+                              </Button>
+                            </div>
+                          ))}
+                        </>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -296,23 +303,10 @@ const CourseViewer = () => {
                   <CardTitle>Description du cours</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-700">{course.description}</p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Objectifs d'apprentissage</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
-                    {course.objectives.map((objective, index) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">{objective}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <div
+                    className="prose max-w-none text-gray-700"
+                    dangerouslySetInnerHTML={{ __html: sanitizeHTML(course.description || '') }}
+                  />
                 </CardContent>
               </Card>
             </TabsContent>
@@ -323,22 +317,27 @@ const CourseViewer = () => {
                   <CardTitle>Ressources téléchargeables</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <Book className="w-5 h-5 text-blue-600" />
-                        <span>Guide du cours Mathématiques CE2.pdf</span>
-                      </div>
-                      <Button variant="outline" size="sm">Télécharger</Button>
+                  {course.resources && course.resources.length > 0 ? (
+                    <div className="space-y-2">
+                      {course.resources.map((resource, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+                          <div className="flex items-center gap-3">
+                            <Book className="w-5 h-5 text-blue-600" />
+                            <span>{resource.name}</span>
+                          </div>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => window.open(resource.url, '_blank')}
+                          >
+                            Télécharger
+                          </Button>
+                        </div>
+                      ))}
                     </div>
-                    <div className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <Book className="w-5 h-5 text-blue-600" />
-                        <span>Exercices supplémentaires.pdf</span>
-                      </div>
-                      <Button variant="outline" size="sm">Télécharger</Button>
-                    </div>
-                  </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Aucune ressource disponible pour ce cours.</p>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
@@ -356,10 +355,14 @@ const CourseViewer = () => {
                 <Play className="w-4 h-4 mr-2" />
                 Continuer le cours
               </Button>
+              {course.resources && course.resources.length > 0 && (
+                <Button variant="outline" className="w-full">
+                  <Download className="w-4 h-4 mr-2" />
+                  Télécharger les ressources
+                </Button>
+              )}
               <Button variant="outline" className="w-full">
-                Télécharger les ressources
-              </Button>
-              <Button variant="outline" className="w-full">
+                <MessageSquare className="w-4 h-4 mr-2" />
                 Poser une question
               </Button>
             </CardContent>
@@ -374,10 +377,18 @@ const CourseViewer = () => {
                 <span className="text-sm text-gray-600">Niveau</span>
                 <Badge variant="outline">{course.level}</Badge>
               </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Durée totale</span>
-                <span className="text-sm font-medium">{course.duration}</span>
-              </div>
+              {course.learning_cycle && (
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">Cycle</span>
+                  <Badge variant="outline">{getLearningCycle()}</Badge>
+                </div>
+              )}
+              {course.duration && (
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">Durée totale</span>
+                  <span className="text-sm font-medium">{course.duration}</span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Modules</span>
                 <span className="text-sm font-medium">{course.modules.length}</span>
@@ -386,6 +397,12 @@ const CourseViewer = () => {
                 <span className="text-sm text-gray-600">Leçons</span>
                 <span className="text-sm font-medium">{totalLessons}</span>
               </div>
+              {course.price !== undefined && (
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">Prix</span>
+                  <span className="text-sm font-medium">{course.price}€</span>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
