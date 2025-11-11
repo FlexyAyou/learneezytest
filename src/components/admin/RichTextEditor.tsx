@@ -27,6 +27,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   const editorRef = useRef<HTMLDivElement>(null);
   const [isFocused, setIsFocused] = useState(false);
   const lastHtmlRef = useRef<string>('');
+  const savedRangeRef = useRef<Range | null>(null);
   const [toolbarState, setToolbarState] = useState({
     bold: false,
     italic: false,
@@ -92,12 +93,25 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
     return editor.contains(container.nodeType === 3 ? container.parentNode as Node : container);
   };
 
+  const saveSelection = () => {
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0 && selectionIsInsideEditor()) {
+      savedRangeRef.current = sel.getRangeAt(0).cloneRange();
+    }
+  };
+
+  const restoreSelection = () => {
+    const sel = window.getSelection();
+    if (sel && savedRangeRef.current) {
+      sel.removeAllRanges();
+      sel.addRange(savedRangeRef.current);
+    }
+  };
+
   const updateToolbarState = () => {
     if (disabled) return;
-    if (!selectionIsInsideEditor()) {
-      setToolbarState(prev => ({ ...prev }));
-      return;
-    }
+    // Tenter de restaurer la sélection pour interroger l'état correctement
+    if (!selectionIsInsideEditor()) restoreSelection();
     let bold = false, italic = false, underline = false, ul = false, ol = false;
     try { bold = document.queryCommandState('bold'); } catch { }
     try { italic = document.queryCommandState('italic'); } catch { }
@@ -109,9 +123,13 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
   const exec = (command: string) => {
     if (disabled) return;
+    // Restaurer la sélection avant d'exécuter la commande
     editorRef.current?.focus();
+    restoreSelection();
     // Utiliser document.execCommand (déprécié mais support large)
     try { document.execCommand(command, false); } catch { /* noop */ }
+    // Sauvegarder la nouvelle sélection après action
+    saveSelection();
     emitChange();
     // Mettre à jour l'état de la toolbar après l'action
     updateToolbarState();
@@ -128,7 +146,10 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   // Mettre à jour la toolbar quand la sélection change
   useEffect(() => {
     if (!isFocused) return;
-    const handler = () => updateToolbarState();
+    const handler = () => {
+      saveSelection();
+      updateToolbarState();
+    };
     document.addEventListener('selectionchange', handler);
     return () => document.removeEventListener('selectionchange', handler);
   }, [isFocused]);
@@ -136,20 +157,20 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   return (
     <div className={`rich-text-editor border rounded-lg overflow-hidden ${disabled ? 'opacity-60 pointer-events-none' : ''}`}>
       <div className="flex flex-wrap gap-1 p-2 border-b bg-muted">
-        <Button type="button" aria-pressed={toolbarState.bold} variant="ghost" size="sm" className={`h-8 w-8 p-0 ${toolbarState.bold ? 'bg-accent text-accent-foreground' : ''}`} onClick={() => exec('bold')} title="Gras (Ctrl+B)">
+        <Button type="button" aria-pressed={toolbarState.bold} variant="ghost" size="sm" className={`h-8 w-8 p-0 ${toolbarState.bold ? 'bg-primary/15 text-primary border border-primary shadow-sm' : ''}`} onClick={() => exec('bold')} title="Gras (Ctrl+B)">
           <Bold className="h-4 w-4" />
         </Button>
-        <Button type="button" aria-pressed={toolbarState.italic} variant="ghost" size="sm" className={`h-8 w-8 p-0 ${toolbarState.italic ? 'bg-accent text-accent-foreground' : ''}`} onClick={() => exec('italic')} title="Italique (Ctrl+I)">
+        <Button type="button" aria-pressed={toolbarState.italic} variant="ghost" size="sm" className={`h-8 w-8 p-0 ${toolbarState.italic ? 'bg-primary/15 text-primary border border-primary shadow-sm' : ''}`} onClick={() => exec('italic')} title="Italique (Ctrl+I)">
           <Italic className="h-4 w-4" />
         </Button>
-        <Button type="button" aria-pressed={toolbarState.underline} variant="ghost" size="sm" className={`h-8 w-8 p-0 ${toolbarState.underline ? 'bg-accent text-accent-foreground' : ''}`} onClick={() => exec('underline')} title="Souligné (Ctrl+U)">
+        <Button type="button" aria-pressed={toolbarState.underline} variant="ghost" size="sm" className={`h-8 w-8 p-0 ${toolbarState.underline ? 'bg-primary/15 text-primary border border-primary shadow-sm' : ''}`} onClick={() => exec('underline')} title="Souligné (Ctrl+U)">
           <Underline className="h-4 w-4" />
         </Button>
         <div className="w-px h-8 bg-border mx-1" />
-        <Button type="button" aria-pressed={toolbarState.ul} variant="ghost" size="sm" className={`h-8 w-8 p-0 ${toolbarState.ul ? 'bg-accent text-accent-foreground' : ''}`} onClick={() => exec('insertUnorderedList')} title="Liste à puces">
+        <Button type="button" aria-pressed={toolbarState.ul} variant="ghost" size="sm" className={`h-8 w-8 p-0 ${toolbarState.ul ? 'bg-primary/15 text-primary border border-primary shadow-sm' : ''}`} onClick={() => exec('insertUnorderedList')} title="Liste à puces">
           <List className="h-4 w-4" />
         </Button>
-        <Button type="button" aria-pressed={toolbarState.ol} variant="ghost" size="sm" className={`h-8 w-8 p-0 ${toolbarState.ol ? 'bg-accent text-accent-foreground' : ''}`} onClick={() => exec('insertOrderedList')} title="Liste numérotée">
+        <Button type="button" aria-pressed={toolbarState.ol} variant="ghost" size="sm" className={`h-8 w-8 p-0 ${toolbarState.ol ? 'bg-primary/15 text-primary border border-primary shadow-sm' : ''}`} onClick={() => exec('insertOrderedList')} title="Liste numérotée">
           <ListOrdered className="h-4 w-4" />
         </Button>
         <div className="w-px h-8 bg-border mx-1" />

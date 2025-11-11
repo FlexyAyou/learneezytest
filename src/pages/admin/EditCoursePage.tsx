@@ -36,6 +36,7 @@ import type { QuizConfig } from '@/types/quiz';
 import { CycleTagSelector } from '@/components/admin/CycleTagSelector';
 import { UploadNotification, UploadItem } from '@/components/common/UploadNotification';
 import { useToast } from '@/hooks/use-toast';
+import { useAutoSave } from '@/hooks/useAutoSave';
 
 interface EditableCourseData {
   title: string;
@@ -1908,7 +1909,28 @@ const EditCoursePage = () => {
                   )}
                   <div className="flex-1">
                     <h2 className="text-3xl font-bold mb-3">{courseData.title || 'Sans titre'}</h2>
-                    <p className="text-muted-foreground mb-6 text-base leading-relaxed">{courseData.description || 'Aucune description'}</p>
+                    {courseData.description ? (
+                      <div
+                        className="prose prose-sm max-w-none dark:prose-invert text-muted-foreground mb-6 leading-relaxed"
+                        dangerouslySetInnerHTML={{
+                          __html: (() => {
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(courseData.description || '', 'text/html');
+                            doc.querySelectorAll('script, style').forEach(n => n.remove());
+                            doc.querySelectorAll('*').forEach(el => {
+                              [...el.attributes].forEach(attr => {
+                                if (/^on/i.test(attr.name) || attr.name === 'style') {
+                                  el.removeAttribute(attr.name);
+                                }
+                              });
+                            });
+                            return doc.body.innerHTML;
+                          })()
+                        }}
+                      />
+                    ) : (
+                      <p className="text-muted-foreground mb-6 text-base leading-relaxed">Aucune description</p>
+                    )}
                     <div className="flex items-center gap-3 flex-wrap">
                       <Badge variant="default" className="text-base px-3 py-1">
                         {courseData.level}
