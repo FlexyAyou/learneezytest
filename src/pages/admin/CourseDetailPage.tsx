@@ -518,7 +518,7 @@ const CourseDetailPage = () => {
                   Description
                 </h3>
                 <div
-                  className="prose max-w-none text-gray-700 leading-relaxed"
+                  className="content-html prose max-w-none text-gray-700 leading-relaxed"
                   dangerouslySetInnerHTML={{ __html: sanitizeHTML(course.description || '') }}
                 />
               </div>
@@ -689,7 +689,7 @@ const CourseDetailPage = () => {
                           {module.description && (
                             <div className="bg-white p-4 rounded-lg border-l-4 border-pink-500 shadow-sm">
                               <div
-                                className="prose max-w-none text-gray-700 leading-relaxed"
+                                className="content-html prose max-w-none text-gray-700 leading-relaxed"
                                 dangerouslySetInnerHTML={{ __html: sanitizeHTML(module.description) }}
                               />
                             </div>
@@ -774,7 +774,7 @@ const CourseDetailPage = () => {
                                             Description
                                           </h5>
                                           <div
-                                            className="prose max-w-none text-sm text-gray-700 leading-relaxed"
+                                            className="content-html prose max-w-none text-sm text-gray-700 leading-relaxed"
                                             dangerouslySetInnerHTML={{ __html: sanitizeHTML(lesson.description) }}
                                           />
                                         </div>

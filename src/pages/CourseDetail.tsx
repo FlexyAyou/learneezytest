@@ -85,7 +85,7 @@ const CourseDetail = () => {
             <Card className="p-8 mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Description du cours</h2>
               <div
-                className="prose max-w-none text-gray-600 leading-relaxed mb-6"
+                className="content-html prose max-w-none text-gray-600 leading-relaxed mb-6"
                 dangerouslySetInnerHTML={{ __html: sanitizeHTML(`Ce cours complet vous permettra de maîtriser <strong>React</strong>, la bibliothèque JavaScript la plus populaire pour créer des interfaces utilisateur interactives.<br/>Vous apprendrez les concepts fondamentaux ainsi que les techniques <em>avancées</em> utilisées par les développeurs professionnels.`) }}
               />
               <h3 className="text-xl font-semibold text-gray-900 mb-4">Ce que vous allez apprendre :</h3>

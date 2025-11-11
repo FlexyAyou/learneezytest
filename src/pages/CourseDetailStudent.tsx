@@ -166,7 +166,7 @@ const CourseDetailStudent = () => {
                   </CardHeader>
                   <CardContent>
                     <div
-                      className="prose max-w-none text-gray-700 mb-6"
+                      className="content-html prose max-w-none text-gray-700 mb-6"
                       dangerouslySetInnerHTML={{ __html: sanitizeHTML(courseData.description) }}
                     />
                     <h3 className="font-semibold mb-3">Ce que vous apprendrez :</h3>
