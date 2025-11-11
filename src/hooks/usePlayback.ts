@@ -32,6 +32,7 @@ export function usePlayback(key: string | undefined, opts: UsePlaybackOptions = 
   const expiresAtRef = useRef<number | undefined>(undefined);
   const intervalRef = useRef<number | undefined>(undefined);
   const lastKeyRef = useRef<string | undefined>(undefined);
+  const retryCountRef = useRef(0);
 
   const deriveType = (rawUrl: string, streamType?: string): PlaybackState['streamType'] => {
     if (streamType === 'hls') return 'hls';
@@ -61,7 +62,18 @@ export function usePlayback(key: string | undefined, opts: UsePlaybackOptions = 
         refreshing: false,
       });
       if (onUrlChange && httpsUrl) onUrlChange(httpsUrl);
+      retryCountRef.current = 0; // reset après succès
     } catch (e: any) {
+      // Backoff exponentiel sur 503/timeout
+      const status = e?.response?.status;
+      const retryable = status === 503 || status === 502 || status === 504 || e?.code === 'ECONNABORTED' || e?.message?.includes('timeout');
+      if (retryable && retryCountRef.current < 3) {
+        const delay = Math.pow(2, retryCountRef.current) * 1000; // 1s, 2s, 4s
+        retryCountRef.current += 1;
+        setTimeout(() => {
+          if (key === lastKeyRef.current) load();
+        }, delay);
+      }
       setState(prev => ({ ...prev, error: e.message || 'Erreur lecture', loading: false, refreshing: false }));
     }
   }, [key, onUrlChange]);
@@ -83,7 +95,17 @@ export function usePlayback(key: string | undefined, opts: UsePlaybackOptions = 
         error: undefined,
       });
       if (onUrlChange && httpsUrl) onUrlChange(httpsUrl);
+      retryCountRef.current = 0;
     } catch (e: any) {
+      const status = e?.response?.status;
+      const retryable = status === 503 || status === 502 || status === 504 || e?.code === 'ECONNABORTED' || e?.message?.includes('timeout');
+      if (retryable && retryCountRef.current < 3) {
+        const delay = Math.pow(2, retryCountRef.current) * 1000;
+        retryCountRef.current += 1;
+        setTimeout(() => {
+          if (key === lastKeyRef.current) refresh();
+        }, delay);
+      }
       setState(prev => ({ ...prev, error: e.message || 'Erreur refresh', refreshing: false }));
     }
   }, [key, onUrlChange]);

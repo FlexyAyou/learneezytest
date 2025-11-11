@@ -70,7 +70,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoKey, videoUrl, title }) 
   // Si on a une clé storage: utiliser le hook playback (TTL + HLS/MP4)
   if (videoKey) {
     const videoRef = useRef<HTMLVideoElement>(null);
-    const { url, isHls, isMp4, loading, error } = usePlayback(videoKey, {
+    const { url, isHls, isMp4, loading, error, refresh } = usePlayback(videoKey, {
       autoRefresh: true,
       refreshThresholdSec: 120,
     });
@@ -93,6 +93,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoKey, videoUrl, title }) 
           <div className="text-center">
             <Video className="h-12 w-12 text-red-400 mx-auto mb-2" />
             <p className="text-red-600 font-medium">{error}</p>
+            <Button variant="outline" size="sm" className="mt-3" onClick={() => refresh()}>Réessayer</Button>
           </div>
         </div>
       );
@@ -171,56 +172,57 @@ interface ImageViewerProps {
 
 const ImageViewer: React.FC<ImageViewerProps> = ({ imageKey, imageUrl, title }) => {
   // Use presigned URL hook with automatic refresh
-  const { url: displayUrl, loading, error: urlError } = usePresignedUrl(imageKey, imageUrl);
-
-  const error = urlError ? 'Erreur lors du chargement de l\'image' : null;
-
-  if (loading) {
-    return (
-      <div className="w-full bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center p-12">
-        <div className="text-center">
-          <LoadingSpinner />
-          <p className="text-sm text-gray-600 mt-2">Chargement de l'image...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="w-full bg-gradient-to-br from-red-50 to-red-100 rounded-lg flex items-center justify-center border-2 border-red-200 p-12">
-        <div className="text-center">
-          <ImageIcon className="h-12 w-12 text-red-400 mx-auto mb-2" />
-          <p className="text-red-600 font-medium">{error}</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!displayUrl) {
-    return (
-      <div className="w-full bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center border-2 border-gray-300 p-12">
-        <div className="text-center">
-          <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-          <p className="text-gray-500">Aucune image disponible</p>
-        </div>
-      </div>
-    );
-  }
+  const { url: displayUrl, loading, error: urlError, refresh } = usePresignedUrl(imageKey, imageUrl);
+  const error = urlError ? "Erreur lors du chargement de l'image" : null;
 
   return (
-    <div>
-      <h5 className="font-semibold text-sm mb-3 flex items-center text-gray-900">
-        <ImageIcon className="h-4 w-4 mr-2 text-blue-600" />
-        Image
-      </h5>
-      <div className="w-full rounded-lg overflow-hidden shadow-lg border-2 border-gray-300">
-        <img
-          src={displayUrl}
-          alt={title}
-          className="w-full h-auto object-contain max-h-[500px] bg-gray-100"
-        />
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        {imageKey && <MediaStatusBadge assetKey={imageKey} />}
+        {!imageKey && imageUrl && (
+          <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200">URL externe</Badge>
+        )}
       </div>
+      {loading && (
+        <div className="w-full bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center p-12">
+          <div className="text-center">
+            <LoadingSpinner />
+            <p className="text-sm text-gray-600 mt-2">Chargement de l'image...</p>
+          </div>
+        </div>
+      )}
+      {!loading && error && (
+        <div className="w-full bg-gradient-to-br from-red-50 to-red-100 rounded-lg flex items-center justify-center p-12 border-2 border-red-200">
+          <div className="text-center">
+            <ImageIcon className="h-12 w-12 text-red-400 mx-auto mb-2" />
+            <p className="text-red-600 font-medium">{error}</p>
+            <Button variant="outline" size="sm" className="mt-3" onClick={() => refresh()}>Réessayer</Button>
+          </div>
+        </div>
+      )}
+      {!loading && !error && !displayUrl && (
+        <div className="w-full bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center p-12 border-2 border-gray-300">
+          <div className="text-center">
+            <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+            <p className="text-gray-500">Aucune image disponible</p>
+          </div>
+        </div>
+      )}
+      {!loading && !error && displayUrl && (
+        <div>
+          <h5 className="font-semibold text-sm mb-3 flex items-center text-gray-900">
+            <ImageIcon className="h-4 w-4 mr-2 text-blue-600" />
+            Image
+          </h5>
+          <div className="w-full rounded-lg overflow-hidden shadow-lg border-2 border-gray-300">
+            <img
+              src={displayUrl}
+              alt={title}
+              className="w-full h-auto object-contain max-h-[500px] bg-gray-100"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -709,26 +711,41 @@ const CourseDetailPage = () => {
                                           const contentType = getContentType(lesson);
                                           if (contentType === 'video') {
                                             return (
-                                              <Badge variant="secondary" className="text-xs mt-1">
-                                                <Video className="h-3 w-3 mr-1" />
-                                                Vidéo disponible
-                                              </Badge>
+                                              <div className="flex items-center gap-2 mt-1">
+                                                <Badge variant="secondary" className="text-xs">
+                                                  <Video className="h-3 w-3 mr-1" />
+                                                  Vidéo disponible
+                                                </Badge>
+                                                {(lesson.video_key || lesson.key) && (
+                                                  <MediaStatusBadge poll={10} assetKey={lesson.video_key || lesson.key} />
+                                                )}
+                                              </div>
                                             );
                                           }
                                           if (contentType === 'pdf') {
                                             return (
-                                              <Badge variant="secondary" className="text-xs mt-1 bg-red-100 text-red-700">
-                                                <FileText className="h-3 w-3 mr-1" />
-                                                Fichier PDF disponible
-                                              </Badge>
+                                              <div className="flex items-center gap-2 mt-1">
+                                                <Badge variant="secondary" className="text-xs bg-red-100 text-red-700">
+                                                  <FileText className="h-3 w-3 mr-1" />
+                                                  Fichier PDF disponible
+                                                </Badge>
+                                                {(lesson.video_key || lesson.key) && (
+                                                  <MediaStatusBadge poll={10} assetKey={lesson.video_key || lesson.key} />
+                                                )}
+                                              </div>
                                             );
                                           }
                                           if (contentType === 'image') {
                                             return (
-                                              <Badge variant="secondary" className="text-xs mt-1 bg-blue-100 text-blue-700">
-                                                <ImageIcon className="h-3 w-3 mr-1" />
-                                                Image disponible
-                                              </Badge>
+                                              <div className="flex items-center gap-2 mt-1">
+                                                <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
+                                                  <ImageIcon className="h-3 w-3 mr-1" />
+                                                  Image disponible
+                                                </Badge>
+                                                {(lesson.video_key || lesson.key) && (
+                                                  <MediaStatusBadge poll={10} assetKey={lesson.video_key || lesson.key} />
+                                                )}
+                                              </div>
                                             );
                                           }
                                           return null;

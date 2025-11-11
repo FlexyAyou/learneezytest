@@ -4,6 +4,8 @@ import { fastAPIClient } from '@/services/fastapi-client';
 interface UsePresignedUrlOptions {
   enabled?: boolean;
   refreshBeforeExpiry?: number; // secondes avant expiration pour rafraîchir (défaut: 60)
+  retryOnFail?: boolean; // active le backoff exponentiel sur échec
+  maxRetries?: number; // nombre max de tentatives
 }
 
 interface UsePresignedUrlReturn {
@@ -24,13 +26,14 @@ export const usePresignedUrl = (
   directUrl?: string | null,
   options: UsePresignedUrlOptions = {}
 ): UsePresignedUrlReturn => {
-  const { enabled = true, refreshBeforeExpiry = 60 } = options;
-  
+  const { enabled = true, refreshBeforeExpiry = 60, retryOnFail = true, maxRetries = 3 } = options;
+
   const [url, setUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
-  const refreshTimeoutRef = useRef<NodeJS.Timeout>();
+
+  const refreshTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const retryCountRef = useRef(0);
   const isMountedRef = useRef(true);
 
   // Fonction pour récupérer/rafraîchir l'URL
@@ -56,7 +59,7 @@ export const usePresignedUrl = (
 
     try {
       const response = await fastAPIClient.getPlayUrl(storageKey);
-      
+
       if (!isMountedRef.current) return;
 
       // Force HTTPS
@@ -84,11 +87,25 @@ export const usePresignedUrl = (
           }
         }, refreshDelay);
       }
+      // reset retries after success
+      retryCountRef.current = 0;
     } catch (err: any) {
       if (!isMountedRef.current) return;
-      
+
       console.error('Erreur lors de la récupération de l\'URL présignée:', err);
       setError('Impossible de charger le fichier');
+
+      // Backoff exponentiel sur erreurs 503/timeout
+      const status = err?.response?.status;
+      const isRetryable = status === 503 || status === 502 || status === 504 || err?.code === 'ECONNABORTED' || err?.message?.includes('timeout');
+      if (retryOnFail && isRetryable && retryCountRef.current < maxRetries) {
+        const delay = Math.pow(2, retryCountRef.current) * 1000; // 1s, 2s, 4s
+        retryCountRef.current += 1;
+        if (refreshTimeoutRef.current) clearTimeout(refreshTimeoutRef.current);
+        refreshTimeoutRef.current = setTimeout(() => {
+          if (isMountedRef.current) fetchUrl();
+        }, delay);
+      }
     } finally {
       if (isMountedRef.current) {
         setLoading(false);
