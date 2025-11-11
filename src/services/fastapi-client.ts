@@ -366,6 +366,7 @@ class FastAPIClient {
     if (filters.levels?.length) {
       filters.levels.forEach(l => params.append('levels[]', l));
     }
+    if (filters.learning_cycle) params.append('learning_cycle', filters.learning_cycle);
 
     // Statut
     if (filters.status) params.append('status', filters.status);

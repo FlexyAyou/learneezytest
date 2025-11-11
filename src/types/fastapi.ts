@@ -678,6 +678,7 @@ export interface CourseFilters {
   search?: string;
   level?: string;
   levels?: string[];
+  learning_cycle?: string; // primaire|college|lycee|formation_pro
   status?: 'draft' | 'published';
   owner_type?: 'learneezy' | 'of';
   owner_id?: number;

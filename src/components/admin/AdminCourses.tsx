@@ -36,6 +36,7 @@ const AdminCourses = () => {
   const queryClient = useQueryClient();
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [ownerFilter, setOwnerFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -63,6 +64,16 @@ const AdminCourses = () => {
   // Delete confirmation state
   const [courseToDelete, setCourseToDelete] = useState<string | null>(null);
 
+  // Debounce de la recherche (300ms) + minLength 2
+  useEffect(() => {
+    const id = setTimeout(() => {
+      if (searchTerm.length === 0 || searchTerm.length >= 2) {
+        setDebouncedSearch(searchTerm);
+      }
+    }, 300);
+    return () => clearTimeout(id);
+  }, [searchTerm]);
+
   // Load courses from API with server-side pagination and filtering
   useEffect(() => {
     const loadCourses = async () => {
@@ -72,11 +83,11 @@ const AdminCourses = () => {
         const filters = {
           page: currentPage,
           per_page: ITEMS_PER_PAGE,
-          search: searchTerm || undefined,
+          search: debouncedSearch || undefined,
           status: statusFilter !== 'all' ? (statusFilter as 'draft' | 'published') : undefined,
           owner_type: ownerFilter !== 'all' ? (ownerFilter as 'learneezy' | 'of') : undefined,
           category_names: categoryFilter !== 'all' ? [categoryFilter] : undefined,
-          levels: cycleFilter !== 'all' ? [cycleFilter] : undefined,
+          learning_cycle: cycleFilter !== 'all' ? cycleFilter : undefined,
           sort: sortOption,
           price_min: priceMin ? parseFloat(priceMin) : undefined,
           price_max: priceMax ? parseFloat(priceMax) : undefined,
@@ -108,7 +119,7 @@ const AdminCourses = () => {
       }
     };
     loadCourses();
-  }, [currentPage, searchTerm, statusFilter, ownerFilter, categoryFilter, cycleFilter, sortOption, priceMin, priceMax, hasIntroVideo, location.state]);
+  }, [currentPage, debouncedSearch, statusFilter, ownerFilter, categoryFilter, cycleFilter, sortOption, priceMin, priceMax, hasIntroVideo, location.state]);
 
   // Separate published and draft courses from current page
   const publishedCourses = useMemo(() => {
@@ -129,11 +140,11 @@ const AdminCourses = () => {
       const filters = {
         page: currentPage,
         per_page: ITEMS_PER_PAGE,
-        search: searchTerm || undefined,
+        search: debouncedSearch || undefined,
         status: statusFilter !== 'all' ? (statusFilter as 'draft' | 'published') : undefined,
         owner_type: ownerFilter !== 'all' ? (ownerFilter as 'learneezy' | 'of') : undefined,
         category_names: categoryFilter !== 'all' ? [categoryFilter] : undefined,
-        levels: cycleFilter !== 'all' ? [cycleFilter] : undefined,
+        learning_cycle: cycleFilter !== 'all' ? cycleFilter : undefined,
         sort: sortOption,
         price_min: priceMin ? parseFloat(priceMin) : undefined,
         price_max: priceMax ? parseFloat(priceMax) : undefined,
@@ -185,11 +196,11 @@ const AdminCourses = () => {
       const filters = {
         page: currentPage,
         per_page: ITEMS_PER_PAGE,
-        search: searchTerm || undefined,
+        search: debouncedSearch || undefined,
         status: statusFilter !== 'all' ? (statusFilter as 'draft' | 'published') : undefined,
         owner_type: ownerFilter !== 'all' ? (ownerFilter as 'learneezy' | 'of') : undefined,
         category_names: categoryFilter !== 'all' ? [categoryFilter] : undefined,
-        levels: cycleFilter !== 'all' ? [cycleFilter] : undefined,
+        learning_cycle: cycleFilter !== 'all' ? cycleFilter : undefined,
         sort: sortOption,
         price_min: priceMin ? parseFloat(priceMin) : undefined,
         price_max: priceMax ? parseFloat(priceMax) : undefined,
