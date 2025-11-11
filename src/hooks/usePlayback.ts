@@ -168,8 +168,9 @@ export function useAttachHls(hlsUrl: string | undefined, videoRef: React.RefObje
       try {
         const mod = await import('hls.js');
         if (!active) return;
-        if (mod.isSupported()) {
-          hls = new mod.default();
+        const Hls = mod.default;
+        if (Hls.isSupported()) {
+          hls = new Hls();
           hls.loadSource(hlsUrl);
           hls.attachMedia(videoRef.current!);
         } else {
