@@ -53,6 +53,22 @@ const StudentCourses = () => {
     return course.category || 'Non catégorisé';
   };
 
+  // Fonction pour compter le nombre total de leçons
+  const getTotalLessons = (course: CourseResponse) => {
+    return course.modules?.reduce((total, module) => total + (module.content?.length || 0), 0) || 0;
+  };
+
+  // Fonction pour obtenir le cycle d'apprentissage
+  const getLearningCycle = (course: CourseResponse) => {
+    const cycles: Record<string, string> = {
+      'primaire': 'Primaire',
+      'college': 'Collège',
+      'lycee': 'Lycée',
+      'pro': 'Professionnel'
+    };
+    return course.learning_cycle ? cycles[course.learning_cycle] || course.learning_cycle : null;
+  };
+
   return (
     <div className="space-y-6">
       <div className="mb-8">
@@ -130,6 +146,9 @@ const StudentCourses = () => {
                       {course.duration || 'Non spécifié'}
                     </div>
                     <Badge variant="outline">{getCategoryName(course)}</Badge>
+                    {getLearningCycle(course) && (
+                      <Badge variant="secondary">{getLearningCycle(course)}</Badge>
+                    )}
                   </div>
                 </CardHeader>
 
@@ -137,7 +156,7 @@ const StudentCourses = () => {
                   <div className="mb-4">
                     <div className="flex justify-between text-sm mb-2">
                       <span>Progression</span>
-                      <span>0/24 leçons</span>
+                      <span>0/{getTotalLessons(course)} leçons</span>
                     </div>
                     <div className="w-full bg-muted rounded-full h-2">
                       <div
