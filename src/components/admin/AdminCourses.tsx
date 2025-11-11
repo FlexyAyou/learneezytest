@@ -363,13 +363,13 @@ const AdminCourses = () => {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Page actuelle</CardTitle>
+            <CardTitle className="text-sm font-medium">Créé par Learneezy</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">
-              {currentPage} / {coursesPage?.total_pages || 0}
+              {coursesPage?.items.filter(c => c.owner_type === 'learneezy').length || 0}
             </div>
-            <p className="text-xs text-muted-foreground">{coursesPage?.items.length || 0} cours</p>
+            <p className="text-xs text-muted-foreground">Sur cette page</p>
           </CardContent>
         </Card>
       </div>
@@ -538,7 +538,7 @@ const AdminCourses = () => {
                     <TableHead>Cours</TableHead>
                     <TableHead>Propriétaire</TableHead>
                     <TableHead>Catégorie</TableHead>
-                    <TableHead>Étudiants</TableHead>
+                    <TableHead>Apprenants</TableHead>
                     <TableHead>Statut</TableHead>
                     <TableHead>Cycle</TableHead>
                     <TableHead>Actions</TableHead>
@@ -582,8 +582,7 @@ const AdminCourses = () => {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center text-sm text-muted-foreground">
-                          <span className="mr-1">👥</span>
-                          <span>-</span>
+                          <span>👥</span>
                         </div>
                       </TableCell>
                       <TableCell>
