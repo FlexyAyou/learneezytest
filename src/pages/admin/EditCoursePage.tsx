@@ -19,24 +19,16 @@ import {
   Plus,
   Trash2,
   Edit2,
-                                        <div>
-    <Label>Description</Label>
-    <RichTextEditor
-      value={lesson.description}
-      onChange={(value) => setModules(prev => prev.map((m, mIdx) =>
-        mIdx === moduleIdx
-          ? {
-            ...m,
-            lessons: m.lessons.map((l, lIdx) =>
-              lIdx === lessonIdx ? { ...l, description: value } : l
-            )
-          }
-          : m
-      ))}
-      placeholder="Description de la leçon..."
-      height="160px"
-    />
-  </div>
+  Eye,
+  BookOpen,
+  ClipboardList,
+  Clock,
+  Upload,
+  X,
+  Check,
+  HelpCircle,
+  Link as LinkIcon
+} from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import RichTextEditor from '@/components/admin/RichTextEditor';
 import { QuizBuilder } from '@/components/quiz';
@@ -1493,21 +1485,20 @@ const EditCoursePage = () => {
                                         </div>
                                         <div>
                                           <Label>Description</Label>
-                                          <Textarea
+                                          <RichTextEditor
                                             value={lesson.description}
-                                            onChange={(e) => setModules(prev => prev.map((m, mIdx) =>
+                                            onChange={(value) => setModules(prev => prev.map((m, mIdx) =>
                                               mIdx === moduleIdx
                                                 ? {
                                                   ...m,
                                                   lessons: m.lessons.map((l, lIdx) =>
-                                                    lIdx === lessonIdx ? { ...l, description: e.target.value } : l
+                                                    lIdx === lessonIdx ? { ...l, description: value } : l
                                                   )
                                                 }
                                                 : m
                                             ))}
                                             placeholder="Description de la leçon..."
-                                            rows={3}
-                                            className="mt-2"
+                                            height="160px"
                                           />
                                         </div>
 
