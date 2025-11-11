@@ -1,6 +1,8 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Bold, Italic, Underline, List, ListOrdered, Eraser } from 'lucide-react';
+import { Bold, Italic, Underline, List, ListOrdered, Eraser, Quote, Code, SquareCode, Undo2, Redo2, Heading1, Heading2, Heading3, Type } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { sanitizeHTML } from '@/utils/sanitizeHTML';
 
 interface RichTextEditorProps {
   value: string;
@@ -34,26 +36,11 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
     underline: false,
     ul: false,
     ol: false,
+    heading: '' as '' | 'h1' | 'h2' | 'h3' | 'p' | 'pre' | 'blockquote'
   });
-
-  // Sanitize HTML (simple, évite scripts/événements). Pour besoins avancés: intégrer DOMPurify.
-  const sanitizeHTML = (html: string): string => {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-    // Retirer scripts & styles
-    doc.querySelectorAll('script, style').forEach(n => n.remove());
-    // Retirer attributs dangereux
-    doc.querySelectorAll('*').forEach(el => {
-      [...el.attributes].forEach(attr => {
-        if (/^on/i.test(attr.name) || attr.name === 'style') {
-          el.removeAttribute(attr.name);
-        }
-      });
-    });
-    return doc.body.innerHTML
-      .replace(/\u200B/g, '') // zero-width
-      .trim();
-  };
+  const historyRef = useRef<string[]>([]);
+  const historyIndexRef = useRef<number>(-1);
+  // sanitizeHTML importé depuis util (DOMPurify)
 
   // Initial / external value sync
   useEffect(() => {
@@ -76,6 +63,15 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
     if (clean !== lastHtmlRef.current) {
       lastHtmlRef.current = clean;
       onChange(clean);
+      // Historique
+      const h = historyRef.current;
+      const i = historyIndexRef.current;
+      // Trancher la pile si on avait fait undo puis édité
+      if (i < h.length - 1) h.splice(i + 1);
+      h.push(clean);
+      // Limiter à 100 entrées
+      if (h.length > 100) h.shift();
+      historyIndexRef.current = h.length - 1;
     }
   };
 
@@ -113,12 +109,94 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
     // Tenter de restaurer la sélection pour interroger l'état correctement
     if (!selectionIsInsideEditor()) restoreSelection();
     let bold = false, italic = false, underline = false, ul = false, ol = false;
+    let heading: '' | 'h1' | 'h2' | 'h3' | 'p' | 'pre' | 'blockquote' = '';
     try { bold = document.queryCommandState('bold'); } catch { }
     try { italic = document.queryCommandState('italic'); } catch { }
     try { underline = document.queryCommandState('underline'); } catch { }
     try { ul = document.queryCommandState('insertUnorderedList'); } catch { }
     try { ol = document.queryCommandState('insertOrderedList'); } catch { }
-    setToolbarState({ bold, italic, underline, ul, ol });
+    // Déterminer la balise de bloc courante (heading) via selection
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) {
+      let node: Node | null = sel.getRangeAt(0).startContainer;
+      if (node && node.nodeType === 3) node = node.parentNode; // texte → parent élément
+      while (node && node instanceof HTMLElement) {
+        const tag = node.tagName.toLowerCase();
+        if (['h1', 'h2', 'h3', 'p', 'pre', 'blockquote'].includes(tag)) { heading = tag as any; break; }
+        node = node.parentElement;
+      }
+    }
+    setToolbarState({ bold, italic, underline, ul, ol, heading });
+  };
+  const applyHeading = (tag: 'p' | 'h1' | 'h2' | 'h3') => {
+    if (disabled) return;
+    editorRef.current?.focus();
+    restoreSelection();
+    try { document.execCommand('formatBlock', false, tag); } catch { }
+    saveSelection();
+    emitChange();
+    updateToolbarState();
+  };
+
+  const toggleBlockquote = () => {
+    if (disabled) return;
+    editorRef.current?.focus();
+    restoreSelection();
+    // Si déjà dans un blockquote, repasse en paragraphe
+    const inBq = toolbarState.heading === 'blockquote';
+    try { document.execCommand('formatBlock', false, inBq ? 'p' : 'blockquote'); } catch { }
+    saveSelection();
+    emitChange();
+    updateToolbarState();
+  };
+
+  const togglePre = () => {
+    if (disabled) return;
+    editorRef.current?.focus();
+    restoreSelection();
+    const inPre = toolbarState.heading === 'pre';
+    try { document.execCommand('formatBlock', false, inPre ? 'p' : 'pre'); } catch { }
+    saveSelection();
+    emitChange();
+    updateToolbarState();
+  };
+
+  const escapeHTML = (s: string) => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
+  const toggleInlineCode = () => {
+    if (disabled) return;
+    editorRef.current?.focus();
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return;
+    const text = sel.toString();
+    // Simple wrap avec insertHTML
+    document.execCommand('insertHTML', false, `<code>${escapeHTML(text)}</code>`);
+    saveSelection();
+    emitChange();
+    updateToolbarState();
+  };
+
+  const undo = () => {
+    const h = historyRef.current;
+    if (historyIndexRef.current <= 0) return;
+    historyIndexRef.current -= 1;
+    const html = h[historyIndexRef.current] || '';
+    if (editorRef.current) {
+      editorRef.current.innerHTML = html;
+      lastHtmlRef.current = html;
+      onChange(html);
+    }
+  };
+
+  const redo = () => {
+    const h = historyRef.current;
+    if (historyIndexRef.current >= h.length - 1) return;
+    historyIndexRef.current += 1;
+    const html = h[historyIndexRef.current] || '';
+    if (editorRef.current) {
+      editorRef.current.innerHTML = html;
+      lastHtmlRef.current = html;
+      onChange(html);
+    }
   };
 
   const exec = (command: string) => {
@@ -154,6 +232,12 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
     return () => document.removeEventListener('selectionchange', handler);
   }, [isFocused]);
 
+  useEffect(() => {
+    // Initialiser l'historique avec la valeur initiale
+    historyRef.current = [value || ''];
+    historyIndexRef.current = 0;
+  }, []);
+
   return (
     <div className={`rich-text-editor border rounded-lg overflow-hidden ${disabled ? 'opacity-60 pointer-events-none' : ''}`}>
       <div className="flex flex-wrap gap-1 p-2 border-b bg-muted">
@@ -177,6 +261,36 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
         <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={clearFormatting} title="Effacer la mise en forme">
           <Eraser className="h-4 w-4" />
         </Button>
+        <div className="w-px h-8 bg-border mx-1" />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button type="button" variant="ghost" size="sm" className={`h-8 px-2 ${toolbarState.heading && toolbarState.heading !== 'p' ? 'bg-primary/15 text-primary border border-primary shadow-sm' : ''}`} title="Titre/Paragraphe">
+              {toolbarState.heading === 'h1' ? <Heading1 className="h-4 w-4" /> : toolbarState.heading === 'h2' ? <Heading2 className="h-4 w-4" /> : toolbarState.heading === 'h3' ? <Heading3 className="h-4 w-4" /> : <Type className="h-4 w-4" />}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            <DropdownMenuItem onClick={() => applyHeading('p')}><Type className="h-4 w-4 mr-2" />Paragraphe</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => applyHeading('h3')}><Heading3 className="h-4 w-4 mr-2" />Titre 3</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => applyHeading('h2')}><Heading2 className="h-4 w-4 mr-2" />Titre 2</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => applyHeading('h1')}><Heading1 className="h-4 w-4 mr-2" />Titre 1</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <Button type="button" variant="ghost" size="sm" className={`h-8 w-8 p-0 ${toolbarState.heading === 'blockquote' ? 'bg-primary/15 text-primary border border-primary shadow-sm' : ''}`} onClick={toggleBlockquote} title="Citation">
+          <Quote className="h-4 w-4" />
+        </Button>
+        <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={toggleInlineCode} title="Code inline">
+          <Code className="h-4 w-4" />
+        </Button>
+        <Button type="button" variant="ghost" size="sm" className={`h-8 w-8 p-0 ${toolbarState.heading === 'pre' ? 'bg-primary/15 text-primary border border-primary shadow-sm' : ''}`} onClick={togglePre} title="Bloc de code">
+          <SquareCode className="h-4 w-4" />
+        </Button>
+        <div className="w-px h-8 bg-border mx-1" />
+        <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={undo} title="Annuler (Ctrl+Z)">
+          <Undo2 className="h-4 w-4" />
+        </Button>
+        <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={redo} title="Rétablir (Ctrl+Y)">
+          <Redo2 className="h-4 w-4" />
+        </Button>
       </div>
 
       <div
@@ -197,6 +311,12 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           const text = (e.clipboardData || (window as any).clipboardData).getData('text/plain');
           document.execCommand('insertText', false, text);
         }}
+        onKeyDown={(e) => {
+          const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+          const mod = isMac ? e.metaKey : e.ctrlKey;
+          if (mod && e.key.toLowerCase() === 'z') { e.preventDefault(); undo(); }
+          if (mod && e.key.toLowerCase() === 'y') { e.preventDefault(); redo(); }
+        }}
       />
 
       <style>{`
@@ -213,7 +333,28 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           word-break: break-word;
         }
         .rich-text-editor ul { list-style: disc; padding-left: 1.25rem; }
+        .rich-text-editor ul ul { list-style: circle; }
+        .rich-text-editor ul ul ul { list-style: square; }
         .rich-text-editor ol { list-style: decimal; padding-left: 1.25rem; }
+        .rich-text-editor ol ol { list-style: lower-alpha; }
+        .rich-text-editor ol ol ol { list-style: lower-roman; }
+        .rich-text-editor blockquote {
+          border-left: 4px solid hsl(var(--muted-foreground));
+          padding-left: 1rem;
+          color: hsl(var(--muted-foreground));
+          font-style: italic;
+          margin: 0.75rem 0;
+          background-color: hsl(var(--muted) / 0.2);
+        }
+        .dark .rich-text-editor blockquote {
+          border-left-color: hsl(var(--muted-foreground));
+          background-color: hsl(var(--muted) / 0.3);
+          color: hsl(var(--muted-foreground));
+        }
+        .dark .rich-text-editor pre {
+          background-color: hsl(var(--muted) / 0.25);
+          border-color: hsl(var(--border));
+        }
       `}</style>
     </div>
   );
