@@ -24,6 +24,7 @@ import LoadingSpinner from '@/components/common/LoadingSpinner';
 import PDFViewer from '@/components/common/PDFViewer';
 import { usePresignedUrl } from '@/hooks/usePresignedUrl';
 import { usePlayback, useAttachHls } from '@/hooks/usePlayback';
+import MediaStatusBadge from '@/components/common/MediaStatusBadge';
 
 interface VideoPlayerProps {
   videoKey?: string;
@@ -109,16 +110,23 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoKey, videoUrl, title }) 
     }
 
     return (
-      <div className="w-full aspect-video bg-black rounded-lg overflow-hidden shadow-2xl border-4 border-gray-800">
-        <video
-          ref={videoRef}
-          src={isMp4 ? url : undefined}
-          controls
-          className="w-full h-full"
-          title={title}
-        >
-          Votre navigateur ne supporte pas la lecture vidéo.
-        </video>
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <MediaStatusBadge assetKey={videoKey} />
+          {isHls && <Badge variant="outline" className="bg-purple-100 text-purple-800 border-purple-200">HLS</Badge>}
+          {isMp4 && <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200">MP4</Badge>}
+        </div>
+        <div className="w-full aspect-video bg-black rounded-lg overflow-hidden shadow-2xl border-4 border-gray-800">
+          <video
+            ref={videoRef}
+            src={isMp4 ? url : undefined}
+            controls
+            className="w-full h-full"
+            title={title}
+          >
+            Votre navigateur ne supporte pas la lecture vidéo.
+          </video>
+        </div>
       </div>
     );
   }
@@ -126,15 +134,20 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoKey, videoUrl, title }) 
   // Sinon, si on a une URL directe non YouTube (peut être mp4), l'utiliser telle quelle
   if (videoUrl) {
     return (
-      <div className="w-full aspect-video bg-black rounded-lg overflow-hidden shadow-2xl border-4 border-gray-800">
-        <video
-          src={videoUrl}
-          controls
-          className="w-full h-full"
-          title={title}
-        >
-          Votre navigateur ne supporte pas la lecture vidéo.
-        </video>
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200">URL externe</Badge>
+        </div>
+        <div className="w-full aspect-video bg-black rounded-lg overflow-hidden shadow-2xl border-4 border-gray-800">
+          <video
+            src={videoUrl}
+            controls
+            className="w-full h-full"
+            title={title}
+          >
+            Votre navigateur ne supporte pas la lecture vidéo.
+          </video>
+        </div>
       </div>
     );
   }
