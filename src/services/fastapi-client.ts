@@ -347,37 +347,37 @@ class FastAPIClient {
    */
   async getCourses(filters: CourseFilters = {}): Promise<CourseSummaryPage> {
     const params = new URLSearchParams();
-    
+
     // Pagination classique
     if (filters.page) params.append('page', filters.page.toString());
     if (filters.per_page) params.append('per_page', Math.min(filters.per_page, 20).toString());
-    
+
     // Keyset pagination
     if (filters.after) params.append('after', filters.after);
-    
+
     // Tri
     if (filters.sort) params.append('sort', filters.sort);
-    
+
     // Recherche
     if (filters.search) params.append('search', filters.search.slice(0, 100));
-    
+
     // Niveaux
     if (filters.level) params.append('level', filters.level);
     if (filters.levels?.length) {
       filters.levels.forEach(l => params.append('levels[]', l));
     }
-    
+
     // Statut
     if (filters.status) params.append('status', filters.status);
-    
+
     // Propriétaire
     if (filters.owner_type) params.append('owner_type', filters.owner_type);
     if (filters.owner_id) params.append('owner_id', filters.owner_id.toString());
-    
+
     // Prix
     if (filters.price_min !== undefined) params.append('price_min', filters.price_min.toString());
     if (filters.price_max !== undefined) params.append('price_max', filters.price_max.toString());
-    
+
     // Catégories
     if (filters.category_ids?.length) {
       filters.category_ids.forEach(id => params.append('category_ids[]', id.toString()));
@@ -386,15 +386,15 @@ class FastAPIClient {
     if (filters.category_names?.length) {
       filters.category_names.forEach(name => params.append('category_names[]', name));
     }
-    
+
     // Vidéo intro
     if (filters.has_intro_video !== undefined) {
       params.append('has_intro_video', filters.has_intro_video.toString());
     }
-    
+
     // Facettes
     if (filters.facets) params.append('facets', 'true');
-    
+
     return this.get<CourseSummaryPage>(`/api/courses/?${params.toString()}`);
   }
 
@@ -515,7 +515,7 @@ class FastAPIClient {
   }
 
   // ============= QUIZ ENDPOINTS (NEW) =============
-  
+
   /**
    * Créer un quiz pour une leçon
    */
@@ -712,7 +712,7 @@ class FastAPIClient {
   }
 
   // ============= DEPRECATED QUIZ METHODS =============
-  
+
   /**
    * @deprecated Use createLessonQuiz instead
    */
@@ -770,6 +770,19 @@ class FastAPIClient {
   }
 
   /**
+   * Annuler un upload multipart (si l'utilisateur abandonne)
+   */
+  async abortUpload(uploadId: string, key: string): Promise<void> {
+    // Endpoint optionnel côté backend
+    try {
+      await this.post('/api/storage/abort-upload', { upload_id: uploadId, key });
+    } catch (e) {
+      // Silencieux si non implémenté
+      console.warn('abort-upload failed or not implemented', e);
+    }
+  }
+
+  /**
    * Obtenir l'URL de lecture d'une vidéo
    */
   async getVideoPlayUrl(key: string): Promise<VideoPlayResponse> {
@@ -781,9 +794,38 @@ class FastAPIClient {
    * Obtenir une URL de lecture pour n'importe quel asset (image, pdf, vidéo)
    * Note: alias générique de getVideoPlayUrl afin de l'utiliser aussi pour les images/PDF
    */
-  async getPlayUrl(key: string): Promise<{ url: string; expires_in: number }> {
+  async getPlayUrl(key: string): Promise<VideoPlayResponse> {
     const raw: any = await this.get<any>('/api/storage/play', { params: { key } });
-    return { url: raw.play_url ?? raw.url, expires_in: raw.expires_in };
+    return { url: raw.play_url ?? raw.url, expires_in: raw.expires_in, stream_type: raw.stream_type };
+  }
+
+  /**
+   * URL de redirection directe (302) utilisable comme src d'une balise <video> ou <img>
+   */
+  getPlayRedirectUrl(key: string): string {
+    return `${import.meta.env.VITE_API_URL}/api/storage/play/redirect?key=${encodeURIComponent(key)}`;
+  }
+
+  /**
+   * Lecture batch de plusieurs clés
+   */
+  async getMultiPlay(keys: string[]): Promise<Array<{ key: string; url?: string; stream_type?: string; error?: string }>> {
+    const raw: any = await this.get<any>('/api/storage/play/multi', { params: { keys } });
+    return raw.items || [];
+  }
+
+  /**
+   * Récupérer les métadonnées d'un asset par sa clé
+   */
+  async getAssetByKey(key: string): Promise<any> {
+    return this.get('/api/storage/assets/by-key', { params: { key } });
+  }
+
+  /**
+   * Lister des assets (pagination + filtres optionnels)
+   */
+  async listAssets(page: number = 1, perPage: number = 10, status?: string): Promise<any> {
+    return this.get('/api/storage/assets', { params: { page, per_page: perPage, status } });
   }
 
   /**
@@ -1016,7 +1058,7 @@ class FastAPIClient {
   }
 
   // ============= CATEGORIES =============
-  
+
   /**
    * Lister toutes les catégories (actives uniquement par défaut)
    */
@@ -1053,7 +1095,7 @@ class FastAPIClient {
   }
 
   // ============= NIVEAUX (LEVELS) =============
-  
+
   /**
    * Récupérer les niveaux pour un cycle d'apprentissage
    */

@@ -34,7 +34,7 @@ const AdminCourses = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
-  
+
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [ownerFilter, setOwnerFilter] = useState('all');
@@ -45,21 +45,21 @@ const AdminCourses = () => {
   const [priceMax, setPriceMax] = useState<string>('');
   const [hasIntroVideo, setHasIntroVideo] = useState<boolean | undefined>(undefined);
   const [currentPage, setCurrentPage] = useState(1);
-  
+
   // Récupérer les catégories depuis l'API
   const { data: categories = [] } = useCategories();
-  
+
   // API state
   const [coursesPage, setCoursesPage] = useState<CourseSummaryPage | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   const ITEMS_PER_PAGE = 20;
-  
+
   // Visibility modal state
   const [selectedCourseForVisibility, setSelectedCourseForVisibility] = useState<CourseResponse | null>(null);
   const [showVisibilityModal, setShowVisibilityModal] = useState(false);
-  
+
   // Delete confirmation state
   const [courseToDelete, setCourseToDelete] = useState<string | null>(null);
 
@@ -83,10 +83,10 @@ const AdminCourses = () => {
           has_intro_video: hasIntroVideo,
           facets: true,
         };
-        
+
         const data = await fastAPIClient.getCourses(filters);
         setCoursesPage(data);
-        
+
         // Si on vient de créer un cours, afficher un toast de confirmation
         if (location.state?.courseCreated) {
           toast({
@@ -114,17 +114,17 @@ const AdminCourses = () => {
   const publishedCourses = useMemo(() => {
     return coursesPage?.items.filter(c => c.status === 'published') || [];
   }, [coursesPage]);
-  
+
   const draftCourses = useMemo(() => {
     return coursesPage?.items.filter(c => c.status === 'draft') || [];
   }, [coursesPage]);
 
   const confirmDeleteCourse = async () => {
     if (!courseToDelete) return;
-    
+
     try {
       await fastAPIClient.deleteCourse(courseToDelete);
-      
+
       // Recharger avec les filtres actuels
       const filters = {
         page: currentPage,
@@ -142,7 +142,7 @@ const AdminCourses = () => {
       };
       const data = await fastAPIClient.getCourses(filters);
       setCoursesPage(data);
-      
+
       toast({
         title: "Cours supprimé",
         description: "Le cours a été supprimé avec succès.",
@@ -175,12 +175,12 @@ const AdminCourses = () => {
     try {
       // TODO: Appeler l'API pour sauvegarder les paramètres de visibilité
       console.log('Saving visibility settings for course:', courseId, settings);
-      
+
       toast({
         title: "Paramètres sauvegardés",
         description: "Les paramètres de visibilité ont été mis à jour avec succès.",
       });
-      
+
       // Recharger avec les filtres actuels
       const filters = {
         page: currentPage,
@@ -232,11 +232,11 @@ const AdminCourses = () => {
   };
 
   const getOwnerBadge = (owner_type: string, owner_id?: number | null) => {
-    return owner_type === 'learneezy' 
+    return owner_type === 'learneezy'
       ? <Badge className="bg-blue-500/10 text-blue-700 border-blue-500/20 font-medium">Learneezy</Badge>
       : <Badge className="bg-yellow-500/10 text-yellow-700 border-yellow-500/20 font-medium">
-          {owner_id ? `OF #${owner_id}` : 'OF'}
-        </Badge>;
+        {owner_id ? `OF #${owner_id}` : 'OF'}
+      </Badge>;
   };
 
   const getCategoryBadges = (course: CourseResponse) => {
@@ -244,8 +244,8 @@ const AdminCourses = () => {
       return (
         <div className="flex flex-wrap gap-1">
           {course.category_names.slice(0, 2).map((category, index) => (
-            <Badge 
-              key={index} 
+            <Badge
+              key={index}
               className="bg-purple-500/10 text-purple-700 border-purple-500/20 text-xs"
               variant="outline"
             >
@@ -253,7 +253,7 @@ const AdminCourses = () => {
             </Badge>
           ))}
           {course.category_names.length > 2 && (
-            <Badge 
+            <Badge
               className="bg-gray-500/10 text-gray-700 border-gray-500/20 text-xs"
               variant="outline"
             >
@@ -265,7 +265,7 @@ const AdminCourses = () => {
     }
     if (course.category) {
       return (
-        <Badge 
+        <Badge
           className="bg-purple-500/10 text-purple-700 border-purple-500/20 text-xs"
           variant="outline"
         >
@@ -278,7 +278,7 @@ const AdminCourses = () => {
 
   const getCycleBadge = (cycle: string | null | undefined) => {
     if (!cycle) return <Badge variant="outline">Non défini</Badge>;
-    
+
     const cycleConfig: Record<string, { label: string; className: string }> = {
       primaire: { label: 'Primaire', className: 'bg-blue-500/10 text-blue-700 border-blue-500/20' },
       college: { label: 'Collège', className: 'bg-green-500/10 text-green-700 border-green-500/20' },
@@ -333,7 +333,7 @@ const AdminCourses = () => {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestion des cours</h1>
           <p className="text-gray-600">Gérer et modérer les cours de la plateforme</p>
         </div>
-        <Button 
+        <Button
           onClick={() => navigate('/dashboard/superadmin/courses/create')}
           className="bg-pink-600 hover:bg-pink-700"
         >
@@ -429,7 +429,7 @@ const AdminCourses = () => {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                 <SelectTrigger className="w-[240px]">
@@ -440,13 +440,13 @@ const AdminCourses = () => {
                   {categories.map((cat) => (
                     <SelectItem key={cat.id} value={cat.name}>
                       {cat.name}
-                      {coursesPage?.facets?.by_category?.[cat.name] && 
+                      {coursesPage?.facets?.by_category?.[cat.name] &&
                         ` (${coursesPage.facets.by_category[cat.name]})`}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              
+
               <Select value={cycleFilter} onValueChange={setCycleFilter}>
                 <SelectTrigger className="w-[240px]">
                   <SelectValue placeholder="Tous les cycles" />
@@ -455,27 +455,27 @@ const AdminCourses = () => {
                   <SelectItem value="all">Tous les cycles</SelectItem>
                   <SelectItem value="primaire">
                     Primaire
-                    {coursesPage?.facets?.by_cycle?.primaire && 
+                    {coursesPage?.facets?.by_cycle?.primaire &&
                       ` (${coursesPage.facets.by_cycle.primaire})`}
                   </SelectItem>
                   <SelectItem value="college">
                     Collège
-                    {coursesPage?.facets?.by_cycle?.college && 
+                    {coursesPage?.facets?.by_cycle?.college &&
                       ` (${coursesPage.facets.by_cycle.college})`}
                   </SelectItem>
                   <SelectItem value="lycee">
                     Lycée
-                    {coursesPage?.facets?.by_cycle?.lycee && 
+                    {coursesPage?.facets?.by_cycle?.lycee &&
                       ` (${coursesPage.facets.by_cycle.lycee})`}
                   </SelectItem>
                   <SelectItem value="formation_pro">
                     Professionnel
-                    {coursesPage?.facets?.by_cycle?.formation_pro && 
+                    {coursesPage?.facets?.by_cycle?.formation_pro &&
                       ` (${coursesPage.facets.by_cycle.formation_pro})`}
                   </SelectItem>
                 </SelectContent>
               </Select>
-              
+
               <Select value={sortOption} onValueChange={(value) => setSortOption(value as 'newest' | 'price_asc' | 'price_desc')}>
                 <SelectTrigger className="w-[200px]">
                   <SelectValue placeholder="Trier par..." />
@@ -487,7 +487,7 @@ const AdminCourses = () => {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               <div className="flex items-center gap-2">
                 <Input
@@ -506,7 +506,7 @@ const AdminCourses = () => {
                   className="w-[150px]"
                 />
               </div>
-              
+
               <div className="flex items-center gap-2">
                 <Switch
                   id="intro-video"
@@ -525,8 +525,8 @@ const AdminCourses = () => {
               <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p className="text-lg font-medium mb-2">Aucun cours trouvé</p>
               <p className="text-sm">
-                {(coursesPage?.total_items || 0) === 0 
-                  ? "Créez votre premier cours pour commencer" 
+                {(coursesPage?.total_items || 0) === 0
+                  ? "Créez votre premier cours pour commencer"
                   : "Essayez de modifier vos filtres de recherche"}
               </p>
             </div>
@@ -546,102 +546,103 @@ const AdminCourses = () => {
                 </TableHeader>
                 <TableBody>
                   {filteredCourses.map((course) => (
-                  <TableRow key={course.id}>
-                    <TableCell>
-                      <div className="flex items-center space-x-3">
-                        {(() => {
-                          // Fallback : cover_key → première vidéo du premier module
-                          let imageUrl = course.image_url;
-                          if (!imageUrl && course.modules && course.modules.length > 0) {
-                            const firstLesson = course.modules[0].content?.[0];
-                            if (firstLesson?.video_key) {
-                              imageUrl = `${import.meta.env.VITE_API_URL}/api/storage/play/${firstLesson.video_key}`;
+                    <TableRow key={course.id}>
+                      <TableCell>
+                        <div className="flex items-center space-x-3">
+                          {(() => {
+                            // Fallback : cover_key → première vidéo du premier module
+                            let imageUrl = course.image_url;
+                            if (!imageUrl && course.modules && course.modules.length > 0) {
+                              const firstLesson = course.modules[0].content?.[0];
+                              if (firstLesson?.video_key) {
+                                // Utiliser l'endpoint redirect conforme à la spec
+                                imageUrl = `${import.meta.env.VITE_API_URL}/api/storage/play/redirect?key=${encodeURIComponent(firstLesson.video_key)}`;
+                              }
                             }
-                          }
-                          return imageUrl ? (
-                            <img 
-                              src={imageUrl} 
-                              alt={course.title}
-                              className="w-12 h-8 rounded object-cover"
-                            />
-                          ) : null;
-                        })()}
-                        <div>
-                          <div className="font-medium">{course.title}</div>
-                          <div className="text-sm text-muted-foreground flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {course.duration || '15h'}
+                            return imageUrl ? (
+                              <img
+                                src={imageUrl}
+                                alt={course.title}
+                                className="w-12 h-8 rounded object-cover"
+                              />
+                            ) : null;
+                          })()}
+                          <div>
+                            <div className="font-medium">{course.title}</div>
+                            <div className="text-sm text-muted-foreground flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {course.duration || '15h'}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {getOwnerBadge(course.owner_type || 'learneezy', course.owner_id)}
-                    </TableCell>
-                    <TableCell>
-                      {getCategoryBadges(course)}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <span className="mr-1">👥</span>
-                        <span>-</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {getStatusBadge(course.status || 'draft')}
-                    </TableCell>
-                    <TableCell>
-                      {getCycleBadge(course.learning_cycle)}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-1">
-                        <Button 
-                          size="sm" 
-                          variant="ghost"
-                          className="h-8 w-8 p-0"
-                          title="Voir le cours"
-                          onClick={() => handleViewCourse(course)}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="ghost"
-                          className="h-8 w-8 p-0"
-                          title="Paramètres"
-                        >
-                          <Settings className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="ghost"
-                          className="h-8 w-8 p-0"
-                          title="Visibilité"
-                          onClick={() => handleOpenVisibilityModal(course)}
-                        >
-                          <Globe className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="ghost"
-                          className="h-8 w-8 p-0"
-                          title="Modifier"
-                          onClick={() => handleEditCourse(course.id)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="ghost"
-                          className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
-                          title="Supprimer"
-                          onClick={() => setCourseToDelete(course.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                      </TableCell>
+                      <TableCell>
+                        {getOwnerBadge(course.owner_type || 'learneezy', course.owner_id)}
+                      </TableCell>
+                      <TableCell>
+                        {getCategoryBadges(course)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center text-sm text-muted-foreground">
+                          <span className="mr-1">👥</span>
+                          <span>-</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {getStatusBadge(course.status || 'draft')}
+                      </TableCell>
+                      <TableCell>
+                        {getCycleBadge(course.learning_cycle)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex space-x-1">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-8 w-8 p-0"
+                            title="Voir le cours"
+                            onClick={() => handleViewCourse(course)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-8 w-8 p-0"
+                            title="Paramètres"
+                          >
+                            <Settings className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-8 w-8 p-0"
+                            title="Visibilité"
+                            onClick={() => handleOpenVisibilityModal(course)}
+                          >
+                            <Globe className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-8 w-8 p-0"
+                            title="Modifier"
+                            onClick={() => handleEditCourse(course.id)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
+                            title="Supprimer"
+                            onClick={() => setCourseToDelete(course.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
                   ))}
                 </TableBody>
               </Table>
@@ -654,22 +655,22 @@ const AdminCourses = () => {
                     {Math.min(currentPage * ITEMS_PER_PAGE, coursesPage?.total_items || 0)} sur{' '}
                     {coursesPage?.total_items || 0} cours
                   </div>
-                  
+
                   {(coursesPage?.total_pages || 0) > 1 && (
                     <Pagination>
                       <PaginationContent>
                         <PaginationItem>
-                          <PaginationPrevious 
+                          <PaginationPrevious
                             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                             className={!coursesPage?.has_previous ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
                           />
                         </PaginationItem>
-                        
+
                         {/* First page */}
                         {currentPage > 2 && (
                           <>
                             <PaginationItem>
-                              <PaginationLink 
+                              <PaginationLink
                                 onClick={() => setCurrentPage(1)}
                                 className="cursor-pointer"
                               >
@@ -687,9 +688,9 @@ const AdminCourses = () => {
                         {/* Pages around current */}
                         {Array.from({ length: coursesPage?.total_pages || 0 }, (_, i) => i + 1)
                           .filter(page => {
-                            return page === currentPage || 
-                                   page === currentPage - 1 || 
-                                   page === currentPage + 1;
+                            return page === currentPage ||
+                              page === currentPage - 1 ||
+                              page === currentPage + 1;
                           })
                           .map(page => (
                             <PaginationItem key={page}>
@@ -713,7 +714,7 @@ const AdminCourses = () => {
                               </PaginationItem>
                             )}
                             <PaginationItem>
-                              <PaginationLink 
+                              <PaginationLink
                                 onClick={() => setCurrentPage(coursesPage?.total_pages || 1)}
                                 className="cursor-pointer"
                               >
@@ -724,7 +725,7 @@ const AdminCourses = () => {
                         )}
 
                         <PaginationItem>
-                          <PaginationNext 
+                          <PaginationNext
                             onClick={() => setCurrentPage(p => Math.min(coursesPage?.total_pages || 1, p + 1))}
                             className={!coursesPage?.has_next ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
                           />

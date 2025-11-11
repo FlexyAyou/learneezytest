@@ -622,6 +622,7 @@ export interface CompleteUploadResponse {
 export interface VideoPlayResponse {
   url: string;
   expires_in: number;
+  stream_type?: 'hls' | 'mp4';
 }
 
 // Nouveau: programme PDF (lecture inline)
