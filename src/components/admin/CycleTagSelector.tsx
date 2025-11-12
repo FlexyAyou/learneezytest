@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { X, Plus } from 'lucide-react';
+import { useLevels, useCreateProLevel } from '@/hooks/useApi';
+import { useToast } from '@/hooks/use-toast';
 
 type Cycle = 'primaire' | 'college' | 'lycee' | 'formation_pro' | '';
 
@@ -54,7 +56,14 @@ export const CycleTagSelector: React.FC<CycleTagSelectorProps> = ({
   onTagsChange,
 }) => {
   const [customTag, setCustomTag] = useState('');
-  const [customTags, setCustomTags] = useState<string[]>([]);
+  const [customTags, setCustomTags] = useState<string[]>([]); // pour cycles non pro (si jamais activé plus tard)
+  const { toast } = useToast();
+
+  // Charger dynamiquement les niveaux pour formation professionnelle
+  const { data: dynamicProLevels = [], isLoading: loadingProLevels } = useLevels(
+    selectedCycle === 'formation_pro' ? 'formation_pro' : ''
+  );
+  const createProLevelMutation = useCreateProLevel();
 
   const handleCycleChange = (value: string) => {
     onCycleChange(value as Cycle);
@@ -74,17 +83,51 @@ export const CycleTagSelector: React.FC<CycleTagSelectorProps> = ({
     onTagsChange(selectedTags.filter(t => t !== tag));
   };
 
-  const addCustomTag = () => {
-    if (customTag.trim() && !selectedTags.includes(customTag.trim())) {
-      const newTag = customTag.trim();
-      setCustomTags([...customTags, newTag]);
-      onTagsChange([...selectedTags, newTag]);
+  const addCustomTag = async () => {
+    const trimmed = customTag.trim();
+    if (!trimmed) return;
+    if (selectedTags.includes(trimmed)) {
+      setCustomTag('');
+      return;
+    }
+
+    if (selectedCycle === 'formation_pro') {
+      try {
+        await createProLevelMutation.mutateAsync({ label: trimmed });
+        // Le hook invalide la query; l’élément reviendra dans dynamicProLevels automatiquement
+        onTagsChange([...selectedTags, trimmed]);
+        toast({
+          title: 'Niveau ajouté',
+          description: `"${trimmed}" a été créé.`,
+        });
+        setCustomTag('');
+      } catch (e: any) {
+        toast({
+          title: 'Erreur',
+          description: e?.response?.data?.detail || 'Impossible de créer ce niveau.',
+          variant: 'destructive'
+        });
+      }
+    } else {
+      // Comportement local (actuellement non affiché pour autres cycles)
+      setCustomTags([...customTags, trimmed]);
+      onTagsChange([...selectedTags, trimmed]);
       setCustomTag('');
     }
   };
 
-  const availableTags = selectedCycle ? cycleTagsMap[selectedCycle as Exclude<Cycle, ''>] || [] : [];
-  const allAvailableTags = [...availableTags, ...customTags];
+  const availableTags = useMemo(() => {
+    if (!selectedCycle) return [] as string[];
+    if (selectedCycle === 'formation_pro') {
+      // Fusion des tags statiques + dynamiques, sans doublons
+      const base = cycleTagsMap.formation_pro;
+      const merged = [...base, ...dynamicProLevels];
+      return Array.from(new Set(merged)).sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' }));
+    }
+    return cycleTagsMap[selectedCycle as Exclude<Cycle, ''>] || [];
+  }, [selectedCycle, dynamicProLevels]);
+
+  const allAvailableTags = [...availableTags, ...(selectedCycle === 'formation_pro' ? [] : customTags)];
 
   return (
     <div className="space-y-4">
@@ -107,19 +150,19 @@ export const CycleTagSelector: React.FC<CycleTagSelectorProps> = ({
       {selectedCycle && (
         <div className="space-y-3">
           <Label>Niveaux disponibles</Label>
-          
+
           {/* Selected tags display */}
           {selectedTags.length > 0 && (
             <div className="flex flex-wrap gap-2 p-3 bg-muted/30 rounded-lg border border-border">
               {selectedTags.map(tag => (
-                <Badge 
-                  key={tag} 
-                  variant="default" 
+                <Badge
+                  key={tag}
+                  variant="default"
                   className="px-3 py-1.5 text-sm flex items-center gap-2"
                 >
                   {tag}
-                  <X 
-                    className="h-3 w-3 cursor-pointer hover:text-destructive transition-colors" 
+                  <X
+                    className="h-3 w-3 cursor-pointer hover:text-destructive transition-colors"
                     onClick={() => removeTag(tag)}
                   />
                 </Badge>
@@ -135,11 +178,10 @@ export const CycleTagSelector: React.FC<CycleTagSelectorProps> = ({
                 <Badge
                   key={tag}
                   variant={isSelected ? "default" : "outline"}
-                  className={`px-3 py-1.5 text-sm cursor-pointer transition-all ${
-                    isSelected 
-                      ? 'bg-primary text-primary-foreground' 
+                  className={`px-3 py-1.5 text-sm cursor-pointer transition-all ${isSelected
+                      ? 'bg-primary text-primary-foreground'
                       : 'hover:bg-primary/10 hover:border-primary'
-                  }`}
+                    }`}
                   onClick={() => toggleTag(tag)}
                 >
                   {tag}
@@ -164,18 +206,22 @@ export const CycleTagSelector: React.FC<CycleTagSelectorProps> = ({
                       addCustomTag();
                     }
                   }}
+                  disabled={createProLevelMutation.isLoading}
                 />
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={addCustomTag}
-                  disabled={!customTag.trim()}
+                  disabled={!customTag.trim() || createProLevelMutation.isLoading}
                 >
                   <Plus className="h-4 w-4 mr-1" />
-                  Ajouter
+                  {createProLevelMutation.isLoading ? 'Ajout...' : 'Ajouter'}
                 </Button>
               </div>
+              {loadingProLevels && (
+                <p className="text-xs text-muted-foreground mt-2">Chargement des niveaux...</p>
+              )}
             </div>
           )}
         </div>

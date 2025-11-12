@@ -72,7 +72,7 @@ const CreateCoursePage = () => {
     category: '',
     customCategory: '',
     duration: '',
-  level: 'debutant',
+    level: 'debutant',
     cycle: '' as '' | 'primaire' | 'college' | 'lycee' | 'formation_pro',
     cycleTags: [] as string[],
     image: null as File | null,
