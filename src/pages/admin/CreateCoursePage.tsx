@@ -262,11 +262,31 @@ const CreateCoursePage = () => {
       return;
     }
 
-    try {
-      await createProLevelMutation.mutateAsync({ label: customLevel.trim() });
+    if (courseData.cycle !== 'formation_pro') {
+      toast({
+        title: "Cycle non compatible",
+        description: "L'ajout de niveaux personnalisés n'est possible que pour la formation professionnelle.",
+        variant: "destructive"
+      });
+      return;
+    }
 
-      // Switch to the newly added level
-      handleInputChange('level', customLevel.trim());
+    try {
+      const created = await createProLevelMutation.mutateAsync({ label: customLevel.trim() });
+
+      // Mettre à jour immédiatement la liste des niveaux pour le cycle courant
+      const key = ['levels', courseData.cycle];
+      queryClient.setQueryData(key, (old: any) => {
+        const label = (created as any)?.label || customLevel.trim();
+        if (Array.isArray(old)) {
+          return old.includes(label) ? old : [...old, label];
+        }
+        return [label];
+      });
+
+      // Sélectionner automatiquement le niveau nouvellement créé
+      const newLabel = (created as any)?.label || customLevel.trim();
+      handleInputChange('level', newLabel);
       setCustomLevel('');
     } catch (error) {
       console.error('Error creating level:', error);
