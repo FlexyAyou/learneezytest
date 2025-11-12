@@ -1264,9 +1264,14 @@ const CreateCoursePage = () => {
                           setCustomLevel('');
                         }
                       }}
+                      disabled={courseData.cycle === 'formation_pro' && isLoadingLevels}
                     >
                       <SelectTrigger className="mt-2">
-                        <SelectValue />
+                        <SelectValue placeholder={
+                          courseData.cycle === 'formation_pro' && isLoadingLevels 
+                            ? "Chargement..." 
+                            : "Sélectionner un niveau"
+                        } />
                       </SelectTrigger>
                       <SelectContent>
                         {courseData.cycle === 'formation_pro' ? (
@@ -1276,6 +1281,11 @@ const CreateCoursePage = () => {
                                 {level}
                               </SelectItem>
                             ))}
+                            {levels.length === 0 && !isLoadingLevels && (
+                              <div className="px-2 py-3 text-sm text-muted-foreground text-center">
+                                Aucun niveau disponible pour ce cycle
+                              </div>
+                            )}
                             <SelectItem value="custom">➕ Ajouter un nouveau niveau</SelectItem>
                           </>
                         ) : (
@@ -1293,15 +1303,31 @@ const CreateCoursePage = () => {
                           value={customLevel}
                           onChange={(e) => setCustomLevel(e.target.value)}
                           placeholder="Entrez un nouveau niveau"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              saveCustomLevel();
+                            }
+                          }}
                         />
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={saveCustomLevel}
+                          disabled={!customLevel.trim() || createProLevelMutation.isPending}
                           className="w-full"
                         >
-                          <Save className="h-4 w-4 mr-2" />
-                          Enregistrer et ajouter à la liste
+                          {createProLevelMutation.isPending ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Ajout en cours...
+                            </>
+                          ) : (
+                            <>
+                              <Save className="h-4 w-4 mr-2" />
+                              Enregistrer et ajouter à la liste
+                            </>
+                          )}
                         </Button>
                       </div>
                     )}
