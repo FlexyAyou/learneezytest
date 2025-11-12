@@ -884,28 +884,16 @@ const CreateCoursePage = () => {
           title: module.title,
           description: module.description || `Description du ${module.title}`,
           duration: calculateModuleDuration(module.lessons),
-          content: module.lessons.map(lesson => {
-            const genericKey = lesson.uploadedVideoKey || lesson.uploadedPdfKey || lesson.uploadedImageKey || null;
-            const contentType: 'video' | 'pdf' | 'image' | 'url' | undefined = lesson.fileType
-              ? (lesson.fileType as any)
-              : (lesson.mediaUrl ? 'url' : undefined);
-            return ({
-              title: lesson.title,
-              duration: lesson.duration.toString() + 'min',
-              description: lesson.content,
-              // Champs spécifiques conservés (compat backend)
-              video_key: lesson.uploadedVideoKey || null,
-              pdf_key: lesson.uploadedPdfKey || null,
-              image_key: lesson.uploadedImageKey || null,
-              // Alias utilisé par certains backends pour les PDF/ressources
-              resource_key: lesson.fileType === 'pdf' ? (lesson.uploadedPdfKey || null) : null,
-              // Champs génériques pour simplifier le mapping côté backend
-              key: genericKey,
-              content_type: contentType,
-              video_url: lesson.mediaUrl || null, // Le backend mappe vers video_url pour tous les types
-              transcription: null
-            });
-          }),
+          content: module.lessons.map(lesson => ({
+            title: lesson.title,
+            duration: lesson.duration.toString() + 'min',
+            description: lesson.content,
+            video_key: lesson.uploadedVideoKey || null, // 🔑 Storage key
+            pdf_key: lesson.uploadedPdfKey || null, // 🔑 Storage key pour PDF
+            image_key: lesson.uploadedImageKey || null, // 🔑 Storage key pour image
+            video_url: lesson.mediaUrl || null, // External URL fallback
+            transcription: null
+          })),
           quizzes: module.quiz ? [{
             title: module.quiz.title,
             questions: module.quiz.questions
@@ -950,34 +938,17 @@ const CreateCoursePage = () => {
         resources: uploadedResources
       };
 
-      // 4. Créer le cours avec tous les modules et leçons en une seule requête
-      // Logs détaillés du payload pour diagnostic backend
+      // Log payload après completion de tous les uploads (cover, programme, leçons, ressources)
       try {
-        // Version compacte: résumé des médias par leçon
-        const mediaSummary = (coursePayload.modules || []).map((m, mi) => ({
-          moduleIndex: mi,
-          title: m.title,
-          lessons: (m.content || []).map((c, ci) => ({
-            lessonIndex: ci,
-            title: c.title,
-            content_type: (c as any).content_type,
-            key: (c as any).key,
-            video_key: (c as any).video_key,
-            pdf_key: (c as any).pdf_key,
-            image_key: (c as any).image_key,
-            resource_key: (c as any).resource_key,
-            video_url: c.video_url,
-          }))
-        }));
-        // Objet brut (sans fonctions)
-        const payloadClone = JSON.parse(JSON.stringify(coursePayload));
-        ; (window as any).__lastCreateCoursePayload = payloadClone;
-        console.log('🧪 createCourse payload (clone):', payloadClone);
-        console.log('🧪 createCourse media summary:', mediaSummary);
+        console.log('🧾 Payload envoyé à createCourse (pré-API):', coursePayload);
+        // Optionnel: version JSON stringifiée (attention à la taille)
+        // console.log('🧾 Payload JSON:', JSON.stringify(coursePayload, null, 2));
       } catch (e) {
-        console.warn('Payload logging failed:', e);
+        // En cas d'objet circulaire ou autre, éviter le crash du log
+        console.warn('Impossible de logger le payload de createCourse:', e);
       }
 
+      // 4. Créer le cours avec tous les modules et leçons en une seule requête
       const courseResponse = await fastAPIClient.createCourse(coursePayload);
 
       // Logs de débogage pour comprendre la réponse du backend
