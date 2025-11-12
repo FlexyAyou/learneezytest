@@ -37,6 +37,8 @@ interface Lesson {
   filePreview?: string;
   file?: File; // Store the actual file for upload
   uploadedVideoKey?: string; // Store the video_key after upload
+  uploadedPdfKey?: string; // Store the pdf_key after upload
+  uploadedImageKey?: string; // Store the image_key after upload
   mediaUrl?: string; // URL du média (alternative à l'upload)
   useMediaUrl?: boolean; // Indique si on utilise l'URL au lieu de l'upload
 }
@@ -729,43 +731,52 @@ const CreateCoursePage = () => {
         }
       }
 
-      // Compter le nombre total de vidéos à uploader
-      const videoLessons = modules.flatMap(m => 
-        m.lessons.filter(l => l.file && l.fileType === 'video')
+      // Compter le nombre total de TOUS les fichiers à uploader (vidéos, PDFs, images)
+      const allLessonsWithFiles = modules.flatMap(m => 
+        m.lessons.filter(l => l.file && l.fileType)
       );
-      const totalVideos = videoLessons.length;
+      const totalFiles = allLessonsWithFiles.length;
 
-      if (totalVideos > 0) {
+      if (totalFiles > 0) {
         setUploadProgress({
           isUploading: true,
           currentFile: '',
           currentFileType: undefined,
           uploadedFiles: [],
-          totalFiles: totalVideos,
+          totalFiles: totalFiles,
           progress: 0
         });
 
         let uploadedCount = 0;
 
-        // 3. UPLOADER TOUTES LES VIDÉOS DES LEÇONS AVANT LA CRÉATION DU COURS
+        // 3. UPLOADER TOUS LES MÉDIAS (VIDÉOS, PDFs, IMAGES) DES LEÇONS AVANT LA CRÉATION DU COURS
         for (const module of modules) {
           for (const lesson of module.lessons) {
-            if (lesson.file && lesson.fileType === 'video') {
+            if (lesson.file && lesson.fileType) {
               try {
+                const currentFileName = lesson.fileName;
+                const currentFileType = lesson.fileType;
+                
+                // Déterminer le kind d'upload selon le type
+                const uploadKind = lesson.fileType === 'video' ? 'video' 
+                               : lesson.fileType === 'pdf' ? 'pdf' 
+                               : 'image';
+
                 // Mettre à jour le fichier en cours
                 setUploadProgress(prev => ({
                   ...prev,
-                  currentFile: lesson.fileName,
-                  progress: Math.round((uploadedCount / totalVideos) * 100)
+                  currentFile: currentFileName,
+                  currentFileType: currentFileType,
+                  progress: Math.round((uploadedCount / totalFiles) * 100)
                 }));
 
-                console.log(`📤 Upload vidéo: ${lesson.fileName}`);
+                console.log(`📤 Upload ${currentFileType}: ${currentFileName}`);
 
                 // Upload avec callback de progression
-                const upVideo = await uploadDirect(lesson.file, 'video', {
+                const uploadResult = await uploadDirect(lesson.file, uploadKind, {
                   onProgress: (uploaded, total) => {
                     const fileProgress = (uploaded / total) * 100;
-                    const globalProgress = ((uploadedCount + fileProgress / 100) / totalVideos) * 100;
+                    const globalProgress = ((uploadedCount + fileProgress / 100) / totalFiles) * 100;
                     setUploadProgress(prev => ({
                       ...prev,
                       progress: Math.round(globalProgress)
@@ -773,21 +784,28 @@ const CreateCoursePage = () => {
                   }
                 });
 
-                // Stocker la key
-                lesson.uploadedVideoKey = upVideo.key;
+                // Stocker la key selon le type
+                if (lesson.fileType === 'video') {
+                  lesson.uploadedVideoKey = uploadResult.key;
+                } else if (lesson.fileType === 'pdf') {
+                  lesson.uploadedPdfKey = uploadResult.key;
+                } else if (lesson.fileType === 'image') {
+                  lesson.uploadedImageKey = uploadResult.key;
+                }
+                
                 uploadedCount++;
 
                 // Ajouter à la liste des fichiers uploadés
                 setUploadProgress(prev => ({
                   ...prev,
-                  uploadedFiles: [...prev.uploadedFiles, { name: lesson.fileName, type: 'video' }],
-                  progress: Math.round((uploadedCount / totalVideos) * 100)
+                  uploadedFiles: [...prev.uploadedFiles, { name: currentFileName, type: currentFileType }],
+                  progress: Math.round((uploadedCount / totalFiles) * 100)
                 }));
 
-                console.log(`✅ Vidéo uploadée: ${lesson.fileName} → ${upVideo.key}`);
+                console.log(`✅ ${currentFileType} uploadé: ${currentFileName} → ${uploadResult.key}`);
 
               } catch (uploadError: any) {
-                console.error(`❌ Erreur upload vidéo ${lesson.fileName}:`, uploadError);
+                console.error(`❌ Erreur upload ${lesson.fileType} ${lesson.fileName}:`, uploadError);
                 toast({
                   title: "Erreur d'upload",
                   description: `Impossible d'uploader ${lesson.fileName}`,
@@ -871,6 +889,8 @@ const CreateCoursePage = () => {
             duration: lesson.duration.toString() + 'min',
             description: lesson.content,
             video_key: lesson.uploadedVideoKey || null, // 🔑 Storage key
+            pdf_key: lesson.uploadedPdfKey || null, // 🔑 Storage key pour PDF
+            image_key: lesson.uploadedImageKey || null, // 🔑 Storage key pour image
             video_url: lesson.mediaUrl || null, // External URL fallback
             transcription: null
           })),
