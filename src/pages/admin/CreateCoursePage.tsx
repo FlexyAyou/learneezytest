@@ -897,6 +897,8 @@ const CreateCoursePage = () => {
               video_key: lesson.uploadedVideoKey || null,
               pdf_key: lesson.uploadedPdfKey || null,
               image_key: lesson.uploadedImageKey || null,
+              // Alias utilisé par certains backends pour les PDF/ressources
+              resource_key: lesson.fileType === 'pdf' ? (lesson.uploadedPdfKey || null) : null,
               // Champs génériques pour simplifier le mapping côté backend
               key: genericKey,
               content_type: contentType,
@@ -949,6 +951,33 @@ const CreateCoursePage = () => {
       };
 
       // 4. Créer le cours avec tous les modules et leçons en une seule requête
+      // Logs détaillés du payload pour diagnostic backend
+      try {
+        // Version compacte: résumé des médias par leçon
+        const mediaSummary = (coursePayload.modules || []).map((m, mi) => ({
+          moduleIndex: mi,
+          title: m.title,
+          lessons: (m.content || []).map((c, ci) => ({
+            lessonIndex: ci,
+            title: c.title,
+            content_type: (c as any).content_type,
+            key: (c as any).key,
+            video_key: (c as any).video_key,
+            pdf_key: (c as any).pdf_key,
+            image_key: (c as any).image_key,
+            resource_key: (c as any).resource_key,
+            video_url: c.video_url,
+          }))
+        }));
+        // Objet brut (sans fonctions)
+        const payloadClone = JSON.parse(JSON.stringify(coursePayload));
+        ; (window as any).__lastCreateCoursePayload = payloadClone;
+        console.log('🧪 createCourse payload (clone):', payloadClone);
+        console.log('🧪 createCourse media summary:', mediaSummary);
+      } catch (e) {
+        console.warn('Payload logging failed:', e);
+      }
+
       const courseResponse = await fastAPIClient.createCourse(coursePayload);
 
       // Logs de débogage pour comprendre la réponse du backend
