@@ -263,9 +263,28 @@ const CreateCoursePage = () => {
     }
 
     try {
-      await createProLevelMutation.mutateAsync({ label: customLevel.trim() });
+      const created = await createProLevelMutation.mutateAsync({ label: customLevel.trim() });
 
-      // Switch to the newly added level
+      // Mise à jour immédiate du cache des niveaux pour formation_pro
+      if (courseData.cycle === 'formation_pro') {
+        queryClient.setQueryData(['levels', 'formation_pro'], (old: any) => {
+          const label = created?.label || customLevel.trim();
+          if (Array.isArray(old)) {
+            return old.includes(label) ? old : [...old, label];
+          }
+          return [label];
+        });
+        // Ajouter le nouveau niveau aussi dans les tags de cycle (si non présent)
+        setCourseData(prev => {
+          const label = created?.label || customLevel.trim();
+          return prev.cycleTags.includes(label)
+            ? prev
+            : { ...prev, cycleTags: [...prev.cycleTags, label] };
+        });
+      }
+
+      // Ne pas toucher aux niveaux de difficulté par défaut (débutant/intermédiaire/avancé)
+      // On sélectionne ce niveau comme valeur du champ "Niveau" uniquement si logique courante le prévoit
       handleInputChange('level', customLevel.trim());
       setCustomLevel('');
     } catch (error) {
