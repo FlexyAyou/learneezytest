@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import LanguageSelector from "@/components/common/LanguageSelector";
+
 import { useFastAPIAuth } from "@/hooks/useFastAPIAuth";
 
 const navigationItems = [
@@ -94,7 +94,6 @@ export function StudentSidebar() {
               <p className="text-xs text-muted-foreground truncate">{userInfo.email}</p>
             </div>
           </div>
-          <LanguageSelector />
         </div>
       )}
 

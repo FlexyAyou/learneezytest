@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Menu, X, BookOpen, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import LanguageSelector from '@/components/common/LanguageSelector';
+
 import UserMenu from '@/components/UserMenu';
 import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
@@ -29,9 +29,8 @@ const Header = () => {
             <Link to="/contact" className="text-gray-700 hover:text-pink-600 transition-colors">Contact</Link>
           </nav>
 
-          {/* Language Selector and Auth */}
+          {/* Auth */}
           <div className="hidden md:flex items-center space-x-4">
-            <LanguageSelector />
             {isLoading ? (
               <LoadingSpinner size="sm" />
             ) : isAuthenticated ? (
@@ -74,9 +73,6 @@ const Header = () => {
               <Link to="/offres" className="block px-3 py-2 text-gray-700 hover:text-pink-600">Offres</Link>
               <Link to="/contact" className="block px-3 py-2 text-gray-700 hover:text-pink-600">Contact</Link>
               <div className="pt-4 border-t">
-                <div className="px-3 py-2">
-                  <LanguageSelector />
-                </div>
                 {isLoading ? (
                   <div className="px-3 py-2">
                     <LoadingSpinner size="sm" />

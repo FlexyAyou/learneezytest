@@ -29,7 +29,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import LanguageSelector from "@/components/common/LanguageSelector";
+
 import { useFastAPIAuth } from "@/hooks/useFastAPIAuth";
 
 const sidebarItems = [
@@ -103,7 +103,6 @@ export function OFSidebar() {
               <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
             </div>
           </div>
-          <LanguageSelector />
         </div>
       )}
 

@@ -26,7 +26,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import LanguageSelector from "@/components/common/LanguageSelector";
+
 import { useFastAPIAuth } from "@/hooks/useFastAPIAuth";
 
 const navigationItems = [
@@ -104,7 +104,6 @@ export function InternalTrainerSidebar() {
               <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
             </div>
           </div>
-          <LanguageSelector />
         </div>
       )}
 

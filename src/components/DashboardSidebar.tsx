@@ -4,7 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { LucideIcon, BookOpen, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import LanguageSelector from '@/components/common/LanguageSelector';
+
 import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 
 interface SidebarItem {
@@ -62,9 +62,6 @@ export const DashboardSidebar = ({ title, subtitle, items, userInfo }: Dashboard
             <p className="text-sm font-medium text-gray-900 truncate">{userInfo.name}</p>
             <p className="text-xs text-gray-500 truncate">{userInfo.email}</p>
           </div>
-        </div>
-        <div className="mt-4">
-          <LanguageSelector />
         </div>
       </div>
 
