@@ -253,38 +253,21 @@ const CreateCoursePage = () => {
   };
 
   const saveCustomLevel = async () => {
-    if (courseData.cycle !== 'formation_pro') {
-      toast({
-        title: 'Cycle non compatible',
-        description: 'Les niveaux personnalisés ne sont disponibles que pour la formation professionnelle.',
-        variant: 'destructive'
-      });
-      return;
-    }
     if (!customLevel.trim()) {
       toast({
-        title: 'Erreur',
-        description: 'Veuillez entrer un nom de niveau',
-        variant: 'destructive'
+        title: "Erreur",
+        description: "Veuillez entrer un nom de niveau",
+        variant: "destructive"
       });
       return;
     }
-    const newLabel = customLevel.trim();
+
     try {
-      const created = await createProLevelMutation.mutateAsync({ label: newLabel });
-      // Mise à jour immédiate du cache des niveaux pour affichage instantané
-      queryClient.setQueryData(['levels', 'formation_pro'], (old: any) => {
-        if (Array.isArray(old)) {
-          return old.includes(created?.label || newLabel) ? old : [...old, created?.label || newLabel];
-        }
-        return [created?.label || newLabel];
-      });
-      handleInputChange('level', created?.label || newLabel);
+      await createProLevelMutation.mutateAsync({ label: customLevel.trim() });
+
+      // Switch to the newly added level
+      handleInputChange('level', customLevel.trim());
       setCustomLevel('');
-      toast({
-        title: 'Niveau ajouté',
-        description: `Le niveau "${created?.label || newLabel}" a été créé et sélectionné.`,
-      });
     } catch (error) {
       console.error('Error creating level:', error);
     }
