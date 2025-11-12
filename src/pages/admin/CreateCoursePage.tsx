@@ -1189,19 +1189,20 @@ const CreateCoursePage = () => {
                         }
                       }}
                     >
-                      <SelectTrigger className="mt-2">
-                        <SelectValue placeholder="Sélectionner" />
+                      <SelectTrigger className="mt-2" disabled={isLoadingCategories}>
+                        <SelectValue placeholder={isLoadingCategories ? "Chargement..." : "Sélectionner une catégorie"} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="development">Développement</SelectItem>
-                        <SelectItem value="design">Design</SelectItem>
-                        <SelectItem value="marketing">Marketing</SelectItem>
-                        <SelectItem value="business">Business</SelectItem>
                         {categories.filter(cat => cat.active).map(cat => (
                           <SelectItem key={cat.id} value={cat.name}>
                             {cat.name}
                           </SelectItem>
                         ))}
+                        {categories.filter(cat => cat.active).length === 0 && !isLoadingCategories && (
+                          <div className="px-2 py-3 text-sm text-muted-foreground text-center">
+                            Aucune catégorie disponible
+                          </div>
+                        )}
                         <SelectItem value="custom">➕ Ajouter une nouvelle catégorie</SelectItem>
                       </SelectContent>
                     </Select>
@@ -1211,15 +1212,31 @@ const CreateCoursePage = () => {
                           value={courseData.customCategory}
                           onChange={(e) => handleInputChange('customCategory', e.target.value)}
                           placeholder="Entrez une catégorie personnalisée"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              saveCustomCategory();
+                            }
+                          }}
                         />
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={saveCustomCategory}
+                          disabled={!courseData.customCategory.trim() || createCategoryMutation.isPending}
                           className="w-full"
                         >
-                          <Save className="h-4 w-4 mr-2" />
-                          Enregistrer et ajouter à la liste
+                          {createCategoryMutation.isPending ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Ajout en cours...
+                            </>
+                          ) : (
+                            <>
+                              <Save className="h-4 w-4 mr-2" />
+                              Enregistrer et ajouter à la liste
+                            </>
+                          )}
                         </Button>
                       </div>
                     )}
