@@ -18,7 +18,7 @@ import { QuizBuilder, AssignmentBuilder } from '@/components/quiz';
 import type { QuizConfig, AssignmentConfig, QuestionType } from '@/types/quiz';
 import RichTextEditor from '@/components/admin/RichTextEditor';
 import { uploadDirect } from '@/utils/upload';
-import { UploadProgressModal } from '@/components/course-creation/UploadProgressModal';
+import { UploadProgressModal, UploadedFile, FileUploadType } from '@/components/course-creation/UploadProgressModal';
 import { useCategories, useCreateCategory, useLevels, useCreateProLevel } from '@/hooks/useApi';
 import { UploadNotification, UploadItem } from '@/components/common/UploadNotification';
 import { useLocalStorageDraft } from '@/hooks/useLocalStorageDraft';
@@ -115,7 +115,8 @@ const CreateCoursePage = () => {
   const [uploadProgress, setUploadProgress] = useState({
     isUploading: false,
     currentFile: '',
-    uploadedFiles: [] as string[],
+    currentFileType: undefined as FileUploadType | undefined,
+    uploadedFiles: [] as UploadedFile[],
     totalFiles: 0,
     progress: 0
   });
@@ -738,6 +739,7 @@ const CreateCoursePage = () => {
         setUploadProgress({
           isUploading: true,
           currentFile: '',
+          currentFileType: undefined,
           uploadedFiles: [],
           totalFiles: totalVideos,
           progress: 0
@@ -778,7 +780,7 @@ const CreateCoursePage = () => {
                 // Ajouter à la liste des fichiers uploadés
                 setUploadProgress(prev => ({
                   ...prev,
-                  uploadedFiles: [...prev.uploadedFiles, lesson.fileName],
+                  uploadedFiles: [...prev.uploadedFiles, { name: lesson.fileName, type: 'video' }],
                   progress: Math.round((uploadedCount / totalVideos) * 100)
                 }));
 
@@ -2127,6 +2129,7 @@ const CreateCoursePage = () => {
         <UploadProgressModal
           isOpen={uploadProgress.isUploading}
           currentFile={uploadProgress.currentFile}
+          currentFileType={uploadProgress.currentFileType}
           uploadedFiles={uploadProgress.uploadedFiles}
           totalFiles={uploadProgress.totalFiles}
           progress={uploadProgress.progress}
@@ -2166,10 +2169,11 @@ const CreateCoursePage = () => {
         )}
       </div>
 
-      {/* Upload Progress Modal pour les uploads de vidéos */}
+      {/* Upload Progress Modal pour tous les fichiers */}
       <UploadProgressModal
         isOpen={uploadProgress.isUploading}
         currentFile={uploadProgress.currentFile}
+        currentFileType={uploadProgress.currentFileType}
         uploadedFiles={uploadProgress.uploadedFiles}
         totalFiles={uploadProgress.totalFiles}
         progress={uploadProgress.progress}

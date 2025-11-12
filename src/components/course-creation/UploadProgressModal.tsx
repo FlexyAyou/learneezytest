@@ -1,10 +1,18 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Check, Loader2 } from "lucide-react";
+import { Check, Loader2, Video, FileText, Image as ImageIcon } from "lucide-react";
+
+export type FileUploadType = 'video' | 'pdf' | 'image' | 'cover';
+
+export interface UploadedFile {
+  name: string;
+  type: FileUploadType;
+}
 
 interface UploadProgressModalProps {
   isOpen: boolean;
   currentFile: string;
-  uploadedFiles: string[];
+  currentFileType?: FileUploadType;
+  uploadedFiles: UploadedFile[];
   totalFiles: number;
   progress: number;
 }
@@ -59,9 +67,35 @@ const CircularProgress = ({ progress }: { progress: number }) => {
   );
 };
 
+const getFileIcon = (type: FileUploadType) => {
+  switch (type) {
+    case 'video':
+      return <Video className="h-4 w-4 text-primary" />;
+    case 'pdf':
+      return <FileText className="h-4 w-4 text-blue-500" />;
+    case 'image':
+    case 'cover':
+      return <ImageIcon className="h-4 w-4 text-green-500" />;
+  }
+};
+
+const getFileTypeLabel = (type: FileUploadType) => {
+  switch (type) {
+    case 'video':
+      return 'Vidéo';
+    case 'pdf':
+      return 'PDF';
+    case 'image':
+      return 'Image';
+    case 'cover':
+      return 'Couverture';
+  }
+};
+
 export const UploadProgressModal = ({
   isOpen,
   currentFile,
+  currentFileType,
   uploadedFiles,
   totalFiles,
   progress
@@ -79,7 +113,7 @@ export const UploadProgressModal = ({
           <div className="text-center space-y-2">
             <h3 className="text-xl font-semibold">Upload en cours...</h3>
             <p className="text-sm text-muted-foreground">
-              {uploadedFiles.length}/{totalFiles} vidéos uploadées
+              {uploadedFiles.length}/{totalFiles} fichier{totalFiles > 1 ? 's' : ''} uploadé{uploadedFiles.length > 1 ? 's' : ''}
             </p>
           </div>
 
@@ -88,8 +122,13 @@ export const UploadProgressModal = ({
             <div className="flex items-center gap-3 p-3 bg-primary/5 border border-primary/20 rounded-lg">
               <Loader2 className="h-5 w-5 text-primary animate-spin" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{currentFile}</p>
-                <p className="text-xs text-muted-foreground">Upload en cours...</p>
+                <div className="flex items-center gap-2">
+                  {currentFileType && getFileIcon(currentFileType)}
+                  <p className="text-sm font-medium truncate">{currentFile}</p>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {currentFileType && `${getFileTypeLabel(currentFileType)} - `}Upload en cours...
+                </p>
               </div>
             </div>
           )}
@@ -98,12 +137,13 @@ export const UploadProgressModal = ({
           {uploadedFiles.length > 0 && (
             <div className="space-y-2 max-h-40 overflow-y-auto">
               <h4 className="text-sm font-semibold text-muted-foreground">
-                Vidéos uploadées :
+                Fichiers uploadés :
               </h4>
               {uploadedFiles.map((file, idx) => (
                 <div key={idx} className="flex items-center gap-2 p-2 bg-success/10 border border-success/20 rounded">
                   <Check className="h-4 w-4 text-success" />
-                  <span className="text-sm truncate">{file}</span>
+                  {getFileIcon(file.type)}
+                  <span className="text-sm truncate">{file.name}</span>
                 </div>
               ))}
             </div>
