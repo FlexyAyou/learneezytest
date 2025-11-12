@@ -58,7 +58,7 @@ const CreateCoursePage = () => {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState<'info' | 'modules' | 'review'>('info');
   const [trainers, setTrainers] = useState<Array<{ id: string; name: string }>>([]);
-  
+
   // Détecter si on est dans le contexte gestionnaire ou superadmin
   const isManagerContext = location.pathname.includes('/gestionnaire/');
   const coursesBasePath = isManagerContext ? '/dashboard/gestionnaire/courses' : '/dashboard/superadmin/courses';
@@ -88,13 +88,13 @@ const CreateCoursePage = () => {
       url: string | null;
     }>,
   });
-  
+
   // Hooks pour les catégories et niveaux (après courseData)
   const { data: categories = [], isLoading: isLoadingCategories } = useCategories();
   const createCategoryMutation = useCreateCategory();
   const { data: levels = [], isLoading: isLoadingLevels } = useLevels(courseData.cycle || '');
   const createProLevelMutation = useCreateProLevel();
-  
+
   const [customLevel, setCustomLevel] = useState('');
 
   const [modules, setModules] = useState<ModuleWithLessons[]>([
@@ -122,10 +122,10 @@ const CreateCoursePage = () => {
     totalFiles: 0,
     progress: 0
   });
-  
+
   // Upload notification state pour uploads individuels
   const [uploads, setUploads] = useState<UploadItem[]>([]);
-  
+
   // État de chargement local pour les fichiers en mémoire
   const [fileLoadingState, setFileLoadingState] = useState<{
     [lessonId: string]: { loading: boolean; fileName: string; progress: number }
@@ -169,7 +169,7 @@ const CreateCoursePage = () => {
       setModules(draftToRestore.modules);
       setCurrentStep(draftToRestore.currentStep);
       setExpandedModule(draftToRestore.expandedModule || null);
-      
+
       toast({
         title: "Brouillon restauré",
         description: "Vous pouvez continuer votre création de cours",
@@ -183,7 +183,7 @@ const CreateCoursePage = () => {
     clearDraft();
     setShowRestoreDraftDialog(false);
     setDraftToRestore(null);
-    
+
     toast({
       title: "Brouillon supprimé",
       description: "Vous repartez avec une création vierge",
@@ -231,7 +231,7 @@ const CreateCoursePage = () => {
 
     try {
       await createCategoryMutation.mutateAsync({ name: newCategory });
-      
+
       // Switch to the newly added category
       handleInputChange('category', newCategory);
       handleInputChange('customCategory', '');
@@ -253,7 +253,7 @@ const CreateCoursePage = () => {
 
     try {
       await createProLevelMutation.mutateAsync({ label: customLevel.trim() });
-      
+
       // Switch to the newly added level
       handleInputChange('level', customLevel.trim());
       setCustomLevel('');
@@ -409,7 +409,7 @@ const CreateCoursePage = () => {
 
     let maxSize = MAX_VIDEO_SIZE;
     let maxSizeLabel = "500MB";
-    
+
     if (fileType === 'pdf') {
       maxSize = MAX_PDF_SIZE;
       maxSizeLabel = "50MB";
@@ -445,7 +445,7 @@ const CreateCoursePage = () => {
         progress: 0,
         status: 'uploading'
       }]);
-      
+
       toast({
         title: "⚠️ Chargement en mémoire",
         description: `${file.name} (${(file.size / (1024 * 1024)).toFixed(2)}MB) - Veuillez patienter...`,
@@ -467,14 +467,14 @@ const CreateCoursePage = () => {
           if (progressInterval) clearInterval(progressInterval);
           return;
         }
-        
+
         setFileLoadingState(prev => ({
           ...prev,
           [lessonId]: { ...prev[lessonId], progress: simulatedProgress }
         }));
-        
+
         if (uploadId) {
-          setUploads(prev => prev.map(u => 
+          setUploads(prev => prev.map(u =>
             u.id === uploadId ? { ...u, progress: simulatedProgress } : u
           ));
         }
@@ -482,57 +482,57 @@ const CreateCoursePage = () => {
     }
 
     const reader = new FileReader();
-    
+
     reader.onerror = () => {
       if (progressInterval) clearInterval(progressInterval);
-      
+
       setFileLoadingState(prev => {
         const newState = { ...prev };
         delete newState[lessonId];
         return newState;
       });
-      
+
       if (uploadId) {
-        setUploads(prev => prev.map(u => 
+        setUploads(prev => prev.map(u =>
           u.id === uploadId ? { ...u, status: 'error' as const } : u
         ));
         setTimeout(() => {
           setUploads(prev => prev.filter(u => u.id !== uploadId));
         }, 3000);
       }
-      
+
       toast({
         title: "Erreur de lecture",
         description: "Impossible de lire le fichier",
         variant: "destructive"
       });
     };
-    
+
     reader.onload = (e) => {
       if (progressInterval) clearInterval(progressInterval);
-      
+
       // Compléter la progression à 100%
       setFileLoadingState(prev => ({
         ...prev,
         [lessonId]: { ...prev[lessonId], progress: 100 }
       }));
-      
+
       if (uploadId) {
-        setUploads(prev => prev.map(u => 
+        setUploads(prev => prev.map(u =>
           u.id === uploadId ? { ...u, progress: 100, status: 'completed' as const } : u
         ));
         setTimeout(() => {
           setUploads(prev => prev.filter(u => u.id !== uploadId));
         }, 2000);
       }
-      
+
       updateLesson(moduleId, lessonId, {
         fileType,
         fileName: file.name,
         filePreview: e.target?.result as string,
         file: file // Store the actual file
       });
-      
+
       // Nettoyer l'état de chargement
       setTimeout(() => {
         setFileLoadingState(prev => {
@@ -541,13 +541,13 @@ const CreateCoursePage = () => {
           return newState;
         });
       }, 500);
-      
+
       toast({
         title: "Fichier chargé",
         description: `${file.name} prêt pour l'upload`,
       });
     };
-    
+
     reader.readAsDataURL(file);
   };
 
@@ -732,7 +732,7 @@ const CreateCoursePage = () => {
       }
 
       // Compter le nombre total de TOUS les fichiers à uploader (vidéos, PDFs, images)
-      const allLessonsWithFiles = modules.flatMap(m => 
+      const allLessonsWithFiles = modules.flatMap(m =>
         m.lessons.filter(l => l.file && l.fileType)
       );
       const totalFiles = allLessonsWithFiles.length;
@@ -756,11 +756,11 @@ const CreateCoursePage = () => {
               try {
                 const currentFileName = lesson.fileName;
                 const currentFileType = lesson.fileType;
-                
+
                 // Déterminer le kind d'upload selon le type
-                const uploadKind = lesson.fileType === 'video' ? 'video' 
-                               : lesson.fileType === 'pdf' ? 'pdf' 
-                               : 'image';
+                const uploadKind = lesson.fileType === 'video' ? 'video'
+                  : lesson.fileType === 'pdf' ? 'pdf'
+                    : 'image';
 
                 // Mettre à jour le fichier en cours
                 setUploadProgress(prev => ({
@@ -792,7 +792,7 @@ const CreateCoursePage = () => {
                 } else if (lesson.fileType === 'image') {
                   lesson.uploadedImageKey = uploadResult.key;
                 }
-                
+
                 uploadedCount++;
 
                 // Ajouter à la liste des fichiers uploadés
@@ -884,16 +884,26 @@ const CreateCoursePage = () => {
           title: module.title,
           description: module.description || `Description du ${module.title}`,
           duration: calculateModuleDuration(module.lessons),
-          content: module.lessons.map(lesson => ({
-            title: lesson.title,
-            duration: lesson.duration.toString() + 'min',
-            description: lesson.content,
-            video_key: lesson.uploadedVideoKey || null, // 🔑 Storage key
-            pdf_key: lesson.uploadedPdfKey || null, // 🔑 Storage key pour PDF
-            image_key: lesson.uploadedImageKey || null, // 🔑 Storage key pour image
-            video_url: lesson.mediaUrl || null, // External URL fallback
-            transcription: null
-          })),
+          content: module.lessons.map(lesson => {
+            const genericKey = lesson.uploadedVideoKey || lesson.uploadedPdfKey || lesson.uploadedImageKey || null;
+            const contentType: 'video' | 'pdf' | 'image' | 'url' | undefined = lesson.fileType
+              ? (lesson.fileType as any)
+              : (lesson.mediaUrl ? 'url' : undefined);
+            return ({
+              title: lesson.title,
+              duration: lesson.duration.toString() + 'min',
+              description: lesson.content,
+              // Champs spécifiques conservés (compat backend)
+              video_key: lesson.uploadedVideoKey || null,
+              pdf_key: lesson.uploadedPdfKey || null,
+              image_key: lesson.uploadedImageKey || null,
+              // Champs génériques pour simplifier le mapping côté backend
+              key: genericKey,
+              content_type: contentType,
+              video_url: lesson.mediaUrl || null, // Le backend mappe vers video_url pour tous les types
+              transcription: null
+            });
+          }),
           quizzes: module.quiz ? [{
             title: module.quiz.title,
             questions: module.quiz.questions
@@ -995,7 +1005,7 @@ const CreateCoursePage = () => {
       return courseData.title && courseData.description;
     }
     if (currentStep === 'modules') {
-      return modules.length > 0 && modules.some(m => 
+      return modules.length > 0 && modules.some(m =>
         m.lessons.length > 0 || m.quiz || m.assignment
       );
     }
@@ -1030,7 +1040,7 @@ const CreateCoursePage = () => {
             </h1>
             <p className="text-gray-600 mt-1">Suivez les étapes pour créer votre cours</p>
           </div>
-          
+
           <div className="flex items-center gap-3">
             {/* Indicateur de sauvegarde */}
             {lastSaved && (
@@ -1038,7 +1048,7 @@ const CreateCoursePage = () => {
                 Sauvegardé à {format(lastSaved, 'HH:mm', { locale: fr })}
               </Badge>
             )}
-            
+
             {/* Bouton effacer le brouillon */}
             {hasDraft() && (
               <Button
@@ -1237,8 +1247,8 @@ const CreateCoursePage = () => {
 
                   <div>
                     <Label className="text-base">Niveau</Label>
-                    <Select 
-                      value={courseData.level === 'custom' ? 'custom' : courseData.level} 
+                    <Select
+                      value={courseData.level === 'custom' ? 'custom' : courseData.level}
                       onValueChange={(value) => {
                         if (value === 'custom') {
                           handleInputChange('level', 'custom');
@@ -1737,8 +1747,8 @@ const CreateCoursePage = () => {
                                                         <p className="text-xs text-muted-foreground">
                                                           {fileLoadingState[lesson.id]?.fileName}
                                                         </p>
-                                                        <Progress 
-                                                          value={fileLoadingState[lesson.id]?.progress || 0} 
+                                                        <Progress
+                                                          value={fileLoadingState[lesson.id]?.progress || 0}
                                                           className="h-2"
                                                         />
                                                         <p className="text-xs font-medium text-primary">
@@ -1758,10 +1768,10 @@ const CreateCoursePage = () => {
                                                           disabled={fileLoadingState[lesson.id]?.loading}
                                                         />
                                                         <label htmlFor={`file-${lesson.id}`}>
-                                                          <Button 
-                                                            variant="outline" 
-                                                            size="sm" 
-                                                            type="button" 
+                                                          <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            type="button"
                                                             asChild
                                                             disabled={fileLoadingState[lesson.id]?.loading}
                                                           >
@@ -2200,7 +2210,7 @@ const CreateCoursePage = () => {
       />
 
       {/* Upload Notifications pour uploads individuels (si ajoutés dans le futur) */}
-      <UploadNotification 
+      <UploadNotification
         uploads={uploads}
         onRemove={(id) => setUploads(prev => prev.filter(u => u.id !== id))}
       />
