@@ -19,7 +19,7 @@ import type { QuizConfig, AssignmentConfig, QuestionType } from '@/types/quiz';
 import RichTextEditor from '@/components/admin/RichTextEditor';
 import { uploadDirect } from '@/utils/upload';
 import { UploadProgressModal, UploadedFile, FileUploadType } from '@/components/course-creation/UploadProgressModal';
-import { useCategories, useCreateCategory, useDeleteCategory, useLevels, useCreateProLevel } from '@/hooks/useApi';
+import { useCategories, useCreateCategory, useLevels, useCreateProLevel } from '@/hooks/useApi';
 import { UploadNotification, UploadItem } from '@/components/common/UploadNotification';
 import { useLocalStorageDraft } from '@/hooks/useLocalStorageDraft';
 import { RestoreDraftDialog } from '@/components/admin/RestoreDraftDialog';
@@ -92,7 +92,6 @@ const CreateCoursePage = () => {
   // Hooks pour les catégories et niveaux (après courseData)
   const { data: categories = [], isLoading: isLoadingCategories } = useCategories();
   const createCategoryMutation = useCreateCategory();
-  const deleteCategoryMutation = useDeleteCategory();
   const { data: levels = [], isLoading: isLoadingLevels } = useLevels(courseData.cycle || '');
   const createProLevelMutation = useCreateProLevel();
   
@@ -239,23 +238,6 @@ const CreateCoursePage = () => {
     } catch (error) {
       // L'erreur est déjà gérée par le hook
       console.error('Error creating category:', error);
-    }
-  };
-
-  const handleDeleteCategory = async (categoryId: number, categoryName: string) => {
-    if (courseData.category === categoryName) {
-      toast({
-        title: "Attention",
-        description: "Cette catégorie est actuellement sélectionnée. Veuillez d'abord en choisir une autre.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      await deleteCategoryMutation.mutateAsync(categoryId);
-    } catch (error) {
-      console.error('Error deleting category:', error);
     }
   };
 
@@ -1207,20 +1189,19 @@ const CreateCoursePage = () => {
                         }
                       }}
                     >
-                      <SelectTrigger className="mt-2" disabled={isLoadingCategories}>
-                        <SelectValue placeholder={isLoadingCategories ? "Chargement..." : "Sélectionner une catégorie"} />
+                      <SelectTrigger className="mt-2">
+                        <SelectValue placeholder="Sélectionner" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="development">Développement</SelectItem>
+                        <SelectItem value="design">Design</SelectItem>
+                        <SelectItem value="marketing">Marketing</SelectItem>
+                        <SelectItem value="business">Business</SelectItem>
                         {categories.filter(cat => cat.active).map(cat => (
                           <SelectItem key={cat.id} value={cat.name}>
                             {cat.name}
                           </SelectItem>
                         ))}
-                        {categories.filter(cat => cat.active).length === 0 && !isLoadingCategories && (
-                          <div className="px-2 py-3 text-sm text-muted-foreground text-center">
-                            Aucune catégorie disponible
-                          </div>
-                        )}
                         <SelectItem value="custom">➕ Ajouter une nouvelle catégorie</SelectItem>
                       </SelectContent>
                     </Select>
@@ -1230,61 +1211,16 @@ const CreateCoursePage = () => {
                           value={courseData.customCategory}
                           onChange={(e) => handleInputChange('customCategory', e.target.value)}
                           placeholder="Entrez une catégorie personnalisée"
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              saveCustomCategory();
-                            }
-                          }}
                         />
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={saveCustomCategory}
-                          disabled={!courseData.customCategory.trim() || createCategoryMutation.isPending}
                           className="w-full"
                         >
-                          {createCategoryMutation.isPending ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Ajout en cours...
-                            </>
-                          ) : (
-                            <>
-                              <Save className="h-4 w-4 mr-2" />
-                              Enregistrer et ajouter à la liste
-                            </>
-                          )}
+                          <Save className="h-4 w-4 mr-2" />
+                          Enregistrer et ajouter à la liste
                         </Button>
-                      </div>
-                    )}
-
-                    {/* Liste des catégories avec suppression */}
-                    {categories.filter(cat => cat.active).length > 0 && (
-                      <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                        <div className="text-sm font-medium text-gray-700 mb-2">Catégories disponibles :</div>
-                        <div className="flex flex-wrap gap-2">
-                          {categories.filter(cat => cat.active).map(cat => (
-                            <Badge
-                              key={cat.id}
-                              variant={courseData.category === cat.name ? "default" : "secondary"}
-                              className="flex items-center gap-1 py-1 px-2"
-                            >
-                              <span>{cat.name}</span>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDeleteCategory(cat.id, cat.name);
-                                }}
-                                disabled={deleteCategoryMutation.isPending}
-                                className="ml-1 hover:text-destructive transition-colors disabled:opacity-50"
-                                title="Supprimer cette catégorie"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            </Badge>
-                          ))}
-                        </div>
                       </div>
                     )}
                   </div>
@@ -1311,14 +1247,9 @@ const CreateCoursePage = () => {
                           setCustomLevel('');
                         }
                       }}
-                      disabled={courseData.cycle === 'formation_pro' && isLoadingLevels}
                     >
                       <SelectTrigger className="mt-2">
-                        <SelectValue placeholder={
-                          courseData.cycle === 'formation_pro' && isLoadingLevels 
-                            ? "Chargement..." 
-                            : "Sélectionner un niveau"
-                        } />
+                        <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         {courseData.cycle === 'formation_pro' ? (
@@ -1328,11 +1259,6 @@ const CreateCoursePage = () => {
                                 {level}
                               </SelectItem>
                             ))}
-                            {levels.length === 0 && !isLoadingLevels && (
-                              <div className="px-2 py-3 text-sm text-muted-foreground text-center">
-                                Aucun niveau disponible pour ce cycle
-                              </div>
-                            )}
                             <SelectItem value="custom">➕ Ajouter un nouveau niveau</SelectItem>
                           </>
                         ) : (
@@ -1350,31 +1276,15 @@ const CreateCoursePage = () => {
                           value={customLevel}
                           onChange={(e) => setCustomLevel(e.target.value)}
                           placeholder="Entrez un nouveau niveau"
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              saveCustomLevel();
-                            }
-                          }}
                         />
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={saveCustomLevel}
-                          disabled={!customLevel.trim() || createProLevelMutation.isPending}
                           className="w-full"
                         >
-                          {createProLevelMutation.isPending ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Ajout en cours...
-                            </>
-                          ) : (
-                            <>
-                              <Save className="h-4 w-4 mr-2" />
-                              Enregistrer et ajouter à la liste
-                            </>
-                          )}
+                          <Save className="h-4 w-4 mr-2" />
+                          Enregistrer et ajouter à la liste
                         </Button>
                       </div>
                     )}
