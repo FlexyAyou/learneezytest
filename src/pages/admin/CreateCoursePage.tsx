@@ -263,27 +263,10 @@ const CreateCoursePage = () => {
     }
 
     try {
-      const created = await createProLevelMutation.mutateAsync({ label: customLevel.trim() });
+      await createProLevelMutation.mutateAsync({ label: customLevel.trim() });
 
-      // Mise à jour immédiate du cache des niveaux pour formation_pro
-      if (courseData.cycle === 'formation_pro') {
-        queryClient.setQueryData(['levels', 'formation_pro'], (old: any) => {
-          const label = created?.label || customLevel.trim();
-          if (Array.isArray(old)) {
-            return old.includes(label) ? old : [...old, label];
-          }
-          return [label];
-        });
-        // Ajouter le nouveau niveau aussi dans les tags de cycle (si non présent)
-        setCourseData(prev => {
-          const label = created?.label || customLevel.trim();
-          return prev.cycleTags.includes(label)
-            ? prev
-            : { ...prev, cycleTags: [...prev.cycleTags, label] };
-        });
-      }
-
-      // Ne pas toucher au champ « Niveau » (débutant / intermédiaire / difficile)
+      // Switch to the newly added level
+      handleInputChange('level', customLevel.trim());
       setCustomLevel('');
     } catch (error) {
       console.error('Error creating level:', error);
@@ -1286,20 +1269,56 @@ const CreateCoursePage = () => {
                   <div>
                     <Label className="text-base">Niveau</Label>
                     <Select
-                      value={courseData.level}
+                      value={courseData.level === 'custom' ? 'custom' : courseData.level}
                       onValueChange={(value) => {
-                        handleInputChange('level', value);
+                        if (value === 'custom') {
+                          handleInputChange('level', 'custom');
+                        } else {
+                          handleInputChange('level', value);
+                          setCustomLevel('');
+                        }
                       }}
                     >
                       <SelectTrigger className="mt-2">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="débutant">Débutant</SelectItem>
-                        <SelectItem value="intermédiaire">Intermédiaire</SelectItem>
-                        <SelectItem value="difficile">Difficile</SelectItem>
+                        {courseData.cycle === 'formation_pro' ? (
+                          <>
+                            {levels.map(level => (
+                              <SelectItem key={level} value={level}>
+                                {level}
+                              </SelectItem>
+                            ))}
+                            <SelectItem value="custom">➕ Ajouter un nouveau niveau</SelectItem>
+                          </>
+                        ) : (
+                          <>
+                            <SelectItem value="débutant">Débutant</SelectItem>
+                            <SelectItem value="intermédiaire">Intermédiaire</SelectItem>
+                            <SelectItem value="avancé">Avancé</SelectItem>
+                          </>
+                        )}
                       </SelectContent>
                     </Select>
+                    {courseData.level === 'custom' && courseData.cycle === 'formation_pro' && (
+                      <div className="mt-2 space-y-2">
+                        <Input
+                          value={customLevel}
+                          onChange={(e) => setCustomLevel(e.target.value)}
+                          placeholder="Entrez un nouveau niveau"
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={saveCustomLevel}
+                          className="w-full"
+                        >
+                          <Save className="h-4 w-4 mr-2" />
+                          Enregistrer et ajouter à la liste
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -1309,30 +1328,6 @@ const CreateCoursePage = () => {
                   onCycleChange={(cycle) => setCourseData(prev => ({ ...prev, cycle }))}
                   onTagsChange={(tags) => setCourseData(prev => ({ ...prev, cycleTags: tags }))}
                 />
-
-                {courseData.cycle === 'formation_pro' && (
-                  <div className="mt-2 space-y-2">
-                    <Label className="text-base">Ajouter un niveau de cycle (formation professionnelle)</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        value={customLevel}
-                        onChange={(e) => setCustomLevel(e.target.value)}
-                        placeholder="Ex: CAP, BTS, Titre Professionnel..."
-                      />
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={saveCustomLevel}
-                      >
-                        <Save className="h-4 w-4 mr-2" />
-                        Ajouter
-                      </Button>
-                    </div>
-                    <p className="text-xs text-gray-500">
-                      Ces niveaux sont des tags liés au cycle d'apprentissage (levels) et s'ajoutent aux valeurs prédéfinies. Ils n'affectent pas le champ « Niveau » ci-dessus.
-                    </p>
-                  </div>
-                )}
 
                 <div>
                   <Label className="text-base">Programme de formation (PDF)</Label>
