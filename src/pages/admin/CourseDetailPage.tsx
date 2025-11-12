@@ -803,7 +803,7 @@ const CourseDetailPage = () => {
                                         if (contentType === 'image') {
                                           return (
                                             <ImageViewer
-                                              imageKey={lesson.video_key || lesson.key}
+                                              imageKey={lesson.image_key || lesson.video_key || lesson.key}
                                               imageUrl={lesson.video_url}
                                               title={lesson.title}
                                             />
