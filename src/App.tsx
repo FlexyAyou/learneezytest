@@ -26,7 +26,7 @@ import ResetPassword from "./pages/ResetPassword";
 import { Toaster } from "@/components/ui/toaster";
 import { AdminUsers } from "./components/admin/AdminUsers";
 import UserDetailPage from "./components/admin/UserDetailPage";
-import { LanguageProvider } from "./contexts/LanguageContext";
+
 import { OrganizationProvider } from "./contexts/OrganizationContext";
 import SubdomainRouter from "./components/common/SubdomainRouter";
 import CourseViewer from "./pages/student/CourseViewer";
@@ -43,11 +43,10 @@ import NotFound from "./pages/NotFound";
 
 function App() {
   return (
-    <LanguageProvider>
-      <BrowserRouter>
-        <OrganizationProvider>
-          <SubdomainRouter>
-            <Routes>
+    <BrowserRouter>
+      <OrganizationProvider>
+        <SubdomainRouter>
+          <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/apropos" element={<About />} />
           <Route path="/cours" element={<Courses />} />
@@ -263,7 +262,6 @@ function App() {
           </SubdomainRouter>
         </OrganizationProvider>
       </BrowserRouter>
-    </LanguageProvider>
   );
 }
 
