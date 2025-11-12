@@ -19,7 +19,7 @@ import type { QuizConfig, AssignmentConfig, QuestionType } from '@/types/quiz';
 import RichTextEditor from '@/components/admin/RichTextEditor';
 import { uploadDirect } from '@/utils/upload';
 import { UploadProgressModal, UploadedFile, FileUploadType } from '@/components/course-creation/UploadProgressModal';
-import { useCategories, useCreateCategory, useLevels, useCreateProLevel } from '@/hooks/useApi';
+import { useCategories, useCreateCategory, useDeleteCategory, useLevels, useCreateProLevel } from '@/hooks/useApi';
 import { UploadNotification, UploadItem } from '@/components/common/UploadNotification';
 import { useLocalStorageDraft } from '@/hooks/useLocalStorageDraft';
 import { RestoreDraftDialog } from '@/components/admin/RestoreDraftDialog';
@@ -92,6 +92,7 @@ const CreateCoursePage = () => {
   // Hooks pour les catégories et niveaux (après courseData)
   const { data: categories = [], isLoading: isLoadingCategories } = useCategories();
   const createCategoryMutation = useCreateCategory();
+  const deleteCategoryMutation = useDeleteCategory();
   const { data: levels = [], isLoading: isLoadingLevels } = useLevels(courseData.cycle || '');
   const createProLevelMutation = useCreateProLevel();
   
@@ -238,6 +239,23 @@ const CreateCoursePage = () => {
     } catch (error) {
       // L'erreur est déjà gérée par le hook
       console.error('Error creating category:', error);
+    }
+  };
+
+  const handleDeleteCategory = async (categoryId: number, categoryName: string) => {
+    if (courseData.category === categoryName) {
+      toast({
+        title: "Attention",
+        description: "Cette catégorie est actuellement sélectionnée. Veuillez d'abord en choisir une autre.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      await deleteCategoryMutation.mutateAsync(categoryId);
+    } catch (error) {
+      console.error('Error deleting category:', error);
     }
   };
 
@@ -1238,6 +1256,35 @@ const CreateCoursePage = () => {
                             </>
                           )}
                         </Button>
+                      </div>
+                    )}
+
+                    {/* Liste des catégories avec suppression */}
+                    {categories.filter(cat => cat.active).length > 0 && (
+                      <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <div className="text-sm font-medium text-gray-700 mb-2">Catégories disponibles :</div>
+                        <div className="flex flex-wrap gap-2">
+                          {categories.filter(cat => cat.active).map(cat => (
+                            <Badge
+                              key={cat.id}
+                              variant={courseData.category === cat.name ? "default" : "secondary"}
+                              className="flex items-center gap-1 py-1 px-2"
+                            >
+                              <span>{cat.name}</span>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteCategory(cat.id, cat.name);
+                                }}
+                                disabled={deleteCategoryMutation.isPending}
+                                className="ml-1 hover:text-destructive transition-colors disabled:opacity-50"
+                                title="Supprimer cette catégorie"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </Badge>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
