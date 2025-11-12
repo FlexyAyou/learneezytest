@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -57,6 +58,7 @@ const CreateCoursePage = () => {
   const location = useLocation();
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState<'info' | 'modules' | 'review'>('info');
+  const queryClient = useQueryClient();
   const [trainers, setTrainers] = useState<Array<{ id: string; name: string }>>([]);
 
   // Détecter si on est dans le contexte gestionnaire ou superadmin
@@ -230,10 +232,19 @@ const CreateCoursePage = () => {
     const newCategory = courseData.customCategory.trim();
 
     try {
-      await createCategoryMutation.mutateAsync({ name: newCategory });
+      const created = await createCategoryMutation.mutateAsync({ name: newCategory });
 
-      // Switch to the newly added category
-      handleInputChange('category', newCategory);
+      // Mettre à jour le cache immédiatement pour que la catégorie apparaisse dans la liste
+      queryClient.setQueryData(['categories'], (old: any) => {
+        if (Array.isArray(old)) {
+          const exists = old.some((c: any) => c?.name === created?.name);
+          return exists ? old : [...old, created];
+        }
+        return created ? [created] : [];
+      });
+
+      // Sélectionner automatiquement la nouvelle catégorie
+      handleInputChange('category', created?.name || newCategory);
       handleInputChange('customCategory', '');
     } catch (error) {
       // L'erreur est déjà gérée par le hook
@@ -1203,15 +1214,25 @@ const CreateCoursePage = () => {
                         <SelectValue placeholder="Sélectionner" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="development">Développement</SelectItem>
-                        <SelectItem value="design">Design</SelectItem>
-                        <SelectItem value="marketing">Marketing</SelectItem>
-                        <SelectItem value="business">Business</SelectItem>
-                        {categories.filter(cat => cat.active).map(cat => (
-                          <SelectItem key={cat.id} value={cat.name}>
-                            {cat.name}
+                        {isLoadingCategories ? (
+                          <SelectItem value="__loading" disabled>
+                            Chargement des catégories...
                           </SelectItem>
-                        ))}
+                        ) : (
+                          <>
+                            {categories && categories.length > 0 ? (
+                              categories.map((cat) => (
+                                <SelectItem key={cat.id} value={cat.name}>
+                                  {cat.name}
+                                </SelectItem>
+                              ))
+                            ) : (
+                              <SelectItem value="__empty" disabled>
+                                Aucune catégorie disponible
+                              </SelectItem>
+                            )}
+                          </>
+                        )}
                         <SelectItem value="custom">➕ Ajouter une nouvelle catégorie</SelectItem>
                       </SelectContent>
                     </Select>
