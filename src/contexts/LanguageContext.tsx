@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode } from 'react';
 
 type Language = 'fr' | 'en' | 'es' | 'pt' | 'de' | 'it' | 'nl' | 'zh' | 'ta' | 'hi';
 
@@ -133,7 +133,7 @@ const translations = {
   }
 };
 
-const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const [language, setLanguage] = useState<Language>('fr');
 
   const t = (key: string): string => {
@@ -154,5 +154,3 @@ export const useLanguage = () => {
   }
   return context;
 };
-
-export { LanguageProvider };
