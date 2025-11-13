@@ -14,6 +14,7 @@ import ManagerTrainers from '@/components/manager/ManagerTrainers';
 import { ManagerDashboardHome } from '@/components/manager/ManagerDashboardHome';
 import ManagerCourses from '@/components/manager/ManagerCourses';
 import CreateCoursePage from './admin/CreateCoursePage';
+import ManagerStudentDetailPage from './manager/ManagerStudentDetailPage';
 import AIChatButton from '@/components/common/AIChatButton';
 
 const ManagerDashboard = () => {
@@ -32,6 +33,7 @@ const ManagerDashboard = () => {
             <Routes>
               <Route index element={<ManagerDashboardHome />} />
               <Route path="apprenants" element={<ManagerApprenants />} />
+              <Route path="apprenants/:userSlug" element={<ManagerStudentDetailPage />} />
               <Route path="formateurs" element={<ManagerTrainers />} />
               <Route path="courses" element={<ManagerCourses />} />
               <Route path="courses/create" element={<CreateCoursePage />} />

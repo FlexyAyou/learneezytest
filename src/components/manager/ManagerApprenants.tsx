@@ -9,12 +9,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Users, Eye, Edit, Plus, Search, Filter, Mail, Phone, BookOpen } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useUsers } from '@/hooks/useApi';
+import { useNavigate } from 'react-router-dom';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const ManagerApprenants = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedApprenant, setSelectedApprenant] = useState<any>(null);
@@ -32,8 +34,9 @@ const ManagerApprenants = () => {
         nom: user.last_name || '',
         prenom: user.first_name || '',
         email: user.email,
-        phone: 'N/A', // TODO: récupérer depuis le profil utilisateur
+        phone: user.phone || 'Non renseigné',
         status: user.status || 'active',
+        slug: `${user.id}-${user.first_name?.toLowerCase()}-${user.last_name?.toLowerCase()}`.replace(/\s+/g, '-'),
         formation: 'Formation en cours', // TODO: récupérer depuis les enrollments
         progression: 0, // TODO: calculer depuis les enrollments
         dateInscription: new Date(user.id * 1000).toISOString().split('T')[0],
@@ -91,10 +94,7 @@ const ManagerApprenants = () => {
   };
 
   const handleViewProgress = (apprenant: any) => {
-    toast({
-      title: "Progression",
-      description: `Affichage du détail de progression pour ${apprenant.prenom} ${apprenant.nom}`,
-    });
+    navigate(`/dashboard/gestionnaire/apprenants/${apprenant.slug}`);
   };
 
   if (isLoading) {
