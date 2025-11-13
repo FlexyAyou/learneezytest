@@ -16,7 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { ArrowLeft, Edit, Trash2, Eye, EyeOff, Clock, BookOpen, PlayCircle, FileText, CheckCircle, XCircle, Video, Download, Users, Award, Save, Tags, ImageIcon } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Eye, EyeOff, Clock, BookOpen, PlayCircle, FileText, CheckCircle, XCircle, Video, Download, Users, Award, Save, Tags, ImageIcon, HelpCircle, ClipboardList } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { sanitizeHTML } from '@/utils/sanitizeHTML';
 import { fastAPIClient } from '@/services/fastapi-client';
@@ -401,8 +401,7 @@ const CourseDetailPage = () => {
   // Calculer les statistiques
   const totalLessons = course?.modules?.reduce((acc, mod) => acc + (mod.content?.length || 0), 0) || 0;
   const totalQuizzes = course?.modules?.reduce((acc, mod) => acc + (mod.quizzes?.length || 0), 0) || 0;
-  const totalVideos = course?.modules?.reduce((acc, mod) =>
-    acc + (mod.content?.filter(c => c.video_key || c.key || c.video_url).length || 0), 0) || 0;
+  const totalAssignments = course?.modules?.reduce((acc, mod) => acc + (mod.assignments?.length || 0), 0) || 0;
 
   if (loading) {
     return (
@@ -629,16 +628,16 @@ const CourseDetailPage = () => {
             </Card>
             <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-200">
               <CardContent className="pt-6 text-center">
-                <Video className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-purple-900">{totalVideos}</div>
-                <p className="text-xs text-purple-700 font-medium">Vidéos</p>
+                <HelpCircle className="h-8 w-8 text-purple-600 mx-auto mb-2" />
+                <div className="text-2xl font-bold text-purple-900">{totalQuizzes}</div>
+                <p className="text-xs text-purple-700 font-medium">Quiz</p>
               </CardContent>
             </Card>
             <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-2 border-orange-200">
               <CardContent className="pt-6 text-center">
-                <Award className="h-8 w-8 text-orange-600 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-orange-900">{totalQuizzes}</div>
-                <p className="text-xs text-orange-700 font-medium">Quiz</p>
+                <ClipboardList className="h-8 w-8 text-orange-600 mx-auto mb-2" />
+                <div className="text-2xl font-bold text-orange-900">{totalAssignments}</div>
+                <p className="text-xs text-orange-700 font-medium">Devoir</p>
               </CardContent>
             </Card>
           </div>
