@@ -103,71 +103,6 @@ const LessonViewer = () => {
     }
   };
 
-  // Fonction pour déterminer le type de contenu (définie avant les hooks)
-  const getContentType = (lesson: any) => {
-    if (!lesson) return 'text';
-    
-    // Vérifier d'abord content_type si disponible et le convertir
-    if (lesson.content_type) {
-      const mimeType = lesson.content_type.toLowerCase();
-      
-      // PDF
-      if (mimeType.includes('pdf')) return 'pdf';
-      
-      // Images
-      if (mimeType.includes('image')) return 'image';
-      
-      // Vidéos
-      if (mimeType.includes('video') || mimeType.includes('mp4') || 
-          mimeType.includes('webm') || mimeType.includes('ogg') ||
-          mimeType === 'application/x-mpegurl' || mimeType === 'application/vnd.apple.mpegurl') {
-        return 'video';
-      }
-    }
-    
-    // Sinon détecter par les clés disponibles SPÉCIFIQUES (ne plus utiliser "key" seul)
-    if (lesson.video_key || lesson.video_url) return 'video';
-    if (lesson.pdf_key || lesson.resource_key || lesson.pdf_url) return 'pdf';
-    if (lesson.image_key || lesson.image_url) return 'image';
-    
-    // Si on a un "key" générique mais pas de content_type, essayer de détecter par l'extension
-    if (lesson.key) {
-      const keyLower = lesson.key.toLowerCase();
-      if (keyLower.endsWith('.pdf')) return 'pdf';
-      if (keyLower.match(/\.(jpg|jpeg|png|gif|webp|svg)$/)) return 'image';
-      if (keyLower.match(/\.(mp4|webm|ogg|m3u8)$/)) return 'video';
-    }
-    
-    // Fallback sur la description
-    return 'text';
-  };
-
-  // Calculer le contentType AVANT les returns conditionnels (Rules of Hooks)
-  const contentType = useMemo(() => {
-    if (!currentLesson) return 'text';
-    
-    const type = getContentType(currentLesson);
-    
-    // Logs de diagnostic
-    console.log('🔍 Current Lesson Data:', currentLesson);
-    console.log('📝 Content Type (MIME):', currentLesson.content_type);
-    console.log('✅ Content Type (Detected):', type);
-    console.log('🔑 Keys:', {
-      key: currentLesson.key,
-      video_key: currentLesson.video_key,
-      pdf_key: currentLesson.pdf_key,
-      image_key: currentLesson.image_key,
-      resource_key: currentLesson.resource_key
-    });
-    
-    return type;
-  }, [currentLesson]);
-
-  // Calculer les valeurs nécessaires AVANT les returns conditionnels
-  const totalLessons = allLessons.length;
-  const progressPercentage = course ? calculateProgress(totalLessons) : 0;
-  const isCompleted = currentLesson ? isLessonCompleted(currentLesson.title) : false;
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -188,6 +123,19 @@ const LessonViewer = () => {
       </div>
     );
   }
+
+  const totalLessons = allLessons.length;
+  const progressPercentage = calculateProgress(totalLessons);
+  const isCompleted = isLessonCompleted(currentLesson.title);
+
+  const getContentType = (lesson: any) => {
+    if (lesson.video_key || lesson.video_url) return 'video';
+    if (lesson.pdf_key) return 'pdf';
+    if (lesson.image_key) return 'image';
+    return 'text';
+  };
+
+  const contentType = getContentType(currentLesson);
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -324,11 +272,11 @@ const LessonViewer = () => {
                   </div>
                   
                   <div className="flex items-center gap-3 mb-3">
-                    <Badge variant={contentType === 'text' ? 'outline' : 'secondary'}>
-                      {contentType === 'video' && '🎥 Vidéo'}
+                    <Badge variant="secondary">
+                      {contentType === 'video' && '🎥 vidéo'}
                       {contentType === 'pdf' && '📄 PDF'}
-                      {contentType === 'image' && '🖼️ Image'}
-                      {contentType === 'text' && '📝 Contenu textuel'}
+                      {contentType === 'image' && '🖼️ image'}
+                      {contentType === 'text' && '📝 texte'}
                     </Badge>
                     <div className="flex items-center text-sm text-gray-600">
                       <Clock className="w-4 h-4 mr-1" />
@@ -357,26 +305,13 @@ const LessonViewer = () => {
                     )}
                     {contentType === 'pdf' && (
                       <PDFViewer
-                        pdfKey={currentLesson.pdf_key || currentLesson.resource_key || currentLesson.key}
+                        pdfKey={currentLesson.pdf_key}
                         title={currentLesson.title}
                         height="600px"
                       />
                     )}
                     {contentType === 'image' && (
-                      <ImageDisplay imageKey={currentLesson.image_key || currentLesson.key} title={currentLesson.title} />
-                    )}
-                    {contentType === 'text' && (
-                      <div className="p-8 text-center bg-muted/30 rounded-lg border border-border">
-                        <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                        <p className="text-lg text-muted-foreground mb-2">
-                          Contenu textuel - Aucun média disponible
-                        </p>
-                        {currentLesson.description && (
-                          <div className="mt-4 text-left max-w-2xl mx-auto prose prose-sm">
-                            <div dangerouslySetInnerHTML={{ __html: sanitizeHTML(currentLesson.description) }} />
-                          </div>
-                        )}
-                      </div>
+                      <ImageDisplay imageKey={currentLesson.image_key} title={currentLesson.title} />
                     )}
                   </CardContent>
                 </Card>
