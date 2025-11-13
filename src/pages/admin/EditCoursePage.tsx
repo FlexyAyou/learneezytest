@@ -454,10 +454,7 @@ const EditCoursePage = () => {
 
     try {
       const moduleToSave = modules[moduleIdx];
-      // Récupérer l'ID réel du module côté backend
-      const dbCourse = await fastAPIClient.getCourse(id);
-      const moduleId = dbCourse.modules[moduleIdx].id!;
-      await fastAPIClient.updateModule(id, moduleId, {
+      await fastAPIClient.updateModule(id, moduleIdx, {
         title: moduleToSave.title,
         description: moduleToSave.description,
         duration: moduleToSave.duration,
@@ -646,8 +643,7 @@ const EditCoursePage = () => {
           quizzes: [quizPayload],
         };
 
-        const realModuleId = updatedCourse.modules[realModuleIdx].id!;
-        await fastAPIClient.updateModule(id, realModuleId, updatedModuleData);
+        await fastAPIClient.updateModule(id, realModuleIdx, updatedModuleData);
 
         // Rafraîchir tout
         const finalCourse = await fastAPIClient.getCourse(id);
@@ -701,9 +697,7 @@ const EditCoursePage = () => {
           quizzes: [quizPayload],
         };
 
-        const dbCourse2 = await fastAPIClient.getCourse(id);
-        const moduleId2 = dbCourse2.modules[moduleIdx].id!;
-        await fastAPIClient.updateModule(id, moduleId2, updatedModuleData);
+        await fastAPIClient.updateModule(id, moduleIdx, updatedModuleData);
 
         const updatedCourse = await fastAPIClient.getCourse(id);
         setModules(mapCourseToEditableModules(updatedCourse));
@@ -743,9 +737,7 @@ const EditCoursePage = () => {
         quizzes: [],
       };
 
-      const dbCourse3 = await fastAPIClient.getCourse(id);
-      const moduleId3 = dbCourse3.modules[moduleIdx].id!;
-      await fastAPIClient.updateModule(id, moduleId3, updatedModuleData);
+      await fastAPIClient.updateModule(id, moduleIdx, updatedModuleData);
 
       const updatedCourse = await fastAPIClient.getCourse(id);
       setModules(mapCourseToEditableModules(updatedCourse));
