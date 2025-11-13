@@ -65,6 +65,8 @@ export const usePresignedUrl = (
     const signal = abortRef.current.signal;
 
     try {
+      console.log(`📡 Récupération de l'URL présignée pour: ${storageKey}`);
+      
       const response = await retryWithBackoff(() => fastAPIClient.getPlayUrl(storageKey), {
         maxRetries,
         shouldRetry: (err) => {
@@ -76,6 +78,8 @@ export const usePresignedUrl = (
       });
 
       if (!isMountedRef.current) return;
+
+      console.log(`✅ URL présignée récupérée avec succès:`, response);
 
       // Force HTTPS
       const httpsUrl = response.url.replace(/^http:\/\//i, 'https://');
@@ -106,8 +110,37 @@ export const usePresignedUrl = (
       retryCountRef.current = 0;
     } catch (err: any) {
       if (!isMountedRef.current) return;
-      console.error('Erreur lors de la récupération de l\'URL présignée:', err);
-      setError('Impossible de charger le fichier');
+      
+      // Messages d'erreur détaillés pour diagnostic
+      let errorMessage = 'Impossible de charger le fichier';
+      
+      if (err?.code === 'ERR_NETWORK' || err?.message === 'Network Error') {
+        errorMessage = '❌ Connexion au serveur impossible. Vérifiez que le backend est accessible.';
+        console.error('🔴 ERREUR DE CONNEXION BACKEND:', {
+          storageKey,
+          error: err.message,
+          code: err.code,
+          baseURL: err?.config?.baseURL
+        });
+      } else if (err?.response?.status === 404) {
+        errorMessage = '❌ Fichier introuvable dans le storage';
+        console.error('🔴 FICHIER INTROUVABLE:', { storageKey, status: 404 });
+      } else if (err?.response?.status === 403) {
+        errorMessage = '❌ Accès refusé au fichier';
+        console.error('🔴 ACCÈS REFUSÉ:', { storageKey, status: 403 });
+      } else if (err?.response?.status >= 500) {
+        errorMessage = '❌ Erreur serveur lors de la génération de l\'URL';
+        console.error('🔴 ERREUR SERVEUR:', { storageKey, status: err.response.status });
+      } else {
+        console.error('🔴 ERREUR lors de la récupération de l\'URL présignée:', {
+          storageKey,
+          error: err,
+          message: err?.message,
+          response: err?.response
+        });
+      }
+      
+      setError(errorMessage);
     } finally {
       if (isMountedRef.current) {
         setLoading(false);

@@ -24,6 +24,9 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   
   // Utiliser le hook pour gérer l'URL avec rafraîchissement automatique
   const { url: playUrl, loading, error } = usePresignedUrl(pdfKey, pdfUrl);
+  
+  // Log de diagnostic
+  console.log('📄 PDFViewer:', { pdfKey, pdfUrl, playUrl, loading, error });
 
   const handleDownload = async () => {
     if (!playUrl) return;
@@ -77,9 +80,21 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
         className="w-full bg-gradient-to-br from-red-50 to-red-100 rounded-lg flex items-center justify-center border-2 border-red-200"
         style={{ height }}
       >
-        <div className="text-center">
-          <FileText className="h-12 w-12 text-red-400 mx-auto mb-2" />
-          <p className="text-red-600 font-medium">{error}</p>
+        <div className="text-center p-6 max-w-md">
+          <FileText className="h-12 w-12 text-red-400 mx-auto mb-4" />
+          <p className="text-red-600 font-medium mb-2">Erreur de chargement du PDF</p>
+          <p className="text-sm text-red-600/80 mb-4">{error}</p>
+          {error.includes('Connexion au serveur') && (
+            <div className="mt-4 p-4 bg-red-100 rounded-lg text-left border border-red-200">
+              <p className="text-xs font-semibold mb-2 text-red-800">🔍 Diagnostic :</p>
+              <ul className="text-xs space-y-1 text-red-700">
+                <li>• Le backend FastAPI n'est pas accessible</li>
+                <li>• Vérifiez que le serveur est démarré</li>
+                <li>• URL backend: {import.meta.env.VITE_API_URL}</li>
+                <li>• PDF Key: {pdfKey || 'N/A'}</li>
+              </ul>
+            </div>
+          )}
         </div>
       </div>
     );
