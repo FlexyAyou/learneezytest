@@ -103,6 +103,42 @@ const LessonViewer = () => {
     }
   };
 
+  // Fonction pour déterminer le type de contenu (définie avant les hooks)
+  const getContentType = (lesson: any) => {
+    if (!lesson) return 'text';
+    // Vérifier d'abord content_type si disponible
+    if (lesson.content_type) return lesson.content_type;
+    
+    // Sinon détecter par les clés disponibles
+    if (lesson.video_key || lesson.video_url || lesson.key) return 'video';
+    if (lesson.pdf_key || lesson.resource_key || lesson.pdf_url) return 'pdf';
+    if (lesson.image_key || lesson.image_url) return 'image';
+    
+    // Fallback sur la description
+    return 'text';
+  };
+
+  // Calculer le contentType AVANT les returns conditionnels (Rules of Hooks)
+  const contentType = useMemo(() => {
+    if (!currentLesson) return 'text';
+    
+    const type = getContentType(currentLesson);
+    
+    // Logs de diagnostic
+    console.log('Current Lesson Data:', currentLesson);
+    console.log('Content Type:', type);
+    console.log('PDF Key:', currentLesson.pdf_key);
+    console.log('Image Key:', currentLesson.image_key);
+    console.log('Resource Key:', currentLesson.resource_key);
+    
+    return type;
+  }, [currentLesson]);
+
+  // Calculer les valeurs nécessaires AVANT les returns conditionnels
+  const totalLessons = allLessons.length;
+  const progressPercentage = course ? calculateProgress(totalLessons) : 0;
+  const isCompleted = currentLesson ? isLessonCompleted(currentLesson.title) : false;
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -123,36 +159,6 @@ const LessonViewer = () => {
       </div>
     );
   }
-
-  const totalLessons = allLessons.length;
-  const progressPercentage = calculateProgress(totalLessons);
-  const isCompleted = isLessonCompleted(currentLesson.title);
-
-  const getContentType = (lesson: any) => {
-    // Vérifier d'abord content_type si disponible
-    if (lesson.content_type) return lesson.content_type;
-    
-    // Sinon détecter par les clés disponibles
-    if (lesson.video_key || lesson.video_url || lesson.key) return 'video';
-    if (lesson.pdf_key || lesson.resource_key || lesson.pdf_url) return 'pdf';
-    if (lesson.image_key || lesson.image_url) return 'image';
-    
-    // Fallback sur la description
-    return 'text';
-  };
-
-  const contentType = useMemo(() => {
-    const type = getContentType(currentLesson);
-    
-    // Logs de diagnostic
-    console.log('Current Lesson Data:', currentLesson);
-    console.log('Content Type:', type);
-    console.log('PDF Key:', currentLesson.pdf_key);
-    console.log('Image Key:', currentLesson.image_key);
-    console.log('Resource Key:', currentLesson.resource_key);
-    
-    return type;
-  }, [currentLesson]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
