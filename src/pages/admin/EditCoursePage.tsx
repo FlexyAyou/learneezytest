@@ -143,6 +143,8 @@ const EditCoursePage = () => {
   const [expandedModules, setExpandedModules] = useState<string[]>([]);
   const [showQuizBuilder, setShowQuizBuilder] = useState<number | null>(null);
   const [showModuleQuizBuilder, setShowModuleQuizBuilder] = useState<number | null>(null);
+  const [moduleHasChanges, setModuleHasChanges] = useState<Record<number, boolean>>({});
+  const [savingModule, setSavingModule] = useState<number | null>(null);
 
   // Upload notification state
   const [uploads, setUploads] = useState<UploadItem[]>([]);
@@ -452,6 +454,19 @@ const EditCoursePage = () => {
   const handleSaveModule = async (moduleIdx: number) => {
     if (!id || !course) return;
 
+    const module = modules[moduleIdx];
+    
+    // Ne pas sauvegarder les modules en attente
+    if (module.isPending) {
+      toast({ 
+        title: "Module non enregistré", 
+        description: "Le module sera enregistré automatiquement lors de l'ajout de contenu",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setSavingModule(moduleIdx);
     try {
       const moduleToSave = modules[moduleIdx];
       await fastAPIClient.updateModule(id, moduleIdx, {
@@ -469,7 +484,14 @@ const EditCoursePage = () => {
       });
 
       setEditingModuleId(null);
-      toast({ title: "✅ Module sauvegardé", description: moduleToSave.title });
+      
+      // Réinitialiser le flag de modifications
+      setModuleHasChanges(prev => ({ ...prev, [moduleIdx]: false }));
+      
+      toast({ 
+        title: "✅ Module sauvegardé", 
+        description: moduleToSave.title || `Module ${moduleIdx + 1}` 
+      });
 
       // Refresh course data
       const updatedCourse = await fastAPIClient.getCourse(id);
@@ -477,6 +499,8 @@ const EditCoursePage = () => {
     } catch (error) {
       console.error('Error saving module:', error);
       toast({ title: "Erreur", description: "Impossible de sauvegarder le module", variant: "destructive" });
+    } finally {
+      setSavingModule(null);
     }
   };
 
@@ -1453,9 +1477,12 @@ const EditCoursePage = () => {
                               <Label>Titre du module</Label>
                               <Input
                                 value={module.title}
-                                onChange={(e) => setModules(prev => prev.map((m, idx) =>
-                                  idx === moduleIdx ? { ...m, title: e.target.value } : m
-                                ))}
+                                onChange={(e) => {
+                                  setModules(prev => prev.map((m, idx) =>
+                                    idx === moduleIdx ? { ...m, title: e.target.value } : m
+                                  ));
+                                  setModuleHasChanges(prev => ({ ...prev, [moduleIdx]: true }));
+                                }}
                                 placeholder="Titre du module"
                                 className="mt-2"
                               />
@@ -1464,12 +1491,48 @@ const EditCoursePage = () => {
                               <Label>Description</Label>
                               <RichTextEditor
                                 value={module.description}
-                                onChange={(value) => setModules(prev => prev.map((m, idx) =>
-                                  idx === moduleIdx ? { ...m, description: value } : m
-                                ))}
+                                onChange={(value) => {
+                                  setModules(prev => prev.map((m, idx) =>
+                                    idx === moduleIdx ? { ...m, description: value } : m
+                                  ));
+                                  setModuleHasChanges(prev => ({ ...prev, [moduleIdx]: true }));
+                                }}
                                 placeholder="Description du module"
                                 height="150px"
                               />
+                              
+                              {/* Bouton de sauvegarde du module */}
+                              <div className="flex items-center justify-between mt-4">
+                                <div>
+                                  {moduleHasChanges[moduleIdx] && !module.isPending && (
+                                    <Badge variant="outline" className="text-orange-600 border-orange-600">
+                                      📝 Modifications non sauvegardées
+                                    </Badge>
+                                  )}
+                                  {module.isPending && (
+                                    <p className="text-sm text-muted-foreground">
+                                      Le module sera enregistré automatiquement lors de l'ajout de contenu
+                                    </p>
+                                  )}
+                                </div>
+                                <Button
+                                  onClick={() => handleSaveModule(moduleIdx)}
+                                  disabled={module.isPending || !moduleHasChanges[moduleIdx] || savingModule === moduleIdx}
+                                  className="bg-green-600 hover:bg-green-700"
+                                >
+                                  {savingModule === moduleIdx ? (
+                                    <>
+                                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                      Sauvegarde...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Save className="h-4 w-4 mr-2" />
+                                      Sauvegarder le module
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
                             </div>
                           </div>
 
