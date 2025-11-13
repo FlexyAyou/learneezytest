@@ -33,8 +33,8 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import RichTextEditor from '@/components/admin/RichTextEditor';
-import { QuizBuilder } from '@/components/quiz';
-import type { QuizConfig } from '@/types/quiz';
+import { QuizBuilder, AssignmentBuilder } from '@/components/quiz';
+import type { QuizConfig, AssignmentConfig } from '@/types/quiz';
 import { CycleTagSelector } from '@/components/admin/CycleTagSelector';
 import { useCategories, useCreateCategory } from '@/hooks/useApi';
 import { UploadNotification, UploadItem } from '@/components/common/UploadNotification';
@@ -43,7 +43,7 @@ import { useAutoSave } from '@/hooks/useAutoSave';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { fastAPIClient } from '@/services/fastapi-client';
 import { uploadDirect } from '@/utils/upload';
-import type { CourseResponse, Module, Content, Quiz, QuizCreate } from '@/types/fastapi';
+import type { CourseResponse, Module, Content, Quiz, QuizCreate, AssignmentResponse } from '@/types/fastapi';
 
 interface EditableCourseData {
   title: string;
@@ -67,6 +67,7 @@ interface EditableModule {
   duration: string;
   lessons: EditableLesson[];
   quizzes?: Quiz[];
+  assignments?: AssignmentResponse[];
   isPending?: boolean;  // Module temporaire non encore enregistré
   tempId?: string;      // ID temporaire pour les modules pending
 }
@@ -143,6 +144,7 @@ const EditCoursePage = () => {
   const [expandedModules, setExpandedModules] = useState<string[]>([]);
   const [showQuizBuilder, setShowQuizBuilder] = useState<number | null>(null);
   const [showModuleQuizBuilder, setShowModuleQuizBuilder] = useState<number | null>(null);
+  const [showAssignmentBuilder, setShowAssignmentBuilder] = useState<number | null>(null);
   const [moduleHasChanges, setModuleHasChanges] = useState<Record<number, boolean>>({});
   const [savingModule, setSavingModule] = useState<number | null>(null);
 
@@ -280,6 +282,7 @@ const EditCoursePage = () => {
         content_type: (lesson as any).content_type || 'video',
       })),
       quizzes: mod.quizzes || [],
+      assignments: mod.assignments || [],
       isPending: false,  // Les modules chargés depuis la DB ne sont jamais pending
     }));
   };
@@ -774,6 +777,154 @@ const EditCoursePage = () => {
       toast({
         title: '❌ Erreur',
         description: error.response?.data?.detail || 'Impossible de supprimer le quiz',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  // Save module assignment
+  const handleSaveModuleAssignment = async (moduleIdx: number, assignment: AssignmentConfig) => {
+    if (!id) return;
+
+    try {
+      const module = modules[moduleIdx];
+
+      // Si le module est en attente, le créer d'abord dans la DB
+      if (module.isPending) {
+        await fastAPIClient.createModule(id, {
+          title: module.title,
+          description: module.description,
+          duration: module.duration,
+          content: []
+        });
+
+        // Recharger pour obtenir l'index réel du module
+        const updatedCourse = await fastAPIClient.getCourse(id);
+        const realModuleIdx = updatedCourse.modules.length - 1;
+
+        // Créer l'assignment sur le module réel
+        const assignmentPayload = {
+          title: assignment.title,
+          description: assignment.description || '',
+          instructions: assignment.instructions || '',
+          questions: assignment.questions.map((q: any) => ({
+            question: q.question,
+            type: q.type,
+            options: q.options || [],
+            correct_answer: q.type === 'single-choice' || q.type === 'true-false' 
+              ? q.options[q.correctAnswer] 
+              : q.options.filter((_: any, idx: number) => q.correctAnswers?.includes(idx)),
+            points: q.points || 1,
+          })),
+          settings: assignment.settings,
+        };
+
+        const updatedModuleData = {
+          title: module.title,
+          description: module.description,
+          duration: module.duration,
+          content: module.lessons.map(l => ({
+            title: l.title,
+            description: l.description,
+            duration: l.duration,
+          })) as any,
+          assignments: [assignmentPayload],
+        };
+
+        await fastAPIClient.updateModule(id, realModuleIdx, updatedModuleData);
+
+        // Rafraîchir tout
+        const finalCourse = await fastAPIClient.getCourse(id);
+        setModules(mapCourseToEditableModules(finalCourse));
+
+        setShowAssignmentBuilder(null);
+        toast({
+          title: '✅ Module et devoir créés',
+          description: 'Le module a été enregistré avec son devoir'
+        });
+      } else {
+        // Mise à jour ou création d'assignment pour module existant
+        const assignmentPayload = {
+          title: assignment.title,
+          description: assignment.description || '',
+          instructions: assignment.instructions || '',
+          questions: assignment.questions.map((q: any) => ({
+            question: q.question,
+            type: q.type,
+            options: q.options || [],
+            correct_answer: q.type === 'single-choice' || q.type === 'true-false' 
+              ? q.options[q.correctAnswer] 
+              : q.options.filter((_: any, idx: number) => q.correctAnswers?.includes(idx)),
+            points: q.points || 1,
+          })),
+          settings: assignment.settings,
+        };
+
+        const updatedModuleData = {
+          title: module.title,
+          description: module.description,
+          duration: module.duration,
+          content: module.lessons.map(l => ({
+            title: l.title,
+            description: l.description,
+            duration: l.duration,
+          })) as any,
+          assignments: [assignmentPayload],
+        };
+
+        await fastAPIClient.updateModule(id, moduleIdx, updatedModuleData);
+
+        const updatedCourse = await fastAPIClient.getCourse(id);
+        setModules(mapCourseToEditableModules(updatedCourse));
+
+        setShowAssignmentBuilder(null);
+        toast({
+          title: '✅ Devoir sauvegardé',
+          description: 'Le devoir du module a été enregistré avec succès.'
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: '❌ Erreur',
+        description: error.response?.data?.detail || 'Impossible de sauvegarder le devoir',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  // Delete module assignment
+  const handleDeleteModuleAssignment = async (moduleIdx: number) => {
+    if (!id || !confirm('Supprimer ce devoir ?')) return;
+
+    try {
+      const module = modules[moduleIdx];
+
+      // Utiliser updateModule avec le payload complet sans assignment
+      const updatedModuleData = {
+        title: module.title,
+        description: module.description,
+        duration: module.duration,
+        content: module.lessons.map(l => ({
+          title: l.title,
+          description: l.description,
+          duration: l.duration,
+        })) as any,
+        assignments: [],
+      };
+
+      await fastAPIClient.updateModule(id, moduleIdx, updatedModuleData);
+
+      const updatedCourse = await fastAPIClient.getCourse(id);
+      setModules(mapCourseToEditableModules(updatedCourse));
+
+      toast({
+        title: '✅ Devoir supprimé',
+        description: 'Le devoir du module a été supprimé.'
+      });
+    } catch (error: any) {
+      toast({
+        title: '❌ Erreur',
+        description: error.response?.data?.detail || 'Impossible de supprimer le devoir',
         variant: 'destructive'
       });
     }
@@ -1952,6 +2103,65 @@ const EditCoursePage = () => {
                               </Button>
                             )}
                           </div>
+
+                          {/* Assignment Section for Module */}
+                          <div className="space-y-4 border-t pt-6">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <ClipboardList className="h-5 w-5 text-orange-600" />
+                                <h4 className="font-semibold text-lg">Devoir de fin de module</h4>
+                              </div>
+                            </div>
+                            <div className="text-sm text-gray-600 mb-4">
+                              Un devoir permet d'évaluer l'ensemble des compétences acquises dans ce module.
+                            </div>
+                            {module.assignments && module.assignments.length > 0 ? (
+                              <Card className="bg-gradient-to-br from-orange-50 to-amber-50 border-orange-200">
+                                <CardHeader>
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <CardTitle className="text-lg">{module.assignments[0].title}</CardTitle>
+                                      <p className="text-sm text-gray-600 mt-1">
+                                        {module.assignments[0].questions?.length || 0} questions •
+                                        Note de passage: {module.assignments[0].settings?.passing_score || 60}%
+                                      </p>
+                                    </div>
+                                    <div className="flex gap-2">
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setShowAssignmentBuilder(moduleIdx)}
+                                      >
+                                        <Edit2 className="h-4 w-4" />
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleDeleteModuleAssignment(moduleIdx)}
+                                      >
+                                        <Trash2 className="h-4 w-4 text-red-500" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </CardHeader>
+                              </Card>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                onClick={() => setShowAssignmentBuilder(moduleIdx)}
+                                className="w-full"
+                                disabled={module.isPending}
+                              >
+                                <Plus className="h-4 w-4 mr-2" />
+                                Créer un devoir pour ce module
+                              </Button>
+                            )}
+                            {module.isPending && (
+                              <p className="text-sm text-amber-600">
+                                Le module sera enregistré automatiquement lors de l'ajout de contenu
+                              </p>
+                            )}
+                          </div>
                         </div>
                       </AccordionContent>
                     </AccordionItem>
@@ -2200,6 +2410,56 @@ const EditCoursePage = () => {
               onSave={(quiz) => handleSaveModuleQuiz(showModuleQuizBuilder, quiz)}
               onCancel={() => setShowModuleQuizBuilder(null)}
               availableTypes={['single-choice', 'multiple-choice', 'true-false']}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Module Assignment Builder Dialog */}
+      {showAssignmentBuilder !== null && (
+        <Dialog open={true} onOpenChange={() => setShowAssignmentBuilder(null)}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>
+                {modules[showAssignmentBuilder]?.assignments?.length > 0 
+                  ? "Modifier le devoir du module"
+                  : "Créer un devoir pour le module"
+                }
+              </DialogTitle>
+            </DialogHeader>
+            <AssignmentBuilder
+              assignment={modules[showAssignmentBuilder]?.assignments?.[0] ? {
+                id: `assignment-${showAssignmentBuilder}`,
+                type: 'assignment' as const,
+                title: modules[showAssignmentBuilder].assignments![0].title,
+                description: modules[showAssignmentBuilder].assignments![0].description || '',
+                instructions: modules[showAssignmentBuilder].assignments![0].instructions || '',
+                questions: (modules[showAssignmentBuilder].assignments![0].questions || []).map((q: any, idx: number) => ({
+                  id: `q-${idx}`,
+                  type: q.type || 'single-choice',
+                  question: q.question,
+                  points: q.points || 1,
+                  options: q.options || [],
+                  correctAnswer: q.type === 'single-choice' || q.type === 'true-false'
+                    ? (q.options || []).indexOf(q.correct_answer)
+                    : undefined,
+                  correctAnswers: q.type === 'multiple-choice'
+                    ? (q.options || []).map((opt: string, i: number) => 
+                        Array.isArray(q.correct_answer) && q.correct_answer.includes(opt) ? i : -1
+                      ).filter((i: number) => i >= 0)
+                    : undefined,
+                })),
+                settings: {
+                  passingScore: modules[showAssignmentBuilder].assignments![0].settings?.passing_score || 60,
+                  maxAttempts: modules[showAssignmentBuilder].assignments![0].settings?.max_attempts || 3,
+                  timeLimit: modules[showAssignmentBuilder].assignments![0].settings?.time_limit,
+                  allowLateSubmission: modules[showAssignmentBuilder].assignments![0].settings?.allow_late_submission || false,
+                  requiresManualGrading: modules[showAssignmentBuilder].assignments![0].settings?.requires_manual_grading || false,
+                  rubric: [], // Rubric simplifiée pour l'instant
+                }
+              } : undefined}
+              onSave={(assignment) => handleSaveModuleAssignment(showAssignmentBuilder, assignment)}
+              onCancel={() => setShowAssignmentBuilder(null)}
             />
           </DialogContent>
         </Dialog>

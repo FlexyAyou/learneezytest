@@ -545,12 +545,36 @@ export interface AssignmentCreate {
   title: string;
   description: string;
   instructions?: string;
+  questions: AssignmentQuestion[];
+  settings?: AssignmentSettings;
+}
+
+/**
+ * Assignment question structure
+ */
+export interface AssignmentQuestion {
+  question: string;
+  type: 'single-choice' | 'multiple-choice' | 'true-false' | 'short-answer' | 'essay';
+  options?: string[];
+  correct_answer?: string | string[];
+  points?: number;
+}
+
+/**
+ * Assignment settings
+ */
+export interface AssignmentSettings {
   due_date?: string; // ISO 8601
   max_attempts?: number;
   passing_score?: number;
   time_limit?: number; // minutes
   allow_late_submission?: boolean;
   requires_manual_grading?: boolean;
+  rubric?: Array<{
+    criteria: string;
+    points: number;
+    description: string;
+  }>;
 }
 
 /**
