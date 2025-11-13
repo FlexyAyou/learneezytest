@@ -211,7 +211,9 @@ const CourseViewer = () => {
                   <CardHeader>
                     <CardTitle className="text-lg">Module {moduleIndex + 1}: {module.title}</CardTitle>
                     {module.description && (
-                      <CardDescription>{module.description}</CardDescription>
+                      <CardDescription>
+                        <div dangerouslySetInnerHTML={{ __html: sanitizeHTML(module.description) }} />
+                      </CardDescription>
                     )}
                   </CardHeader>
                   <CardContent>
