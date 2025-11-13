@@ -295,13 +295,8 @@ const CourseDetailPage = () => {
         }
 
         // Vérifier la disponibilité du programme PDF
-        try {
-          await fastAPIClient.getCourseProgramUrl(courseId);
-          setProgramAvailable(true);
-        } catch (err: any) {
-          console.log('Programme non disponible:', err.response?.status);
-          setProgramAvailable(false);
-        }
+        const hasProgramPdf = !!courseData.program_pdf_key;
+        setProgramAvailable(hasProgramPdf);
 
         // Charger les ressources pédagogiques
         try {
@@ -963,8 +958,22 @@ const CourseDetailPage = () => {
                     variant="outline"
                     className="w-full justify-between h-auto py-3 hover:bg-blue-50"
                     onClick={async () => {
+                      if (!course?.program_pdf_key) {
+                        toast({
+                          title: "❌ Erreur",
+                          description: "Clé de programme introuvable",
+                          variant: "destructive",
+                        });
+                        return;
+                      }
+                      
                       try {
-                        await fastAPIClient.downloadCourseProgram(courseId);
+                        const { download_url } = await fastAPIClient.getDownloadUrl(course.program_pdf_key);
+                        const link = document.createElement('a');
+                        link.href = download_url;
+                        link.download = 'programme-formation.pdf';
+                        link.click();
+                        
                         toast({
                           title: "✅ Téléchargement démarré",
                           description: "Téléchargement du programme de formation",
@@ -1157,9 +1166,9 @@ const CourseDetailPage = () => {
             <DialogTitle>Programme de formation</DialogTitle>
           </DialogHeader>
           <div className="flex-1 overflow-hidden">
-            {viewingProgramPDF && courseId && (
+            {viewingProgramPDF && course && (
               <PDFViewer
-                pdfUrl={`/api/courses/${courseId}/program`}
+                pdfKey={course.program_pdf_key}
                 title="Programme de formation"
                 height="calc(90vh - 120px)"
               />
