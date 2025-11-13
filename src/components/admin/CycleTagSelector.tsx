@@ -93,7 +93,7 @@ export const CycleTagSelector: React.FC<CycleTagSelectorProps> = ({
 
     if (selectedCycle === 'formation_pro') {
       try {
-        await createProLevelMutation.mutateAsync({ label: trimmed });
+        await createProLevelMutation.mutateAsync({ name: trimmed });
         // Le hook invalide la query; l’élément reviendra dans dynamicProLevels automatiquement
         onTagsChange([...selectedTags, trimmed]);
         toast({
@@ -179,8 +179,8 @@ export const CycleTagSelector: React.FC<CycleTagSelectorProps> = ({
                   key={tag}
                   variant={isSelected ? "default" : "outline"}
                   className={`px-3 py-1.5 text-sm cursor-pointer transition-all ${isSelected
-                      ? 'bg-primary text-primary-foreground'
-                      : 'hover:bg-primary/10 hover:border-primary'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'hover:bg-primary/10 hover:border-primary'
                     }`}
                   onClick={() => toggleTag(tag)}
                 >

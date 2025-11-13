@@ -1108,7 +1108,16 @@ class FastAPIClient {
    * Créer un nouveau niveau pro (formation professionnelle)
    */
   async createProLevel(data: ProLevelCreate): Promise<ProLevelItem> {
-    return this.post('/api/levels/', data);
+    // Adapter l’ancien format { label } vers le nouveau { name }
+    const payload: any = { ...data };
+    if (!payload.name && payload.label) {
+      payload.name = payload.label;
+    }
+    // Ne pas envoyer le champ label si name est défini pour éviter ambiguïté
+    if (payload.name && 'label' in payload) {
+      delete payload.label;
+    }
+    return this.post('/api/levels/', payload);
   }
 
   /**

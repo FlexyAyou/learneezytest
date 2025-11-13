@@ -234,7 +234,9 @@ export interface CategoryUpdateActive {
 
 export interface ProLevelItem {
   id: number;
-  label: string;
+  // Backend a évolué: le champ attendu est "name". On conserve "label" pour compat descendant.
+  name?: string;
+  label?: string;
   active: boolean;
   owner_type: 'learneezy' | 'of';
   owner_id: number | null;
@@ -242,7 +244,8 @@ export interface ProLevelItem {
 }
 
 export interface ProLevelCreate {
-  label: string;
+  name: string; // nouveau contrat
+  label?: string; // toléré si anciens appels
 }
 
 export interface ProLevelUpdateActive {
