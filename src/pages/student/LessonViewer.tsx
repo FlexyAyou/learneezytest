@@ -106,13 +106,37 @@ const LessonViewer = () => {
   // Fonction pour déterminer le type de contenu (définie avant les hooks)
   const getContentType = (lesson: any) => {
     if (!lesson) return 'text';
-    // Vérifier d'abord content_type si disponible
-    if (lesson.content_type) return lesson.content_type;
     
-    // Sinon détecter par les clés disponibles
-    if (lesson.video_key || lesson.video_url || lesson.key) return 'video';
+    // Vérifier d'abord content_type si disponible et le convertir
+    if (lesson.content_type) {
+      const mimeType = lesson.content_type.toLowerCase();
+      
+      // PDF
+      if (mimeType.includes('pdf')) return 'pdf';
+      
+      // Images
+      if (mimeType.includes('image')) return 'image';
+      
+      // Vidéos
+      if (mimeType.includes('video') || mimeType.includes('mp4') || 
+          mimeType.includes('webm') || mimeType.includes('ogg') ||
+          mimeType === 'application/x-mpegurl' || mimeType === 'application/vnd.apple.mpegurl') {
+        return 'video';
+      }
+    }
+    
+    // Sinon détecter par les clés disponibles SPÉCIFIQUES (ne plus utiliser "key" seul)
+    if (lesson.video_key || lesson.video_url) return 'video';
     if (lesson.pdf_key || lesson.resource_key || lesson.pdf_url) return 'pdf';
     if (lesson.image_key || lesson.image_url) return 'image';
+    
+    // Si on a un "key" générique mais pas de content_type, essayer de détecter par l'extension
+    if (lesson.key) {
+      const keyLower = lesson.key.toLowerCase();
+      if (keyLower.endsWith('.pdf')) return 'pdf';
+      if (keyLower.match(/\.(jpg|jpeg|png|gif|webp|svg)$/)) return 'image';
+      if (keyLower.match(/\.(mp4|webm|ogg|m3u8)$/)) return 'video';
+    }
     
     // Fallback sur la description
     return 'text';
@@ -125,11 +149,16 @@ const LessonViewer = () => {
     const type = getContentType(currentLesson);
     
     // Logs de diagnostic
-    console.log('Current Lesson Data:', currentLesson);
-    console.log('Content Type:', type);
-    console.log('PDF Key:', currentLesson.pdf_key);
-    console.log('Image Key:', currentLesson.image_key);
-    console.log('Resource Key:', currentLesson.resource_key);
+    console.log('🔍 Current Lesson Data:', currentLesson);
+    console.log('📝 Content Type (MIME):', currentLesson.content_type);
+    console.log('✅ Content Type (Detected):', type);
+    console.log('🔑 Keys:', {
+      key: currentLesson.key,
+      video_key: currentLesson.video_key,
+      pdf_key: currentLesson.pdf_key,
+      image_key: currentLesson.image_key,
+      resource_key: currentLesson.resource_key
+    });
     
     return type;
   }, [currentLesson]);
@@ -328,13 +357,13 @@ const LessonViewer = () => {
                     )}
                     {contentType === 'pdf' && (
                       <PDFViewer
-                        pdfKey={currentLesson.pdf_key || currentLesson.resource_key}
+                        pdfKey={currentLesson.pdf_key || currentLesson.resource_key || currentLesson.key}
                         title={currentLesson.title}
                         height="600px"
                       />
                     )}
                     {contentType === 'image' && (
-                      <ImageDisplay imageKey={currentLesson.image_key} title={currentLesson.title} />
+                      <ImageDisplay imageKey={currentLesson.image_key || currentLesson.key} title={currentLesson.title} />
                     )}
                     {contentType === 'text' && (
                       <div className="p-8 text-center bg-muted/30 rounded-lg border border-border">
