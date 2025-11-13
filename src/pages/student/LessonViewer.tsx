@@ -129,13 +129,30 @@ const LessonViewer = () => {
   const isCompleted = isLessonCompleted(currentLesson.title);
 
   const getContentType = (lesson: any) => {
-    if (lesson.video_key || lesson.video_url) return 'video';
-    if (lesson.pdf_key) return 'pdf';
-    if (lesson.image_key) return 'image';
+    // Vérifier d'abord content_type si disponible
+    if (lesson.content_type) return lesson.content_type;
+    
+    // Sinon détecter par les clés disponibles
+    if (lesson.video_key || lesson.video_url || lesson.key) return 'video';
+    if (lesson.pdf_key || lesson.resource_key || lesson.pdf_url) return 'pdf';
+    if (lesson.image_key || lesson.image_url) return 'image';
+    
+    // Fallback sur la description
     return 'text';
   };
 
-  const contentType = getContentType(currentLesson);
+  const contentType = useMemo(() => {
+    const type = getContentType(currentLesson);
+    
+    // Logs de diagnostic
+    console.log('Current Lesson Data:', currentLesson);
+    console.log('Content Type:', type);
+    console.log('PDF Key:', currentLesson.pdf_key);
+    console.log('Image Key:', currentLesson.image_key);
+    console.log('Resource Key:', currentLesson.resource_key);
+    
+    return type;
+  }, [currentLesson]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -272,11 +289,11 @@ const LessonViewer = () => {
                   </div>
                   
                   <div className="flex items-center gap-3 mb-3">
-                    <Badge variant="secondary">
-                      {contentType === 'video' && '🎥 vidéo'}
+                    <Badge variant={contentType === 'text' ? 'outline' : 'secondary'}>
+                      {contentType === 'video' && '🎥 Vidéo'}
                       {contentType === 'pdf' && '📄 PDF'}
-                      {contentType === 'image' && '🖼️ image'}
-                      {contentType === 'text' && '📝 texte'}
+                      {contentType === 'image' && '🖼️ Image'}
+                      {contentType === 'text' && '📝 Contenu textuel'}
                     </Badge>
                     <div className="flex items-center text-sm text-gray-600">
                       <Clock className="w-4 h-4 mr-1" />
@@ -305,13 +322,26 @@ const LessonViewer = () => {
                     )}
                     {contentType === 'pdf' && (
                       <PDFViewer
-                        pdfKey={currentLesson.pdf_key}
+                        pdfKey={currentLesson.pdf_key || currentLesson.resource_key}
                         title={currentLesson.title}
                         height="600px"
                       />
                     )}
                     {contentType === 'image' && (
                       <ImageDisplay imageKey={currentLesson.image_key} title={currentLesson.title} />
+                    )}
+                    {contentType === 'text' && (
+                      <div className="p-8 text-center bg-muted/30 rounded-lg border border-border">
+                        <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                        <p className="text-lg text-muted-foreground mb-2">
+                          Contenu textuel - Aucun média disponible
+                        </p>
+                        {currentLesson.description && (
+                          <div className="mt-4 text-left max-w-2xl mx-auto prose prose-sm">
+                            <div dangerouslySetInnerHTML={{ __html: sanitizeHTML(currentLesson.description) }} />
+                          </div>
+                        )}
+                      </div>
                     )}
                   </CardContent>
                 </Card>
