@@ -1233,10 +1233,10 @@ const EditCoursePage = () => {
                           size="sm"
                           onClick={saveCustomCategory}
                           className="w-full"
-                          disabled={createCategoryMutation.isLoading}
+                          disabled={createCategoryMutation.isPending}
                         >
                           <Save className="h-4 w-4 mr-2" />
-                          {createCategoryMutation.isLoading ? 'Enregistrement...' : 'Enregistrer et ajouter à la liste'}
+                          {createCategoryMutation.isPending ? 'Enregistrement...' : 'Enregistrer et ajouter à la liste'}
                         </Button>
                       </div>
                     )}

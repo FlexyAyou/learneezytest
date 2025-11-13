@@ -206,17 +206,17 @@ export const CycleTagSelector: React.FC<CycleTagSelectorProps> = ({
                       addCustomTag();
                     }
                   }}
-                  disabled={createProLevelMutation.isLoading}
+                  disabled={createProLevelMutation.isPending}
                 />
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={addCustomTag}
-                  disabled={!customTag.trim() || createProLevelMutation.isLoading}
+                  disabled={!customTag.trim() || createProLevelMutation.isPending}
                 >
                   <Plus className="h-4 w-4 mr-1" />
-                  {createProLevelMutation.isLoading ? 'Ajout...' : 'Ajouter'}
+                  {createProLevelMutation.isPending ? 'Ajout...' : 'Ajouter'}
                 </Button>
               </div>
               {loadingProLevels && (
