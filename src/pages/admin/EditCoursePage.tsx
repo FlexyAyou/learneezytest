@@ -183,7 +183,7 @@ const EditCoursePage = () => {
           imagePreview: null,
           programFileName: courseData.program_pdf_key ? 'Programme.pdf' : '',
           objectives: (courseData as any).objectives || [''],
-          // Le backend utilise learning_cycle et levels
+          // le backend renvoie learning_cycle & levels
           cycle: (courseData as any).learning_cycle || '',
           cycleTags: (courseData as any).levels || [],
         };
@@ -295,9 +295,9 @@ const EditCoursePage = () => {
         category: data.category,
         level: data.level,
         objectives: data.objectives.filter(obj => obj.trim() !== ''),
-        // Adapter vers le contrat backend
+        // adapter les clefs vers le contrat backend
         learning_cycle: data.cycle || null,
-        levels: data.cycleTags && data.cycleTags.length > 0 ? data.cycleTags : null,
+        levels: data.cycleTags,
       };
 
       if (data.price && !isNaN(parseFloat(data.price))) {
