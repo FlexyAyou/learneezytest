@@ -11,6 +11,8 @@ import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { CourseResponse } from '@/types/fastapi';
 import { sanitizeHTML } from '@/utils/sanitizeHTML';
 import { usePresignedUrl } from '@/hooks/usePresignedUrl';
+import { QuizModal } from '@/components/student/QuizModal';
+import { QuizConfig } from '@/types/quiz';
 
 const CourseViewer = () => {
   const { id } = useParams<{ id: string }>();
@@ -18,6 +20,8 @@ const CourseViewer = () => {
   const [course, setCourse] = useState<CourseResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [completedLessons, setCompletedLessons] = useState<string[]>([]);
+  const [selectedQuiz, setSelectedQuiz] = useState<QuizConfig | null>(null);
+  const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
 
   // Refresh presigned URL for cover image
   const { url: coverUrl } = usePresignedUrl(course?.cover_key);
@@ -286,6 +290,12 @@ const CourseViewer = () => {
                                 size="sm"
                                 variant="outline"
                                 className="border-purple-300 text-purple-700 hover:bg-purple-200"
+                                onClick={() => {
+                                  if (quiz) {
+                                    setSelectedQuiz(quiz as unknown as QuizConfig);
+                                    setIsQuizModalOpen(true);
+                                  }
+                                }}
                               >
                                 Démarrer le quiz
                               </Button>
@@ -409,6 +419,23 @@ const CourseViewer = () => {
           </Card>
         </div>
       </div>
+
+      {/* Quiz Modal */}
+      {selectedQuiz && (
+        <QuizModal
+          open={isQuizModalOpen}
+          onOpenChange={setIsQuizModalOpen}
+          quiz={selectedQuiz}
+          onComplete={(result) => {
+            console.log('Quiz completed:', result);
+            // TODO: Save result to backend
+            if (result.isPassing) {
+              // Mark quiz as completed
+              setCompletedLessons([...completedLessons, selectedQuiz.id]);
+            }
+          }}
+        />
+      )}
     </div>
   );
 };
