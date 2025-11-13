@@ -130,11 +130,28 @@ const CreateCourse = () => {
 
     const quizData: QuizType = {
       title: quiz.title,
-      questions: quiz.questions.map(q => ({
-        question: q.question,
-        options: 'options' in q ? q.options : [],
-        correct_answer: 'correctAnswer' in q ? String(q.correctAnswer) : ''
-      }))
+      questions: quiz.questions.map(q => {
+        let correct_answer;
+        
+        if (q.type === 'true-false') {
+          // Pour true-false, correctAnswer est un boolean
+          correct_answer = String(q.correctAnswer);
+        } else if (q.type === 'single-choice' && 'options' in q && 'correctAnswer' in q) {
+          // Pour single-choice, correctAnswer est l'index
+          correct_answer = q.options[q.correctAnswer];
+        } else if (q.type === 'multiple-choice' && 'options' in q && 'correctAnswers' in q) {
+          // Pour multiple-choice, correctAnswers est un tableau d'indices
+          correct_answer = q.options.filter((_, idx) => q.correctAnswers.includes(idx));
+        } else {
+          correct_answer = '';
+        }
+
+        return {
+          question: q.question,
+          options: 'options' in q ? q.options : [],
+          correct_answer
+        };
+      })
     };
 
     setModules(prev => prev.map(m =>

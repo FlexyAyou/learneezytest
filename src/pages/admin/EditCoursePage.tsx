@@ -943,15 +943,28 @@ const EditCoursePage = () => {
 
       const quizPayload: QuizCreate = {
         title: quiz.title,
-        questions: quiz.questions.map((q: any) => ({
-          question: q.question,
-          type: q.type,
-          options: q.options || [],
-          correct_answer: q.type === 'single-choice' || q.type === 'true-false' 
-            ? q.options[q.correctAnswer] 
-            : q.options.filter((_: any, idx: number) => q.correctAnswers?.includes(idx)),
-          points: q.points || 1,
-        })),
+        questions: quiz.questions.map((q: any) => {
+          let correct_answer;
+          
+          if (q.type === 'true-false') {
+            // Pour true-false, correctAnswer est directement un boolean
+            correct_answer = String(q.correctAnswer);
+          } else if (q.type === 'single-choice') {
+            // Pour single-choice, correctAnswer est l'index de la bonne réponse
+            correct_answer = q.options[q.correctAnswer];
+          } else if (q.type === 'multiple-choice') {
+            // Pour multiple-choice, correctAnswers est un tableau d'indices
+            correct_answer = q.options.filter((_: any, idx: number) => q.correctAnswers?.includes(idx));
+          }
+
+          return {
+            question: q.question,
+            type: q.type,
+            options: q.options || [],
+            correct_answer,
+            points: q.points || 1,
+          };
+        }),
       };
 
       // Vérifier si un quiz existe déjà
