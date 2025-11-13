@@ -183,8 +183,9 @@ const EditCoursePage = () => {
           imagePreview: null,
           programFileName: courseData.program_pdf_key ? 'Programme.pdf' : '',
           objectives: (courseData as any).objectives || [''],
-          cycle: (courseData as any).cycle || '',
-          cycleTags: (courseData as any).cycle_tags || [],
+          // le backend renvoie learning_cycle & levels
+          cycle: (courseData as any).learning_cycle || '',
+          cycleTags: (courseData as any).levels || [],
         };
 
         // Récupérer une URL de lecture pour l'image de couverture si disponible
@@ -294,8 +295,9 @@ const EditCoursePage = () => {
         category: data.category,
         level: data.level,
         objectives: data.objectives.filter(obj => obj.trim() !== ''),
-        cycle: data.cycle || null,
-        cycle_tags: data.cycleTags,
+        // adapter les clefs vers le contrat backend
+        learning_cycle: data.cycle || null,
+        levels: data.cycleTags,
       };
 
       if (data.price && !isNaN(parseFloat(data.price))) {
