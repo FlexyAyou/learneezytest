@@ -128,38 +128,24 @@ const LessonViewer = () => {
   const progressPercentage = calculateProgress(totalLessons);
   const isCompleted = isLessonCompleted(currentLesson.title);
 
+  // Déterminer le type de contenu
   const getContentType = (lesson: any): 'video' | 'pdf' | 'image' | 'text' => {
-    // Vérifier d'abord content_type si disponible
     if (lesson.content_type) return lesson.content_type;
-    
-    // Vérifier pdf_key dédié
     if (lesson.pdf_key) return 'pdf';
-    
-    // Vérifier image_key dédié
     if (lesson.image_key) return 'image';
     
-    // Analyser video_key ou key pour détecter le type par extension
     if (lesson.video_key || lesson.key) {
       const key = lesson.video_key || lesson.key || '';
-      
-      // Détecter PDF par extension
       if (key.toLowerCase().endsWith('.pdf')) return 'pdf';
-      
-      // Détecter images par extension
       if (/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(key)) return 'image';
-      
-      // Sinon c'est une vidéo
       return 'video';
     }
     
-    // Vérifier video_url pour YouTube, Vimeo, etc.
     if (lesson.video_url) return 'video';
-    
-    // Fallback sur texte
     return 'text';
   };
 
-  const contentType = useMemo(() => getContentType(currentLesson), [currentLesson]);
+  const contentType = getContentType(currentLesson);
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
