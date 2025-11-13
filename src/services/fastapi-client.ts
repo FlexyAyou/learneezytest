@@ -942,7 +942,7 @@ class FastAPIClient {
   // ============= MODULE MANAGEMENT =============
   async updateModule(
     courseId: string,
-    moduleId: number,
+    moduleId: string,
     moduleData: ModuleFullUpdate
   ): Promise<Module> {
     return this.put(`/api/courses/${courseId}/modules/${moduleId}`, moduleData);
