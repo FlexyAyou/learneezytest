@@ -1,104 +1,141 @@
-
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Play, CheckCircle, Clock, Star, MessageSquare, Download, ChevronRight, ChevronLeft, Home, User, X, Menu } from 'lucide-react';
+import { ArrowLeft, Play, CheckCircle, Clock, MessageSquare, Download, ChevronRight, ChevronLeft, Home, User, X, Menu, Video, FileText, Image as ImageIcon } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useCourse } from '@/hooks/useApi';
+import { useLearnerProgress } from '@/hooks/useLearnerProgress';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
+import VideoPlayer from '@/components/common/VideoPlayer';
+import PDFViewer from '@/components/common/PDFViewer';
+import { usePresignedUrl } from '@/hooks/usePresignedUrl';
+import { sanitizeHTML } from '@/utils/sanitizeHTML';
+import { useToast } from '@/hooks/use-toast';
+import { fastAPIClient } from '@/services/fastapi-client';
 
 const LessonViewer = () => {
   const { courseId, lessonId } = useParams();
   const navigate = useNavigate();
-  const [isCompleted, setIsCompleted] = useState(false);
+  const { toast } = useToast();
   const [showTableOfContents, setShowTableOfContents] = useState(true);
 
-  // Données d'exemple pour le cours et les leçons
-  const courseData = {
-    id: courseId,
-    title: "Mathématiques CE2",
-    modules: [
-      {
-        id: "module-1",
-        title: "PARTIE 1 - Les nombres et le calcul",
-        lessons: [
-          { id: "1.1", title: "Les nombres de 0 à 100", duration: "15 min", isCompleted: true },
-          { id: "1.2", title: "Addition simple", duration: "20 min", isCompleted: true },
-          { id: "1.3", title: "Soustraction simple", duration: "18 min", isCompleted: false, isCurrent: true },
-          { id: "1.4", title: "Les tables de multiplication", duration: "25 min", isCompleted: false },
-        ]
-      },
-      {
-        id: "module-2", 
-        title: "PARTIE 2 - Géométrie",
-        lessons: [
-          { id: "2.1", title: "Les formes géométriques", duration: "22 min", isCompleted: false },
-          { id: "2.2", title: "Les angles", duration: "18 min", isCompleted: false },
-        ]
-      }
-    ]
-  };
+  // Fetch course data
+  const { data: course, isLoading } = useCourse(courseId!);
+  
+  // Progress tracking
+  const { 
+    completedLessons, 
+    markLessonComplete, 
+    isLessonCompleted, 
+    calculateProgress 
+  } = useLearnerProgress(courseId!);
 
-  // Données d'exemple pour la leçon actuelle
-  const lesson = {
-    id: lessonId,
-    title: "Soustraction simple",
-    moduleTitle: "Les nombres et le calcul",
-    duration: "18 min",
-    type: "video",
-    description: "Dans cette leçon, nous allons apprendre à faire des soustractions simples avec des nombres jusqu'à 100.",
-    videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
-    transcript: `
-Bonjour les enfants ! Aujourd'hui, nous allons apprendre la soustraction.
+  // Find current lesson and module
+  const { currentLesson, currentModule, lessonIndex, allLessons } = useMemo(() => {
+    if (!course) return { currentLesson: null, currentModule: null, lessonIndex: -1, allLessons: [] };
 
-La soustraction, c'est enlever une quantité à une autre quantité.
+    const lessons: any[] = [];
+    let foundLesson = null;
+    let foundModule = null;
+    let foundIndex = -1;
 
-Par exemple : 10 - 3 = 7
-Cela veut dire que si j'ai 10 bonbons et que j'en mange 3, il m'en reste 7.
+    course.modules.forEach((module: any) => {
+      module.content.forEach((lesson: any) => {
+        lessons.push({ ...lesson, module });
+        if (lesson.title === lessonId) {
+          foundLesson = lesson;
+          foundModule = module;
+          foundIndex = lessons.length - 1;
+        }
+      });
+    });
 
-Regardons d'autres exemples :
-15 - 5 = 10
-20 - 8 = 12
-25 - 15 = 10
-    `,
-    resources: [
-      { name: "Fiche d'exercices - La soustraction", url: "#", type: "pdf" },
-      { name: "Jeu interactif - Soustractions", url: "#", type: "game" }
-    ],
-    nextLesson: {
-      id: "1.4",
-      title: "Les tables de multiplication",
-      duration: "25 min"
-    },
-    course: {
-      title: "Mathématiques CE2",
-      totalLessons: 6,
-      currentLessonIndex: 3,
-      instructor: {
-        name: "Marie Dupont",
-        role: "Professeure de Mathématiques"
-      }
-    }
-  };
+    return { 
+      currentLesson: foundLesson, 
+      currentModule: foundModule, 
+      lessonIndex: foundIndex,
+      allLessons: lessons 
+    };
+  }, [course, lessonId]);
+
+  // Navigation
+  const previousLesson = lessonIndex > 0 ? allLessons[lessonIndex - 1] : null;
+  const nextLesson = lessonIndex >= 0 && lessonIndex < allLessons.length - 1 ? allLessons[lessonIndex + 1] : null;
 
   const handleMarkComplete = () => {
-    setIsCompleted(true);
-  };
-
-  const handleNextLesson = () => {
-    if (lesson.nextLesson) {
-      navigate(`/dashboard/apprenant/courses/${courseId}/lessons/${lesson.nextLesson.id}`);
+    if (currentLesson) {
+      markLessonComplete(currentLesson.title);
+      toast({
+        title: "✅ Leçon terminée",
+        description: "Votre progression a été mise à jour",
+      });
     }
   };
 
-  const handleLessonClick = (lessonId: string) => {
-    navigate(`/dashboard/apprenant/courses/${courseId}/lessons/${lessonId}`);
+  const handleLessonClick = (lessonTitle: string) => {
+    navigate(`/dashboard/apprenant/courses/${courseId}/lessons/${lessonTitle}`);
   };
 
-  const progressPercentage = Math.round((lesson.course.currentLessonIndex / lesson.course.totalLessons) * 100);
+  const handleDownloadResource = async (resourceUrl: string, resourceName: string) => {
+    try {
+      const downloadUrl = await fastAPIClient.getDownloadUrl(resourceUrl);
+      const link = document.createElement('a');
+      link.href = downloadUrl.download_url;
+      link.download = resourceName;
+      link.click();
+      
+      toast({
+        title: "✅ Téléchargement démarré",
+        description: resourceName,
+      });
+    } catch (err) {
+      console.error('Erreur téléchargement:', err);
+      toast({
+        title: "❌ Erreur",
+        description: "Impossible de télécharger la ressource",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  if (!course || !currentLesson || !currentModule) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-xl text-gray-600 mb-4">Leçon introuvable</p>
+          <Button onClick={() => navigate(`/dashboard/apprenant/courses/${courseId}`)}>
+            Retour au cours
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const totalLessons = allLessons.length;
+  const progressPercentage = calculateProgress(totalLessons);
+  const isCompleted = isLessonCompleted(currentLesson.title);
+
+  const getContentType = (lesson: any) => {
+    if (lesson.video_key || lesson.video_url) return 'video';
+    if (lesson.pdf_key) return 'pdf';
+    if (lesson.image_key) return 'image';
+    return 'text';
+  };
+
+  const contentType = getContentType(currentLesson);
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -119,31 +156,31 @@ Regardons d'autres exemples :
           
           <ScrollArea className="flex-1">
             <div className="p-4">
-              {courseData.modules.map((module, moduleIndex) => (
-                <div key={module.id} className="mb-6">
+              {course.modules.map((module: any, moduleIndex: number) => (
+                <div key={module.title} className="mb-6">
                   <h3 className="text-sm font-semibold text-blue-600 uppercase tracking-wide mb-3">
                     {module.title}
                   </h3>
                   
                   <div className="space-y-2">
-                    {module.lessons.map((lessonItem, index) => (
+                    {module.content.map((lessonItem: any, index: number) => (
                       <div
-                        key={lessonItem.id}
+                        key={lessonItem.title}
                         className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                          lessonItem.isCurrent 
+                          lessonItem.title === lessonId 
                             ? 'bg-blue-50 border-l-4 border-l-blue-500' 
                             : 'hover:bg-gray-50'
                         }`}
-                        onClick={() => handleLessonClick(lessonItem.id)}
+                        onClick={() => handleLessonClick(lessonItem.title)}
                       >
                         <div className="flex-shrink-0">
-                          {lessonItem.isCompleted ? (
+                          {isLessonCompleted(lessonItem.title) ? (
                             <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
                               <CheckCircle className="w-4 h-4 text-green-600" />
                             </div>
                           ) : (
                             <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs font-semibold ${
-                              lessonItem.isCurrent 
+                              lessonItem.title === lessonId 
                                 ? 'border-blue-500 bg-blue-500 text-white' 
                                 : 'border-gray-300 text-gray-500'
                             }`}>
@@ -154,7 +191,7 @@ Regardons d'autres exemples :
                         
                         <div className="flex-1 min-w-0">
                           <p className={`text-sm font-medium truncate ${
-                            lessonItem.isCurrent ? 'text-blue-900' : 'text-gray-900'
+                            lessonItem.title === lessonId ? 'text-blue-900' : 'text-gray-900'
                           }`}>
                             {lessonItem.title}
                           </p>
@@ -205,15 +242,15 @@ Regardons d'autres exemples :
                   onClick={() => navigate(`/dashboard/apprenant/courses/${courseId}`)}
                   className="text-sm text-gray-600 hover:text-gray-900"
                 >
-                  {lesson.course.title}
+                  {course.title}
                 </Button>
                 <ChevronRight className="w-4 h-4 text-gray-400" />
-                <span className="text-sm font-medium">{lesson.title}</span>
+                <span className="text-sm font-medium">{currentLesson.title}</span>
               </div>
               
               <div className="flex items-center space-x-3">
                 <div className="text-sm text-gray-600">
-                  {lesson.course.currentLessonIndex}/{lesson.course.totalLessons} leçons
+                  {lessonIndex + 1}/{totalLessons} leçons
                 </div>
                 <Progress value={progressPercentage} className="w-20 h-2" />
               </div>
@@ -226,42 +263,56 @@ Regardons d'autres exemples :
             <div className="grid lg:grid-cols-4 gap-6">
               {/* Contenu principal */}
               <div className="lg:col-span-3">
-                {/* En-tête de la leçon avec module en premier */}
+                {/* En-tête de la leçon */}
                 <div className="mb-6">
-                  {/* Module title en premier */}
                   <div className="mb-3">
                     <Badge variant="outline" className="text-base px-3 py-1 bg-blue-50 text-blue-700 border-blue-200">
-                      📚 {lesson.moduleTitle}
+                      📚 {currentModule.title}
                     </Badge>
                   </div>
                   
-                  {/* Lesson details */}
                   <div className="flex items-center gap-3 mb-3">
-                    <Badge variant="secondary">{lesson.type === 'video' ? '🎥' : '📄'} {lesson.type}</Badge>
+                    <Badge variant="secondary">
+                      {contentType === 'video' && '🎥 vidéo'}
+                      {contentType === 'pdf' && '📄 PDF'}
+                      {contentType === 'image' && '🖼️ image'}
+                      {contentType === 'text' && '📝 texte'}
+                    </Badge>
                     <div className="flex items-center text-sm text-gray-600">
                       <Clock className="w-4 h-4 mr-1" />
-                      {lesson.duration}
+                      {currentLesson.duration}
                     </div>
                   </div>
                   
-                  {/* Lesson title */}
-                  <h1 className="text-3xl font-bold mb-3">{lesson.title}</h1>
-                  <p className="text-gray-600 text-lg">{lesson.description}</p>
+                  <h1 className="text-3xl font-bold mb-3">{currentLesson.title}</h1>
+                  {currentLesson.description && (
+                    <div 
+                      className="text-gray-600 text-lg"
+                      dangerouslySetInnerHTML={{ __html: sanitizeHTML(currentLesson.description) }}
+                    />
+                  )}
                 </div>
 
-                {/* Lecteur vidéo */}
+                {/* Contenu de la leçon */}
                 <Card className="mb-6">
                   <CardContent className="p-0">
-                    <div className="aspect-video bg-black rounded-lg overflow-hidden">
-                      <video 
-                        controls 
-                        className="w-full h-full"
-                        poster="https://images.unsplash.com/photo-1632501641765-e568d28b0015?w=800&h=450&fit=crop"
-                      >
-                        <source src={lesson.videoUrl} type="video/mp4" />
-                        Votre navigateur ne supporte pas la lecture vidéo.
-                      </video>
-                    </div>
+                    {contentType === 'video' && (
+                      <VideoPlayer
+                        videoKey={currentLesson.video_key || currentLesson.key}
+                        videoUrl={currentLesson.video_url}
+                        title={currentLesson.title}
+                      />
+                    )}
+                    {contentType === 'pdf' && (
+                      <PDFViewer
+                        pdfKey={currentLesson.pdf_key}
+                        title={currentLesson.title}
+                        height="600px"
+                      />
+                    )}
+                    {contentType === 'image' && (
+                      <ImageDisplay imageKey={currentLesson.image_key} title={currentLesson.title} />
+                    )}
                   </CardContent>
                 </Card>
 
@@ -279,15 +330,12 @@ Regardons d'autres exemples :
                         <CardTitle>À propos de cette leçon</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-gray-700 mb-4">{lesson.description}</p>
-                        <div className="space-y-2">
-                          <h4 className="font-semibold">Objectifs d'apprentissage :</h4>
-                          <ul className="list-disc list-inside space-y-1 text-gray-700">
-                            <li>Comprendre le concept de soustraction</li>
-                            <li>Effectuer des soustractions simples</li>
-                            <li>Résoudre des problèmes pratiques avec la soustraction</li>
-                          </ul>
-                        </div>
+                        {currentLesson.description && (
+                          <div 
+                            className="text-gray-700 mb-4"
+                            dangerouslySetInnerHTML={{ __html: sanitizeHTML(currentLesson.description) }}
+                          />
+                        )}
                       </CardContent>
                     </Card>
                   </TabsContent>
@@ -299,11 +347,15 @@ Regardons d'autres exemples :
                         <CardDescription>Texte intégral de la vidéo</CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <div className="prose prose-sm max-w-none">
-                          <pre className="whitespace-pre-wrap font-sans text-gray-700 leading-relaxed">
-                            {lesson.transcript}
-                          </pre>
-                        </div>
+                        {currentLesson.transcription ? (
+                          <div className="prose prose-sm max-w-none">
+                            <pre className="whitespace-pre-wrap font-sans text-gray-700 leading-relaxed">
+                              {currentLesson.transcription}
+                            </pre>
+                          </div>
+                        ) : (
+                          <p className="text-gray-500">Aucune transcription disponible</p>
+                        )}
                       </CardContent>
                     </Card>
                   </TabsContent>
@@ -315,25 +367,10 @@ Regardons d'autres exemples :
                           <MessageSquare className="w-5 h-5" />
                           Discussion avec votre formateur
                         </CardTitle>
-                        <CardDescription>
-                          <div className="flex items-center gap-2 mt-2">
-                            <Avatar className="h-6 w-6">
-                              <AvatarFallback className="text-xs">
-                                {lesson.course.instructor.name.charAt(0)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span>{lesson.course.instructor.name} - {lesson.course.instructor.role}</span>
-                          </div>
-                        </CardDescription>
                       </CardHeader>
                       <CardContent>
                         <div className="text-center py-8 text-gray-500">
-                          <div className="flex items-center justify-center mb-4">
-                            <div className="relative">
-                              <MessageSquare className="w-12 h-12 mx-auto text-gray-300" />
-                              <User className="w-6 h-6 absolute -bottom-1 -right-1 bg-white rounded-full p-1 text-gray-400" />
-                            </div>
-                          </div>
+                          <MessageSquare className="w-12 h-12 mx-auto text-gray-300 mb-4" />
                           <p className="font-medium mb-1">Aucune discussion pour le moment</p>
                           <p className="text-sm text-gray-400 mb-4">
                             Posez une question à votre formateur sur cette leçon
@@ -358,99 +395,29 @@ Regardons d'autres exemples :
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      <div className="flex justify-between text-sm">
-                        <span>Cours complété</span>
-                        <span>{progressPercentage}%</span>
-                      </div>
-                      <Progress value={progressPercentage} className="h-2" />
-                      
-                      {!isCompleted ? (
-                        <Button 
-                          onClick={handleMarkComplete}
-                          className="w-full"
-                        >
-                          <CheckCircle className="w-4 h-4 mr-2" />
-                          Marquer comme terminé
-                        </Button>
-                      ) : (
-                        <div className="flex items-center justify-center p-3 bg-green-50 border border-green-200 rounded-lg">
-                          <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
-                          <span className="text-green-700 font-medium">Leçon terminée</span>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Formateur */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Votre formateur</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarFallback>
-                          {lesson.course.instructor.name.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
                       <div>
-                        <p className="font-medium">{lesson.course.instructor.name}</p>
-                        <p className="text-sm text-gray-600">{lesson.course.instructor.role}</p>
-                      </div>
-                    </div>
-                    <Button variant="outline" className="w-full mt-3">
-                      <MessageSquare className="w-4 h-4 mr-2" />
-                      Contacter le formateur
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                {/* Leçon suivante */}
-                {lesson.nextLesson && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg">Leçon suivante</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        <div>
-                          <h4 className="font-medium">{lesson.nextLesson.title}</h4>
-                          <p className="text-sm text-gray-600">{lesson.nextLesson.duration}</p>
+                        <div className="flex justify-between text-sm mb-2">
+                          <span className="text-gray-600">Cours complété</span>
+                          <span className="font-semibold">{progressPercentage}%</span>
                         </div>
-                        <Button 
-                          onClick={handleNextLesson}
-                          className="w-full"
-                          variant="outline"
-                        >
-                          <Play className="w-4 h-4 mr-2" />
-                          Leçon suivante
-                        </Button>
+                        <Progress value={progressPercentage} className="h-2" />
                       </div>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Ressources */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Ressources</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {lesson.resources.map((resource, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center">
-                              {resource.type === 'pdf' ? '📄' : '🎮'}
-                            </div>
-                            <span className="text-sm font-medium">{resource.name}</span>
-                          </div>
-                          <Button size="sm" variant="ghost">
-                            <Download className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      ))}
+                      
+                      <Button 
+                        onClick={handleMarkComplete} 
+                        disabled={isCompleted}
+                        className="w-full"
+                        variant={isCompleted ? "outline" : "default"}
+                      >
+                        {isCompleted ? (
+                          <>
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            Leçon terminée
+                          </>
+                        ) : (
+                          'Marquer comme terminé'
+                        )}
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -460,24 +427,91 @@ Regardons d'autres exemples :
                   <CardHeader>
                     <CardTitle className="text-lg">Navigation</CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <Button 
-                        variant="outline" 
+                  <CardContent className="space-y-2">
+                    {previousLesson && (
+                      <Button
+                        variant="outline"
                         className="w-full justify-start"
-                        onClick={() => navigate(`/dashboard/apprenant/courses/${courseId}`)}
+                        onClick={() => handleLessonClick(previousLesson.title)}
                       >
-                        <ArrowLeft className="w-4 h-4 mr-2" />
-                        Retour au cours
+                        <ChevronLeft className="w-4 h-4 mr-2" />
+                        Leçon précédente
                       </Button>
-                    </div>
+                    )}
+                    {nextLesson && (
+                      <Button
+                        className="w-full justify-start"
+                        onClick={() => handleLessonClick(nextLesson.title)}
+                      >
+                        Leçon suivante
+                        <ChevronRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    )}
                   </CardContent>
                 </Card>
+
+                {/* Ressources */}
+                {currentLesson.resources && currentLesson.resources.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Ressources</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        {currentLesson.resources.map((resource: any, idx: number) => (
+                          <Button
+                            key={idx}
+                            variant="outline"
+                            className="w-full justify-between"
+                            onClick={() => handleDownloadResource(resource.url, resource.name)}
+                          >
+                            <span className="truncate">{resource.name}</span>
+                            <Download className="w-4 h-4 ml-2 flex-shrink-0" />
+                          </Button>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </div>
           </div>
         </div>
       </div>
+    </div>
+  );
+};
+
+// Component pour afficher les images
+const ImageDisplay: React.FC<{ imageKey?: string; title: string }> = ({ imageKey, title }) => {
+  const { url, loading, error } = usePresignedUrl(imageKey);
+
+  if (loading) {
+    return (
+      <div className="w-full aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  if (error || !url) {
+    return (
+      <div className="w-full aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
+        <div className="text-center">
+          <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+          <p className="text-gray-500">Image non disponible</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full">
+      <img 
+        src={url} 
+        alt={title} 
+        className="w-full h-auto rounded-lg"
+      />
     </div>
   );
 };
