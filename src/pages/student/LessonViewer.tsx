@@ -1,173 +1,345 @@
-
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Play, CheckCircle, Clock, Star, MessageSquare, Download, ChevronRight, ChevronLeft, Home, User, X, Menu } from 'lucide-react';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { 
+  ArrowLeft, 
+  CheckCircle, 
+  Clock, 
+  Download, 
+  ChevronRight, 
+  ChevronLeft, 
+  Menu, 
+  X,
+  FileText,
+  Video as VideoIcon,
+  Image as ImageIcon,
+  Award,
+  ClipboardList
+} from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useCourse } from '@/hooks/useApi';
+import { useLearnerProgress } from '@/hooks/useLearnerProgress';
+import { usePresignedUrl } from '@/hooks/usePresignedUrl';
+import { useToast } from '@/hooks/use-toast';
+import { sanitizeHTML } from '@/utils/sanitizeHTML';
+import { Content } from '@/types/fastapi';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
+import VideoPlayer from '@/components/common/VideoPlayer';
+import PDFViewer from '@/components/common/PDFViewer';
 
 const LessonViewer = () => {
-  const { courseId, lessonId } = useParams();
+  const { courseId, lessonId } = useParams<{ courseId: string; lessonId: string }>();
   const navigate = useNavigate();
-  const [isCompleted, setIsCompleted] = useState(false);
+  const { toast } = useToast();
   const [showTableOfContents, setShowTableOfContents] = useState(true);
 
-  // Données d'exemple pour le cours et les leçons
-  const courseData = {
-    id: courseId,
-    title: "Mathématiques CE2",
-    modules: [
-      {
-        id: "module-1",
-        title: "PARTIE 1 - Les nombres et le calcul",
-        lessons: [
-          { id: "1.1", title: "Les nombres de 0 à 100", duration: "15 min", isCompleted: true },
-          { id: "1.2", title: "Addition simple", duration: "20 min", isCompleted: true },
-          { id: "1.3", title: "Soustraction simple", duration: "18 min", isCompleted: false, isCurrent: true },
-          { id: "1.4", title: "Les tables de multiplication", duration: "25 min", isCompleted: false },
-        ]
-      },
-      {
-        id: "module-2", 
-        title: "PARTIE 2 - Géométrie",
-        lessons: [
-          { id: "2.1", title: "Les formes géométriques", duration: "22 min", isCompleted: false },
-          { id: "2.2", title: "Les angles", duration: "18 min", isCompleted: false },
-        ]
+  // Récupération du cours complet via l'API
+  const { data: course, isLoading, error } = useCourse(courseId || '');
+
+  // Gestion de la progression
+  const {
+    completedLessons,
+    isLessonCompleted,
+    markLessonComplete,
+    setCurrentLesson,
+    calculateProgress,
+  } = useLearnerProgress(courseId || '');
+
+  // Trouver la leçon actuelle et les informations de navigation
+  const lessonData = useMemo(() => {
+    if (!course || !lessonId) return null;
+
+    let currentLesson: Content | null = null;
+    let currentModule: any = null;
+    let moduleIndex = -1;
+    let lessonIndex = -1;
+    let previousLesson: { id: string; title: string; moduleTitle: string } | null = null;
+    let nextLesson: { id: string; title: string; moduleTitle: string } | null = null;
+    let allLessons: Array<{ lesson: Content; module: any; moduleIndex: number }> = [];
+
+    // Construire la liste complète de toutes les leçons
+    course.modules?.forEach((module, mIdx) => {
+      module.content?.forEach((lesson) => {
+        allLessons.push({ lesson, module, moduleIndex: mIdx });
+      });
+    });
+
+    // Trouver la leçon actuelle
+    const currentIndex = allLessons.findIndex((item) => item.lesson.title === decodeURIComponent(lessonId));
+    
+    if (currentIndex !== -1) {
+      const current = allLessons[currentIndex];
+      currentLesson = current.lesson;
+      currentModule = current.module;
+      moduleIndex = current.moduleIndex;
+      lessonIndex = current.module.content?.indexOf(current.lesson) || 0;
+
+      // Trouver la leçon précédente
+      if (currentIndex > 0) {
+        const prev = allLessons[currentIndex - 1];
+        previousLesson = {
+          id: prev.lesson.title,
+          title: prev.lesson.title,
+          moduleTitle: prev.module.title,
+        };
       }
-    ]
-  };
 
-  // Données d'exemple pour la leçon actuelle
-  const lesson = {
-    id: lessonId,
-    title: "Soustraction simple",
-    moduleTitle: "Les nombres et le calcul",
-    duration: "18 min",
-    type: "video",
-    description: "Dans cette leçon, nous allons apprendre à faire des soustractions simples avec des nombres jusqu'à 100.",
-    videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
-    transcript: `
-Bonjour les enfants ! Aujourd'hui, nous allons apprendre la soustraction.
-
-La soustraction, c'est enlever une quantité à une autre quantité.
-
-Par exemple : 10 - 3 = 7
-Cela veut dire que si j'ai 10 bonbons et que j'en mange 3, il m'en reste 7.
-
-Regardons d'autres exemples :
-15 - 5 = 10
-20 - 8 = 12
-25 - 15 = 10
-    `,
-    resources: [
-      { name: "Fiche d'exercices - La soustraction", url: "#", type: "pdf" },
-      { name: "Jeu interactif - Soustractions", url: "#", type: "game" }
-    ],
-    nextLesson: {
-      id: "1.4",
-      title: "Les tables de multiplication",
-      duration: "25 min"
-    },
-    course: {
-      title: "Mathématiques CE2",
-      totalLessons: 6,
-      currentLessonIndex: 3,
-      instructor: {
-        name: "Marie Dupont",
-        role: "Professeure de Mathématiques"
+      // Trouver la leçon suivante
+      if (currentIndex < allLessons.length - 1) {
+        const next = allLessons[currentIndex + 1];
+        nextLesson = {
+          id: next.lesson.title,
+          title: next.lesson.title,
+          moduleTitle: next.module.title,
+        };
       }
     }
-  };
+
+    return {
+      currentLesson,
+      currentModule,
+      moduleIndex,
+      lessonIndex,
+      previousLesson,
+      nextLesson,
+      allLessons,
+      totalLessons: allLessons.length,
+    };
+  }, [course, lessonId]);
+
+  // Mettre à jour la leçon actuelle
+  useEffect(() => {
+    if (lessonData?.currentLesson) {
+      setCurrentLesson(lessonData.currentLesson.title);
+    }
+  }, [lessonData?.currentLesson, setCurrentLesson]);
+
+  // Calcul du pourcentage de progression
+  const progressPercentage = useMemo(() => {
+    if (!lessonData) return 0;
+    return calculateProgress(lessonData.totalLessons);
+  }, [lessonData, calculateProgress]);
 
   const handleMarkComplete = () => {
-    setIsCompleted(true);
+    if (lessonData?.currentLesson) {
+      markLessonComplete(lessonData.currentLesson.title);
+      toast({
+        title: "Leçon terminée !",
+        description: "Votre progression a été enregistrée.",
+      });
+    }
   };
 
   const handleNextLesson = () => {
-    if (lesson.nextLesson) {
-      navigate(`/dashboard/apprenant/courses/${courseId}/lessons/${lesson.nextLesson.id}`);
+    if (lessonData?.nextLesson) {
+      navigate(`/dashboard/apprenant/courses/${courseId}/lessons/${encodeURIComponent(lessonData.nextLesson.id)}`);
     }
   };
 
-  const handleLessonClick = (lessonId: string) => {
-    navigate(`/dashboard/apprenant/courses/${courseId}/lessons/${lessonId}`);
+  const handlePreviousLesson = () => {
+    if (lessonData?.previousLesson) {
+      navigate(`/dashboard/apprenant/courses/${courseId}/lessons/${encodeURIComponent(lessonData.previousLesson.id)}`);
+    }
   };
 
-  const progressPercentage = Math.round((lesson.course.currentLessonIndex / lesson.course.totalLessons) * 100);
+  const handleLessonClick = (lessonTitle: string) => {
+    navigate(`/dashboard/apprenant/courses/${courseId}/lessons/${encodeURIComponent(lessonTitle)}`);
+  };
+
+  // Détection du type de contenu
+  const getContentType = (lesson: Content): 'video' | 'pdf' | 'image' | 'none' => {
+    if (lesson.video_key || lesson.video_url) return 'video';
+    if (lesson.pdf_key) return 'pdf';
+    if (lesson.image_key) return 'image';
+    return 'none';
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  if (error || !course) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle>Erreur</CardTitle>
+            <CardDescription>Impossible de charger le cours</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => navigate('/dashboard/apprenant/courses')}>
+              Retour aux cours
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!lessonData?.currentLesson) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle>Leçon introuvable</CardTitle>
+            <CardDescription>La leçon demandée n'existe pas</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => navigate(`/dashboard/apprenant/courses/${courseId}`)}>
+              Retour au cours
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const { currentLesson, currentModule, moduleIndex, previousLesson, nextLesson } = lessonData;
+  const contentType = getContentType(currentLesson);
+  const isCompleted = isLessonCompleted(currentLesson.title);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-background flex">
       {/* Table des matières */}
       {showTableOfContents && (
-        <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
-          <div className="flex items-center justify-between p-4 border-b border-gray-200">
-            <h2 className="font-semibold text-lg">Table des matières</h2>
+        <div className="w-80 bg-card border-r border-border flex flex-col">
+          <div className="flex items-center justify-between p-4 border-b border-border">
+            <h2 className="font-semibold text-foreground">Table des matières</h2>
             <Button
               variant="ghost"
-              size="sm"
+              size="icon"
               onClick={() => setShowTableOfContents(false)}
-              className="p-1"
+              className="lg:hidden"
             >
-              <X className="w-4 h-4" />
+              <X className="h-5 w-5" />
             </Button>
           </div>
-          
+
           <ScrollArea className="flex-1">
             <div className="p-4">
-              {courseData.modules.map((module, moduleIndex) => (
-                <div key={module.id} className="mb-6">
-                  <h3 className="text-sm font-semibold text-blue-600 uppercase tracking-wide mb-3">
-                    {module.title}
-                  </h3>
-                  
-                  <div className="space-y-2">
-                    {module.lessons.map((lessonItem, index) => (
-                      <div
-                        key={lessonItem.id}
-                        className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                          lessonItem.isCurrent 
-                            ? 'bg-blue-50 border-l-4 border-l-blue-500' 
-                            : 'hover:bg-gray-50'
-                        }`}
-                        onClick={() => handleLessonClick(lessonItem.id)}
-                      >
-                        <div className="flex-shrink-0">
-                          {lessonItem.isCompleted ? (
-                            <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
-                              <CheckCircle className="w-4 h-4 text-green-600" />
-                            </div>
-                          ) : (
-                            <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs font-semibold ${
-                              lessonItem.isCurrent 
-                                ? 'border-blue-500 bg-blue-500 text-white' 
-                                : 'border-gray-300 text-gray-500'
-                            }`}>
-                              {moduleIndex + 1}.{index + 1}
-                            </div>
-                          )}
-                        </div>
-                        
-                        <div className="flex-1 min-w-0">
-                          <p className={`text-sm font-medium truncate ${
-                            lessonItem.isCurrent ? 'text-blue-900' : 'text-gray-900'
-                          }`}>
-                            {lessonItem.title}
-                          </p>
-                          <p className="text-xs text-gray-500 flex items-center mt-1">
-                            <Clock className="w-3 h-3 mr-1" />
-                            {lessonItem.duration}
-                          </p>
+              <Button
+                variant="ghost"
+                className="w-full justify-start mb-4"
+                onClick={() => navigate(`/dashboard/apprenant/courses/${courseId}`)}
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Retour au cours
+              </Button>
+
+              <div className="mb-4">
+                <div className="text-sm text-muted-foreground mb-2">Progression globale</div>
+                <Progress value={progressPercentage} className="mb-1" />
+                <div className="text-xs text-muted-foreground text-right">
+                  {completedLessons.size} / {lessonData.totalLessons} leçons
+                </div>
+              </div>
+
+              <Accordion type="single" collapsible className="space-y-2" defaultValue={`module-${moduleIndex}`}>
+                {course.modules?.map((module, mIdx) => (
+                  <AccordionItem key={mIdx} value={`module-${mIdx}`} className="border rounded-lg">
+                    <AccordionTrigger className="px-4 hover:no-underline">
+                      <div className="flex items-start text-left">
+                        <div>
+                          <div className="font-medium text-sm">Module {mIdx + 1}</div>
+                          <div className="text-xs text-muted-foreground line-clamp-1">{module.title}</div>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
+                    </AccordionTrigger>
+                    <AccordionContent className="px-4 pb-4">
+                      <div className="space-y-2">
+                        {module.content?.map((lesson, lIdx) => {
+                          const lessonCompleted = isLessonCompleted(lesson.title);
+                          const isCurrent = lesson.title === currentLesson.title;
+                          
+                          return (
+                            <button
+                              key={lIdx}
+                              onClick={() => handleLessonClick(lesson.title)}
+                              className={`w-full text-left p-3 rounded-lg transition-colors ${
+                                isCurrent
+                                  ? 'bg-primary text-primary-foreground'
+                                  : lessonCompleted
+                                  ? 'bg-muted hover:bg-muted/80'
+                                  : 'hover:bg-muted/50'
+                              }`}
+                            >
+                              <div className="flex items-start gap-2">
+                                {lessonCompleted ? (
+                                  <CheckCircle className="h-4 w-4 mt-0.5 text-green-600 flex-shrink-0" />
+                                ) : (
+                                  <div className={`h-4 w-4 rounded-full border-2 mt-0.5 flex-shrink-0 ${
+                                    isCurrent ? 'border-primary-foreground' : 'border-muted-foreground'
+                                  }`} />
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <div className={`text-sm font-medium line-clamp-2 ${
+                                    isCurrent ? 'text-primary-foreground' : 'text-foreground'
+                                  }`}>
+                                    {lesson.title}
+                                  </div>
+                                  <div className={`text-xs mt-1 flex items-center gap-2 ${
+                                    isCurrent ? 'text-primary-foreground/80' : 'text-muted-foreground'
+                                  }`}>
+                                    <Clock className="h-3 w-3" />
+                                    {lesson.duration}
+                                  </div>
+                                </div>
+                              </div>
+                            </button>
+                          );
+                        })}
+                        
+                        {/* Quizzes */}
+                        {module.quizzes?.map((quiz, qIdx) => (
+                          <div
+                            key={`quiz-${qIdx}`}
+                            className="p-3 rounded-lg bg-orange-50 border border-orange-200"
+                          >
+                            <div className="flex items-center gap-2">
+                              <Award className="h-4 w-4 text-orange-600 flex-shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm font-medium text-foreground line-clamp-1">
+                                  {quiz.title}
+                                </div>
+                                <div className="text-xs text-muted-foreground mt-1">
+                                  {quiz.questions?.length || 0} questions
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+
+                        {/* Assignments */}
+                        {module.assignments?.map((assignment, aIdx) => (
+                          <div
+                            key={`assignment-${aIdx}`}
+                            className="p-3 rounded-lg bg-blue-50 border border-blue-200"
+                          >
+                            <div className="flex items-center gap-2">
+                              <ClipboardList className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm font-medium text-foreground line-clamp-1">
+                                  {assignment.title}
+                                </div>
+                                <div className="text-xs text-muted-foreground mt-1">Devoir</div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
             </div>
           </ScrollArea>
         </div>
@@ -175,309 +347,250 @@ Regardons d'autres exemples :
 
       {/* Contenu principal */}
       <div className="flex-1 flex flex-col">
-        {/* Header de navigation */}
-        <div className="bg-white border-b">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16">
-              <div className="flex items-center space-x-4">
+        {/* En-tête avec navigation */}
+        <div className="bg-card border-b border-border p-4">
+          <div className="max-w-5xl mx-auto">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-4">
                 {!showTableOfContents && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => setShowTableOfContents(true)}
-                    className="p-2"
                   >
-                    <Menu className="w-4 h-4" />
+                    <Menu className="h-5 w-5" />
                   </Button>
                 )}
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => navigate('/')}
-                  className="p-2"
-                >
-                  <Home className="w-4 h-4" />
-                </Button>
-                <ChevronRight className="w-4 h-4 text-gray-400" />
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => navigate(`/dashboard/apprenant/courses/${courseId}`)}
-                  className="text-sm text-gray-600 hover:text-gray-900"
-                >
-                  {lesson.course.title}
-                </Button>
-                <ChevronRight className="w-4 h-4 text-gray-400" />
-                <span className="text-sm font-medium">{lesson.title}</span>
-              </div>
-              
-              <div className="flex items-center space-x-3">
-                <div className="text-sm text-gray-600">
-                  {lesson.course.currentLessonIndex}/{lesson.course.totalLessons} leçons
+                <div>
+                  <div className="text-sm text-muted-foreground">
+                    {course.title} / Module {moduleIndex + 1}
+                  </div>
+                  <h1 className="text-2xl font-bold text-foreground">{currentLesson.title}</h1>
                 </div>
-                <Progress value={progressPercentage} className="w-20 h-2" />
               </div>
+              {!isCompleted && (
+                <Button onClick={handleMarkComplete} className="gap-2">
+                  <CheckCircle className="h-4 w-4" />
+                  Marquer comme terminé
+                </Button>
+              )}
+              {isCompleted && (
+                <Badge variant="default" className="bg-green-600 gap-2">
+                  <CheckCircle className="h-4 w-4" />
+                  Terminé
+                </Badge>
+              )}
+            </div>
+
+            <div className="flex items-center gap-4">
+              <Progress value={progressPercentage} className="flex-1" />
+              <span className="text-sm text-muted-foreground">{progressPercentage}%</span>
             </div>
           </div>
         </div>
 
-        <div className="flex-1 overflow-auto">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div className="grid lg:grid-cols-4 gap-6">
-              {/* Contenu principal */}
-              <div className="lg:col-span-3">
-                {/* En-tête de la leçon avec module en premier */}
-                <div className="mb-6">
-                  {/* Module title en premier */}
-                  <div className="mb-3">
-                    <Badge variant="outline" className="text-base px-3 py-1 bg-blue-50 text-blue-700 border-blue-200">
-                      📚 {lesson.moduleTitle}
-                    </Badge>
+        {/* Contenu de la leçon */}
+        <ScrollArea className="flex-1">
+          <div className="max-w-5xl mx-auto p-6">
+            <Card className="mb-6">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg">{currentModule.title}</CardTitle>
+                    <CardDescription className="flex items-center gap-4 mt-2">
+                      <Badge variant="outline">
+                        {contentType === 'video' && <VideoIcon className="h-3 w-3 mr-1" />}
+                        {contentType === 'pdf' && <FileText className="h-3 w-3 mr-1" />}
+                        {contentType === 'image' && <ImageIcon className="h-3 w-3 mr-1" />}
+                        {contentType === 'video' ? 'Vidéo' : contentType === 'pdf' ? 'PDF' : contentType === 'image' ? 'Image' : 'Contenu'}
+                      </Badge>
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {currentLesson.duration}
+                      </span>
+                    </CardDescription>
                   </div>
-                  
-                  {/* Lesson details */}
-                  <div className="flex items-center gap-3 mb-3">
-                    <Badge variant="secondary">{lesson.type === 'video' ? '🎥' : '📄'} {lesson.type}</Badge>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Clock className="w-4 h-4 mr-1" />
-                      {lesson.duration}
-                    </div>
-                  </div>
-                  
-                  {/* Lesson title */}
-                  <h1 className="text-3xl font-bold mb-3">{lesson.title}</h1>
-                  <p className="text-gray-600 text-lg">{lesson.description}</p>
                 </div>
-
-                {/* Lecteur vidéo */}
-                <Card className="mb-6">
-                  <CardContent className="p-0">
-                    <div className="aspect-video bg-black rounded-lg overflow-hidden">
-                      <video 
-                        controls 
-                        className="w-full h-full"
-                        poster="https://images.unsplash.com/photo-1632501641765-e568d28b0015?w=800&h=450&fit=crop"
-                      >
-                        <source src={lesson.videoUrl} type="video/mp4" />
-                        Votre navigateur ne supporte pas la lecture vidéo.
-                      </video>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Onglets de contenu */}
-                <Tabs defaultValue="overview" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="overview">Aperçu</TabsTrigger>
-                    <TabsTrigger value="transcript">Transcription</TabsTrigger>
-                    <TabsTrigger value="discussion">Discussion avec le formateur</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="overview" className="space-y-4">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>À propos de cette leçon</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-gray-700 mb-4">{lesson.description}</p>
-                        <div className="space-y-2">
-                          <h4 className="font-semibold">Objectifs d'apprentissage :</h4>
-                          <ul className="list-disc list-inside space-y-1 text-gray-700">
-                            <li>Comprendre le concept de soustraction</li>
-                            <li>Effectuer des soustractions simples</li>
-                            <li>Résoudre des problèmes pratiques avec la soustraction</li>
-                          </ul>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-                  
-                  <TabsContent value="transcript" className="space-y-4">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Transcription de la leçon</CardTitle>
-                        <CardDescription>Texte intégral de la vidéo</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="prose prose-sm max-w-none">
-                          <pre className="whitespace-pre-wrap font-sans text-gray-700 leading-relaxed">
-                            {lesson.transcript}
-                          </pre>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-                  
-                  <TabsContent value="discussion" className="space-y-4">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-3">
-                          <MessageSquare className="w-5 h-5" />
-                          Discussion avec votre formateur
-                        </CardTitle>
-                        <CardDescription>
-                          <div className="flex items-center gap-2 mt-2">
-                            <Avatar className="h-6 w-6">
-                              <AvatarFallback className="text-xs">
-                                {lesson.course.instructor.name.charAt(0)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span>{lesson.course.instructor.name} - {lesson.course.instructor.role}</span>
-                          </div>
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-center py-8 text-gray-500">
-                          <div className="flex items-center justify-center mb-4">
-                            <div className="relative">
-                              <MessageSquare className="w-12 h-12 mx-auto text-gray-300" />
-                              <User className="w-6 h-6 absolute -bottom-1 -right-1 bg-white rounded-full p-1 text-gray-400" />
-                            </div>
-                          </div>
-                          <p className="font-medium mb-1">Aucune discussion pour le moment</p>
-                          <p className="text-sm text-gray-400 mb-4">
-                            Posez une question à votre formateur sur cette leçon
-                          </p>
-                          <Button variant="outline" className="mt-2">
-                            <MessageSquare className="w-4 h-4 mr-2" />
-                            Poser une question
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-                </Tabs>
-              </div>
-
-              {/* Sidebar */}
-              <div className="space-y-6">
-                {/* Progression */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Progression</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex justify-between text-sm">
-                        <span>Cours complété</span>
-                        <span>{progressPercentage}%</span>
-                      </div>
-                      <Progress value={progressPercentage} className="h-2" />
-                      
-                      {!isCompleted ? (
-                        <Button 
-                          onClick={handleMarkComplete}
-                          className="w-full"
-                        >
-                          <CheckCircle className="w-4 h-4 mr-2" />
-                          Marquer comme terminé
-                        </Button>
-                      ) : (
-                        <div className="flex items-center justify-center p-3 bg-green-50 border border-green-200 rounded-lg">
-                          <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
-                          <span className="text-green-700 font-medium">Leçon terminée</span>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Formateur */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Votre formateur</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarFallback>
-                          {lesson.course.instructor.name.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium">{lesson.course.instructor.name}</p>
-                        <p className="text-sm text-gray-600">{lesson.course.instructor.role}</p>
-                      </div>
-                    </div>
-                    <Button variant="outline" className="w-full mt-3">
-                      <MessageSquare className="w-4 h-4 mr-2" />
-                      Contacter le formateur
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                {/* Leçon suivante */}
-                {lesson.nextLesson && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg">Leçon suivante</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        <div>
-                          <h4 className="font-medium">{lesson.nextLesson.title}</h4>
-                          <p className="text-sm text-gray-600">{lesson.nextLesson.duration}</p>
-                        </div>
-                        <Button 
-                          onClick={handleNextLesson}
-                          className="w-full"
-                          variant="outline"
-                        >
-                          <Play className="w-4 h-4 mr-2" />
-                          Leçon suivante
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+              </CardHeader>
+              <CardContent>
+                <h2 className="text-xl font-semibold mb-4 text-foreground">{currentLesson.title}</h2>
+                {currentLesson.description && (
+                  <div
+                    className="content-html prose max-w-none text-muted-foreground mb-6"
+                    dangerouslySetInnerHTML={{ __html: sanitizeHTML(currentLesson.description) }}
+                  />
                 )}
 
-                {/* Ressources */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Ressources</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {lesson.resources.map((resource, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center">
-                              {resource.type === 'pdf' ? '📄' : '🎮'}
-                            </div>
-                            <span className="text-sm font-medium">{resource.name}</span>
-                          </div>
-                          <Button size="sm" variant="ghost">
-                            <Download className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                {/* Affichage du contenu selon le type */}
+                {contentType === 'video' && (
+                  <VideoPlayer
+                    videoKey={currentLesson.video_key || currentLesson.key}
+                    videoUrl={currentLesson.video_url}
+                    title={currentLesson.title}
+                    className="mb-6"
+                  />
+                )}
 
-                {/* Navigation */}
+                {contentType === 'pdf' && currentLesson.pdf_key && (
+                  <PDFViewer
+                    pdfKey={currentLesson.pdf_key}
+                    title={currentLesson.title}
+                    height="600px"
+                    showDownload
+                  />
+                )}
+
+                {contentType === 'image' && currentLesson.image_key && (
+                  <ImageViewer imageKey={currentLesson.image_key} title={currentLesson.title} />
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Onglets pour transcription et ressources */}
+            <Tabs defaultValue="overview" className="mb-6">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="overview">Aperçu</TabsTrigger>
+                <TabsTrigger value="transcript">Transcription</TabsTrigger>
+                <TabsTrigger value="resources">Ressources</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="overview" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg">Navigation</CardTitle>
+                    <CardTitle>À propos de cette leçon</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-2">
-                      <Button 
-                        variant="outline" 
-                        className="w-full justify-start"
-                        onClick={() => navigate(`/dashboard/apprenant/courses/${courseId}`)}
-                      >
-                        <ArrowLeft className="w-4 h-4 mr-2" />
-                        Retour au cours
-                      </Button>
-                    </div>
+                    {currentLesson.description ? (
+                      <div
+                        className="content-html prose max-w-none"
+                        dangerouslySetInnerHTML={{ __html: sanitizeHTML(currentLesson.description) }}
+                      />
+                    ) : (
+                      <p className="text-muted-foreground">Aucune description disponible.</p>
+                    )}
                   </CardContent>
                 </Card>
-              </div>
+              </TabsContent>
+
+              <TabsContent value="transcript">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Transcription</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {currentLesson.transcription ? (
+                      <div className="prose max-w-none">
+                        <pre className="whitespace-pre-wrap text-sm text-muted-foreground">
+                          {currentLesson.transcription}
+                        </pre>
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground">Aucune transcription disponible.</p>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="resources">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Ressources du cours</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {course.resources && course.resources.length > 0 ? (
+                      <div className="space-y-2">
+                        {course.resources.map((resource, idx) => (
+                          <ResourceItem key={idx} resource={resource} />
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground">Aucune ressource disponible.</p>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+
+            {/* Navigation entre leçons */}
+            <div className="flex items-center justify-between">
+              <Button
+                variant="outline"
+                onClick={handlePreviousLesson}
+                disabled={!previousLesson}
+                className="gap-2"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Leçon précédente
+              </Button>
+              <Button
+                onClick={handleNextLesson}
+                disabled={!nextLesson}
+                className="gap-2"
+              >
+                Leçon suivante
+                <ChevronRight className="h-4 w-4" />
+              </Button>
             </div>
           </div>
-        </div>
+        </ScrollArea>
       </div>
+    </div>
+  );
+};
+
+// Composant pour afficher une image avec presigned URL
+const ImageViewer: React.FC<{ imageKey: string; title: string }> = ({ imageKey, title }) => {
+  const { url, loading, error } = usePresignedUrl(imageKey);
+
+  if (loading) {
+    return (
+      <div className="w-full aspect-video bg-muted rounded-lg flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  if (error || !url) {
+    return (
+      <div className="w-full aspect-video bg-muted rounded-lg flex items-center justify-center">
+        <p className="text-muted-foreground">Impossible de charger l'image</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full rounded-lg overflow-hidden">
+      <img src={url} alt={title} className="w-full h-auto" />
+    </div>
+  );
+};
+
+// Composant pour afficher une ressource
+const ResourceItem: React.FC<{ resource: { name: string; url?: string } }> = ({ resource }) => {
+  const { url, loading } = usePresignedUrl(resource.url);
+
+  const handleDownload = () => {
+    if (url) {
+      window.open(url, '_blank');
+    }
+  };
+
+  return (
+    <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+      <div className="flex items-center gap-3">
+        <FileText className="h-5 w-5 text-muted-foreground" />
+        <span className="text-sm font-medium">{resource.name}</span>
+      </div>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={handleDownload}
+        disabled={loading || !url}
+        className="gap-2"
+      >
+        <Download className="h-4 w-4" />
+        Télécharger
+      </Button>
     </div>
   );
 };
