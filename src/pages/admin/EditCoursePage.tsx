@@ -90,6 +90,7 @@ interface EditableLesson {
   video_url?: string;
   content_type?: 'video' | 'image' | 'pdf' | 'url';
   useMediaUrl?: boolean;
+  quizzes?: Quiz[];  // Quiz de leçon optionnel
 }
 
 interface PedagogicalResource {
@@ -145,6 +146,7 @@ const EditCoursePage = () => {
   const [showQuizBuilder, setShowQuizBuilder] = useState<number | null>(null);
   const [showModuleQuizBuilder, setShowModuleQuizBuilder] = useState<number | null>(null);
   const [showAssignmentBuilder, setShowAssignmentBuilder] = useState<number | null>(null);
+  const [showLessonQuizBuilder, setShowLessonQuizBuilder] = useState<{ moduleIdx: number; lessonIdx: number } | null>(null);
   const [moduleHasChanges, setModuleHasChanges] = useState<Record<number, boolean>>({});
   const [savingModule, setSavingModule] = useState<number | null>(null);
 
@@ -280,6 +282,7 @@ const EditCoursePage = () => {
         resourceFileName: (lesson as any).resource_key ? 'Fichier existant' : undefined,  // Legacy
         video_url: (lesson as any).video_url,
         content_type: (lesson as any).content_type || 'video',
+        quizzes: (lesson as any).quizzes || [],  // Charger les quiz de leçon
       })),
       quizzes: mod.quizzes || [],
       assignments: mod.assignments || [],
@@ -925,6 +928,82 @@ const EditCoursePage = () => {
       toast({
         title: '❌ Erreur',
         description: error.response?.data?.detail || 'Impossible de supprimer le devoir',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  // Save lesson quiz
+  const handleSaveLessonQuiz = async (moduleIdx: number, lessonIdx: number, quiz: QuizConfig) => {
+    if (!id) return;
+
+    try {
+      const module = modules[moduleIdx];
+      const lesson = module.lessons[lessonIdx];
+
+      const quizPayload: QuizCreate = {
+        title: quiz.title,
+        questions: quiz.questions.map((q: any) => ({
+          question: q.question,
+          type: q.type,
+          options: q.options || [],
+          correct_answer: q.type === 'single-choice' || q.type === 'true-false' 
+            ? q.options[q.correctAnswer] 
+            : q.options.filter((_: any, idx: number) => q.correctAnswers?.includes(idx)),
+          points: q.points || 1,
+        })),
+      };
+
+      // Vérifier si un quiz existe déjà
+      if (lesson.quizzes && lesson.quizzes.length > 0) {
+        // Mise à jour du quiz existant
+        await fastAPIClient.updateLessonQuiz(id, moduleIdx.toString(), lessonIdx.toString(), quizPayload);
+        toast({
+          title: '✅ Quiz mis à jour',
+          description: 'Le quiz de la leçon a été mis à jour avec succès'
+        });
+      } else {
+        // Création d'un nouveau quiz
+        await fastAPIClient.createLessonQuiz(id, moduleIdx.toString(), lessonIdx.toString(), quizPayload);
+        toast({
+          title: '✅ Quiz créé',
+          description: 'Le quiz de la leçon a été créé avec succès'
+        });
+      }
+
+      // Rafraîchir le cours
+      const updatedCourse = await fastAPIClient.getCourse(id);
+      setModules(mapCourseToEditableModules(updatedCourse));
+      setShowLessonQuizBuilder(null);
+
+    } catch (error: any) {
+      console.error('Erreur lors de la sauvegarde du quiz de leçon:', error);
+      toast({
+        title: '❌ Erreur',
+        description: error.response?.data?.detail || 'Impossible de sauvegarder le quiz de leçon',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  // Delete lesson quiz
+  const handleDeleteLessonQuiz = async (moduleIdx: number, lessonIdx: number) => {
+    if (!id || !confirm('Supprimer ce quiz de leçon ?')) return;
+
+    try {
+      await fastAPIClient.deleteLessonQuiz(id, moduleIdx.toString(), lessonIdx.toString());
+
+      const updatedCourse = await fastAPIClient.getCourse(id);
+      setModules(mapCourseToEditableModules(updatedCourse));
+
+      toast({
+        title: '✅ Quiz supprimé',
+        description: 'Le quiz de la leçon a été supprimé.'
+      });
+    } catch (error: any) {
+      toast({
+        title: '❌ Erreur',
+        description: error.response?.data?.detail || 'Impossible de supprimer le quiz',
         variant: 'destructive'
       });
     }
@@ -2027,6 +2106,59 @@ const EditCoursePage = () => {
                                           </div>
                                         </div>
 
+                                        {/* Lesson Quiz Section */}
+                                        <div className="space-y-3 border-t pt-4 mt-4">
+                                          <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                              <HelpCircle className="h-4 w-4 text-purple-600" />
+                                              <h5 className="font-semibold text-sm">Quiz de leçon (optionnel)</h5>
+                                            </div>
+                                          </div>
+                                          <div className="text-xs text-gray-600 mb-2">
+                                            Un quiz permet d'évaluer immédiatement la compréhension de cette leçon.
+                                          </div>
+                                          {lesson.quizzes && lesson.quizzes.length > 0 ? (
+                                            <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
+                                              <CardHeader className="py-3">
+                                                <div className="flex items-center justify-between">
+                                                  <div>
+                                                    <CardTitle className="text-sm">{lesson.quizzes[0].title}</CardTitle>
+                                                    <p className="text-xs text-gray-600 mt-1">
+                                                      {lesson.quizzes[0].questions.length} questions
+                                                    </p>
+                                                  </div>
+                                                  <div className="flex gap-1">
+                                                    <Button
+                                                      variant="ghost"
+                                                      size="sm"
+                                                      onClick={() => setShowLessonQuizBuilder({ moduleIdx, lessonIdx })}
+                                                    >
+                                                      <Edit2 className="h-3 w-3" />
+                                                    </Button>
+                                                    <Button
+                                                      variant="ghost"
+                                                      size="sm"
+                                                      onClick={() => handleDeleteLessonQuiz(moduleIdx, lessonIdx)}
+                                                    >
+                                                      <Trash2 className="h-3 w-3 text-red-500" />
+                                                    </Button>
+                                                  </div>
+                                                </div>
+                                              </CardHeader>
+                                            </Card>
+                                          ) : (
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
+                                              onClick={() => setShowLessonQuizBuilder({ moduleIdx, lessonIdx })}
+                                              className="w-full"
+                                            >
+                                              <Plus className="h-3 w-3 mr-2" />
+                                              Créer un quiz pour cette leçon
+                                            </Button>
+                                          )}
+                                        </div>
+
                                         <div className="flex gap-2 pt-2">
                                           <Button
                                             size="sm"
@@ -2460,6 +2592,47 @@ const EditCoursePage = () => {
               } : undefined}
               onSave={(assignment) => handleSaveModuleAssignment(showAssignmentBuilder, assignment)}
               onCancel={() => setShowAssignmentBuilder(null)}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Lesson Quiz Builder Dialog */}
+      {showLessonQuizBuilder !== null && (
+        <Dialog open={true} onOpenChange={() => setShowLessonQuizBuilder(null)}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>
+                {modules[showLessonQuizBuilder.moduleIdx]?.lessons[showLessonQuizBuilder.lessonIdx]?.quizzes?.length > 0
+                  ? "Modifier le quiz de la leçon"
+                  : "Créer un quiz pour la leçon"
+                }
+              </DialogTitle>
+            </DialogHeader>
+            <QuizBuilder
+              quiz={modules[showLessonQuizBuilder.moduleIdx]?.lessons[showLessonQuizBuilder.lessonIdx]?.quizzes?.[0] ? {
+                id: `lesson-quiz-${showLessonQuizBuilder.moduleIdx}-${showLessonQuizBuilder.lessonIdx}`,
+                type: 'quiz' as const,
+                title: modules[showLessonQuizBuilder.moduleIdx].lessons[showLessonQuizBuilder.lessonIdx].quizzes![0].title,
+                description: '',
+                questions: modules[showLessonQuizBuilder.moduleIdx].lessons[showLessonQuizBuilder.lessonIdx].quizzes![0].questions.map((q: any, idx: number) => ({
+                  id: `q-${idx}`,
+                  type: q.type || 'single-choice',
+                  question: q.question,
+                  points: q.points || 1,
+                  difficulty: 'medium' as const,
+                  options: q.options || [],
+                  correctAnswer: q.options.indexOf(q.correct_answer)
+                })),
+                settings: {
+                  showFeedback: 'after-submit' as const,
+                  allowRetry: true,
+                  passingScore: 70,
+                }
+              } : undefined}
+              onSave={(quiz) => handleSaveLessonQuiz(showLessonQuizBuilder.moduleIdx, showLessonQuizBuilder.lessonIdx, quiz)}
+              onCancel={() => setShowLessonQuizBuilder(null)}
+              availableTypes={['single-choice', 'multiple-choice', 'true-false']}
             />
           </DialogContent>
         </Dialog>
