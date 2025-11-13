@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { TrainerDetailView } from '@/components/admin/user-details/TrainerDetailView';
-import { useSuperadminUsers, useOrganizations } from '@/hooks/useApi';
+import { useSuperadminUsers, useUsers, useOrganizations } from '@/hooks/useApi';
 import { UserStatusToggleButton } from '@/components/admin/UserStatusToggleButton';
 import { useQueryClient } from '@tanstack/react-query';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
@@ -16,12 +16,22 @@ import {
   Building
 } from 'lucide-react';
 
-const OFTrainerDetailPageSuperadmin = () => {
+interface OFTrainerDetailPageProps {
+  userRole?: 'superadmin' | 'manager';
+}
+
+const OFTrainerDetailPageSuperadmin = ({ userRole = 'superadmin' }: OFTrainerDetailPageProps) => {
   const { userSlug } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const { data: allUsers, isLoading: usersLoading } = useSuperadminUsers();
+  // Récupérer la liste des utilisateurs selon le rôle
+  const { data: superadminUsers, isLoading: superadminLoading } = useSuperadminUsers();
+  const { data: managerUsers, isLoading: managerLoading } = useUsers();
+  
+  const allUsers = userRole === 'superadmin' ? superadminUsers : managerUsers;
+  const usersLoading = userRole === 'superadmin' ? superadminLoading : managerLoading;
+  
   const { data: organizations } = useOrganizations(1, 100);
   
   const foundUser = allUsers?.find(u => {
@@ -82,16 +92,22 @@ const OFTrainerDetailPageSuperadmin = () => {
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
+  const backPath = userRole === 'superadmin' 
+    ? '/dashboard/superadmin/users' 
+    : '/dashboard/gestionnaire/formateurs';
+  
+  const cacheKey = userRole === 'superadmin' ? 'superadmin-users' : 'users';
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <Button
           variant="ghost"
-          onClick={() => navigate('/dashboard/superadmin/users')}
+          onClick={() => navigate(backPath)}
           className="gap-2"
         >
           <ArrowLeft className="h-4 w-4" />
-          Retour aux utilisateurs
+          {userRole === 'superadmin' ? 'Retour aux utilisateurs' : 'Retour aux formateurs'}
         </Button>
         
         <UserStatusToggleButton
@@ -99,7 +115,7 @@ const OFTrainerDetailPageSuperadmin = () => {
           currentStatus={user.status}
           userName={user.name}
           onStatusChanged={() => {
-            queryClient.invalidateQueries({ queryKey: ['superadmin-users'] });
+            queryClient.invalidateQueries({ queryKey: [cacheKey] });
           }}
         />
       </div>
@@ -150,7 +166,7 @@ const OFTrainerDetailPageSuperadmin = () => {
         </CardContent>
       </Card>
 
-      <TrainerDetailView user={user} />
+      <TrainerDetailView user={user} userRole={userRole} />
     </div>
   );
 };

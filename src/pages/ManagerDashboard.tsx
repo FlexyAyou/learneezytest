@@ -15,6 +15,7 @@ import { ManagerDashboardHome } from '@/components/manager/ManagerDashboardHome'
 import ManagerCourses from '@/components/manager/ManagerCourses';
 import CreateCoursePage from './admin/CreateCoursePage';
 import OFStudentDetailPageSuperadmin from './admin/OFStudentDetailPageSuperadmin';
+import OFTrainerDetailPageSuperadmin from './admin/OFTrainerDetailPageSuperadmin';
 import AIChatButton from '@/components/common/AIChatButton';
 
 const ManagerDashboard = () => {
@@ -35,6 +36,7 @@ const ManagerDashboard = () => {
               <Route path="apprenants" element={<ManagerApprenants />} />
               <Route path="apprenants/:userSlug" element={<OFStudentDetailPageSuperadmin userRole="manager" />} />
               <Route path="formateurs" element={<ManagerTrainers />} />
+              <Route path="formateurs/:userSlug" element={<OFTrainerDetailPageSuperadmin userRole="manager" />} />
               <Route path="courses" element={<ManagerCourses />} />
               <Route path="courses/create" element={<CreateCoursePage />} />
               <Route path="planning" element={<ManagerPlanning />} />

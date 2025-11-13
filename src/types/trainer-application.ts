@@ -20,6 +20,7 @@ export interface TrainerApplication {
   avatar?: string;
   isVisible?: boolean;
   isActive?: boolean;
+  slug?: string;
 }
 
 export interface TrainerFiscalInfo {

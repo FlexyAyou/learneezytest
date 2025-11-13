@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +18,7 @@ import { useSuperadminUsers } from '@/hooks/useApi';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 
 const ManagerTrainers = () => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedApplication, setSelectedApplication] = useState<TrainerApplication | null>(null);
@@ -48,7 +50,8 @@ const ManagerTrainers = () => {
     status: 'approved',
     submittedAt: '2024-01-15T10:00:00Z',
     isVisible: true,
-    isActive: true
+    isActive: true,
+    slug: 'mock-1-sophie-martin'
   };
 
   // Mapper les formateurs de l'API et ajouter le formateur mocké
@@ -61,18 +64,19 @@ const ManagerTrainers = () => {
         firstName: user.first_name || 'Prénom',
         lastName: user.last_name || 'Nom',
         email: user.email,
-        phone: '',
+        phone: user.phone || 'Non renseigné',
         avatar: 'https://via.placeholder.com/100',
-        location: 'Non renseigné',
+        location: user.address || 'Non renseigné',
         specialties: ['En attente'],
         languages: ['Français'],
         experienceYears: 0,
         hourlyRate: 0,
-        bio: '',
-        status: user.is_active ? 'approved' : 'pending',
-        submittedAt: user.created_at || new Date().toISOString(),
+        bio: user.bio || '',
+        status: user.status === 'active' ? 'approved' : 'pending',
+        submittedAt: user.last_login || new Date().toISOString(),
         isVisible: true,
-        isActive: user.is_active || false
+        isActive: user.status === 'active',
+        slug: `${user.id}-${user.first_name?.toLowerCase()}-${user.last_name?.toLowerCase()}`.replace(/\s+/g, '-')
       })) as TrainerApplication[];
     
     return [mockTrainer, ...apiTrainers];
@@ -125,8 +129,8 @@ const ManagerTrainers = () => {
   };
 
   const handleViewApplication = (application: TrainerApplication) => {
-    setSelectedApplication(application);
-    setIsModalOpen(true);
+    // Naviguer vers la page de détails du formateur
+    navigate(`/dashboard/gestionnaire/formateurs/${application.slug}`);
   };
 
   const handleApproveApplication = (id: string, notes?: string) => {

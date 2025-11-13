@@ -7,9 +7,10 @@ import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 interface TrainerDetailViewProps {
   user: any;
+  userRole?: string;
 }
 
-export const TrainerDetailView = ({ user }: TrainerDetailViewProps) => {
+export const TrainerDetailView = ({ user, userRole = 'admin' }: TrainerDetailViewProps) => {
   const { data: userDetail, isLoading: userLoading } = useUserDetail(user.id);
 
   if (userLoading) {
