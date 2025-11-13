@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,7 +20,7 @@ import type { QuizConfig, AssignmentConfig, QuestionType } from '@/types/quiz';
 import RichTextEditor from '@/components/admin/RichTextEditor';
 import { uploadDirect } from '@/utils/upload';
 import { UploadProgressModal, UploadedFile, FileUploadType } from '@/components/course-creation/UploadProgressModal';
-import { useCategories, useCreateCategory, useLevels, useCreateProLevel } from '@/hooks/useApi';
+import { useCategories, useCreateCategory } from '@/hooks/useApi';
 import { UploadNotification, UploadItem } from '@/components/common/UploadNotification';
 import { useLocalStorageDraft } from '@/hooks/useLocalStorageDraft';
 import { RestoreDraftDialog } from '@/components/admin/RestoreDraftDialog';
@@ -57,8 +58,9 @@ const CreateCoursePage = () => {
   const location = useLocation();
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState<'info' | 'modules' | 'review'>('info');
+  const queryClient = useQueryClient();
   const [trainers, setTrainers] = useState<Array<{ id: string; name: string }>>([]);
-  
+
   // Détecter si on est dans le contexte gestionnaire ou superadmin
   const isManagerContext = location.pathname.includes('/gestionnaire/');
   const coursesBasePath = isManagerContext ? '/dashboard/gestionnaire/courses' : '/dashboard/superadmin/courses';
@@ -70,7 +72,7 @@ const CreateCoursePage = () => {
     category: '',
     customCategory: '',
     duration: '',
-    level: 'débutant',
+    level: 'debutant',
     cycle: '' as '' | 'primaire' | 'college' | 'lycee' | 'formation_pro',
     cycleTags: [] as string[],
     image: null as File | null,
@@ -88,14 +90,10 @@ const CreateCoursePage = () => {
       url: string | null;
     }>,
   });
-  
-  // Hooks pour les catégories et niveaux (après courseData)
+
+  // Hooks pour les catégories (après courseData)
   const { data: categories = [], isLoading: isLoadingCategories } = useCategories();
   const createCategoryMutation = useCreateCategory();
-  const { data: levels = [], isLoading: isLoadingLevels } = useLevels(courseData.cycle || '');
-  const createProLevelMutation = useCreateProLevel();
-  
-  const [customLevel, setCustomLevel] = useState('');
 
   const [modules, setModules] = useState<ModuleWithLessons[]>([
     {
@@ -122,10 +120,10 @@ const CreateCoursePage = () => {
     totalFiles: 0,
     progress: 0
   });
-  
+
   // Upload notification state pour uploads individuels
   const [uploads, setUploads] = useState<UploadItem[]>([]);
-  
+
   // État de chargement local pour les fichiers en mémoire
   const [fileLoadingState, setFileLoadingState] = useState<{
     [lessonId: string]: { loading: boolean; fileName: string; progress: number }
@@ -169,7 +167,7 @@ const CreateCoursePage = () => {
       setModules(draftToRestore.modules);
       setCurrentStep(draftToRestore.currentStep);
       setExpandedModule(draftToRestore.expandedModule || null);
-      
+
       toast({
         title: "Brouillon restauré",
         description: "Vous pouvez continuer votre création de cours",
@@ -183,7 +181,7 @@ const CreateCoursePage = () => {
     clearDraft();
     setShowRestoreDraftDialog(false);
     setDraftToRestore(null);
-    
+
     toast({
       title: "Brouillon supprimé",
       description: "Vous repartez avec une création vierge",
@@ -230,10 +228,19 @@ const CreateCoursePage = () => {
     const newCategory = courseData.customCategory.trim();
 
     try {
-      await createCategoryMutation.mutateAsync({ name: newCategory });
-      
-      // Switch to the newly added category
-      handleInputChange('category', newCategory);
+      const created = await createCategoryMutation.mutateAsync({ name: newCategory });
+
+      // Mettre à jour le cache immédiatement pour que la catégorie apparaisse dans la liste
+      queryClient.setQueryData(['categories'], (old: any) => {
+        if (Array.isArray(old)) {
+          const exists = old.some((c: any) => c?.name === created?.name);
+          return exists ? old : [...old, created];
+        }
+        return created ? [created] : [];
+      });
+
+      // Sélectionner automatiquement la nouvelle catégorie
+      handleInputChange('category', created?.name || newCategory);
       handleInputChange('customCategory', '');
     } catch (error) {
       // L'erreur est déjà gérée par le hook
@@ -241,26 +248,7 @@ const CreateCoursePage = () => {
     }
   };
 
-  const saveCustomLevel = async () => {
-    if (!customLevel.trim()) {
-      toast({
-        title: "Erreur",
-        description: "Veuillez entrer un nom de niveau",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      await createProLevelMutation.mutateAsync({ label: customLevel.trim() });
-      
-      // Switch to the newly added level
-      handleInputChange('level', customLevel.trim());
-      setCustomLevel('');
-    } catch (error) {
-      console.error('Error creating level:', error);
-    }
-  };
+  // Plus de création de niveaux: suppression de /api/levels et des niveaux dynamiques
 
   const handleInputChange = (field: string, value: string) => {
     setCourseData(prev => ({ ...prev, [field]: value }));
@@ -409,7 +397,7 @@ const CreateCoursePage = () => {
 
     let maxSize = MAX_VIDEO_SIZE;
     let maxSizeLabel = "500MB";
-    
+
     if (fileType === 'pdf') {
       maxSize = MAX_PDF_SIZE;
       maxSizeLabel = "50MB";
@@ -445,7 +433,7 @@ const CreateCoursePage = () => {
         progress: 0,
         status: 'uploading'
       }]);
-      
+
       toast({
         title: "⚠️ Chargement en mémoire",
         description: `${file.name} (${(file.size / (1024 * 1024)).toFixed(2)}MB) - Veuillez patienter...`,
@@ -467,14 +455,14 @@ const CreateCoursePage = () => {
           if (progressInterval) clearInterval(progressInterval);
           return;
         }
-        
+
         setFileLoadingState(prev => ({
           ...prev,
           [lessonId]: { ...prev[lessonId], progress: simulatedProgress }
         }));
-        
+
         if (uploadId) {
-          setUploads(prev => prev.map(u => 
+          setUploads(prev => prev.map(u =>
             u.id === uploadId ? { ...u, progress: simulatedProgress } : u
           ));
         }
@@ -482,57 +470,57 @@ const CreateCoursePage = () => {
     }
 
     const reader = new FileReader();
-    
+
     reader.onerror = () => {
       if (progressInterval) clearInterval(progressInterval);
-      
+
       setFileLoadingState(prev => {
         const newState = { ...prev };
         delete newState[lessonId];
         return newState;
       });
-      
+
       if (uploadId) {
-        setUploads(prev => prev.map(u => 
+        setUploads(prev => prev.map(u =>
           u.id === uploadId ? { ...u, status: 'error' as const } : u
         ));
         setTimeout(() => {
           setUploads(prev => prev.filter(u => u.id !== uploadId));
         }, 3000);
       }
-      
+
       toast({
         title: "Erreur de lecture",
         description: "Impossible de lire le fichier",
         variant: "destructive"
       });
     };
-    
+
     reader.onload = (e) => {
       if (progressInterval) clearInterval(progressInterval);
-      
+
       // Compléter la progression à 100%
       setFileLoadingState(prev => ({
         ...prev,
         [lessonId]: { ...prev[lessonId], progress: 100 }
       }));
-      
+
       if (uploadId) {
-        setUploads(prev => prev.map(u => 
+        setUploads(prev => prev.map(u =>
           u.id === uploadId ? { ...u, progress: 100, status: 'completed' as const } : u
         ));
         setTimeout(() => {
           setUploads(prev => prev.filter(u => u.id !== uploadId));
         }, 2000);
       }
-      
+
       updateLesson(moduleId, lessonId, {
         fileType,
         fileName: file.name,
         filePreview: e.target?.result as string,
         file: file // Store the actual file
       });
-      
+
       // Nettoyer l'état de chargement
       setTimeout(() => {
         setFileLoadingState(prev => {
@@ -541,13 +529,13 @@ const CreateCoursePage = () => {
           return newState;
         });
       }, 500);
-      
+
       toast({
         title: "Fichier chargé",
         description: `${file.name} prêt pour l'upload`,
       });
     };
-    
+
     reader.readAsDataURL(file);
   };
 
@@ -732,7 +720,7 @@ const CreateCoursePage = () => {
       }
 
       // Compter le nombre total de TOUS les fichiers à uploader (vidéos, PDFs, images)
-      const allLessonsWithFiles = modules.flatMap(m => 
+      const allLessonsWithFiles = modules.flatMap(m =>
         m.lessons.filter(l => l.file && l.fileType)
       );
       const totalFiles = allLessonsWithFiles.length;
@@ -756,11 +744,11 @@ const CreateCoursePage = () => {
               try {
                 const currentFileName = lesson.fileName;
                 const currentFileType = lesson.fileType;
-                
+
                 // Déterminer le kind d'upload selon le type
-                const uploadKind = lesson.fileType === 'video' ? 'video' 
-                               : lesson.fileType === 'pdf' ? 'pdf' 
-                               : 'image';
+                const uploadKind = lesson.fileType === 'video' ? 'video'
+                  : lesson.fileType === 'pdf' ? 'pdf'
+                    : 'image';
 
                 // Mettre à jour le fichier en cours
                 setUploadProgress(prev => ({
@@ -792,7 +780,7 @@ const CreateCoursePage = () => {
                 } else if (lesson.fileType === 'image') {
                   lesson.uploadedImageKey = uploadResult.key;
                 }
-                
+
                 uploadedCount++;
 
                 // Ajouter à la liste des fichiers uploadés
@@ -938,6 +926,16 @@ const CreateCoursePage = () => {
         resources: uploadedResources
       };
 
+      // Log payload après completion de tous les uploads (cover, programme, leçons, ressources)
+      try {
+        console.log('🧾 Payload envoyé à createCourse (pré-API):', coursePayload);
+        // Optionnel: version JSON stringifiée (attention à la taille)
+        // console.log('🧾 Payload JSON:', JSON.stringify(coursePayload, null, 2));
+      } catch (e) {
+        // En cas d'objet circulaire ou autre, éviter le crash du log
+        console.warn('Impossible de logger le payload de createCourse:', e);
+      }
+
       // 4. Créer le cours avec tous les modules et leçons en une seule requête
       const courseResponse = await fastAPIClient.createCourse(coursePayload);
 
@@ -995,7 +993,7 @@ const CreateCoursePage = () => {
       return courseData.title && courseData.description;
     }
     if (currentStep === 'modules') {
-      return modules.length > 0 && modules.some(m => 
+      return modules.length > 0 && modules.some(m =>
         m.lessons.length > 0 || m.quiz || m.assignment
       );
     }
@@ -1030,7 +1028,7 @@ const CreateCoursePage = () => {
             </h1>
             <p className="text-gray-600 mt-1">Suivez les étapes pour créer votre cours</p>
           </div>
-          
+
           <div className="flex items-center gap-3">
             {/* Indicateur de sauvegarde */}
             {lastSaved && (
@@ -1038,7 +1036,7 @@ const CreateCoursePage = () => {
                 Sauvegardé à {format(lastSaved, 'HH:mm', { locale: fr })}
               </Badge>
             )}
-            
+
             {/* Bouton effacer le brouillon */}
             {hasDraft() && (
               <Button
@@ -1193,15 +1191,25 @@ const CreateCoursePage = () => {
                         <SelectValue placeholder="Sélectionner" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="development">Développement</SelectItem>
-                        <SelectItem value="design">Design</SelectItem>
-                        <SelectItem value="marketing">Marketing</SelectItem>
-                        <SelectItem value="business">Business</SelectItem>
-                        {categories.filter(cat => cat.active).map(cat => (
-                          <SelectItem key={cat.id} value={cat.name}>
-                            {cat.name}
+                        {isLoadingCategories ? (
+                          <SelectItem value="__loading" disabled>
+                            Chargement des catégories...
                           </SelectItem>
-                        ))}
+                        ) : (
+                          <>
+                            {categories && categories.length > 0 ? (
+                              categories.map((cat) => (
+                                <SelectItem key={cat.id} value={cat.name}>
+                                  {cat.name}
+                                </SelectItem>
+                              ))
+                            ) : (
+                              <SelectItem value="__empty" disabled>
+                                Aucune catégorie disponible
+                              </SelectItem>
+                            )}
+                          </>
+                        )}
                         <SelectItem value="custom">➕ Ajouter une nouvelle catégorie</SelectItem>
                       </SelectContent>
                     </Select>
@@ -1237,57 +1245,19 @@ const CreateCoursePage = () => {
 
                   <div>
                     <Label className="text-base">Niveau</Label>
-                    <Select 
-                      value={courseData.level === 'custom' ? 'custom' : courseData.level} 
-                      onValueChange={(value) => {
-                        if (value === 'custom') {
-                          handleInputChange('level', 'custom');
-                        } else {
-                          handleInputChange('level', value);
-                          setCustomLevel('');
-                        }
-                      }}
+                    <Select
+                      value={courseData.level}
+                      onValueChange={(value) => handleInputChange('level', value)}
                     >
                       <SelectTrigger className="mt-2">
-                        <SelectValue />
+                        <SelectValue placeholder="Sélectionner un niveau" />
                       </SelectTrigger>
                       <SelectContent>
-                        {courseData.cycle === 'formation_pro' ? (
-                          <>
-                            {levels.map(level => (
-                              <SelectItem key={level} value={level}>
-                                {level}
-                              </SelectItem>
-                            ))}
-                            <SelectItem value="custom">➕ Ajouter un nouveau niveau</SelectItem>
-                          </>
-                        ) : (
-                          <>
-                            <SelectItem value="débutant">Débutant</SelectItem>
-                            <SelectItem value="intermédiaire">Intermédiaire</SelectItem>
-                            <SelectItem value="avancé">Avancé</SelectItem>
-                          </>
-                        )}
+                        <SelectItem value="debutant">Débutant</SelectItem>
+                        <SelectItem value="intermediaire">Intermédiaire</SelectItem>
+                        <SelectItem value="difficile">Difficile</SelectItem>
                       </SelectContent>
                     </Select>
-                    {courseData.level === 'custom' && courseData.cycle === 'formation_pro' && (
-                      <div className="mt-2 space-y-2">
-                        <Input
-                          value={customLevel}
-                          onChange={(e) => setCustomLevel(e.target.value)}
-                          placeholder="Entrez un nouveau niveau"
-                        />
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={saveCustomLevel}
-                          className="w-full"
-                        >
-                          <Save className="h-4 w-4 mr-2" />
-                          Enregistrer et ajouter à la liste
-                        </Button>
-                      </div>
-                    )}
                   </div>
                 </div>
 
@@ -1737,8 +1707,8 @@ const CreateCoursePage = () => {
                                                         <p className="text-xs text-muted-foreground">
                                                           {fileLoadingState[lesson.id]?.fileName}
                                                         </p>
-                                                        <Progress 
-                                                          value={fileLoadingState[lesson.id]?.progress || 0} 
+                                                        <Progress
+                                                          value={fileLoadingState[lesson.id]?.progress || 0}
                                                           className="h-2"
                                                         />
                                                         <p className="text-xs font-medium text-primary">
@@ -1758,10 +1728,10 @@ const CreateCoursePage = () => {
                                                           disabled={fileLoadingState[lesson.id]?.loading}
                                                         />
                                                         <label htmlFor={`file-${lesson.id}`}>
-                                                          <Button 
-                                                            variant="outline" 
-                                                            size="sm" 
-                                                            type="button" 
+                                                          <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            type="button"
                                                             asChild
                                                             disabled={fileLoadingState[lesson.id]?.loading}
                                                           >
@@ -2200,7 +2170,7 @@ const CreateCoursePage = () => {
       />
 
       {/* Upload Notifications pour uploads individuels (si ajoutés dans le futur) */}
-      <UploadNotification 
+      <UploadNotification
         uploads={uploads}
         onRemove={(id) => setUploads(prev => prev.filter(u => u.id !== id))}
       />

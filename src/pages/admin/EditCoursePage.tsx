@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,6 +36,7 @@ import RichTextEditor from '@/components/admin/RichTextEditor';
 import { QuizBuilder } from '@/components/quiz';
 import type { QuizConfig } from '@/types/quiz';
 import { CycleTagSelector } from '@/components/admin/CycleTagSelector';
+import { useCategories, useCreateCategory } from '@/hooks/useApi';
 import { UploadNotification, UploadItem } from '@/components/common/UploadNotification';
 import { useToast } from '@/hooks/use-toast';
 import { useAutoSave } from '@/hooks/useAutoSave';
@@ -106,6 +108,7 @@ const EditCoursePage = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('general');
   const [course, setCourse] = useState<CourseResponse | null>(null);
+  const queryClient = useQueryClient();
 
   // Editable course data
   const [courseData, setCourseData] = useState<EditableCourseData>({
@@ -114,7 +117,7 @@ const EditCoursePage = () => {
     price: '',
     category: '',
     duration: '',
-    level: 'débutant',
+    level: 'debutant',
     status: 'draft',
     imagePreview: null,
     programFileName: '',
@@ -122,6 +125,12 @@ const EditCoursePage = () => {
     cycle: '',
     cycleTags: [],
   });
+
+  // Catégories dynamiques (liste + création)
+  const { data: categories = [], isLoading: isLoadingCategories } = useCategories();
+  const createCategoryMutation = useCreateCategory();
+  const [customCategory, setCustomCategory] = useState('');
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
 
   const [modules, setModules] = useState<EditableModule[]>([]);
   const [resources, setResources] = useState<PedagogicalResource[]>([]);
@@ -153,13 +162,23 @@ const EditCoursePage = () => {
         setCourse(courseData);
 
         // Populate editable data
+        // Normaliser les niveaux vers {debutant|intermediaire|difficile}
+        const normalizeLevel = (lv?: string | null) => {
+          const s = (lv || '').toString().trim().toLowerCase();
+          if (s === 'debutant' || s === 'débutant') return 'debutant';
+          if (s === 'intermediaire' || s === 'intermédiaire') return 'intermediaire';
+          if (s === 'difficile') return 'difficile';
+          if (s === 'avancé' || s === 'avance' || s === 'avancée' || s === 'advanced' || s === 'expert') return 'difficile';
+          return 'debutant';
+        };
+
         const baseEditable: EditableCourseData = {
           title: courseData.title || '',
           description: courseData.description || '',
           price: courseData.price?.toString() || '',
           category: courseData.category || '',
           duration: courseData.duration || '',
-          level: courseData.level || 'débutant',
+          level: normalizeLevel(courseData.level),
           status: (courseData.status as any) || 'draft',
           imagePreview: null,
           programFileName: courseData.program_pdf_key ? 'Programme.pdf' : '',
@@ -296,6 +315,35 @@ const EditCoursePage = () => {
     delay: 2000,
     enabled: activeTab === 'general' && !loading
   });
+
+  // Création de catégorie personnalisée (sans perturber l'auto-save)
+  const saveCustomCategory = async () => {
+    const newName = customCategory.trim();
+    if (!newName) {
+      toast({ title: 'Erreur', description: 'Veuillez entrer un nom de catégorie', variant: 'destructive' });
+      return;
+    }
+    try {
+      const created = await createCategoryMutation.mutateAsync({ name: newName });
+
+      // Mettre à jour le cache pour apparition immédiate
+      queryClient.setQueryData(['categories'], (old: any) => {
+        if (Array.isArray(old)) {
+          const exists = old.some((c: any) => c?.name === created?.name);
+          return exists ? old : [...old, created];
+        }
+        return created ? [created] : [];
+      });
+
+      // Sélectionner immédiatement
+      setCourseData(prev => ({ ...prev, category: created?.name || newName }));
+      setCustomCategory('');
+      setIsAddingCategory(false);
+    } catch (error) {
+      // Les toasts d'erreur sont gérés par le hook
+      console.error('Error creating category:', error);
+    }
+  };
 
   // Functions for managing objectives
   const addObjective = () => {
@@ -1144,19 +1192,54 @@ const EditCoursePage = () => {
                     </Label>
                     <Select
                       value={courseData.category}
-                      onValueChange={(value) => setCourseData(prev => ({ ...prev, category: value }))}
+                      onValueChange={(value) => {
+                        if (value === 'custom') {
+                          setIsAddingCategory(true);
+                          return;
+                        }
+                        setIsAddingCategory(false);
+                        setCourseData(prev => ({ ...prev, category: value }));
+                      }}
                     >
                       <SelectTrigger className="h-11 focus:ring-2 focus:ring-primary transition-all">
                         <SelectValue placeholder="Choisir une catégorie" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="development">📱 Développement</SelectItem>
-                        <SelectItem value="design">🎨 Design</SelectItem>
-                        <SelectItem value="marketing">📊 Marketing</SelectItem>
-                        <SelectItem value="business">💼 Business</SelectItem>
-                        <SelectItem value="other">🔧 Autre</SelectItem>
+                        <>
+                          {isLoadingCategories ? (
+                            <SelectItem value="__loading" disabled>Chargement...</SelectItem>
+                          ) : categories && categories.length > 0 ? (
+                            categories.map((cat: any) => (
+                              <SelectItem key={cat.id} value={cat.name}>
+                                {cat.name}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem value="__empty" disabled>Aucune catégorie disponible</SelectItem>
+                          )}
+                        </>
+                        <SelectItem value="custom">➕ Ajouter une nouvelle catégorie</SelectItem>
                       </SelectContent>
                     </Select>
+                    {isAddingCategory && (
+                      <div className="mt-2 space-y-2">
+                        <Input
+                          value={customCategory}
+                          onChange={(e) => setCustomCategory(e.target.value)}
+                          placeholder="Entrez une catégorie personnalisée"
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={saveCustomCategory}
+                          className="w-full"
+                          disabled={createCategoryMutation.isLoading}
+                        >
+                          <Save className="h-4 w-4 mr-2" />
+                          {createCategoryMutation.isLoading ? 'Enregistrement...' : 'Enregistrer et ajouter à la liste'}
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -1190,9 +1273,9 @@ const EditCoursePage = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="débutant">🌱 Débutant</SelectItem>
-                        <SelectItem value="intermédiaire">📈 Intermédiaire</SelectItem>
-                        <SelectItem value="avancé">🚀 Avancé</SelectItem>
+                        <SelectItem value="debutant">🌱 Débutant</SelectItem>
+                        <SelectItem value="intermediaire">📈 Intermédiaire</SelectItem>
+                        <SelectItem value="difficile">🚀 Difficile</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
