@@ -346,6 +346,7 @@ export interface Module {
   duration: string;
   content: Content[];
   quizzes?: Quiz[];
+  assignments?: AssignmentResponse[];
 }
 
 /**
