@@ -21,27 +21,26 @@ export const RestoreDraftDialog: React.FC<RestoreDraftDialogProps> = ({
   const formattedDate = format(new Date(draftTimestamp), "dd MMMM yyyy 'à' HH:mm", { locale: fr });
 
   return (
-    <Dialog open={open} onOpenChange={() => {}}>
+    <Dialog open={open} onOpenChange={() => { }}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5 text-primary" />
             Brouillon détecté
           </DialogTitle>
-          <DialogDescription className="space-y-3 pt-2">
-            <p>
-              Un brouillon de cours a été trouvé, sauvegardé le{' '}
-              <span className="font-semibold text-foreground">{formattedDate}</span>.
-            </p>
-            <div className="flex items-start gap-2 rounded-lg bg-muted p-3">
-              <AlertTriangle className="h-4 w-4 text-warning mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-muted-foreground">
-                Les fichiers uploadés (vidéos, images, PDFs) devront être ajoutés à nouveau.
-              </p>
-            </div>
+          {/* Utiliser DialogDescription uniquement pour un bloc de texte simple afin d'éviter le nesting invalide (<p> dans <p>) */}
+          <DialogDescription className="pt-2">
+            Un brouillon de cours a été trouvé, sauvegardé le{' '}
+            <span className="font-semibold text-foreground">{formattedDate}</span>.
           </DialogDescription>
+          <div className="mt-3 flex items-start gap-2 rounded-lg bg-muted p-3">
+            <AlertTriangle className="h-4 w-4 text-warning mt-0.5 flex-shrink-0" />
+            <p className="text-sm text-muted-foreground">
+              Les fichiers uploadés (vidéos, images, PDFs) devront être ajoutés à nouveau.
+            </p>
+          </div>
         </DialogHeader>
-        
+
         <DialogFooter className="gap-2 sm:gap-0">
           <Button
             variant="outline"
