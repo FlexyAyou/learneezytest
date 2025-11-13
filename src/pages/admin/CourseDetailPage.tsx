@@ -25,6 +25,41 @@ import LoadingSpinner from '@/components/common/LoadingSpinner';
 import PDFViewer from '@/components/common/PDFViewer';
 import { usePresignedUrl } from '@/hooks/usePresignedUrl';
 import VideoPlayer from '@/components/common/VideoPlayer';
+import MediaStatusBadge from '@/components/common/MediaStatusBadge';
+
+// Component pour afficher les images
+const ImageViewer: React.FC<{ imageKey?: string; imageUrl?: string; title: string }> = ({ imageKey, imageUrl, title }) => {
+  const { url: presignedUrl, loading, error } = usePresignedUrl(imageKey, imageUrl);
+
+  if (loading) {
+    return (
+      <div className="w-full aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  if (error || !presignedUrl) {
+    return (
+      <div className="w-full aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
+        <div className="text-center">
+          <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+          <p className="text-gray-500">Image non disponible</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full">
+      <img 
+        src={presignedUrl} 
+        alt={title} 
+        className="w-full h-auto rounded-lg"
+      />
+    </div>
+  );
+};
 
 const CourseDetailPage = () => {
   const { courseId } = useParams<{ courseId: string }>();
