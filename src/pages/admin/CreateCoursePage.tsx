@@ -896,6 +896,7 @@ const CreateCoursePage = () => {
                 if (q.type === 'single-choice') {
                   const scq = q as any;
                   return {
+                    type: 'single-choice',
                     question: scq.question,
                     options: scq.options,
                     correct_answer: scq.options[scq.correctAnswer]
@@ -903,6 +904,7 @@ const CreateCoursePage = () => {
                 } else if (q.type === 'true-false') {
                   const tfq = q as any;
                   return {
+                    type: 'true-false',
                     question: tfq.question,
                     options: ['Vrai', 'Faux'],
                     correct_answer: tfq.correctAnswer === 0 ? 'Vrai' : 'Faux'
@@ -914,9 +916,11 @@ const CreateCoursePage = () => {
                     ? mcq.correctAnswers[0]
                     : 0;
                   return {
+                    type: 'multiple-choice',
                     question: mcq.question,
                     options: mcq.options,
-                    correct_answer: mcq.options[firstCorrectIndex]
+                    correct_answer: mcq.options[firstCorrectIndex],
+                    correct_answers: mcq.correctAnswers?.map((i: number) => mcq.options[i])
                   };
                 }
                 // Fallback (ne devrait pas arriver à cause du filter)
