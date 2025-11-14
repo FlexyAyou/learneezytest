@@ -640,21 +640,25 @@ const EditCoursePage = () => {
             .map(q => {
               if (q.type === 'single-choice') {
                 return {
+                  type: 'single-choice',
                   question: q.question,
                   options: q.options,
                   correct_answer: q.options[q.correctAnswer]
                 };
               } else if (q.type === 'true-false') {
                 return {
+                  type: 'true-false',
                   question: q.question,
                   options: ['Vrai', 'Faux'],
                   correct_answer: q.correctAnswer ? 'Vrai' : 'Faux'
                 };
               } else if (q.type === 'multiple-choice') {
                 return {
+                  type: 'multiple-choice',
                   question: q.question,
                   options: q.options,
-                  correct_answer: q.correctAnswers.map(idx => q.options[idx]).join(', ')
+                  correct_answer: q.correctAnswers.map(idx => q.options[idx]).join(', '),
+                  correct_answers: q.correctAnswers.map(idx => q.options[idx])
                 };
               }
               return null;
@@ -690,21 +694,25 @@ const EditCoursePage = () => {
             .map(q => {
               if (q.type === 'single-choice') {
                 return {
+                  type: 'single-choice',
                   question: q.question,
                   options: q.options,
                   correct_answer: q.options[q.correctAnswer]
                 };
               } else if (q.type === 'true-false') {
                 return {
+                  type: 'true-false',
                   question: q.question,
                   options: ['Vrai', 'Faux'],
                   correct_answer: q.correctAnswer ? 'Vrai' : 'Faux'
                 };
               } else if (q.type === 'multiple-choice') {
                 return {
+                  type: 'multiple-choice',
                   question: q.question,
                   options: q.options,
-                  correct_answer: q.correctAnswers.map(idx => q.options[idx]).join(', ')
+                  correct_answer: q.correctAnswers.map(idx => q.options[idx]).join(', '),
+                  correct_answers: q.correctAnswers.map(idx => q.options[idx])
                 };
               }
               return null;
