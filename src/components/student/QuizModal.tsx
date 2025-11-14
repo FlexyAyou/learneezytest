@@ -92,7 +92,11 @@ export const QuizModal: React.FC<QuizModalProps> = ({
 
   // Handle answer change
   const handleAnswerChange = (questionId: string, answer: any) => {
-    setAnswers(new Map(answers.set(questionId, answer)));
+    setAnswers(prev => {
+      const next = new Map(prev);
+      next.set(questionId, answer);
+      return next;
+    });
   };
 
   // Navigate to next question
@@ -115,12 +119,34 @@ export const QuizModal: React.FC<QuizModalProps> = ({
   };
 
   // Check if answer is correct
+  const inferQuestionType = (question: any): string => {
+    if (question.type) return question.type;
+    // Legacy shape: if options present, assume single-choice unless correctAnswers array exists
+    if (question.options && Array.isArray(question.options)) {
+      if (question.correctAnswers && Array.isArray(question.correctAnswers)) return 'multiple-choice';
+      // Heuristic for true/false
+      const opts = question.options.map((o: string) => (o || '').toString().toLowerCase());
+      if (opts.includes('vrai') && opts.includes('faux')) return 'true-false';
+      return 'single-choice';
+    }
+    if (question.correctAnswers && Array.isArray(question.correctAnswers)) return 'multiple-choice';
+    return 'short-answer';
+  };
+
   const checkAnswer = (question: Question, userAnswer: any): { isCorrect: boolean; pointsEarned: number } => {
     let isCorrect = false;
+    const qType = inferQuestionType(question as any);
 
-    switch (question.type) {
+    switch (qType) {
       case 'single-choice':
-        isCorrect = userAnswer === question.correctAnswer;
+        // support legacy single-choice where correctAnswer may be index or value
+        if (typeof question.correctAnswer === 'number') {
+          isCorrect = userAnswer === question.correctAnswer;
+        } else {
+          // compare option value or boolean strings
+          const opt = question.options && question.options[userAnswer];
+          isCorrect = userAnswer === question.correctAnswer || opt === question.correctAnswer;
+        }
         break;
       case 'multiple-choice':
         const userAnswers = userAnswer || [];
@@ -129,7 +155,10 @@ export const QuizModal: React.FC<QuizModalProps> = ({
           userAnswers.every((ans: number) => question.correctAnswers.includes(ans));
         break;
       case 'true-false':
-        isCorrect = userAnswer === question.correctAnswer;
+        // normalize legacy correctAnswer values like 'Vrai'/'Faux'
+        const normalized = (userAnswer === true || userAnswer === 'true') ? 'vrai' : (userAnswer === false || userAnswer === 'false') ? 'faux' : (userAnswer || '').toString().toLowerCase();
+        const expected = (question.correctAnswer || '').toString().toLowerCase();
+        isCorrect = normalized === expected || (expected === 'vrai' && (userAnswer === true || userAnswer === 'true')) || (expected === 'faux' && (userAnswer === false || userAnswer === 'false'));
         break;
       case 'short-answer':
         const userText = (userAnswer || '').trim();
@@ -175,15 +204,16 @@ export const QuizModal: React.FC<QuizModalProps> = ({
     let totalPointsEarned = 0;
     let totalPoints = 0;
 
-    quiz.questions.forEach((question) => {
-      const userAnswer = answers.get(question.id);
+    quiz.questions.forEach((question, qIndex) => {
+      const qKey = question.id ?? String(qIndex);
+      const userAnswer = answers.get(qKey);
       const { isCorrect, pointsEarned } = checkAnswer(question, userAnswer);
 
       totalPoints += question.points;
       totalPointsEarned += pointsEarned;
 
       userAnswers.push({
-        questionId: question.id,
+        questionId: question.id ?? qKey,
         answer: userAnswer,
         isCorrect,
         pointsEarned,
@@ -241,24 +271,29 @@ export const QuizModal: React.FC<QuizModalProps> = ({
   };
 
   // Render question based on type
-  const renderQuestion = (question: Question) => {
-    const currentAnswer = answers.get(question.id);
+  const renderQuestion = (question: Question, qIndex?: number) => {
+    const qKey = question.id ?? String(qIndex ?? currentQuestionIndex);
+    const currentAnswer = answers.get(qKey);
+    const qType = inferQuestionType(question as any);
 
-    switch (question.type) {
+    switch (qType) {
       case 'single-choice':
         return (
           <RadioGroup
             value={currentAnswer?.toString()}
-            onValueChange={(value) => handleAnswerChange(question.id, parseInt(value))}
+            onValueChange={(value) => handleAnswerChange(qKey, parseInt(value))}
           >
-            {question.options.map((option, index) => (
-              <div key={index} className="flex items-center space-x-2 p-3 rounded-lg hover:bg-accent">
-                <RadioGroupItem value={index.toString()} id={`option-${index}`} />
-                <Label htmlFor={`option-${index}`} className="flex-1 cursor-pointer">
-                  {option}
-                </Label>
-              </div>
-            ))}
+              {question.options.map((option, index) => {
+                const optId = `option-${qKey}-${index}`;
+                return (
+                  <div key={optId} className="flex items-center space-x-2 p-3 rounded-lg hover:bg-accent">
+                    <RadioGroupItem value={index.toString()} id={optId} />
+                    <Label htmlFor={optId} className="flex-1 cursor-pointer">
+                      {option}
+                    </Label>
+                  </div>
+                );
+              })}
           </RadioGroup>
         );
 
@@ -266,23 +301,26 @@ export const QuizModal: React.FC<QuizModalProps> = ({
         const selectedOptions = currentAnswer || [];
         return (
           <div className="space-y-2">
-            {question.options.map((option, index) => (
-              <div key={index} className="flex items-center space-x-2 p-3 rounded-lg hover:bg-accent">
-                <Checkbox
-                  id={`option-${index}`}
-                  checked={selectedOptions.includes(index)}
-                  onCheckedChange={(checked) => {
-                    const newAnswers = checked
-                      ? [...selectedOptions, index]
-                      : selectedOptions.filter((i: number) => i !== index);
-                    handleAnswerChange(question.id, newAnswers);
-                  }}
-                />
-                <Label htmlFor={`option-${index}`} className="flex-1 cursor-pointer">
-                  {option}
-                </Label>
-              </div>
-            ))}
+            {question.options.map((option, index) => {
+              const optId = `mc-option-${question.id ?? currentQuestionIndex}-${index}`;
+              return (
+                <div key={optId} className="flex items-center space-x-2 p-3 rounded-lg hover:bg-accent">
+                  <Checkbox
+                    id={optId}
+                    checked={selectedOptions.includes(index)}
+                    onCheckedChange={(checked) => {
+                      const newAnswers = checked
+                        ? [...selectedOptions, index]
+                        : selectedOptions.filter((i: number) => i !== index);
+                      handleAnswerChange(question.id ?? String(currentQuestionIndex), newAnswers);
+                    }}
+                  />
+                  <Label htmlFor={optId} className="flex-1 cursor-pointer">
+                    {option}
+                  </Label>
+                </div>
+              );
+            })}
           </div>
         );
 
@@ -290,15 +328,15 @@ export const QuizModal: React.FC<QuizModalProps> = ({
         return (
           <RadioGroup
             value={currentAnswer?.toString()}
-            onValueChange={(value) => handleAnswerChange(question.id, value === 'true')}
+            onValueChange={(value) => handleAnswerChange(qKey, value === 'true')}
           >
             <div className="flex items-center space-x-2 p-3 rounded-lg hover:bg-accent">
-              <RadioGroupItem value="true" id="true" />
-              <Label htmlFor="true" className="flex-1 cursor-pointer">Vrai</Label>
+              <RadioGroupItem value="true" id={`true-${qKey}`} />
+              <Label htmlFor={`true-${qKey}`} className="flex-1 cursor-pointer">Vrai</Label>
             </div>
             <div className="flex items-center space-x-2 p-3 rounded-lg hover:bg-accent">
-              <RadioGroupItem value="false" id="false" />
-              <Label htmlFor="false" className="flex-1 cursor-pointer">Faux</Label>
+              <RadioGroupItem value="false" id={`false-${qKey}`} />
+              <Label htmlFor={`false-${qKey}`} className="flex-1 cursor-pointer">Faux</Label>
             </div>
           </RadioGroup>
         );
@@ -308,7 +346,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
           <Input
             placeholder="Votre réponse..."
             value={currentAnswer || ''}
-            onChange={(e) => handleAnswerChange(question.id, e.target.value)}
+            onChange={(e) => handleAnswerChange(qKey, e.target.value)}
             className="w-full"
           />
         );
@@ -318,7 +356,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
           <Textarea
             placeholder="Votre réponse détaillée..."
             value={currentAnswer || ''}
-            onChange={(e) => handleAnswerChange(question.id, e.target.value)}
+            onChange={(e) => handleAnswerChange(qKey, e.target.value)}
             className="w-full min-h-[200px]"
           />
         );
@@ -338,7 +376,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
                     onChange={(e) => {
                       const newFills = [...userFills];
                       newFills[index] = e.target.value;
-                      handleAnswerChange(question.id, newFills);
+                      handleAnswerChange(qKey, newFills);
                     }}
                     className="inline-block mx-2 w-48"
                   />
@@ -491,22 +529,26 @@ export const QuizModal: React.FC<QuizModalProps> = ({
 
         {/* Question navigation dots */}
         <div className="flex gap-2 flex-wrap">
-          {quiz.questions.map((q, index) => (
-            <button
-              key={q.id}
-              onClick={() => handleQuestionJump(index)}
-              className={cn(
-                "w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium transition-colors",
-                index === currentQuestionIndex
-                  ? "bg-primary text-primary-foreground"
-                  : answers.has(q.id)
-                    ? "bg-accent text-accent-foreground"
-                    : "bg-muted text-muted-foreground hover:bg-accent"
-              )}
-            >
-              {index + 1}
-            </button>
-          ))}
+            {quiz.questions.map((q, index) => {
+              const qKey = q.id ?? index;
+              const answered = q.id ? answers.has(q.id) : answers.has(String(index));
+              return (
+                <button
+                  key={qKey}
+                  onClick={() => handleQuestionJump(index)}
+                  className={cn(
+                    "w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium transition-colors",
+                    index === currentQuestionIndex
+                      ? "bg-primary text-primary-foreground"
+                      : answered
+                        ? "bg-accent text-accent-foreground"
+                        : "bg-muted text-muted-foreground hover:bg-accent"
+                  )}
+                >
+                  {index + 1}
+                </button>
+              );
+            })}
         </div>
 
         {/* Current question */}
