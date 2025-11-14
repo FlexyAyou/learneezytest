@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, Play, CheckCircle, Lock, Book, Clock, Award, Download, MessageSquare } from 'lucide-react';
 import { fastAPIClient } from '@/services/fastapi-client';
+import { useToast } from '@/hooks/use-toast';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { CourseResponse } from '@/types/fastapi';
 import { sanitizeHTML } from '@/utils/sanitizeHTML';
@@ -17,6 +18,7 @@ import { QuizConfig } from '@/types/quiz';
 const CourseViewer = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [course, setCourse] = useState<CourseResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [completedLessons, setCompletedLessons] = useState<string[]>([]);
@@ -442,6 +444,38 @@ const CourseViewer = () => {
                   <CardTitle>Ressources téléchargeables</CardTitle>
                 </CardHeader>
                 <CardContent>
+                  {/* Bouton pour télécharger le programme de formation s'il existe */}
+                  {course.program_pdf_key && (
+                    <div className="mb-4">
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between h-auto py-3 hover:bg-blue-50"
+                        onClick={async () => {
+                          try {
+                            if (!course?.id) return;
+                            await fastAPIClient.downloadCourseProgram(course.id);
+                            toast({
+                              title: '✅ Téléchargement démarré',
+                              description: 'Le programme a été téléchargé',
+                            });
+                          } catch (err) {
+                            console.error('Erreur téléchargement programme:', err);
+                            toast({
+                              title: '❌ Erreur',
+                              description: 'Impossible de télécharger le programme',
+                              variant: 'destructive',
+                            });
+                          }
+                        }}
+                      >
+                        <div className="flex items-center gap-2 flex-1 text-left">
+                          <Download className="h-4 w-4 flex-shrink-0 text-blue-600" />
+                          <span className="text-sm truncate font-medium">Télécharger le programme</span>
+                        </div>
+                      </Button>
+                    </div>
+                  )}
+
                   {course.resources && course.resources.length > 0 ? (
                     <div className="space-y-2">
                       {course.resources.map((resource, index) => (
