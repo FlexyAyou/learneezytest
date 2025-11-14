@@ -413,14 +413,9 @@ const CourseViewer = () => {
                                 size="sm"
                                 variant="outline"
                                 className="border-purple-300 text-purple-700 hover:bg-purple-200"
-                                onClick={() => {
-                                  if (quiz) {
-                                    setSelectedQuiz(quiz as unknown as QuizConfig);
-                                    setIsQuizModalOpen(true);
-                                  }
-                                }}
+                                onClick={() => handleLessonClick(quiz.title)}
                               >
-                                Démarrer le quiz
+                                Commencer le quiz
                               </Button>
                             </div>
                           ))}

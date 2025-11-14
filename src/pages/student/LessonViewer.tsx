@@ -210,6 +210,7 @@ const LessonViewer = () => {
                   </h3>
                   
                   <div className="space-y-2">
+                    {/* Lessons */}
                     {module.content.map((lessonItem: any, index: number) => (
                       <div
                         key={lessonItem.title}
@@ -218,7 +219,7 @@ const LessonViewer = () => {
                             ? 'bg-blue-50 border-l-4 border-l-blue-500' 
                             : 'hover:bg-gray-50'
                         }`}
-                        onClick={() => handleLessonClick(lessonItem.title)}
+                        onClick={() => handleItemClick(lessonItem.title)}
                       >
                         <div className="flex-shrink-0">
                           {isLessonCompleted(lessonItem.title) ? (
@@ -237,11 +238,16 @@ const LessonViewer = () => {
                         </div>
                         
                         <div className="flex-1 min-w-0">
-                          <p className={`text-sm font-medium truncate ${
-                            lessonItem.title === lessonId ? 'text-blue-900' : 'text-gray-900'
-                          }`}>
-                            {lessonItem.title}
-                          </p>
+                          <div className="flex items-center gap-2">
+                            {lessonItem.video_key && <Video className="w-3 h-3 text-blue-500" />}
+                            {lessonItem.pdf_key && <FileText className="w-3 h-3 text-red-500" />}
+                            {lessonItem.image_key && <ImageIcon className="w-3 h-3 text-purple-500" />}
+                            <p className={`text-sm font-medium truncate ${
+                              lessonItem.title === lessonId ? 'text-blue-900' : 'text-gray-900'
+                            }`}>
+                              {lessonItem.title}
+                            </p>
+                          </div>
                           <p className="text-xs text-gray-500 flex items-center mt-1">
                             <Clock className="w-3 h-3 mr-1" />
                             {lessonItem.duration}
@@ -249,6 +255,70 @@ const LessonViewer = () => {
                         </div>
                       </div>
                     ))}
+                    
+                    {/* Quizzes */}
+                    {module.quizzes && module.quizzes.length > 0 && module.quizzes.map((quiz: any, quizIdx: number) => {
+                      const quizId = `${module.id}-quiz-${quizIdx}`;
+                      const isQuizDone = isQuizCompleted(quizId);
+                      const quizResult = getQuizResult(quizId);
+                      
+                      return (
+                        <div
+                          key={quiz.title}
+                          className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors border-l-4 ${
+                            quiz.title === lessonId 
+                              ? 'bg-purple-50 border-l-purple-500' 
+                              : isQuizDone
+                              ? 'bg-green-50 border-l-green-500 hover:bg-green-100'
+                              : 'border-l-purple-300 hover:bg-purple-50'
+                          }`}
+                          onClick={() => handleItemClick(quiz.title)}
+                        >
+                          <div className="flex-shrink-0">
+                            {isQuizDone ? (
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                                quizResult?.passed ? 'bg-green-100' : 'bg-orange-100'
+                              }`}>
+                                <CheckCircle className={`w-4 h-4 ${
+                                  quizResult?.passed ? 'text-green-600' : 'text-orange-600'
+                                }`} />
+                              </div>
+                            ) : (
+                              <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                                quiz.title === lessonId 
+                                  ? 'border-purple-500 bg-purple-500' 
+                                  : 'border-purple-300 bg-white'
+                              }`}>
+                                <ClipboardList className={`w-3 h-3 ${
+                                  quiz.title === lessonId ? 'text-white' : 'text-purple-500'
+                                }`} />
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <ClipboardList className="w-3 h-3 text-purple-500" />
+                              <p className={`text-sm font-medium truncate ${
+                                quiz.title === lessonId ? 'text-purple-900' : 'text-gray-900'
+                              }`}>
+                                {quiz.title}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2 mt-1">
+                              <p className="text-xs text-gray-500 flex items-center">
+                                {quiz.questions?.length || 0} questions
+                              </p>
+                              {isQuizDone && quizResult && (
+                                <Badge variant={quizResult.passed ? "default" : "secondary"} className="text-xs h-4 px-1">
+                                  {quizResult.passed ? '✓ Réussi' : '○ À revoir'}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               ))}
@@ -292,12 +362,12 @@ const LessonViewer = () => {
                   {course.title}
                 </Button>
                 <ChevronRight className="w-4 h-4 text-gray-400" />
-                <span className="text-sm font-medium">{currentLesson.title}</span>
+                <span className="text-sm font-medium">{currentItem.title}</span>
               </div>
               
               <div className="flex items-center space-x-3">
                 <div className="text-sm text-gray-600">
-                  {lessonIndex + 1}/{totalLessons} leçons
+                  {itemIndex + 1}/{totalItems} contenus
                 </div>
                 <Progress value={progressPercentage} className="w-20 h-2" />
               </div>
@@ -324,18 +394,19 @@ const LessonViewer = () => {
                       {contentType === 'pdf' && '📄 PDF'}
                       {contentType === 'image' && '🖼️ image'}
                       {contentType === 'text' && '📝 texte'}
+                      {contentType === 'quiz' && '📝 quiz'}
                     </Badge>
                     <div className="flex items-center text-sm text-gray-600">
                       <Clock className="w-4 h-4 mr-1" />
-                      {currentLesson.duration}
+                      {currentItem.duration}
                     </div>
                   </div>
                   
-                  <h1 className="text-3xl font-bold mb-3">{currentLesson.title}</h1>
-                  {currentLesson.description && (
+                  <h1 className="text-3xl font-bold mb-3">{currentItem.title}</h1>
+                  {currentItem.description && (
                     <div 
                       className="text-gray-600 text-lg"
-                      dangerouslySetInnerHTML={{ __html: sanitizeHTML(currentLesson.description) }}
+                      dangerouslySetInnerHTML={{ __html: sanitizeHTML(currentItem.description) }}
                     />
                   )}
                 </div>
@@ -343,22 +414,33 @@ const LessonViewer = () => {
                 {/* Contenu de la leçon */}
                 <Card className="mb-6">
                   <CardContent className="p-0">
-                    {contentType === 'video' && (
-                      <VideoPlayer
-                        videoKey={currentLesson.video_key || currentLesson.key}
-                        videoUrl={currentLesson.video_url}
-                        title={currentLesson.title}
-                      />
-                    )}
-                    {contentType === 'pdf' && (
-                      <PDFViewer
-                        pdfKey={currentLesson.pdf_key}
-                        title={currentLesson.title}
-                        height="600px"
-                      />
-                    )}
-                    {contentType === 'image' && (
-                      <ImageDisplay imageKey={currentLesson.image_key} title={currentLesson.title} />
+                    {contentType === 'quiz' ? (
+                      <div className="p-6">
+                        <QuizViewer 
+                          quiz={currentItem as QuizConfig} 
+                          onComplete={handleQuizComplete}
+                        />
+                      </div>
+                    ) : (
+                      <>
+                        {contentType === 'video' && (
+                          <VideoPlayer
+                            videoKey={currentItem.video_key || currentItem.key}
+                            videoUrl={currentItem.video_url}
+                            title={currentItem.title}
+                          />
+                        )}
+                        {contentType === 'pdf' && (
+                          <PDFViewer
+                            pdfKey={currentItem.pdf_key}
+                            title={currentItem.title}
+                            height="600px"
+                          />
+                        )}
+                        {contentType === 'image' && (
+                          <ImageDisplay imageKey={currentItem.image_key} title={currentItem.title} />
+                        )}
+                      </>
                     )}
                   </CardContent>
                 </Card>
@@ -377,10 +459,10 @@ const LessonViewer = () => {
                         <CardTitle>À propos de cette leçon</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        {currentLesson.description && (
+                        {currentItem.description && (
                           <div 
                             className="text-gray-700 mb-4"
-                            dangerouslySetInnerHTML={{ __html: sanitizeHTML(currentLesson.description) }}
+                            dangerouslySetInnerHTML={{ __html: sanitizeHTML(currentItem.description) }}
                           />
                         )}
                       </CardContent>
@@ -394,10 +476,10 @@ const LessonViewer = () => {
                         <CardDescription>Texte intégral de la vidéo</CardDescription>
                       </CardHeader>
                       <CardContent>
-                        {currentLesson.transcription ? (
+                        {currentItem.transcription ? (
                           <div className="prose prose-sm max-w-none">
                             <pre className="whitespace-pre-wrap font-sans text-gray-700 leading-relaxed">
-                              {currentLesson.transcription}
+                              {currentItem.transcription}
                             </pre>
                           </div>
                         ) : (
@@ -475,22 +557,22 @@ const LessonViewer = () => {
                     <CardTitle className="text-lg">Navigation</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">
-                    {previousLesson && (
+                    {previousItem && (
                       <Button
                         variant="outline"
                         className="w-full justify-start"
-                        onClick={() => handleLessonClick(previousLesson.title)}
+                        onClick={() => handleItemClick(previousItem.title)}
                       >
                         <ChevronLeft className="w-4 h-4 mr-2" />
-                        Leçon précédente
+                        Contenu précédent
                       </Button>
                     )}
-                    {nextLesson && (
+                    {nextItem && (
                       <Button
                         className="w-full justify-start"
-                        onClick={() => handleLessonClick(nextLesson.title)}
+                        onClick={() => handleItemClick(nextItem.title)}
                       >
-                        Leçon suivante
+                        Contenu suivant
                         <ChevronRight className="w-4 h-4 ml-2" />
                       </Button>
                     )}
@@ -498,14 +580,14 @@ const LessonViewer = () => {
                 </Card>
 
                 {/* Ressources */}
-                {currentLesson.resources && currentLesson.resources.length > 0 && (
+                {currentItem.resources && currentItem.resources.length > 0 && (
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-lg">Ressources</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-2">
-                        {currentLesson.resources.map((resource: any, idx: number) => (
+                        {currentItem.resources.map((resource: any, idx: number) => (
                           <Button
                             key={idx}
                             variant="outline"
