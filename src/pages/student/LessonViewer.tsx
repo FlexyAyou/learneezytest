@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Play, CheckCircle, Clock, MessageSquare, Download, ChevronRight, ChevronLeft, Home, User, X, Menu, Video, FileText, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, Play, CheckCircle, Clock, MessageSquare, Download, ChevronRight, ChevronLeft, Home, User, X, Menu, Video, FileText, Image as ImageIcon, ClipboardList } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useCourse } from '@/hooks/useApi';
@@ -13,10 +13,12 @@ import { useLearnerProgress } from '@/hooks/useLearnerProgress';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import VideoPlayer from '@/components/common/VideoPlayer';
 import PDFViewer from '@/components/common/PDFViewer';
+import { QuizViewer } from '@/components/student/QuizViewer';
 import { usePresignedUrl } from '@/hooks/usePresignedUrl';
 import { sanitizeHTML } from '@/utils/sanitizeHTML';
 import { useToast } from '@/hooks/use-toast';
 import { fastAPIClient } from '@/services/fastapi-client';
+import { QuizConfig } from '@/types/quiz';
 
 const LessonViewer = () => {
   const { courseId, lessonId } = useParams();
@@ -32,44 +34,73 @@ const LessonViewer = () => {
     completedLessons, 
     markLessonComplete, 
     isLessonCompleted, 
-    calculateProgress 
+    calculateProgress,
+    completedQuizzes,
+    markQuizComplete,
+    isQuizCompleted,
+    getQuizResult,
   } = useLearnerProgress(courseId!);
 
-  // Find current lesson and module
-  const { currentLesson, currentModule, lessonIndex, allLessons } = useMemo(() => {
-    if (!course) return { currentLesson: null, currentModule: null, lessonIndex: -1, allLessons: [] };
+  // Find current lesson/quiz and module
+  const { currentItem, currentModule, itemIndex, allItems, itemType } = useMemo(() => {
+    if (!course) return { currentItem: null, currentModule: null, itemIndex: -1, allItems: [], itemType: null };
 
-    const lessons: any[] = [];
-    let foundLesson = null;
+    const items: any[] = [];
+    let foundItem = null;
     let foundModule = null;
     let foundIndex = -1;
+    let foundType: 'lesson' | 'quiz' | null = null;
 
     course.modules.forEach((module: any) => {
+      // Add lessons
       module.content.forEach((lesson: any) => {
-        lessons.push({ ...lesson, module });
+        items.push({ ...lesson, module, type: 'lesson' });
         if (lesson.title === lessonId) {
-          foundLesson = lesson;
+          foundItem = lesson;
           foundModule = module;
-          foundIndex = lessons.length - 1;
+          foundIndex = items.length - 1;
+          foundType = 'lesson';
         }
       });
+      
+      // Add quizzes
+      if (module.quizzes) {
+        module.quizzes.forEach((quiz: any, quizIdx: number) => {
+          const quizItem = { 
+            ...quiz, 
+            module, 
+            type: 'quiz',
+            id: `${module.id}-quiz-${quizIdx}`,
+            title: quiz.title,
+            duration: '20min', // Default duration for quizzes
+          };
+          items.push(quizItem);
+          if (quiz.title === lessonId) {
+            foundItem = quizItem;
+            foundModule = module;
+            foundIndex = items.length - 1;
+            foundType = 'quiz';
+          }
+        });
+      }
     });
 
     return { 
-      currentLesson: foundLesson, 
+      currentItem: foundItem, 
       currentModule: foundModule, 
-      lessonIndex: foundIndex,
-      allLessons: lessons 
+      itemIndex: foundIndex,
+      allItems: items,
+      itemType: foundType,
     };
   }, [course, lessonId]);
 
   // Navigation
-  const previousLesson = lessonIndex > 0 ? allLessons[lessonIndex - 1] : null;
-  const nextLesson = lessonIndex >= 0 && lessonIndex < allLessons.length - 1 ? allLessons[lessonIndex + 1] : null;
+  const previousItem = itemIndex > 0 ? allItems[itemIndex - 1] : null;
+  const nextItem = itemIndex >= 0 && itemIndex < allItems.length - 1 ? allItems[itemIndex + 1] : null;
 
   const handleMarkComplete = () => {
-    if (currentLesson) {
-      markLessonComplete(currentLesson.title);
+    if (currentItem && itemType === 'lesson') {
+      markLessonComplete(currentItem.title);
       toast({
         title: "✅ Leçon terminée",
         description: "Votre progression a été mise à jour",
@@ -77,8 +108,21 @@ const LessonViewer = () => {
     }
   };
 
-  const handleLessonClick = (lessonTitle: string) => {
-    navigate(`/dashboard/apprenant/courses/${courseId}/lessons/${lessonTitle}`);
+  const handleItemClick = (itemTitle: string) => {
+    navigate(`/dashboard/apprenant/courses/${courseId}/lessons/${itemTitle}`);
+  };
+
+  const handleQuizComplete = (score: number, passed: boolean) => {
+    if (currentItem && itemType === 'quiz') {
+      markQuizComplete(currentItem.id, score, passed);
+      toast({
+        title: passed ? "✅ Quiz réussi !" : "📝 Quiz terminé",
+        description: passed 
+          ? `Félicitations ! Score: ${score} points`
+          : `Score: ${score} points. Vous pouvez réessayer.`,
+        variant: passed ? "default" : "destructive",
+      });
+    }
   };
 
   const handleDownloadResource = async (resourceUrl: string, resourceName: string) => {
@@ -111,11 +155,11 @@ const LessonViewer = () => {
     );
   }
 
-  if (!course || !currentLesson || !currentModule) {
+  if (!course || !currentItem || !currentModule) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-xl text-gray-600 mb-4">Leçon introuvable</p>
+          <p className="text-xl text-gray-600 mb-4">Contenu introuvable</p>
           <Button onClick={() => navigate(`/dashboard/apprenant/courses/${courseId}`)}>
             Retour au cours
           </Button>
@@ -124,18 +168,21 @@ const LessonViewer = () => {
     );
   }
 
-  const totalLessons = allLessons.length;
-  const progressPercentage = calculateProgress(totalLessons);
-  const isCompleted = isLessonCompleted(currentLesson.title);
+  const totalItems = allItems.length;
+  const progressPercentage = calculateProgress(totalItems);
+  const isCompleted = itemType === 'lesson' 
+    ? isLessonCompleted(currentItem.title)
+    : isQuizCompleted(currentItem.id);
 
-  const getContentType = (lesson: any) => {
-    if (lesson.video_key || lesson.video_url) return 'video';
-    if (lesson.pdf_key) return 'pdf';
-    if (lesson.image_key) return 'image';
+  const getContentType = (item: any) => {
+    if (item.type === 'quiz') return 'quiz';
+    if (item.video_key || item.video_url) return 'video';
+    if (item.pdf_key) return 'pdf';
+    if (item.image_key) return 'image';
     return 'text';
   };
 
-  const contentType = getContentType(currentLesson);
+  const contentType = getContentType(currentItem);
 
   return (
     <div className="min-h-screen bg-gray-50 flex">

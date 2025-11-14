@@ -1,0 +1,472 @@
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { 
+  CheckCircle, 
+  XCircle, 
+  Clock, 
+  ChevronLeft, 
+  ChevronRight,
+  RotateCcw,
+  Trophy,
+  AlertCircle
+} from 'lucide-react';
+import { QuizConfig, Question, UserAnswer } from '@/types/quiz';
+
+interface QuizViewerProps {
+  quiz: QuizConfig;
+  onComplete?: (score: number, passed: boolean, answers: UserAnswer[]) => void;
+}
+
+export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [answers, setAnswers] = useState<Record<string, any>>({});
+  const [showResults, setShowResults] = useState(false);
+  const [result, setResult] = useState<{ score: number; totalPoints: number; passed: boolean } | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState<number | null>(
+    quiz.settings?.timeLimit ? quiz.settings.timeLimit * 60 : null
+  );
+  const [attemptNumber, setAttemptNumber] = useState(1);
+  const [startTime] = useState(Date.now());
+
+  const currentQuestion = quiz.questions[currentQuestionIndex];
+  const totalQuestions = quiz.questions.length;
+  const progress = ((currentQuestionIndex + 1) / totalQuestions) * 100;
+
+  // Timer
+  useEffect(() => {
+    if (timeRemaining === null || timeRemaining <= 0 || showResults) return;
+
+    const timer = setInterval(() => {
+      setTimeRemaining((prev) => {
+        if (prev === null || prev <= 1) {
+          handleSubmitQuiz();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [timeRemaining, showResults]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleAnswerChange = (questionId: string, value: any) => {
+    setAnswers((prev) => ({ ...prev, [questionId]: value }));
+  };
+
+  const handleNext = () => {
+    if (currentQuestionIndex < totalQuestions - 1) {
+      setCurrentQuestionIndex((prev) => prev + 1);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex((prev) => prev - 1);
+    }
+  };
+
+  const handleQuestionJump = (index: number) => {
+    setCurrentQuestionIndex(index);
+  };
+
+  const checkAnswer = (question: Question, userAnswer: any): number => {
+    if (!userAnswer) return 0;
+
+    switch (question.type) {
+      case 'single-choice':
+        return userAnswer === question.correctAnswer ? question.points : 0;
+
+      case 'multiple-choice':
+        if (!Array.isArray(userAnswer)) return 0;
+        const correctSet = new Set(question.correctAnswers);
+        const userSet = new Set(userAnswer);
+        if (correctSet.size !== userSet.size) return 0;
+        for (const ans of userSet) {
+          if (!correctSet.has(ans)) return 0;
+        }
+        return question.points;
+
+      case 'true-false':
+        return userAnswer === question.correctAnswer ? question.points : 0;
+
+      case 'short-answer':
+      case 'long-answer':
+        return 0; // Manual grading required
+
+      case 'fill-blank':
+        if (!Array.isArray(userAnswer)) return 0;
+        let correctCount = 0;
+        question.correctAnswers.forEach((correctAns, index) => {
+          const userVal = userAnswer[index]?.trim().toLowerCase();
+          const correctVal = correctAns.trim().toLowerCase();
+          if (userVal === correctVal) correctCount++;
+        });
+        return (correctCount / question.correctAnswers.length) * question.points;
+
+      default:
+        return 0;
+    }
+  };
+
+  const handleSubmitQuiz = () => {
+    let totalScore = 0;
+    const totalPoints = quiz.questions.reduce((sum, q) => sum + q.points, 0);
+    const userAnswers: UserAnswer[] = [];
+
+    quiz.questions.forEach((question) => {
+      const userAnswer = answers[question.id];
+      const earnedPoints = checkAnswer(question, userAnswer);
+      totalScore += earnedPoints;
+
+      userAnswers.push({
+        questionId: question.id,
+        answer: userAnswer,
+        isCorrect: earnedPoints === question.points,
+        pointsEarned: earnedPoints,
+        submittedAt: new Date(),
+      });
+    });
+
+    const percentage = (totalScore / totalPoints) * 100;
+    const passed = percentage >= (quiz.settings?.passingScore || 70);
+
+    setResult({ score: totalScore, totalPoints, passed });
+    setShowResults(true);
+
+    if (onComplete) {
+      onComplete(totalScore, passed, userAnswers);
+    }
+  };
+
+  const handleRetry = () => {
+    if (quiz.settings?.maxAttempts && attemptNumber >= quiz.settings.maxAttempts) {
+      return;
+    }
+
+    setCurrentQuestionIndex(0);
+    setAnswers({});
+    setShowResults(false);
+    setResult(null);
+    setTimeRemaining(quiz.settings?.timeLimit ? quiz.settings.timeLimit * 60 : null);
+    setAttemptNumber((prev) => prev + 1);
+  };
+
+  const renderQuestion = (question: Question) => {
+    const userAnswer = answers[question.id];
+
+    switch (question.type) {
+      case 'single-choice':
+        return (
+          <RadioGroup value={userAnswer || ''} onValueChange={(val) => handleAnswerChange(question.id, val)}>
+            <div className="space-y-3">
+              {question.options.map((option, idx) => (
+                <div key={idx} className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <RadioGroupItem value={option} id={`${question.id}-${idx}`} />
+                  <Label htmlFor={`${question.id}-${idx}`} className="flex-1 cursor-pointer">
+                    {option}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </RadioGroup>
+        );
+
+      case 'multiple-choice':
+        const selectedOptions = Array.isArray(userAnswer) ? userAnswer : [];
+        return (
+          <div className="space-y-3">
+            {question.options.map((option, idx) => (
+              <div key={idx} className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50">
+                <Checkbox
+                  id={`${question.id}-${idx}`}
+                  checked={selectedOptions.includes(option)}
+                  onCheckedChange={(checked) => {
+                    const newSelected = checked
+                      ? [...selectedOptions, option]
+                      : selectedOptions.filter((o) => o !== option);
+                    handleAnswerChange(question.id, newSelected);
+                  }}
+                />
+                <Label htmlFor={`${question.id}-${idx}`} className="flex-1 cursor-pointer">
+                  {option}
+                </Label>
+              </div>
+            ))}
+          </div>
+        );
+
+      case 'true-false':
+        return (
+          <RadioGroup value={userAnswer || ''} onValueChange={(val) => handleAnswerChange(question.id, val === 'true')}>
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                <RadioGroupItem value="true" id={`${question.id}-true`} />
+                <Label htmlFor={`${question.id}-true`} className="flex-1 cursor-pointer">
+                  Vrai
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                <RadioGroupItem value="false" id={`${question.id}-false`} />
+                <Label htmlFor={`${question.id}-false`} className="flex-1 cursor-pointer">
+                  Faux
+                </Label>
+              </div>
+            </div>
+          </RadioGroup>
+        );
+
+      case 'short-answer':
+        return (
+          <Input
+            value={userAnswer || ''}
+            onChange={(e) => handleAnswerChange(question.id, e.target.value)}
+            placeholder="Entrez votre réponse..."
+            className="w-full"
+          />
+        );
+
+      case 'long-answer':
+        return (
+          <Textarea
+            value={userAnswer || ''}
+            onChange={(e) => handleAnswerChange(question.id, e.target.value)}
+            placeholder="Entrez votre réponse détaillée..."
+            className="w-full min-h-[150px]"
+          />
+        );
+
+      case 'fill-blank':
+        const blanksAnswers = Array.isArray(userAnswer) ? userAnswer : Array(question.correctAnswers.length).fill('');
+        return (
+          <div className="space-y-4">
+            <div 
+              className="text-sm text-gray-700 mb-4 p-4 bg-gray-50 rounded-lg"
+              dangerouslySetInnerHTML={{ __html: question.text.replace(/\[blank\]/g, '<span class="inline-block w-32 border-b-2 border-blue-500 mx-1">_____</span>') }}
+            />
+            <p className="text-xs text-gray-500 mb-4">Remplissez les trous dans l'ordre d'apparition :</p>
+            {question.correctAnswers.map((_, idx) => (
+              <div key={idx} className="space-y-2">
+                <Label>Trou {idx + 1}</Label>
+                <Input
+                  value={blanksAnswers[idx] || ''}
+                  onChange={(e) => {
+                    const newAnswers = [...blanksAnswers];
+                    newAnswers[idx] = e.target.value;
+                    handleAnswerChange(question.id, newAnswers);
+                  }}
+                  placeholder={`Réponse pour le trou ${idx + 1}`}
+                />
+              </div>
+            ))}
+          </div>
+        );
+
+      default:
+        return <p>Type de question non supporté</p>;
+    }
+  };
+
+  if (showResults && result) {
+    const percentage = (result.score / result.totalPoints) * 100;
+    const timeSpent = Math.floor((Date.now() - startTime) / 1000);
+
+    return (
+      <div className="space-y-6">
+        <Card className={`border-2 ${result.passed ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'}`}>
+          <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+              {result.passed ? (
+                <Trophy className="w-16 h-16 text-green-600" />
+              ) : (
+                <AlertCircle className="w-16 h-16 text-red-600" />
+              )}
+            </div>
+            <CardTitle className="text-2xl">
+              {result.passed ? '🎉 Félicitations !' : '😔 Pas encore réussi'}
+            </CardTitle>
+            <CardDescription className="text-lg mt-2">
+              Score : {result.score} / {result.totalPoints} ({percentage.toFixed(1)}%)
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4 text-center">
+              <div className="p-4 bg-white rounded-lg">
+                <p className="text-sm text-gray-600">Temps passé</p>
+                <p className="text-xl font-bold">{formatTime(timeSpent)}</p>
+              </div>
+              <div className="p-4 bg-white rounded-lg">
+                <p className="text-sm text-gray-600">Tentative</p>
+                <p className="text-xl font-bold">{attemptNumber} / {quiz.settings?.maxAttempts || '∞'}</p>
+              </div>
+            </div>
+
+            <div className="flex gap-3 justify-center mt-6">
+              {quiz.settings?.allowRetry && 
+               (!quiz.settings.maxAttempts || attemptNumber < quiz.settings.maxAttempts) && (
+                <Button onClick={handleRetry} variant="outline">
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  Réessayer
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Détail des réponses */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Détail des réponses</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {quiz.questions.map((question, idx) => {
+              const userAnswer = answers[question.id];
+              const earnedPoints = checkAnswer(question, userAnswer);
+              const isCorrect = earnedPoints === question.points;
+
+              return (
+                <div key={question.id} className="p-4 border rounded-lg">
+                  <div className="flex items-start justify-between mb-2">
+                    <h4 className="font-semibold flex items-center gap-2">
+                      Question {idx + 1}
+                      {isCorrect ? (
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <XCircle className="w-5 h-5 text-red-600" />
+                      )}
+                    </h4>
+                    <Badge variant={isCorrect ? 'default' : 'destructive'}>
+                      {earnedPoints} / {question.points} pts
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-gray-700 mb-2">{question.question}</p>
+                  
+                  {question.type === 'single-choice' && (
+                    <div className="text-sm mt-2">
+                      <p className="text-gray-600">Votre réponse: <span className="font-medium">{userAnswer || 'Aucune réponse'}</span></p>
+                      {!isCorrect && (
+                        <p className="text-green-600">Bonne réponse: <span className="font-medium">{question.correctAnswer}</span></p>
+                      )}
+                    </div>
+                  )}
+                  
+                  {question.type === 'multiple-choice' && (
+                    <div className="text-sm mt-2">
+                      <p className="text-gray-600">Vos réponses: <span className="font-medium">{Array.isArray(userAnswer) ? userAnswer.join(', ') : 'Aucune réponse'}</span></p>
+                      {!isCorrect && (
+                        <p className="text-green-600">Bonnes réponses: <span className="font-medium">{question.correctAnswers.join(', ')}</span></p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header avec timer et progression */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-2xl font-bold">{quiz.title}</h2>
+              <p className="text-sm text-gray-600 mt-1">{quiz.description}</p>
+            </div>
+            {timeRemaining !== null && (
+              <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-lg">
+                <Clock className="w-5 h-5 text-blue-600" />
+                <span className={`font-mono text-lg font-semibold ${timeRemaining < 60 ? 'text-red-600' : 'text-blue-600'}`}>
+                  {formatTime(timeRemaining)}
+                </span>
+              </div>
+            )}
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm text-gray-600">
+              <span>Question {currentQuestionIndex + 1} sur {totalQuestions}</span>
+              <span>{Math.round(progress)}%</span>
+            </div>
+            <Progress value={progress} className="h-2" />
+          </div>
+
+          {/* Navigation par points */}
+          <div className="flex flex-wrap gap-2 mt-4">
+            {quiz.questions.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleQuestionJump(idx)}
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors ${
+                  idx === currentQuestionIndex
+                    ? 'bg-blue-600 text-white'
+                    : answers[quiz.questions[idx].id]
+                    ? 'bg-green-100 text-green-700 border border-green-300'
+                    : 'bg-gray-100 text-gray-600 border border-gray-300 hover:bg-gray-200'
+                }`}
+              >
+                {idx + 1}
+              </button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Question actuelle */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <CardTitle className="text-lg">Question {currentQuestionIndex + 1}</CardTitle>
+              <CardDescription className="text-base mt-2">{currentQuestion.question}</CardDescription>
+            </div>
+            <Badge variant="secondary">{currentQuestion.points} pts</Badge>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {renderQuestion(currentQuestion)}
+        </CardContent>
+      </Card>
+
+      {/* Navigation */}
+      <div className="flex justify-between items-center">
+        <Button
+          onClick={handlePrevious}
+          disabled={currentQuestionIndex === 0}
+          variant="outline"
+        >
+          <ChevronLeft className="w-4 h-4 mr-2" />
+          Précédent
+        </Button>
+
+        {currentQuestionIndex === totalQuestions - 1 ? (
+          <Button onClick={handleSubmitQuiz} className="bg-green-600 hover:bg-green-700">
+            Terminer le quiz
+          </Button>
+        ) : (
+          <Button onClick={handleNext}>
+            Suivant
+            <ChevronRight className="w-4 h-4 ml-2" />
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+};
