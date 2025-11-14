@@ -115,6 +115,49 @@ const CourseViewer = () => {
     }
   };
 
+  const handleDownloadResource = async (index: number) => {
+    if (!course) return;
+    try {
+      const res = course.resources?.[index];
+      if (!res) return;
+
+      // 1) URL directe fournie par l'API (si disponible)
+      if (res.url) {
+        window.open(res.url, '_blank');
+        return;
+      }
+
+      // 2) Générer une URL de téléchargement depuis la clé de stockage
+      const key = (res as any).resource_key || res.key;
+      if (key) {
+        try {
+          const { download_url } = await fastAPIClient.getDownloadUrl(key);
+          window.open(download_url, '_blank');
+          return;
+        } catch (e) {
+          // Fallback vers endpoint dédié (blob + nom de fichier correct)
+        }
+      }
+
+      // 3) Fallback: endpoint serveur par index (déclenche un téléchargement avec bon filename)
+      await fastAPIClient.downloadCourseResource(course.id, index);
+    } catch (error) {
+      console.error('Erreur téléchargement ressource:', error);
+    }
+  };
+
+  const handleDownloadAllResources = async () => {
+    if (!course?.resources?.length) return;
+    // Déclenche les téléchargements en séquence pour éviter des blocages popup
+    for (let i = 0; i < course.resources.length; i++) {
+      // petite pause entre chaque pour la stabilité des navigateurs
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise(resolve => setTimeout(resolve, 300));
+      // eslint-disable-next-line no-await-in-loop
+      await handleDownloadResource(i);
+    }
+  };
+
   const handleLessonClick = (lessonTitle: string) => {
     navigate(`/dashboard/apprenant/courses/${id}/lessons/${lessonTitle}`);
   };
@@ -232,7 +275,7 @@ const CourseViewer = () => {
                           <div
                             key={lessonIndex}
                             className={`flex items-center justify-between p-3 border rounded-lg ${isCompleted ? 'bg-green-50 border-green-200' :
-                                isAvailable ? 'hover:bg-gray-50 cursor-pointer' : 'bg-gray-50'
+                              isAvailable ? 'hover:bg-gray-50 cursor-pointer' : 'bg-gray-50'
                               }`}
                           >
                             <div className="flex items-center gap-3">
@@ -340,7 +383,7 @@ const CourseViewer = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => window.open(resource.url, '_blank')}
+                            onClick={() => handleDownloadResource(index)}
                           >
                             Télécharger
                           </Button>
@@ -368,7 +411,7 @@ const CourseViewer = () => {
                 Continuer le cours
               </Button>
               {course.resources && course.resources.length > 0 && (
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full" onClick={handleDownloadAllResources}>
                   <Download className="w-4 h-4 mr-2" />
                   Télécharger les ressources
                 </Button>
