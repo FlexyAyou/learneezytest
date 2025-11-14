@@ -24,6 +24,9 @@ const CourseViewer = () => {
   const [completedLessons, setCompletedLessons] = useState<string[]>([]);
   const [selectedQuiz, setSelectedQuiz] = useState<QuizConfig | null>(null);
   const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
+  const [downloadingProgram, setDownloadingProgram] = useState(false);
+  const [downloadingResourceIndex, setDownloadingResourceIndex] = useState<number | null>(null);
+  const [zippingResources, setZippingResources] = useState(false);
 
   // Refresh presigned URL for cover image
   const { url: coverUrl } = usePresignedUrl(course?.cover_key);
@@ -121,6 +124,7 @@ const CourseViewer = () => {
     if (!course) return;
     const res = course.resources?.[index];
     if (!res) return;
+    setDownloadingResourceIndex(index);
     try {
       // 1) Essayer d'abord l'endpoint serveur indexé (même méthode que côté superadmin)
       //    -> renvoie un blob et force le téléchargement avec le bon filename
@@ -154,12 +158,14 @@ const CourseViewer = () => {
       console.error('Aucun moyen valide pour télécharger la ressource', res);
     } catch (error) {
       console.error('Erreur téléchargement ressource:', error);
+    } finally {
+      setDownloadingResourceIndex(null);
     }
   };
 
   const handleDownloadAllResources = async () => {
     if (!course?.resources?.length) return;
-
+    setZippingResources(true);
     try {
       const JSZipImport = await import('jszip');
       const JSZip = (JSZipImport && (JSZipImport as any).default) ? (JSZipImport as any).default : JSZipImport;
@@ -227,6 +233,8 @@ const CourseViewer = () => {
         // eslint-disable-next-line no-await-in-loop
         await handleDownloadResource(i);
       }
+    } finally {
+      setZippingResources(false);
     }
   };
 
@@ -451,8 +459,9 @@ const CourseViewer = () => {
                         variant="outline"
                         className="w-full justify-between h-auto py-3 hover:bg-blue-50"
                         onClick={async () => {
+                          if (!course?.id) return;
+                          setDownloadingProgram(true);
                           try {
-                            if (!course?.id) return;
                             await fastAPIClient.downloadCourseProgram(course.id);
                             toast({
                               title: '✅ Téléchargement démarré',
@@ -465,12 +474,19 @@ const CourseViewer = () => {
                               description: 'Impossible de télécharger le programme',
                               variant: 'destructive',
                             });
+                          } finally {
+                            setDownloadingProgram(false);
                           }
                         }}
+                        disabled={downloadingProgram}
                       >
                         <div className="flex items-center gap-2 flex-1 text-left">
                           <Download className="h-4 w-4 flex-shrink-0 text-blue-600" />
-                          <span className="text-sm truncate font-medium">Télécharger le programme</span>
+                          {downloadingProgram ? (
+                            <LoadingSpinner size="sm" />
+                          ) : (
+                            <span className="text-sm truncate font-medium">Télécharger le programme</span>
+                          )}
                         </div>
                       </Button>
                     </div>
@@ -489,7 +505,11 @@ const CourseViewer = () => {
                             size="sm"
                             onClick={() => handleDownloadResource(index)}
                           >
-                            Télécharger
+                            {downloadingResourceIndex === index ? (
+                              <LoadingSpinner size="sm" />
+                            ) : (
+                              'Télécharger'
+                            )}
                           </Button>
                         </div>
                       ))}
@@ -517,7 +537,7 @@ const CourseViewer = () => {
               {course.resources && course.resources.length > 0 && (
                 <Button variant="outline" className="w-full" onClick={handleDownloadAllResources}>
                   <Download className="w-4 h-4 mr-2" />
-                  Télécharger les ressources
+                  {zippingResources ? <LoadingSpinner size="sm" /> : 'Télécharger les ressources'}
                 </Button>
               )}
               <Button variant="outline" className="w-full">
