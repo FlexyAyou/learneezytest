@@ -1864,7 +1864,7 @@ const CreateCoursePage = () => {
                                       <CardTitle className="text-lg">{module.quiz.title}</CardTitle>
                                       <p className="text-sm text-gray-600 mt-1">
                                         {module.quiz.questions.length} questions •
-                                        Note de passage: {module.quiz.settings.passingScore}%
+                                        Note de passage: {module.quiz?.settings?.passingScore ?? '-'}%
                                       </p>
                                     </div>
                                     <div className="flex gap-2">
@@ -1917,7 +1917,7 @@ const CreateCoursePage = () => {
                                       <CardTitle className="text-lg">{module.assignment.title}</CardTitle>
                                       <p className="text-sm text-gray-600 mt-1">
                                         {module.assignment.questions.length} questions •
-                                        Note de passage: {module.assignment.settings.passingScore}%
+                                        Note de passage: {module.assignment?.settings?.passingScore ?? '-'}%
                                       </p>
                                     </div>
                                     <div className="flex gap-2">

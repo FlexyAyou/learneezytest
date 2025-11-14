@@ -51,11 +51,22 @@ export const QuizModal: React.FC<QuizModalProps> = ({
   const totalQuestions = quiz.questions.length;
   const progressPercentage = ((currentQuestionIndex + 1) / totalQuestions) * 100;
 
-  // Timer effect
-  useEffect(() => {
-    if (!open || showResults || !quiz.settings.timeLimit) return;
+  // Provide default settings when backend does not include them
+  const defaultSettings = {
+    timeLimit: null as number | null,
+    passingScore: 50,
+    allowRetry: true,
+    maxAttempts: null as number | null,
+    showFeedback: 'always' as 'always' | 'never' | 'on-fail'
+  };
 
-    const timeLimitSeconds = quiz.settings.timeLimit * 60;
+  const settings = { ...defaultSettings, ...(quiz?.settings || {}) };
+
+  // Timer effect (only if a timeLimit is provided)
+  useEffect(() => {
+    if (!open || showResults || !settings.timeLimit) return;
+
+    const timeLimitSeconds = settings.timeLimit * 60;
     setTimeRemaining(timeLimitSeconds);
 
     const interval = setInterval(() => {
@@ -70,7 +81,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [open, showResults, quiz.settings.timeLimit]);
+  }, [open, showResults, settings.timeLimit]);
 
   // Format time remaining
   const formatTime = (seconds: number) => {
@@ -113,7 +124,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
         break;
       case 'multiple-choice':
         const userAnswers = userAnswer || [];
-        isCorrect = 
+        isCorrect =
           userAnswers.length === question.correctAnswers.length &&
           userAnswers.every((ans: number) => question.correctAnswers.includes(ans));
         break;
@@ -146,7 +157,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
         break;
       case 'ordering':
         const userOrder = userAnswer || [];
-        isCorrect = 
+        isCorrect =
           userOrder.length === question.correctOrder.length &&
           userOrder.every((item: number, idx: number) => item === question.correctOrder[idx]);
         break;
@@ -167,7 +178,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
     quiz.questions.forEach((question) => {
       const userAnswer = answers.get(question.id);
       const { isCorrect, pointsEarned } = checkAnswer(question, userAnswer);
-      
+
       totalPoints += question.points;
       totalPointsEarned += pointsEarned;
 
@@ -182,7 +193,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
     });
 
     const score = totalPoints > 0 ? (totalPointsEarned / totalPoints) * 100 : 0;
-    const isPassing = score >= quiz.settings.passingScore;
+    const isPassing = score >= settings.passingScore;
     const completedAt = new Date();
     const timeSpent = Math.floor((completedAt.getTime() - startTime.getTime()) / 1000);
 
@@ -208,7 +219,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
 
   // Retry quiz
   const handleRetry = () => {
-    if (quiz.settings.maxAttempts && attemptNumber >= quiz.settings.maxAttempts) {
+    if (settings.maxAttempts && attemptNumber >= settings.maxAttempts) {
       return;
     }
 
@@ -376,7 +387,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
                 {result.pointsEarned} / {result.totalPoints} points
               </p>
               <Badge variant={result.isPassing ? 'default' : 'destructive'} className="mt-2">
-                {result.isPassing ? 'Réussi' : 'Non réussi'} (Minimum: {quiz.settings.passingScore}%)
+                {result.isPassing ? 'Réussi' : 'Non réussi'} (Minimum: {settings.passingScore}%)
               </Badge>
             </div>
 
@@ -387,7 +398,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
             </div>
 
             {/* Question results */}
-            {quiz.settings.showFeedback !== 'never' && (
+            {settings.showFeedback !== 'never' && (
               <div className="space-y-3">
                 <h3 className="font-semibold">Détails des réponses</h3>
                 {result.answers.map((answer, index) => (
@@ -426,18 +437,18 @@ export const QuizModal: React.FC<QuizModalProps> = ({
 
             {/* Actions */}
             <div className="flex gap-2 justify-end">
-              {quiz.settings.allowRetry && 
-                (!quiz.settings.maxAttempts || attemptNumber < quiz.settings.maxAttempts) && (
-                <Button onClick={handleRetry} variant="outline">
-                  <RotateCcw className="h-4 w-4 mr-2" />
-                  Recommencer
-                  {quiz.settings.maxAttempts && (
-                    <span className="ml-2 text-xs">
-                      ({attemptNumber}/{quiz.settings.maxAttempts})
-                    </span>
-                  )}
-                </Button>
-              )}
+              {settings.allowRetry &&
+                (!settings.maxAttempts || attemptNumber < settings.maxAttempts) && (
+                  <Button onClick={handleRetry} variant="outline">
+                    <RotateCcw className="h-4 w-4 mr-2" />
+                    Recommencer
+                    {settings.maxAttempts && (
+                      <span className="ml-2 text-xs">
+                        ({attemptNumber}/{settings.maxAttempts})
+                      </span>
+                    )}
+                  </Button>
+                )}
               <Button onClick={handleClose}>Fermer</Button>
             </div>
           </div>
@@ -489,8 +500,8 @@ export const QuizModal: React.FC<QuizModalProps> = ({
                 index === currentQuestionIndex
                   ? "bg-primary text-primary-foreground"
                   : answers.has(q.id)
-                  ? "bg-accent text-accent-foreground"
-                  : "bg-muted text-muted-foreground hover:bg-accent"
+                    ? "bg-accent text-accent-foreground"
+                    : "bg-muted text-muted-foreground hover:bg-accent"
               )}
             >
               {index + 1}
@@ -507,10 +518,10 @@ export const QuizModal: React.FC<QuizModalProps> = ({
                 {currentQuestion.difficulty && (
                   <Badge variant={
                     currentQuestion.difficulty === 'easy' ? 'default' :
-                    currentQuestion.difficulty === 'medium' ? 'secondary' : 'destructive'
+                      currentQuestion.difficulty === 'medium' ? 'secondary' : 'destructive'
                   }>
                     {currentQuestion.difficulty === 'easy' ? 'Facile' :
-                     currentQuestion.difficulty === 'medium' ? 'Moyen' : 'Difficile'}
+                      currentQuestion.difficulty === 'medium' ? 'Moyen' : 'Difficile'}
                   </Badge>
                 )}
               </div>
