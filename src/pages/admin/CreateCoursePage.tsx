@@ -858,6 +858,7 @@ const CreateCoursePage = () => {
       const coursePayload = {
         title: courseData.title,
         description: courseData.description,
+        objectives: courseData.objectives.filter(obj => obj.trim() !== ''),
         price: parseFloat(courseData.price) || null,
         category: finalCategory || null, // Legacy field
         category_names: categoryNames, // New field
