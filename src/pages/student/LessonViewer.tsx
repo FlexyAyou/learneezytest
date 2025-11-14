@@ -11,6 +11,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useCourse } from '@/hooks/useApi';
 import { useLearnerProgress } from '@/hooks/useLearnerProgress';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
+import { QuizModal } from '@/components/student/QuizModal';
+import { QuizConfig } from '@/types/quiz';
 import VideoPlayer from '@/components/common/VideoPlayer';
 import PDFViewer from '@/components/common/PDFViewer';
 import { usePresignedUrl } from '@/hooks/usePresignedUrl';
@@ -23,16 +25,18 @@ const LessonViewer = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [showTableOfContents, setShowTableOfContents] = useState(true);
+  const [selectedQuiz, setSelectedQuiz] = useState<QuizConfig | null>(null);
+  const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
 
   // Fetch course data
   const { data: course, isLoading } = useCourse(courseId!);
-  
+
   // Progress tracking
-  const { 
-    completedLessons, 
-    markLessonComplete, 
-    isLessonCompleted, 
-    calculateProgress 
+  const {
+    completedLessons,
+    markLessonComplete,
+    isLessonCompleted,
+    calculateProgress
   } = useLearnerProgress(courseId!);
 
   // Find current lesson and module
@@ -55,11 +59,11 @@ const LessonViewer = () => {
       });
     });
 
-    return { 
-      currentLesson: foundLesson, 
-      currentModule: foundModule, 
+    return {
+      currentLesson: foundLesson,
+      currentModule: foundModule,
       lessonIndex: foundIndex,
-      allLessons: lessons 
+      allLessons: lessons
     };
   }, [course, lessonId]);
 
@@ -88,7 +92,7 @@ const LessonViewer = () => {
       link.href = downloadUrl.download_url;
       link.download = resourceName;
       link.click();
-      
+
       toast({
         title: "✅ Téléchargement démarré",
         description: resourceName,
@@ -153,7 +157,7 @@ const LessonViewer = () => {
               <X className="w-4 h-4" />
             </Button>
           </div>
-          
+
           <ScrollArea className="flex-1">
             <div className="p-4">
               {course.modules.map((module: any, moduleIndex: number) => (
@@ -161,16 +165,15 @@ const LessonViewer = () => {
                   <h3 className="text-sm font-semibold text-blue-600 uppercase tracking-wide mb-3">
                     {module.title}
                   </h3>
-                  
+
                   <div className="space-y-2">
                     {module.content.map((lessonItem: any, index: number) => (
                       <div
                         key={lessonItem.title}
-                        className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                          lessonItem.title === lessonId 
-                            ? 'bg-blue-50 border-l-4 border-l-blue-500' 
+                        className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${lessonItem.title === lessonId
+                            ? 'bg-blue-50 border-l-4 border-l-blue-500'
                             : 'hover:bg-gray-50'
-                        }`}
+                          }`}
                         onClick={() => handleLessonClick(lessonItem.title)}
                       >
                         <div className="flex-shrink-0">
@@ -179,20 +182,18 @@ const LessonViewer = () => {
                               <CheckCircle className="w-4 h-4 text-green-600" />
                             </div>
                           ) : (
-                            <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs font-semibold ${
-                              lessonItem.title === lessonId 
-                                ? 'border-blue-500 bg-blue-500 text-white' 
+                            <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs font-semibold ${lessonItem.title === lessonId
+                                ? 'border-blue-500 bg-blue-500 text-white'
                                 : 'border-gray-300 text-gray-500'
-                            }`}>
+                              }`}>
                               {moduleIndex + 1}.{index + 1}
                             </div>
                           )}
                         </div>
-                        
+
                         <div className="flex-1 min-w-0">
-                          <p className={`text-sm font-medium truncate ${
-                            lessonItem.title === lessonId ? 'text-blue-900' : 'text-gray-900'
-                          }`}>
+                          <p className={`text-sm font-medium truncate ${lessonItem.title === lessonId ? 'text-blue-900' : 'text-gray-900'
+                            }`}>
                             {lessonItem.title}
                           </p>
                           <p className="text-xs text-gray-500 flex items-center mt-1">
@@ -218,8 +219,8 @@ const LessonViewer = () => {
             <div className="flex items-center justify-between h-16">
               <div className="flex items-center space-x-4">
                 {!showTableOfContents && (
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     size="sm"
                     onClick={() => setShowTableOfContents(true)}
                     className="p-2"
@@ -227,8 +228,8 @@ const LessonViewer = () => {
                     <Menu className="w-4 h-4" />
                   </Button>
                 )}
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   size="sm"
                   onClick={() => navigate('/')}
                   className="p-2"
@@ -236,8 +237,8 @@ const LessonViewer = () => {
                   <Home className="w-4 h-4" />
                 </Button>
                 <ChevronRight className="w-4 h-4 text-gray-400" />
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   size="sm"
                   onClick={() => navigate(`/dashboard/apprenant/courses/${courseId}`)}
                   className="text-sm text-gray-600 hover:text-gray-900"
@@ -247,7 +248,7 @@ const LessonViewer = () => {
                 <ChevronRight className="w-4 h-4 text-gray-400" />
                 <span className="text-sm font-medium">{currentLesson.title}</span>
               </div>
-              
+
               <div className="flex items-center space-x-3">
                 <div className="text-sm text-gray-600">
                   {lessonIndex + 1}/{totalLessons} leçons
@@ -270,7 +271,7 @@ const LessonViewer = () => {
                       📚 {currentModule.title}
                     </Badge>
                   </div>
-                  
+
                   <div className="flex items-center gap-3 mb-3">
                     <Badge variant="secondary">
                       {contentType === 'video' && '🎥 vidéo'}
@@ -283,13 +284,35 @@ const LessonViewer = () => {
                       {currentLesson.duration}
                     </div>
                   </div>
-                  
+
                   <h1 className="text-3xl font-bold mb-3">{currentLesson.title}</h1>
                   {currentLesson.description && (
-                    <div 
+                    <div
                       className="text-gray-600 text-lg"
                       dangerouslySetInnerHTML={{ __html: sanitizeHTML(currentLesson.description) }}
                     />
+                  )}
+
+                  {/* Bouton de démarrage du quiz (si le module propose des quizz) */}
+                  {currentModule?.quizzes && currentModule.quizzes.length > 0 && (
+                    <div className="mt-4">
+                      <h3 className="text-sm font-semibold text-gray-700 mb-2">Quiz du module</h3>
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3">
+                        {currentModule.quizzes.map((quiz: any, idx: number) => (
+                          <Button
+                            key={`module-quiz-${idx}`}
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedQuiz(quiz as QuizConfig);
+                              setIsQuizModalOpen(true);
+                            }}
+                            className="mb-2 sm:mb-0"
+                          >
+                            📝 {quiz.title}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </div>
 
@@ -323,7 +346,7 @@ const LessonViewer = () => {
                     <TabsTrigger value="transcript">Transcription</TabsTrigger>
                     <TabsTrigger value="discussion">Discussion avec le formateur</TabsTrigger>
                   </TabsList>
-                  
+
                   <TabsContent value="overview" className="space-y-4">
                     <Card>
                       <CardHeader>
@@ -331,7 +354,7 @@ const LessonViewer = () => {
                       </CardHeader>
                       <CardContent>
                         {currentLesson.description && (
-                          <div 
+                          <div
                             className="text-gray-700 mb-4"
                             dangerouslySetInnerHTML={{ __html: sanitizeHTML(currentLesson.description) }}
                           />
@@ -339,7 +362,7 @@ const LessonViewer = () => {
                       </CardContent>
                     </Card>
                   </TabsContent>
-                  
+
                   <TabsContent value="transcript" className="space-y-4">
                     <Card>
                       <CardHeader>
@@ -359,7 +382,7 @@ const LessonViewer = () => {
                       </CardContent>
                     </Card>
                   </TabsContent>
-                  
+
                   <TabsContent value="discussion" className="space-y-4">
                     <Card>
                       <CardHeader>
@@ -402,9 +425,9 @@ const LessonViewer = () => {
                         </div>
                         <Progress value={progressPercentage} className="h-2" />
                       </div>
-                      
-                      <Button 
-                        onClick={handleMarkComplete} 
+
+                      <Button
+                        onClick={handleMarkComplete}
                         disabled={isCompleted}
                         className="w-full"
                         variant={isCompleted ? "outline" : "default"}
@@ -478,6 +501,29 @@ const LessonViewer = () => {
           </div>
         </div>
       </div>
+
+      {selectedQuiz && (
+        <QuizModal
+          open={isQuizModalOpen}
+          onOpenChange={(open) => setIsQuizModalOpen(open)}
+          quiz={selectedQuiz}
+          onComplete={(result) => {
+            console.log('Quiz completed:', result);
+            // Persister le résultat côté backend si nécessaire
+            if (result.isPassing) {
+              if (currentLesson) {
+                markLessonComplete(currentLesson.title);
+                toast({ title: '✅ Quiz réussi', description: 'Le quiz a été complété avec succès' });
+              }
+            } else {
+              toast({ title: '❌ Quiz non réussi', description: 'Vous pouvez réessayer le quiz' });
+            }
+            setIsQuizModalOpen(false);
+            setSelectedQuiz(null);
+          }}
+        />
+      )}
+
     </div>
   );
 };
@@ -507,9 +553,9 @@ const ImageDisplay: React.FC<{ imageKey?: string; title: string }> = ({ imageKey
 
   return (
     <div className="w-full">
-      <img 
-        src={url} 
-        alt={title} 
+      <img
+        src={url}
+        alt={title}
         className="w-full h-auto rounded-lg"
       />
     </div>
