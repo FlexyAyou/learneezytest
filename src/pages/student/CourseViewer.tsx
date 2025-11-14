@@ -29,12 +29,12 @@ const CourseViewer = () => {
   useEffect(() => {
     const fetchCourse = async () => {
       if (!id) return;
-      
+
       try {
         setLoading(true);
         const data = await fastAPIClient.getCourse(id);
         setCourse(data);
-        
+
         // TODO: Fetch user's actual progress from API
         setCompletedLessons([]);
       } catch (error) {
@@ -67,20 +67,20 @@ const CourseViewer = () => {
   }
 
   const isLessonCompleted = (lessonId: string) => completedLessons.includes(lessonId);
-  
+
   const isLessonAvailable = (moduleIndex: number, lessonIndex: number) => {
     if (moduleIndex === 0 && lessonIndex === 0) return true;
-    
+
     if (lessonIndex > 0) {
       const previousLesson = course.modules[moduleIndex].content[lessonIndex - 1];
       return isLessonCompleted(previousLesson.title);
     }
-    
+
     if (moduleIndex > 0) {
       const previousModule = course.modules[moduleIndex - 1];
       return previousModule.content.every(lesson => isLessonCompleted(lesson.title));
     }
-    
+
     return false;
   };
 
@@ -133,8 +133,8 @@ const CourseViewer = () => {
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       <div className="flex items-center gap-4 mb-6">
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           size="sm"
           onClick={() => navigate('/dashboard/apprenant/courses')}
         >
@@ -208,16 +208,17 @@ const CourseViewer = () => {
               <TabsTrigger value="overview">Aperçu</TabsTrigger>
               <TabsTrigger value="resources">Ressources</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="content" className="space-y-4">
               {course.modules.map((module, moduleIndex) => (
                 <Card key={moduleIndex}>
                   <CardHeader>
                     <CardTitle className="text-lg">Module {moduleIndex + 1}: {module.title}</CardTitle>
                     {module.description && (
-                      <CardDescription>
-                        <div dangerouslySetInnerHTML={{ __html: sanitizeHTML(module.description) }} />
-                      </CardDescription>
+                      <div
+                        className="text-sm text-muted-foreground"
+                        dangerouslySetInnerHTML={{ __html: sanitizeHTML(module.description) }}
+                      />
                     )}
                   </CardHeader>
                   <CardContent>
@@ -226,14 +227,13 @@ const CourseViewer = () => {
                       {module.content.map((lesson, lessonIndex) => {
                         const isCompleted = isLessonCompleted(lesson.title);
                         const isAvailable = isLessonAvailable(moduleIndex, lessonIndex);
-                        
+
                         return (
                           <div
                             key={lessonIndex}
-                            className={`flex items-center justify-between p-3 border rounded-lg ${
-                              isCompleted ? 'bg-green-50 border-green-200' :
-                              isAvailable ? 'hover:bg-gray-50 cursor-pointer' : 'bg-gray-50'
-                            }`}
+                            className={`flex items-center justify-between p-3 border rounded-lg ${isCompleted ? 'bg-green-50 border-green-200' :
+                                isAvailable ? 'hover:bg-gray-50 cursor-pointer' : 'bg-gray-50'
+                              }`}
                           >
                             <div className="flex items-center gap-3">
                               {isCompleted ? (
@@ -252,7 +252,7 @@ const CourseViewer = () => {
                                 </p>
                               </div>
                             </div>
-                            
+
                             {isAvailable && (
                               <Button
                                 size="sm"
@@ -308,7 +308,7 @@ const CourseViewer = () => {
                 </Card>
               ))}
             </TabsContent>
-            
+
             <TabsContent value="overview" className="space-y-4">
               <Card>
                 <CardHeader>
@@ -322,7 +322,7 @@ const CourseViewer = () => {
                 </CardContent>
               </Card>
             </TabsContent>
-            
+
             <TabsContent value="resources" className="space-y-4">
               <Card>
                 <CardHeader>
@@ -337,8 +337,8 @@ const CourseViewer = () => {
                             <Book className="w-5 h-5 text-blue-600" />
                             <span>{resource.name}</span>
                           </div>
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             size="sm"
                             onClick={() => window.open(resource.url, '_blank')}
                           >
