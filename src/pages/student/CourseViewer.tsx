@@ -120,14 +120,17 @@ const CourseViewer = () => {
     const res = course.resources?.[index];
     if (!res) return;
     try {
-      // Déterminer la clé (nouveau backend peut utiliser resource_key)
+      // 1) Essayer d'abord l'endpoint serveur indexé (même méthode que côté superadmin)
+      //    -> renvoie un blob et force le téléchargement avec le bon filename
+      try {
+        await fastAPIClient.downloadCourseResource(course.id, index);
+        return;
+      } catch (err) {
+        console.warn('downloadCourseResource failed, falling back to presigned URL or direct URL', err);
+      }
+
+      // 2) Si l'endpoint index a échoué, essayer d'obtenir une URL présignée depuis la clé
       const key: string | undefined = (res as any).resource_key || res.key;
-
-      // Heuristique: une URL sans paramètres de signature (pas de ?X-Amz ou ?Expires) ne doit PAS être ouverte directement
-      const looksUnsigned = res.url && !res.url.includes('X-Amz') && !res.url.includes('Expires');
-      const looksLikeBucketPath = res.url && res.url.includes('learneezy-media');
-
-      // Toujours privilégier une URL présignée générée côté backend si on a une clé
       if (key) {
         try {
           const { download_url } = await fastAPIClient.getDownloadUrl(key);
@@ -136,19 +139,17 @@ const CourseViewer = () => {
             return;
           }
         } catch (e) {
-          // Si la génération échoue, on tentera les autres fallbacks
-          console.warn('Fallback download (getDownloadUrl failed):', e);
+          console.warn('getDownloadUrl fallback failed:', e);
         }
       }
 
-      // Si une URL est fournie ET semble déjà présignée (contient X-Amz), on l'utilise
-      if (res.url && !looksUnsigned && !looksLikeBucketPath) {
+      // 3) Enfin, ouvrir une URL directe si elle est déjà présignée
+      if (res.url && (res.url.includes('X-Amz') || res.url.includes('Expires'))) {
         window.open(res.url, '_blank');
         return;
       }
 
-      // Dernier fallback: endpoint index → blob + filename
-      await fastAPIClient.downloadCourseResource(course.id, index);
+      console.error('Aucun moyen valide pour télécharger la ressource', res);
     } catch (error) {
       console.error('Erreur téléchargement ressource:', error);
     }
