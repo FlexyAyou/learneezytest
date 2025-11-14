@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import DOMPurify from 'dompurify';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -2005,7 +2006,11 @@ const CreateCoursePage = () => {
                     </div>
                     <div>
                       <Label className="text-gray-600">Description</Label>
-                      <p className="mt-1">{courseData.description}</p>
+                      <div
+                        className="mt-1 prose max-w-none"
+                        // Le HTML provient de l'éditeur riche. On le sanitize avant rendu pour éviter les XSS.
+                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(courseData.description || '') }}
+                      />
                     </div>
                   </CardContent>
                 </Card>
