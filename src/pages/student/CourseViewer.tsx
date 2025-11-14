@@ -157,13 +157,74 @@ const CourseViewer = () => {
 
   const handleDownloadAllResources = async () => {
     if (!course?.resources?.length) return;
-    // Déclenche les téléchargements en séquence pour éviter des blocages popup
-    for (let i = 0; i < course.resources.length; i++) {
-      // petite pause entre chaque pour la stabilité des navigateurs
-      // eslint-disable-next-line no-await-in-loop
-      await new Promise(resolve => setTimeout(resolve, 300));
-      // eslint-disable-next-line no-await-in-loop
-      await handleDownloadResource(i);
+
+    try {
+      const JSZipImport = await import('jszip');
+      const JSZip = (JSZipImport && (JSZipImport as any).default) ? (JSZipImport as any).default : JSZipImport;
+      const zip = new JSZip();
+
+      for (let i = 0; i < course.resources.length; i++) {
+        const res = course.resources[i];
+
+        // 1) Essayer le endpoint backend qui renvoie le blob (même méthode que superadmin)
+        try {
+          const { blob, filename } = await fastAPIClient.fetchCourseResourceBlob(course.id, i);
+          zip.file(filename || res.name || `resource-${i}`, blob);
+          continue;
+        } catch (err) {
+          console.warn('fetchCourseResourceBlob failed for index', i, err);
+        }
+
+        // 2) Fallback: obtenir une URL présignée depuis la clé et fetcher
+        const key: string | undefined = (res as any).resource_key || res.key;
+        if (key) {
+          try {
+            const { download_url } = await fastAPIClient.getDownloadUrl(key);
+            if (download_url) {
+              const r = await fetch(download_url);
+              const blob = await r.blob();
+              const filename = res.name || key.split('/').pop() || `resource-${i}`;
+              zip.file(filename, blob);
+              continue;
+            }
+          } catch (err) {
+            console.warn('getDownloadUrl/fetch failed for key', key, err);
+          }
+        }
+
+        // 3) Fallback: si res.url est présignée, la fetcher
+        if (res.url && (res.url.includes('X-Amz') || res.url.includes('Expires'))) {
+          try {
+            const r = await fetch(res.url);
+            const blob = await r.blob();
+            const filename = res.name || `resource-${i}`;
+            zip.file(filename, blob);
+            continue;
+          } catch (err) {
+            console.warn('fetch direct res.url failed', err);
+          }
+        }
+
+        console.warn('Unable to fetch resource for zipping', res);
+      }
+
+      // Générer le zip et déclencher le téléchargement
+      const content = await zip.generateAsync({ type: 'blob' });
+      const downloadUrl = window.URL.createObjectURL(content);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = 'ressources.zip';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (err) {
+      console.error('Erreur lors du zippage des ressources :', err);
+      // Fallback: télécharger individuellement
+      for (let i = 0; i < course.resources.length; i++) {
+        // eslint-disable-next-line no-await-in-loop
+        await handleDownloadResource(i);
+      }
     }
   };
 

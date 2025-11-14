@@ -1028,6 +1028,29 @@ class FastAPIClient {
   }
 
   /**
+   * Récupérer le blob d'une ressource pédagogique (sans lancer le téléchargement)
+   * Retourne le blob et le filename extrait des headers si présent
+   */
+  async fetchCourseResourceBlob(courseId: string, index: number): Promise<{ blob: Blob; filename: string }> {
+    const response = await this.axiosInstance.get(
+      `/api/courses/${courseId}/resources/${index}/download`,
+      { responseType: 'blob' }
+    );
+
+    const contentDisposition = response.headers['content-disposition'];
+    let filename = `resource-${index}`;
+    if (contentDisposition) {
+      const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
+      if (matches && matches[1]) {
+        filename = matches[1].replace(/['"]/g, '');
+      }
+    }
+
+    const blob = response.data instanceof Blob ? response.data : new Blob([response.data]);
+    return { blob, filename };
+  }
+
+  /**
    * Télécharger le programme PDF du cours
    */
   async downloadCourseProgram(courseId: string): Promise<void> {
