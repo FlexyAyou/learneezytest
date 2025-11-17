@@ -14,6 +14,7 @@ import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Upload, Plus, X, Save, ArrowLeft, ArrowRight, Video, FileText, Image as ImageIcon, Edit2, Trash2, Check, BookOpen, ClipboardList, HelpCircle, Link as LinkIcon, Loader2 } from 'lucide-react';
 import { CycleTagSelector } from '@/components/admin/CycleTagSelector';
+import { CategoryTagSelector } from '@/components/admin/CategoryTagSelector';
 import { useToast } from '@/hooks/use-toast';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { QuizBuilder, AssignmentBuilder } from '@/components/quiz';
@@ -1254,64 +1255,10 @@ const CreateCoursePage = () => {
                     />
                   </div>
 
-                  <div>
-                    <Label className="text-base">Catégorie</Label>
-                    <Select
-                      value={courseData.category === 'custom' ? 'custom' : courseData.category}
-                      onValueChange={(value) => {
-                        if (value === 'custom') {
-                          handleInputChange('category', 'custom');
-                        } else {
-                          handleInputChange('category', value);
-                          handleInputChange('customCategory', '');
-                        }
-                      }}
-                    >
-                      <SelectTrigger className="mt-2">
-                        <SelectValue placeholder="Sélectionner" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {isLoadingCategories ? (
-                          <SelectItem value="__loading" disabled>
-                            Chargement des catégories...
-                          </SelectItem>
-                        ) : (
-                          <>
-                            {categories && categories.length > 0 ? (
-                              categories.map((cat) => (
-                                <SelectItem key={cat.id} value={cat.name}>
-                                  {cat.name}
-                                </SelectItem>
-                              ))
-                            ) : (
-                              <SelectItem value="__empty" disabled>
-                                Aucune catégorie disponible
-                              </SelectItem>
-                            )}
-                          </>
-                        )}
-                        <SelectItem value="custom">➕ Ajouter une nouvelle catégorie</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {courseData.category === 'custom' && (
-                      <div className="mt-2 space-y-2">
-                        <Input
-                          value={courseData.customCategory}
-                          onChange={(e) => handleInputChange('customCategory', e.target.value)}
-                          placeholder="Entrez une catégorie personnalisée"
-                        />
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={saveCustomCategory}
-                          className="w-full"
-                        >
-                          <Save className="h-4 w-4 mr-2" />
-                          Enregistrer et ajouter à la liste
-                        </Button>
-                      </div>
-                    )}
-                  </div>
+                  <CategoryTagSelector
+                    selectedCategory={courseData.category}
+                    onCategoryChange={(category) => handleInputChange('category', category)}
+                  />
 
                   <div>
                     <Label className="text-base">Durée </Label>
