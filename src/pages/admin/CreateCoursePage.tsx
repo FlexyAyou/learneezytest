@@ -2077,7 +2077,6 @@ const CreateCoursePage = () => {
                   setShowModuleQuizBuilder(null);
                   setEditingQuizIndex(null);
                 }}
-                availableTypes={['single-choice', 'multiple-choice', 'true-false', 'short-answer'] as QuestionType[]}
               />
             </DialogContent>
           </Dialog>
