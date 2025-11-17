@@ -23,8 +23,9 @@ export interface BaseQuestion {
   difficulty?: DifficultyLevel;
   explanation?: string;
   media?: {
-    type: 'image' | 'video' | 'audio';
-    url: string;
+    type: 'image' | 'video' | 'pdf';
+    url?: string;
+    key?: string;
   };
   tags?: string[];
 }

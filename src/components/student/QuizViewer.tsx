@@ -20,6 +20,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { QuizConfig, Question, UserAnswer } from '@/types/quiz';
+import MediaPreview from '@/components/quiz/MediaPreview';
 
 interface QuizViewerProps {
   quiz: QuizConfig;
@@ -541,6 +542,16 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
           </div>
         </CardHeader>
         <CardContent>
+          {currentQuestion.media && (
+            <div className="mb-6">
+              <p className="text-sm text-muted-foreground mb-3 font-medium">Média associé à la question :</p>
+              <MediaPreview
+                mediaType={currentQuestion.media.type}
+                mediaKey={currentQuestion.media.key}
+                mediaUrl={currentQuestion.media.url}
+              />
+            </div>
+          )}
           {renderQuestion(currentQuestion)}
         </CardContent>
       </Card>

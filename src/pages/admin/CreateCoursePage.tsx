@@ -1738,14 +1738,9 @@ const CreateCoursePage = () => {
                                             <Upload className="h-12 w-12 text-gray-400 mb-3" />
                                             <p className="mb-2 text-lg font-semibold text-gray-700">Vidéo, PDF ou Image</p>
                                             <p className="text-xs text-gray-500 mb-2">Glissez-déposez ou cliquez pour parcourir</p>
-                                            <Button
-                                              type="button"
-                                              variant="outline"
-                                              size="sm"
-                                              className="mt-2"
-                                            >
+                                            <div className="mt-2 px-4 py-2 border border-input rounded-md text-sm font-medium hover:bg-accent hover:text-accent-foreground inline-block">
                                               Choisir un fichier
-                                            </Button>
+                                            </div>
                                             <p className="text-xs text-gray-400 mt-3">Limites : Vidéo (500MB) + PDF (50MB) + Image (10MB)</p>
                                           </div>
                                           <input

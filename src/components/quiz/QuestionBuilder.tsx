@@ -6,9 +6,16 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, X, Save, Upload, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, X, Save, Upload, ChevronDown, ChevronUp, Video, FileText, Image as ImageIcon, Trash2, Link as LinkIcon } from 'lucide-react';
 import { QuestionTypeSelector } from './QuestionTypeSelector';
 import type { Question, QuestionType, DifficultyLevel } from '@/types/quiz';
+import { uploadDirect } from '@/utils/upload';
+import { useToast } from '@/hooks/use-toast';
+import VideoPlayer from '@/components/common/VideoPlayer';
+import PDFViewer from '@/components/common/PDFViewer';
+import { usePresignedUrl } from '@/hooks/usePresignedUrl';
+import { Progress } from '@/components/ui/progress';
+import MediaPreview from './MediaPreview';
 
 interface QuestionBuilderProps {
   question?: Question;
@@ -23,12 +30,23 @@ export const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
   onCancel,
   availableTypes
 }) => {
+  const { toast } = useToast();
   const [questionType, setQuestionType] = useState<QuestionType>(question?.type || 'single-choice');
   const [questionText, setQuestionText] = useState(question?.question || '');
   const [points, setPoints] = useState(question?.points || 1);
   const [difficulty, setDifficulty] = useState<DifficultyLevel>(question?.difficulty || 'medium');
   const [explanation, setExplanation] = useState(question?.explanation || '');
   const [showAdvanced, setShowAdvanced] = useState(false);
+
+  // Media states
+  const [showMediaSection, setShowMediaSection] = useState(!!question?.media);
+  const [mediaType, setMediaType] = useState<'image' | 'video' | 'pdf' | null>(question?.media?.type || null);
+  const [mediaKey, setMediaKey] = useState<string | undefined>(question?.media?.key);
+  const [mediaUrl, setMediaUrl] = useState<string | undefined>(question?.media?.url);
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [useMediaUrl, setUseMediaUrl] = useState(false);
 
   // Single/Multiple Choice
   const [options, setOptions] = useState<string[]>(
@@ -91,6 +109,52 @@ export const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
     question?.type === 'ordering' ? question.items : ['', '']
   );
 
+  const handleMediaUpload = async (file: File) => {
+    setIsUploadingMedia(true);
+    try {
+      let uploadKind: 'image' | 'video' | 'pdf';
+      if (file.type.startsWith('video/')) {
+        uploadKind = 'video';
+        setMediaType('video');
+      } else if (file.type === 'application/pdf') {
+        uploadKind = 'pdf';
+        setMediaType('pdf');
+      } else {
+        uploadKind = 'image';
+        setMediaType('image');
+      }
+
+      const result = await uploadDirect(file, uploadKind, {
+        onProgress: (uploaded, total) => {
+          setUploadProgress((uploaded / total) * 100);
+        }
+      });
+
+      setMediaKey(result.key);
+      setMediaFile(file);
+      toast({ 
+        title: "✅ Média uploadé", 
+        description: file.name 
+      });
+    } catch (error: any) {
+      toast({ 
+        title: "❌ Erreur d'upload", 
+        description: error.message,
+        variant: "destructive" 
+      });
+    } finally {
+      setIsUploadingMedia(false);
+      setUploadProgress(0);
+    }
+  };
+
+  const handleRemoveMedia = () => {
+    setMediaKey(undefined);
+    setMediaUrl(undefined);
+    setMediaFile(null);
+    setMediaType(null);
+  };
+
   const handleSave = () => {
     let newQuestion: Question;
     const baseQuestion = {
@@ -99,6 +163,11 @@ export const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
       points,
       difficulty,
       explanation: explanation || undefined,
+      media: (mediaKey || mediaUrl) ? {
+        type: mediaType!,
+        key: mediaKey,
+        url: mediaUrl
+      } : undefined,
     };
 
     switch (questionType) {
@@ -548,6 +617,150 @@ export const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
           />
         </div>
 
+        {/* Media Section */}
+        <div className="border-t pt-4">
+          <div className="flex items-center justify-between mb-3">
+            <Label className="text-base">Média de la question (optionnel)</Label>
+            <Switch
+              checked={showMediaSection}
+              onCheckedChange={(checked) => {
+                setShowMediaSection(checked);
+                if (!checked) {
+                  handleRemoveMedia();
+                }
+              }}
+            />
+          </div>
+
+          {showMediaSection && (
+            <div className="space-y-4">
+              {/* Media type selection */}
+              {!mediaKey && !mediaUrl && (
+                <div className="flex gap-2 mb-4">
+                  <Button
+                    type="button"
+                    variant={!useMediaUrl ? "default" : "outline"}
+                    size="sm"
+                    className={!useMediaUrl ? "bg-pink-500 hover:bg-pink-600 text-white" : ""}
+                    onClick={() => setUseMediaUrl(false)}
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload fichier
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={useMediaUrl ? "default" : "outline"}
+                    size="sm"
+                    className={useMediaUrl ? "bg-purple-500 hover:bg-purple-600 text-white" : ""}
+                    onClick={() => setUseMediaUrl(true)}
+                  >
+                    <LinkIcon className="h-4 w-4 mr-2" />
+                    Lien URL
+                  </Button>
+                </div>
+              )}
+
+              {/* Upload section */}
+              {!useMediaUrl && !mediaKey && !mediaUrl && (
+                <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-accent/50 transition-colors">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <Upload className="h-12 w-12 text-muted-foreground mb-3" />
+                    <p className="mb-2 text-lg font-semibold text-foreground">Vidéo, PDF ou Image</p>
+                    <p className="text-xs text-muted-foreground mb-2">Glissez-déposez ou cliquez pour parcourir</p>
+                    <div className="mt-2 px-4 py-2 border border-input rounded-md text-sm font-medium hover:bg-accent hover:text-accent-foreground inline-block">
+                      Choisir un fichier
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-3">Limites : Vidéo (500MB) + PDF (50MB) + Image (10MB)</p>
+                  </div>
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="video/*,.pdf,image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleMediaUpload(file);
+                    }}
+                    disabled={isUploadingMedia}
+                  />
+                </label>
+              )}
+
+              {/* URL input section */}
+              {useMediaUrl && !mediaKey && !mediaUrl && (
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={mediaType === 'video' ? 'default' : 'outline'}
+                      onClick={() => setMediaType('video')}
+                    >
+                      <Video className="h-4 w-4 mr-1" />
+                      Vidéo
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={mediaType === 'pdf' ? 'default' : 'outline'}
+                      onClick={() => setMediaType('pdf')}
+                    >
+                      <FileText className="h-4 w-4 mr-1" />
+                      PDF
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={mediaType === 'image' ? 'default' : 'outline'}
+                      onClick={() => setMediaType('image')}
+                    >
+                      <ImageIcon className="h-4 w-4 mr-1" />
+                      Image
+                    </Button>
+                  </div>
+                  <Input
+                    placeholder="https://exemple.com/media..."
+                    value={mediaUrl || ''}
+                    onChange={(e) => setMediaUrl(e.target.value)}
+                  />
+                </div>
+              )}
+
+              {/* Upload progress */}
+              {isUploadingMedia && (
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Upload en cours...</span>
+                    <span>{Math.round(uploadProgress)}%</span>
+                  </div>
+                  <Progress value={uploadProgress} />
+                </div>
+              )}
+
+              {/* Media preview */}
+              {(mediaKey || mediaUrl) && mediaType && (
+                <div className="space-y-3">
+                  <MediaPreview
+                    mediaType={mediaType}
+                    mediaKey={mediaKey}
+                    mediaUrl={mediaUrl}
+                    fileName={mediaFile?.name}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRemoveMedia}
+                    className="w-full"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Supprimer le média
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
         {renderQuestionFields()}
 
         <div className="border-t pt-4">
@@ -604,7 +817,7 @@ export const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
           <Button variant="outline" onClick={onCancel}>
             Annuler
           </Button>
-          <Button onClick={handleSave} disabled={!questionText.trim()}>
+          <Button onClick={handleSave} disabled={!questionText.trim() || isUploadingMedia}>
             <Save className="h-4 w-4 mr-2" />
             Enregistrer
           </Button>
