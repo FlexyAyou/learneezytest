@@ -28,6 +28,7 @@ import { RestoreDraftDialog } from '@/components/admin/RestoreDraftDialog';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Trash2 as TrashIcon } from 'lucide-react';
+import { SortableContentList, ContentItem } from '@/components/course-creation/SortableContentList';
 
 interface Lesson {
   id: string;
@@ -607,6 +608,28 @@ const CreateCoursePage = () => {
   const handleEditModuleQuiz = (moduleId: string, quizIndex: number) => {
     setShowModuleQuizBuilder(moduleId);
     setEditingQuizIndex(quizIndex);
+  };
+
+  // Reorder content (lessons and quizzes) within a module
+  const handleReorderContent = (moduleId: string, reorderedItems: ContentItem[]) => {
+    setModules(modules.map(m => {
+      if (m.id === moduleId) {
+        // Séparer les leçons et quizzes réorganisés
+        const newLessons: Lesson[] = [];
+        const newQuizzes: QuizConfig[] = [];
+        
+        reorderedItems.forEach(item => {
+          if (item.type === 'lesson') {
+            newLessons.push(item.data);
+          } else {
+            newQuizzes.push(item.data);
+          }
+        });
+        
+        return { ...m, lessons: newLessons, quizzes: newQuizzes };
+      }
+      return m;
+    }));
   };
 
   // Pedagogical Resources functions
@@ -1537,405 +1560,279 @@ const CreateCoursePage = () => {
                             </div>
                           </div>
 
-                          {/* Lessons Section */}
+                          {/* Unified Content Section (Lessons + Quizzes with Drag & Drop) */}
                           <div className="space-y-4 border-t pt-6">
-                            <div className="flex items-center justify-between">
-                              <h4 className="font-semibold text-lg">Leçons</h4>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => addLesson(module.id)}
-                              >
-                                <Plus className="h-4 w-4 mr-2" />
-                                Ajouter une leçon
-                              </Button>
-                            </div>
-
-                            {module.lessons.length === 0 ? (
-                              <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed">
-                                <FileText className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                                <p className="text-gray-500">Aucune leçon pour le moment</p>
+                            <div className="flex items-center justify-between mb-4">
+                              <h4 className="font-semibold text-lg">Contenu du module</h4>
+                              <div className="flex gap-2">
                                 <Button
                                   variant="outline"
                                   size="sm"
                                   onClick={() => addLesson(module.id)}
-                                  className="mt-4"
                                 >
                                   <Plus className="h-4 w-4 mr-2" />
-                                  Créer la première leçon
+                                  Ajouter une leçon
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    setShowModuleQuizBuilder(module.id);
+                                    setEditingQuizIndex(null);
+                                  }}
+                                >
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Ajouter un quiz
                                 </Button>
                               </div>
+                            </div>
+
+                            {module.lessons.length === 0 && module.quizzes.length === 0 ? (
+                              <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed">
+                                <FileText className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                                <p className="text-gray-500">Aucun contenu pour le moment</p>
+                                <p className="text-sm text-gray-400 mt-1">Ajoutez des leçons et des quiz pour construire votre module</p>
+                              </div>
                             ) : (
-                              <div className="space-y-3">
-                                {module.lessons.map((lesson, lessonIndex) => (
-                                  <Card key={lesson.id} className="bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200">
-                                    <CardHeader className="pb-3">
-                                      <div className="flex items-center justify-between">
-                                        <div className="flex items-center space-x-2">
-                                          <Badge variant="outline" className="bg-white">
-                                            Leçon {lessonIndex + 1}
-                                          </Badge>
-                                          <span className="font-medium">{lesson.title || 'Sans titre'}</span>
-                                        </div>
-                                        <div className="flex gap-2">
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => setEditingLesson(
-                                              editingLesson?.lessonId === lesson.id ? null : { moduleId: module.id, lessonId: lesson.id }
-                                            )}
-                                          >
-                                            <Edit2 className="h-4 w-4" />
-                                          </Button>
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => removeLesson(module.id, lesson.id)}
-                                          >
-                                            <Trash2 className="h-4 w-4 text-red-500" />
-                                          </Button>
-                                        </div>
+                              <SortableContentList
+                                items={[
+                                  ...module.lessons.map((lesson, idx) => ({
+                                    id: lesson.id,
+                                    type: 'lesson' as const,
+                                    originalIndex: idx,
+                                    data: lesson
+                                  })),
+                                  ...module.quizzes.map((quiz, idx) => ({
+                                    id: `quiz-${module.id}-${idx}`,
+                                    type: 'quiz' as const,
+                                    originalIndex: idx,
+                                    data: quiz
+                                  }))
+                                ]}
+                                onReorder={(reorderedItems) => handleReorderContent(module.id, reorderedItems)}
+                                onEditLesson={(lessonId) => {
+                                  setEditingLesson(
+                                    editingLesson?.lessonId === lessonId ? null : { moduleId: module.id, lessonId }
+                                  );
+                                }}
+                                onDeleteLesson={(lessonId) => removeLesson(module.id, lessonId)}
+                                onEditQuiz={(quizIndex) => handleEditModuleQuiz(module.id, quizIndex)}
+                                onDeleteQuiz={(quizIndex) => handleDeleteModuleQuiz(module.id, quizIndex)}
+                              />
+                            )}
+
+                            {/* Expanded Lesson Editor */}
+                            {editingLesson && editingLesson.moduleId === module.id && (() => {
+                              const lesson = module.lessons.find(l => l.id === editingLesson.lessonId);
+                              if (!lesson) return null;
+
+                              return (
+                                <Card className="mt-4 bg-white border-2 border-blue-300">
+                                  <CardContent className="pt-6">
+                                    <div className="space-y-4">
+                                      <div className="flex items-center justify-between mb-4">
+                                        <h5 className="font-semibold">Édition de la leçon</h5>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => setEditingLesson(null)}
+                                        >
+                                          <X className="h-4 w-4" />
+                                        </Button>
                                       </div>
-                                    </CardHeader>
-                                    {editingLesson?.lessonId === lesson.id && (
-                                      <CardContent className="space-y-4">
-                                        <div className="grid grid-cols-2 gap-4">
+
+                                      <div>
+                                        <Label>Titre de la leçon</Label>
+                                        <Input
+                                          value={lesson.title}
+                                          onChange={(e) => updateLesson(module.id, lesson.id, { title: e.target.value })}
+                                          placeholder="Titre de la leçon"
+                                          className="mt-2"
+                                        />
+                                      </div>
+
+                                      <div>
+                                        <Label>Durée (minutes)</Label>
+                                        <Input
+                                          type="number"
+                                          value={lesson.duration}
+                                          onChange={(e) => updateLesson(module.id, lesson.id, { duration: parseInt(e.target.value) || 0 })}
+                                          placeholder="30"
+                                          className="mt-2"
+                                        />
+                                      </div>
+
+                                      <div>
+                                        <Label>Contenu descriptif</Label>
+                                        <RichTextEditor
+                                          value={lesson.content}
+                                          onChange={(value) => updateLesson(module.id, lesson.id, { content: value })}
+                                          placeholder="Décrivez le contenu de cette leçon..."
+                                          height="200px"
+                                        />
+                                      </div>
+
+                                      {/* Media Upload/URL Toggle */}
+                                      <div className="flex items-center space-x-2 py-2">
+                                        <Switch
+                                          checked={lesson.useMediaUrl || false}
+                                          onCheckedChange={(checked) => {
+                                            updateLesson(module.id, lesson.id, {
+                                              useMediaUrl: checked,
+                                              file: checked ? undefined : lesson.file,
+                                              filePreview: checked ? undefined : lesson.filePreview,
+                                              fileName: checked ? '' : lesson.fileName,
+                                              fileType: checked ? null : lesson.fileType,
+                                              mediaUrl: checked ? lesson.mediaUrl : ''
+                                            });
+                                          }}
+                                        />
+                                        <Label className="cursor-pointer">
+                                          Utiliser une URL externe (YouTube, Vimeo, etc.)
+                                        </Label>
+                                      </div>
+
+                                      {/* Upload Mode */}
+                                      {!lesson.useMediaUrl && (
+                                        <>
                                           <div>
-                                            <Label>Titre de la leçon</Label>
-                                            <Input
-                                              value={lesson.title}
-                                              onChange={(e) => updateLesson(module.id, lesson.id, { title: e.target.value })}
-                                              placeholder="Titre"
-                                              className="mt-2"
-                                            />
-                                          </div>
-                                          <div>
-                                            <Label>Durée (minutes)</Label>
-                                            <Input
-                                              type="number"
-                                              value={lesson.duration || ''}
-                                              onChange={(e) => updateLesson(module.id, lesson.id, { duration: parseInt(e.target.value) || 0 })}
-                                              placeholder="30"
-                                              className="mt-2"
-                                            />
-                                          </div>
-                                        </div>
-                                        <div>
-                                          <Label>Contenu de la leçon</Label>
-                                          <RichTextEditor
-                                            value={lesson.content}
-                                            onChange={(value) => updateLesson(module.id, lesson.id, { content: value })}
-                                            placeholder="Description du contenu..."
-                                            height="150px"
-                                          />
-                                        </div>
-                                        <div>
-                                          <Label>Média (Vidéo, PDF ou Image)</Label>
-                                          <div className="mt-2 space-y-3">
-                                            {/* Toggle entre Upload et URL */}
-                                            <div className="flex items-center gap-2">
-                                              <Button
-                                                type="button"
-                                                variant={!lesson.useMediaUrl ? "default" : "outline"}
-                                                size="sm"
-                                                onClick={() => updateLesson(module.id, lesson.id, {
-                                                  useMediaUrl: false,
-                                                  mediaUrl: '',
-                                                  fileType: null,
-                                                  fileName: '',
-                                                  filePreview: undefined
-                                                })}
-                                              >
-                                                <Upload className="h-4 w-4 mr-2" />
-                                                Upload fichier
-                                              </Button>
-                                              <Button
-                                                type="button"
-                                                variant={lesson.useMediaUrl ? "default" : "outline"}
-                                                size="sm"
-                                                onClick={() => updateLesson(module.id, lesson.id, {
-                                                  useMediaUrl: true,
-                                                  file: undefined,
-                                                  fileType: null,
-                                                  fileName: '',
-                                                  filePreview: undefined
-                                                })}
-                                              >
-                                                <LinkIcon className="h-4 w-4 mr-2" />
-                                                Lien URL
-                                              </Button>
-                                            </div>
-
-                                            {/* Upload Mode */}
-                                            {!lesson.useMediaUrl && (
-                                              <>
-                                                {lesson.filePreview ? (
-                                                  <div className="space-y-2">
-                                                    <div className="flex items-center justify-between p-3 bg-white rounded border">
-                                                      <div className="flex items-center space-x-3">
-                                                        {lesson.fileType === 'video' && <Video className="h-5 w-5 text-blue-500" />}
-                                                        {lesson.fileType === 'pdf' && <FileText className="h-5 w-5 text-red-500" />}
-                                                        {lesson.fileType === 'image' && <ImageIcon className="h-5 w-5 text-green-500" />}
-                                                        <span className="text-sm font-medium">{lesson.fileName}</span>
-                                                      </div>
-                                                      <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={() => updateLesson(module.id, lesson.id, {
-                                                          fileType: null,
-                                                          fileName: '',
-                                                          filePreview: undefined,
-                                                          file: undefined
-                                                        })}
-                                                      >
-                                                        <X className="h-4 w-4" />
-                                                      </Button>
+                                            <Label>Média de la leçon</Label>
+                                            {lesson.file || lesson.filePreview ? (
+                                              <div className="mt-2 space-y-3">
+                                                {lesson.fileType === 'video' && lesson.filePreview && (
+                                                  <video
+                                                    src={lesson.filePreview}
+                                                    controls
+                                                    className="w-full max-h-60 rounded-lg bg-black"
+                                                  />
+                                                )}
+                                                {lesson.fileType === 'pdf' && (
+                                                  <div className="flex items-center gap-2 p-3 bg-red-50 rounded-lg">
+                                                    <FileText className="h-8 w-8 text-red-600" />
+                                                    <div className="flex-1">
+                                                      <p className="font-medium">{lesson.fileName}</p>
+                                                      <p className="text-sm text-gray-600">Fichier PDF</p>
                                                     </div>
-
-                                                    {/* Aperçu du fichier uploadé */}
-                                                    <div className="mt-3 border rounded-lg p-3 bg-gray-50">
-                                                      <div className="text-sm font-medium mb-2">Aperçu :</div>
-
-                                                      {/* Image preview */}
-                                                      {lesson.fileType === 'image' && lesson.filePreview && (
-                                                        <img
-                                                          src={lesson.filePreview}
-                                                          alt="Preview"
-                                                          className="max-h-48 rounded border w-full object-contain"
-                                                        />
-                                                      )}
-
-                                                      {/* Video preview */}
-                                                      {lesson.fileType === 'video' && lesson.filePreview && (
-                                                        <video
-                                                          src={lesson.filePreview}
-                                                          controls
-                                                          className="max-h-64 rounded border w-full"
-                                                        >
-                                                          Votre navigateur ne supporte pas la lecture vidéo.
-                                                        </video>
-                                                      )}
-
-                                                      {/* PDF preview */}
-                                                      {lesson.fileType === 'pdf' && lesson.filePreview && (
-                                                        <embed
-                                                          src={lesson.filePreview}
-                                                          type="application/pdf"
-                                                          className="w-full h-96 rounded border"
-                                                        />
-                                                      )}
-                                                    </div>
-                                                  </div>
-                                                ) : (
-                                                  <div className="border-2 border-dashed rounded-lg p-6 text-center">
-                                                    {fileLoadingState[lesson.id]?.loading ? (
-                                                      <div className="space-y-3">
-                                                        <div className="flex items-center justify-center space-x-2">
-                                                          <Upload className="h-6 w-6 text-primary animate-pulse" />
-                                                          <span className="text-sm font-medium text-primary">
-                                                            Chargement en cours...
-                                                          </span>
-                                                        </div>
-                                                        <p className="text-xs text-muted-foreground">
-                                                          {fileLoadingState[lesson.id]?.fileName}
-                                                        </p>
-                                                        <Progress
-                                                          value={fileLoadingState[lesson.id]?.progress || 0}
-                                                          className="h-2"
-                                                        />
-                                                        <p className="text-xs font-medium text-primary">
-                                                          {fileLoadingState[lesson.id]?.progress}%
-                                                        </p>
-                                                      </div>
-                                                    ) : (
-                                                      <>
-                                                        <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                                                        <p className="text-sm text-gray-600 mb-3">Vidéo, PDF ou Image</p>
-                                                        <input
-                                                          type="file"
-                                                          accept="video/*,application/pdf,image/*"
-                                                          onChange={(e) => handleFileUpload(module.id, lesson.id, e)}
-                                                          className="hidden"
-                                                          id={`file-${lesson.id}`}
-                                                          disabled={fileLoadingState[lesson.id]?.loading}
-                                                        />
-                                                        <label htmlFor={`file-${lesson.id}`}>
-                                                          <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            type="button"
-                                                            asChild
-                                                            disabled={fileLoadingState[lesson.id]?.loading}
-                                                          >
-                                                            <span>Choisir un fichier</span>
-                                                          </Button>
-                                                        </label>
-                                                        <p className="text-xs text-muted-foreground mt-3">
-                                                          Limites : Vidéo (500MB) • PDF (50MB) • Image (10MB)
-                                                        </p>
-                                                      </>
-                                                    )}
                                                   </div>
                                                 )}
-                                              </>
-                                            )}
-
-                                            {/* URL Mode */}
-                                            {lesson.useMediaUrl && (
-                                              <div className="space-y-3">
-                                                <div className="flex gap-2">
-                                                  <Input
-                                                    value={lesson.mediaUrl || ''}
-                                                    onChange={(e) => updateLesson(module.id, lesson.id, { mediaUrl: e.target.value })}
-                                                    placeholder="https://example.com/video.mp4 ou https://youtube.com/..."
-                                                    className="flex-1"
+                                                {lesson.fileType === 'image' && lesson.filePreview && (
+                                                  <img
+                                                    src={lesson.filePreview}
+                                                    alt="Preview"
+                                                    className="w-full max-h-60 object-contain rounded-lg"
                                                   />
-                                                  {lesson.mediaUrl && (
-                                                    <Button
-                                                      type="button"
-                                                      variant="ghost"
-                                                      size="sm"
-                                                      onClick={() => updateLesson(module.id, lesson.id, { mediaUrl: '' })}
-                                                    >
-                                                      <X className="h-4 w-4" />
-                                                    </Button>
-                                                  )}
-                                                </div>
-
-                                                {/* Aperçu de l'URL */}
-                                                {lesson.mediaUrl && (
-                                                  <div className="border rounded-lg p-3 bg-gray-50">
-                                                    <div className="text-sm font-medium mb-2">Aperçu :</div>
-                                                    {/* Image preview */}
-                                                    {/\.(jpg|jpeg|png|gif|webp|svg)$/i.test(lesson.mediaUrl) && (
-                                                      <img
-                                                        src={lesson.mediaUrl}
-                                                        alt="Preview"
-                                                        className="max-h-48 rounded border"
-                                                        onError={(e) => {
-                                                          (e.target as HTMLImageElement).style.display = 'none';
-                                                        }}
-                                                      />
-                                                    )}
-                                                    {/* Video preview */}
-                                                    {/\.(mp4|webm|ogg)$/i.test(lesson.mediaUrl) && (
-                                                      <video
-                                                        src={lesson.mediaUrl}
-                                                        controls
-                                                        className="max-h-48 rounded border w-full"
-                                                        onError={(e) => {
-                                                          (e.target as HTMLVideoElement).style.display = 'none';
-                                                        }}
-                                                      >
-                                                        Votre navigateur ne supporte pas la lecture vidéo.
-                                                      </video>
-                                                    )}
-                                                    {/* YouTube/Vimeo embed preview */}
-                                                    {(/youtube\.com|youtu\.be|vimeo\.com/i.test(lesson.mediaUrl)) && (
-                                                      <div className="aspect-video">
-                                                        <iframe
-                                                          src={
-                                                            lesson.mediaUrl.includes('youtube.com') || lesson.mediaUrl.includes('youtu.be')
-                                                              ? `https://www.youtube.com/embed/${lesson.mediaUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/)?.[1] || ''}`
-                                                              : lesson.mediaUrl.includes('vimeo.com')
-                                                                ? `https://player.vimeo.com/video/${lesson.mediaUrl.match(/vimeo\.com\/(\d+)/)?.[1] || ''}`
-                                                                : lesson.mediaUrl
-                                                          }
-                                                          className="w-full h-full rounded border"
-                                                          allowFullScreen
-                                                        />
-                                                      </div>
-                                                    )}
-                                                    {/* PDF preview */}
-                                                    {/\.pdf$/i.test(lesson.mediaUrl) && (
-                                                      <div className="flex items-center gap-2 text-sm">
-                                                        <FileText className="h-5 w-5 text-red-500" />
-                                                        <span>Fichier PDF</span>
-                                                        <a
-                                                          href={lesson.mediaUrl}
-                                                          target="_blank"
-                                                          rel="noopener noreferrer"
-                                                          className="text-blue-600 hover:underline"
-                                                        >
-                                                          Ouvrir
-                                                        </a>
-                                                      </div>
-                                                    )}
+                                                )}
+                                                <Button
+                                                  variant="outline"
+                                                  size="sm"
+                                                  onClick={() => updateLesson(module.id, lesson.id, {
+                                                    file: undefined,
+                                                    filePreview: undefined,
+                                                    fileName: '',
+                                                    fileType: null
+                                                  })}
+                                                >
+                                                  Changer le fichier
+                                                </Button>
+                                              </div>
+                                            ) : (
+                                              <div className="mt-2 border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+                                                {fileLoadingState[lesson.id]?.loading ? (
+                                                  <div className="space-y-3">
+                                                    <Loader2 className="h-8 w-8 text-blue-600 mx-auto animate-spin" />
+                                                    <p className="text-sm font-medium text-gray-700">
+                                                      Chargement en mémoire...
+                                                    </p>
+                                                    <p className="text-xs text-gray-500">
+                                                      {fileLoadingState[lesson.id].fileName}
+                                                    </p>
+                                                    <Progress value={fileLoadingState[lesson.id].progress} className="h-2" />
+                                                    <p className="text-xs text-gray-600">
+                                                      {fileLoadingState[lesson.id].progress}%
+                                                    </p>
                                                   </div>
+                                                ) : (
+                                                  <>
+                                                    <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                                                    <p className="text-sm text-gray-600 mb-3">Vidéo, PDF ou Image</p>
+                                                    <input
+                                                      type="file"
+                                                      accept="video/*,application/pdf,image/*"
+                                                      onChange={(e) => handleFileUpload(module.id, lesson.id, e)}
+                                                      className="hidden"
+                                                      id={`file-${lesson.id}`}
+                                                      disabled={fileLoadingState[lesson.id]?.loading}
+                                                    />
+                                                    <label htmlFor={`file-${lesson.id}`}>
+                                                      <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        type="button"
+                                                        asChild
+                                                        disabled={fileLoadingState[lesson.id]?.loading}
+                                                      >
+                                                        <span>Choisir un fichier</span>
+                                                      </Button>
+                                                    </label>
+                                                    <p className="text-xs text-muted-foreground mt-3">
+                                                      Limites : Vidéo (500MB) • PDF (50MB) • Image (10MB)
+                                                    </p>
+                                                  </>
                                                 )}
                                               </div>
                                             )}
                                           </div>
-                                        </div>
-                                      </CardContent>
-                                    )}
-                                  </Card>
-                                ))}
-                              </div>
-                            )}
-                          </div>
+                                        </>
+                                      )}
 
-                          {/* Quiz Section for Module (Direct) */}
-                          <div className="space-y-4 border-t pt-6">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <HelpCircle className="h-5 w-5 text-blue-600" />
-                                <h4 className="font-semibold text-lg">Quiz du module</h4>
-                              </div>
-                            </div>
-                            <div className="text-sm text-gray-600 mb-4">
-                              Ajoutez autant de quiz que nécessaire au module.
-                            </div>
-                            
-                            {/* Liste des quiz existants */}
-                            {module.quizzes.length > 0 && (
-                              <div className="space-y-3 mb-4">
-                                {module.quizzes.map((quiz, quizIndex) => (
-                                  <Card key={quizIndex} className="bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200">
-                                    <CardHeader>
-                                      <div className="flex items-center justify-between">
-                                        <div>
-                                          <CardTitle className="text-lg">{quiz.title}</CardTitle>
-                                          <p className="text-sm text-gray-600 mt-1">
-                                            {quiz.questions.length} questions •
-                                            Note de passage: {quiz.settings.passingScore}%
-                                          </p>
+                                      {/* URL Mode */}
+                                      {lesson.useMediaUrl && (
+                                        <div className="space-y-3">
+                                          <div className="flex gap-2">
+                                            <Input
+                                              value={lesson.mediaUrl || ''}
+                                              onChange={(e) => updateLesson(module.id, lesson.id, { mediaUrl: e.target.value })}
+                                              placeholder="https://example.com/video.mp4 ou https://youtube.com/..."
+                                              className="flex-1"
+                                            />
+                                            {lesson.mediaUrl && (
+                                              <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => updateLesson(module.id, lesson.id, { mediaUrl: '' })}
+                                              >
+                                                <X className="h-4 w-4" />
+                                              </Button>
+                                            )}
+                                          </div>
+
+                                          {lesson.mediaUrl && (
+                                            <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                                              <div className="flex items-start gap-2">
+                                                <LinkIcon className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                                                <div className="flex-1 min-w-0">
+                                                  <p className="text-sm font-medium text-gray-900 mb-1">Lien externe configuré</p>
+                                                  <p className="text-xs text-gray-600 break-all">{lesson.mediaUrl}</p>
+                                                  <a
+                                                    href={lesson.mediaUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-600 hover:underline text-sm mt-2 inline-block"
+                                                  >
+                                                    Ouvrir dans un nouvel onglet →
+                                                  </a>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          )}
                                         </div>
-                                        <div className="flex gap-2">
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => handleEditModuleQuiz(module.id, quizIndex)}
-                                          >
-                                            <Edit2 className="h-4 w-4" />
-                                          </Button>
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => handleDeleteModuleQuiz(module.id, quizIndex)}
-                                          >
-                                            <Trash2 className="h-4 w-4 text-red-500" />
-                                          </Button>
-                                        </div>
-                                      </div>
-                                    </CardHeader>
-                                  </Card>
-                                ))}
-                              </div>
-                            )}
-                            
-                            {/* Bouton pour ajouter un nouveau quiz */}
-                            <Button
-                              variant="outline"
-                              onClick={() => {
-                                setShowModuleQuizBuilder(module.id);
-                                setEditingQuizIndex(null);
-                              }}
-                              className="w-full"
-                            >
-                              <Plus className="mr-2 h-4 w-4" />
-                              Ajouter un quiz au module
-                            </Button>
+                                      )}
+                                    </div>
+                                  </CardContent>
+                                </Card>
+                              );
+                            })()}
                           </div>
 
                           {/* Assignment Section for Module */}
