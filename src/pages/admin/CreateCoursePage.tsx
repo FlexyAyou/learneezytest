@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import DOMPurify from 'dompurify';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useOrganization } from '@/contexts/OrganizationContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -63,11 +64,15 @@ const CreateCoursePage = () => {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState<'info' | 'modules' | 'review'>('info');
   const queryClient = useQueryClient();
-  const [trainers, setTrainers] = useState<Array<{ id: string; name: string }>>([]);
+  const { organization, isOFContext } = useOrganization();
 
   // Détecter si on est dans le contexte gestionnaire ou superadmin
   const isManagerContext = location.pathname.includes('/gestionnaire/');
   const coursesBasePath = isManagerContext ? '/dashboard/gestionnaire/courses' : '/dashboard/superadmin/courses';
+
+  // Déterminer le propriétaire par défaut
+  const defaultOwner = isOFContext && organization ? organization.slug : 'Learneezy';
+  const defaultOwnerId = isOFContext && organization ? `of_${organization.slug}` : 'learneezy';
 
   const [courseData, setCourseData] = useState({
     title: '',
@@ -84,7 +89,7 @@ const CreateCoursePage = () => {
     objectives: [''],
     programFile: null as File | null,
     programFileName: '',
-    ownerId: 'learneezy', // 'learneezy' or trainer user id
+    ownerId: defaultOwnerId,
     pedagogicalResources: [] as Array<{
       id: string;
       name: string;
@@ -204,23 +209,6 @@ const CreateCoursePage = () => {
       });
     }
   };
-
-  // Load trainers on mount
-  useEffect(() => {
-    const loadTrainers = async () => {
-      try {
-        const { fastAPIClient } = await import('@/services/fastapi-client');
-        const trainersList = await fastAPIClient.getTrainers();
-        setTrainers(trainersList.map(t => ({
-          id: t.id.toString(),
-          name: `${t.first_name} ${t.last_name}`
-        })));
-      } catch (error) {
-        console.error('Error loading trainers:', error);
-      }
-    };
-    loadTrainers();
-  }, []);
 
   const saveCustomCategory = async () => {
     if (!courseData.customCategory.trim()) {
@@ -1421,23 +1409,10 @@ const CreateCoursePage = () => {
 
                 <div>
                   <Label className="text-base">Propriétaire du cours</Label>
-                  <Select
-                    value={courseData.ownerId}
-                    onValueChange={(value) => handleInputChange('ownerId', value)}
-                  >
-                    <SelectTrigger className="mt-2">
-                      <SelectValue placeholder="Sélectionner le propriétaire" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="learneezy">Learneezy</SelectItem>
-                      {trainers.map(trainer => (
-                        <SelectItem key={trainer.id} value={trainer.id}>
-                          {trainer.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <div className="mt-2 px-4 py-3 bg-muted rounded-md border border-border">
+                    <p className="font-medium text-foreground">{defaultOwner}</p>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">
                     Le propriétaire est le formateur responsable du cours
                   </p>
                 </div>
