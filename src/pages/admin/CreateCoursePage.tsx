@@ -50,7 +50,7 @@ interface ModuleWithLessons {
   title: string;
   description: string;
   lessons: Lesson[];
-  quiz?: QuizConfig; // Quiz optionnel au niveau du module
+  quizzes: QuizConfig[]; // Plusieurs quiz au niveau du module
   assignment?: AssignmentConfig; // Devoir optionnel par module
 }
 
@@ -102,6 +102,7 @@ const CreateCoursePage = () => {
       title: 'Module 1',
       description: '',
       lessons: [],
+      quizzes: [],
     }
   ]);
 
@@ -110,6 +111,7 @@ const CreateCoursePage = () => {
 
   // États pour les builders
   const [showModuleQuizBuilder, setShowModuleQuizBuilder] = useState<string | null>(null);
+  const [editingQuizIndex, setEditingQuizIndex] = useState<number | null>(null); // Pour éditer un quiz existant
   const [showAssignmentBuilder, setShowAssignmentBuilder] = useState<string | null>(null);
 
   // États pour le tracking des uploads
@@ -323,6 +325,7 @@ const CreateCoursePage = () => {
       title: `Module ${modules.length + 1}`,
       description: '',
       lessons: [],
+      quizzes: [],
     };
     setModules([...modules, newModule]);
     setExpandedModule(newModule.id);
@@ -563,24 +566,47 @@ const CreateCoursePage = () => {
   };
 
   const handleSaveModuleQuiz = (moduleId: string, quiz: QuizConfig) => {
-    setModules(modules.map(m =>
-      m.id === moduleId ? { ...m, quiz } : m
-    ));
+    setModules(modules.map(m => {
+      if (m.id === moduleId) {
+        if (editingQuizIndex !== null) {
+          // Modifier un quiz existant
+          const updatedQuizzes = [...m.quizzes];
+          updatedQuizzes[editingQuizIndex] = quiz;
+          return { ...m, quizzes: updatedQuizzes };
+        } else {
+          // Ajouter un nouveau quiz
+          return { ...m, quizzes: [...m.quizzes, quiz] };
+        }
+      }
+      return m;
+    }));
     setShowModuleQuizBuilder(null);
+    setEditingQuizIndex(null);
     toast({
-      title: "Quiz sauvegardé",
-      description: "Le quiz a été ajouté au module",
+      title: editingQuizIndex !== null ? "Quiz modifié" : "Quiz ajouté",
+      description: editingQuizIndex !== null ? "Le quiz a été mis à jour" : "Le quiz a été ajouté au module"
     });
   };
 
-  const handleRemoveModuleQuiz = (moduleId: string) => {
-    setModules(modules.map(m =>
-      m.id === moduleId ? { ...m, quiz: undefined } : m
-    ));
-    toast({
-      title: "Quiz supprimé",
-      description: "Le quiz a été retiré du module",
-    });
+  const handleDeleteModuleQuiz = (moduleId: string, quizIndex: number) => {
+    if (confirm("Êtes-vous sûr de vouloir supprimer ce quiz ?")) {
+      setModules(modules.map(m => {
+        if (m.id === moduleId) {
+          const updatedQuizzes = m.quizzes.filter((_, idx) => idx !== quizIndex);
+          return { ...m, quizzes: updatedQuizzes };
+        }
+        return m;
+      }));
+      toast({
+        title: "Quiz supprimé",
+        description: "Le quiz a été retiré du module"
+      });
+    }
+  };
+
+  const handleEditModuleQuiz = (moduleId: string, quizIndex: number) => {
+    setShowModuleQuizBuilder(moduleId);
+    setEditingQuizIndex(quizIndex);
   };
 
   // Pedagogical Resources functions
@@ -649,7 +675,7 @@ const CreateCoursePage = () => {
 
     // Valider que chaque module a au moins un contenu (leçon, quiz ou devoir)
     const invalidModules = modules.filter(m =>
-      m.lessons.length === 0 && !m.quiz && !m.assignment
+      m.lessons.length === 0 && m.quizzes.length === 0 && !m.assignment
     );
 
     if (invalidModules.length > 0) {
@@ -884,9 +910,9 @@ const CreateCoursePage = () => {
             video_url: lesson.mediaUrl || null, // External URL fallback
             transcription: null
           })),
-          quizzes: module.quiz ? [{
-            title: module.quiz.title,
-            questions: module.quiz.questions
+          quizzes: module.quizzes.map(quiz => ({
+            title: quiz.title,
+            questions: quiz.questions
               .filter(q => {
                 // Garder les questions compatibles avec l'API backend
                 return q.type === 'single-choice' || q.type === 'true-false' || q.type === 'multiple-choice';
@@ -927,7 +953,7 @@ const CreateCoursePage = () => {
                 return null;
               })
               .filter(q => q !== null) // Enlever les questions null
-          }] : []
+          }))
         })),
         resources: uploadedResources
       };
@@ -1000,7 +1026,7 @@ const CreateCoursePage = () => {
     }
     if (currentStep === 'modules') {
       return modules.length > 0 && modules.some(m =>
-        m.lessons.length > 0 || m.quiz || m.assignment
+        m.lessons.length > 0 || m.quizzes.length > 0 || m.assignment
       );
     }
     return true;
@@ -1858,48 +1884,58 @@ const CreateCoursePage = () => {
                               </div>
                             </div>
                             <div className="text-sm text-gray-600 mb-4">
-                              Ajoutez un quiz directement au module (sans créer de leçon).
+                              Ajoutez autant de quiz que nécessaire au module.
                             </div>
-                            {module.quiz ? (
-                              <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200">
-                                <CardHeader>
-                                  <div className="flex items-center justify-between">
-                                    <div>
-                                      <CardTitle className="text-lg">{module.quiz.title}</CardTitle>
-                                      <p className="text-sm text-gray-600 mt-1">
-                                        {module.quiz.questions.length} questions •
-                                        Note de passage: {module.quiz.settings.passingScore}%
-                                      </p>
-                                    </div>
-                                    <div className="flex gap-2">
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => setShowModuleQuizBuilder(module.id)}
-                                      >
-                                        <Edit2 className="h-4 w-4" />
-                                      </Button>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => handleRemoveModuleQuiz(module.id)}
-                                      >
-                                        <Trash2 className="h-4 w-4 text-red-500" />
-                                      </Button>
-                                    </div>
-                                  </div>
-                                </CardHeader>
-                              </Card>
-                            ) : (
-                              <Button
-                                variant="outline"
-                                onClick={() => setShowModuleQuizBuilder(module.id)}
-                                className="w-full"
-                              >
-                                <Plus className="h-4 w-4 mr-2" />
-                                Créer un quiz pour ce module
-                              </Button>
+                            
+                            {/* Liste des quiz existants */}
+                            {module.quizzes.length > 0 && (
+                              <div className="space-y-3 mb-4">
+                                {module.quizzes.map((quiz, quizIndex) => (
+                                  <Card key={quizIndex} className="bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200">
+                                    <CardHeader>
+                                      <div className="flex items-center justify-between">
+                                        <div>
+                                          <CardTitle className="text-lg">{quiz.title}</CardTitle>
+                                          <p className="text-sm text-gray-600 mt-1">
+                                            {quiz.questions.length} questions •
+                                            Note de passage: {quiz.settings.passingScore}%
+                                          </p>
+                                        </div>
+                                        <div className="flex gap-2">
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => handleEditModuleQuiz(module.id, quizIndex)}
+                                          >
+                                            <Edit2 className="h-4 w-4" />
+                                          </Button>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => handleDeleteModuleQuiz(module.id, quizIndex)}
+                                          >
+                                            <Trash2 className="h-4 w-4 text-red-500" />
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    </CardHeader>
+                                  </Card>
+                                ))}
+                              </div>
                             )}
+                            
+                            {/* Bouton pour ajouter un nouveau quiz */}
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                setShowModuleQuizBuilder(module.id);
+                                setEditingQuizIndex(null);
+                              }}
+                              className="w-full"
+                            >
+                              <Plus className="mr-2 h-4 w-4" />
+                              Ajouter un quiz au module
+                            </Button>
                           </div>
 
                           {/* Assignment Section for Module */}
@@ -2038,7 +2074,7 @@ const CreateCoursePage = () => {
                         </div>
                         <div className="p-4 bg-white rounded-lg">
                           <div className="text-3xl font-bold text-purple-600">
-                            {modules.filter(m => m.quiz).length}
+                            {modules.reduce((sum, m) => sum + m.quizzes.length, 0)}
                           </div>
                           <div className="text-sm text-gray-600">Quiz</div>
                         </div>
@@ -2059,10 +2095,10 @@ const CreateCoursePage = () => {
                                 <FileText className="h-4 w-4" />
                                 <span>{module.lessons.length} leçons</span>
                               </div>
-                              {module.quiz && (
+                              {module.quizzes.length > 0 && (
                                 <div className="flex items-center gap-2 text-sm text-blue-600">
                                   <HelpCircle className="h-4 w-4" />
-                                  <span>Quiz du module: {module.quiz.title} ({module.quiz.questions.length} questions)</span>
+                                  <span>{module.quizzes.length} quiz ({module.quizzes.reduce((sum, q) => sum + q.questions.length, 0)} questions)</span>
                                 </div>
                               )}
                               {module.assignment && (
@@ -2137,15 +2173,27 @@ const CreateCoursePage = () => {
 
         {/* Module Quiz Builder Modal */}
         {showModuleQuizBuilder && (
-          <Dialog open={!!showModuleQuizBuilder} onOpenChange={() => setShowModuleQuizBuilder(null)}>
+          <Dialog open={!!showModuleQuizBuilder} onOpenChange={() => {
+            setShowModuleQuizBuilder(null);
+            setEditingQuizIndex(null);
+          }}>
             <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Configurer le quiz du module</DialogTitle>
+                <DialogTitle>
+                  {editingQuizIndex !== null ? "Modifier le quiz" : "Ajouter un quiz au module"}
+                </DialogTitle>
               </DialogHeader>
               <QuizBuilder
-                quiz={modules.find(m => m.id === showModuleQuizBuilder)?.quiz}
+                quiz={
+                  editingQuizIndex !== null
+                    ? modules.find(m => m.id === showModuleQuizBuilder)?.quizzes[editingQuizIndex]
+                    : undefined
+                }
                 onSave={(quiz) => handleSaveModuleQuiz(showModuleQuizBuilder, quiz)}
-                onCancel={() => setShowModuleQuizBuilder(null)}
+                onCancel={() => {
+                  setShowModuleQuizBuilder(null);
+                  setEditingQuizIndex(null);
+                }}
                 availableTypes={['single-choice', 'multiple-choice', 'true-false', 'short-answer'] as QuestionType[]}
               />
             </DialogContent>
