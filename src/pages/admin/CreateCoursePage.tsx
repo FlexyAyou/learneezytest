@@ -1699,31 +1699,49 @@ const CreateCoursePage = () => {
                                         />
                                       </div>
 
-                                      {/* Media Upload/URL Toggle */}
-                                      <div className="flex items-center space-x-2 py-2">
-                                        <Switch
-                                          checked={lesson.useMediaUrl || false}
-                                          onCheckedChange={(checked) => {
-                                            updateLesson(module.id, lesson.id, {
-                                              useMediaUrl: checked,
-                                              file: checked ? undefined : lesson.file,
-                                              filePreview: checked ? undefined : lesson.filePreview,
-                                              fileName: checked ? '' : lesson.fileName,
-                                              fileType: checked ? null : lesson.fileType,
-                                              mediaUrl: checked ? lesson.mediaUrl : ''
-                                            });
-                                          }}
-                                        />
-                                        <Label className="cursor-pointer">
-                                          Utiliser une URL externe (YouTube, Vimeo, etc.)
-                                        </Label>
-                                      </div>
+                                      {/* Media Upload/URL Section - New Design */}
+                                      <div>
+                                        <Label className="text-base mb-3 block">Média (Vidéo, PDF ou Image)</Label>
+                                        
+                                        {/* Toggle Buttons: Upload fichier / Lien URL */}
+                                        <div className="flex gap-2 mb-4">
+                                          <Button
+                                            type="button"
+                                            variant={!lesson.useMediaUrl ? "default" : "outline"}
+                                            size="sm"
+                                            className={!lesson.useMediaUrl ? "bg-pink-500 hover:bg-pink-600 text-white" : ""}
+                                            onClick={() => {
+                                              updateLesson(module.id, lesson.id, {
+                                                useMediaUrl: false,
+                                                mediaUrl: ''
+                                              });
+                                            }}
+                                          >
+                                            <Upload className="h-4 w-4 mr-2" />
+                                            Upload fichier
+                                          </Button>
+                                          <Button
+                                            type="button"
+                                            variant={lesson.useMediaUrl ? "default" : "outline"}
+                                            size="sm"
+                                            onClick={() => {
+                                              updateLesson(module.id, lesson.id, {
+                                                useMediaUrl: true,
+                                                file: undefined,
+                                                filePreview: undefined,
+                                                fileName: '',
+                                                fileType: null
+                                              });
+                                            }}
+                                          >
+                                            <LinkIcon className="h-4 w-4 mr-2" />
+                                            Lien URL
+                                          </Button>
+                                        </div>
 
-                                      {/* Upload Mode */}
-                                      {!lesson.useMediaUrl && (
-                                        <>
-                                          <div>
-                                            <Label>Média de la leçon</Label>
+                                        {/* Upload Mode */}
+                                        {!lesson.useMediaUrl && (
+                                          <>
                                             {lesson.file || lesson.filePreview ? (
                                               <div className="mt-2 space-y-3">
                                                 {lesson.fileType === 'video' && lesson.filePreview && (
@@ -1763,10 +1781,10 @@ const CreateCoursePage = () => {
                                                 </Button>
                                               </div>
                                             ) : (
-                                              <div className="mt-2 border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+                                              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50">
                                                 {fileLoadingState[lesson.id]?.loading ? (
                                                   <div className="space-y-3">
-                                                    <Loader2 className="h-8 w-8 text-blue-600 mx-auto animate-spin" />
+                                                    <Loader2 className="h-10 w-10 text-blue-600 mx-auto animate-spin" />
                                                     <p className="text-sm font-medium text-gray-700">
                                                       Chargement en mémoire...
                                                     </p>
@@ -1780,8 +1798,8 @@ const CreateCoursePage = () => {
                                                   </div>
                                                 ) : (
                                                   <>
-                                                    <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                                                    <p className="text-sm text-gray-600 mb-3">Vidéo, PDF ou Image</p>
+                                                    <Upload className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                                                    <p className="text-sm text-gray-600 mb-4">Vidéo, PDF ou Image</p>
                                                     <input
                                                       type="file"
                                                       accept="video/*,application/pdf,image/*"
@@ -1801,16 +1819,16 @@ const CreateCoursePage = () => {
                                                         <span>Choisir un fichier</span>
                                                       </Button>
                                                     </label>
-                                                    <p className="text-xs text-muted-foreground mt-3">
-                                                      Limites : Vidéo (500MB) • PDF (50MB) • Image (10MB)
+                                                    <p className="text-xs text-gray-500 mt-4">
+                                                      Limites : Vidéo (500MB) + PDF (50MB) + Image (10MB)
                                                     </p>
                                                   </>
                                                 )}
                                               </div>
                                             )}
-                                          </div>
-                                        </>
-                                      )}
+                                          </>
+                                        )}
+                                      </div>
 
                                       {/* URL Mode */}
                                       {lesson.useMediaUrl && (
