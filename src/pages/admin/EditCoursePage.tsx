@@ -635,35 +635,55 @@ const EditCoursePage = () => {
         // Créer le quiz sur le module réel
         const quizPayload: QuizCreate = {
           title: quiz.title,
-          questions: quiz.questions
-            .filter(q => ['single-choice', 'true-false', 'multiple-choice'].includes(q.type))
-            .map(q => {
-              if (q.type === 'single-choice') {
-                return {
-                  type: 'single-choice',
-                  question: q.question,
-                  options: q.options,
-                  correct_answer: q.options[q.correctAnswer]
-                };
-              } else if (q.type === 'true-false') {
-                return {
-                  type: 'true-false',
-                  question: q.question,
-                  options: ['Vrai', 'Faux'],
-                  correct_answer: q.correctAnswer ? 'Vrai' : 'Faux'
-                };
-              } else if (q.type === 'multiple-choice') {
-                return {
-                  type: 'multiple-choice',
-                  question: q.question,
-                  options: q.options,
-                  correct_answer: q.correctAnswers.map(idx => q.options[idx]).join(', '),
-                  correct_answers: q.correctAnswers.map(idx => q.options[idx])
-                };
-              }
-              return null;
-            })
-            .filter(q => q !== null) as any[]
+          questions: quiz.questions.map(q => {
+            const baseQuestion: any = {
+              type: q.type,
+              question: q.question,
+              options: [],
+              correct_answer: ''
+            };
+
+            if (q.type === 'single-choice') {
+              const scq = q as any;
+              baseQuestion.options = scq.options || [];
+              baseQuestion.correct_answer = scq.options?.[scq.correctAnswer] || '';
+            } else if (q.type === 'true-false') {
+              const tfq = q as any;
+              baseQuestion.options = ['Vrai', 'Faux'];
+              baseQuestion.correct_answer = tfq.correctAnswer ? 'Vrai' : 'Faux';
+            } else if (q.type === 'multiple-choice') {
+              const mcq = q as any;
+              baseQuestion.options = mcq.options || [];
+              baseQuestion.correct_answer = mcq.correctAnswers?.map((idx: number) => mcq.options[idx]).join(', ') || '';
+              baseQuestion.correct_answers = mcq.correctAnswers?.map((idx: number) => mcq.options[idx]) || [];
+            } else if (q.type === 'short-answer') {
+              const saq = q as any;
+              baseQuestion.correct_answer = saq.correctAnswers?.[0] || '';
+              baseQuestion.correct_answers = saq.correctAnswers || [];
+              baseQuestion.case_sensitive = saq.caseSensitive || false;
+            } else if (q.type === 'long-answer') {
+              const laq = q as any;
+              baseQuestion.min_words = laq.minWords;
+              baseQuestion.max_words = laq.maxWords;
+              baseQuestion.rubric = laq.rubric;
+            } else if (q.type === 'fill-blank') {
+              const fbq = q as any;
+              baseQuestion.correct_answer = fbq.correctAnswers?.[0] || '';
+              baseQuestion.text = fbq.text;
+              baseQuestion.correct_answers = fbq.correctAnswers || [];
+            } else if (q.type === 'matching') {
+              const mq = q as any;
+              baseQuestion.left_items = mq.leftItems || [];
+              baseQuestion.right_items = mq.rightItems || [];
+              baseQuestion.correct_matches = mq.correctMatches || {};
+            } else if (q.type === 'ordering') {
+              const oq = q as any;
+              baseQuestion.items = oq.items || [];
+              baseQuestion.correct_order = oq.correctOrder || [];
+            }
+
+            return baseQuestion;
+          }) as any[]
         };
 
         const updatedModuleData = {
@@ -689,35 +709,55 @@ const EditCoursePage = () => {
         // Comportement actuel pour les modules existants
         const quizPayload: QuizCreate = {
           title: quiz.title,
-          questions: quiz.questions
-            .filter(q => ['single-choice', 'true-false', 'multiple-choice'].includes(q.type))
-            .map(q => {
-              if (q.type === 'single-choice') {
-                return {
-                  type: 'single-choice',
-                  question: q.question,
-                  options: q.options,
-                  correct_answer: q.options[q.correctAnswer]
-                };
-              } else if (q.type === 'true-false') {
-                return {
-                  type: 'true-false',
-                  question: q.question,
-                  options: ['Vrai', 'Faux'],
-                  correct_answer: q.correctAnswer ? 'Vrai' : 'Faux'
-                };
-              } else if (q.type === 'multiple-choice') {
-                return {
-                  type: 'multiple-choice',
-                  question: q.question,
-                  options: q.options,
-                  correct_answer: q.correctAnswers.map(idx => q.options[idx]).join(', '),
-                  correct_answers: q.correctAnswers.map(idx => q.options[idx])
-                };
-              }
-              return null;
-            })
-            .filter(q => q !== null) as any[]
+          questions: quiz.questions.map(q => {
+            const baseQuestion: any = {
+              type: q.type,
+              question: q.question,
+              options: [],
+              correct_answer: ''
+            };
+
+            if (q.type === 'single-choice') {
+              const scq = q as any;
+              baseQuestion.options = scq.options || [];
+              baseQuestion.correct_answer = scq.options?.[scq.correctAnswer] || '';
+            } else if (q.type === 'true-false') {
+              const tfq = q as any;
+              baseQuestion.options = ['Vrai', 'Faux'];
+              baseQuestion.correct_answer = tfq.correctAnswer ? 'Vrai' : 'Faux';
+            } else if (q.type === 'multiple-choice') {
+              const mcq = q as any;
+              baseQuestion.options = mcq.options || [];
+              baseQuestion.correct_answer = mcq.correctAnswers?.map((idx: number) => mcq.options[idx]).join(', ') || '';
+              baseQuestion.correct_answers = mcq.correctAnswers?.map((idx: number) => mcq.options[idx]) || [];
+            } else if (q.type === 'short-answer') {
+              const saq = q as any;
+              baseQuestion.correct_answer = saq.correctAnswers?.[0] || '';
+              baseQuestion.correct_answers = saq.correctAnswers || [];
+              baseQuestion.case_sensitive = saq.caseSensitive || false;
+            } else if (q.type === 'long-answer') {
+              const laq = q as any;
+              baseQuestion.min_words = laq.minWords;
+              baseQuestion.max_words = laq.maxWords;
+              baseQuestion.rubric = laq.rubric;
+            } else if (q.type === 'fill-blank') {
+              const fbq = q as any;
+              baseQuestion.correct_answer = fbq.correctAnswers?.[0] || '';
+              baseQuestion.text = fbq.text;
+              baseQuestion.correct_answers = fbq.correctAnswers || [];
+            } else if (q.type === 'matching') {
+              const mq = q as any;
+              baseQuestion.left_items = mq.leftItems || [];
+              baseQuestion.right_items = mq.rightItems || [];
+              baseQuestion.correct_matches = mq.correctMatches || {};
+            } else if (q.type === 'ordering') {
+              const oq = q as any;
+              baseQuestion.items = oq.items || [];
+              baseQuestion.correct_order = oq.correctOrder || [];
+            }
+
+            return baseQuestion;
+          }) as any[]
         };
 
         const updatedModuleData = {
@@ -2417,7 +2457,16 @@ const EditCoursePage = () => {
               } : undefined}
               onSave={(quiz) => handleSaveModuleQuiz(showModuleQuizBuilder, quiz)}
               onCancel={() => setShowModuleQuizBuilder(null)}
-              availableTypes={['single-choice', 'multiple-choice', 'true-false']}
+              availableTypes={[
+                'single-choice',
+                'multiple-choice',
+                'true-false',
+                'short-answer',
+                'long-answer',
+                'fill-blank',
+                'matching',
+                'ordering'
+              ]}
             />
           </DialogContent>
         </Dialog>

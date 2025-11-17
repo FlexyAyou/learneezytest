@@ -301,9 +301,22 @@ export type CourseOwnerType = 'learneezy' | 'of';
  * Question d'un quiz
  */
 export interface QuizQuestion {
+  type?: string;
   question: string;
   options: string[];
   correct_answer: string;
+  // Additional fields for different question types
+  correct_answers?: string[];
+  case_sensitive?: boolean;
+  min_words?: number;
+  max_words?: number;
+  rubric?: string;
+  text?: string;
+  left_items?: string[];
+  right_items?: string[];
+  correct_matches?: Record<string, string>;
+  items?: string[];
+  correct_order?: string[];
 }
 
 /**

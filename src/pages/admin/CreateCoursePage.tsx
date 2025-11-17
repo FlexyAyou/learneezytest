@@ -935,47 +935,56 @@ const CreateCoursePage = () => {
           })),
           quizzes: module.quizzes.map(quiz => ({
             title: quiz.title,
-            questions: quiz.questions
-              .filter(q => {
-                // Garder les questions compatibles avec l'API backend
-                return q.type === 'single-choice' || q.type === 'true-false' || q.type === 'multiple-choice';
-              })
-              .map(q => {
-                // Gérer les différents types de questions
-                if (q.type === 'single-choice') {
-                  const scq = q as any;
-                  return {
-                    type: 'single-choice',
-                    question: scq.question,
-                    options: scq.options,
-                    correct_answer: scq.options[scq.correctAnswer]
-                  };
-                } else if (q.type === 'true-false') {
-                  const tfq = q as any;
-                  return {
-                    type: 'true-false',
-                    question: tfq.question,
-                    options: ['Vrai', 'Faux'],
-                    correct_answer: tfq.correctAnswer === 0 ? 'Vrai' : 'Faux'
-                  };
-                } else if (q.type === 'multiple-choice') {
-                  const mcq = q as any;
-                  // Pour multiple-choice, prendre la première bonne réponse
-                  const firstCorrectIndex = mcq.correctAnswers && mcq.correctAnswers.length > 0
-                    ? mcq.correctAnswers[0]
-                    : 0;
-                  return {
-                    type: 'multiple-choice',
-                    question: mcq.question,
-                    options: mcq.options,
-                    correct_answer: mcq.options[firstCorrectIndex],
-                    correct_answers: mcq.correctAnswers?.map((i: number) => mcq.options[i])
-                  };
-                }
-                // Fallback (ne devrait pas arriver à cause du filter)
-                return null;
-              })
-              .filter(q => q !== null) // Enlever les questions null
+            questions: quiz.questions.map(q => {
+              // Gérer TOUS les types de questions avec tous les champs requis
+              const baseQuestion: any = {
+                type: q.type,
+                question: q.question,
+                options: [],
+                correct_answer: ''
+              };
+
+              if (q.type === 'single-choice') {
+                const scq = q as any;
+                baseQuestion.options = scq.options || [];
+                baseQuestion.correct_answer = scq.options?.[scq.correctAnswer] || '';
+              } else if (q.type === 'true-false') {
+                const tfq = q as any;
+                baseQuestion.options = ['Vrai', 'Faux'];
+                baseQuestion.correct_answer = tfq.correctAnswer === 0 ? 'Vrai' : 'Faux';
+              } else if (q.type === 'multiple-choice') {
+                const mcq = q as any;
+                baseQuestion.options = mcq.options || [];
+                baseQuestion.correct_answer = mcq.options?.[mcq.correctAnswers?.[0]] || '';
+                baseQuestion.correct_answers = mcq.correctAnswers?.map((i: number) => mcq.options[i]) || [];
+              } else if (q.type === 'short-answer') {
+                const saq = q as any;
+                baseQuestion.correct_answer = saq.correctAnswers?.[0] || '';
+                baseQuestion.correct_answers = saq.correctAnswers || [];
+                baseQuestion.case_sensitive = saq.caseSensitive || false;
+              } else if (q.type === 'long-answer') {
+                const laq = q as any;
+                baseQuestion.min_words = laq.minWords;
+                baseQuestion.max_words = laq.maxWords;
+                baseQuestion.rubric = laq.rubric;
+              } else if (q.type === 'fill-blank') {
+                const fbq = q as any;
+                baseQuestion.correct_answer = fbq.correctAnswers?.[0] || '';
+                baseQuestion.text = fbq.text;
+                baseQuestion.correct_answers = fbq.correctAnswers || [];
+              } else if (q.type === 'matching') {
+                const mq = q as any;
+                baseQuestion.left_items = mq.leftItems || [];
+                baseQuestion.right_items = mq.rightItems || [];
+                baseQuestion.correct_matches = mq.correctMatches || {};
+              } else if (q.type === 'ordering') {
+                const oq = q as any;
+                baseQuestion.items = oq.items || [];
+                baseQuestion.correct_order = oq.correctOrder || [];
+              }
+
+              return baseQuestion;
+            })
           }))
         })),
         resources: uploadedResources
