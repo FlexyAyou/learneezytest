@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   CheckCircle, 
   XCircle, 
@@ -116,6 +117,28 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
           if (userVal === correctVal) correctCount++;
         });
         return (correctCount / question.correctAnswers.length) * question.points;
+
+      case 'matching':
+        if (!userAnswer || typeof userAnswer !== 'object') return 0;
+        const matchingQuestion = question as any;
+        const userMatches = userAnswer as Record<string, string>;
+        let correctMatches = 0;
+        Object.keys(matchingQuestion.correctMatches || {}).forEach(key => {
+          if (userMatches[key] === matchingQuestion.correctMatches[key]) {
+            correctMatches++;
+          }
+        });
+        const totalMatches = Object.keys(matchingQuestion.correctMatches || {}).length;
+        return totalMatches > 0 ? (correctMatches / totalMatches) * question.points : 0;
+
+      case 'ordering':
+        if (!Array.isArray(userAnswer)) return 0;
+        const orderingQuestion = question as any;
+        const correctOrder = orderingQuestion.correctOrder || [];
+        // Check if arrays are equal
+        if (userAnswer.length !== correctOrder.length) return 0;
+        const isCorrect = userAnswer.every((item, idx) => item === correctOrder[idx]);
+        return isCorrect ? question.points : 0;
 
       default:
         return 0;
@@ -272,6 +295,83 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
                 />
               </div>
             ))}
+          </div>
+        );
+
+      case 'matching':
+        const matchingQ = question as any;
+        const matchingAnswers = (userAnswer as Record<string, string>) || {};
+        return (
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600 mb-4">Associez les éléments de gauche avec ceux de droite :</p>
+            {(matchingQ.leftItems || []).map((leftItem: string, idx: number) => (
+              <div key={idx} className="flex items-center gap-4 p-3 border rounded-lg">
+                <div className="flex-1 font-medium">{leftItem}</div>
+                <div className="text-gray-400">→</div>
+                <Select
+                  value={matchingAnswers[leftItem] || ''}
+                  onValueChange={(value) => {
+                    handleAnswerChange(question.id, { ...matchingAnswers, [leftItem]: value });
+                  }}
+                >
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder="Choisir une réponse" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(matchingQ.rightItems || []).map((rightItem: string, ridx: number) => (
+                      <SelectItem key={ridx} value={rightItem}>
+                        {rightItem}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ))}
+          </div>
+        );
+
+      case 'ordering':
+        const orderingQ = question as any;
+        const orderingAnswers = Array.isArray(userAnswer) ? userAnswer : [...(orderingQ.items || [])];
+        return (
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600 mb-4">Réorganisez les éléments dans le bon ordre (du premier au dernier) :</p>
+            <div className="space-y-2">
+              {orderingAnswers.map((item: string, idx: number) => (
+                <div key={idx} className="flex items-center gap-2 p-3 border rounded-lg bg-white">
+                  <span className="font-bold text-gray-500">{idx + 1}.</span>
+                  <span className="flex-1">{item}</span>
+                  <div className="flex gap-1">
+                    {idx > 0 && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          const newOrder = [...orderingAnswers];
+                          [newOrder[idx], newOrder[idx - 1]] = [newOrder[idx - 1], newOrder[idx]];
+                          handleAnswerChange(question.id, newOrder);
+                        }}
+                      >
+                        ↑
+                      </Button>
+                    )}
+                    {idx < orderingAnswers.length - 1 && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          const newOrder = [...orderingAnswers];
+                          [newOrder[idx], newOrder[idx + 1]] = [newOrder[idx + 1], newOrder[idx]];
+                          handleAnswerChange(question.id, newOrder);
+                        }}
+                      >
+                        ↓
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         );
 

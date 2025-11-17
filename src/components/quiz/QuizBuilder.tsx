@@ -32,12 +32,16 @@ export const QuizBuilder: React.FC<QuizBuilderProps> = ({ quiz, onSave, onCancel
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [showQuestionBuilder, setShowQuestionBuilder] = useState(false);
 
-  // Types de questions autorisés pour les quiz (rapides)
+  // Tous les types de questions sont maintenant autorisés pour les quiz
   const allowedQuestionTypes: QuestionType[] = availableTypes || [
     'single-choice',
     'multiple-choice',
     'true-false',
-    'short-answer'
+    'short-answer',
+    'long-answer',
+    'fill-blank',
+    'matching',
+    'ordering'
   ];
 
   const handleAddQuestion = () => {
