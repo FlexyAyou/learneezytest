@@ -54,12 +54,29 @@ export const SortableContentList: React.FC<SortableContentListProps> = ({
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
+    console.log('🔄 Drag end event:', { 
+      activeId: active.id, 
+      overId: over?.id,
+      itemsCount: items.length 
+    });
+
     if (over && active.id !== over.id) {
       const oldIndex = items.findIndex((item) => item.id === active.id);
       const newIndex = items.findIndex((item) => item.id === over.id);
 
-      const newItems = arrayMove(items, oldIndex, newIndex);
-      onReorder(newItems);
+      console.log('📍 Reordering:', { 
+        oldIndex, 
+        newIndex,
+        activeType: items[oldIndex]?.type,
+        overType: items[newIndex]?.type
+      });
+
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newItems = arrayMove(items, oldIndex, newIndex);
+        onReorder(newItems);
+      } else {
+        console.error('❌ Invalid indexes:', { oldIndex, newIndex });
+      }
     }
   };
 
@@ -86,8 +103,8 @@ export const SortableContentList: React.FC<SortableContentListProps> = ({
                   subtitle={`${lesson.duration} minutes`}
                   fileType={lesson.fileType}
                   useMediaUrl={lesson.useMediaUrl}
-                  onEdit={() => onEditLesson(lesson.id)}
-                  onDelete={() => onDeleteLesson(lesson.id)}
+                  onEdit={() => onEditLesson(item.id)}
+                  onDelete={() => onDeleteLesson(item.id)}
                 />
               );
             } else {
