@@ -91,6 +91,7 @@ const CreateCoursePage = () => {
       size: number | null;
       url: string | null;
     }>,
+    resourcesDownloadable: true, // Par défaut, les ressources sont téléchargeables
   });
 
   // Hooks pour les catégories (après courseData)
@@ -987,7 +988,8 @@ const CreateCoursePage = () => {
             })
           }))
         })),
-        resources: uploadedResources
+        resources: uploadedResources,
+        resources_downloadable: courseData.resourcesDownloadable
       };
 
       // Log payload après completion de tous les uploads (cover, programme, leçons, ressources)
@@ -1384,6 +1386,22 @@ const CreateCoursePage = () => {
                   <p className="text-sm text-gray-600">
                     Ajoutez des documents PDF supplémentaires (guides, fiches de synthèse, etc.)
                   </p>
+
+                  {/* Toggle for downloadable resources */}
+                  <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="resources-downloadable" className="text-sm font-medium cursor-pointer">
+                        Autoriser le téléchargement des ressources par les apprenants
+                      </Label>
+                    </div>
+                    <Switch
+                      id="resources-downloadable"
+                      checked={courseData.resourcesDownloadable}
+                      onCheckedChange={(checked) =>
+                        setCourseData({ ...courseData, resourcesDownloadable: checked })
+                      }
+                    />
+                  </div>
 
                   {/* Display existing resources */}
                   {courseData.pedagogicalResources.length > 0 && (
