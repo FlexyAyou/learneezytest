@@ -1535,7 +1535,7 @@ const CreateCoursePage = () => {
                           <SortableContentList
                             items={[
                               ...module.lessons.map((lesson, idx) => ({
-                                id: `lesson-${module.id}-${idx}`,
+                                id: lesson.id,
                                 type: 'lesson' as const,
                                 originalIndex: idx,
                                 data: lesson
@@ -1547,32 +1547,9 @@ const CreateCoursePage = () => {
                                 data: quiz
                               }))
                             ]}
-                            onReorder={(newItems) => {
-                              console.log('✨ Content reordered:', newItems.map(i => ({ id: i.id, type: i.type })));
-                              handleContentReorder(module.id, newItems);
-                            }}
-                            onEditLesson={(lessonId) => {
-                              // Extraire l'index du lessonId formaté
-                              const match = lessonId.match(/lesson-.*-(\d+)$/);
-                              if (match) {
-                                const lessonIdx = parseInt(match[1]);
-                                const lesson = module.lessons[lessonIdx];
-                                if (lesson) {
-                                  setEditingLesson({ moduleId: module.id, lessonId: lesson.id });
-                                }
-                              }
-                            }}
-                            onDeleteLesson={(lessonId) => {
-                              // Extraire l'index du lessonId formaté
-                              const match = lessonId.match(/lesson-.*-(\d+)$/);
-                              if (match) {
-                                const lessonIdx = parseInt(match[1]);
-                                const lesson = module.lessons[lessonIdx];
-                                if (lesson) {
-                                  removeLesson(module.id, lesson.id);
-                                }
-                              }
-                            }}
+                            onReorder={(newItems) => handleContentReorder(module.id, newItems)}
+                            onEditLesson={(lessonId) => setEditingLesson({ moduleId: module.id, lessonId })}
+                            onDeleteLesson={(lessonId) => removeLesson(module.id, lessonId)}
                             onEditQuiz={(quizIndex) => {
                               setShowModuleQuizBuilder(module.id);
                               setEditingQuizIndex(quizIndex);
