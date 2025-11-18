@@ -1,5 +1,5 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { jwtDecode } from 'jwt-decode';
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
+import { jwtDecode } from "jwt-decode";
 import {
   Token,
   UserLogin,
@@ -49,9 +49,9 @@ import {
   ProLevelItem,
   ProLevelCreate,
   ProLevelUpdateActive,
-} from '@/types/fastapi';
+} from "@/types/fastapi";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://api.plateforme-test-infinitiax.com";
 
 /**
  * Client API FastAPI avec gestion automatique des JWT
@@ -65,7 +65,7 @@ class FastAPIClient {
     this.axiosInstance = axios.create({
       baseURL,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
 
@@ -82,12 +82,12 @@ class FastAPIClient {
     // REQUEST INTERCEPTOR
     this.axiosInstance.interceptors.request.use(
       async (config) => {
-        const accessToken = localStorage.getItem('access_token');
+        const accessToken = localStorage.getItem("access_token");
 
         // Vérifier si le token est expiré
         if (accessToken && this.isTokenExpired(accessToken)) {
           // Token expiré, tenter un refresh
-          const refreshToken = localStorage.getItem('refresh_token');
+          const refreshToken = localStorage.getItem("refresh_token");
 
           if (refreshToken && !this.isTokenExpired(refreshToken)) {
             try {
@@ -96,12 +96,12 @@ class FastAPIClient {
             } catch (error) {
               // Refresh échoué, déconnexion
               this.clearLocalAuth();
-              throw new Error('Session expirée, veuillez vous reconnecter');
+              throw new Error("Session expirée, veuillez vous reconnecter");
             }
           } else {
             // Refresh token expiré
             this.clearLocalAuth();
-            throw new Error('Session expirée, veuillez vous reconnecter');
+            throw new Error("Session expirée, veuillez vous reconnecter");
           }
         } else if (accessToken) {
           // Token valide
@@ -110,7 +110,7 @@ class FastAPIClient {
 
         return config;
       },
-      (error) => Promise.reject(error)
+      (error) => Promise.reject(error),
     );
 
     // RESPONSE INTERCEPTOR
@@ -118,13 +118,13 @@ class FastAPIClient {
       (response) => response,
       async (error) => {
         // Ne pas rediriger si c'est une erreur de login (identifiants incorrects)
-        const isLoginError = error.config?.url?.includes('/api/auth/login');
+        const isLoginError = error.config?.url?.includes("/api/auth/login");
 
         if (error.response?.status === 401 && !isLoginError) {
           this.clearLocalAuth();
         }
         return Promise.reject(error);
-      }
+      },
     );
   }
 
@@ -153,17 +153,14 @@ class FastAPIClient {
     this.isRefreshing = true;
     this.refreshPromise = (async () => {
       try {
-        const refreshToken = localStorage.getItem('refresh_token');
-        if (!refreshToken) throw new Error('No refresh token');
+        const refreshToken = localStorage.getItem("refresh_token");
+        if (!refreshToken) throw new Error("No refresh token");
 
-        const response = await axios.post<Token>(
-          `${API_BASE_URL}/api/auth/refresh`,
-          { refresh_token: refreshToken }
-        );
+        const response = await axios.post<Token>(`${API_BASE_URL}/api/auth/refresh`, { refresh_token: refreshToken });
 
         const { access_token, refresh_token: newRefreshToken } = response.data;
-        localStorage.setItem('access_token', access_token);
-        localStorage.setItem('refresh_token', newRefreshToken);
+        localStorage.setItem("access_token", access_token);
+        localStorage.setItem("refresh_token", newRefreshToken);
 
         return access_token;
       } finally {
@@ -179,9 +176,9 @@ class FastAPIClient {
    * Déconnexion locale (sans appel API)
    */
   private clearLocalAuth() {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    window.location.href = '/connexion';
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    window.location.href = "/connexion";
   }
 
   /**
@@ -189,14 +186,14 @@ class FastAPIClient {
    */
   async logoutUser(): Promise<void> {
     try {
-      const refreshToken = localStorage.getItem('refresh_token');
+      const refreshToken = localStorage.getItem("refresh_token");
 
       // Appeler l'endpoint de logout avec le refresh_token
-      await this.post('/api/auth/logout', null, {
-        params: { refresh_token: refreshToken }
+      await this.post("/api/auth/logout", null, {
+        params: { refresh_token: refreshToken },
       });
     } catch (error) {
-      console.error('Erreur lors de la déconnexion:', error);
+      console.error("Erreur lors de la déconnexion:", error);
     } finally {
       // Toujours nettoyer les tokens locaux
       this.clearLocalAuth();
@@ -243,11 +240,11 @@ class FastAPIClient {
    * Connexion utilisateur
    */
   async login(credentials: UserLogin): Promise<Token> {
-    const response = await this.post<Token>('/api/auth/login', credentials);
+    const response = await this.post<Token>("/api/auth/login", credentials);
 
     // Stocker les tokens
-    localStorage.setItem('access_token', response.access_token);
-    localStorage.setItem('refresh_token', response.refresh_token);
+    localStorage.setItem("access_token", response.access_token);
+    localStorage.setItem("refresh_token", response.refresh_token);
 
     return response;
   }
@@ -256,7 +253,7 @@ class FastAPIClient {
    * Inscription utilisateur
    */
   async register(userData: UserCreate): Promise<UserResponse> {
-    return this.post<UserResponse>('/api/auth/register', userData);
+    return this.post<UserResponse>("/api/auth/register", userData);
   }
 
   /**
@@ -264,15 +261,13 @@ class FastAPIClient {
    */
   async getTrainers(): Promise<UserResponse[]> {
     try {
-      const response = await this.get<UserResponse[]>('/api/auth/superadmin/users');
+      const response = await this.get<UserResponse[]>("/api/auth/superadmin/users");
       // Filter to get only trainers
-      return response.filter(user =>
-        user.role === 'trainer' ||
-        user.role === 'independent_trainer' ||
-        user.role === 'formateur_interne'
+      return response.filter(
+        (user) => user.role === "trainer" || user.role === "independent_trainer" || user.role === "formateur_interne",
       );
     } catch (error) {
-      console.error('Error fetching trainers:', error);
+      console.error("Error fetching trainers:", error);
       return [];
     }
   }
@@ -281,21 +276,21 @@ class FastAPIClient {
    * Rafraîchir le token
    */
   async refreshToken(refreshRequest: RefreshRequest): Promise<Token> {
-    return this.post<Token>('/api/auth/refresh', refreshRequest);
+    return this.post<Token>("/api/auth/refresh", refreshRequest);
   }
 
   /**
    * Récupérer l'utilisateur actuel
    */
   async getCurrentUser(): Promise<UserResponse> {
-    return this.get<UserResponse>('/api/auth/protected');
+    return this.get<UserResponse>("/api/auth/protected");
   }
 
   /**
    * Mot de passe oublié
    */
   async forgotPassword(email: UserResetPassword): Promise<void> {
-    await this.post('/api/auth/reset-password-request', email);
+    await this.post("/api/auth/reset-password-request", email);
   }
 
   /**
@@ -316,7 +311,7 @@ class FastAPIClient {
    * Mettre à jour le profil utilisateur
    */
   async updateUserProfile(userData: UserUpdate): Promise<UserResponse> {
-    return this.put<UserResponse>('/api/auth/user', userData);
+    return this.put<UserResponse>("/api/auth/user", userData);
   }
 
   /**
@@ -349,52 +344,52 @@ class FastAPIClient {
     const params = new URLSearchParams();
 
     // Pagination classique
-    if (filters.page) params.append('page', filters.page.toString());
-    if (filters.per_page) params.append('per_page', Math.min(filters.per_page, 20).toString());
+    if (filters.page) params.append("page", filters.page.toString());
+    if (filters.per_page) params.append("per_page", Math.min(filters.per_page, 20).toString());
 
     // Keyset pagination
-    if (filters.after) params.append('after', filters.after);
+    if (filters.after) params.append("after", filters.after);
 
     // Tri
-    if (filters.sort) params.append('sort', filters.sort);
+    if (filters.sort) params.append("sort", filters.sort);
 
     // Recherche
-    if (filters.search) params.append('search', filters.search.slice(0, 100));
+    if (filters.search) params.append("search", filters.search.slice(0, 100));
 
     // Niveaux
-    if (filters.level) params.append('level', filters.level);
+    if (filters.level) params.append("level", filters.level);
     if (filters.levels?.length) {
-      filters.levels.forEach(l => params.append('levels[]', l));
+      filters.levels.forEach((l) => params.append("levels[]", l));
     }
-    if (filters.learning_cycle) params.append('learning_cycle', filters.learning_cycle);
+    if (filters.learning_cycle) params.append("learning_cycle", filters.learning_cycle);
 
     // Statut
-    if (filters.status) params.append('status', filters.status);
+    if (filters.status) params.append("status", filters.status);
 
     // Propriétaire
-    if (filters.owner_type) params.append('owner_type', filters.owner_type);
-    if (filters.owner_id) params.append('owner_id', filters.owner_id.toString());
+    if (filters.owner_type) params.append("owner_type", filters.owner_type);
+    if (filters.owner_id) params.append("owner_id", filters.owner_id.toString());
 
     // Prix
-    if (filters.price_min !== undefined) params.append('price_min', filters.price_min.toString());
-    if (filters.price_max !== undefined) params.append('price_max', filters.price_max.toString());
+    if (filters.price_min !== undefined) params.append("price_min", filters.price_min.toString());
+    if (filters.price_max !== undefined) params.append("price_max", filters.price_max.toString());
 
     // Catégories
     if (filters.category_ids?.length) {
-      filters.category_ids.forEach(id => params.append('category_ids[]', id.toString()));
+      filters.category_ids.forEach((id) => params.append("category_ids[]", id.toString()));
     }
-    if (filters.category) params.append('category', filters.category);
+    if (filters.category) params.append("category", filters.category);
     if (filters.category_names?.length) {
-      filters.category_names.forEach(name => params.append('category_names[]', name));
+      filters.category_names.forEach((name) => params.append("category_names[]", name));
     }
 
     // Vidéo intro
     if (filters.has_intro_video !== undefined) {
-      params.append('has_intro_video', filters.has_intro_video.toString());
+      params.append("has_intro_video", filters.has_intro_video.toString());
     }
 
     // Facettes
-    if (filters.facets) params.append('facets', 'true');
+    if (filters.facets) params.append("facets", "true");
 
     return this.get<CourseSummaryPage>(`/api/courses/?${params.toString()}`);
   }
@@ -417,7 +412,7 @@ class FastAPIClient {
    * Créer un nouveau cours
    */
   async createCourse(courseData: Course): Promise<CourseResponse> {
-    return this.post<CourseResponse>('/api/courses/', courseData);
+    return this.post<CourseResponse>("/api/courses/", courseData);
   }
 
   /**
@@ -462,12 +457,9 @@ class FastAPIClient {
     courseId: string,
     moduleId: string,
     lessonId: string,
-    lessonData: LessonUpdate
+    lessonData: LessonUpdate,
   ): Promise<LessonResponse> {
-    return this.put<LessonResponse>(
-      `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}`,
-      lessonData
-    );
+    return this.put<LessonResponse>(`/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}`, lessonData);
   }
 
   /**
@@ -478,26 +470,17 @@ class FastAPIClient {
     courseId: string,
     moduleId: string,
     lessonId: string,
-    forceMediaDelete: boolean = false
+    forceMediaDelete: boolean = false,
   ): Promise<void> {
-    const params = forceMediaDelete ? '?force_media_delete=true' : '';
-    return this.delete<void>(
-      `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}${params}`
-    );
+    const params = forceMediaDelete ? "?force_media_delete=true" : "";
+    return this.delete<void>(`/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}${params}`);
   }
 
   /**
    * Réorganiser les leçons d'un module
    */
-  async reorderLessons(
-    courseId: string,
-    moduleId: string,
-    reorderData: LessonReorderRequest
-  ): Promise<Module> {
-    return this.patch<Module>(
-      `/api/courses/${courseId}/modules/${moduleId}/lessons/reorder`,
-      reorderData
-    );
+  async reorderLessons(courseId: string, moduleId: string, reorderData: LessonReorderRequest): Promise<Module> {
+    return this.patch<Module>(`/api/courses/${courseId}/modules/${moduleId}/lessons/reorder`, reorderData);
   }
 
   /**
@@ -507,11 +490,11 @@ class FastAPIClient {
     courseId: string,
     moduleId: string,
     lessonId: string,
-    mediaData: AttachMediaRequest
+    mediaData: AttachMediaRequest,
   ): Promise<LessonResponse> {
     return this.put<LessonResponse>(
       `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/media`,
-      mediaData
+      mediaData,
     );
   }
 
@@ -524,25 +507,16 @@ class FastAPIClient {
     courseId: string,
     moduleId: string,
     lessonId: string,
-    quizData: QuizCreate
+    quizData: QuizCreate,
   ): Promise<QuizResponse> {
-    return this.post<QuizResponse>(
-      `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/quiz`,
-      quizData
-    );
+    return this.post<QuizResponse>(`/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/quiz`, quizData);
   }
 
   /**
    * Récupérer le quiz d'une leçon
    */
-  async getLessonQuiz(
-    courseId: string,
-    moduleId: string,
-    lessonId: string
-  ): Promise<QuizResponse> {
-    return this.get<QuizResponse>(
-      `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/quiz`
-    );
+  async getLessonQuiz(courseId: string, moduleId: string, lessonId: string): Promise<QuizResponse> {
+    return this.get<QuizResponse>(`/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/quiz`);
   }
 
   /**
@@ -552,39 +526,23 @@ class FastAPIClient {
     courseId: string,
     moduleId: string,
     lessonId: string,
-    quizData: QuizUpdate
+    quizData: QuizUpdate,
   ): Promise<QuizResponse> {
-    return this.put<QuizResponse>(
-      `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/quiz`,
-      quizData
-    );
+    return this.put<QuizResponse>(`/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/quiz`, quizData);
   }
 
   /**
    * Supprimer le quiz d'une leçon
    */
-  async deleteLessonQuiz(
-    courseId: string,
-    moduleId: string,
-    lessonId: string
-  ): Promise<void> {
-    return this.delete<void>(
-      `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/quiz`
-    );
+  async deleteLessonQuiz(courseId: string, moduleId: string, lessonId: string): Promise<void> {
+    return this.delete<void>(`/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/quiz`);
   }
 
   /**
    * Récupérer un quiz par son ID
    */
-  async getQuizById(
-    courseId: string,
-    moduleId: string,
-    lessonId: string,
-    quizId: string
-  ): Promise<QuizResponse> {
-    return this.get<QuizResponse>(
-      `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/quiz/${quizId}`
-    );
+  async getQuizById(courseId: string, moduleId: string, lessonId: string, quizId: string): Promise<QuizResponse> {
+    return this.get<QuizResponse>(`/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/quiz/${quizId}`);
   }
 
   /**
@@ -595,26 +553,19 @@ class FastAPIClient {
     moduleId: string,
     lessonId: string,
     quizId: string,
-    quizData: QuizUpdate
+    quizData: QuizUpdate,
   ): Promise<QuizResponse> {
     return this.put<QuizResponse>(
       `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/quiz/${quizId}`,
-      quizData
+      quizData,
     );
   }
 
   /**
    * Supprimer un quiz par son ID
    */
-  async deleteQuizById(
-    courseId: string,
-    moduleId: string,
-    lessonId: string,
-    quizId: string
-  ): Promise<void> {
-    return this.delete<void>(
-      `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/quiz/${quizId}`
-    );
+  async deleteQuizById(courseId: string, moduleId: string, lessonId: string, quizId: string): Promise<void> {
+    return this.delete<void>(`/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/quiz/${quizId}`);
   }
 
   // ============= ASSIGNMENT ENDPOINTS (NEW) =============
@@ -625,24 +576,16 @@ class FastAPIClient {
   async createAssignment(
     courseId: string,
     moduleId: string,
-    assignmentData: AssignmentCreate
+    assignmentData: AssignmentCreate,
   ): Promise<AssignmentResponse> {
-    return this.post<AssignmentResponse>(
-      `/api/courses/${courseId}/modules/${moduleId}/assignment`,
-      assignmentData
-    );
+    return this.post<AssignmentResponse>(`/api/courses/${courseId}/modules/${moduleId}/assignment`, assignmentData);
   }
 
   /**
    * Récupérer l'assignment d'un module
    */
-  async getAssignment(
-    courseId: string,
-    moduleId: string
-  ): Promise<AssignmentResponse> {
-    return this.get<AssignmentResponse>(
-      `/api/courses/${courseId}/modules/${moduleId}/assignment`
-    );
+  async getAssignment(courseId: string, moduleId: string): Promise<AssignmentResponse> {
+    return this.get<AssignmentResponse>(`/api/courses/${courseId}/modules/${moduleId}/assignment`);
   }
 
   /**
@@ -651,37 +594,23 @@ class FastAPIClient {
   async updateAssignment(
     courseId: string,
     moduleId: string,
-    assignmentData: AssignmentUpdate
+    assignmentData: AssignmentUpdate,
   ): Promise<AssignmentResponse> {
-    return this.put<AssignmentResponse>(
-      `/api/courses/${courseId}/modules/${moduleId}/assignment`,
-      assignmentData
-    );
+    return this.put<AssignmentResponse>(`/api/courses/${courseId}/modules/${moduleId}/assignment`, assignmentData);
   }
 
   /**
    * Supprimer l'assignment d'un module
    */
-  async deleteAssignment(
-    courseId: string,
-    moduleId: string
-  ): Promise<void> {
-    return this.delete<void>(
-      `/api/courses/${courseId}/modules/${moduleId}/assignment`
-    );
+  async deleteAssignment(courseId: string, moduleId: string): Promise<void> {
+    return this.delete<void>(`/api/courses/${courseId}/modules/${moduleId}/assignment`);
   }
 
   /**
    * Récupérer un assignment par son ID
    */
-  async getAssignmentById(
-    courseId: string,
-    moduleId: string,
-    assignmentId: string
-  ): Promise<AssignmentResponse> {
-    return this.get<AssignmentResponse>(
-      `/api/courses/${courseId}/modules/${moduleId}/assignment/${assignmentId}`
-    );
+  async getAssignmentById(courseId: string, moduleId: string, assignmentId: string): Promise<AssignmentResponse> {
+    return this.get<AssignmentResponse>(`/api/courses/${courseId}/modules/${moduleId}/assignment/${assignmentId}`);
   }
 
   /**
@@ -691,25 +620,19 @@ class FastAPIClient {
     courseId: string,
     moduleId: string,
     assignmentId: string,
-    assignmentData: AssignmentUpdate
+    assignmentData: AssignmentUpdate,
   ): Promise<AssignmentResponse> {
     return this.put<AssignmentResponse>(
       `/api/courses/${courseId}/modules/${moduleId}/assignment/${assignmentId}`,
-      assignmentData
+      assignmentData,
     );
   }
 
   /**
    * Supprimer un assignment par son ID
    */
-  async deleteAssignmentById(
-    courseId: string,
-    moduleId: string,
-    assignmentId: string
-  ): Promise<void> {
-    return this.delete<void>(
-      `/api/courses/${courseId}/modules/${moduleId}/assignment/${assignmentId}`
-    );
+  async deleteAssignmentById(courseId: string, moduleId: string, assignmentId: string): Promise<void> {
+    return this.delete<void>(`/api/courses/${courseId}/modules/${moduleId}/assignment/${assignmentId}`);
   }
 
   // ============= DEPRECATED QUIZ METHODS =============
@@ -739,7 +662,7 @@ class FastAPIClient {
    * Upload de média (image ou vidéo) - DEPRECATED
    * @deprecated Use prepareUpload + completeUpload instead
    */
-  async uploadMedia(courseId: string, fileType: 'image' | 'video', fileName: string): Promise<UploadResponse> {
+  async uploadMedia(courseId: string, fileType: "image" | "video", fileName: string): Promise<UploadResponse> {
     return this.post<UploadResponse>(`/api/courses/${courseId}/upload`, { file_type: fileType, file_name: fileName });
   }
 
@@ -753,9 +676,9 @@ class FastAPIClient {
     contentType: string,
     size: number,
     // Backend attend: 'image' | 'video' | 'resource' (alias de PDF)
-    kind: 'image' | 'video' | 'resource'
+    kind: "image" | "video" | "resource",
   ): Promise<PrepareUploadResponse> {
-    return this.post<PrepareUploadResponse>('/api/storage/prepare-upload', {
+    return this.post<PrepareUploadResponse>("/api/storage/prepare-upload", {
       filename,
       content_type: contentType,
       size,
@@ -767,7 +690,7 @@ class FastAPIClient {
    * Finaliser un upload présigné
    */
   async completeUpload(params: CompleteUploadParams): Promise<CompleteUploadResponse> {
-    return this.post<CompleteUploadResponse>('/api/storage/complete-upload', params);
+    return this.post<CompleteUploadResponse>("/api/storage/complete-upload", params);
   }
 
   /**
@@ -776,10 +699,10 @@ class FastAPIClient {
   async abortUpload(uploadId: string, key: string): Promise<void> {
     // Endpoint optionnel côté backend
     try {
-      await this.post('/api/storage/abort-upload', { upload_id: uploadId, key });
+      await this.post("/api/storage/abort-upload", { upload_id: uploadId, key });
     } catch (e) {
       // Silencieux si non implémenté
-      console.warn('abort-upload failed or not implemented', e);
+      console.warn("abort-upload failed or not implemented", e);
     }
   }
 
@@ -787,7 +710,7 @@ class FastAPIClient {
    * Obtenir l'URL de lecture d'une vidéo
    */
   async getVideoPlayUrl(key: string): Promise<VideoPlayResponse> {
-    const raw: any = await this.get<any>('/api/storage/play', { params: { key } });
+    const raw: any = await this.get<any>("/api/storage/play", { params: { key } });
     return { url: raw.play_url ?? raw.url, expires_in: raw.expires_in };
   }
 
@@ -796,7 +719,7 @@ class FastAPIClient {
    * Note: alias générique de getVideoPlayUrl afin de l'utiliser aussi pour les images/PDF
    */
   async getPlayUrl(key: string): Promise<VideoPlayResponse> {
-    const raw: any = await this.get<any>('/api/storage/play', { params: { key } });
+    const raw: any = await this.get<any>("/api/storage/play", { params: { key } });
     return { url: raw.play_url ?? raw.url, expires_in: raw.expires_in, stream_type: raw.stream_type };
   }
 
@@ -810,8 +733,10 @@ class FastAPIClient {
   /**
    * Lecture batch de plusieurs clés
    */
-  async getMultiPlay(keys: string[]): Promise<Array<{ key: string; url?: string; stream_type?: string; error?: string }>> {
-    const raw: any = await this.get<any>('/api/storage/play/multi', { params: { keys } });
+  async getMultiPlay(
+    keys: string[],
+  ): Promise<Array<{ key: string; url?: string; stream_type?: string; error?: string }>> {
+    const raw: any = await this.get<any>("/api/storage/play/multi", { params: { keys } });
     return raw.items || [];
   }
 
@@ -819,14 +744,14 @@ class FastAPIClient {
    * Récupérer les métadonnées d'un asset par sa clé
    */
   async getAssetByKey(key: string): Promise<any> {
-    return this.get('/api/storage/assets/by-key', { params: { key } });
+    return this.get("/api/storage/assets/by-key", { params: { key } });
   }
 
   /**
    * Lister des assets (pagination + filtres optionnels)
    */
   async listAssets(page: number = 1, perPage: number = 10, status?: string): Promise<any> {
-    return this.get('/api/storage/assets', { params: { page, per_page: perPage, status } });
+    return this.get("/api/storage/assets", { params: { page, per_page: perPage, status } });
   }
 
   /**
@@ -868,7 +793,7 @@ class FastAPIClient {
    * S'inscrire à un cours (enrollment)
    */
   async enrollCourse(courseId: string): Promise<EnrollResponse> {
-    return this.post<EnrollResponse>('/api/courses/enroll', { course_id: courseId });
+    return this.post<EnrollResponse>("/api/courses/enroll", { course_id: courseId });
   }
 
   // ============= ORGANIZATIONS =============
@@ -877,15 +802,15 @@ class FastAPIClient {
    * Créer un organisme de formation (superadmin uniquement)
    */
   async createOrganization(orgData: OrganizationCreate): Promise<OrganizationResponse> {
-    return this.post<OrganizationResponse>('/api/organizations/', orgData);
+    return this.post<OrganizationResponse>("/api/organizations/", orgData);
   }
 
   /**
    * Lister les organismes de formation avec pagination
    */
   async listOrganizations(page: number = 1, perPage: number = 10): Promise<OrganizationResponse[]> {
-    return this.get<OrganizationResponse[]>('/api/organizations/', {
-      params: { page, per_page: perPage }
+    return this.get<OrganizationResponse[]>("/api/organizations/", {
+      params: { page, per_page: perPage },
     });
   }
 
@@ -908,11 +833,8 @@ class FastAPIClient {
   /**
    * Changer le statut d'un utilisateur (superadmin uniquement)
    */
-  async updateUserStatus(userId: number, status: 'active' | 'inactive'): Promise<UserResponse> {
-    return this.patch<UserResponse>(
-      `/api/auth/superadmin/users/${userId}/status`,
-      { status }
-    );
+  async updateUserStatus(userId: number, status: "active" | "inactive"): Promise<UserResponse> {
+    return this.patch<UserResponse>(`/api/auth/superadmin/users/${userId}/status`, { status });
   }
 
   // ============= SUBDOMAIN VERIFICATION =============
@@ -929,7 +851,7 @@ class FastAPIClient {
     login_url?: string;
     detail?: string;
   }> {
-    return this.get('/api/organizations/verify-subdomain', { params: { host } });
+    return this.get("/api/organizations/verify-subdomain", { params: { host } });
   }
 
   /**
@@ -940,21 +862,13 @@ class FastAPIClient {
   }
 
   // ============= MODULE MANAGEMENT =============
-  async updateModule(
-    courseId: string,
-    moduleId: number,
-    moduleData: ModuleFullUpdate
-  ): Promise<Module> {
+  async updateModule(courseId: string, moduleId: number, moduleData: ModuleFullUpdate): Promise<Module> {
     return this.put(`/api/courses/${courseId}/modules/${moduleId}`, moduleData);
   }
 
-  async deleteModule(
-    courseId: string,
-    moduleId: number,
-    forceMediaDelete: boolean = false
-  ): Promise<void> {
+  async deleteModule(courseId: string, moduleId: number, forceMediaDelete: boolean = false): Promise<void> {
     return this.delete(`/api/courses/${courseId}/modules/${moduleId}`, {
-      params: { force_media_delete: forceMediaDelete }
+      params: { force_media_delete: forceMediaDelete },
     });
   }
 
@@ -963,7 +877,9 @@ class FastAPIClient {
   /**
    * Lister les ressources pédagogiques d'un cours
    */
-  async listCourseResources(courseId: string): Promise<Array<{ name: string; key?: string; size?: number; url?: string }>> {
+  async listCourseResources(
+    courseId: string,
+  ): Promise<Array<{ name: string; key?: string; size?: number; url?: string }>> {
     return this.get(`/api/courses/${courseId}/resources`);
   }
 
@@ -974,12 +890,12 @@ class FastAPIClient {
     courseId: string,
     resourceKey: string,
     resourceName: string,
-    size?: number
+    size?: number,
   ): Promise<{ status: string; attached?: any; message?: string }> {
     return this.post(`/api/courses/${courseId}/resources`, {
       name: resourceName,
       key: resourceKey,
-      size: size || null
+      size: size || null,
     });
   }
 
@@ -989,10 +905,10 @@ class FastAPIClient {
   async detachCourseResource(
     courseId: string,
     resourceKey: string,
-    force: boolean = false
+    force: boolean = false,
   ): Promise<{ status: string; detached_key: string; deleted_from_storage: boolean }> {
     return this.delete(`/api/courses/${courseId}/resources`, {
-      params: { key: resourceKey, force }
+      params: { key: resourceKey, force },
     });
   }
 
@@ -1000,27 +916,26 @@ class FastAPIClient {
    * Télécharger une ressource par index avec le bon nom de fichier
    */
   async downloadCourseResource(courseId: string, index: number): Promise<void> {
-    const response = await this.axiosInstance.get(
-      `/api/courses/${courseId}/resources/${index}/download`,
-      { responseType: 'blob' }
-    );
+    const response = await this.axiosInstance.get(`/api/courses/${courseId}/resources/${index}/download`, {
+      responseType: "blob",
+    });
 
     // Extraire le nom du fichier depuis Content-Disposition
-    const contentDisposition = response.headers['content-disposition'];
+    const contentDisposition = response.headers["content-disposition"];
     let filename = `resource-${index}.pdf`; // Fallback avec extension
 
     if (contentDisposition) {
       const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
       if (matches && matches[1]) {
-        filename = matches[1].replace(/['"]/g, '');
+        filename = matches[1].replace(/['"]/g, "");
       }
     }
 
     // Créer un lien de téléchargement
     const url = window.URL.createObjectURL(new Blob([response.data]));
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
-    link.setAttribute('download', filename);
+    link.setAttribute("download", filename);
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -1032,17 +947,16 @@ class FastAPIClient {
    * Retourne le blob et le filename extrait des headers si présent
    */
   async fetchCourseResourceBlob(courseId: string, index: number): Promise<{ blob: Blob; filename: string }> {
-    const response = await this.axiosInstance.get(
-      `/api/courses/${courseId}/resources/${index}/download`,
-      { responseType: 'blob' }
-    );
+    const response = await this.axiosInstance.get(`/api/courses/${courseId}/resources/${index}/download`, {
+      responseType: "blob",
+    });
 
-    const contentDisposition = response.headers['content-disposition'];
+    const contentDisposition = response.headers["content-disposition"];
     let filename = `resource-${index}`;
     if (contentDisposition) {
       const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
       if (matches && matches[1]) {
-        filename = matches[1].replace(/['"]/g, '');
+        filename = matches[1].replace(/['"]/g, "");
       }
     }
 
@@ -1054,27 +968,26 @@ class FastAPIClient {
    * Télécharger le programme PDF du cours
    */
   async downloadCourseProgram(courseId: string): Promise<void> {
-    const response = await this.axiosInstance.get(
-      `/api/courses/${courseId}/program/download`,
-      { responseType: 'blob' }
-    );
+    const response = await this.axiosInstance.get(`/api/courses/${courseId}/program/download`, {
+      responseType: "blob",
+    });
 
     // Extraire le nom du fichier depuis Content-Disposition
-    const contentDisposition = response.headers['content-disposition'];
-    let filename = 'programme.pdf';
+    const contentDisposition = response.headers["content-disposition"];
+    let filename = "programme.pdf";
 
     if (contentDisposition) {
       const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
       if (matches && matches[1]) {
-        filename = matches[1].replace(/['"]/g, '');
+        filename = matches[1].replace(/['"]/g, "");
       }
     }
 
     // Créer un lien de téléchargement
     const url = window.URL.createObjectURL(new Blob([response.data]));
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
-    link.setAttribute('download', filename);
+    link.setAttribute("download", filename);
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -1087,21 +1000,21 @@ class FastAPIClient {
    * Lister toutes les catégories (actives uniquement par défaut)
    */
   async listCategories(): Promise<CategoryItem[]> {
-    return this.get('/api/categories/');
+    return this.get("/api/categories/");
   }
 
   /**
    * Créer une nouvelle catégorie (OF ou trainer)
    */
   async createCategory(data: CategoryCreate): Promise<CategoryItem> {
-    return this.post('/api/categories/', data);
+    return this.post("/api/categories/", data);
   }
 
   /**
    * Créer une catégorie globale (superadmin uniquement)
    */
   async createGlobalCategory(data: CategoryCreate): Promise<CategoryItem> {
-    return this.post('/api/categories/global', data);
+    return this.post("/api/categories/global", data);
   }
 
   /**
@@ -1124,7 +1037,7 @@ class FastAPIClient {
    * Récupérer les niveaux pour un cycle d'apprentissage
    */
   async getLevels(cycle: string): Promise<string[]> {
-    return this.get('/api/levels/', { params: { cycle } });
+    return this.get("/api/levels/", { params: { cycle } });
   }
 
   /**
@@ -1137,10 +1050,10 @@ class FastAPIClient {
       payload.name = payload.label;
     }
     // Ne pas envoyer le champ label si name est défini pour éviter ambiguïté
-    if (payload.name && 'label' in payload) {
+    if (payload.name && "label" in payload) {
       delete payload.label;
     }
-    return this.post('/api/levels/', payload);
+    return this.post("/api/levels/", payload);
   }
 
   /**
