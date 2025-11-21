@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { SuperAdminDetailView } from '@/components/admin/user-details/SuperAdminDetailView';
-import { useUserBySlug } from '@/hooks/useApi';
+import { useUserBySlug, useAuth } from '@/hooks/useApi';
 import { UserStatusToggleButton } from '@/components/admin/UserStatusToggleButton';
 import { useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
@@ -22,6 +22,7 @@ const SuperAdminDetailPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const currentPath = `/dashboard/superadmin/users/${userSlug}`;
+  const { user: currentUser } = useAuth();
 
   // Récupérer l'utilisateur par son slug
   const { data: foundUser, isLoading: usersLoading, error } = useUserBySlug(userSlug);
@@ -113,12 +114,14 @@ const SuperAdminDetailPage = () => {
           </div>
         </div>
 
-        <UserStatusToggleButton
-          userId={user.id}
-          currentStatus={user.status}
-          userName={user.name}
-          onStatusChanged={handleStatusChanged}
-        />
+        {currentUser?.id !== user.id && (
+          <UserStatusToggleButton
+            userId={user.id}
+            currentStatus={user.status}
+            userName={user.name}
+            onStatusChanged={handleStatusChanged}
+          />
+        )}
       </div>
 
       <Card className="w-full">
