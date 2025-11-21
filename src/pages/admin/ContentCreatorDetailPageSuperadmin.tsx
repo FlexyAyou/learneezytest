@@ -1,4 +1,3 @@
-import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -18,7 +17,6 @@ const ContentCreatorDetailPageSuperadmin = () => {
   const { userSlug } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [optimisticStatus, setOptimisticStatus] = React.useState<string | null>(null);
 
   const { data: allUsers, isLoading: usersLoading } = useSuperadminUsers();
   const { data: organizations } = useOrganizations(1, 100);
@@ -54,15 +52,12 @@ const ContentCreatorDetailPageSuperadmin = () => {
     ? organizations.find(o => o.id === foundUser.of_id)
     : null;
 
-  // Utiliser le statut optimiste s'il existe, sinon utiliser le statut du serveur
-  const currentStatus = optimisticStatus || foundUser?.status || 'active';
-
   // Construire l'objet user avec les données récupérées
   const user = {
     id: foundUser?.id || 0,
     name: `${foundUser?.first_name || ''} ${foundUser?.last_name || ''}`.trim(),
     email: foundUser?.email || '',
-    status: currentStatus,
+    status: foundUser?.status || 'active',
     role: foundUser?.role || 'createur_contenu',
     organisation: organisation?.name || 'Learneezy Global',
     organisationType: foundUser?.of_id ? 'of' : 'global',
@@ -97,18 +92,10 @@ const ContentCreatorDetailPageSuperadmin = () => {
 
         <UserStatusToggleButton
           userId={user.id}
-          currentStatus={currentStatus}
+          currentStatus={user.status}
           userName={user.name}
           onStatusChanged={() => {
-            // Mise à jour optimiste immédiate
-            const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
-            setOptimisticStatus(newStatus);
-            
-            // Invalider les queries pour récupérer les données à jour du serveur
-            queryClient.invalidateQueries({ queryKey: ['superadmin-users'] }).then(() => {
-              // Réinitialiser le statut optimiste une fois que les données du serveur sont chargées
-              setOptimisticStatus(null);
-            });
+            queryClient.invalidateQueries({ queryKey: ['superadmin-users'] });
           }}
         />
       </div>

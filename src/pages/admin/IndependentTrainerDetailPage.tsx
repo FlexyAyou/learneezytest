@@ -20,7 +20,6 @@ const IndependentTrainerDetailPage = () => {
   const { userSlug } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [optimisticStatus, setOptimisticStatus] = React.useState<string | null>(null);
 
   // Récupérer l'utilisateur par son slug
   const { data: foundUser, isLoading: usersLoading, error } = useUserBySlug(userSlug);
@@ -58,9 +57,6 @@ const IndependentTrainerDetailPage = () => {
     }
   }
 
-  // Utiliser le statut optimiste s'il existe, sinon utiliser le statut du serveur
-  const currentStatus = optimisticStatus || foundUser.status || 'inactive';
-
   // Construire l'objet user avec les données backend
   const user = {
     id: foundUser.id,
@@ -71,8 +67,8 @@ const IndependentTrainerDetailPage = () => {
     email: foundUser.email,
     phone: foundUser.phone || 'Non renseigné',
     role: 'Formateur indépendant',
-    status: currentStatus,
-    is_active: currentStatus === 'active',
+    status: foundUser.status || 'inactive',
+    is_active: foundUser.status === 'active',
     lastLogin: foundUser.last_login || '2024-01-18',
     joinDate: foundUser.created_at,
     created_at: foundUser.created_at,
@@ -129,18 +125,10 @@ const IndependentTrainerDetailPage = () => {
         
         <UserStatusToggleButton
           userId={user.id}
-          currentStatus={currentStatus}
+          currentStatus={user.status}
           userName={user.name}
           onStatusChanged={() => {
-            // Mise à jour optimiste immédiate
-            const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
-            setOptimisticStatus(newStatus);
-            
-            // Invalider les queries pour récupérer les données à jour du serveur
-            queryClient.invalidateQueries({ queryKey: ['userBySlug', userSlug] }).then(() => {
-              // Réinitialiser le statut optimiste une fois que les données du serveur sont chargées
-              setOptimisticStatus(null);
-            });
+            queryClient.invalidateQueries({ queryKey: ['userBySlug', userSlug] });
           }}
         />
       </div>
