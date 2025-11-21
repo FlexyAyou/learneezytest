@@ -97,11 +97,11 @@ const ContentCreatorDetailPageSuperadmin = () => {
 
         <UserStatusToggleButton
           userId={user.id}
-          currentStatus={user.status}
+          currentStatus={currentStatus}
           userName={user.name}
           onStatusChanged={() => {
             // Mise à jour optimiste immédiate
-            const newStatus = user.status === 'active' ? 'inactive' : 'active';
+            const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
             setOptimisticStatus(newStatus);
             
             // Invalider les queries pour récupérer les données à jour du serveur
