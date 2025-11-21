@@ -30,6 +30,13 @@ const OFAdminDetailPageSuperadmin = () => {
     return userSlugFromId === userSlug;
   });
 
+  const { userStatus, handleStatusChanged } = useUserStatusSync({
+    initialStatus: foundUser?.status || 'active',
+    onStatusChanged: () => {
+      queryClient.invalidateQueries({ queryKey: ['superadmin-users'] });
+    },
+  });
+
   if (usersLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -56,13 +63,6 @@ const OFAdminDetailPageSuperadmin = () => {
   const organisation = foundUser?.of_id && organizations
     ? organizations.find(o => o.id === foundUser.of_id)
     : null;
-
-  const { userStatus, handleStatusChanged } = useUserStatusSync({
-    initialStatus: foundUser?.status || 'active',
-    onStatusChanged: () => {
-      queryClient.invalidateQueries({ queryKey: ['superadmin-users'] });
-    },
-  });
 
   // Construire l'objet user avec les données récupérées
   const user = {

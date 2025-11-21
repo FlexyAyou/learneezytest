@@ -41,6 +41,18 @@ const OFStudentDetailPageSuperadmin = ({ userRole = 'superadmin' }: OFStudentDet
     return userSlugFromId === userSlug;
   });
 
+  const backPath = userRole === 'superadmin'
+    ? '/dashboard/superadmin/users'
+    : '/dashboard/gestionnaire/apprenants';
+  const cacheKey = userRole === 'superadmin' ? 'superadmin-users' : 'users';
+
+  const { userStatus, handleStatusChanged } = useUserStatusSync({
+    initialStatus: foundUser?.status || 'active',
+    onStatusChanged: () => {
+      queryClient.invalidateQueries({ queryKey: [cacheKey] });
+    },
+  });
+
   if (usersLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -62,18 +74,6 @@ const OFStudentDetailPageSuperadmin = ({ userRole = 'superadmin' }: OFStudentDet
       </div>
     );
   }
-
-  const backPath = userRole === 'superadmin'
-    ? '/dashboard/superadmin/users'
-    : '/dashboard/gestionnaire/apprenants';
-  const cacheKey = userRole === 'superadmin' ? 'superadmin-users' : 'users';
-
-  const { userStatus, handleStatusChanged } = useUserStatusSync({
-    initialStatus: foundUser?.status || 'active',
-    onStatusChanged: () => {
-      queryClient.invalidateQueries({ queryKey: [cacheKey] });
-    },
-  });
 
   // Trouver l'organisation correspondante
   const organisation = foundUser?.of_id && organizations

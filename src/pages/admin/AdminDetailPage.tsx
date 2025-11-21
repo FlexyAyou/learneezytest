@@ -45,6 +45,13 @@ const AdminDetailPage = () => {
   const { data: foundUser, isLoading: usersLoading, error } = useUserBySlug(userSlug);
   const { data: organizations } = useOrganizations(1, 100);
 
+  const { userStatus, handleStatusChanged } = useUserStatusSync({
+    initialStatus: foundUser?.status || 'inactive',
+    onStatusChanged: () => {
+      queryClient.invalidateQueries({ queryKey: ['userBySlug', userSlug] });
+    },
+  });
+
   if (usersLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -76,13 +83,6 @@ const AdminDetailPage = () => {
       organisationName = org.name;
     }
   }
-
-  const { userStatus, handleStatusChanged } = useUserStatusSync({
-    initialStatus: foundUser.status || 'inactive',
-    onStatusChanged: () => {
-      queryClient.invalidateQueries({ queryKey: ['userBySlug', userSlug] });
-    },
-  });
 
   // Construire l'objet user avec les données backend
   const user = {
