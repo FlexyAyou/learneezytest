@@ -21,6 +21,7 @@ const SuperAdminDetailPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const currentPath = `/dashboard/superadmin/users/${userSlug}`;
+  const [optimisticStatus, setOptimisticStatus] = React.useState<string | null>(null);
 
   // Récupérer l'utilisateur par son slug
   const { data: foundUser, isLoading: usersLoading, error } = useUserBySlug(userSlug);
@@ -48,13 +49,16 @@ const SuperAdminDetailPage = () => {
     );
   }
 
+  // Utiliser le statut optimiste s'il existe, sinon utiliser le statut du serveur
+  const currentStatus = optimisticStatus || foundUser.status || 'inactive';
+
   const user = {
     id: foundUser.id,
     name: `${foundUser.first_name} ${foundUser.last_name}`,
     email: foundUser.email,
     phone: '+33 6 12 34 56 78',
     role: 'Super Administrateur',
-    status: foundUser.status || 'inactive',
+    status: currentStatus,
     lastLogin: foundUser.last_login || '2024-01-15',
     joinDate: foundUser.created_at,
     organisation: 'Learneezy',
@@ -110,7 +114,15 @@ const SuperAdminDetailPage = () => {
           currentStatus={user.status}
           userName={user.name}
           onStatusChanged={() => {
-            queryClient.invalidateQueries({ queryKey: ['userBySlug', userSlug] });
+            // Mise à jour optimiste immédiate
+            const newStatus = user.status === 'active' ? 'inactive' : 'active';
+            setOptimisticStatus(newStatus);
+            
+            // Invalider les queries pour récupérer les données à jour du serveur
+            queryClient.invalidateQueries({ queryKey: ['userBySlug', userSlug] }).then(() => {
+              // Réinitialiser le statut optimiste une fois que les données du serveur sont chargées
+              setOptimisticStatus(null);
+            });
           }}
         />
       </div>

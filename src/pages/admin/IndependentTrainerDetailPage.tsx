@@ -20,6 +20,7 @@ const IndependentTrainerDetailPage = () => {
   const { userSlug } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [optimisticStatus, setOptimisticStatus] = React.useState<string | null>(null);
 
   // Récupérer l'utilisateur par son slug
   const { data: foundUser, isLoading: usersLoading, error } = useUserBySlug(userSlug);
@@ -57,6 +58,9 @@ const IndependentTrainerDetailPage = () => {
     }
   }
 
+  // Utiliser le statut optimiste s'il existe, sinon utiliser le statut du serveur
+  const currentStatus = optimisticStatus || foundUser.status || 'inactive';
+
   // Construire l'objet user avec les données backend
   const user = {
     id: foundUser.id,
@@ -67,8 +71,8 @@ const IndependentTrainerDetailPage = () => {
     email: foundUser.email,
     phone: foundUser.phone || 'Non renseigné',
     role: 'Formateur indépendant',
-    status: foundUser.status || 'inactive',
-    is_active: foundUser.status === 'active',
+    status: currentStatus,
+    is_active: currentStatus === 'active',
     lastLogin: foundUser.last_login || '2024-01-18',
     joinDate: foundUser.created_at,
     created_at: foundUser.created_at,
@@ -128,7 +132,15 @@ const IndependentTrainerDetailPage = () => {
           currentStatus={user.status}
           userName={user.name}
           onStatusChanged={() => {
-            queryClient.invalidateQueries({ queryKey: ['userBySlug', userSlug] });
+            // Mise à jour optimiste immédiate
+            const newStatus = user.status === 'active' ? 'inactive' : 'active';
+            setOptimisticStatus(newStatus);
+            
+            // Invalider les queries pour récupérer les données à jour du serveur
+            queryClient.invalidateQueries({ queryKey: ['userBySlug', userSlug] }).then(() => {
+              // Réinitialiser le statut optimiste une fois que les données du serveur sont chargées
+              setOptimisticStatus(null);
+            });
           }}
         />
       </div>
