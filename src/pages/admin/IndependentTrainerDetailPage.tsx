@@ -8,13 +8,14 @@ import { useUserBySlug, useOrganizations } from '@/hooks/useApi';
 import { UserStatusToggleButton } from '@/components/admin/UserStatusToggleButton';
 import { useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
-import { 
-  ArrowLeft, 
+import {
+  ArrowLeft,
   Mail,
   Phone,
   Calendar,
   Building
 } from 'lucide-react';
+import { useUserStatusSync } from '@/hooks/useUserStatusSync';
 
 const IndependentTrainerDetailPage = () => {
   const { userSlug } = useParams();
@@ -57,6 +58,13 @@ const IndependentTrainerDetailPage = () => {
     }
   }
 
+  const { userStatus, handleStatusChanged } = useUserStatusSync({
+    initialStatus: foundUser.status || 'inactive',
+    onStatusChanged: () => {
+      queryClient.invalidateQueries({ queryKey: ['userBySlug', userSlug] });
+    },
+  });
+
   // Construire l'objet user avec les données backend
   const user = {
     id: foundUser.id,
@@ -67,8 +75,8 @@ const IndependentTrainerDetailPage = () => {
     email: foundUser.email,
     phone: foundUser.phone || 'Non renseigné',
     role: 'Formateur indépendant',
-    status: foundUser.status || 'inactive',
-    is_active: foundUser.status === 'active',
+    status: userStatus,
+    is_active: userStatus === 'active',
     lastLogin: foundUser.last_login || '2024-01-18',
     joinDate: foundUser.created_at,
     created_at: foundUser.created_at,
@@ -86,7 +94,7 @@ const IndependentTrainerDetailPage = () => {
       inactive: { variant: 'secondary' as const, label: 'Inactif' },
       suspended: { variant: 'destructive' as const, label: 'Suspendu' }
     };
-    
+
     const config = configs[status as keyof typeof configs] || configs.active;
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
@@ -109,8 +117,8 @@ const IndependentTrainerDetailPage = () => {
       {/* En-tête avec bouton retour */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             onClick={() => navigate('/dashboard/superadmin/users')}
           >
@@ -122,14 +130,12 @@ const IndependentTrainerDetailPage = () => {
             <p className="text-gray-600">{user.email}</p>
           </div>
         </div>
-        
+
         <UserStatusToggleButton
           userId={user.id}
           currentStatus={user.status}
           userName={user.name}
-          onStatusChanged={() => {
-            queryClient.invalidateQueries({ queryKey: ['userBySlug', userSlug] });
-          }}
+          onStatusChanged={handleStatusChanged}
         />
       </div>
 
@@ -145,7 +151,7 @@ const IndependentTrainerDetailPage = () => {
                 </Badge>
               </div>
             </div>
-            
+
             <div>
               <label className="text-sm font-medium text-gray-600">Statut</label>
               <div className="mt-1">

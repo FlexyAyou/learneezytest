@@ -8,6 +8,7 @@ import { useSuperadminUsers, useOrganizations } from '@/hooks/useApi';
 import { UserStatusToggleButton } from '@/components/admin/UserStatusToggleButton';
 import { useQueryClient } from '@tanstack/react-query';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
+import { useUserStatusSync } from '@/hooks/useUserStatusSync';
 
 /**
  * Page de détails d'un créateur de contenu pour le superadmin
@@ -20,7 +21,7 @@ const ContentCreatorDetailPageSuperadmin = () => {
 
   const { data: allUsers, isLoading: usersLoading } = useSuperadminUsers();
   const { data: organizations } = useOrganizations(1, 100);
-  
+
   const foundUser = allUsers?.find(u => {
     const userSlugFromId = `${u.id}-${u.first_name?.toLowerCase()}-${u.last_name?.toLowerCase()}`.replace(/\s+/g, '-');
     return userSlugFromId === userSlug;
@@ -48,16 +49,23 @@ const ContentCreatorDetailPageSuperadmin = () => {
   }
 
   // Trouver l'organisation correspondante
-  const organisation = foundUser?.of_id && organizations 
+  const organisation = foundUser?.of_id && organizations
     ? organizations.find(o => o.id === foundUser.of_id)
     : null;
+
+  const { userStatus, handleStatusChanged } = useUserStatusSync({
+    initialStatus: foundUser?.status || 'active',
+    onStatusChanged: () => {
+      queryClient.invalidateQueries({ queryKey: ['superadmin-users'] });
+    },
+  });
 
   // Construire l'objet user avec les données récupérées
   const user = {
     id: foundUser?.id || 0,
     name: `${foundUser?.first_name || ''} ${foundUser?.last_name || ''}`.trim(),
     email: foundUser?.email || '',
-    status: foundUser?.status || 'active',
+    status: userStatus,
     role: foundUser?.role || 'createur_contenu',
     organisation: organisation?.name || 'Learneezy Global',
     organisationType: foundUser?.of_id ? 'of' : 'global',
@@ -81,8 +89,8 @@ const ContentCreatorDetailPageSuperadmin = () => {
     <div className="container mx-auto px-4 py-8 space-y-6">
       {/* En-tête */}
       <div className="flex items-center justify-between">
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           onClick={() => navigate('/dashboard/superadmin/users')}
           className="gap-2"
         >
@@ -94,9 +102,7 @@ const ContentCreatorDetailPageSuperadmin = () => {
           userId={user.id}
           currentStatus={user.status}
           userName={user.name}
-          onStatusChanged={() => {
-            queryClient.invalidateQueries({ queryKey: ['superadmin-users'] });
-          }}
+          onStatusChanged={handleStatusChanged}
         />
       </div>
 

@@ -6,8 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
 import { TrainerDetailView } from '@/components/admin/user-details/TrainerDetailView';
 import { UserStatusToggleButton } from '@/components/admin/UserStatusToggleButton';
-import { 
-  ArrowLeft, 
+import {
+  ArrowLeft,
   Mail,
   Phone,
   Calendar,
@@ -24,11 +24,16 @@ import {
   File,
   Video
 } from 'lucide-react';
+import { useUserStatusSync } from '@/hooks/useUserStatusSync';
 
 const OFTrainerDetailPage = () => {
   const { userSlug } = useParams();
   const navigate = useNavigate();
   const currentPath = `/dashboard/organisme-formation/utilisateurs/${userSlug}`;
+
+  const { userStatus, handleStatusChanged } = useUserStatusSync({
+    initialStatus: 'active',
+  });
 
   // Mock data pour le formateur
   const user = {
@@ -37,7 +42,7 @@ const OFTrainerDetailPage = () => {
     email: 'marc.dubois@email.com',
     phone: '+33 6 23 45 67 89',
     role: 'Formateur',
-    status: 'active',
+    status: userStatus,
     lastLogin: '2024-01-20',
     joinDate: '2023-06-10',
     organisation: 'Centre de Formation Digital',
@@ -131,7 +136,7 @@ const OFTrainerDetailPage = () => {
       inactive: { variant: 'secondary' as const, label: 'Inactif' },
       suspended: { variant: 'destructive' as const, label: 'Suspendu' }
     };
-    
+
     const config = configs[status as keyof typeof configs] || configs.active;
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
@@ -150,15 +155,15 @@ const OFTrainerDetailPage = () => {
           userInfo={userInfo}
         />
       </div>
-      
+
       <div className="flex-1">
         <main className="flex-1 overflow-y-auto">
           <div className="space-y-6 p-6">
             {/* En-tête avec bouton retour */}
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   onClick={() => navigate('/dashboard/organisme-formation/utilisateurs')}
                 >
@@ -170,12 +175,12 @@ const OFTrainerDetailPage = () => {
                   <p className="text-gray-600">{user.email}</p>
                 </div>
               </div>
-              
+
               <UserStatusToggleButton
                 userId={user.id}
                 currentStatus={user.status}
                 userName={user.name}
-                onStatusChanged={() => {}}
+                onStatusChanged={handleStatusChanged}
               />
             </div>
 
@@ -191,7 +196,7 @@ const OFTrainerDetailPage = () => {
                       </Badge>
                     </div>
                   </div>
-                  
+
                   <div>
                     <label className="text-sm font-medium text-gray-600">Statut</label>
                     <div className="mt-1">

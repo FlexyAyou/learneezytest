@@ -12,12 +12,13 @@ import {
 } from '@/components/ui/alert-dialog';
 import { UserCheck, UserX, Loader2 } from 'lucide-react';
 import { useUpdateUserStatus } from '@/hooks/useApi';
+import type { UserStatus } from '@/hooks/useUserStatusSync';
 
 interface UserStatusToggleButtonProps {
   userId: number;
-  currentStatus: string;
+  currentStatus: UserStatus;
   userName: string;
-  onStatusChanged?: () => void;
+  onStatusChanged?: (newStatus: UserStatus) => void;
 }
 
 export const UserStatusToggleButton: React.FC<UserStatusToggleButtonProps> = ({
@@ -48,7 +49,7 @@ export const UserStatusToggleButton: React.FC<UserStatusToggleButtonProps> = ({
         onSuccess: () => {
           setLocalStatus(newStatus);
           setIsDialogOpen(false);
-          onStatusChanged?.();
+          onStatusChanged?.(newStatus);
         },
       }
     );

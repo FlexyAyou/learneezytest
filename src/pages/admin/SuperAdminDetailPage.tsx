@@ -8,13 +8,14 @@ import { useUserBySlug } from '@/hooks/useApi';
 import { UserStatusToggleButton } from '@/components/admin/UserStatusToggleButton';
 import { useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
-import { 
-  ArrowLeft, 
+import {
+  ArrowLeft,
   Mail,
   Phone,
   Calendar,
   Building
 } from 'lucide-react';
+import { useUserStatusSync } from '@/hooks/useUserStatusSync';
 
 const SuperAdminDetailPage = () => {
   const { userSlug } = useParams();
@@ -48,13 +49,20 @@ const SuperAdminDetailPage = () => {
     );
   }
 
+  const { userStatus, handleStatusChanged } = useUserStatusSync({
+    initialStatus: foundUser.status || 'inactive',
+    onStatusChanged: () => {
+      queryClient.invalidateQueries({ queryKey: ['userBySlug', userSlug] });
+    },
+  });
+
   const user = {
     id: foundUser.id,
     name: `${foundUser.first_name} ${foundUser.last_name}`,
     email: foundUser.email,
     phone: '+33 6 12 34 56 78',
     role: 'Super Administrateur',
-    status: foundUser.status || 'inactive',
+    status: userStatus,
     lastLogin: foundUser.last_login || '2024-01-15',
     joinDate: foundUser.created_at,
     organisation: 'Learneezy',
@@ -69,7 +77,7 @@ const SuperAdminDetailPage = () => {
       inactive: { variant: 'secondary' as const, label: 'Inactif' },
       suspended: { variant: 'destructive' as const, label: 'Suspendu' }
     };
-    
+
     const config = configs[status as keyof typeof configs] || configs.active;
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
@@ -91,8 +99,8 @@ const SuperAdminDetailPage = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             onClick={() => navigate('/dashboard/superadmin/users')}
           >
@@ -104,14 +112,12 @@ const SuperAdminDetailPage = () => {
             <p className="text-gray-600">{user.email}</p>
           </div>
         </div>
-        
+
         <UserStatusToggleButton
           userId={user.id}
           currentStatus={user.status}
           userName={user.name}
-          onStatusChanged={() => {
-            queryClient.invalidateQueries({ queryKey: ['userBySlug', userSlug] });
-          }}
+          onStatusChanged={handleStatusChanged}
         />
       </div>
 
@@ -126,7 +132,7 @@ const SuperAdminDetailPage = () => {
                 </Badge>
               </div>
             </div>
-            
+
             <div>
               <label className="text-sm font-medium text-gray-600">Statut</label>
               <div className="mt-1">
