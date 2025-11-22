@@ -67,7 +67,7 @@ export const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
   const isChoice = question?.type === 'single-choice' || question?.type === 'multiple-choice';
   const initialOptions = isChoice ? asStringArray((question as any)?.options, 4) : ['', '', '', ''];
   const [options, setOptions] = useState<string[]>(initialOptions);
-  const [optionsMedia, setOptionsMedia] = useState < Array<{ type: 'image' | 'video' | 'pdf'; key?: string; url?: string; caption?: string } | null>(
+  const [optionsMedia, setOptionsMedia] = useState<Array<{ type: 'image' | 'video' | 'pdf'; key?: string; url?: string; caption?: string } | null>>(
     isChoice ? asMediaArray((question as any)?.optionsMedia, initialOptions.length) : new Array(initialOptions.length).fill(null)
   );
 
