@@ -83,10 +83,14 @@ export const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
     });
   }, [options.length]);
   const [correctAnswer, setCorrectAnswer] = useState<number>(
-    question?.type === 'single-choice' ? question.correctAnswer : 0
+    question?.type === 'single-choice' && typeof (question as any)?.correctAnswer === 'number'
+      ? (question as any).correctAnswer
+      : 0
   );
   const [correctAnswers, setCorrectAnswers] = useState<number[]>(
-    question?.type === 'multiple-choice' ? question.correctAnswers : []
+    question?.type === 'multiple-choice' && Array.isArray((question as any)?.correctAnswers)
+      ? (question as any).correctAnswers.filter((n: any) => Number.isInteger(n))
+      : []
   );
 
   // True/False
@@ -96,7 +100,9 @@ export const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
 
   // Short Answer
   const [shortAnswers, setShortAnswers] = useState<string[]>(
-    question?.type === 'short-answer' ? question.correctAnswers : ['']
+    question?.type === 'short-answer' && Array.isArray((question as any)?.correctAnswers)
+      ? (question as any).correctAnswers.map((s: any) => typeof s === 'string' ? s : String(s ?? ''))
+      : ['']
   );
   const [caseSensitive, setCaseSensitive] = useState(
     question?.type === 'short-answer' ? question.caseSensitive || false : false
@@ -118,23 +124,33 @@ export const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
     question?.type === 'fill-blank' ? question.text : ''
   );
   const [blankAnswers, setBlankAnswers] = useState<string[]>(
-    question?.type === 'fill-blank' ? question.correctAnswers : ['']
+    question?.type === 'fill-blank' && Array.isArray((question as any)?.correctAnswers)
+      ? (question as any).correctAnswers.map((s: any) => typeof s === 'string' ? s : String(s ?? ''))
+      : ['']
   );
 
   // Matching
   const [leftItems, setLeftItems] = useState<string[]>(
-    question?.type === 'matching' ? question.leftItems : ['', '']
+    question?.type === 'matching' && Array.isArray((question as any)?.leftItems)
+      ? (question as any).leftItems.map((s: any) => typeof s === 'string' ? s : String(s ?? ''))
+      : ['', '']
   );
   const [rightItems, setRightItems] = useState<string[]>(
-    question?.type === 'matching' ? question.rightItems : ['', '']
+    question?.type === 'matching' && Array.isArray((question as any)?.rightItems)
+      ? (question as any).rightItems.map((s: any) => typeof s === 'string' ? s : String(s ?? ''))
+      : ['', '']
   );
   const [matches, setMatches] = useState<{ left: number; right: number }[]>(
-    question?.type === 'matching' ? question.correctMatches : []
+    question?.type === 'matching' && Array.isArray((question as any)?.correctMatches)
+      ? (question as any).correctMatches.filter((m: any) => m && Number.isInteger(m.left) && Number.isInteger(m.right))
+      : []
   );
 
   // Ordering
   const [orderItems, setOrderItems] = useState<string[]>(
-    question?.type === 'ordering' ? question.items : ['', '']
+    question?.type === 'ordering' && Array.isArray((question as any)?.items)
+      ? (question as any).items.map((s: any) => typeof s === 'string' ? s : String(s ?? ''))
+      : ['', '']
   );
 
   const handleMediaUpload = async (file: File) => {
