@@ -459,11 +459,11 @@ const EditCoursePage = () => {
     if (!id || !course) return;
 
     const module = modules[moduleIdx];
-    
+
     // Ne pas sauvegarder les modules en attente
     if (module.isPending) {
-      toast({ 
-        title: "Module non enregistré", 
+      toast({
+        title: "Module non enregistré",
         description: "Le module sera enregistré automatiquement lors de l'ajout de contenu",
         variant: "destructive"
       });
@@ -488,13 +488,13 @@ const EditCoursePage = () => {
       });
 
       setEditingModuleId(null);
-      
+
       // Réinitialiser le flag de modifications
       setModuleHasChanges(prev => ({ ...prev, [moduleIdx]: false }));
-      
-      toast({ 
-        title: "✅ Module sauvegardé", 
-        description: moduleToSave.title || `Module ${moduleIdx + 1}` 
+
+      toast({
+        title: "✅ Module sauvegardé",
+        description: moduleToSave.title || `Module ${moduleIdx + 1}`
       });
 
       // Refresh course data
@@ -683,6 +683,29 @@ const EditCoursePage = () => {
               baseQuestion.correct_order = oq.correctOrder || [];
             }
 
+            // Étape 2 – Médias et attributs supplémentaires
+            const qAny: any = q as any;
+            if (qAny.media) {
+              baseQuestion.media = {
+                type: qAny.media.type,
+                key: qAny.media.key,
+                url: qAny.media.url,
+                caption: qAny.media.caption,
+              };
+            }
+            if (typeof qAny.points !== 'undefined') baseQuestion.points = qAny.points;
+            if (qAny.difficulty) baseQuestion.difficulty = qAny.difficulty;
+            if (qAny.explanation) baseQuestion.explanation = qAny.explanation;
+            if (qAny.tags) baseQuestion.tags = qAny.tags;
+
+            if (q.type === 'single-choice' || q.type === 'multiple-choice') {
+              const om = Array.isArray(qAny.optionsMedia) ? qAny.optionsMedia : [];
+              baseQuestion.options_media = (baseQuestion.options || []).map((_: any, i: number) => {
+                const m = om[i];
+                return m ? { type: m.type, key: m.key, url: m.url, caption: m.caption } : undefined;
+              });
+            }
+
             return baseQuestion;
           }) as any[]
         };
@@ -755,6 +778,29 @@ const EditCoursePage = () => {
               const oq = q as any;
               baseQuestion.items = oq.items || [];
               baseQuestion.correct_order = oq.correctOrder || [];
+            }
+
+            // Étape 2 – Médias et attributs supplémentaires
+            const qAny: any = q as any;
+            if (qAny.media) {
+              baseQuestion.media = {
+                type: qAny.media.type,
+                key: qAny.media.key,
+                url: qAny.media.url,
+                caption: qAny.media.caption,
+              };
+            }
+            if (typeof qAny.points !== 'undefined') baseQuestion.points = qAny.points;
+            if (qAny.difficulty) baseQuestion.difficulty = qAny.difficulty;
+            if (qAny.explanation) baseQuestion.explanation = qAny.explanation;
+            if (qAny.tags) baseQuestion.tags = qAny.tags;
+
+            if (q.type === 'single-choice' || q.type === 'multiple-choice') {
+              const om = Array.isArray(qAny.optionsMedia) ? qAny.optionsMedia : [];
+              baseQuestion.options_media = (baseQuestion.options || []).map((_: any, i: number) => {
+                const m = om[i];
+                return m ? { type: m.type, key: m.key, url: m.url, caption: m.caption } : undefined;
+              });
             }
 
             return baseQuestion;
@@ -836,7 +882,7 @@ const EditCoursePage = () => {
     const lessons = reorderedItems
       .filter(item => item.type === 'lesson')
       .map(item => item.data as EditableLesson);
-    
+
     const quizzes = reorderedItems
       .filter(item => item.type === 'quiz')
       .map(item => item.data);
@@ -875,8 +921,8 @@ const EditCoursePage = () => {
             question: q.question,
             type: q.type,
             options: q.options || [],
-            correct_answer: q.type === 'single-choice' || q.type === 'true-false' 
-              ? q.options[q.correctAnswer] 
+            correct_answer: q.type === 'single-choice' || q.type === 'true-false'
+              ? q.options[q.correctAnswer]
               : q.options.filter((_: any, idx: number) => q.correctAnswers?.includes(idx)),
             points: q.points || 1,
           })),
@@ -916,8 +962,8 @@ const EditCoursePage = () => {
             question: q.question,
             type: q.type,
             options: q.options || [],
-            correct_answer: q.type === 'single-choice' || q.type === 'true-false' 
-              ? q.options[q.correctAnswer] 
+            correct_answer: q.type === 'single-choice' || q.type === 'true-false'
+              ? q.options[q.correctAnswer]
               : q.options.filter((_: any, idx: number) => q.correctAnswers?.includes(idx)),
             points: q.points || 1,
           })),
@@ -1715,7 +1761,7 @@ const EditCoursePage = () => {
                                 placeholder="Description du module"
                                 height="150px"
                               />
-                              
+
                               {/* Bouton de sauvegarde du module */}
                               <div className="flex items-center justify-between mt-4">
                                 <div>
@@ -2288,7 +2334,7 @@ const EditCoursePage = () => {
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
-                {modules[showAssignmentBuilder]?.assignments?.length > 0 
+                {modules[showAssignmentBuilder]?.assignments?.length > 0
                   ? "Modifier le devoir du module"
                   : "Créer un devoir pour le module"
                 }
@@ -2311,9 +2357,9 @@ const EditCoursePage = () => {
                     ? (q.options || []).indexOf(q.correct_answer)
                     : undefined,
                   correctAnswers: q.type === 'multiple-choice'
-                    ? (q.options || []).map((opt: string, i: number) => 
-                        Array.isArray(q.correct_answer) && q.correct_answer.includes(opt) ? i : -1
-                      ).filter((i: number) => i >= 0)
+                    ? (q.options || []).map((opt: string, i: number) =>
+                      Array.isArray(q.correct_answer) && q.correct_answer.includes(opt) ? i : -1
+                    ).filter((i: number) => i >= 0)
                     : undefined,
                 })),
                 settings: {
