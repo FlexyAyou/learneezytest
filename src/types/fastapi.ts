@@ -317,6 +317,24 @@ export interface QuizQuestion {
   correct_matches?: Record<string, string>;
   items?: string[];
   correct_order?: string[];
+  // Media support (Étape 2)
+  media?: {
+    type: 'image' | 'video' | 'pdf';
+    key?: string;
+    url?: string;
+    caption?: string;
+  };
+  // Option-level media aligned 1:1 with options (choice questions only)
+  options_media?: Array<{
+    type: 'image' | 'video' | 'pdf';
+    key?: string;
+    url?: string;
+    caption?: string;
+  }>;
+  points?: number;
+  difficulty?: 'facile' | 'moyen' | 'difficile' | 'easy' | 'medium' | 'hard';
+  explanation?: string;
+  tags?: string[];
 }
 
 /**
@@ -328,6 +346,7 @@ export interface Quiz {
   questions: QuizQuestion[];
   lesson_id?: string; // ID de la leçon associée
   module_id?: string; // ID du module associé
+  time_limit?: number | null; // Étape 4 – minutes, null ou <=0 => illimité
 }
 
 /**
