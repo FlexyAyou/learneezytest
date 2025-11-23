@@ -2316,6 +2316,69 @@ const EditCoursePage = () => {
                               </div>
                             </div>
                           </div>
+                          {/* Aperçu mixte leçons + quizzes */}
+                          <div className="mt-4 border-t pt-4">
+                            <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Ordre du contenu</p>
+                            {(() => {
+                              const desc = module.description || '';
+                              const match = desc.match(/<!--\s*mixed_order:(\[.*?\])\s*-->/i);
+                              let tokens: string[] | null = null;
+                              if (match) {
+                                try {
+                                  const arr = JSON.parse(match[1]);
+                                  if (Array.isArray(arr)) tokens = arr.filter(t => typeof t === 'string');
+                                } catch { }
+                              }
+                              // Maps
+                              const lessonMap = new Map<string, { title: string; duration: string; content_type?: string }>();
+                              module.lessons.forEach((l: any, i: number) => {
+                                const key = l.backendId || `idx-${i}`;
+                                lessonMap.set(key, { title: l.title || `Leçon ${i + 1}`, duration: l.duration || '', content_type: l.content_type });
+                              });
+                              const quizMap = new Map<string, { title: string; questions: number }>();
+                              (module.quizzes || []).forEach((q: any, i: number) => {
+                                const key = q.id || `qidx-${i}`;
+                                quizMap.set(key, { title: q.title || `Quiz ${i + 1}`, questions: (q.questions || []).length });
+                              });
+                              const ordered: Array<{ kind: 'lesson' | 'quiz'; label: string; meta: string }> = [];
+                              if (tokens && tokens.length) {
+                                tokens.forEach(tok => {
+                                  if (tok.startsWith('L:')) {
+                                    const id = tok.substring(2);
+                                    const l = lessonMap.get(id);
+                                    if (l) ordered.push({ kind: 'lesson', label: l.title, meta: l.duration || l.content_type || '' });
+                                  } else if (tok.startsWith('Q:')) {
+                                    const id = tok.substring(2);
+                                    const q = quizMap.get(id);
+                                    if (q) ordered.push({ kind: 'quiz', label: q.title, meta: `${q.questions} questions` });
+                                  }
+                                });
+                                // Add extras not referenced (robustness)
+                                lessonMap.forEach((l, k) => {
+                                  if (!tokens!.some(t => t === `L:${k}`)) ordered.push({ kind: 'lesson', label: l.title, meta: l.duration || l.content_type || '' });
+                                });
+                                quizMap.forEach((q, k) => {
+                                  if (!tokens!.some(t => t === `Q:${k}`)) ordered.push({ kind: 'quiz', label: q.title, meta: `${q.questions} questions` });
+                                });
+                              } else {
+                                // Fallback: simple concat leçons puis quizzes
+                                module.lessons.forEach((l: any, i: number) => ordered.push({ kind: 'lesson', label: l.title || `Leçon ${i + 1}`, meta: l.duration || l.content_type || '' }));
+                                (module.quizzes || []).forEach((q: any, i: number) => ordered.push({ kind: 'quiz', label: q.title || `Quiz ${i + 1}`, meta: `${(q.questions || []).length} questions` }));
+                              }
+                              if (!ordered.length) return <p className="text-sm text-muted-foreground">Aucun contenu</p>;
+                              return (
+                                <ul className="space-y-1">
+                                  {ordered.map((it, i2) => (
+                                    <li key={i2} className="flex items-center gap-2 text-sm">
+                                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${it.kind === 'lesson' ? 'bg-blue-100 text-blue-700' : 'bg-indigo-100 text-indigo-700'}`}>{it.kind === 'lesson' ? 'Leçon' : 'Quiz'}</span>
+                                      <span className="font-medium truncate max-w-xs" title={it.label}>{it.label}</span>
+                                      {it.meta && <span className="text-muted-foreground">• {it.meta}</span>}
+                                    </li>
+                                  ))}
+                                </ul>
+                              );
+                            })()}
+                          </div>
                         </CardContent>
                       </Card>
                     ))}
