@@ -2628,7 +2628,7 @@ const EditCoursePage = () => {
       {/* Module Quiz Builder Dialog */}
       {showModuleQuizBuilder !== null && (
         <Dialog open={true} onOpenChange={() => setShowModuleQuizBuilder(null)}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
             <DialogHeader>
               <DialogTitle>Configurer le quiz</DialogTitle>
             </DialogHeader>
@@ -2672,7 +2672,7 @@ const EditCoursePage = () => {
       {/* Lesson Media Preview Dialog */}
       {previewLessonMedia && (
         <Dialog open={true} onOpenChange={() => setPreviewLessonMedia(null)}>
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
             <DialogHeader>
               <DialogTitle>Média de la leçon</DialogTitle>
             </DialogHeader>
@@ -2730,7 +2730,7 @@ const EditCoursePage = () => {
       {/* Module Assignment Builder Dialog */}
       {showAssignmentBuilder !== null && (
         <Dialog open={true} onOpenChange={() => setShowAssignmentBuilder(null)}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
             <DialogHeader>
               <DialogTitle>
                 {modules[showAssignmentBuilder]?.assignments?.length > 0
