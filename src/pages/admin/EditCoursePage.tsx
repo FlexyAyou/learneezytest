@@ -929,7 +929,20 @@ const EditCoursePage = () => {
       const currentCourse = await fastAPIClient.getCourse(id);
       const moduleId = currentCourse.modules[moduleIdx].id!;
 
-      await fastAPIClient.updateModuleOrder(id, moduleId, sequence);
+      const updatedModule = await fastAPIClient.updateModuleOrder(id, moduleId, sequence);
+
+      // Synchroniser immédiatement l'ordre dans courseData pour que l'affichage suive sans refresh
+      setCourseData(prev => {
+        if (!prev) return prev;
+        const modules = [...(prev.modules || [])];
+        if (modules[moduleIdx]) {
+          modules[moduleIdx] = {
+            ...(modules[moduleIdx] as any),
+            order: (updatedModule as any).order,
+          };
+        }
+        return { ...prev, modules } as any;
+      });
     } catch (error) {
       console.error('Error updating mixed order:', error);
       toast({
