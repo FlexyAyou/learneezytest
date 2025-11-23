@@ -2084,38 +2084,106 @@ const EditCoursePage = () => {
                                           />
                                         </div>
 
-                                        {/* Media display - read-only for now */}
-                                        {(lesson.videoFileName || lesson.pdfFileName || lesson.imageFileName || lesson.video_url) && (
-                                          <div className="space-y-2">
-                                            <Label>Média de la leçon</Label>
-                                            <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                                              {lesson.videoFileName && (
-                                                <>
-                                                  <Video className="h-5 w-5 text-blue-600" />
-                                                  <span className="text-sm">{lesson.videoFileName}</span>
-                                                </>
-                                              )}
-                                              {lesson.pdfFileName && (
-                                                <>
-                                                  <FileText className="h-5 w-5 text-blue-600" />
-                                                  <span className="text-sm">{lesson.pdfFileName}</span>
-                                                </>
-                                              )}
-                                              {lesson.imageFileName && (
-                                                <>
-                                                  <ImageIcon className="h-5 w-5 text-blue-600" />
-                                                  <span className="text-sm">{lesson.imageFileName}</span>
-                                                </>
-                                              )}
-                                              {lesson.video_url && (
-                                                <>
-                                                  <LinkIcon className="h-5 w-5 text-blue-600" />
-                                                  <span className="text-sm truncate">{lesson.video_url}</span>
-                                                </>
+                                        {/* Media Upload/URL Section - même UX que la création */}
+                                        <div>
+                                          <Label className="text-base mb-3 block">Média (Vidéo, PDF ou Image)</Label>
+
+                                          {/* Toggle Buttons: Upload fichier / Lien URL */}
+                                          <div className="flex gap-2 mb-4">
+                                            <Button
+                                              type="button"
+                                              variant={!lesson.useMediaUrl ? "default" : "outline"}
+                                              size="sm"
+                                              className={!lesson.useMediaUrl ? "bg-pink-500 hover:bg-pink-600 text-white" : ""}
+                                              onClick={() => {
+                                                setModules(prev => prev.map((m, mIdx) =>
+                                                  mIdx === moduleIdx
+                                                    ? {
+                                                      ...m,
+                                                      lessons: m.lessons.map((l, lIdx) =>
+                                                        lIdx === editingLessonId.lessonIdx
+                                                          ? { ...l, useMediaUrl: false }
+                                                          : l
+                                                      )
+                                                    }
+                                                    : m
+                                                ));
+                                              }}
+                                            >
+                                              <Upload className="h-4 w-4 mr-2" />
+                                              Upload fichier
+                                            </Button>
+                                            <Button
+                                              type="button"
+                                              variant={lesson.useMediaUrl ? "default" : "outline"}
+                                              size="sm"
+                                              className={lesson.useMediaUrl ? "bg-purple-500 hover:bg-purple-600 text-white" : ""}
+                                              onClick={() => {
+                                                setModules(prev => prev.map((m, mIdx) =>
+                                                  mIdx === moduleIdx
+                                                    ? {
+                                                      ...m,
+                                                      lessons: m.lessons.map((l, lIdx) =>
+                                                        lIdx === editingLessonId.lessonIdx
+                                                          ? {
+                                                            ...l,
+                                                            useMediaUrl: true,
+                                                            video_url: l.video_url || '',
+                                                          }
+                                                          : l
+                                                      )
+                                                    }
+                                                    : m
+                                                ));
+                                              }}
+                                            >
+                                              <LinkIcon className="h-4 w-4 mr-2" />
+                                              Lien URL
+                                            </Button>
+                                          </div>
+
+                                          {/* Upload File Section (lecture seule sur la clé, vrai upload via attachLessonMedia) */}
+                                          {!lesson.useMediaUrl && (
+                                            <div className="space-y-3">
+                                              {(lesson.video_key || lesson.pdf_key || lesson.image_key) ? (
+                                                <div className="space-y-2">
+                                                  <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                                    {lesson.video_key && <Video className="h-5 w-5 text-blue-600" />}
+                                                    {lesson.pdf_key && <FileText className="h-5 w-5 text-blue-600" />}
+                                                    {lesson.image_key && <ImageIcon className="h-5 w-5 text-blue-600" />}
+                                                    <span className="text-sm">Média déjà attaché à cette leçon</span>
+                                                  </div>
+                                                </div>
+                                              ) : (
+                                                <p className="text-sm text-gray-500">Aucun média uploadé pour cette leçon. Utilisez l'écran principal d'édition pour ajouter un média si nécessaire.</p>
                                               )}
                                             </div>
-                                          </div>
-                                        )}
+                                          )}
+
+                                          {/* URL Input Section */}
+                                          {lesson.useMediaUrl && (
+                                            <div className="space-y-2">
+                                              <Input
+                                                value={lesson.video_url || ''}
+                                                onChange={(e) => setModules(prev => prev.map((m, mIdx) =>
+                                                  mIdx === moduleIdx
+                                                    ? {
+                                                      ...m,
+                                                      lessons: m.lessons.map((l, lIdx) =>
+                                                        lIdx === editingLessonId.lessonIdx
+                                                          ? { ...l, video_url: e.target.value }
+                                                          : l
+                                                      )
+                                                    }
+                                                    : m
+                                                ))}
+                                                placeholder="https://www.youtube.com/watch?v=... ou URL directe"
+                                                className="w-full"
+                                              />
+                                              <p className="text-xs text-gray-500">Formats supportés : YouTube, Vimeo, MP4, PDF ou URL d'image</p>
+                                            </div>
+                                          )}
+                                        </div>
 
                                         <div className="flex justify-end gap-2 pt-4 border-t">
                                           <Button
