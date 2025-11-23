@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -45,7 +45,7 @@ import { fastAPIClient } from '@/services/fastapi-client';
 import { uploadDirect } from '@/utils/upload';
 import type { CourseResponse, Module, Content, Quiz, QuizCreate, AssignmentResponse } from '@/types/fastapi';
 import { SortableContentList, ContentItem } from '@/components/course-creation/SortableContentList';
-import Hls from 'hls.js';
+import VideoPlayer from '@/components/common/VideoPlayer';
 
 interface EditableCourseData {
   title: string;
@@ -157,34 +157,8 @@ const EditCoursePage = () => {
   const [previewLessonMedia, setPreviewLessonMedia] = useState<{
     moduleIdx: number;
     lessonIdx: number;
-    url: string;
     kind: 'video' | 'pdf' | 'image';
   } | null>(null);
-
-  const previewVideoRef = useRef<HTMLVideoElement | null>(null);
-
-  useEffect(() => {
-    if (!previewLessonMedia || previewLessonMedia.kind !== 'video') return;
-
-    const video = previewVideoRef.current;
-    if (!video) return;
-
-    let hls: Hls | null = null;
-
-    if (Hls.isSupported() && previewLessonMedia.url.includes('.m3u8')) {
-      hls = new Hls();
-      hls.loadSource(previewLessonMedia.url);
-      hls.attachMedia(video);
-    } else {
-      video.src = previewLessonMedia.url;
-    }
-
-    return () => {
-      if (hls) {
-        hls.destroy();
-      }
-    };
-  }, [previewLessonMedia]);
 
   // Upload notification state
   const [uploads, setUploads] = useState<UploadItem[]>([]);
@@ -2184,39 +2158,17 @@ const EditCoursePage = () => {
                                                   <button
                                                     type="button"
                                                     onClick={async () => {
-                                                      if (!id) return;
+                                                      if (!lesson.video_key && !lesson.pdf_key && !lesson.image_key) return;
 
-                                                      try {
-                                                        let key: string | undefined;
-                                                        let kind: 'video' | 'pdf' | 'image' = 'video';
-                                                        if (lesson.video_key) {
-                                                          key = lesson.video_key;
-                                                          kind = 'video';
-                                                        } else if (lesson.pdf_key) {
-                                                          key = lesson.pdf_key;
-                                                          kind = 'pdf';
-                                                        } else if (lesson.image_key) {
-                                                          key = lesson.image_key;
-                                                          kind = 'image';
-                                                        }
+                                                      let kind: 'video' | 'pdf' | 'image' = 'video';
+                                                      if (lesson.pdf_key) kind = 'pdf';
+                                                      else if (lesson.image_key) kind = 'image';
 
-                                                        if (!key) return;
-
-                                                        const { url } = await fastAPIClient.getPlayUrl(key);
-                                                        setPreviewLessonMedia({
-                                                          moduleIdx,
-                                                          lessonIdx: editingLessonId.lessonIdx,
-                                                          url,
-                                                          kind,
-                                                        });
-                                                      } catch (error) {
-                                                        console.error('Error generating media preview URL:', error);
-                                                        toast({
-                                                          title: 'Erreur',
-                                                          description: 'Impossible de prévisualiser le média de la leçon',
-                                                          variant: 'destructive',
-                                                        });
-                                                      }
+                                                      setPreviewLessonMedia({
+                                                        moduleIdx,
+                                                        lessonIdx: editingLessonId.lessonIdx,
+                                                        kind,
+                                                      });
                                                     }}
                                                     className="w-full text-left flex items-center gap-2 p-3 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors"
                                                   >
@@ -2710,35 +2662,53 @@ const EditCoursePage = () => {
             <DialogHeader>
               <DialogTitle>Média de la leçon</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
-              {previewLessonMedia.kind === 'video' && (
-                <div className="rounded-xl overflow-hidden bg-black/5 border">
-                  <video
-                    ref={previewVideoRef}
-                    controls
-                    className="w-full h-[360px] bg-black"
-                  />
-                </div>
-              )}
-              {previewLessonMedia.kind === 'pdf' && (
-                <div className="rounded-xl overflow-hidden border bg-muted/30">
-                  <iframe
-                    src={previewLessonMedia.url}
-                    className="w-full h-[480px]"
-                    title="Prévisualisation PDF"
-                  />
-                </div>
-              )}
-              {previewLessonMedia.kind === 'image' && (
-                <div className="flex items-center justify-center bg-muted/30 rounded-xl border p-4">
-                  <img
-                    src={previewLessonMedia.url}
-                    alt="Média de la leçon"
-                    className="max-h-[480px] max-w-full rounded-lg shadow-md"
-                  />
-                </div>
-              )}
-            </div>
+            {(() => {
+              const mod = modules[previewLessonMedia.moduleIdx];
+              const lesson = mod?.lessons[previewLessonMedia.lessonIdx];
+              if (!lesson) return null;
+
+              if (previewLessonMedia.kind === 'video') {
+                return (
+                  <div className="rounded-xl overflow-hidden bg-black/5 border">
+                    <VideoPlayer
+                      videoKey={lesson.video_key || (lesson as any).backendId || (lesson as any).key}
+                      videoUrl={lesson.video_url}
+                      title={lesson.title}
+                    />
+                  </div>
+                );
+              }
+
+              if (previewLessonMedia.kind === 'pdf' && lesson.pdf_key) {
+                return (
+                  <div className="rounded-xl overflow-hidden border bg-muted/30">
+                    <iframe
+                      src={`${import.meta.env.VITE_API_URL || ''}/api/storage/play?key=${encodeURIComponent(lesson.pdf_key)}`}
+                      className="w-full h-[480px]"
+                      title="Prévisualisation PDF"
+                    />
+                  </div>
+                );
+              }
+
+              if (previewLessonMedia.kind === 'image' && (lesson.image_key || (lesson as any).image_url)) {
+                const imageSrc = lesson.image_key
+                  ? `${import.meta.env.VITE_API_URL || ''}/api/storage/play?key=${encodeURIComponent(lesson.image_key)}`
+                  : (lesson as any).image_url;
+
+                return (
+                  <div className="flex items-center justify-center bg-muted/30 rounded-xl border p-4">
+                    <img
+                      src={imageSrc}
+                      alt="Média de la leçon"
+                      className="max-h-[480px] max-w-full rounded-lg shadow-md"
+                    />
+                  </div>
+                );
+              }
+
+              return null;
+            })()}
           </DialogContent>
         </Dialog>
       )}
