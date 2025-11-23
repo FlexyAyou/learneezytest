@@ -51,7 +51,7 @@ import {
   ProLevelUpdateActive,
 } from '@/types/fastapi';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.plateforme-test-infinitiax.com';
 
 /**
  * Client API FastAPI avec gestion automatique des JWT
