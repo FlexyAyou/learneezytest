@@ -2040,10 +2040,10 @@ const EditCoursePage = () => {
                                           />
                                         </div>
 
-                                        {/* Media display - read-only for now */}
+                                        {/* Section Média actuel */}
                                         {(lesson.videoFileName || lesson.pdfFileName || lesson.imageFileName || lesson.video_url) && (
                                           <div className="space-y-2">
-                                            <Label>Média de la leçon</Label>
+                                            <Label>Média actuel de la leçon</Label>
                                             <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                                               {lesson.videoFileName && (
                                                 <>
@@ -2072,6 +2072,100 @@ const EditCoursePage = () => {
                                             </div>
                                           </div>
                                         )}
+
+                                        {/* Section Média (Vidéo, PDF ou Image) */}
+                                        <div className="space-y-4 border-t pt-4">
+                                          <Label className="text-base font-semibold">Média (Vidéo, PDF ou Image)</Label>
+                                          
+                                          <div className="flex gap-2">
+                                            <Button
+                                              type="button"
+                                              variant="default"
+                                              size="sm"
+                                              onClick={() => {
+                                                const input = document.createElement('input');
+                                                input.type = 'file';
+                                                input.accept = 'video/*,application/pdf,image/*';
+                                                input.onchange = async (e) => {
+                                                  const file = (e.target as HTMLInputElement).files?.[0];
+                                                  if (file) {
+                                                    await handleLessonVideoUpload(moduleIdx, editingLessonId.lessonIdx, file);
+                                                  }
+                                                };
+                                                input.click();
+                                              }}
+                                            >
+                                              <Upload className="h-4 w-4 mr-2" />
+                                              Upload fichier
+                                            </Button>
+                                            
+                                            <Button
+                                              type="button"
+                                              variant="outline"
+                                              size="sm"
+                                              onClick={() => {
+                                                const url = prompt('Entrez l\'URL de la vidéo:');
+                                                if (url) {
+                                                  setModules(prev => prev.map((m, mIdx) =>
+                                                    mIdx === moduleIdx
+                                                      ? {
+                                                        ...m,
+                                                        lessons: m.lessons.map((l, lIdx) =>
+                                                          lIdx === editingLessonId.lessonIdx ? { ...l, video_url: url } : l
+                                                        )
+                                                      }
+                                                      : m
+                                                  ));
+                                                  handleLessonVideoUrl(moduleIdx, editingLessonId.lessonIdx, url);
+                                                }
+                                              }}
+                                            >
+                                              <LinkIcon className="h-4 w-4 mr-2" />
+                                              Lien URL
+                                            </Button>
+                                          </div>
+
+                                          {/* Zone de drag and drop */}
+                                          <div 
+                                            className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-primary transition-colors cursor-pointer"
+                                            onClick={() => {
+                                              const input = document.createElement('input');
+                                              input.type = 'file';
+                                              input.accept = 'video/*,application/pdf,image/*';
+                                              input.onchange = async (e) => {
+                                                const file = (e.target as HTMLInputElement).files?.[0];
+                                                if (file) {
+                                                  await handleLessonVideoUpload(moduleIdx, editingLessonId.lessonIdx, file);
+                                                }
+                                              };
+                                              input.click();
+                                            }}
+                                            onDragOver={(e) => {
+                                              e.preventDefault();
+                                              e.stopPropagation();
+                                            }}
+                                            onDrop={async (e) => {
+                                              e.preventDefault();
+                                              e.stopPropagation();
+                                              const file = e.dataTransfer.files?.[0];
+                                              if (file) {
+                                                await handleLessonVideoUpload(moduleIdx, editingLessonId.lessonIdx, file);
+                                              }
+                                            }}
+                                          >
+                                            <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                                            <p className="text-base font-medium mb-2">Vidéo, PDF ou Image</p>
+                                            <p className="text-sm text-gray-500 mb-4">
+                                              Glissez-déposez ou cliquez pour parcourir
+                                            </p>
+                                            <Button type="button" variant="outline" size="sm">
+                                              Choisir un fichier
+                                            </Button>
+                                            <p className="text-xs text-gray-400 mt-3">
+                                              Limites : Vidéo (500MB) + PDF (50MB) + Image (10MB)
+                                            </p>
+                                          </div>
+                                        </div>
 
                                         <div className="flex justify-end gap-2 pt-4 border-t">
                                           <Button
