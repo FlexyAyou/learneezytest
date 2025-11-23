@@ -152,6 +152,14 @@ const EditCoursePage = () => {
   const [moduleHasChanges, setModuleHasChanges] = useState<Record<number, boolean>>({});
   const [savingModule, setSavingModule] = useState<number | null>(null);
 
+  // Prévisualisation du média de leçon
+  const [previewLessonMedia, setPreviewLessonMedia] = useState<{
+    moduleIdx: number;
+    lessonIdx: number;
+    url: string;
+    kind: 'video' | 'pdf' | 'image';
+  } | null>(null);
+
   // Upload notification state
   const [uploads, setUploads] = useState<UploadItem[]>([]);
 
@@ -2147,12 +2155,50 @@ const EditCoursePage = () => {
                                             <div className="space-y-3">
                                               {(lesson.video_key || lesson.pdf_key || lesson.image_key) && (
                                                 <div className="space-y-2">
-                                                  <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                                  <button
+                                                    type="button"
+                                                    onClick={async () => {
+                                                      if (!id) return;
+
+                                                      try {
+                                                        let key: string | undefined;
+                                                        let kind: 'video' | 'pdf' | 'image' = 'video';
+                                                        if (lesson.video_key) {
+                                                          key = lesson.video_key;
+                                                          kind = 'video';
+                                                        } else if (lesson.pdf_key) {
+                                                          key = lesson.pdf_key;
+                                                          kind = 'pdf';
+                                                        } else if (lesson.image_key) {
+                                                          key = lesson.image_key;
+                                                          kind = 'image';
+                                                        }
+
+                                                        if (!key) return;
+
+                                                        const { url } = await fastAPIClient.getPlayUrl(key);
+                                                        setPreviewLessonMedia({
+                                                          moduleIdx,
+                                                          lessonIdx: editingLessonId.lessonIdx,
+                                                          url,
+                                                          kind,
+                                                        });
+                                                      } catch (error) {
+                                                        console.error('Error generating media preview URL:', error);
+                                                        toast({
+                                                          title: 'Erreur',
+                                                          description: 'Impossible de prévisualiser le média de la leçon',
+                                                          variant: 'destructive',
+                                                        });
+                                                      }
+                                                    }}
+                                                    className="w-full text-left flex items-center gap-2 p-3 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors"
+                                                  >
                                                     {lesson.video_key && <Video className="h-5 w-5 text-blue-600" />}
                                                     {lesson.pdf_key && <FileText className="h-5 w-5 text-blue-600" />}
                                                     {lesson.image_key && <ImageIcon className="h-5 w-5 text-blue-600" />}
-                                                    <span className="text-sm">Média actuel de la leçon</span>
-                                                  </div>
+                                                    <span className="text-sm font-medium">Média actuel de la leçon</span>
+                                                  </button>
                                                 </div>
                                               )}
 
@@ -2627,6 +2673,46 @@ const EditCoursePage = () => {
                 'ordering'
               ]}
             />
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Lesson Media Preview Dialog */}
+      {previewLessonMedia && (
+        <Dialog open={true} onOpenChange={() => setPreviewLessonMedia(null)}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Média de la leçon</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              {previewLessonMedia.kind === 'video' && (
+                <div className="rounded-xl overflow-hidden bg-black/5 border">
+                  <video
+                    src={previewLessonMedia.url}
+                    controls
+                    className="w-full h-[360px] bg-black"
+                  />
+                </div>
+              )}
+              {previewLessonMedia.kind === 'pdf' && (
+                <div className="rounded-xl overflow-hidden border bg-muted/30">
+                  <iframe
+                    src={previewLessonMedia.url}
+                    className="w-full h-[480px]"
+                    title="Prévisualisation PDF"
+                  />
+                </div>
+              )}
+              {previewLessonMedia.kind === 'image' && (
+                <div className="flex items-center justify-center bg-muted/30 rounded-xl border p-4">
+                  <img
+                    src={previewLessonMedia.url}
+                    alt="Média de la leçon"
+                    className="max-h-[480px] max-w-full rounded-lg shadow-md"
+                  />
+                </div>
+              )}
+            </div>
           </DialogContent>
         </Dialog>
       )}
