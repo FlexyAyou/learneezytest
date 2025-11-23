@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -45,6 +45,7 @@ import { fastAPIClient } from '@/services/fastapi-client';
 import { uploadDirect } from '@/utils/upload';
 import type { CourseResponse, Module, Content, Quiz, QuizCreate, AssignmentResponse } from '@/types/fastapi';
 import { SortableContentList, ContentItem } from '@/components/course-creation/SortableContentList';
+import Hls from 'hls.js';
 
 interface EditableCourseData {
   title: string;
@@ -159,6 +160,31 @@ const EditCoursePage = () => {
     url: string;
     kind: 'video' | 'pdf' | 'image';
   } | null>(null);
+
+  const previewVideoRef = useRef<HTMLVideoElement | null>(null);
+
+  useEffect(() => {
+    if (!previewLessonMedia || previewLessonMedia.kind !== 'video') return;
+
+    const video = previewVideoRef.current;
+    if (!video) return;
+
+    let hls: Hls | null = null;
+
+    if (Hls.isSupported() && previewLessonMedia.url.includes('.m3u8')) {
+      hls = new Hls();
+      hls.loadSource(previewLessonMedia.url);
+      hls.attachMedia(video);
+    } else {
+      video.src = previewLessonMedia.url;
+    }
+
+    return () => {
+      if (hls) {
+        hls.destroy();
+      }
+    };
+  }, [previewLessonMedia]);
 
   // Upload notification state
   const [uploads, setUploads] = useState<UploadItem[]>([]);
@@ -2688,7 +2714,7 @@ const EditCoursePage = () => {
               {previewLessonMedia.kind === 'video' && (
                 <div className="rounded-xl overflow-hidden bg-black/5 border">
                   <video
-                    src={previewLessonMedia.url}
+                    ref={previewVideoRef}
                     controls
                     className="w-full h-[360px] bg-black"
                   />
