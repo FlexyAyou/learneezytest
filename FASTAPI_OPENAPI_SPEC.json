@@ -1775,6 +1775,325 @@
         }
       }
     },
+    "/api/courses/{course_id}/modules/{module_id}/quizzes": {
+      "post": {
+        "tags": ["courses"],
+        "summary": "Create Module Quiz",
+        "operationId": "create_module_quiz_api_courses__course_id__modules__module_id__quizzes_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Course Id"
+            }
+          },
+          {
+            "name": "module_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Module Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/app__courses__schemas__QuizCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/app__courses__schemas__QuizResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/courses/{course_id}/modules/{module_id}/quizzes/{quiz_id}": {
+      "put": {
+        "tags": ["courses"],
+        "summary": "Update Module Quiz",
+        "operationId": "update_module_quiz_api_courses__course_id__modules__module_id__quizzes__quiz_id__put",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Course Id"
+            }
+          },
+          {
+            "name": "module_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Module Id"
+            }
+          },
+          {
+            "name": "quiz_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Quiz Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/app__courses__schemas__QuizUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/app__courses__schemas__QuizResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["courses"],
+        "summary": "Delete Module Quiz",
+        "operationId": "delete_module_quiz_api_courses__course_id__modules__module_id__quizzes__quiz_id__delete",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Course Id"
+            }
+          },
+          {
+            "name": "module_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Module Id"
+            }
+          },
+          {
+            "name": "quiz_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Quiz Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/courses/{course_id}/modules/{module_id}/quizzes/reorder": {
+      "patch": {
+        "tags": ["courses"],
+        "summary": "Reorder Quizzes",
+        "operationId": "reorder_quizzes_api_courses__course_id__modules__module_id__quizzes_reorder_patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Course Id"
+            }
+          },
+          {
+            "name": "module_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Module Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuizReorderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModuleResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/courses/{course_id}/modules/{module_id}/order": {
+      "patch": {
+        "tags": ["courses"],
+        "summary": "Reorder Module Mixed",
+        "operationId": "reorder_module_mixed_api_courses__course_id__modules__module_id__order_patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Course Id"
+            }
+          },
+          {
+            "name": "module_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Module Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModuleMixedReorderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModuleResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/courses/{course_id}/modules/{module_id}/lessons/{lesson_id}": {
       "put": {
         "tags": ["courses"],
@@ -2095,7 +2414,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/QuizCreate"
+                "$ref": "#/components/schemas/app__evaluations__schemas__QuizCreate"
               }
             }
           }
@@ -2106,7 +2425,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/QuizResponse"
+                  "$ref": "#/components/schemas/app__evaluations__schemas__QuizResponse"
                 }
               }
             }
@@ -2167,7 +2486,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/QuizResponse"
+                  "$ref": "#/components/schemas/app__evaluations__schemas__QuizResponse"
                 }
               }
             }
@@ -2227,7 +2546,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/QuizUpdate"
+                "$ref": "#/components/schemas/app__evaluations__schemas__QuizUpdate"
               }
             }
           }
@@ -2238,7 +2557,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/QuizResponse"
+                  "$ref": "#/components/schemas/app__evaluations__schemas__QuizResponse"
                 }
               }
             }
@@ -2364,7 +2683,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/QuizResponse"
+                  "$ref": "#/components/schemas/app__evaluations__schemas__QuizResponse"
                 }
               }
             }
@@ -2433,7 +2752,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/QuizUpdate"
+                "$ref": "#/components/schemas/app__evaluations__schemas__QuizUpdate"
               }
             }
           }
@@ -2444,7 +2763,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/QuizResponse"
+                  "$ref": "#/components/schemas/app__evaluations__schemas__QuizResponse"
                 }
               }
             }
@@ -3764,6 +4083,52 @@
         }
       }
     },
+    "/api/organizations/downloads-policy": {
+      "patch": {
+        "tags": ["organizations"],
+        "summary": "Update Downloads Policy",
+        "description": "OF admin: mettre à jour la politique par défaut de téléchargement (ressources cours).",
+        "operationId": "update_downloads_policy_api_organizations_downloads_policy_patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "allow",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean",
+              "title": "Allow"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/organizations/{of_id}/users": {
       "post": {
         "tags": ["organizations"],
@@ -4300,7 +4665,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/QuizCreate"
+                "$ref": "#/components/schemas/app__evaluations__schemas__QuizCreate"
               }
             }
           },
@@ -4312,7 +4677,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/QuizResponse"
+                  "$ref": "#/components/schemas/app__evaluations__schemas__QuizResponse"
                 }
               }
             }
@@ -4451,7 +4816,7 @@
                 "schema": {
                   "anyOf": [
                     {
-                      "$ref": "#/components/schemas/QuizResponse"
+                      "$ref": "#/components/schemas/app__evaluations__schemas__QuizResponse"
                     },
                     {
                       "$ref": "#/components/schemas/AssignmentResponse"
@@ -4501,7 +4866,7 @@
               "schema": {
                 "anyOf": [
                   {
-                    "$ref": "#/components/schemas/QuizUpdate"
+                    "$ref": "#/components/schemas/app__evaluations__schemas__QuizUpdate"
                   },
                   {
                     "$ref": "#/components/schemas/AssignmentUpdate"
@@ -4520,7 +4885,7 @@
                 "schema": {
                   "anyOf": [
                     {
-                      "$ref": "#/components/schemas/QuizResponse"
+                      "$ref": "#/components/schemas/app__evaluations__schemas__QuizResponse"
                     },
                     {
                       "$ref": "#/components/schemas/AssignmentResponse"
@@ -5472,6 +5837,100 @@
         }
       }
     },
+    "/api/storage/play/redirect": {
+      "get": {
+        "tags": ["storage"],
+        "summary": "Play Redirect",
+        "description": "Convenience endpoint: issues a 302 redirect to a fresh presigned/proxied playback URL.\n\nUtile pour les balises \u003Cvideo src=\"...\"\u003E qui ne consomment pas de JSON.",
+        "operationId": "play_redirect_api_storage_play_redirect_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/storage/play/multi": {
+      "get": {
+        "tags": ["storage"],
+        "summary": "Play Multi",
+        "operationId": "play_multi_api_storage_play_multi_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "keys",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Liste des clés media",
+              "title": "Keys"
+            },
+            "description": "Liste des clés media"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayMultiResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/storage/assets/by-key": {
       "get": {
         "tags": ["storage"],
@@ -5500,6 +5959,102 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/MediaAssetResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/storage/transcode-status": {
+      "get": {
+        "tags": ["storage"],
+        "summary": "Transcode Status",
+        "description": "Retourne le statut de transcodage et la progression (approximative) pour une clé vidéo.\nAccessible aux utilisateurs authentifiés; restrictions tenant similaires à /play (tolérantes pour le MVP).",
+        "operationId": "transcode_status_api_storage_transcode_status_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TranscodeStatusResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/storage/transcode-status/multi": {
+      "get": {
+        "tags": ["storage"],
+        "summary": "Transcode Status Multi",
+        "operationId": "transcode_status_multi_api_storage_transcode_status_multi_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "keys",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Liste des clés vidéo",
+              "title": "Keys"
+            },
+            "description": "Liste des clés vidéo"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TranscodeStatusMultiResponse"
                 }
               }
             }
@@ -6498,6 +7053,170 @@
         "required": ["course_id", "module_id", "title", "description", "questions", "settings"],
         "title": "AssignmentCreate"
       },
+      "AssignmentInline-Input": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "instructions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Instructions"
+          },
+          "questions": {
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/SingleChoiceQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/MultipleChoiceQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/TrueFalseQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/ShortAnswerQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/LongAnswerQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/FillBlankQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/MatchingQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/OrderingQuestion"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Questions"
+          },
+          "settings": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AssignmentSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "resources": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ResourceAttachment"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resources"
+          }
+        },
+        "type": "object",
+        "required": ["title", "description", "questions"],
+        "title": "AssignmentInline"
+      },
+      "AssignmentInline-Output": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "instructions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Instructions"
+          },
+          "questions": {
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/SingleChoiceQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/MultipleChoiceQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/TrueFalseQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/ShortAnswerQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/LongAnswerQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/FillBlankQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/MatchingQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/OrderingQuestion"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Questions"
+          },
+          "settings": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AssignmentSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "resources": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ResourceAttachment"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resources"
+          }
+        },
+        "type": "object",
+        "required": ["title", "description", "questions"],
+        "title": "AssignmentInline"
+      },
       "AssignmentResponse": {
         "properties": {
           "type": {
@@ -6786,7 +7505,8 @@
                 "type": "null"
               }
             ],
-            "title": "Key"
+            "title": "Key",
+            "description": "Managed storage key (MinIO/S3). Accepts legacy 'video_key', 'pdf_key', 'image_key'."
           },
           "url": {
             "anyOf": [
@@ -6797,12 +7517,13 @@
                 "type": "null"
               }
             ],
-            "title": "Url"
+            "title": "Url",
+            "description": "External media URL. Accepts legacy 'video_url', 'pdf_url', 'image_url'."
           }
         },
         "type": "object",
         "title": "AttachMediaRequest",
-        "description": "Attach a managed storage key or an external URL to a lesson.\nExactly one of `key` (preferred, managed MinIO/S3 key) or `url` (external) should be provided."
+        "description": "Attach a managed storage key or an external URL to a lesson.\n\nClient compat:\n        - Accept both `key` and legacy aliases (`video_key`, `pdf_key`, `image_key`) for the managed storage identifier.\n        - Accept both `url` and legacy aliases (`video_url`, `pdf_url`, `image_url`) for an external reference.\nExactly one of key/url must be provided."
       },
       "CatalogueResponse": {
         "properties": {
@@ -7112,7 +7833,7 @@
               }
             ],
             "title": "Video Url",
-            "description": "URL of the video"
+            "description": "URL of the media (video/image/pdf)"
           },
           "video_key": {
             "anyOf": [
@@ -7124,7 +7845,7 @@
               }
             ],
             "title": "Video Key",
-            "description": "Storage key of the video in MinIO/S3"
+            "description": "Managed storage key of the media (video/image/pdf) in MinIO/S3"
           },
           "transcription": {
             "anyOf": [
@@ -7137,6 +7858,19 @@
             ],
             "title": "Transcription",
             "description": "Transcription of the video"
+          },
+          "video_ready": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Video Ready",
+            "description": "True si la vidéo a été transcodée et manifest HLS disponible",
+            "default": false
           }
         },
         "type": "object",
@@ -7309,6 +8043,21 @@
             "title": "Levels",
             "description": "Available levels for the selected learning cycle"
           },
+          "objectives": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Objectives",
+            "description": "List of pedagogical objectives (short bullet points) for the course"
+          },
           "resources": {
             "items": {
               "$ref": "#/components/schemas/Resource"
@@ -7351,6 +8100,28 @@
           "level": "débutant",
           "modules": [
             {
+              "assignment": {
+                "description": "Rédigez une courte synthèse.",
+                "instructions": "500 mots, citer vos sources.",
+                "questions": [
+                  {
+                    "points": 10,
+                    "question": "Expliquez le concept de composants.",
+                    "type": "long-answer"
+                  }
+                ],
+                "resources": [
+                  {
+                    "name": "Guide PDF",
+                    "url": "https://example.com/guide.pdf"
+                  }
+                ],
+                "settings": {
+                  "max_attempts": 2,
+                  "passing_score": 60
+                },
+                "title": "Devoir du module"
+              },
               "content": [
                 {
                   "description": "Introduction aux composants React...",
@@ -7373,7 +8144,8 @@
                         "Un fichier CSS",
                         "Une base de données"
                       ],
-                      "question": "Qu'est-ce qu'un composant React ?"
+                      "question": "Qu'est-ce qu'un composant React ?",
+                      "type": "single-choice"
                     }
                   ],
                   "title": "Quiz sur les bases de React"
@@ -7562,6 +8334,21 @@
             "title": "Levels",
             "description": "Available levels for the selected learning cycle"
           },
+          "objectives": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Objectives",
+            "description": "List of pedagogical objectives (short bullet points) for the course"
+          },
           "resources": {
             "items": {
               "$ref": "#/components/schemas/Resource"
@@ -7640,6 +8427,28 @@
           "level": "débutant",
           "modules": [
             {
+              "assignment": {
+                "description": "Rédigez une courte synthèse.",
+                "instructions": "500 mots, citer vos sources.",
+                "questions": [
+                  {
+                    "points": 10,
+                    "question": "Expliquez le concept de composants.",
+                    "type": "long-answer"
+                  }
+                ],
+                "resources": [
+                  {
+                    "name": "Guide PDF",
+                    "url": "https://example.com/guide.pdf"
+                  }
+                ],
+                "settings": {
+                  "max_attempts": 2,
+                  "passing_score": 60
+                },
+                "title": "Devoir du module"
+              },
               "content": [
                 {
                   "description": "Introduction aux composants React...",
@@ -7662,7 +8471,8 @@
                         "Un fichier CSS",
                         "Une base de données"
                       ],
-                      "question": "Qu'est-ce qu'un composant React ?"
+                      "question": "Qu'est-ce qu'un composant React ?",
+                      "type": "single-choice"
                     }
                   ],
                   "title": "Quiz sur les bases de React"
@@ -7807,6 +8617,21 @@
               }
             ],
             "title": "Levels"
+          },
+          "objectives": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Objectives",
+            "description": "Pedagogical objectives (bullet points) of the course"
           },
           "price": {
             "anyOf": [
@@ -8118,6 +8943,21 @@
             "title": "Levels",
             "description": "Updated available levels for the selected cycle"
           },
+          "objectives": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Objectives",
+            "description": "Updated pedagogical objectives (list of short strings)"
+          },
           "cover_key": {
             "anyOf": [
               {
@@ -8351,11 +9191,13 @@
             "type": "string",
             "enum": ["immediate", "after-submit", "never"],
             "title": "Show Feedback",
+            "description": "Controls feedback visibility: immediate | after-submit | never. French labels are normalized (Immédiat/À la fin du quiz/Jamais).",
             "default": "after-submit"
           },
           "allow_retry": {
             "type": "boolean",
             "title": "Allow Retry",
+            "description": "Allow multiple attempts (subject to max_attempts)",
             "default": true
           },
           "max_attempts": {
@@ -8363,16 +9205,19 @@
             "maximum": 10,
             "minimum": 1,
             "title": "Max Attempts",
+            "description": "Maximum attempts per user",
             "default": 3
           },
           "randomize_questions": {
             "type": "boolean",
             "title": "Randomize Questions",
+            "description": "Shuffle question order per attempt (deterministic)",
             "default": false
           },
           "randomize_options": {
             "type": "boolean",
             "title": "Randomize Options",
+            "description": "Shuffle options for choice questions (deterministic)",
             "default": false
           },
           "time_limit": {
@@ -8385,13 +9230,15 @@
                 "type": "null"
               }
             ],
-            "title": "Time Limit"
+            "title": "Time Limit",
+            "description": "Optional time limit in minutes"
           },
           "passing_score": {
             "type": "integer",
             "maximum": 100,
             "minimum": 0,
             "title": "Passing Score",
+            "description": "Passing threshold as percentage (0-100)",
             "default": 70
           }
         },
@@ -8484,7 +9331,7 @@
           "media": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/QuestionMedia"
+                "$ref": "#/components/schemas/app__evaluations__schemas__QuestionMedia"
               },
               {
                 "type": "null"
@@ -8530,6 +9377,89 @@
         "type": "object",
         "title": "HTTPValidationError"
       },
+      "InlineAssignment": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "instructions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Instructions"
+          },
+          "questions": {
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/SingleChoiceQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/MultipleChoiceQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/TrueFalseQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/ShortAnswerQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/LongAnswerQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/FillBlankQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/MatchingQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/OrderingQuestion"
+                }
+              ]
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Questions"
+          },
+          "settings": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AssignmentSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "resources": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ResourceAttachment"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resources"
+          }
+        },
+        "type": "object",
+        "required": ["title", "description", "questions"],
+        "title": "InlineAssignment"
+      },
       "LessonCreate": {
         "properties": {
           "title": {
@@ -8553,7 +9483,8 @@
                 "type": "null"
               }
             ],
-            "title": "Video Url"
+            "title": "Video Url",
+            "description": "URL du média (video/image/pdf)"
           },
           "video_key": {
             "anyOf": [
@@ -8564,7 +9495,8 @@
                 "type": "null"
               }
             ],
-            "title": "Video Key"
+            "title": "Video Key",
+            "description": "Clé de stockage du média (video/image/pdf) dans MinIO/S3"
           },
           "transcription": {
             "anyOf": [
@@ -8636,7 +9568,7 @@
               }
             ],
             "title": "Video Url",
-            "description": "URL of the video"
+            "description": "URL of the media (video/image/pdf)"
           },
           "video_key": {
             "anyOf": [
@@ -8648,7 +9580,7 @@
               }
             ],
             "title": "Video Key",
-            "description": "Storage key of the video in MinIO/S3"
+            "description": "Managed storage key of the media (video/image/pdf) in MinIO/S3"
           },
           "transcription": {
             "anyOf": [
@@ -8661,6 +9593,19 @@
             ],
             "title": "Transcription",
             "description": "Transcription of the video"
+          },
+          "video_ready": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Video Ready",
+            "description": "True si la vidéo a été transcodée et manifest HLS disponible",
+            "default": false
           }
         },
         "type": "object",
@@ -8822,7 +9767,7 @@
           "quiz": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/QuizCreate"
+                "$ref": "#/components/schemas/app__evaluations__schemas__QuizCreate"
               },
               {
                 "type": "null"
@@ -8903,7 +9848,7 @@
           "media": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/QuestionMedia"
+                "$ref": "#/components/schemas/app__evaluations__schemas__QuestionMedia"
               },
               {
                 "type": "null"
@@ -9074,7 +10019,7 @@
           "media": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/QuestionMedia"
+                "$ref": "#/components/schemas/app__evaluations__schemas__QuestionMedia"
               },
               {
                 "type": "null"
@@ -9243,6 +10188,31 @@
             ],
             "title": "Thumbnails"
           },
+          "transcode_started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transcode Started At"
+          },
+          "transcode_progress": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100,
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transcode Progress"
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -9257,6 +10227,23 @@
         "type": "object",
         "required": ["id", "key", "status", "created_at", "updated_at"],
         "title": "MediaAssetResponse"
+      },
+      "MixedReorderItem": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "title": "Type",
+            "description": "Item type: 'lesson' | 'quiz' | 'assignment' (assignment will always be enforced last)"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Stable id of the item"
+          }
+        },
+        "type": "object",
+        "required": ["type", "id"],
+        "title": "MixedReorderItem"
       },
       "Module-Input": {
         "properties": {
@@ -9304,12 +10291,38 @@
           },
           "quizzes": {
             "items": {
-              "$ref": "#/components/schemas/Quiz"
+              "$ref": "#/components/schemas/Quiz-Input"
             },
             "type": "array",
             "title": "Quizzes",
             "description": "List of quizzes",
             "default": []
+          },
+          "order": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ModuleOrderItem"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Order",
+            "description": "Optional mixed sequence for display {type: 'lesson'|'quiz'|'assignment', id: string}. If absent, UI defaults to lessons then quizzes (assignment, when present, is always displayed last)."
+          },
+          "assignment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AssignmentInline-Input"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Optional module-level assignment to create with this module; will be created as an evaluation and not stored in course document"
           }
         },
         "type": "object",
@@ -9362,12 +10375,38 @@
           },
           "quizzes": {
             "items": {
-              "$ref": "#/components/schemas/Quiz"
+              "$ref": "#/components/schemas/Quiz-Output"
             },
             "type": "array",
             "title": "Quizzes",
             "description": "List of quizzes",
             "default": []
+          },
+          "order": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ModuleOrderItem"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Order",
+            "description": "Optional mixed sequence for display {type: 'lesson'|'quiz'|'assignment', id: string}. If absent, UI defaults to lessons then quizzes (assignment, when present, is always displayed last)."
+          },
+          "assignment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AssignmentInline-Output"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Optional module-level assignment to create with this module; will be created as an evaluation and not stored in course document"
           }
         },
         "type": "object",
@@ -9404,16 +10443,78 @@
           },
           "quizzes": {
             "items": {
-              "$ref": "#/components/schemas/Quiz"
+              "$ref": "#/components/schemas/Quiz-Input"
             },
             "type": "array",
             "title": "Quizzes",
             "default": []
+          },
+          "assignment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/InlineAssignment"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Optional inline module-level assignment; converted to an Evaluation (type=assignment) after module insertion and not persisted inside the course document"
           }
         },
         "type": "object",
         "required": ["title", "duration", "content"],
-        "title": "ModuleCreate"
+        "title": "ModuleCreate",
+        "example": {
+          "assignment": {
+            "description": "Rédigez une synthèse",
+            "instructions": "500 mots, structuré en 3 parties",
+            "questions": [
+              {
+                "points": 10,
+                "question": "Expliquez le cycle de rendu React",
+                "type": "long-answer"
+              }
+            ],
+            "resources": [
+              {
+                "name": "Guide",
+                "url": "https://example.com/guide.pdf"
+              }
+            ],
+            "settings": {
+              "max_attempts": 2,
+              "passing_score": 60
+            },
+            "title": "Devoir du module"
+          },
+          "content": [],
+          "description": "Bases du chapitre",
+          "duration": "1h",
+          "quizzes": [
+            {
+              "questions": [
+                {
+                  "correct_answer": "Un élément réutilisable",
+                  "options": [
+                    "Un élément réutilisable",
+                    "Une fonction JavaScript",
+                    "Un fichier CSS",
+                    "Une base de données"
+                  ],
+                  "question": "Qu'est-ce qu'un composant React ?",
+                  "type": "single-choice"
+                },
+                {
+                  "correct_answer": false,
+                  "question": "La Terre est plate",
+                  "type": "true-false"
+                }
+              ],
+              "title": "Quiz d'intro"
+            }
+          ],
+          "title": "Introduction"
+        }
       },
       "ModuleFullUpdate": {
         "properties": {
@@ -9485,10 +10586,53 @@
             ],
             "title": "Remove Assignment",
             "default": false
+          },
+          "inline_assignment_meta": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inline Assignment Meta",
+            "description": "Statut de la création inline de l'assignment: {status: 'absent'|'created'|'compensated_failure', assignment_id?, error?}"
           }
         },
         "type": "object",
         "title": "ModuleFullUpdate"
+      },
+      "ModuleMixedReorderRequest": {
+        "properties": {
+          "sequence": {
+            "items": {
+              "$ref": "#/components/schemas/MixedReorderItem"
+            },
+            "type": "array",
+            "title": "Sequence",
+            "description": "Combined sequence of lessons and quizzes. Unknown or missing ids are ignored/appended in current order"
+          }
+        },
+        "type": "object",
+        "required": ["sequence"],
+        "title": "ModuleMixedReorderRequest"
+      },
+      "ModuleOrderItem": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["lesson", "quiz", "assignment"],
+            "title": "Type"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          }
+        },
+        "type": "object",
+        "required": ["type", "id"],
+        "title": "ModuleOrderItem"
       },
       "ModuleResponse": {
         "properties": {
@@ -9536,17 +10680,117 @@
           },
           "quizzes": {
             "items": {
-              "$ref": "#/components/schemas/Quiz"
+              "$ref": "#/components/schemas/Quiz-Output"
             },
             "type": "array",
             "title": "Quizzes",
             "description": "List of quizzes",
             "default": []
+          },
+          "order": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ModuleOrderItem"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Order",
+            "description": "Optional mixed sequence for display {type: 'lesson'|'quiz'|'assignment', id: string}. If absent, UI defaults to lessons then quizzes (assignment, when present, is always displayed last)."
+          },
+          "assignment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AssignmentInline-Output"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Optional module-level assignment to create with this module; will be created as an evaluation and not stored in course document"
+          },
+          "inline_assignment_meta": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inline Assignment Meta",
+            "description": "Statut de la création inline de l'assignment pour ce module: {status:'created'|'compensated_failure'|'absent', assignment_id?, error?}"
           }
         },
         "type": "object",
         "required": ["title", "duration", "content"],
-        "title": "ModuleResponse"
+        "title": "ModuleResponse",
+        "example": {
+          "content": [
+            {
+              "description": "...",
+              "duration": "5m",
+              "id": "656fa2c3e1b2a3456789a001",
+              "title": "Intro"
+            },
+            {
+              "description": "...",
+              "duration": "10m",
+              "id": "656fa2c3e1b2a3456789a002",
+              "title": "Composants"
+            }
+          ],
+          "description": "Bases du chapitre",
+          "duration": "1h",
+          "id": "656fa2c3e1b2a34567890123",
+          "inline_assignment_meta": {
+            "assignment_id": "c2a0c5d4-5f1e-4d38-9d6f-3c9b8b2f0abc",
+            "status": "created"
+          },
+          "order": [
+            {
+              "id": "656fa2c3e1b2a3456789q001",
+              "type": "quiz"
+            },
+            {
+              "id": "656fa2c3e1b2a3456789a002",
+              "type": "lesson"
+            },
+            {
+              "id": "656fa2c3e1b2a3456789a001",
+              "type": "lesson"
+            },
+            {
+              "id": "c2a0c5d4-5f1e-4d38-9d6f-3c9b8b2f0abc",
+              "type": "assignment"
+            }
+          ],
+          "quizzes": [
+            {
+              "id": "656fa2c3e1b2a3456789q001",
+              "questions": [
+                {
+                  "correct_answer": false,
+                  "difficulty": "easy",
+                  "media": {
+                    "type": "image",
+                    "url": "https://cdn.example.com/img.png"
+                  },
+                  "points": 1,
+                  "question": "La Terre est plate",
+                  "type": "true-false"
+                }
+              ],
+              "time_limit": 15,
+              "title": "Quiz d'intro"
+            }
+          ],
+          "title": "Module 1"
+        }
       },
       "MultipleChoiceQuestion": {
         "properties": {
@@ -9606,7 +10850,7 @@
           "media": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/QuestionMedia"
+                "$ref": "#/components/schemas/app__evaluations__schemas__QuestionMedia"
               },
               {
                 "type": "null"
@@ -9715,7 +10959,7 @@
           "media": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/QuestionMedia"
+                "$ref": "#/components/schemas/app__evaluations__schemas__QuestionMedia"
               },
               {
                 "type": "null"
@@ -10075,11 +11319,88 @@
         "type": "object",
         "title": "OrganizationUpdate"
       },
+      "PlayMultiItem": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "stream_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": ["mp4", "hls"]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stream Type"
+          },
+          "expires_in": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires In"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          }
+        },
+        "type": "object",
+        "required": ["key"],
+        "title": "PlayMultiItem"
+      },
+      "PlayMultiResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PlayMultiItem"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": ["items"],
+        "title": "PlayMultiResponse"
+      },
       "PlayResponse": {
         "properties": {
           "url": {
             "type": "string",
             "title": "Url"
+          },
+          "stream_type": {
+            "type": "string",
+            "enum": ["mp4", "hls"],
+            "title": "Stream Type",
+            "description": "Type de flux retourné: mp4 (direct) ou hls (manifest proxied)",
+            "default": "mp4"
           },
           "expires_in": {
             "type": "integer",
@@ -10295,22 +11616,6 @@
         "type": "object",
         "title": "ProLevelUpdateActive"
       },
-      "QuestionMedia": {
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": ["image", "video", "audio"],
-            "title": "Type"
-          },
-          "url": {
-            "type": "string",
-            "title": "Url"
-          }
-        },
-        "type": "object",
-        "required": ["type", "url"],
-        "title": "QuestionMedia"
-      },
       "QuestionResult": {
         "properties": {
           "question_id": {
@@ -10366,8 +11671,34 @@
         "required": ["question_id", "answer", "is_correct", "points_earned", "max_points", "time_spent"],
         "title": "QuestionResult"
       },
-      "Quiz": {
+      "QuestionType": {
+        "type": "string",
+        "enum": [
+          "single-choice",
+          "multiple-choice",
+          "true-false",
+          "short-answer",
+          "long-answer",
+          "fill-blank",
+          "matching",
+          "ordering"
+        ],
+        "title": "QuestionType"
+      },
+      "Quiz-Input": {
         "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id",
+            "description": "Stable identifier for the quiz (ObjectId string)"
+          },
           "title": {
             "type": "string",
             "title": "Title",
@@ -10381,40 +11712,54 @@
             "minItems": 1,
             "title": "Questions",
             "description": "List of quiz questions"
+          },
+          "time_limit": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Limit",
+            "description": "Optional time limit in minutes for the quiz"
           }
         },
         "type": "object",
         "required": ["title", "questions"],
-        "title": "Quiz"
+        "title": "Quiz",
+        "example": {
+          "questions": [
+            {
+              "correct_answer": "Un élément réutilisable",
+              "media": {
+                "type": "image",
+                "url": "https://cdn.example.com/img1.png"
+              },
+              "options": [
+                "Un élément réutilisable",
+                "Une fonction JavaScript",
+                "Un fichier CSS",
+                "Une base de données"
+              ],
+              "question": "Qu'est-ce qu'un composant React ?",
+              "type": "single-choice"
+            },
+            {
+              "correct_answer": false,
+              "question": "La Terre est plate",
+              "type": "true-false"
+            }
+          ],
+          "time_limit": 15,
+          "title": "Quiz d'exemple"
+        }
       },
-      "QuizCreate": {
+      "Quiz-Output": {
         "properties": {
-          "type": {
-            "type": "string",
-            "enum": ["quiz"],
-            "const": "quiz",
-            "title": "Type",
-            "default": "quiz"
-          },
-          "course_id": {
-            "type": "string",
-            "title": "Course Id"
-          },
-          "module_id": {
-            "type": "string",
-            "title": "Module Id"
-          },
-          "lesson_id": {
-            "type": "string",
-            "title": "Lesson Id"
-          },
-          "title": {
-            "type": "string",
-            "maxLength": 255,
-            "minLength": 1,
-            "title": "Title"
-          },
-          "description": {
+          "id": {
             "anyOf": [
               {
                 "type": "string"
@@ -10423,48 +11768,66 @@
                 "type": "null"
               }
             ],
-            "title": "Description"
+            "title": "Id",
+            "description": "Stable identifier for the quiz (ObjectId string)"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "description": "The title of the quiz"
           },
           "questions": {
             "items": {
-              "anyOf": [
-                {
-                  "$ref": "#/components/schemas/SingleChoiceQuestion"
-                },
-                {
-                  "$ref": "#/components/schemas/MultipleChoiceQuestion"
-                },
-                {
-                  "$ref": "#/components/schemas/TrueFalseQuestion"
-                },
-                {
-                  "$ref": "#/components/schemas/ShortAnswerQuestion"
-                },
-                {
-                  "$ref": "#/components/schemas/LongAnswerQuestion"
-                },
-                {
-                  "$ref": "#/components/schemas/FillBlankQuestion"
-                },
-                {
-                  "$ref": "#/components/schemas/MatchingQuestion"
-                },
-                {
-                  "$ref": "#/components/schemas/OrderingQuestion"
-                }
-              ]
+              "$ref": "#/components/schemas/QuizQuestion"
             },
             "type": "array",
             "minItems": 1,
-            "title": "Questions"
+            "title": "Questions",
+            "description": "List of quiz questions"
           },
-          "settings": {
-            "$ref": "#/components/schemas/EvaluationSettings"
+          "time_limit": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Limit",
+            "description": "Optional time limit in minutes for the quiz"
           }
         },
         "type": "object",
-        "required": ["course_id", "module_id", "lesson_id", "title", "questions", "settings"],
-        "title": "QuizCreate"
+        "required": ["title", "questions"],
+        "title": "Quiz",
+        "example": {
+          "questions": [
+            {
+              "correct_answer": "Un élément réutilisable",
+              "media": {
+                "type": "image",
+                "url": "https://cdn.example.com/img1.png"
+              },
+              "options": [
+                "Un élément réutilisable",
+                "Une fonction JavaScript",
+                "Un fichier CSS",
+                "Une base de données"
+              ],
+              "question": "Qu'est-ce qu'un composant React ?",
+              "type": "single-choice"
+            },
+            {
+              "correct_answer": false,
+              "question": "La Terre est plate",
+              "type": "true-false"
+            }
+          ],
+          "time_limit": 15,
+          "title": "Quiz d'exemple"
+        }
       },
       "QuizQuestion": {
         "properties": {
@@ -10473,186 +11836,15 @@
             "title": "Question",
             "description": "The question text"
           },
-          "options": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Options",
-            "description": "List of answer options"
-          },
-          "correct_answer": {
-            "type": "string",
-            "title": "Correct Answer",
-            "description": "The correct answer"
-          }
-        },
-        "type": "object",
-        "required": ["question", "options", "correct_answer"],
-        "title": "QuizQuestion"
-      },
-      "QuizResponse": {
-        "properties": {
           "type": {
-            "type": "string",
-            "enum": ["quiz"],
-            "const": "quiz",
-            "title": "Type",
-            "default": "quiz"
+            "$ref": "#/components/schemas/QuestionType",
+            "description": "Type of the question"
           },
-          "course_id": {
-            "type": "string",
-            "title": "Course Id"
-          },
-          "module_id": {
-            "type": "string",
-            "title": "Module Id"
-          },
-          "lesson_id": {
-            "type": "string",
-            "title": "Lesson Id"
-          },
-          "title": {
-            "type": "string",
-            "maxLength": 255,
-            "minLength": 1,
-            "title": "Title"
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "questions": {
-            "items": {
-              "anyOf": [
-                {
-                  "$ref": "#/components/schemas/SingleChoiceQuestion"
-                },
-                {
-                  "$ref": "#/components/schemas/MultipleChoiceQuestion"
-                },
-                {
-                  "$ref": "#/components/schemas/TrueFalseQuestion"
-                },
-                {
-                  "$ref": "#/components/schemas/ShortAnswerQuestion"
-                },
-                {
-                  "$ref": "#/components/schemas/LongAnswerQuestion"
-                },
-                {
-                  "$ref": "#/components/schemas/FillBlankQuestion"
-                },
-                {
-                  "$ref": "#/components/schemas/MatchingQuestion"
-                },
-                {
-                  "$ref": "#/components/schemas/OrderingQuestion"
-                }
-              ]
-            },
-            "type": "array",
-            "minItems": 1,
-            "title": "Questions"
-          },
-          "settings": {
-            "$ref": "#/components/schemas/EvaluationSettings"
-          },
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "created_by": {
-            "type": "integer",
-            "title": "Created By"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Created At"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Updated At"
-          }
-        },
-        "type": "object",
-        "required": [
-          "course_id",
-          "module_id",
-          "lesson_id",
-          "title",
-          "questions",
-          "settings",
-          "id",
-          "created_by",
-          "created_at",
-          "updated_at"
-        ],
-        "title": "QuizResponse"
-      },
-      "QuizUpdate": {
-        "properties": {
-          "title": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Title"
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "questions": {
+          "options": {
             "anyOf": [
               {
                 "items": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/SingleChoiceQuestion"
-                    },
-                    {
-                      "$ref": "#/components/schemas/MultipleChoiceQuestion"
-                    },
-                    {
-                      "$ref": "#/components/schemas/TrueFalseQuestion"
-                    },
-                    {
-                      "$ref": "#/components/schemas/ShortAnswerQuestion"
-                    },
-                    {
-                      "$ref": "#/components/schemas/LongAnswerQuestion"
-                    },
-                    {
-                      "$ref": "#/components/schemas/FillBlankQuestion"
-                    },
-                    {
-                      "$ref": "#/components/schemas/MatchingQuestion"
-                    },
-                    {
-                      "$ref": "#/components/schemas/OrderingQuestion"
-                    }
-                  ]
+                  "type": "string"
                 },
                 "type": "array"
               },
@@ -10660,21 +11852,216 @@
                 "type": "null"
               }
             ],
-            "title": "Questions"
+            "title": "Options",
+            "description": "List of answer options (for choice questions)"
           },
-          "settings": {
+          "options_media": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/EvaluationSettings"
+                "items": {
+                  "$ref": "#/components/schemas/app__courses__models__QuestionMedia"
+                },
+                "type": "array"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Options Media",
+            "description": "Media par option (liste alignée avec 'options') pour single-choice/multiple-choice; chaque entrée suit le schéma QuestionMedia"
+          },
+          "correct_answer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Correct Answer",
+            "description": "The correct answer (shape depends on question type)"
+          },
+          "media": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/app__courses__models__QuestionMedia"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Optional media object {type: image|video|pdf, key?: string, url?: string, caption?: string}"
+          },
+          "points": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Points",
+            "description": "Points for this question"
+          },
+          "difficulty": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": ["easy", "medium", "hard"]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Difficulty",
+            "description": "Difficulty level"
+          },
+          "explanation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Explanation",
+            "description": "Explanation shown after answering"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags",
+            "description": "Free-form tags for this question"
           }
         },
         "type": "object",
-        "title": "QuizUpdate"
+        "required": ["question", "type"],
+        "title": "QuizQuestion",
+        "examples": [
+          {
+            "summary": "Single choice",
+            "value": {
+              "correct_answer": "Un élément réutilisable",
+              "difficulty": "medium",
+              "explanation": "Un composant est une brique réutilisable.",
+              "options": [
+                "Un élément réutilisable",
+                "Une fonction JavaScript",
+                "Un fichier CSS",
+                "Une base de données"
+              ],
+              "options_media": [
+                {
+                  "type": "image",
+                  "url": "https://cdn.example.com/o1.png"
+                },
+                {
+                  "type": "image",
+                  "url": "https://cdn.example.com/o2.png"
+                },
+                {
+                  "type": "image",
+                  "url": "https://cdn.example.com/o3.png"
+                },
+                {
+                  "type": "image",
+                  "url": "https://cdn.example.com/o4.png"
+                }
+              ],
+              "points": 1,
+              "question": "Qu'est-ce qu'un composant React ?",
+              "tags": ["react", "bases"],
+              "type": "single-choice"
+            }
+          },
+          {
+            "summary": "Multiple choice",
+            "value": {
+              "correct_answer": ["2", "4"],
+              "options": ["1", "2", "3", "4"],
+              "points": 2,
+              "question": "Sélectionne les nombres pairs",
+              "type": "multiple-choice"
+            }
+          },
+          {
+            "summary": "True/False",
+            "value": {
+              "correct_answer": false,
+              "media": {
+                "type": "image",
+                "url": "https://cdn.example.com/img1.png"
+              },
+              "question": "La Terre est plate",
+              "type": "true-false"
+            }
+          },
+          {
+            "summary": "Short answer",
+            "value": {
+              "correct_answer": "Material UI",
+              "points": 1,
+              "question": "Citez une bibliothèque UI populaire pour React",
+              "type": "short-answer"
+            }
+          },
+          {
+            "summary": "Fill in the blank",
+            "value": {
+              "correct_answer": ["State"],
+              "media": {
+                "caption": "Extrait du cours",
+                "key": "public/docs/extrait.pdf",
+                "type": "pdf"
+              },
+              "options": ["State", "Effect", "Memo"],
+              "question": "Complétez: use[blank] permet de gérer l'état",
+              "type": "fill-blank"
+            }
+          }
+        ]
+      },
+      "QuizReorderRequest": {
+        "properties": {
+          "order": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Order",
+            "description": "New order of quiz ids (strings) for the module; missing quizzes will be appended in current order"
+          }
+        },
+        "type": "object",
+        "required": ["order"],
+        "title": "QuizReorderRequest"
       },
       "RefreshRequest": {
         "properties": {
@@ -10758,8 +12145,26 @@
             "title": "Name"
           },
           "key": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Key"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
           },
           "size": {
             "anyOf": [
@@ -10771,10 +12176,23 @@
               }
             ],
             "title": "Size"
+          },
+          "downloadable": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Downloadable",
+            "description": "Indique si la ressource peut être téléchargée (prioritaire sur la politique organisation)",
+            "default": true
           }
         },
         "type": "object",
-        "required": ["name", "key"],
+        "required": ["name"],
         "title": "ResourceAttachBody"
       },
       "ResourceAttachResponse": {
@@ -10881,6 +12299,19 @@
               }
             ],
             "title": "Url"
+          },
+          "downloadable": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Downloadable",
+            "description": "True si téléchargeable (sinon lecture bloquée)",
+            "default": true
           }
         },
         "type": "object",
@@ -10945,7 +12376,7 @@
           "media": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/QuestionMedia"
+                "$ref": "#/components/schemas/app__evaluations__schemas__QuestionMedia"
               },
               {
                 "type": "null"
@@ -11036,7 +12467,7 @@
           "media": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/QuestionMedia"
+                "$ref": "#/components/schemas/app__evaluations__schemas__QuestionMedia"
               },
               {
                 "type": "null"
@@ -11257,6 +12688,95 @@
         "enum": ["validated", "rejected"],
         "title": "TrainerStatus"
       },
+      "TranscodeStatusItem": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "progress": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100,
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Progress"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "duration_seconds": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Seconds"
+          },
+          "thumbnails": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thumbnails"
+          }
+        },
+        "type": "object",
+        "required": ["key", "status"],
+        "title": "TranscodeStatusItem"
+      },
+      "TranscodeStatusMultiResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TranscodeStatusItem"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": ["items"],
+        "title": "TranscodeStatusMultiResponse"
+      },
+      "TranscodeStatusResponse": {
+        "properties": {
+          "item": {
+            "$ref": "#/components/schemas/TranscodeStatusItem"
+          }
+        },
+        "type": "object",
+        "required": ["item"],
+        "title": "TranscodeStatusResponse"
+      },
       "TrueFalseQuestion": {
         "properties": {
           "id": {
@@ -11315,7 +12835,7 @@
           "media": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/QuestionMedia"
+                "$ref": "#/components/schemas/app__evaluations__schemas__QuestionMedia"
               },
               {
                 "type": "null"
@@ -11819,6 +13339,590 @@
         "type": "object",
         "required": ["loc", "msg", "type"],
         "title": "ValidationError"
+      },
+      "app__courses__models__QuestionMedia": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["image", "video", "pdf"],
+            "title": "Type"
+          },
+          "key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "caption": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Caption"
+          },
+          "size": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Size",
+            "description": "Taille du média en octets (validation limite par type et limite absolue 500MB)"
+          }
+        },
+        "type": "object",
+        "required": ["type"],
+        "title": "QuestionMedia"
+      },
+      "app__courses__schemas__QuizCreate": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/QuizQuestion"
+            },
+            "type": "array",
+            "title": "Questions"
+          },
+          "time_limit": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Limit",
+            "description": "Optional time limit in minutes"
+          }
+        },
+        "type": "object",
+        "required": ["title", "questions"],
+        "title": "QuizCreate",
+        "example": {
+          "questions": [
+            {
+              "correct_answer": ["2", "4"],
+              "difficulty": "medium",
+              "explanation": "2 et 4 sont pairs.",
+              "media": {
+                "caption": "Support du quiz",
+                "key": "public/docs/quiz.pdf",
+                "type": "pdf"
+              },
+              "options": ["1", "2", "3", "4"],
+              "points": 2,
+              "question": "Sélectionne les nombres pairs",
+              "tags": ["maths", "pairs"],
+              "type": "multiple-choice"
+            }
+          ],
+          "title": "Quiz d'évaluation"
+        }
+      },
+      "app__courses__schemas__QuizResponse": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id",
+            "description": "Stable identifier for the quiz (ObjectId string)"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "description": "The title of the quiz"
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/QuizQuestion"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Questions",
+            "description": "List of quiz questions"
+          },
+          "time_limit": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Limit",
+            "description": "Optional time limit in minutes for the quiz"
+          }
+        },
+        "type": "object",
+        "required": ["title", "questions"],
+        "title": "QuizResponse",
+        "example": {
+          "questions": [
+            {
+              "correct_answer": "Un élément réutilisable",
+              "media": {
+                "type": "image",
+                "url": "https://cdn.example.com/img1.png"
+              },
+              "options": [
+                "Un élément réutilisable",
+                "Une fonction JavaScript",
+                "Un fichier CSS",
+                "Une base de données"
+              ],
+              "question": "Qu'est-ce qu'un composant React ?",
+              "type": "single-choice"
+            },
+            {
+              "correct_answer": false,
+              "question": "La Terre est plate",
+              "type": "true-false"
+            }
+          ],
+          "time_limit": 15,
+          "title": "Quiz d'exemple"
+        }
+      },
+      "app__courses__schemas__QuizUpdate": {
+        "properties": {
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "questions": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/QuizQuestion"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Questions"
+          },
+          "time_limit": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Limit",
+            "description": "Optional time limit in minutes"
+          }
+        },
+        "type": "object",
+        "title": "QuizUpdate"
+      },
+      "app__evaluations__schemas__QuestionMedia": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["image", "video", "pdf"],
+            "title": "Type"
+          },
+          "key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "caption": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Caption"
+          }
+        },
+        "type": "object",
+        "required": ["type"],
+        "title": "QuestionMedia"
+      },
+      "app__evaluations__schemas__QuizCreate": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["quiz"],
+            "const": "quiz",
+            "title": "Type",
+            "default": "quiz"
+          },
+          "course_id": {
+            "type": "string",
+            "title": "Course Id"
+          },
+          "module_id": {
+            "type": "string",
+            "title": "Module Id"
+          },
+          "lesson_id": {
+            "type": "string",
+            "title": "Lesson Id"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "questions": {
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/SingleChoiceQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/MultipleChoiceQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/TrueFalseQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/ShortAnswerQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/LongAnswerQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/FillBlankQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/MatchingQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/OrderingQuestion"
+                }
+              ]
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Questions"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/EvaluationSettings"
+          }
+        },
+        "type": "object",
+        "required": ["course_id", "module_id", "lesson_id", "title", "questions", "settings"],
+        "title": "QuizCreate",
+        "example": {
+          "course_id": "656aa9f3e9d5a9e4b1c2d3e4",
+          "description": "",
+          "lesson_id": "656aa9f3e9d5a9e4b1c2d3e6",
+          "module_id": "656aa9f3e9d5a9e4b1c2d3e5",
+          "questions": [
+            {
+              "correctAnswer": 0,
+              "options": ["2", "3"],
+              "points": 1,
+              "question": "1+1?",
+              "type": "single-choice"
+            }
+          ],
+          "settings": {
+            "allow_retry": true,
+            "max_attempts": 3,
+            "passing_score": 50,
+            "randomize_options": true,
+            "randomize_questions": true,
+            "show_feedback": "after-submit"
+          },
+          "title": "Quiz d'intro",
+          "type": "quiz"
+        }
+      },
+      "app__evaluations__schemas__QuizResponse": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["quiz"],
+            "const": "quiz",
+            "title": "Type",
+            "default": "quiz"
+          },
+          "course_id": {
+            "type": "string",
+            "title": "Course Id"
+          },
+          "module_id": {
+            "type": "string",
+            "title": "Module Id"
+          },
+          "lesson_id": {
+            "type": "string",
+            "title": "Lesson Id"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "questions": {
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/SingleChoiceQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/MultipleChoiceQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/TrueFalseQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/ShortAnswerQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/LongAnswerQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/FillBlankQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/MatchingQuestion"
+                },
+                {
+                  "$ref": "#/components/schemas/OrderingQuestion"
+                }
+              ]
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Questions"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/EvaluationSettings"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "created_by": {
+            "type": "integer",
+            "title": "Created By"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "course_id",
+          "module_id",
+          "lesson_id",
+          "title",
+          "questions",
+          "settings",
+          "id",
+          "created_by",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "QuizResponse",
+        "example": {
+          "course_id": "656aa9f3e9d5a9e4b1c2d3e4",
+          "description": "",
+          "lesson_id": "656aa9f3e9d5a9e4b1c2d3e6",
+          "module_id": "656aa9f3e9d5a9e4b1c2d3e5",
+          "questions": [
+            {
+              "correctAnswer": 0,
+              "options": ["2", "3"],
+              "points": 1,
+              "question": "1+1?",
+              "type": "single-choice"
+            }
+          ],
+          "settings": {
+            "allow_retry": true,
+            "max_attempts": 3,
+            "passing_score": 50,
+            "randomize_options": true,
+            "randomize_questions": true,
+            "show_feedback": "after-submit"
+          },
+          "title": "Quiz d'intro",
+          "type": "quiz"
+        }
+      },
+      "app__evaluations__schemas__QuizUpdate": {
+        "properties": {
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "questions": {
+            "anyOf": [
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/SingleChoiceQuestion"
+                    },
+                    {
+                      "$ref": "#/components/schemas/MultipleChoiceQuestion"
+                    },
+                    {
+                      "$ref": "#/components/schemas/TrueFalseQuestion"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ShortAnswerQuestion"
+                    },
+                    {
+                      "$ref": "#/components/schemas/LongAnswerQuestion"
+                    },
+                    {
+                      "$ref": "#/components/schemas/FillBlankQuestion"
+                    },
+                    {
+                      "$ref": "#/components/schemas/MatchingQuestion"
+                    },
+                    {
+                      "$ref": "#/components/schemas/OrderingQuestion"
+                    }
+                  ]
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Questions"
+          },
+          "settings": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvaluationSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "QuizUpdate"
       }
     },
     "securitySchemes": {
