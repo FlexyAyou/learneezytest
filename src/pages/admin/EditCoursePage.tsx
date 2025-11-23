@@ -2142,21 +2142,57 @@ const EditCoursePage = () => {
                                             </Button>
                                           </div>
 
-                                          {/* Upload File Section (lecture seule sur la clé, vrai upload via attachLessonMedia) */}
+                                          {/* Upload File Section (même UX que la création) */}
                                           {!lesson.useMediaUrl && (
                                             <div className="space-y-3">
-                                              {(lesson.video_key || lesson.pdf_key || lesson.image_key) ? (
+                                              {(lesson.video_key || lesson.pdf_key || lesson.image_key) && (
                                                 <div className="space-y-2">
                                                   <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                                                     {lesson.video_key && <Video className="h-5 w-5 text-blue-600" />}
                                                     {lesson.pdf_key && <FileText className="h-5 w-5 text-blue-600" />}
                                                     {lesson.image_key && <ImageIcon className="h-5 w-5 text-blue-600" />}
-                                                    <span className="text-sm">Média déjà attaché à cette leçon</span>
+                                                    <span className="text-sm">Média actuel de la leçon</span>
                                                   </div>
                                                 </div>
-                                              ) : (
-                                                <p className="text-sm text-gray-500">Aucun média uploadé pour cette leçon. Utilisez l'écran principal d'édition pour ajouter un média si nécessaire.</p>
                                               )}
+
+                                              {/* Dropzone / zone d'upload */}
+                                              <div
+                                                className="mt-2 border-2 border-dashed border-muted-foreground/25 rounded-xl p-8 text-center hover:border-pink-500 hover:bg-pink-50 transition-all duration-300 cursor-pointer group"
+                                                onClick={() => {
+                                                  const input = document.getElementById(`lesson-media-${moduleIdx}-${editingLessonId.lessonIdx}`) as HTMLInputElement | null;
+                                                  input?.click();
+                                                }}
+                                              >
+                                                <div className="inline-flex p-4 bg-pink-100 rounded-full mb-4 group-hover:scale-110 transition-transform">
+                                                  <Upload className="h-8 w-8 text-pink-600" />
+                                                </div>
+                                                <p className="text-base font-semibold mb-1">Vidéo, PDF ou Image</p>
+                                                <p className="text-sm text-muted-foreground mb-4">Glissez-déposez ou cliquez pour parcourir</p>
+                                                <Button
+                                                  type="button"
+                                                  variant="outline"
+                                                  className="hover-scale"
+                                                >
+                                                  Choisir un fichier
+                                                </Button>
+                                                <p className="mt-3 text-xs text-muted-foreground">
+                                                  Limites : Vidéo (500MB) • PDF (50MB) • Image (10MB)
+                                                </p>
+                                              </div>
+
+                                              <input
+                                                id={`lesson-media-${moduleIdx}-${editingLessonId.lessonIdx}`}
+                                                type="file"
+                                                accept="video/*,application/pdf,image/*"
+                                                className="hidden"
+                                                onChange={(e) => {
+                                                  const file = e.target.files?.[0];
+                                                  if (!file) return;
+                                                  handleLessonVideoUpload(moduleIdx, editingLessonId.lessonIdx, file);
+                                                  e.target.value = '';
+                                                }}
+                                              />
                                             </div>
                                           )}
 
