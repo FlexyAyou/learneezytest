@@ -536,7 +536,7 @@ const CourseDetailPage = () => {
                             }> = [];
 
                             if (module.order && Array.isArray(module.order) && module.order.length > 0) {
-                              // Utiliser l'ordre défini
+                              // Utiliser l'ordre défini par le backend (IDs ou objets {type, id})
                               module.order.forEach((orderItem: any) => {
                                 const itemId = typeof orderItem === 'string' ? orderItem : orderItem.id;
                                 const itemType = typeof orderItem === 'object' ? orderItem.type : null;
@@ -572,6 +572,41 @@ const CourseDetailPage = () => {
                                       index: assignmentIdx,
                                     });
                                   }
+                                }
+                              });
+
+                              // Ajouter en fin de liste les contenus qui n'apparaissent pas encore dans order
+                              const lessonIdsInOrder = new Set(
+                                orderedContent
+                                  .filter((item) => item.type === 'lesson')
+                                  .map((item) => item.data.id)
+                              );
+                              const quizIdsInOrder = new Set(
+                                orderedContent
+                                  .filter((item) => item.type === 'quiz')
+                                  .map((item) => item.data.id)
+                              );
+                              const assignmentIdsInOrder = new Set(
+                                orderedContent
+                                  .filter((item) => item.type === 'assignment')
+                                  .map((item) => item.data.id)
+                              );
+
+                              lessons.forEach((lesson, idx) => {
+                                if (lesson.id && !lessonIdsInOrder.has(lesson.id)) {
+                                  orderedContent.push({ type: 'lesson', data: lesson, index: idx });
+                                }
+                              });
+
+                              quizzes.forEach((quiz, idx) => {
+                                if (quiz.id && !quizIdsInOrder.has(quiz.id)) {
+                                  orderedContent.push({ type: 'quiz', data: quiz, index: idx });
+                                }
+                              });
+
+                              assignments.forEach((assignment, idx) => {
+                                if (assignment.id && !assignmentIdsInOrder.has(assignment.id)) {
+                                  orderedContent.push({ type: 'assignment', data: assignment, index: idx });
                                 }
                               });
                             } else {
