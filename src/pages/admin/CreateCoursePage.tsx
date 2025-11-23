@@ -997,15 +997,56 @@ const CreateCoursePage = () => {
               title: module.assignment.title,
               description: module.assignment.description || '',
               instructions: module.assignment.instructions || '',
-              questions: module.assignment.questions.map((q: any) => ({
-                question: q.question,
-                type: q.type,
-                options: q.options || [],
-                correct_answer: q.type === 'single-choice' || q.type === 'true-false'
-                  ? q.options[q.correctAnswer]
-                  : q.options.filter((_: any, idx: number) => q.correctAnswers?.includes(idx)),
-                points: q.points || 1,
-              })),
+              questions: module.assignment.questions.map((q: any) => {
+                const baseQuestion: any = {
+                  question: q.question,
+                  type: q.type,
+                  options: q.options || [],
+                  points: q.points || 1,
+                };
+
+                if (q.type === 'single-choice') {
+                  const scq = q as any;
+                  baseQuestion.options = scq.options || [];
+                  baseQuestion.correct_answer = scq.options?.[scq.correctAnswer] || '';
+                } else if (q.type === 'true-false') {
+                  const tfq = q as any;
+                  // true-false est représenté par un booléen côté backend
+                  baseQuestion.options = ['Vrai', 'Faux'];
+                  baseQuestion.correct_answer = tfq.correctAnswer === 0;
+                } else if (q.type === 'multiple-choice') {
+                  const mcq = q as any;
+                  baseQuestion.options = mcq.options || [];
+                  baseQuestion.correct_answer = mcq.options?.[mcq.correctAnswers?.[0]] || '';
+                  baseQuestion.correct_answers = mcq.correctAnswers?.map((i: number) => mcq.options[i]) || [];
+                } else if (q.type === 'short-answer') {
+                  const saq = q as any;
+                  baseQuestion.correct_answer = saq.correctAnswers?.[0] || '';
+                  baseQuestion.correct_answers = saq.correctAnswers || [];
+                  baseQuestion.case_sensitive = saq.caseSensitive || false;
+                } else if (q.type === 'long-answer') {
+                  const laq = q as any;
+                  baseQuestion.min_words = laq.minWords;
+                  baseQuestion.max_words = laq.maxWords;
+                  baseQuestion.rubric = laq.rubric;
+                } else if (q.type === 'fill-blank') {
+                  const fbq = q as any;
+                  baseQuestion.correct_answer = fbq.correctAnswers?.[0] || '';
+                  baseQuestion.text = fbq.text;
+                  baseQuestion.correct_answers = fbq.correctAnswers || [];
+                } else if (q.type === 'matching') {
+                  const mq = q as any;
+                  baseQuestion.left_items = mq.leftItems || [];
+                  baseQuestion.right_items = mq.rightItems || [];
+                  baseQuestion.correct_matches = mq.correctMatches || {};
+                } else if (q.type === 'ordering') {
+                  const oq = q as any;
+                  baseQuestion.items = oq.items || [];
+                  baseQuestion.correct_order = oq.correctOrder || [];
+                }
+
+                return baseQuestion;
+              }),
               settings: {
                 passing_score: module.assignment.settings?.passingScore ?? 70,
                 max_attempts: module.assignment.settings?.maxAttempts ?? 1,
