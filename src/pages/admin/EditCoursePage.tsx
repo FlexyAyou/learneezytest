@@ -1049,7 +1049,12 @@ const EditCoursePage = () => {
 
         // Rafraîchir tout
         const finalCourse = await fastAPIClient.getCourse(id);
-        setModules(mapCourseToEditableModules(finalCourse));
+        const editableModules = mapCourseToEditableModules(finalCourse);
+        setModules(editableModules);
+
+        // Ouvrir automatiquement l'édition de la nouvelle leçon (la première du dernier module)
+        const lastModuleIdx = editableModules.length - 1;
+        setEditingLessonId({ moduleIdx: lastModuleIdx, lessonIdx: 0 });
 
         toast({
           title: '✅ Module et leçon créés',
@@ -1067,7 +1072,12 @@ const EditCoursePage = () => {
         });
 
         const updatedCourse = await fastAPIClient.getCourse(id);
-        setModules(mapCourseToEditableModules(updatedCourse));
+        const editableModules = mapCourseToEditableModules(updatedCourse);
+        setModules(editableModules);
+
+        // Ouvrir automatiquement l'édition de la nouvelle leçon (la dernière du module)
+        const newLessonIdx = editableModules[moduleIdx].lessons.length - 1;
+        setEditingLessonId({ moduleIdx, lessonIdx: newLessonIdx });
 
         toast({
           title: '✅ Leçon créée',
