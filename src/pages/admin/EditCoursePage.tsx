@@ -709,7 +709,7 @@ const EditCoursePage = () => {
         } else if (q.type === 'true-false') {
           const tfq = q as any;
           baseQuestion.options = ['Vrai', 'Faux'];
-          baseQuestion.correct_answer = tfq.correctAnswer ? 'Vrai' : 'Faux';
+          baseQuestion.correct_answer = tfq.correctAnswer === true || tfq.correctAnswer === 0;
         } else if (q.type === 'multiple-choice') {
           const mcq = q as any;
           baseQuestion.options = mcq.options || [];
