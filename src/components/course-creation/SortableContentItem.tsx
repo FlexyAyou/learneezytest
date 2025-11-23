@@ -3,12 +3,12 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { GripVertical, Video, FileText, Image as ImageIcon, HelpCircle, Edit2, Trash2, Link as LinkIcon } from 'lucide-react';
+import { GripVertical, Video, FileText, Image as ImageIcon, HelpCircle, Edit2, Trash2, Link as LinkIcon, ClipboardList } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 interface SortableContentItemProps {
   id: string;
-  type: 'lesson' | 'quiz';
+  type: 'lesson' | 'quiz' | 'assignment';
   title: string;
   subtitle?: string;
   fileType?: 'video' | 'pdf' | 'image' | null;
@@ -46,7 +46,10 @@ export const SortableContentItem: React.FC<SortableContentItemProps> = ({
 
   const getIcon = () => {
     if (type === 'quiz') {
-      return <HelpCircle className="h-5 w-5 text-blue-600" />;
+      return <HelpCircle className="h-5 w-5 text-purple-600" />;
+    }
+    if (type === 'assignment') {
+      return <ClipboardList className="h-5 w-5 text-orange-600" />;
     }
     if (useMediaUrl) {
       return <LinkIcon className="h-5 w-5 text-purple-600" />;
@@ -65,9 +68,18 @@ export const SortableContentItem: React.FC<SortableContentItemProps> = ({
 
   const getBackgroundClass = () => {
     if (type === 'quiz') {
-      return 'bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200';
+      return 'bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200';
+    }
+    if (type === 'assignment') {
+      return 'bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200';
     }
     return 'bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200';
+  };
+
+  const getTypeLabel = () => {
+    if (type === 'quiz') return 'Quiz';
+    if (type === 'assignment') return 'Devoir';
+    return 'Leçon';
   };
 
   return (
@@ -98,7 +110,7 @@ export const SortableContentItem: React.FC<SortableContentItemProps> = ({
 
               {/* Type Badge */}
               <Badge variant="secondary" className="ml-2">
-                {type === 'lesson' ? 'Leçon' : 'Quiz'}
+                {getTypeLabel()}
               </Badge>
             </div>
 

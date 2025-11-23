@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { 
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -12,12 +12,13 @@ import {
 } from '@/components/ui/alert-dialog';
 import { UserCheck, UserX, Loader2 } from 'lucide-react';
 import { useUpdateUserStatus } from '@/hooks/useApi';
+import type { UserStatus } from '@/hooks/useUserStatusSync';
 
 interface UserStatusToggleButtonProps {
   userId: number;
-  currentStatus: string;
+  currentStatus: UserStatus;
   userName: string;
-  onStatusChanged?: () => void;
+  onStatusChanged?: (newStatus: UserStatus) => void;
 }
 
 export const UserStatusToggleButton: React.FC<UserStatusToggleButtonProps> = ({
@@ -27,13 +28,18 @@ export const UserStatusToggleButton: React.FC<UserStatusToggleButtonProps> = ({
   onStatusChanged,
 }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [localStatus, setLocalStatus] = useState(currentStatus);
   const updateStatus = useUpdateUserStatus();
 
-  const isActive = currentStatus === 'active';
+  useEffect(() => {
+    setLocalStatus(currentStatus);
+  }, [currentStatus]);
+
+  const isActive = localStatus === 'active';
   const newStatus = isActive ? 'inactive' : 'active';
   const actionLabel = isActive ? 'Désactiver' : 'Activer';
-  const actionDescription = isActive 
-    ? 'désactivera l\'accès' 
+  const actionDescription = isActive
+    ? 'désactivera l\'accès'
     : 'réactivera l\'accès';
 
   const handleConfirm = () => {
@@ -41,8 +47,9 @@ export const UserStatusToggleButton: React.FC<UserStatusToggleButtonProps> = ({
       { userId, status: newStatus },
       {
         onSuccess: () => {
+          setLocalStatus(newStatus);
           setIsDialogOpen(false);
-          onStatusChanged?.();
+          onStatusChanged?.(newStatus);
         },
       }
     );

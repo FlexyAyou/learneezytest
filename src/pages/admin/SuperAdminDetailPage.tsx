@@ -4,26 +4,35 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { SuperAdminDetailView } from '@/components/admin/user-details/SuperAdminDetailView';
-import { useUserBySlug } from '@/hooks/useApi';
+import { useUserBySlug, useAuth } from '@/hooks/useApi';
 import { UserStatusToggleButton } from '@/components/admin/UserStatusToggleButton';
 import { useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
-import { 
-  ArrowLeft, 
+import {
+  ArrowLeft,
   Mail,
   Phone,
   Calendar,
   Building
 } from 'lucide-react';
+import { useUserStatusSync } from '@/hooks/useUserStatusSync';
 
 const SuperAdminDetailPage = () => {
   const { userSlug } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const currentPath = `/dashboard/superadmin/users/${userSlug}`;
+  const { user: currentUser } = useAuth();
 
   // Récupérer l'utilisateur par son slug
   const { data: foundUser, isLoading: usersLoading, error } = useUserBySlug(userSlug);
+
+  const { userStatus, handleStatusChanged } = useUserStatusSync({
+    initialStatus: foundUser?.status || 'inactive',
+    onStatusChanged: () => {
+      queryClient.invalidateQueries({ queryKey: ['userBySlug', userSlug] });
+    },
+  });
 
   if (usersLoading) {
     return (
@@ -54,7 +63,7 @@ const SuperAdminDetailPage = () => {
     email: foundUser.email,
     phone: '+33 6 12 34 56 78',
     role: 'Super Administrateur',
-    status: foundUser.status || 'inactive',
+    status: userStatus,
     lastLogin: foundUser.last_login || '2024-01-15',
     joinDate: foundUser.created_at,
     organisation: 'Learneezy',
@@ -69,7 +78,7 @@ const SuperAdminDetailPage = () => {
       inactive: { variant: 'secondary' as const, label: 'Inactif' },
       suspended: { variant: 'destructive' as const, label: 'Suspendu' }
     };
-    
+
     const config = configs[status as keyof typeof configs] || configs.active;
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
@@ -91,8 +100,8 @@ const SuperAdminDetailPage = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             onClick={() => navigate('/dashboard/superadmin/users')}
           >
@@ -104,15 +113,15 @@ const SuperAdminDetailPage = () => {
             <p className="text-gray-600">{user.email}</p>
           </div>
         </div>
-        
-        <UserStatusToggleButton
-          userId={user.id}
-          currentStatus={user.status}
-          userName={user.name}
-          onStatusChanged={() => {
-            queryClient.invalidateQueries({ queryKey: ['userBySlug', userSlug] });
-          }}
-        />
+
+        {currentUser?.id !== user.id && (
+          <UserStatusToggleButton
+            userId={user.id}
+            currentStatus={user.status}
+            userName={user.name}
+            onStatusChanged={handleStatusChanged}
+          />
+        )}
       </div>
 
       <Card className="w-full">
@@ -126,7 +135,7 @@ const SuperAdminDetailPage = () => {
                 </Badge>
               </div>
             </div>
-            
+
             <div>
               <label className="text-sm font-medium text-gray-600">Statut</label>
               <div className="mt-1">

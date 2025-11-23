@@ -8,6 +8,16 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    watch: {
+      ignored: [
+        '**/node_modules/**',
+        '**/.git/**',
+        '**/dist/**',
+        '**/build/**',
+        '**/.vscode/**',
+        '**/.idea/**'
+      ]
+    }
   },
   plugins: [
     react(),
@@ -19,4 +29,12 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  optimizeDeps: {
+    exclude: ['.git', 'node_modules/.cache']
+  },
+  build: {
+    rollupOptions: {
+      external: [/\.git\//]
+    }
+  }
 }));

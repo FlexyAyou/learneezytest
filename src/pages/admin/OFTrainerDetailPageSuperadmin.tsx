@@ -8,13 +8,14 @@ import { useSuperadminUsers, useUsers, useOrganizations } from '@/hooks/useApi';
 import { UserStatusToggleButton } from '@/components/admin/UserStatusToggleButton';
 import { useQueryClient } from '@tanstack/react-query';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
-import { 
-  ArrowLeft, 
+import {
+  ArrowLeft,
   Mail,
   Phone,
   Calendar,
   Building
 } from 'lucide-react';
+import { useUserStatusSync } from '@/hooks/useUserStatusSync';
 
 interface OFTrainerDetailPageProps {
   userRole?: 'superadmin' | 'manager';
@@ -28,12 +29,12 @@ const OFTrainerDetailPageSuperadmin = ({ userRole = 'superadmin' }: OFTrainerDet
   // Récupérer la liste des utilisateurs selon le rôle
   const { data: superadminUsers, isLoading: superadminLoading } = useSuperadminUsers();
   const { data: managerUsers, isLoading: managerLoading } = useUsers();
-  
+
   const allUsers = userRole === 'superadmin' ? superadminUsers : managerUsers;
   const usersLoading = userRole === 'superadmin' ? superadminLoading : managerLoading;
-  
+
   const { data: organizations } = useOrganizations(1, 100);
-  
+
   const foundUser = allUsers?.find(u => {
     const userSlugFromId = `${u.id}-${u.first_name?.toLowerCase()}-${u.last_name?.toLowerCase()}`.replace(/\s+/g, '-');
     return userSlugFromId === userSlug;
@@ -62,16 +63,28 @@ const OFTrainerDetailPageSuperadmin = ({ userRole = 'superadmin' }: OFTrainerDet
   }
 
   // Trouver l'organisation correspondante
-  const organisation = foundUser?.of_id && organizations 
+  const organisation = foundUser?.of_id && organizations
     ? organizations.find(o => o.id === foundUser.of_id)
     : null;
+
+  const backPath = userRole === 'superadmin'
+    ? '/dashboard/superadmin/users'
+    : '/dashboard/gestionnaire/formateurs';
+  const cacheKey = userRole === 'superadmin' ? 'superadmin-users' : 'users';
+
+  const { userStatus, handleStatusChanged } = useUserStatusSync({
+    initialStatus: foundUser?.status || 'active',
+    onStatusChanged: () => {
+      queryClient.invalidateQueries({ queryKey: [cacheKey] });
+    },
+  });
 
   // Construire l'objet user avec les données récupérées
   const user = {
     id: foundUser?.id || 0,
     name: `${foundUser?.first_name || ''} ${foundUser?.last_name || ''}`.trim(),
     email: foundUser?.email || '',
-    status: foundUser?.status || 'active',
+    status: userStatus,
     role: foundUser?.role || 'formateur_interne',
     organisation: organisation?.name || 'Learneezy Global',
     organisationType: foundUser?.of_id ? 'of' : 'global',
@@ -87,16 +100,10 @@ const OFTrainerDetailPageSuperadmin = ({ userRole = 'superadmin' }: OFTrainerDet
       inactive: { variant: 'secondary' as const, label: 'Inactif' },
       suspended: { variant: 'destructive' as const, label: 'Suspendu' }
     };
-    
+
     const config = configs[status as keyof typeof configs] || configs.active;
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
-
-  const backPath = userRole === 'superadmin' 
-    ? '/dashboard/superadmin/users' 
-    : '/dashboard/gestionnaire/formateurs';
-  
-  const cacheKey = userRole === 'superadmin' ? 'superadmin-users' : 'users';
 
   return (
     <div className="space-y-6">
@@ -109,14 +116,12 @@ const OFTrainerDetailPageSuperadmin = ({ userRole = 'superadmin' }: OFTrainerDet
           <ArrowLeft className="h-4 w-4" />
           {userRole === 'superadmin' ? 'Retour aux utilisateurs' : 'Retour aux formateurs'}
         </Button>
-        
+
         <UserStatusToggleButton
           userId={user.id}
           currentStatus={user.status}
           userName={user.name}
-          onStatusChanged={() => {
-            queryClient.invalidateQueries({ queryKey: [cacheKey] });
-          }}
+          onStatusChanged={handleStatusChanged}
         />
       </div>
 

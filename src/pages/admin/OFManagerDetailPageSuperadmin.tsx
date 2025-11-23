@@ -8,13 +8,14 @@ import { useSuperadminUsers, useOrganizations } from '@/hooks/useApi';
 import { UserStatusToggleButton } from '@/components/admin/UserStatusToggleButton';
 import { useQueryClient } from '@tanstack/react-query';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
-import { 
-  ArrowLeft, 
+import {
+  ArrowLeft,
   Mail,
   Phone,
   Calendar,
   Building
 } from 'lucide-react';
+import { useUserStatusSync } from '@/hooks/useUserStatusSync';
 
 const OFManagerDetailPageSuperadmin = () => {
   const { userSlug } = useParams();
@@ -23,7 +24,7 @@ const OFManagerDetailPageSuperadmin = () => {
 
   const { data: allUsers, isLoading: usersLoading } = useSuperadminUsers();
   const { data: organizations } = useOrganizations(1, 100);
-  
+
   const foundUser = allUsers?.find(u => {
     const userSlugFromId = `${u.id}-${u.first_name?.toLowerCase()}-${u.last_name?.toLowerCase()}`.replace(/\s+/g, '-');
     return userSlugFromId === userSlug;
@@ -52,16 +53,23 @@ const OFManagerDetailPageSuperadmin = () => {
   }
 
   // Trouver l'organisation correspondante
-  const organisation = foundUser?.of_id && organizations 
+  const organisation = foundUser?.of_id && organizations
     ? organizations.find(o => o.id === foundUser.of_id)
     : null;
+
+  const { userStatus, handleStatusChanged } = useUserStatusSync({
+    initialStatus: foundUser?.status || 'active',
+    onStatusChanged: () => {
+      queryClient.invalidateQueries({ queryKey: ['superadmin-users'] });
+    },
+  });
 
   // Construire l'objet user avec les données récupérées
   const user = {
     id: foundUser?.id || 0,
     name: `${foundUser?.first_name || ''} ${foundUser?.last_name || ''}`.trim(),
     email: foundUser?.email || '',
-    status: foundUser?.status || 'active',
+    status: userStatus,
     role: foundUser?.role || 'gestionnaire',
     organisation: organisation?.name || 'Learneezy Global',
     organisationType: foundUser?.of_id ? 'of' : 'global',
@@ -77,7 +85,7 @@ const OFManagerDetailPageSuperadmin = () => {
       inactive: { variant: 'secondary' as const, label: 'Inactif' },
       suspended: { variant: 'destructive' as const, label: 'Suspendu' }
     };
-    
+
     const config = configs[status as keyof typeof configs] || configs.active;
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
@@ -93,14 +101,12 @@ const OFManagerDetailPageSuperadmin = () => {
           <ArrowLeft className="h-4 w-4" />
           Retour aux utilisateurs
         </Button>
-        
+
         <UserStatusToggleButton
           userId={user.id}
           currentStatus={user.status}
           userName={user.name}
-          onStatusChanged={() => {
-            queryClient.invalidateQueries({ queryKey: ['superadmin-users'] });
-          }}
+          onStatusChanged={handleStatusChanged}
         />
       </div>
 

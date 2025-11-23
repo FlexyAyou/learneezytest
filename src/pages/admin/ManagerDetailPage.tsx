@@ -8,13 +8,14 @@ import { useUserBySlug, useOrganizations } from '@/hooks/useApi';
 import { UserStatusToggleButton } from '@/components/admin/UserStatusToggleButton';
 import { useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
-import { 
-  ArrowLeft, 
+import {
+  ArrowLeft,
   Mail,
   Phone,
   Calendar,
   Building
 } from 'lucide-react';
+import { useUserStatusSync } from '@/hooks/useUserStatusSync';
 
 const ManagerDetailPage = () => {
   const { userSlug } = useParams();
@@ -24,6 +25,13 @@ const ManagerDetailPage = () => {
   // Récupérer l'utilisateur par son slug
   const { data: foundUser, isLoading: usersLoading, error } = useUserBySlug(userSlug);
   const { data: organizations } = useOrganizations(1, 100);
+
+  const { userStatus, handleStatusChanged } = useUserStatusSync({
+    initialStatus: foundUser?.status || 'inactive',
+    onStatusChanged: () => {
+      queryClient.invalidateQueries({ queryKey: ['userBySlug', userSlug] });
+    },
+  });
 
   if (usersLoading) {
     return (
@@ -64,7 +72,7 @@ const ManagerDetailPage = () => {
     email: foundUser.email,
     phone: foundUser.phone || 'Non renseigné',
     role: 'Gestionnaire',
-    status: foundUser.status || 'inactive',
+    status: userStatus,
     lastLogin: foundUser.last_login || '2024-01-19',
     joinDate: foundUser.created_at,
     organisation: organisationName,
@@ -78,7 +86,7 @@ const ManagerDetailPage = () => {
       inactive: { variant: 'secondary' as const, label: 'Inactif' },
       suspended: { variant: 'destructive' as const, label: 'Suspendu' }
     };
-    
+
     const config = configs[status as keyof typeof configs] || configs.active;
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
@@ -101,8 +109,8 @@ const ManagerDetailPage = () => {
       {/* En-tête avec bouton retour */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             onClick={() => navigate('/dashboard/superadmin/users')}
           >
@@ -114,14 +122,12 @@ const ManagerDetailPage = () => {
             <p className="text-gray-600">{user.email}</p>
           </div>
         </div>
-        
+
         <UserStatusToggleButton
           userId={user.id}
           currentStatus={user.status}
           userName={user.name}
-          onStatusChanged={() => {
-            queryClient.invalidateQueries({ queryKey: ['userBySlug', userSlug] });
-          }}
+          onStatusChanged={handleStatusChanged}
         />
       </div>
 
@@ -137,7 +143,7 @@ const ManagerDetailPage = () => {
                 </Badge>
               </div>
             </div>
-            
+
             <div>
               <label className="text-sm font-medium text-gray-600">Statut</label>
               <div className="mt-1">
