@@ -2764,7 +2764,9 @@ const EditCoursePage = () => {
                 settings: {
                   passingScore: modules[showAssignmentBuilder].assignments![0].settings?.passing_score || 60,
                   maxAttempts: modules[showAssignmentBuilder].assignments![0].settings?.max_attempts || 3,
-                  timeLimit: modules[showAssignmentBuilder].assignments![0].settings?.time_limit,
+                  timeLimit: typeof modules[showAssignmentBuilder].assignments![0].settings?.time_limit === 'number'
+                    ? modules[showAssignmentBuilder].assignments![0].settings!.time_limit
+                    : undefined,
                   allowLateSubmission: modules[showAssignmentBuilder].assignments![0].settings?.allow_late_submission || false,
                   requiresManualGrading: modules[showAssignmentBuilder].assignments![0].settings?.requires_manual_grading || false,
                   rubric: [], // Rubric simplifiée pour l'instant

@@ -1006,7 +1006,14 @@ const CreateCoursePage = () => {
                   : q.options.filter((_: any, idx: number) => q.correctAnswers?.includes(idx)),
                 points: q.points || 1,
               })),
-              settings: module.assignment.settings,
+              settings: {
+                passing_score: module.assignment.settings?.passingScore ?? 70,
+                max_attempts: module.assignment.settings?.maxAttempts ?? 1,
+                time_limit: module.assignment.settings?.timeLimit ?? null,
+                allow_late_submission: module.assignment.settings?.allowLateSubmission ?? false,
+                requires_manual_grading: module.assignment.settings?.requiresManualGrading ?? false,
+                rubric: module.assignment.settings?.rubric ?? [],
+              },
             }]
             : []
         })),
