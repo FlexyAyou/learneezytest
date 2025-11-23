@@ -6,7 +6,15 @@ interface OrganizationProviderProps {
   children: React.ReactNode;
 }
 
-const OrganizationContext = createContext<OrganizationContextData | null>(null);
+// Valeur par défaut pour éviter les erreurs de contexte null
+const defaultContextValue: OrganizationContextData = {
+  organization: null,
+  isOFContext: false,
+  isLoading: true,
+  error: null,
+};
+
+const OrganizationContext = createContext<OrganizationContextData>(defaultContextValue);
 
 export const OrganizationProvider: React.FC<OrganizationProviderProps> = ({ children }) => {
   const { verification, isLoading, error, isOFSubdomain } = useSubdomain();
@@ -37,8 +45,6 @@ export const OrganizationProvider: React.FC<OrganizationProviderProps> = ({ chil
  */
 export const useOrganization = (): OrganizationContextData => {
   const context = useContext(OrganizationContext);
-  if (context === null) {
-    throw new Error('useOrganization must be used within OrganizationProvider');
-  }
+  // Le contexte aura toujours une valeur maintenant grâce à defaultContextValue
   return context;
 };
