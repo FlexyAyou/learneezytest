@@ -700,7 +700,8 @@ const EditCoursePage = () => {
             } else if (q.type === 'true-false') {
               const tfq = q as any;
               baseQuestion.options = ['Vrai', 'Faux'];
-              baseQuestion.correct_answer = tfq.correctAnswer ? 'Vrai' : 'Faux';
+              // Backend attend un booléen ou 'true'/'false'
+              baseQuestion.correct_answer = !!tfq.correctAnswer;
             } else if (q.type === 'multiple-choice') {
               const mcq = q as any;
               baseQuestion.options = mcq.options || [];
@@ -797,7 +798,7 @@ const EditCoursePage = () => {
             } else if (q.type === 'true-false') {
               const tfq = q as any;
               baseQuestion.options = ['Vrai', 'Faux'];
-              baseQuestion.correct_answer = tfq.correctAnswer ? 'Vrai' : 'Faux';
+              baseQuestion.correct_answer = !!tfq.correctAnswer;
             } else if (q.type === 'multiple-choice') {
               const mcq = q as any;
               baseQuestion.options = mcq.options || [];

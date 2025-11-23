@@ -564,7 +564,7 @@ const CreateCoursePage = () => {
   const handleContentReorder = (moduleId: string, reorderedItems: ContentItem[]) => {
     const lessons = reorderedItems.filter(item => item.type === 'lesson').map(item => item.data);
     const quizzes = reorderedItems.filter(item => item.type === 'quiz').map(item => item.data);
-    
+
     setModules(modules.map(m =>
       m.id === moduleId ? { ...m, lessons, quizzes } : m
     ));
@@ -621,7 +621,7 @@ const CreateCoursePage = () => {
         // Séparer les leçons et quizzes réorganisés
         const newLessons: Lesson[] = [];
         const newQuizzes: QuizConfig[] = [];
-        
+
         reorderedItems.forEach(item => {
           if (item.type === 'lesson') {
             newLessons.push(item.data);
@@ -629,7 +629,7 @@ const CreateCoursePage = () => {
             newQuizzes.push(item.data);
           }
         });
-        
+
         return { ...m, lessons: newLessons, quizzes: newQuizzes };
       }
       return m;
@@ -955,7 +955,8 @@ const CreateCoursePage = () => {
               } else if (q.type === 'true-false') {
                 const tfq = q as any;
                 baseQuestion.options = ['Vrai', 'Faux'];
-                baseQuestion.correct_answer = tfq.correctAnswer === 0 ? 'Vrai' : 'Faux';
+                // Backend: booléen ou 'true'/'false' requis
+                baseQuestion.correct_answer = tfq.correctAnswer === 0;
               } else if (q.type === 'multiple-choice') {
                 const mcq = q as any;
                 baseQuestion.options = mcq.options || [];
@@ -1613,7 +1614,7 @@ const CreateCoursePage = () => {
                                 {/* Media Upload/URL Section - New Design */}
                                 <div>
                                   <Label className="text-base mb-3 block">Média (Vidéo, PDF ou Image)</Label>
-                                  
+
                                   {/* Toggle Buttons: Upload fichier / Lien URL */}
                                   <div className="flex gap-2 mb-4">
                                     <Button
@@ -1775,7 +1776,7 @@ const CreateCoursePage = () => {
                               <div className="flex-1">
                                 <h5 className="font-medium text-gray-900">{module.assignment.title}</h5>
                                 <p className="text-sm text-gray-600">
-                                  {module.assignment.questions.length} question{module.assignment.questions.length > 1 ? 's' : ''} • 
+                                  {module.assignment.questions.length} question{module.assignment.questions.length > 1 ? 's' : ''} •
                                   Note de passage: {module.assignment.settings.passingScore}%
                                 </p>
                               </div>
