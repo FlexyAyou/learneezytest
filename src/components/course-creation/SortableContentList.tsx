@@ -18,18 +18,20 @@ import { SortableContentItem } from './SortableContentItem';
 
 export interface ContentItem {
   id: string;
-  type: 'lesson' | 'quiz';
+  type: 'lesson' | 'quiz' | 'assignment';
   originalIndex: number;
-  data: any; // Lesson or Quiz data
+  data: any; // Lesson, Quiz or Assignment data
 }
 
 interface SortableContentListProps {
   items: ContentItem[];
   onReorder: (items: ContentItem[]) => void;
-  onEditLesson: (lessonId: string) => void;
-  onDeleteLesson: (lessonId: string) => void;
-  onEditQuiz: (quizIndex: number) => void;
-  onDeleteQuiz: (quizIndex: number) => void;
+  onEditLesson?: (lessonId: string) => void;
+  onDeleteLesson?: (lessonId: string) => void;
+  onEditQuiz?: (quizIndex: number) => void;
+  onDeleteQuiz?: (quizIndex: number) => void;
+  onEditAssignment?: () => void;
+  onDeleteAssignment?: () => void;
 }
 
 export const SortableContentList: React.FC<SortableContentListProps> = ({
@@ -39,6 +41,8 @@ export const SortableContentList: React.FC<SortableContentListProps> = ({
   onDeleteLesson,
   onEditQuiz,
   onDeleteQuiz,
+  onEditAssignment,
+  onDeleteAssignment,
 }) => {
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -86,11 +90,11 @@ export const SortableContentList: React.FC<SortableContentListProps> = ({
                   subtitle={`${lesson.duration} minutes`}
                   fileType={lesson.fileType}
                   useMediaUrl={lesson.useMediaUrl}
-                  onEdit={() => onEditLesson(lesson.id)}
-                  onDelete={() => onDeleteLesson(lesson.id)}
+                  onEdit={() => onEditLesson?.(lesson.id)}
+                  onDelete={() => onDeleteLesson?.(lesson.id)}
                 />
               );
-            } else {
+            } else if (item.type === 'quiz') {
               const quiz = item.data;
               return (
                 <SortableContentItem
@@ -98,12 +102,26 @@ export const SortableContentList: React.FC<SortableContentListProps> = ({
                   id={item.id}
                   type="quiz"
                   title={quiz.title}
-                  subtitle={`${quiz.questions.length} questions • Note de passage: ${quiz.settings.passingScore}%`}
-                  onEdit={() => onEditQuiz(item.originalIndex)}
-                  onDelete={() => onDeleteQuiz(item.originalIndex)}
+                  subtitle={`${quiz.questions?.length || 0} questions`}
+                  onEdit={() => onEditQuiz?.(item.originalIndex)}
+                  onDelete={() => onDeleteQuiz?.(item.originalIndex)}
+                />
+              );
+            } else if (item.type === 'assignment') {
+              const assignment = item.data;
+              return (
+                <SortableContentItem
+                  key={item.id}
+                  id={item.id}
+                  type="assignment"
+                  title={assignment.title}
+                  subtitle="Devoir • Évaluation de module"
+                  onEdit={() => onEditAssignment?.()}
+                  onDelete={() => onDeleteAssignment?.()}
                 />
               );
             }
+            return null;
           })}
         </div>
       </SortableContext>
