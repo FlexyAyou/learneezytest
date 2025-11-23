@@ -75,6 +75,7 @@ interface EditableModule {
 }
 
 interface EditableLesson {
+  id?: string;  // ID backend de la leçon
   index: number;
   title: string;
   description: string;
@@ -307,6 +308,7 @@ const EditCoursePage = () => {
         description: mod.description || '',
         duration: mod.duration || '',
         lessons: (mod.content || []).map((lesson: Content, lessonIdx: number) => ({
+          id: lesson.id,  // Ajouter l'ID backend
           index: lessonIdx,
           title: lesson.title || '',
           description: lesson.description || '',
@@ -1867,13 +1869,15 @@ const EditCoursePage = () => {
                                 })()}
                                 onReorder={(newItems) => handleContentReorder(moduleIdx, newItems)}
                                 onEditLesson={(lessonId) => {
-                                  const lessonIdx = module.lessons.findIndex((_, idx) => `lesson-${moduleIdx}-${idx}` === lessonId);
+                                  // Chercher la leçon par son ID backend
+                                  const lessonIdx = module.lessons.findIndex(l => l.id === lessonId);
                                   if (lessonIdx !== -1) {
                                     setEditingLessonId({ moduleIdx, lessonIdx });
                                   }
                                 }}
                                 onDeleteLesson={(lessonId) => {
-                                  const lessonIdx = module.lessons.findIndex((_, idx) => `lesson-${moduleIdx}-${idx}` === lessonId);
+                                  // Chercher la leçon par son ID backend
+                                  const lessonIdx = module.lessons.findIndex(l => l.id === lessonId);
                                   if (lessonIdx !== -1) {
                                     handleDeleteLesson(moduleIdx, lessonIdx);
                                   }
