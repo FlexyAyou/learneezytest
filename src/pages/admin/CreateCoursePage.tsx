@@ -998,28 +998,31 @@ const CreateCoursePage = () => {
               description: module.assignment.description || '',
               instructions: module.assignment.instructions || '',
               questions: module.assignment.questions.map((q: any) => {
-                const question: any = {
+                const base: any = {
                   question: q.question,
                   type: q.type,
-                  options: q.options || [],
                   points: q.points || 1,
                 };
 
                 if (q.type === 'single-choice') {
-                  question.correct_answer = q.options?.[q.correctAnswer] ?? '';
+                  // SingleChoiceQuestion: options + correctAnswer (index)
+                  base.options = q.options || [];
+                  base.correctAnswer = typeof q.correctAnswer === 'number' ? q.correctAnswer : 0;
                 } else if (q.type === 'multiple-choice') {
-                  question.correct_answer = (q.correctAnswers || []).map((idx: number) => q.options[idx]);
+                  // MultipleChoiceQuestion: options + correctAnswers (indexes)
+                  base.options = q.options || [];
+                  base.correctAnswers = q.correctAnswers || [];
                 } else if (q.type === 'true-false') {
-                  // Domaine évaluations : booléen
-                  question.correct_answer = q.correctAnswer === 0;
+                  // TrueFalseQuestion: correctAnswer (bool attendu par le backend de domaine évaluations)
+                  base.correctAnswer = q.correctAnswer === 0;
                 } else if (q.type === 'short-answer') {
-                  question.correct_answer = q.correctAnswers || [];
+                  // ShortAnswerQuestion: correctAnswers (liste de chaînes)
+                  base.correctAnswers = q.correctAnswers || [];
                 } else if (q.type === 'essay') {
-                  // Rediriger les configs essay vers settings/rubric
-                  question.points = q.points || 1;
+                  // Long/Essay question: rien de plus, évaluée manuellement via rubric/settings
                 }
 
-                return question;
+                return base;
               }),
               settings: {
                 passing_score: module.assignment.settings?.passingScore ?? 70,
