@@ -953,6 +953,7 @@ const EditCoursePage = () => {
       const cleanedDesc = (m.description || '').replace(/<!--\s*mixed_order:.*?-->/i, '').trim();
       const marker = `<!--mixed_order:${JSON.stringify(orderingTokens)}-->`;
       const newDesc = `${cleanedDesc}\n${marker}`.trim();
+      // Met à jour lessons/quizzes locaux; la persistance d'ordre se fait via marker et updateModule
       return { ...m, lessons, quizzes, description: newDesc };
     }));
   };
@@ -2417,7 +2418,7 @@ const EditCoursePage = () => {
         <Dialog open={true} onOpenChange={() => setShowModuleQuizBuilder(null)}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Configurer le quiz du module</DialogTitle>
+              <DialogTitle>Configurer le quiz</DialogTitle>
             </DialogHeader>
             <QuizBuilder
               quiz={modules[showModuleQuizBuilder]?.quizzes?.[0] ? {

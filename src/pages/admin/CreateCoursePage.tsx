@@ -990,7 +990,25 @@ const CreateCoursePage = () => {
 
               return baseQuestion;
             })
-          }))
+          })),
+          // Assignment (devoir) optionnel par module
+          assignments: module.assignment
+            ? [{
+              title: module.assignment.title,
+              description: module.assignment.description || '',
+              instructions: module.assignment.instructions || '',
+              questions: module.assignment.questions.map((q: any) => ({
+                question: q.question,
+                type: q.type,
+                options: q.options || [],
+                correct_answer: q.type === 'single-choice' || q.type === 'true-false'
+                  ? q.options[q.correctAnswer]
+                  : q.options.filter((_: any, idx: number) => q.correctAnswers?.includes(idx)),
+                points: q.points || 1,
+              })),
+              settings: module.assignment.settings,
+            }]
+            : []
         })),
         resources: uploadedResources,
         resources_downloadable: courseData.resourcesDownloadable
