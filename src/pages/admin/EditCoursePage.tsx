@@ -522,7 +522,12 @@ const EditCoursePage = () => {
     setSavingModule(moduleIdx);
     try {
       const moduleToSave = modules[moduleIdx];
-      await fastAPIClient.updateModule(id, moduleIdx, {
+
+      // Récupérer l'ID réel du module pour ne plus utiliser l'index
+      const currentCourse = await fastAPIClient.getCourse(id);
+      const moduleId = currentCourse.modules[moduleIdx].id!;
+
+      await fastAPIClient.updateModule(id, moduleId, {
         title: moduleToSave.title,
         description: moduleToSave.description,
         duration: moduleToSave.duration,
@@ -598,7 +603,9 @@ const EditCoursePage = () => {
     if (!id || !confirm('Supprimer ce module ?')) return;
 
     try {
-      await fastAPIClient.deleteModule(id, moduleIdx, true);
+      const currentCourse = await fastAPIClient.getCourse(id);
+      const moduleId = currentCourse.modules[moduleIdx].id!;
+      await fastAPIClient.deleteModule(id, moduleId, true);
       toast({ title: "✅ Module supprimé" });
 
       // Refresh course data
@@ -768,7 +775,8 @@ const EditCoursePage = () => {
           quizzes: [quizPayload],
         };
 
-        await fastAPIClient.updateModule(id, realModuleIdx, updatedModuleData);
+        const moduleId = updatedCourse.modules[realModuleIdx].id!;
+        await fastAPIClient.updateModule(id, moduleId, updatedModuleData);
 
         // Rafraîchir tout
         const finalCourse = await fastAPIClient.getCourse(id);
@@ -869,7 +877,9 @@ const EditCoursePage = () => {
           quizzes: [quizPayload],
         };
 
-        await fastAPIClient.updateModule(id, moduleIdx, updatedModuleData);
+        const currentCourse = await fastAPIClient.getCourse(id);
+        const moduleId = currentCourse.modules[moduleIdx].id!;
+        await fastAPIClient.updateModule(id, moduleId, updatedModuleData);
 
         const updatedCourse = await fastAPIClient.getCourse(id);
         setModules(mapCourseToEditableModules(updatedCourse));
@@ -909,7 +919,9 @@ const EditCoursePage = () => {
         quizzes: [],
       };
 
-      await fastAPIClient.updateModule(id, moduleIdx, updatedModuleData);
+      const currentCourse = await fastAPIClient.getCourse(id);
+      const moduleId = currentCourse.modules[moduleIdx].id!;
+      await fastAPIClient.updateModule(id, moduleId, updatedModuleData);
 
       const updatedCourse = await fastAPIClient.getCourse(id);
       setModules(mapCourseToEditableModules(updatedCourse));
@@ -927,35 +939,46 @@ const EditCoursePage = () => {
     }
   };
 
-  // Reorder content (lessons and quizzes together)
-  const handleContentReorder = (moduleIdx: number, reorderedItems: ContentItem[]) => {
+  // Reorder content (lessons and quizzes together) + PATCH /order
+  const handleContentReorder = async (moduleIdx: number, reorderedItems: ContentItem[]) => {
+    if (!id) return;
+
     const lessons = reorderedItems
       .filter(item => item.type === 'lesson')
       .map(item => item.data as EditableLesson);
 
     const quizzes = reorderedItems
       .filter(item => item.type === 'quiz')
-      .map(item => item.data);
+      .map(item => item.data as Quiz);
 
-    // Construire le marqueur d'ordre mixte à partir des IDs backend quand disponibles
-    const orderingTokens: string[] = reorderedItems.map(it => {
-      if (it.type === 'lesson') {
-        const l: EditableLesson = it.data;
-        return `L:${l.backendId || `idx-${l.index}`}`;
+    // Construire la sequence pour PATCH /order (assignment exclu)
+    const sequence = reorderedItems.map(item => {
+      if (item.type === 'lesson') {
+        const l = item.data as EditableLesson;
+        return { type: 'lesson' as const, id: l.backendId! };
       }
-      const q: Quiz = it.data;
-      return `Q:${q.id || `qidx-${reorderedItems.indexOf(it)}`}`;
+      const q = item.data as Quiz;
+      return { type: 'quiz' as const, id: q.id! };
     });
 
-    setModules(prev => prev.map((m, idx) => {
-      if (idx !== moduleIdx) return m;
-      // Nettoyer ancien marqueur s'il existe
-      const cleanedDesc = (m.description || '').replace(/<!--\s*mixed_order:.*?-->/i, '').trim();
-      const marker = `<!--mixed_order:${JSON.stringify(orderingTokens)}-->`;
-      const newDesc = `${cleanedDesc}\n${marker}`.trim();
-      // Met à jour lessons/quizzes locaux; la persistance d'ordre se fait via marker et updateModule
-      return { ...m, lessons, quizzes, description: newDesc };
-    }));
+    // Mettre à jour l'état local immédiatement pour une UI réactive
+    setModules(prev =>
+      prev.map((m, idx) => (idx === moduleIdx ? { ...m, lessons, quizzes } : m))
+    );
+
+    try {
+      const currentCourse = await fastAPIClient.getCourse(id);
+      const moduleId = currentCourse.modules[moduleIdx].id!;
+
+      await fastAPIClient.updateModuleOrder(id, moduleId, sequence);
+    } catch (error) {
+      console.error('Error updating mixed order:', error);
+      toast({
+        title: 'Erreur',
+        description: "Impossible de sauvegarder l'ordre du contenu",
+        variant: 'destructive',
+      });
+    }
   };
 
   // Save module assignment
@@ -1007,7 +1030,8 @@ const EditCoursePage = () => {
           assignments: [assignmentPayload],
         };
 
-        await fastAPIClient.updateModule(id, realModuleIdx, updatedModuleData);
+        const moduleId = updatedCourse.modules[realModuleIdx].id!;
+        await fastAPIClient.updateModule(id, moduleId, updatedModuleData);
 
         // Rafraîchir tout
         const finalCourse = await fastAPIClient.getCourse(id);
@@ -1048,7 +1072,9 @@ const EditCoursePage = () => {
           assignments: [assignmentPayload],
         };
 
-        await fastAPIClient.updateModule(id, moduleIdx, updatedModuleData);
+        const currentCourse = await fastAPIClient.getCourse(id);
+        const moduleId = currentCourse.modules[moduleIdx].id!;
+        await fastAPIClient.updateModule(id, moduleId, updatedModuleData);
 
         const updatedCourse = await fastAPIClient.getCourse(id);
         setModules(mapCourseToEditableModules(updatedCourse));
@@ -1088,7 +1114,9 @@ const EditCoursePage = () => {
         assignments: [],
       };
 
-      await fastAPIClient.updateModule(id, moduleIdx, updatedModuleData);
+      const currentCourse = await fastAPIClient.getCourse(id);
+      const moduleId = currentCourse.modules[moduleIdx].id!;
+      await fastAPIClient.updateModule(id, moduleId, updatedModuleData);
 
       const updatedCourse = await fastAPIClient.getCourse(id);
       setModules(mapCourseToEditableModules(updatedCourse));

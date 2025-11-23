@@ -942,7 +942,7 @@ class FastAPIClient {
   // ============= MODULE MANAGEMENT =============
   async updateModule(
     courseId: string,
-    moduleId: number,
+    moduleId: string,
     moduleData: ModuleFullUpdate
   ): Promise<Module> {
     return this.put(`/api/courses/${courseId}/modules/${moduleId}`, moduleData);
@@ -950,11 +950,24 @@ class FastAPIClient {
 
   async deleteModule(
     courseId: string,
-    moduleId: number,
+    moduleId: string,
     forceMediaDelete: boolean = false
   ): Promise<void> {
     return this.delete(`/api/courses/${courseId}/modules/${moduleId}`, {
       params: { force_media_delete: forceMediaDelete }
+    });
+  }
+
+  /**
+   * Définir l'ordre mixte leçons+quizz d'un module (assignment exclu)
+   */
+  async updateModuleOrder(
+    courseId: string,
+    moduleId: string,
+    sequence: Array<{ type: 'lesson' | 'quiz'; id: string }>
+  ): Promise<Module> {
+    return this.patch(`/api/courses/${courseId}/modules/${moduleId}/order`, {
+      sequence,
     });
   }
 
