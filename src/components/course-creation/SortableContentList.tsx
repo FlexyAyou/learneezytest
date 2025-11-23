@@ -92,13 +92,15 @@ export const SortableContentList: React.FC<SortableContentListProps> = ({
               );
             } else {
               const quiz = item.data;
+              const questionsCount = Array.isArray(quiz.questions) ? quiz.questions.length : 0;
+              const passing = quiz.settings?.passingScore ?? 0;
               return (
                 <SortableContentItem
                   key={item.id}
                   id={item.id}
                   type="quiz"
                   title={quiz.title}
-                  subtitle={`${quiz.questions.length} questions • Note de passage: ${quiz.settings.passingScore}%`}
+                  subtitle={`${questionsCount} questions • Note de passage: ${passing}%`}
                   onEdit={() => onEditQuiz(item.originalIndex)}
                   onDelete={() => onDeleteQuiz(item.originalIndex)}
                 />
