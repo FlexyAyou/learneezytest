@@ -1552,20 +1552,31 @@ const CreateCoursePage = () => {
                           </div>
                         ) : (
                           <SortableContentList
-                            items={[
-                              ...module.lessons.map((lesson, idx) => ({
-                                id: lesson.id,
-                                type: 'lesson' as const,
-                                originalIndex: idx,
-                                data: lesson
-                              })),
-                              ...module.quizzes.map((quiz, idx) => ({
-                                id: `quiz-${module.id}-${idx}`,
-                                type: 'quiz' as const,
-                                originalIndex: idx,
-                                data: quiz
-                              }))
-                            ]}
+                            items={(() => {
+                              const items: ContentItem[] = [];
+
+                              // Dans la création, on n'a pas encore Module.order côté backend.
+                              // On respecte donc l'ordre actuel du tableau mixte lessons+quizzes.
+                              module.lessons.forEach((lesson, idx) => {
+                                items.push({
+                                  id: lesson.id,
+                                  type: 'lesson',
+                                  originalIndex: idx,
+                                  data: lesson,
+                                });
+                              });
+
+                              module.quizzes.forEach((quiz, idx) => {
+                                items.push({
+                                  id: `quiz-${module.id}-${idx}`,
+                                  type: 'quiz',
+                                  originalIndex: idx,
+                                  data: quiz,
+                                });
+                              });
+
+                              return items;
+                            })()}
                             onReorder={(newItems) => handleContentReorder(module.id, newItems)}
                             onEditLesson={(lessonId) => setEditingLesson({ moduleId: module.id, lessonId })}
                             onDeleteLesson={(lessonId) => removeLesson(module.id, lessonId)}

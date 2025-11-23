@@ -261,21 +261,7 @@ const EditCoursePage = () => {
 
   // Helper function to map course data to editable modules
   const mapCourseToEditableModules = (courseData: CourseResponse): EditableModule[] => {
-    // Extraction éventuelle de l'ordre mixte depuis la description via commentaire HTML
-    const extractMixedOrder = (desc?: string | null): string[] | null => {
-      if (!desc) return null;
-      const match = desc.match(/<!--\s*mixed_order:(\[.*?\])\s*-->/i);
-      if (!match) return null;
-      try {
-        const arr = JSON.parse(match[1]);
-        return Array.isArray(arr) ? arr.filter(x => typeof x === 'string') : null;
-      } catch {
-        return null;
-      }
-    };
-
     return (courseData.modules || []).map((mod: Module, idx: number) => {
-      const mixedOrder = extractMixedOrder(mod.description);
       // Construire les structures simples
       const lessonsRaw: EditableLesson[] = (mod.content || []).map((lesson: Content, lessonIdx: number) => ({
         index: lessonIdx,
@@ -297,40 +283,13 @@ const EditCoursePage = () => {
       }));
       const quizzesRaw: Quiz[] = mod.quizzes || [];
 
-      let lessons = lessonsRaw;
-      let quizzes = quizzesRaw;
-      // Appliquer l'ordre mixte si présent
-      if (mixedOrder && mixedOrder.length > 0) {
-        const lessonMap = new Map<string, EditableLesson>();
-        lessonsRaw.forEach(l => lessonMap.set(l.backendId || `idx-${l.index}`, l));
-        const quizMap = new Map<string, Quiz>();
-        quizzesRaw.forEach((q, qIdx) => quizMap.set(q.id || `qidx-${qIdx}`, q));
-
-        const orderedLessons: EditableLesson[] = [];
-        const orderedQuizzes: Quiz[] = [];
-        mixedOrder.forEach(token => {
-          if (token.startsWith('L:')) {
-            const key = token.substring(2);
-            const l = lessonMap.get(key);
-            if (l) orderedLessons.push(l);
-          } else if (token.startsWith('Q:')) {
-            const key = token.substring(2);
-            const q = quizMap.get(key);
-            if (q) orderedQuizzes.push(q);
-          }
-        });
-        // Ajouter ceux non référencés à la fin pour robustesse
-        lessons = [...orderedLessons, ...lessonsRaw.filter(l => !orderedLessons.includes(l))];
-        quizzes = [...orderedQuizzes, ...quizzesRaw.filter(q => !orderedQuizzes.includes(q))];
-      }
-
       return {
         index: idx,
         title: mod.title || '',
         description: mod.description || '',
         duration: mod.duration || '',
-        lessons,
-        quizzes,
+        lessons: lessonsRaw,
+        quizzes: quizzesRaw,
         assignments: mod.assignments || [],
         isPending: false,  // Les modules chargés depuis la DB ne sont jamais pending
       };
@@ -1924,20 +1883,72 @@ const EditCoursePage = () => {
                               </div>
                             ) : (
                               <SortableContentList
-                                items={[
-                                  ...module.lessons.map((lesson, idx) => ({
-                                    id: `lesson-${moduleIdx}-${idx}`,
-                                    type: 'lesson' as const,
-                                    originalIndex: idx,
-                                    data: lesson
-                                  })),
-                                  ...(module.quizzes || []).map((quiz, idx) => ({
-                                    id: `quiz-${moduleIdx}-${idx}`,
-                                    type: 'quiz' as const,
-                                    originalIndex: idx,
-                                    data: quiz
-                                  }))
-                                ]}
+                                items={(() => {
+                                  const items: ContentItem[] = [];
+
+                                  // Si le backend fournit un order mixte, l'utiliser pour l'affichage
+                                  const backendModule = course?.modules?.[moduleIdx];
+                                  const order = backendModule && Array.isArray((backendModule as any).order)
+                                    ? (backendModule as any).order as Array<{ type: 'lesson' | 'quiz'; id: string }>
+                                    : null;
+
+                                  if (order && order.length > 0) {
+                                    order.forEach((entry, posIdx) => {
+                                      if (entry.type === 'lesson') {
+                                        const lessonIdx = backendModule!.content.findIndex((l: any) => l.id === entry.id);
+                                        if (lessonIdx !== -1) {
+                                          const lesson = module.lessons[lessonIdx];
+                                          items.push({
+                                            id: `lesson-${moduleIdx}-${lessonIdx}`,
+                                            type: 'lesson',
+                                            originalIndex: lessonIdx,
+                                            data: lesson,
+                                          });
+                                        }
+                                      } else if (entry.type === 'quiz') {
+                                        const quizIdx = (backendModule!.quizzes || []).findIndex((q: any) => q.id === entry.id);
+                                        if (quizIdx !== -1) {
+                                          const quiz = (module.quizzes || [])[quizIdx];
+                                          if (quiz) {
+                                            items.push({
+                                              id: `quiz-${moduleIdx}-${quizIdx}`,
+                                              type: 'quiz',
+                                              originalIndex: quizIdx,
+                                              data: quiz,
+                                            });
+                                          }
+                                        }
+                                      }
+                                    });
+                                  }
+
+                                  // Fallback / complétion : ajouter les éléments non présents dans order
+                                  module.lessons.forEach((lesson, idx) => {
+                                    const already = items.some(it => it.type === 'lesson' && it.originalIndex === idx);
+                                    if (!already) {
+                                      items.push({
+                                        id: `lesson-${moduleIdx}-${idx}`,
+                                        type: 'lesson',
+                                        originalIndex: idx,
+                                        data: lesson,
+                                      });
+                                    }
+                                  });
+
+                                  (module.quizzes || []).forEach((quiz, idx) => {
+                                    const already = items.some(it => it.type === 'quiz' && it.originalIndex === idx);
+                                    if (!already) {
+                                      items.push({
+                                        id: `quiz-${moduleIdx}-${idx}`,
+                                        type: 'quiz',
+                                        originalIndex: idx,
+                                        data: quiz,
+                                      });
+                                    }
+                                  });
+
+                                  return items;
+                                })()}
                                 onReorder={(newItems) => handleContentReorder(moduleIdx, newItems)}
                                 onEditLesson={(lessonId) => {
                                   const lessonIdx = module.lessons.findIndex((_, idx) => `lesson-${moduleIdx}-${idx}` === lessonId);
@@ -1951,10 +1962,10 @@ const EditCoursePage = () => {
                                     handleDeleteLesson(moduleIdx, lessonIdx);
                                   }
                                 }}
-                                onEditQuiz={(quizIndex) => {
+                                onEditQuiz={() => {
                                   setShowModuleQuizBuilder(moduleIdx);
                                 }}
-                                onDeleteQuiz={(quizIndex) => {
+                                onDeleteQuiz={() => {
                                   handleDeleteModuleQuiz(moduleIdx);
                                 }}
                               />
