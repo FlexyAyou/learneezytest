@@ -1062,7 +1062,14 @@ const EditCoursePage = () => {
               : q.options.filter((_: any, idx: number) => q.correctAnswers?.includes(idx)),
             points: q.points || 1,
           })),
-          settings: assignment.settings,
+          settings: {
+            passing_score: assignment.settings?.passingScore ?? 70,
+            max_attempts: assignment.settings?.maxAttempts ?? 1,
+            time_limit: assignment.settings?.timeLimit ?? null,
+            allow_late_submission: assignment.settings?.allowLateSubmission ?? false,
+            requires_manual_grading: assignment.settings?.requiresManualGrading ?? false,
+            rubric: assignment.settings?.rubric ?? [],
+          },
         };
 
         const updatedModuleData = {
@@ -1104,7 +1111,14 @@ const EditCoursePage = () => {
               : q.options.filter((_: any, idx: number) => q.correctAnswers?.includes(idx)),
             points: q.points || 1,
           })),
-          settings: assignment.settings,
+          settings: {
+            passing_score: assignment.settings?.passingScore ?? 70,
+            max_attempts: assignment.settings?.maxAttempts ?? 1,
+            time_limit: assignment.settings?.timeLimit ?? null,
+            allow_late_submission: assignment.settings?.allowLateSubmission ?? false,
+            requires_manual_grading: assignment.settings?.requiresManualGrading ?? false,
+            rubric: assignment.settings?.rubric ?? [],
+          },
         };
 
         const updatedModuleData = {
