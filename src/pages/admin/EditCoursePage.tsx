@@ -71,6 +71,8 @@ interface EditableModule {
   assignments?: AssignmentResponse[];
   isPending?: boolean;  // Module temporaire non encore enregistré
   tempId?: string;      // ID temporaire pour les modules pending
+  // Ordre mixte local (leçons + quizz) pour l'affichage DnD
+  contentOrder?: ContentItem[];
 }
 
 interface EditableLesson {
@@ -283,6 +285,66 @@ const EditCoursePage = () => {
       }));
       const quizzesRaw: Quiz[] = mod.quizzes || [];
 
+      // Construire l'ordre mixte local à partir de Module.order si présent
+      const contentOrder: ContentItem[] = [];
+      const order = (mod as any).order as Array<{ type: 'lesson' | 'quiz'; id: string }> | undefined;
+      if (order && Array.isArray(order)) {
+        order.forEach((entry, posIdx) => {
+          if (entry.type === 'lesson') {
+            const lessonIdx = (mod.content || []).findIndex((l: any) => l.id === entry.id);
+            if (lessonIdx !== -1) {
+              const lesson = lessonsRaw[lessonIdx];
+              contentOrder.push({
+                id: `lesson-${idx}-${lessonIdx}`,
+                type: 'lesson',
+                originalIndex: lessonIdx,
+                data: lesson,
+              });
+            }
+          } else if (entry.type === 'quiz') {
+            const quizIdx = (mod.quizzes || []).findIndex((q: any) => q.id === entry.id);
+            if (quizIdx !== -1) {
+              const quiz = quizzesRaw[quizIdx];
+              contentOrder.push({
+                id: `quiz-${idx}-${quizIdx}`,
+                type: 'quiz',
+                originalIndex: quizIdx,
+                data: quiz,
+              });
+            }
+          }
+        });
+      }
+
+      // Compléter avec les éléments non présents dans order (fallback robuste)
+      lessonsRaw.forEach((lesson, lIdx) => {
+        const exists = contentOrder.some(
+          it => it.type === 'lesson' && it.originalIndex === lIdx
+        );
+        if (!exists) {
+          contentOrder.push({
+            id: `lesson-${idx}-${lIdx}`,
+            type: 'lesson',
+            originalIndex: lIdx,
+            data: lesson,
+          });
+        }
+      });
+
+      quizzesRaw.forEach((quiz, qIdx) => {
+        const exists = contentOrder.some(
+          it => it.type === 'quiz' && it.originalIndex === qIdx
+        );
+        if (!exists) {
+          contentOrder.push({
+            id: `quiz-${idx}-${qIdx}`,
+            type: 'quiz',
+            originalIndex: qIdx,
+            data: quiz,
+          });
+        }
+      });
+
       return {
         index: idx,
         title: mod.title || '',
@@ -292,6 +354,7 @@ const EditCoursePage = () => {
         quizzes: quizzesRaw,
         assignments: mod.assignments || [],
         isPending: false,  // Les modules chargés depuis la DB ne sont jamais pending
+        contentOrder,
       };
     });
   };
@@ -922,7 +985,11 @@ const EditCoursePage = () => {
 
     // Mettre à jour l'état local immédiatement pour une UI réactive
     setModules(prev =>
-      prev.map((m, idx) => (idx === moduleIdx ? { ...m, lessons, quizzes } : m))
+      prev.map((m, idx) =>
+        idx === moduleIdx
+          ? { ...m, lessons, quizzes, contentOrder: reorderedItems }
+          : m
+      )
     );
 
     try {
@@ -931,7 +998,7 @@ const EditCoursePage = () => {
 
       const updatedModule = await fastAPIClient.updateModuleOrder(id, moduleId, sequence);
 
-      // Synchroniser immédiatement l'ordre dans courseData pour que l'affichage suive sans refresh
+      // Synchroniser immédiatement l'ordre dans courseData (utile pour un futur rechargement complet)
       setCourseData(prev => {
         if (!prev) return prev;
         const modules = [...(prev.modules || [])];
@@ -1896,72 +1963,23 @@ const EditCoursePage = () => {
                               </div>
                             ) : (
                               <SortableContentList
-                                items={(() => {
-                                  const items: ContentItem[] = [];
-
-                                  // Si le backend fournit un order mixte, l'utiliser pour l'affichage
-                                  const backendModule = course?.modules?.[moduleIdx];
-                                  const order = backendModule && Array.isArray((backendModule as any).order)
-                                    ? (backendModule as any).order as Array<{ type: 'lesson' | 'quiz'; id: string }>
-                                    : null;
-
-                                  if (order && order.length > 0) {
-                                    order.forEach((entry, posIdx) => {
-                                      if (entry.type === 'lesson') {
-                                        const lessonIdx = backendModule!.content.findIndex((l: any) => l.id === entry.id);
-                                        if (lessonIdx !== -1) {
-                                          const lesson = module.lessons[lessonIdx];
-                                          items.push({
-                                            id: `lesson-${moduleIdx}-${lessonIdx}`,
-                                            type: 'lesson',
-                                            originalIndex: lessonIdx,
-                                            data: lesson,
-                                          });
-                                        }
-                                      } else if (entry.type === 'quiz') {
-                                        const quizIdx = (backendModule!.quizzes || []).findIndex((q: any) => q.id === entry.id);
-                                        if (quizIdx !== -1) {
-                                          const quiz = (module.quizzes || [])[quizIdx];
-                                          if (quiz) {
-                                            items.push({
-                                              id: `quiz-${moduleIdx}-${quizIdx}`,
-                                              type: 'quiz',
-                                              originalIndex: quizIdx,
-                                              data: quiz,
-                                            });
-                                          }
-                                        }
-                                      }
-                                    });
-                                  }
-
-                                  // Fallback / complétion : ajouter les éléments non présents dans order
-                                  module.lessons.forEach((lesson, idx) => {
-                                    const already = items.some(it => it.type === 'lesson' && it.originalIndex === idx);
-                                    if (!already) {
-                                      items.push({
-                                        id: `lesson-${moduleIdx}-${idx}`,
-                                        type: 'lesson',
-                                        originalIndex: idx,
-                                        data: lesson,
-                                      });
-                                    }
-                                  });
-
-                                  (module.quizzes || []).forEach((quiz, idx) => {
-                                    const already = items.some(it => it.type === 'quiz' && it.originalIndex === idx);
-                                    if (!already) {
-                                      items.push({
-                                        id: `quiz-${moduleIdx}-${idx}`,
-                                        type: 'quiz',
-                                        originalIndex: idx,
-                                        data: quiz,
-                                      });
-                                    }
-                                  });
-
-                                  return items;
-                                })()}
+                                items={module.contentOrder && module.contentOrder.length > 0
+                                  ? module.contentOrder
+                                  : [
+                                    // Fallback: leçons puis quizz si aucun ordre mixte n'est encore défini
+                                    ...module.lessons.map((lesson, idx) => ({
+                                      id: `lesson-${moduleIdx}-${idx}`,
+                                      type: 'lesson' as const,
+                                      originalIndex: idx,
+                                      data: lesson,
+                                    })),
+                                    ...(module.quizzes || []).map((quiz, idx) => ({
+                                      id: `quiz-${moduleIdx}-${idx}`,
+                                      type: 'quiz' as const,
+                                      originalIndex: idx,
+                                      data: quiz,
+                                    })),
+                                  ]}
                                 onReorder={(newItems) => handleContentReorder(moduleIdx, newItems)}
                                 onEditLesson={(lessonId) => {
                                   const lessonIdx = module.lessons.findIndex((_, idx) => `lesson-${moduleIdx}-${idx}` === lessonId);
