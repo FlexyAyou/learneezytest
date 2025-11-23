@@ -564,9 +564,10 @@ const CreateCoursePage = () => {
   const handleContentReorder = (moduleId: string, reorderedItems: ContentItem[]) => {
     const lessons = reorderedItems.filter(item => item.type === 'lesson').map(item => item.data);
     const quizzes = reorderedItems.filter(item => item.type === 'quiz').map(item => item.data);
+    const assignments = reorderedItems.filter(item => item.type === 'assignment').map(item => item.data);
     
     setModules(modules.map(m =>
-      m.id === moduleId ? { ...m, lessons, quizzes } : m
+      m.id === moduleId ? { ...m, lessons, quizzes, assignment: assignments[0] } : m
     ));
   };
 
@@ -618,19 +619,22 @@ const CreateCoursePage = () => {
   const handleReorderContent = (moduleId: string, reorderedItems: ContentItem[]) => {
     setModules(modules.map(m => {
       if (m.id === moduleId) {
-        // Séparer les leçons et quizzes réorganisés
+        // Séparer les leçons, quizzes et assignments réorganisés
         const newLessons: Lesson[] = [];
         const newQuizzes: QuizConfig[] = [];
+        let newAssignment: AssignmentConfig | undefined;
         
         reorderedItems.forEach(item => {
           if (item.type === 'lesson') {
             newLessons.push(item.data);
-          } else {
+          } else if (item.type === 'quiz') {
             newQuizzes.push(item.data);
+          } else if (item.type === 'assignment') {
+            newAssignment = item.data;
           }
         });
         
-        return { ...m, lessons: newLessons, quizzes: newQuizzes };
+        return { ...m, lessons: newLessons, quizzes: newQuizzes, assignment: newAssignment };
       }
       return m;
     }));
