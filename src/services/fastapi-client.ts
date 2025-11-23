@@ -569,7 +569,7 @@ class FastAPIClient {
   ): Promise<Module> {
     return this.patch<Module>(
       `/api/courses/${courseId}/modules/${moduleId}/quizzes/reorder`,
-      { order: orderData.items }
+      { order: orderData.items.map(item => item.id) }
     );
   }
 
