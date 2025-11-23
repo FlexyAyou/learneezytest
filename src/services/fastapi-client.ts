@@ -568,7 +568,7 @@ class FastAPIClient {
     orderData: { items: Array<{ type: 'lesson' | 'quiz' | 'assignment'; id: string }> }
   ): Promise<Module> {
     return this.patch<Module>(
-      `/api/courses/${courseId}/modules/${moduleId}/reorder`,
+      `/api/courses/${courseId}/modules/${moduleId}/quizzes/reorder`,
       { order: orderData.items }
     );
   }
