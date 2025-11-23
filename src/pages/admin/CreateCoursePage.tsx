@@ -1053,9 +1053,39 @@ const CreateCoursePage = () => {
 
     } catch (error: any) {
       console.error('Erreur création cours:', error);
+      
+      // Formatter les erreurs de validation FastAPI (422)
+      let errorMessage = "Une erreur est survenue lors de la création du cours";
+      
+      if (error?.response?.data?.detail) {
+        const detail = error.response.data.detail;
+        
+        // Si detail est un tableau d'erreurs de validation Pydantic
+        if (Array.isArray(detail)) {
+          errorMessage = detail
+            .map((err: any) => {
+              const field = err.loc ? err.loc.join(' > ') : 'Champ inconnu';
+              return `${field}: ${err.msg || 'Erreur de validation'}`;
+            })
+            .join('\n');
+        } 
+        // Si detail est une chaîne
+        else if (typeof detail === 'string') {
+          errorMessage = detail;
+        }
+        // Si detail est un objet unique
+        else if (typeof detail === 'object') {
+          errorMessage = detail.msg || JSON.stringify(detail);
+        }
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      console.error('📋 Erreur formatée:', errorMessage);
+      
       toast({
-        title: "Erreur",
-        description: error?.response?.data?.detail || error?.message || "Une erreur est survenue lors de la création du cours",
+        title: "Erreur de création",
+        description: errorMessage,
         variant: "destructive"
       });
     }
