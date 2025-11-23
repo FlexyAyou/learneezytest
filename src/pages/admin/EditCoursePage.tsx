@@ -91,6 +91,7 @@ interface EditableLesson {
   video_url?: string;
   content_type?: 'video' | 'image' | 'pdf' | 'url';
   useMediaUrl?: boolean;
+  backendId?: string; // Nouvel ID pour persister l'ordre mixte
 }
 
 interface PedagogicalResource {
@@ -260,12 +261,23 @@ const EditCoursePage = () => {
 
   // Helper function to map course data to editable modules
   const mapCourseToEditableModules = (courseData: CourseResponse): EditableModule[] => {
-    return (courseData.modules || []).map((mod: Module, idx: number) => ({
-      index: idx,
-      title: mod.title || '',
-      description: mod.description || '',
-      duration: mod.duration || '',
-      lessons: (mod.content || []).map((lesson: Content, lessonIdx: number) => ({
+    // Extraction éventuelle de l'ordre mixte depuis la description via commentaire HTML
+    const extractMixedOrder = (desc?: string | null): string[] | null => {
+      if (!desc) return null;
+      const match = desc.match(/<!--\s*mixed_order:(\[.*?\])\s*-->/i);
+      if (!match) return null;
+      try {
+        const arr = JSON.parse(match[1]);
+        return Array.isArray(arr) ? arr.filter(x => typeof x === 'string') : null;
+      } catch {
+        return null;
+      }
+    };
+
+    return (courseData.modules || []).map((mod: Module, idx: number) => {
+      const mixedOrder = extractMixedOrder(mod.description);
+      // Construire les structures simples
+      const lessonsRaw: EditableLesson[] = (mod.content || []).map((lesson: Content, lessonIdx: number) => ({
         index: lessonIdx,
         title: lesson.title || '',
         description: lesson.description || '',
@@ -277,15 +289,52 @@ const EditCoursePage = () => {
         imageFileName: (lesson as any).image_key ? 'Image existante' : undefined,
         pdf_key: lesson.pdf_key,
         pdfFileName: lesson.pdf_key ? 'PDF existant' : undefined,
-        resource_key: (lesson as any).resource_key,  // Legacy
-        resourceFileName: (lesson as any).resource_key ? 'Fichier existant' : undefined,  // Legacy
+        resource_key: (lesson as any).resource_key,
+        resourceFileName: (lesson as any).resource_key ? 'Fichier existant' : undefined,
         video_url: (lesson as any).video_url,
         content_type: (lesson as any).content_type || 'video',
-      })),
-      quizzes: mod.quizzes || [],
-      assignments: mod.assignments || [],
-      isPending: false,  // Les modules chargés depuis la DB ne sont jamais pending
-    }));
+        backendId: (lesson as any).id || undefined,
+      }));
+      const quizzesRaw: Quiz[] = mod.quizzes || [];
+
+      let lessons = lessonsRaw;
+      let quizzes = quizzesRaw;
+      // Appliquer l'ordre mixte si présent
+      if (mixedOrder && mixedOrder.length > 0) {
+        const lessonMap = new Map<string, EditableLesson>();
+        lessonsRaw.forEach(l => lessonMap.set(l.backendId || `idx-${l.index}`, l));
+        const quizMap = new Map<string, Quiz>();
+        quizzesRaw.forEach((q, qIdx) => quizMap.set(q.id || `qidx-${qIdx}`, q));
+
+        const orderedLessons: EditableLesson[] = [];
+        const orderedQuizzes: Quiz[] = [];
+        mixedOrder.forEach(token => {
+          if (token.startsWith('L:')) {
+            const key = token.substring(2);
+            const l = lessonMap.get(key);
+            if (l) orderedLessons.push(l);
+          } else if (token.startsWith('Q:')) {
+            const key = token.substring(2);
+            const q = quizMap.get(key);
+            if (q) orderedQuizzes.push(q);
+          }
+        });
+        // Ajouter ceux non référencés à la fin pour robustesse
+        lessons = [...orderedLessons, ...lessonsRaw.filter(l => !orderedLessons.includes(l))];
+        quizzes = [...orderedQuizzes, ...quizzesRaw.filter(q => !orderedQuizzes.includes(q))];
+      }
+
+      return {
+        index: idx,
+        title: mod.title || '',
+        description: mod.description || '',
+        duration: mod.duration || '',
+        lessons,
+        quizzes,
+        assignments: mod.assignments || [],
+        isPending: false,  // Les modules chargés depuis la DB ne sont jamais pending
+      };
+    });
   };
 
   // Auto-save for general info
@@ -887,9 +936,24 @@ const EditCoursePage = () => {
       .filter(item => item.type === 'quiz')
       .map(item => item.data);
 
-    setModules(prev => prev.map((m, idx) =>
-      idx === moduleIdx ? { ...m, lessons, quizzes } : m
-    ));
+    // Construire le marqueur d'ordre mixte à partir des IDs backend quand disponibles
+    const orderingTokens: string[] = reorderedItems.map(it => {
+      if (it.type === 'lesson') {
+        const l: EditableLesson = it.data;
+        return `L:${l.backendId || `idx-${l.index}`}`;
+      }
+      const q: Quiz = it.data;
+      return `Q:${q.id || `qidx-${reorderedItems.indexOf(it)}`}`;
+    });
+
+    setModules(prev => prev.map((m, idx) => {
+      if (idx !== moduleIdx) return m;
+      // Nettoyer ancien marqueur s'il existe
+      const cleanedDesc = (m.description || '').replace(/<!--\s*mixed_order:.*?-->/i, '').trim();
+      const marker = `<!--mixed_order:${JSON.stringify(orderingTokens)}-->`;
+      const newDesc = `${cleanedDesc}\n${marker}`.trim();
+      return { ...m, lessons, quizzes, description: newDesc };
+    }));
   };
 
   // Save module assignment

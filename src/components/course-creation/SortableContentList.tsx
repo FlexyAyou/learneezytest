@@ -86,8 +86,8 @@ export const SortableContentList: React.FC<SortableContentListProps> = ({
                   subtitle={`${lesson.duration} minutes`}
                   fileType={lesson.fileType}
                   useMediaUrl={lesson.useMediaUrl}
-                  onEdit={() => onEditLesson(lesson.id)}
-                  onDelete={() => onDeleteLesson(lesson.id)}
+                  onEdit={() => onEditLesson(item.id)}
+                  onDelete={() => onDeleteLesson(item.id)}
                 />
               );
             } else {
