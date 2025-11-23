@@ -71,6 +71,7 @@ interface EditableModule {
   assignments?: AssignmentResponse[];
   isPending?: boolean;  // Module temporaire non encore enregistré
   tempId?: string;      // ID temporaire pour les modules pending
+  order?: Array<{ type: 'lesson' | 'quiz' | 'assignment'; id: string }>; // Ordre unifié des contenus
 }
 
 interface EditableLesson {
@@ -266,32 +267,68 @@ const EditCoursePage = () => {
 
   // Helper function to map course data to editable modules
   const mapCourseToEditableModules = (courseData: CourseResponse): EditableModule[] => {
-    return (courseData.modules || []).map((mod: Module, idx: number) => ({
-      index: idx,
-      title: mod.title || '',
-      description: mod.description || '',
-      duration: mod.duration || '',
-      lessons: (mod.content || []).map((lesson: Content, lessonIdx: number) => ({
-        index: lessonIdx,
-        title: lesson.title || '',
-        description: lesson.description || '',
-        duration: lesson.duration || '',
-        video_key: lesson.video_key,
-        videoFileName: lesson.video_key ? 'Vidéo existante' : undefined,
-        transcription: lesson.transcription || undefined,
-        image_key: (lesson as any).image_key,
-        imageFileName: (lesson as any).image_key ? 'Image existante' : undefined,
-        pdf_key: lesson.pdf_key,
-        pdfFileName: lesson.pdf_key ? 'PDF existant' : undefined,
-        resource_key: (lesson as any).resource_key,  // Legacy
-        resourceFileName: (lesson as any).resource_key ? 'Fichier existant' : undefined,  // Legacy
-        video_url: (lesson as any).video_url,
-        content_type: (lesson as any).content_type || 'video',
-      })),
-      quizzes: mod.quizzes || [],
-      assignments: mod.assignments || [],
-      isPending: false,  // Les modules chargés depuis la DB ne sont jamais pending
-    }));
+    return (courseData.modules || []).map((mod: Module, idx: number) => {
+      // Construire l'ordre unifié à partir du backend si disponible, sinon ordre par défaut
+      const buildOrder = (): Array<{ type: 'lesson' | 'quiz' | 'assignment'; id: string }> => {
+        if (mod.order && Array.isArray(mod.order) && mod.order.length > 0) {
+          // Le backend fournit déjà un ordre unifié sous forme d'array d'IDs strings
+          return mod.order.map((id: any) => {
+            // Si c'est déjà un objet {type, id}, on le retourne tel quel
+            if (typeof id === 'object' && id.type && id.id) {
+              return id;
+            }
+            // Sinon c'est juste un ID string, déterminer le type
+            const idStr = String(id);
+            const isLesson = (mod.content || []).some(l => l.id === idStr);
+            if (isLesson) return { type: 'lesson' as const, id: idStr };
+            
+            const isQuiz = (mod.quizzes || []).some(q => q.id === idStr);
+            if (isQuiz) return { type: 'quiz' as const, id: idStr };
+            
+            const isAssignment = (mod.assignments || []).some(a => a.id === idStr);
+            if (isAssignment) return { type: 'assignment' as const, id: idStr };
+            
+            // Fallback: assumer leçon si on ne trouve pas
+            return { type: 'lesson' as const, id: idStr };
+          });
+        }
+        
+        // Ordre par défaut: leçons → quizzes → assignments
+        const order: Array<{ type: 'lesson' | 'quiz' | 'assignment'; id: string }> = [];
+        (mod.content || []).forEach(lesson => order.push({ type: 'lesson', id: lesson.id }));
+        (mod.quizzes || []).forEach(quiz => order.push({ type: 'quiz', id: quiz.id }));
+        (mod.assignments || []).forEach(assignment => order.push({ type: 'assignment', id: assignment.id }));
+        return order;
+      };
+
+      return {
+        index: idx,
+        title: mod.title || '',
+        description: mod.description || '',
+        duration: mod.duration || '',
+        lessons: (mod.content || []).map((lesson: Content, lessonIdx: number) => ({
+          index: lessonIdx,
+          title: lesson.title || '',
+          description: lesson.description || '',
+          duration: lesson.duration || '',
+          video_key: lesson.video_key,
+          videoFileName: lesson.video_key ? 'Vidéo existante' : undefined,
+          transcription: lesson.transcription || undefined,
+          image_key: (lesson as any).image_key,
+          imageFileName: (lesson as any).image_key ? 'Image existante' : undefined,
+          pdf_key: lesson.pdf_key,
+          pdfFileName: lesson.pdf_key ? 'PDF existant' : undefined,
+          resource_key: (lesson as any).resource_key,  // Legacy
+          resourceFileName: (lesson as any).resource_key ? 'Fichier existant' : undefined,  // Legacy
+          video_url: (lesson as any).video_url,
+          content_type: (lesson as any).content_type || 'video',
+        })),
+        quizzes: mod.quizzes || [],
+        assignments: mod.assignments || [],
+        isPending: false,  // Les modules chargés depuis la DB ne sont jamais pending
+        order: buildOrder(),
+      };
+    });
   };
 
   // Auto-save for general info
@@ -805,22 +842,18 @@ const EditCoursePage = () => {
         items: orderItems
       });
 
-      // Mettre à jour l'état local
-      const lessons = reorderedItems
-        .filter(item => item.type === 'lesson')
-        .map(item => item.data as EditableLesson);
-      
-      const quizzes = reorderedItems
-        .filter(item => item.type === 'quiz')
-        .map(item => item.data);
-
-      const assignments = reorderedItems
-        .filter(item => item.type === 'assignment')
-        .map(item => item.data);
-
+      // Mettre à jour l'ordre unifié dans l'état local
       setModules(prev => prev.map((m, idx) =>
-        idx === moduleIdx ? { ...m, lessons, quizzes, assignments } : m
+        idx === moduleIdx ? { 
+          ...m, 
+          order: orderItems 
+        } : m
       ));
+
+      toast({
+        title: '✅ Ordre mis à jour',
+        description: 'L\'ordre du contenu a été sauvegardé'
+      });
 
     } catch (error: any) {
       toast({
@@ -1772,20 +1805,66 @@ const EditCoursePage = () => {
                               </div>
                             ) : (
                               <SortableContentList
-                                items={[
-                                  ...module.lessons.map((lesson, idx) => ({
-                                    id: `lesson-${moduleIdx}-${idx}`,
-                                    type: 'lesson' as const,
-                                    originalIndex: idx,
-                                    data: lesson
-                                  })),
-                                  ...(module.quizzes || []).map((quiz, idx) => ({
-                                    id: `quiz-${moduleIdx}-${idx}`,
-                                    type: 'quiz' as const,
-                                    originalIndex: idx,
-                                    data: quiz
-                                  }))
-                                ]}
+                                items={(() => {
+                                  // Construire les items à partir de l'ordre unifié si disponible
+                                  if (module.order && module.order.length > 0) {
+                                    return module.order.map(orderItem => {
+                                      if (orderItem.type === 'lesson') {
+                                        const lessonIdx = module.lessons.findIndex((_, idx) => {
+                                          const backendLesson = course?.modules[moduleIdx]?.content[idx];
+                                          return backendLesson?.id === orderItem.id;
+                                        });
+                                        const lesson = module.lessons[lessonIdx];
+                                        return lesson ? {
+                                          id: `lesson-${moduleIdx}-${lessonIdx}`,
+                                          type: 'lesson' as const,
+                                          originalIndex: lessonIdx,
+                                          data: lesson
+                                        } : null;
+                                      } else if (orderItem.type === 'quiz') {
+                                        const quizIdx = (module.quizzes || []).findIndex(q => q.id === orderItem.id);
+                                        const quiz = module.quizzes?.[quizIdx];
+                                        return quiz ? {
+                                          id: `quiz-${moduleIdx}-${quizIdx}`,
+                                          type: 'quiz' as const,
+                                          originalIndex: quizIdx,
+                                          data: quiz
+                                        } : null;
+                                      } else if (orderItem.type === 'assignment') {
+                                        const assignmentIdx = (module.assignments || []).findIndex(a => a.id === orderItem.id);
+                                        const assignment = module.assignments?.[assignmentIdx];
+                                        return assignment ? {
+                                          id: `assignment-${moduleIdx}-${assignmentIdx}`,
+                                          type: 'assignment' as const,
+                                          originalIndex: assignmentIdx,
+                                          data: assignment
+                                        } : null;
+                                      }
+                                      return null;
+                                    }).filter(item => item !== null) as ContentItem[];
+                                  }
+                                  // Fallback: ordre par défaut (leçons puis quizzes puis assignments)
+                                  return [
+                                    ...module.lessons.map((lesson, idx) => ({
+                                      id: `lesson-${moduleIdx}-${idx}`,
+                                      type: 'lesson' as const,
+                                      originalIndex: idx,
+                                      data: lesson
+                                    })),
+                                    ...(module.quizzes || []).map((quiz, idx) => ({
+                                      id: `quiz-${moduleIdx}-${idx}`,
+                                      type: 'quiz' as const,
+                                      originalIndex: idx,
+                                      data: quiz
+                                    })),
+                                    ...(module.assignments || []).map((assignment, idx) => ({
+                                      id: `assignment-${moduleIdx}-${idx}`,
+                                      type: 'assignment' as const,
+                                      originalIndex: idx,
+                                      data: assignment
+                                    }))
+                                  ];
+                                })()}
                                 onReorder={(newItems) => handleContentReorder(moduleIdx, newItems)}
                                 onEditLesson={(lessonId) => {
                                   const lessonIdx = module.lessons.findIndex((_, idx) => `lesson-${moduleIdx}-${idx}` === lessonId);
@@ -1811,6 +1890,12 @@ const EditCoursePage = () => {
                                   if (quiz?.id) {
                                     handleDeleteModuleQuiz(moduleIdx, quiz.id);
                                   }
+                                }}
+                                onEditAssignment={() => {
+                                  setShowAssignmentBuilder(moduleIdx);
+                                }}
+                                onDeleteAssignment={() => {
+                                  handleDeleteModuleAssignment(moduleIdx);
                                 }}
                               />
                             )}
