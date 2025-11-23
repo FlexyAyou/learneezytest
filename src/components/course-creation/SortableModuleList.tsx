@@ -23,6 +23,7 @@ interface ModuleItem {
   lessons: any[];
   quizzes: any[];
   assignment?: any;
+  order?: Array<{ type: 'lesson' | 'quiz' | 'assignment'; id: string }>;
 }
 
 interface SortableModuleListProps {
