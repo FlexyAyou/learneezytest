@@ -271,34 +271,63 @@ const EditCoursePage = () => {
     return (courseData.modules || []).map((mod: Module, idx: number) => {
       // Construire l'ordre unifié à partir du backend si disponible, sinon ordre par défaut
       const buildOrder = (): Array<{ type: 'lesson' | 'quiz' | 'assignment'; id: string }> => {
+        const lessons = mod.content || [];
+        const quizzes = mod.quizzes || [];
+        const assignments = mod.assignments || [];
+
         if (mod.order && Array.isArray(mod.order) && mod.order.length > 0) {
-          // Le backend fournit déjà un ordre unifié sous forme d'array d'IDs strings
-          return mod.order.map((id: any) => {
-            // Si c'est déjà un objet {type, id}, on le retourne tel quel
-            if (typeof id === 'object' && id.type && id.id) {
-              return id;
+          // Le backend peut fournir soit un array d'IDs, soit déjà des objets {type, id}
+          const normalized: Array<{ type: 'lesson' | 'quiz' | 'assignment'; id: string }> = mod.order.map((raw: any) => {
+            if (typeof raw === 'object' && raw.type && raw.id) {
+              return raw;
             }
-            // Sinon c'est juste un ID string, déterminer le type
-            const idStr = String(id);
-            const isLesson = (mod.content || []).some(l => l.id === idStr);
+
+            const idStr = String(raw);
+            const isLesson = lessons.some(l => l.id === idStr);
             if (isLesson) return { type: 'lesson' as const, id: idStr };
-            
-            const isQuiz = (mod.quizzes || []).some(q => q.id === idStr);
+
+            const isQuiz = quizzes.some(q => q.id === idStr);
             if (isQuiz) return { type: 'quiz' as const, id: idStr };
-            
-            const isAssignment = (mod.assignments || []).some(a => a.id === idStr);
+
+            const isAssignment = assignments.some(a => a.id === idStr);
             if (isAssignment) return { type: 'assignment' as const, id: idStr };
-            
+
             // Fallback: assumer leçon si on ne trouve pas
             return { type: 'lesson' as const, id: idStr };
           });
+
+          // S'assurer que les nouveaux contenus ajoutés après la création de l'ordre
+          // (nouvelles leçons/quizz/devoirs) sont quand même visibles en les ajoutant à la fin
+          const lessonIdsInOrder = new Set(normalized.filter(i => i.type === 'lesson').map(i => i.id));
+          const quizIdsInOrder = new Set(normalized.filter(i => i.type === 'quiz').map(i => i.id));
+          const assignmentIdsInOrder = new Set(normalized.filter(i => i.type === 'assignment').map(i => i.id));
+
+          lessons.forEach(lesson => {
+            if (lesson.id && !lessonIdsInOrder.has(lesson.id)) {
+              normalized.push({ type: 'lesson', id: lesson.id });
+            }
+          });
+
+          quizzes.forEach(quiz => {
+            if (quiz.id && !quizIdsInOrder.has(quiz.id)) {
+              normalized.push({ type: 'quiz', id: quiz.id });
+            }
+          });
+
+          assignments.forEach(assignment => {
+            if (assignment.id && !assignmentIdsInOrder.has(assignment.id)) {
+              normalized.push({ type: 'assignment', id: assignment.id });
+            }
+          });
+
+          return normalized;
         }
-        
+
         // Ordre par défaut: leçons → quizzes → assignments
         const order: Array<{ type: 'lesson' | 'quiz' | 'assignment'; id: string }> = [];
-        (mod.content || []).forEach(lesson => order.push({ type: 'lesson', id: lesson.id }));
-        (mod.quizzes || []).forEach(quiz => order.push({ type: 'quiz', id: quiz.id }));
-        (mod.assignments || []).forEach(assignment => order.push({ type: 'assignment', id: assignment.id }));
+        lessons.forEach(lesson => lesson.id && order.push({ type: 'lesson', id: lesson.id }));
+        quizzes.forEach(quiz => quiz.id && order.push({ type: 'quiz', id: quiz.id }));
+        assignments.forEach(assignment => assignment.id && order.push({ type: 'assignment', id: assignment.id }));
         return order;
       };
 
