@@ -81,6 +81,7 @@ export const SortableContentList: React.FC<SortableContentListProps> = ({
           {items.map((item) => {
             if (item.type === 'lesson') {
               const lesson = item.data;
+              const lessonKey = lesson?.id ? String(lesson.id) : String(item.id);
               return (
                 <SortableContentItem
                   key={item.id}
@@ -90,8 +91,8 @@ export const SortableContentList: React.FC<SortableContentListProps> = ({
                   subtitle={`${lesson.duration} minutes`}
                   fileType={lesson.fileType}
                   useMediaUrl={lesson.useMediaUrl}
-                  onEdit={() => onEditLesson(item.id)}
-                  onDelete={() => onDeleteLesson(item.id)}
+                  onEdit={() => onEditLesson && lessonKey && onEditLesson(lessonKey)}
+                  onDelete={() => onDeleteLesson && lessonKey && onDeleteLesson(lessonKey)}
                 />
               );
             } else if (item.type === 'quiz') {
