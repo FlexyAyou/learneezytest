@@ -293,6 +293,9 @@ const EditCoursePage = () => {
       }));
       const quizzesRaw: Quiz[] = mod.quizzes || [];
 
+      // Assignment: récupérer uniquement via endpoints d'évaluation
+      const assignmentsRaw: AssignmentResponse[] = (mod as any).assignments || [];
+
       // Construire l'ordre mixte local à partir de Module.order si présent
       const contentOrder: ContentItem[] = [];
       const order = (mod as any).order as Array<{ type: 'lesson' | 'quiz'; id: string }> | undefined;
@@ -360,7 +363,7 @@ const EditCoursePage = () => {
         duration: mod.duration || '',
         lessons: lessonsRaw,
         quizzes: quizzesRaw,
-        assignments: mod.assignments || [],
+        assignments: assignmentsRaw,
         isPending: false,  // Les modules chargés depuis la DB ne sont jamais pending
         contentOrder,
       };
