@@ -280,24 +280,30 @@ const EditCoursePage = () => {
   const mapCourseToEditableModules = (courseData: CourseResponse): EditableModule[] => {
     return (courseData.modules || []).map((mod: Module, idx: number) => {
       // Construire les structures simples
-      const lessonsRaw: EditableLesson[] = (mod.content || []).map((lesson: Content, lessonIdx: number) => ({
-        index: lessonIdx,
-        title: lesson.title || '',
-        description: lesson.description || '',
-        duration: lesson.duration || '',
-        video_key: lesson.video_key,
-        videoFileName: lesson.video_key ? 'Vidéo existante' : undefined,
-        transcription: lesson.transcription || undefined,
-        image_key: (lesson as any).image_key,
-        imageFileName: (lesson as any).image_key ? 'Image existante' : undefined,
-        pdf_key: lesson.pdf_key,
-        pdfFileName: lesson.pdf_key ? 'PDF existant' : undefined,
-        resource_key: (lesson as any).resource_key,
-        resourceFileName: (lesson as any).resource_key ? 'Fichier existant' : undefined,
-        video_url: (lesson as any).video_url,
-        content_type: (lesson as any).content_type || 'video',
-        backendId: (lesson as any).id || undefined,
-      }));
+      const lessonsRaw: EditableLesson[] = (mod.content || []).map((lesson: Content, lessonIdx: number) => {
+        const rawId = (lesson as any).id;
+        const stringId = rawId != null ? String(rawId) : undefined;
+
+        return {
+          id: stringId,
+          index: lessonIdx,
+          title: lesson.title || '',
+          description: lesson.description || '',
+          duration: lesson.duration || '',
+          video_key: lesson.video_key,
+          videoFileName: lesson.video_key ? 'Vidéo existante' : undefined,
+          transcription: lesson.transcription || undefined,
+          image_key: (lesson as any).image_key,
+          imageFileName: (lesson as any).image_key ? 'Image existante' : undefined,
+          pdf_key: lesson.pdf_key,
+          pdfFileName: lesson.pdf_key ? 'PDF existant' : undefined,
+          resource_key: (lesson as any).resource_key,
+          resourceFileName: (lesson as any).resource_key ? 'Fichier existant' : undefined,
+          video_url: (lesson as any).video_url,
+          content_type: (lesson as any).content_type || 'video',
+          backendId: stringId,
+        };
+      });
       const quizzesRaw: Quiz[] = mod.quizzes || [];
 
       // Assignments: le document de cours ne contient pas le payload
