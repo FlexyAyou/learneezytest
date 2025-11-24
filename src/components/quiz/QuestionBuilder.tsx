@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,17 +48,49 @@ export const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [useMediaUrl, setUseMediaUrl] = useState(false);
 
-  // Single/Multiple Choice
-  const [options, setOptions] = useState<string[]>(
-    (question?.type === 'single-choice' || question?.type === 'multiple-choice') 
-      ? question.options 
-      : ['', '', '', '']
+  // --- Normalisation défensive des options & médias par option ---
+  const asStringArray = (val: any, fallbackCount = 4): string[] => {
+    if (Array.isArray(val)) return val.map(v => (typeof v === 'string' ? v : String(v ?? '')));
+    return new Array(fallbackCount).fill('').map(() => '');
+  };
+  const asMediaArray = (val: any, count: number): Array<{ type: 'image' | 'video' | 'pdf'; key?: string; url?: string; caption?: string } | null> => {
+    if (!Array.isArray(val)) return new Array(count).fill(null);
+    const arr = val.slice(0, count);
+    // Compléter si trop court
+    while (arr.length < count) arr.push(null);
+    return arr.map(m => {
+      if (!m) return null;
+      const type = (m.type === 'video' || m.type === 'pdf' || m.type === 'image') ? m.type : 'image';
+      return { type, key: m.key, url: m.url, caption: m.caption };
+    });
+  };
+  const isChoice = question?.type === 'single-choice' || question?.type === 'multiple-choice';
+  const initialOptions = isChoice ? asStringArray((question as any)?.options, 4) : ['', '', '', ''];
+  const [options, setOptions] = useState<string[]>(initialOptions);
+  const [optionsMedia, setOptionsMedia] = useState<Array<{ type: 'image' | 'video' | 'pdf'; key?: string; url?: string; caption?: string } | null>>(
+    isChoice ? asMediaArray((question as any)?.optionsMedia, initialOptions.length) : new Array(initialOptions.length).fill(null)
   );
+
+  // Sync longueur optionsMedia ←→ options
+  useEffect(() => {
+    setOptionsMedia(prev => {
+      const safePrev = Array.isArray(prev) ? prev : [];
+      if (options.length === safePrev.length) return safePrev;
+      if (options.length > safePrev.length) {
+        return [...safePrev, ...new Array(options.length - safePrev.length).fill(null)];
+      }
+      return safePrev.slice(0, options.length);
+    });
+  }, [options.length]);
   const [correctAnswer, setCorrectAnswer] = useState<number>(
-    question?.type === 'single-choice' ? question.correctAnswer : 0
+    question?.type === 'single-choice' && typeof (question as any)?.correctAnswer === 'number'
+      ? (question as any).correctAnswer
+      : 0
   );
   const [correctAnswers, setCorrectAnswers] = useState<number[]>(
-    question?.type === 'multiple-choice' ? question.correctAnswers : []
+    question?.type === 'multiple-choice' && Array.isArray((question as any)?.correctAnswers)
+      ? (question as any).correctAnswers.filter((n: any) => Number.isInteger(n))
+      : []
   );
 
   // True/False
@@ -68,7 +100,9 @@ export const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
 
   // Short Answer
   const [shortAnswers, setShortAnswers] = useState<string[]>(
-    question?.type === 'short-answer' ? question.correctAnswers : ['']
+    question?.type === 'short-answer' && Array.isArray((question as any)?.correctAnswers)
+      ? (question as any).correctAnswers.map((s: any) => typeof s === 'string' ? s : String(s ?? ''))
+      : ['']
   );
   const [caseSensitive, setCaseSensitive] = useState(
     question?.type === 'short-answer' ? question.caseSensitive || false : false
@@ -90,23 +124,33 @@ export const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
     question?.type === 'fill-blank' ? question.text : ''
   );
   const [blankAnswers, setBlankAnswers] = useState<string[]>(
-    question?.type === 'fill-blank' ? question.correctAnswers : ['']
+    question?.type === 'fill-blank' && Array.isArray((question as any)?.correctAnswers)
+      ? (question as any).correctAnswers.map((s: any) => typeof s === 'string' ? s : String(s ?? ''))
+      : ['']
   );
 
   // Matching
   const [leftItems, setLeftItems] = useState<string[]>(
-    question?.type === 'matching' ? question.leftItems : ['', '']
+    question?.type === 'matching' && Array.isArray((question as any)?.leftItems)
+      ? (question as any).leftItems.map((s: any) => typeof s === 'string' ? s : String(s ?? ''))
+      : ['', '']
   );
   const [rightItems, setRightItems] = useState<string[]>(
-    question?.type === 'matching' ? question.rightItems : ['', '']
+    question?.type === 'matching' && Array.isArray((question as any)?.rightItems)
+      ? (question as any).rightItems.map((s: any) => typeof s === 'string' ? s : String(s ?? ''))
+      : ['', '']
   );
   const [matches, setMatches] = useState<{ left: number; right: number }[]>(
-    question?.type === 'matching' ? question.correctMatches : []
+    question?.type === 'matching' && Array.isArray((question as any)?.correctMatches)
+      ? (question as any).correctMatches.filter((m: any) => m && Number.isInteger(m.left) && Number.isInteger(m.right))
+      : []
   );
 
   // Ordering
   const [orderItems, setOrderItems] = useState<string[]>(
-    question?.type === 'ordering' ? question.items : ['', '']
+    question?.type === 'ordering' && Array.isArray((question as any)?.items)
+      ? (question as any).items.map((s: any) => typeof s === 'string' ? s : String(s ?? ''))
+      : ['', '']
   );
 
   const handleMediaUpload = async (file: File) => {
@@ -132,15 +176,15 @@ export const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
 
       setMediaKey(result.key);
       setMediaFile(file);
-      toast({ 
-        title: "✅ Média uploadé", 
-        description: file.name 
+      toast({
+        title: "✅ Média uploadé",
+        description: file.name
       });
     } catch (error: any) {
-      toast({ 
-        title: "❌ Erreur d'upload", 
+      toast({
+        title: "❌ Erreur d'upload",
         description: error.message,
-        variant: "destructive" 
+        variant: "destructive"
       });
     } finally {
       setIsUploadingMedia(false);
@@ -177,6 +221,7 @@ export const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
           type: 'single-choice',
           options: options.filter(o => o.trim()),
           correctAnswer,
+          optionsMedia,
         };
         break;
       case 'multiple-choice':
@@ -185,6 +230,7 @@ export const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
           type: 'multiple-choice',
           options: options.filter(o => o.trim()),
           correctAnswers,
+          optionsMedia,
         };
         break;
       case 'true-false':
@@ -291,10 +337,95 @@ export const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                   )}
                 </div>
               ))}
+              {/* Médias par option (optionnels) */}
+              <div className="mt-4">
+                <Label>Médias des options (optionnel)</Label>
+                {options.map((_, index) => (
+                  <div key={`opt-media-${index}`} className="flex items-center gap-2 mt-2">
+                    <span className="text-xs text-muted-foreground w-16">Option {index + 1}</span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = 'video/*,.pdf,image/*';
+                        input.onchange = async (ev: any) => {
+                          const file = ev.target?.files?.[0];
+                          if (!file) return;
+                          try {
+                            let kind: 'image' | 'video' | 'pdf';
+                            if (file.type.startsWith('video/')) kind = 'video';
+                            else if (file.type === 'application/pdf') kind = 'pdf';
+                            else kind = 'image';
+                            const res = await uploadDirect(file, kind);
+                            setOptionsMedia(prev => {
+                              const arr = [...prev];
+                              arr[index] = { type: kind, key: res.key };
+                              return arr;
+                            });
+                            toast({ title: '✅ Média option ajouté', description: file.name });
+                          } catch (e: any) {
+                            toast({ title: 'Erreur upload', description: e?.message || 'Échec upload', variant: 'destructive' });
+                          }
+                        };
+                        input.click();
+                      }}
+                      title="Uploader un média"
+                    >
+                      <Upload className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const url = window.prompt('URL du média (image/pdf/vidéo)');
+                        if (!url) return;
+                        let type: 'image' | 'video' | 'pdf' = 'image';
+                        const u = url.toLowerCase();
+                        if (u.endsWith('.mp4') || u.includes('youtube') || u.includes('vimeo')) type = 'video';
+                        else if (u.endsWith('.pdf')) type = 'pdf';
+                        setOptionsMedia(prev => {
+                          const arr = [...prev];
+                          arr[index] = { type, url };
+                          return arr;
+                        });
+                      }}
+                      title="Lier par URL"
+                    >
+                      <LinkIcon className="h-4 w-4" />
+                    </Button>
+                    {optionsMedia[index] && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setOptionsMedia(prev => prev.map((m, i) => i === index ? null : m))}
+                        title="Supprimer le média"
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    )}
+                    {optionsMedia[index] && (
+                      <div className="ml-2">
+                        <MediaPreview
+                          mediaType={optionsMedia[index]!.type}
+                          mediaKey={optionsMedia[index]!.key}
+                          mediaUrl={optionsMedia[index]!.url}
+                        />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setOptions([...options, ''])}
+                onClick={() => {
+                  setOptions([...options, '']);
+                }}
                 className="mt-2"
               >
                 <Plus className="h-4 w-4 mr-2" />
@@ -773,7 +904,7 @@ export const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
             {showAdvanced ? <ChevronUp className="h-4 w-4 mr-2" /> : <ChevronDown className="h-4 w-4 mr-2" />}
             Options avancées
           </Button>
-          
+
           {showAdvanced && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">

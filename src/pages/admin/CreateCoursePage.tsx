@@ -575,19 +575,12 @@ const CreateCoursePage = () => {
   };
 
   const handleContentReorder = (moduleId: string, reorderedItems: ContentItem[]) => {
-    setModules(modules.map(m => {
-      if (m.id === moduleId) {
-        // Mettre à jour l'ordre unifié
-        const newOrder = reorderedItems.map(item => ({
-          type: item.type,
-          id: item.id
-        }));
-        
-        // Garder les données séparées pour compatibilité avec le payload de création
-        return { ...m, order: newOrder };
-      }
-      return m;
-    }));
+    const lessons = reorderedItems.filter(item => item.type === 'lesson').map(item => item.data);
+    const quizzes = reorderedItems.filter(item => item.type === 'quiz').map(item => item.data);
+
+    setModules(modules.map(m =>
+      m.id === moduleId ? { ...m, lessons, quizzes } : m
+    ));
   };
 
   const handleSaveModuleQuiz = (moduleId: string, quiz: QuizConfig) => {
@@ -644,7 +637,27 @@ const CreateCoursePage = () => {
     setEditingQuizIndex(quizIndex);
   };
 
-  // Supprimé: redondant avec handleContentReorder
+  // Reorder content (lessons and quizzes) within a module
+  const handleReorderContent = (moduleId: string, reorderedItems: ContentItem[]) => {
+    setModules(modules.map(m => {
+      if (m.id === moduleId) {
+        // Séparer les leçons et quizzes réorganisés
+        const newLessons: Lesson[] = [];
+        const newQuizzes: QuizConfig[] = [];
+        
+        reorderedItems.forEach(item => {
+          if (item.type === 'lesson') {
+            newLessons.push(item.data);
+          } else {
+            newQuizzes.push(item.data);
+          }
+        });
+        
+        return { ...m, lessons: newLessons, quizzes: newQuizzes };
+      }
+      return m;
+    }));
+  };
 
   // Pedagogical Resources functions
   const handleAddPedagogicalResource = (file: File) => {
@@ -965,11 +978,10 @@ const CreateCoursePage = () => {
               } else if (q.type === 'true-false') {
                 const tfq = q as any;
                 baseQuestion.options = ['Vrai', 'Faux'];
-                baseQuestion.correct_answer = tfq.correctAnswer === 0 ? true : false;
+                baseQuestion.correct_answer = !!tfq.correctAnswer;
               } else if (q.type === 'multiple-choice') {
                 const mcq = q as any;
                 baseQuestion.options = mcq.options || [];
-                baseQuestion.correct_answer = mcq.options?.[mcq.correctAnswers?.[0]] || '';
                 baseQuestion.correct_answers = mcq.correctAnswers?.map((i: number) => mcq.options[i]) || [];
               } else if (q.type === 'short-answer') {
                 const saq = q as any;
@@ -983,23 +995,72 @@ const CreateCoursePage = () => {
                 baseQuestion.rubric = laq.rubric;
               } else if (q.type === 'fill-blank') {
                 const fbq = q as any;
-                baseQuestion.correct_answer = fbq.correctAnswers?.[0] || '';
                 baseQuestion.text = fbq.text;
                 baseQuestion.correct_answers = fbq.correctAnswers || [];
               } else if (q.type === 'matching') {
                 const mq = q as any;
                 baseQuestion.left_items = mq.leftItems || [];
                 baseQuestion.right_items = mq.rightItems || [];
-                baseQuestion.correct_matches = mq.correctMatches || {};
+                baseQuestion.correct_matches = (mq.correctMatches || []).reduce((acc: Record<string, string>, match: any) => {
+                  const leftItem = mq.leftItems[match.left];
+                  const rightItem = mq.rightItems[match.right];
+                  if (leftItem && rightItem) {
+                    acc[leftItem] = rightItem;
+                  }
+                  return acc;
+                }, {});
               } else if (q.type === 'ordering') {
                 const oq = q as any;
                 baseQuestion.items = oq.items || [];
-                baseQuestion.correct_order = oq.correctOrder || [];
+                baseQuestion.correct_order = (oq.correctOrder || []).map((idx: number) => oq.items[idx]).filter(Boolean);
               }
 
               return baseQuestion;
             })
-          }))
+          })),
+          // Assignment (devoir) optionnel par module - domaine évaluations
+          assignment: module.assignment
+            ? {
+              title: module.assignment.title,
+              description: module.assignment.description || '',
+              instructions: module.assignment.instructions || '',
+              questions: module.assignment.questions.map((q: any) => {
+                const base: any = {
+                  question: q.question,
+                  type: q.type,
+                  points: q.points || 1,
+                };
+
+                if (q.type === 'single-choice') {
+                  // SingleChoiceQuestion: options + correctAnswer (index)
+                  base.options = q.options || [];
+                  base.correctAnswer = typeof q.correctAnswer === 'number' ? q.correctAnswer : 0;
+                } else if (q.type === 'multiple-choice') {
+                  // MultipleChoiceQuestion: options + correctAnswers (indexes)
+                  base.options = q.options || [];
+                  base.correctAnswers = q.correctAnswers || [];
+                } else if (q.type === 'true-false') {
+                  // TrueFalseQuestion: correctAnswer (bool attendu par le backend de domaine évaluations)
+                  base.correctAnswer = q.correctAnswer === 0;
+                } else if (q.type === 'short-answer') {
+                  // ShortAnswerQuestion: correctAnswers (liste de chaînes)
+                  base.correctAnswers = q.correctAnswers || [];
+                } else if (q.type === 'essay') {
+                  // Long/Essay question: rien de plus, évaluée manuellement via rubric/settings
+                }
+
+                return base;
+              }),
+              settings: {
+                passing_score: module.assignment.settings?.passingScore ?? 70,
+                max_attempts: module.assignment.settings?.maxAttempts ?? 1,
+                time_limit: module.assignment.settings?.timeLimit ?? null,
+                allow_late_submission: module.assignment.settings?.allowLateSubmission ?? false,
+                requires_manual_grading: module.assignment.settings?.requiresManualGrading ?? false,
+                rubric: module.assignment.settings?.rubric ?? [],
+              },
+            }
+            : null
         })),
         resources: uploadedResources,
         resources_downloadable: courseData.resourcesDownloadable
@@ -1636,48 +1697,20 @@ const CreateCoursePage = () => {
                           </div>
                         ) : (
                           <SortableContentList
-                            items={(() => {
-                              // Construire les items à partir de l'ordre unifié si disponible
-                              if (module.order && module.order.length > 0) {
-                                return module.order.map(orderItem => {
-                                  if (orderItem.type === 'lesson') {
-                                    const lessonIdx = module.lessons.findIndex(l => l.id === orderItem.id);
-                                    const lesson = module.lessons[lessonIdx];
-                                    return lesson ? {
-                                      id: lesson.id,
-                                      type: 'lesson' as const,
-                                      originalIndex: lessonIdx,
-                                      data: lesson
-                                    } : null;
-                                  } else if (orderItem.type === 'quiz') {
-                                    const quizIdx = parseInt(orderItem.id.split('-').pop() || '0');
-                                    const quiz = module.quizzes[quizIdx];
-                                    return quiz ? {
-                                      id: orderItem.id,
-                                      type: 'quiz' as const,
-                                      originalIndex: quizIdx,
-                                      data: quiz
-                                    } : null;
-                                  }
-                                  return null;
-                                }).filter(item => item !== null) as ContentItem[];
-                              }
-                              // Fallback: ordre par défaut (leçons puis quizzes)
-                              return [
-                                ...module.lessons.map((lesson, idx) => ({
-                                  id: lesson.id,
-                                  type: 'lesson' as const,
-                                  originalIndex: idx,
-                                  data: lesson
-                                })),
-                                ...module.quizzes.map((quiz, idx) => ({
-                                  id: `quiz-${module.id}-${idx}`,
-                                  type: 'quiz' as const,
-                                  originalIndex: idx,
-                                  data: quiz
-                                }))
-                              ];
-                            })()}
+                            items={[
+                              ...module.lessons.map((lesson, idx) => ({
+                                id: lesson.id,
+                                type: 'lesson' as const,
+                                originalIndex: idx,
+                                data: lesson
+                              })),
+                              ...module.quizzes.map((quiz, idx) => ({
+                                id: `quiz-${module.id}-${idx}`,
+                                type: 'quiz' as const,
+                                originalIndex: idx,
+                                data: quiz
+                              }))
+                            ]}
                             onReorder={(newItems) => handleContentReorder(module.id, newItems)}
                             onEditLesson={(lessonId) => setEditingLesson({ moduleId: module.id, lessonId })}
                             onDeleteLesson={(lessonId) => removeLesson(module.id, lessonId)}
@@ -1744,7 +1777,7 @@ const CreateCoursePage = () => {
                                 {/* Media Upload/URL Section - New Design */}
                                 <div>
                                   <Label className="text-base mb-3 block">Média (Vidéo, PDF ou Image)</Label>
-                                  
+
                                   {/* Toggle Buttons: Upload fichier / Lien URL */}
                                   <div className="flex gap-2 mb-4">
                                     <Button
@@ -1906,7 +1939,7 @@ const CreateCoursePage = () => {
                               <div className="flex-1">
                                 <h5 className="font-medium text-gray-900">{module.assignment.title}</h5>
                                 <p className="text-sm text-gray-600">
-                                  {module.assignment.questions.length} question{module.assignment.questions.length > 1 ? 's' : ''} • 
+                                  {module.assignment.questions.length} question{module.assignment.questions.length > 1 ? 's' : ''} •
                                   Note de passage: {module.assignment.settings.passingScore}%
                                 </p>
                               </div>

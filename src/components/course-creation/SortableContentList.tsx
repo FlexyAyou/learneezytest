@@ -81,6 +81,7 @@ export const SortableContentList: React.FC<SortableContentListProps> = ({
           {items.map((item) => {
             if (item.type === 'lesson') {
               const lesson = item.data;
+              const lessonKey = lesson?.id ? String(lesson.id) : String(item.id);
               return (
                 <SortableContentItem
                   key={item.id}
@@ -90,34 +91,23 @@ export const SortableContentList: React.FC<SortableContentListProps> = ({
                   subtitle={`${lesson.duration} minutes`}
                   fileType={lesson.fileType}
                   useMediaUrl={lesson.useMediaUrl}
-                  onEdit={() => onEditLesson?.(lesson.id)}
-                  onDelete={() => onDeleteLesson?.(lesson.id)}
+                  onEdit={() => onEditLesson && lessonKey && onEditLesson(lessonKey)}
+                  onDelete={() => onDeleteLesson && lessonKey && onDeleteLesson(lessonKey)}
                 />
               );
             } else if (item.type === 'quiz') {
               const quiz = item.data;
+              const questionsCount = Array.isArray(quiz.questions) ? quiz.questions.length : 0;
+              const passing = quiz.settings?.passingScore ?? 0;
               return (
                 <SortableContentItem
                   key={item.id}
                   id={item.id}
                   type="quiz"
                   title={quiz.title}
-                  subtitle={`${quiz.questions?.length || 0} questions`}
-                  onEdit={() => onEditQuiz?.(item.originalIndex)}
-                  onDelete={() => onDeleteQuiz?.(item.originalIndex)}
-                />
-              );
-            } else if (item.type === 'assignment') {
-              const assignment = item.data;
-              return (
-                <SortableContentItem
-                  key={item.id}
-                  id={item.id}
-                  type="assignment"
-                  title={assignment.title}
-                  subtitle="Devoir • Évaluation de module"
-                  onEdit={() => onEditAssignment?.()}
-                  onDelete={() => onDeleteAssignment?.()}
+                  subtitle={`${questionsCount} questions • Note de passage: ${passing}%`}
+                  onEdit={() => onEditQuiz(item.originalIndex)}
+                  onDelete={() => onDeleteQuiz(item.originalIndex)}
                 />
               );
             }

@@ -1,6 +1,6 @@
 // Types pour le système de quiz, devoirs et certification
 
-export type QuestionType = 
+export type QuestionType =
   | 'single-choice'    // QCM à choix unique
   | 'multiple-choice'  // QCM à choix multiples
   | 'true-false'       // Vrai/Faux
@@ -26,6 +26,7 @@ export interface BaseQuestion {
     type: 'image' | 'video' | 'pdf';
     url?: string;
     key?: string;
+    caption?: string;
   };
   tags?: string[];
 }
@@ -35,6 +36,12 @@ export interface SingleChoiceQuestion extends BaseQuestion {
   type: 'single-choice';
   options: string[];
   correctAnswer: number; // Index de la bonne réponse
+  optionsMedia?: Array<{
+    type: 'image' | 'video' | 'pdf';
+    url?: string;
+    key?: string;
+    caption?: string;
+  } | null>;
 }
 
 // QCM à choix multiples
@@ -42,6 +49,12 @@ export interface MultipleChoiceQuestion extends BaseQuestion {
   type: 'multiple-choice';
   options: string[];
   correctAnswers: number[]; // Indices des bonnes réponses
+  optionsMedia?: Array<{
+    type: 'image' | 'video' | 'pdf';
+    url?: string;
+    key?: string;
+    caption?: string;
+  } | null>;
 }
 
 // Vrai/Faux
@@ -87,7 +100,7 @@ export interface OrderingQuestion extends BaseQuestion {
   correctOrder: number[]; // Ordre correct des indices
 }
 
-export type Question = 
+export type Question =
   | SingleChoiceQuestion
   | MultipleChoiceQuestion
   | TrueFalseQuestion

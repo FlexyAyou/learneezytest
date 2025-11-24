@@ -45,6 +45,7 @@ import { fastAPIClient } from '@/services/fastapi-client';
 import { uploadDirect } from '@/utils/upload';
 import type { CourseResponse, Module, Content, Quiz, QuizCreate, AssignmentResponse } from '@/types/fastapi';
 import { SortableContentList, ContentItem } from '@/components/course-creation/SortableContentList';
+import VideoPlayer from '@/components/common/VideoPlayer';
 
 interface EditableCourseData {
   title: string;
@@ -71,7 +72,8 @@ interface EditableModule {
   assignments?: AssignmentResponse[];
   isPending?: boolean;  // Module temporaire non encore enregistré
   tempId?: string;      // ID temporaire pour les modules pending
-  order?: Array<{ type: 'lesson' | 'quiz' | 'assignment'; id: string }>; // Ordre unifié des contenus
+  // Ordre mixte local (leçons + quizz) pour l'affichage DnD
+  contentOrder?: ContentItem[];
 }
 
 interface EditableLesson {
@@ -93,6 +95,7 @@ interface EditableLesson {
   video_url?: string;
   content_type?: 'video' | 'image' | 'pdf' | 'url';
   useMediaUrl?: boolean;
+  backendId?: string; // Nouvel ID pour persister l'ordre mixte
 }
 
 interface PedagogicalResource {
@@ -156,6 +159,13 @@ const EditCoursePage = () => {
   const [showAssignmentBuilder, setShowAssignmentBuilder] = useState<number | null>(null);
   const [moduleHasChanges, setModuleHasChanges] = useState<Record<number, boolean>>({});
   const [savingModule, setSavingModule] = useState<number | null>(null);
+
+  // Prévisualisation du média de leçon
+  const [previewLessonMedia, setPreviewLessonMedia] = useState<{
+    moduleIdx: number;
+    lessonIdx: number;
+    kind: 'video' | 'pdf' | 'image';
+  } | null>(null);
 
   // Upload notification state
   const [uploads, setUploads] = useState<UploadItem[]>([]);
@@ -269,75 +279,13 @@ const EditCoursePage = () => {
   // Helper function to map course data to editable modules
   const mapCourseToEditableModules = (courseData: CourseResponse): EditableModule[] => {
     return (courseData.modules || []).map((mod: Module, idx: number) => {
-      // Construire l'ordre unifié à partir du backend si disponible, sinon ordre par défaut
-      const buildOrder = (): Array<{ type: 'lesson' | 'quiz' | 'assignment'; id: string }> => {
-        const lessons = mod.content || [];
-        const quizzes = mod.quizzes || [];
-        const assignments = mod.assignments || [];
+      // Construire les structures simples
+      const lessonsRaw: EditableLesson[] = (mod.content || []).map((lesson: Content, lessonIdx: number) => {
+        const rawId = (lesson as any).id;
+        const stringId = rawId != null ? String(rawId) : undefined;
 
-        if (mod.order && Array.isArray(mod.order) && mod.order.length > 0) {
-          // Le backend peut fournir soit un array d'IDs, soit déjà des objets {type, id}
-          const normalized: Array<{ type: 'lesson' | 'quiz' | 'assignment'; id: string }> = mod.order.map((raw: any) => {
-            if (typeof raw === 'object' && raw.type && raw.id) {
-              return raw;
-            }
-
-            const idStr = String(raw);
-            const isLesson = lessons.some(l => l.id === idStr);
-            if (isLesson) return { type: 'lesson' as const, id: idStr };
-
-            const isQuiz = quizzes.some(q => q.id === idStr);
-            if (isQuiz) return { type: 'quiz' as const, id: idStr };
-
-            const isAssignment = assignments.some(a => a.id === idStr);
-            if (isAssignment) return { type: 'assignment' as const, id: idStr };
-
-            // Fallback: assumer leçon si on ne trouve pas
-            return { type: 'lesson' as const, id: idStr };
-          });
-
-          // S'assurer que les nouveaux contenus ajoutés après la création de l'ordre
-          // (nouvelles leçons/quizz/devoirs) sont quand même visibles en les ajoutant à la fin
-          const lessonIdsInOrder = new Set(normalized.filter(i => i.type === 'lesson').map(i => i.id));
-          const quizIdsInOrder = new Set(normalized.filter(i => i.type === 'quiz').map(i => i.id));
-          const assignmentIdsInOrder = new Set(normalized.filter(i => i.type === 'assignment').map(i => i.id));
-
-          lessons.forEach(lesson => {
-            if (lesson.id && !lessonIdsInOrder.has(lesson.id)) {
-              normalized.push({ type: 'lesson', id: lesson.id });
-            }
-          });
-
-          quizzes.forEach(quiz => {
-            if (quiz.id && !quizIdsInOrder.has(quiz.id)) {
-              normalized.push({ type: 'quiz', id: quiz.id });
-            }
-          });
-
-          assignments.forEach(assignment => {
-            if (assignment.id && !assignmentIdsInOrder.has(assignment.id)) {
-              normalized.push({ type: 'assignment', id: assignment.id });
-            }
-          });
-
-          return normalized;
-        }
-
-        // Ordre par défaut: leçons → quizzes → assignments
-        const order: Array<{ type: 'lesson' | 'quiz' | 'assignment'; id: string }> = [];
-        lessons.forEach(lesson => lesson.id && order.push({ type: 'lesson', id: lesson.id }));
-        quizzes.forEach(quiz => quiz.id && order.push({ type: 'quiz', id: quiz.id }));
-        assignments.forEach(assignment => assignment.id && order.push({ type: 'assignment', id: assignment.id }));
-        return order;
-      };
-
-      return {
-        index: idx,
-        title: mod.title || '',
-        description: mod.description || '',
-        duration: mod.duration || '',
-        lessons: (mod.content || []).map((lesson: Content, lessonIdx: number) => ({
-          id: lesson.id,  // Ajouter l'ID backend
+        return {
+          id: stringId,
           index: lessonIdx,
           title: lesson.title || '',
           description: lesson.description || '',
@@ -349,15 +297,104 @@ const EditCoursePage = () => {
           imageFileName: (lesson as any).image_key ? 'Image existante' : undefined,
           pdf_key: lesson.pdf_key,
           pdfFileName: lesson.pdf_key ? 'PDF existant' : undefined,
-          resource_key: (lesson as any).resource_key,  // Legacy
-          resourceFileName: (lesson as any).resource_key ? 'Fichier existant' : undefined,  // Legacy
+          resource_key: (lesson as any).resource_key,
+          resourceFileName: (lesson as any).resource_key ? 'Fichier existant' : undefined,
           video_url: (lesson as any).video_url,
           content_type: (lesson as any).content_type || 'video',
-        })),
-        quizzes: mod.quizzes || [],
-        assignments: mod.assignments || [],
+          backendId: stringId,
+        };
+      });
+      const quizzesRaw: Quiz[] = mod.quizzes || [];
+
+      // Assignments: le document de cours ne contient pas le payload
+      // complet; ils seront chargés paresseusement via getAssignment.
+      const assignmentsRaw: AssignmentResponse[] = (mod as any).assignments || [];
+
+      // Construire l'ordre mixte local à partir de Module.order si présent
+      const contentOrder: ContentItem[] = [];
+      const order = (mod as any).order as Array<{ type: 'lesson' | 'quiz'; id: string }> | undefined;
+      if (order && Array.isArray(order)) {
+        order.forEach((entry, posIdx) => {
+          if (entry.type === 'lesson') {
+            const lessonIdx = (mod.content || []).findIndex((l: any) => l.id === entry.id);
+            if (lessonIdx !== -1) {
+              const lesson = lessonsRaw[lessonIdx];
+              contentOrder.push({
+                id: `lesson-${idx}-${lessonIdx}`,
+                type: 'lesson',
+                originalIndex: lessonIdx,
+                data: lesson,
+              });
+            }
+          } else if (entry.type === 'quiz') {
+            const quizIdx = (mod.quizzes || []).findIndex((q: any) => q.id === entry.id);
+            if (quizIdx !== -1) {
+              const quiz = quizzesRaw[quizIdx];
+              contentOrder.push({
+                id: `quiz-${idx}-${quizIdx}`,
+                type: 'quiz',
+                originalIndex: quizIdx,
+                data: quiz,
+              });
+            }
+          }
+        });
+      }
+
+      // Compléter avec les éléments non présents dans order (fallback robuste)
+      lessonsRaw.forEach((lesson, lIdx) => {
+        const exists = contentOrder.some(
+          it => it.type === 'lesson' && it.originalIndex === lIdx
+        );
+        if (!exists) {
+          contentOrder.push({
+            id: `lesson-${idx}-${lIdx}`,
+            type: 'lesson',
+            originalIndex: lIdx,
+            data: lesson,
+          });
+        }
+      });
+
+      quizzesRaw.forEach((quiz, qIdx) => {
+        const exists = contentOrder.some(
+          it => it.type === 'quiz' && it.originalIndex === qIdx
+        );
+        if (!exists) {
+          contentOrder.push({
+            id: `quiz-${idx}-${qIdx}`,
+            type: 'quiz',
+            originalIndex: qIdx,
+            data: quiz,
+          });
+        }
+      });
+
+      // Ajouter les assignments au contentOrder
+      assignmentsRaw.forEach((assignment, aIdx) => {
+        const exists = contentOrder.some(
+          it => it.type === 'assignment' && it.originalIndex === aIdx
+        );
+        if (!exists) {
+          contentOrder.push({
+            id: `assignment-${idx}-${aIdx}`,
+            type: 'assignment',
+            originalIndex: aIdx,
+            data: assignment,
+          });
+        }
+      });
+
+      return {
+        index: idx,
+        title: mod.title || '',
+        description: mod.description || '',
+        duration: mod.duration || '',
+        lessons: lessonsRaw,
+        quizzes: quizzesRaw,
+        assignments: assignmentsRaw,
         isPending: false,  // Les modules chargés depuis la DB ne sont jamais pending
-        order: buildOrder(),
+        contentOrder,
       };
     });
   };
@@ -533,11 +570,11 @@ const EditCoursePage = () => {
     if (!id || !course) return;
 
     const module = modules[moduleIdx];
-    
+
     // Ne pas sauvegarder les modules en attente
     if (module.isPending) {
-      toast({ 
-        title: "Module non enregistré", 
+      toast({
+        title: "Module non enregistré",
         description: "Le module sera enregistré automatiquement lors de l'ajout de contenu",
         variant: "destructive"
       });
@@ -547,7 +584,12 @@ const EditCoursePage = () => {
     setSavingModule(moduleIdx);
     try {
       const moduleToSave = modules[moduleIdx];
-      await fastAPIClient.updateModule(id, moduleIdx, {
+
+      // Récupérer l'ID réel du module pour ne plus utiliser l'index
+      const currentCourse = await fastAPIClient.getCourse(id);
+      const moduleId = currentCourse.modules[moduleIdx].id!;
+
+      await fastAPIClient.updateModule(id, moduleId, {
         title: moduleToSave.title,
         description: moduleToSave.description,
         duration: moduleToSave.duration,
@@ -562,13 +604,13 @@ const EditCoursePage = () => {
       });
 
       setEditingModuleId(null);
-      
+
       // Réinitialiser le flag de modifications
       setModuleHasChanges(prev => ({ ...prev, [moduleIdx]: false }));
-      
-      toast({ 
-        title: "✅ Module sauvegardé", 
-        description: moduleToSave.title || `Module ${moduleIdx + 1}` 
+
+      toast({
+        title: "✅ Module sauvegardé",
+        description: moduleToSave.title || `Module ${moduleIdx + 1}`
       });
 
       // Refresh course data
@@ -623,7 +665,9 @@ const EditCoursePage = () => {
     if (!id || !confirm('Supprimer ce module ?')) return;
 
     try {
-      await fastAPIClient.deleteModule(id, moduleIdx, true);
+      const currentCourse = await fastAPIClient.getCourse(id);
+      const moduleId = currentCourse.modules[moduleIdx].id!;
+      await fastAPIClient.deleteModule(id, moduleId, true);
       toast({ title: "✅ Module supprimé" });
 
       // Refresh course data
@@ -704,18 +748,24 @@ const EditCoursePage = () => {
         });
 
         const updatedCourse = await fastAPIClient.getCourse(id);
-        const moduleId = updatedCourse.modules[updatedCourse.modules.length - 1]?.id;
+        const newModuleId = updatedCourse.modules[updatedCourse.modules.length - 1]?.id;
 
-        if (!moduleId) throw new Error('Module ID introuvable');
+        if (!newModuleId) throw new Error('Module ID introuvable');
 
-        // Créer le quiz avec le nouveau hook
         const quizPayload = buildQuizPayload(quiz);
-        await createModuleQuizMutation.mutateAsync({
-          courseId: id,
-          moduleId,
-          quizData: quizPayload
-        });
 
+        const lastModuleIdx = updatedCourse.modules.length - 1;
+        const updatedModuleData = {
+          title: updatedCourse.modules[lastModuleIdx].title,
+          description: updatedCourse.modules[lastModuleIdx].description,
+          duration: updatedCourse.modules[lastModuleIdx].duration,
+          content: updatedCourse.modules[lastModuleIdx].content as any,
+          quizzes: [quizPayload],
+        };
+
+        await fastAPIClient.updateModule(id, newModuleId, updatedModuleData);
+
+        // Rafraîchir tout
         const finalCourse = await fastAPIClient.getCourse(id);
         setModules(mapCourseToEditableModules(finalCourse));
         setShowModuleQuizBuilder(null);
@@ -737,22 +787,128 @@ const EditCoursePage = () => {
           quizData: quizPayload
         });
       } else {
-        await createModuleQuizMutation.mutateAsync({
-          courseId: id,
-          moduleId,
-          quizData: quizPayload
+        // Comportement actuel pour les modules existants
+        const quizPayload: QuizCreate = {
+          title: quiz.title,
+          questions: quiz.questions.map(q => {
+            const baseQuestion: any = {
+              type: q.type,
+              question: q.question,
+              options: [],
+              correct_answer: ''
+            };
+
+            if (q.type === 'single-choice') {
+              const scq = q as any;
+              baseQuestion.options = scq.options || [];
+              baseQuestion.correct_answer = scq.options?.[scq.correctAnswer] || '';
+            } else if (q.type === 'true-false') {
+              const tfq = q as any;
+              baseQuestion.options = ['Vrai', 'Faux'];
+              baseQuestion.correct_answer = !!tfq.correctAnswer;
+            } else if (q.type === 'multiple-choice') {
+              const mcq = q as any;
+              baseQuestion.options = mcq.options || [];
+              baseQuestion.correct_answers = mcq.correctAnswers?.map((idx: number) => mcq.options[idx]) || [];
+            } else if (q.type === 'short-answer') {
+              const saq = q as any;
+              baseQuestion.correct_answer = saq.correctAnswers?.[0] || '';
+              baseQuestion.correct_answers = saq.correctAnswers || [];
+              baseQuestion.case_sensitive = saq.caseSensitive || false;
+            } else if (q.type === 'long-answer') {
+              const laq = q as any;
+              baseQuestion.min_words = laq.minWords;
+              baseQuestion.max_words = laq.maxWords;
+              baseQuestion.rubric = laq.rubric;
+            } else if (q.type === 'fill-blank') {
+              const fbq = q as any;
+              baseQuestion.text = fbq.text;
+              baseQuestion.correct_answers = fbq.correctAnswers || [];
+            } else if (q.type === 'matching') {
+              const mq = q as any;
+              baseQuestion.left_items = mq.leftItems || [];
+              baseQuestion.right_items = mq.rightItems || [];
+              baseQuestion.correct_matches = (mq.correctMatches || []).reduce((acc: Record<string, string>, match: any) => {
+                const leftItem = mq.leftItems[match.left];
+                const rightItem = mq.rightItems[match.right];
+                if (leftItem && rightItem) {
+                  acc[leftItem] = rightItem;
+                }
+                return acc;
+              }, {});
+            } else if (q.type === 'ordering') {
+              const oq = q as any;
+              baseQuestion.items = oq.items || [];
+              baseQuestion.correct_order = (oq.correctOrder || []).map((idx: number) => oq.items[idx]).filter(Boolean);
+            }
+
+            // Étape 2 – Médias et attributs supplémentaires
+            const qAny: any = q as any;
+            if (qAny.media) {
+              baseQuestion.media = {
+                type: qAny.media.type,
+                key: qAny.media.key,
+                url: qAny.media.url,
+                caption: qAny.media.caption,
+              };
+            }
+            if (typeof qAny.points !== 'undefined') baseQuestion.points = qAny.points;
+            if (qAny.difficulty) baseQuestion.difficulty = qAny.difficulty;
+            if (qAny.explanation) baseQuestion.explanation = qAny.explanation;
+            if (qAny.tags) baseQuestion.tags = qAny.tags;
+
+            if (q.type === 'single-choice' || q.type === 'multiple-choice') {
+              const om = Array.isArray(qAny.optionsMedia) ? qAny.optionsMedia : [];
+              baseQuestion.options_media = (baseQuestion.options || []).map((_: any, i: number) => {
+                const m = om[i];
+                return m ? { type: m.type, key: m.key, url: m.url, caption: m.caption } : undefined;
+              });
+            }
+
+            return baseQuestion;
+          }) as any[]
+        };
+
+        const updatedModuleData = {
+          title: module.title,
+          description: module.description,
+          duration: module.duration,
+          content: module.lessons.map(l => ({
+            title: l.title,
+            description: l.description,
+            duration: l.duration,
+          })) as any,
+          quizzes: [quizPayload],
+        };
+
+        const currentCourse = await fastAPIClient.getCourse(id);
+        const moduleId = currentCourse.modules[moduleIdx].id!;
+        await fastAPIClient.updateModule(id, moduleId, updatedModuleData);
+
+        const updatedCourse = await fastAPIClient.getCourse(id);
+        setModules(mapCourseToEditableModules(updatedCourse));
+
+        setShowModuleQuizBuilder(null);
+        toast({
+          title: '✅ Quiz sauvegardé',
+          description: 'Le quiz du module a été enregistré avec succès.'
         });
       }
 
-      // Rafraîchir
-      const updatedCourse = await fastAPIClient.getCourse(id);
-      setModules(mapCourseToEditableModules(updatedCourse));
+      // Rafraîchir après création/modification du quiz
+      const finalRefreshedCourse = await fastAPIClient.getCourse(id);
+      const refreshedModules = mapCourseToEditableModules(finalRefreshedCourse);
+      setModules(refreshedModules);
       setShowModuleQuizBuilder(null);
       setEditingQuizId(null);
+      
+      console.log('Quiz sauvegardé, modules rafraîchis:', refreshedModules);
     } catch (error: any) {
+      console.error('Erreur lors de la sauvegarde du quiz:', error);
+      console.error('Détails de l\'erreur:', error.response?.data);
       toast({
         title: '❌ Erreur',
-        description: error.response?.data?.detail || 'Impossible de sauvegarder le quiz',
+        description: error.response?.data?.detail || error.message || 'Impossible de sauvegarder le quiz',
         variant: 'destructive'
       });
     }
@@ -781,7 +937,6 @@ const EditCoursePage = () => {
         } else if (q.type === 'multiple-choice') {
           const mcq = q as any;
           baseQuestion.options = mcq.options || [];
-          baseQuestion.correct_answer = mcq.correctAnswers?.map((idx: number) => mcq.options[idx]).join(', ') || '';
           baseQuestion.correct_answers = mcq.correctAnswers?.map((idx: number) => mcq.options[idx]) || [];
         } else if (q.type === 'short-answer') {
           const saq = q as any;
@@ -795,18 +950,24 @@ const EditCoursePage = () => {
           baseQuestion.rubric = laq.rubric;
         } else if (q.type === 'fill-blank') {
           const fbq = q as any;
-          baseQuestion.correct_answer = fbq.correctAnswers?.[0] || '';
           baseQuestion.text = fbq.text;
           baseQuestion.correct_answers = fbq.correctAnswers || [];
         } else if (q.type === 'matching') {
           const mq = q as any;
           baseQuestion.left_items = mq.leftItems || [];
           baseQuestion.right_items = mq.rightItems || [];
-          baseQuestion.correct_matches = mq.correctMatches || {};
+          baseQuestion.correct_matches = (mq.correctMatches || []).reduce((acc: Record<string, string>, match: any) => {
+            const leftItem = mq.leftItems[match.left];
+            const rightItem = mq.rightItems[match.right];
+            if (leftItem && rightItem) {
+              acc[leftItem] = rightItem;
+            }
+            return acc;
+          }, {});
         } else if (q.type === 'ordering') {
           const oq = q as any;
           baseQuestion.items = oq.items || [];
-          baseQuestion.correct_order = oq.correctOrder || [];
+          baseQuestion.correct_order = (oq.correctOrder || []).map((idx: number) => oq.items[idx]).filter(Boolean);
         }
 
         return baseQuestion;
@@ -819,14 +980,24 @@ const EditCoursePage = () => {
     if (!id || !course || !confirm('Supprimer ce quiz ?')) return;
 
     try {
+      const editableModule = modules[moduleIdx];
       const moduleId = course.modules[moduleIdx]?.id;
       if (!moduleId) return;
 
-      await deleteModuleQuizMutation.mutateAsync({
-        courseId: id,
-        moduleId,
-        quizId
-      });
+      // Utiliser updateModule avec le payload complet sans quiz
+      const updatedModuleData = {
+        title: editableModule.title,
+        description: editableModule.description,
+        duration: editableModule.duration,
+        content: editableModule.lessons.map(l => ({
+          title: l.title,
+          description: l.description,
+          duration: l.duration,
+        })) as any,
+        quizzes: [],
+      };
+
+      await fastAPIClient.updateModule(id, moduleId, updatedModuleData);
 
       const updatedCourse = await fastAPIClient.getCourse(id);
       setModules(mapCourseToEditableModules(updatedCourse));
@@ -839,63 +1010,61 @@ const EditCoursePage = () => {
     }
   };
 
-  // Reorder content with API call
+  // Reorder content (lessons and quizzes together) + PATCH /order
   const handleContentReorder = async (moduleIdx: number, reorderedItems: ContentItem[]) => {
     if (!id) return;
 
-    const module = modules[moduleIdx];
-    if (!module) return;
+    const lessons = reorderedItems
+      .filter(item => item.type === 'lesson')
+      .map(item => item.data as EditableLesson);
+
+    const quizzes = reorderedItems
+      .filter(item => item.type === 'quiz')
+      .map(item => item.data as Quiz);
+
+    // Construire la sequence pour PATCH /order (assignment exclu)
+    const sequence = reorderedItems.map(item => {
+      if (item.type === 'lesson') {
+        const l = item.data as EditableLesson;
+        return { type: 'lesson' as const, id: l.backendId! };
+      }
+      const q = item.data as Quiz;
+      return { type: 'quiz' as const, id: q.id! };
+    });
+
+    // Mettre à jour l'état local immédiatement pour une UI réactive
+    setModules(prev =>
+      prev.map((m, idx) =>
+        idx === moduleIdx
+          ? { ...m, lessons, quizzes, contentOrder: reorderedItems }
+          : m
+      )
+    );
 
     try {
-      // Construire l'ordre unifié uniquement à partir de l'état local
-      const orderItems = reorderedItems.map((item) => {
-        const data: any = item.data ?? {};
-        const contentId: string = data.id ?? item.id;
+      const currentCourse = await fastAPIClient.getCourse(id);
+      const moduleId = currentCourse.modules[moduleIdx].id!;
 
-        return {
-          type: item.type as 'lesson' | 'quiz' | 'assignment',
-          id: contentId,
-        };
+      const updatedModule = await fastAPIClient.updateModuleOrder(id, moduleId, sequence);
+
+      // Synchroniser immédiatement l'ordre dans courseData (utile pour un futur rechargement complet)
+      setCourseData(prev => {
+        if (!prev) return prev;
+        const prevAny = prev as any;
+        const modules = [...(prevAny.modules || [])];
+        if (modules[moduleIdx]) {
+          modules[moduleIdx] = {
+            ...(modules[moduleIdx] as any),
+            order: (updatedModule as any).order,
+          };
+        }
+        return { ...prev, modules } as any;
       });
-
-      // Si le module est en attente ou que le cours n'est pas encore chargé,
-      // on met simplement à jour l'ordre local sans appeler l'API
-      if (module.isPending || !course) {
-        setModules((prev) =>
-          prev.map((m, idx) => (idx === moduleIdx ? { ...m, order: orderItems } : m))
-        );
-        return;
-      }
-
-      const moduleId = course.modules[moduleIdx]?.id;
-      if (!moduleId) {
-        setModules((prev) =>
-          prev.map((m, idx) => (idx === moduleIdx ? { ...m, order: orderItems } : m))
-        );
-        return;
-      }
-
-      // Appeler l'API de reordering
-      await reorderModuleContentMutation.mutateAsync({
-        courseId: id,
-        moduleId,
-        items: orderItems,
-      });
-
-      // Mettre à jour l'ordre unifié dans l'état local
-      setModules((prev) =>
-        prev.map((m, idx) => (idx === moduleIdx ? { ...m, order: orderItems } : m))
-      );
-
+    } catch (error) {
+      console.error('Error updating mixed order:', error);
       toast({
-        title: '✅ Ordre mis à jour',
-        description: "L'ordre du contenu a été sauvegardé",
-      });
-    } catch (error: any) {
-      toast({
-        title: '❌ Erreur',
-        description:
-          error.response?.data?.detail || 'Impossible de réorganiser le contenu',
+        title: 'Erreur',
+        description: "Impossible de sauvegarder l'ordre du contenu",
         variant: 'destructive',
       });
     }
@@ -908,105 +1077,97 @@ const EditCoursePage = () => {
     try {
       const module = modules[moduleIdx];
 
-      // Si le module est en attente, le créer d'abord dans la DB
+      // Mapper AssignmentBuilder -> AssignmentCreate
+      const assignmentPayload: any = {
+        title: assignment.title,
+        description: assignment.description || '',
+        instructions: assignment.instructions || '',
+        questions: assignment.questions.map((q: any) => {
+          const base: any = {
+            question: q.question,
+            type: q.type,
+            points: q.points || 1,
+          };
+
+          if (q.type === 'single-choice') {
+            base.options = q.options || [];
+            base.correct_answer = base.options[q.correctAnswer] ?? '';
+          } else if (q.type === 'multiple-choice') {
+            base.options = q.options || [];
+            // Pour les assignments, correct_answer accepte string[] pour multiple-choice
+            base.correct_answer = (q.correctAnswers || []).map((idx: number) => base.options[idx]).filter(Boolean);
+          } else if (q.type === 'true-false') {
+            base.options = ['Vrai', 'Faux'];
+            base.correct_answer = !!q.correctAnswer;
+          } else if (q.type === 'short-answer') {
+            // Pour short-answer dans assignments, correct_answer accepte string[]
+            base.correct_answer = q.correctAnswers || [];
+          } else if (q.type === 'essay') {
+            // Pas d'options / correct_answer strict, évalué manuellement
+            // Pas besoin de correct_answer pour les essays
+          }
+
+          return base;
+        }),
+        settings: {
+          passing_score: assignment.settings?.passingScore ?? 70,
+          max_attempts: assignment.settings?.maxAttempts ?? 1,
+          time_limit: assignment.settings?.timeLimit ?? null,
+          allow_late_submission: assignment.settings?.allowLateSubmission ?? false,
+          requires_manual_grading: assignment.settings?.requiresManualGrading ?? false,
+          rubric: assignment.settings?.rubric ?? [],
+        },
+      };
+
+      // Si le module est en attente, le créer d'abord dans la DB puis créer l'assignment
       if (module.isPending) {
         await fastAPIClient.createModule(id, {
           title: module.title,
           description: module.description,
           duration: module.duration,
-          content: []
+          content: [],
         });
 
-        // Recharger pour obtenir l'index réel du module
         const updatedCourse = await fastAPIClient.getCourse(id);
         const realModuleIdx = updatedCourse.modules.length - 1;
+        const moduleId = updatedCourse.modules[realModuleIdx].id!;
 
-        // Créer l'assignment sur le module réel
-        const assignmentPayload = {
-          title: assignment.title,
-          description: assignment.description || '',
-          instructions: assignment.instructions || '',
-          questions: assignment.questions.map((q: any) => ({
-            question: q.question,
-            type: q.type,
-            options: q.options || [],
-            correct_answer: q.type === 'single-choice' || q.type === 'true-false' 
-              ? q.options[q.correctAnswer] 
-              : q.options.filter((_: any, idx: number) => q.correctAnswers?.includes(idx)),
-            points: q.points || 1,
-          })),
-          settings: assignment.settings,
-        };
+        await fastAPIClient.createAssignment(id, moduleId, assignmentPayload);
 
-        const updatedModuleData = {
-          title: module.title,
-          description: module.description,
-          duration: module.duration,
-          content: module.lessons.map(l => ({
-            title: l.title,
-            description: l.description,
-            duration: l.duration,
-          })) as any,
-          assignments: [assignmentPayload],
-        };
-
-        await fastAPIClient.updateModule(id, realModuleIdx, updatedModuleData);
-
-        // Rafraîchir tout
         const finalCourse = await fastAPIClient.getCourse(id);
         setModules(mapCourseToEditableModules(finalCourse));
 
         setShowAssignmentBuilder(null);
         toast({
-          title: '✅ Module et devoir créés',
-          description: 'Le module a été enregistré avec son devoir'
+          title: '\u2705 Module et devoir créés',
+          description: 'Le module a été enregistré avec son devoir',
         });
       } else {
-        // Mise à jour ou création d'assignment pour module existant
-        const assignmentPayload = {
-          title: assignment.title,
-          description: assignment.description || '',
-          instructions: assignment.instructions || '',
-          questions: assignment.questions.map((q: any) => ({
-            question: q.question,
-            type: q.type,
-            options: q.options || [],
-            correct_answer: q.type === 'single-choice' || q.type === 'true-false' 
-              ? q.options[q.correctAnswer] 
-              : q.options.filter((_: any, idx: number) => q.correctAnswers?.includes(idx)),
-            points: q.points || 1,
-          })),
-          settings: assignment.settings,
-        };
+        const currentCourse = await fastAPIClient.getCourse(id);
+        const moduleId = currentCourse.modules[moduleIdx].id!;
+        const order = (currentCourse.modules[moduleIdx] as any).order as Array<{ type: string; id: string }> | undefined;
+        const hasAssignment = order?.some(o => o.type === 'assignment');
 
-        const updatedModuleData = {
-          title: module.title,
-          description: module.description,
-          duration: module.duration,
-          content: module.lessons.map(l => ({
-            title: l.title,
-            description: l.description,
-            duration: l.duration,
-          })) as any,
-          assignments: [assignmentPayload],
-        };
-
-        await fastAPIClient.updateModule(id, moduleIdx, updatedModuleData);
+        if (hasAssignment) {
+          await fastAPIClient.updateAssignment(id, moduleId, assignmentPayload);
+        } else {
+          await fastAPIClient.createAssignment(id, moduleId, assignmentPayload);
+        }
 
         const updatedCourse = await fastAPIClient.getCourse(id);
         setModules(mapCourseToEditableModules(updatedCourse));
 
         setShowAssignmentBuilder(null);
         toast({
-          title: '✅ Devoir sauvegardé',
-          description: 'Le devoir du module a été enregistré avec succès.'
+          title: '\u2705 Devoir sauvegardé',
+          description: 'Le devoir du module a été enregistré avec succès.',
         });
       }
     } catch (error: any) {
       toast({
-        title: '❌ Erreur',
+        title: '\u274c Erreur',
         description: error.response?.data?.detail || 'Impossible de sauvegarder le devoir',
-        variant: 'destructive'
+        variant: 'destructive',
       });
     }
   };
@@ -1016,35 +1177,23 @@ const EditCoursePage = () => {
     if (!id || !confirm('Supprimer ce devoir ?')) return;
 
     try {
-      const module = modules[moduleIdx];
+      const currentCourse = await fastAPIClient.getCourse(id);
+      const moduleId = currentCourse.modules[moduleIdx].id!;
 
-      // Utiliser updateModule avec le payload complet sans assignment
-      const updatedModuleData = {
-        title: module.title,
-        description: module.description,
-        duration: module.duration,
-        content: module.lessons.map(l => ({
-          title: l.title,
-          description: l.description,
-          duration: l.duration,
-        })) as any,
-        assignments: [],
-      };
-
-      await fastAPIClient.updateModule(id, moduleIdx, updatedModuleData);
+      await fastAPIClient.deleteAssignment(id, moduleId);
 
       const updatedCourse = await fastAPIClient.getCourse(id);
       setModules(mapCourseToEditableModules(updatedCourse));
 
       toast({
-        title: '✅ Devoir supprimé',
-        description: 'Le devoir du module a été supprimé.'
+        title: '\u2705 Devoir supprimé',
+        description: 'Le devoir du module a été supprimé.',
       });
     } catch (error: any) {
       toast({
-        title: '❌ Erreur',
+        title: '\u274c Erreur',
         description: error.response?.data?.detail || 'Impossible de supprimer le devoir',
-        variant: 'destructive'
+        variant: 'destructive',
       });
     }
   };
@@ -1714,7 +1863,32 @@ const EditCoursePage = () => {
                 <Accordion type="single" collapsible value={expandedModules[0] || undefined} onValueChange={(value) => setExpandedModules(value ? [value] : [])}>
                   {modules.map((module, moduleIdx) => (
                     <AccordionItem key={`module-${moduleIdx}`} value={`module-${moduleIdx}`} className="border rounded-lg mb-4 overflow-hidden">
-                      <AccordionTrigger className="hover:no-underline px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100">
+                      <AccordionTrigger
+                        className="hover:no-underline px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100"
+                        onClick={async () => {
+                          if (!id) return;
+                          // Chargement paresseux du devoir si présent dans order mais pas encore en state
+                          try {
+                            const courseWithOrder = await fastAPIClient.getCourse(id);
+                            const modWithOrder = courseWithOrder.modules[moduleIdx] as any;
+                            const order = modWithOrder.order as Array<{ type: string; id: string }> | undefined;
+                            const hasAssignment = order?.some(o => o.type === 'assignment');
+
+                            if (hasAssignment && (!modules[moduleIdx].assignments || modules[moduleIdx].assignments!.length === 0)) {
+                              const moduleId = modWithOrder.id as string;
+                              const assignment = await fastAPIClient.getAssignment(id, moduleId);
+
+                              setModules(prev => prev.map((m, idx) =>
+                                idx === moduleIdx
+                                  ? { ...m, assignments: [assignment] }
+                                  : m
+                              ));
+                            }
+                          } catch (e) {
+                            console.warn('Impossible de charger le devoir du module', e);
+                          }
+                        }}
+                      >
                         <div className="flex items-center justify-between w-full pr-4">
                           <div className="flex items-center space-x-4">
                             <Badge className="bg-gradient-to-r from-pink-600 to-purple-600">
@@ -1780,7 +1954,7 @@ const EditCoursePage = () => {
                                 placeholder="Description du module"
                                 height="150px"
                               />
-                              
+
                               {/* Bouton de sauvegarde du module */}
                               <div className="flex items-center justify-between mt-4">
                                 <div>
@@ -1852,77 +2026,23 @@ const EditCoursePage = () => {
                               </div>
                             ) : (
                               <SortableContentList
-                                items={(() => {
-                                  const lessons = module.lessons || [];
-                                  const quizzes = module.quizzes || [];
-                                  const assignments = module.assignments || [];
-
-                                  // Construire les items à partir de l'ordre unifié si disponible
-                                  if (module.order && module.order.length > 0) {
-                                    const orderedItems: ContentItem[] = [];
-
-                                    module.order.forEach((orderItem) => {
-                                      if (orderItem.type === 'lesson') {
-                                        const lessonIdx = lessons.findIndex((l) => l.id === orderItem.id);
-                                        const lesson = lessons[lessonIdx];
-                                        if (lesson) {
-                                          orderedItems.push({
-                                            id: lesson.id || `lesson-${moduleIdx}-${lessonIdx}`,
-                                            type: 'lesson',
-                                            originalIndex: lessonIdx,
-                                            data: lesson,
-                                          });
-                                        }
-                                      } else if (orderItem.type === 'quiz') {
-                                        const quizIdx = quizzes.findIndex((q) => q.id === orderItem.id);
-                                        const quiz = quizzes[quizIdx];
-                                        if (quiz) {
-                                          orderedItems.push({
-                                            id: quiz.id || `quiz-${moduleIdx}-${quizIdx}`,
-                                            type: 'quiz',
-                                            originalIndex: quizIdx,
-                                            data: quiz,
-                                          });
-                                        }
-                                      } else if (orderItem.type === 'assignment') {
-                                        const assignmentIdx = assignments.findIndex((a) => a.id === orderItem.id);
-                                        const assignment = assignments[assignmentIdx];
-                                        if (assignment) {
-                                          orderedItems.push({
-                                            id: assignment.id || `assignment-${moduleIdx}-${assignmentIdx}`,
-                                            type: 'assignment',
-                                            originalIndex: assignmentIdx,
-                                            data: assignment,
-                                          });
-                                        }
-                                      }
-                                    });
-
-                                    return orderedItems;
-                                  }
-
-                                  // Fallback: ordre par défaut (leçons puis quizzes puis assignments)
-                                  return [
-                                    ...lessons.map((lesson, idx) => ({
-                                      id: lesson.id || `lesson-${moduleIdx}-${idx}`,
+                                items={module.contentOrder && module.contentOrder.length > 0
+                                  ? module.contentOrder
+                                  : [
+                                    // Fallback: leçons puis quizz si aucun ordre mixte n'est encore défini
+                                    ...module.lessons.map((lesson, idx) => ({
+                                      id: `lesson-${moduleIdx}-${idx}`,
                                       type: 'lesson' as const,
                                       originalIndex: idx,
                                       data: lesson,
                                     })),
-                                    ...quizzes.map((quiz, idx) => ({
-                                      id: quiz.id || `quiz-${moduleIdx}-${idx}`,
+                                    ...(module.quizzes || []).map((quiz, idx) => ({
+                                      id: `quiz-${moduleIdx}-${idx}`,
                                       type: 'quiz' as const,
                                       originalIndex: idx,
                                       data: quiz,
                                     })),
-                                    ...assignments.map((assignment, idx) => ({
-                                      id: assignment.id || `assignment-${moduleIdx}-${idx}`,
-                                      type: 'assignment' as const,
-                                      originalIndex: idx,
-                                      data: assignment,
-                                    })),
-                                  ];
-                                })()}
+                                  ]}
                                 onReorder={(newItems) => handleContentReorder(moduleIdx, newItems)}
                                 onEditLesson={(lessonId) => {
                                   const lessonIdx = module.lessons.findIndex((l) => l.id === lessonId);
@@ -1936,24 +2056,14 @@ const EditCoursePage = () => {
                                     handleDeleteLesson(moduleIdx, lessonIdx);
                                   }
                                 }}
-                                onEditQuiz={(quizIndex) => {
-                                  const quiz = module.quizzes?.[quizIndex];
-                                  if (quiz?.id) {
-                                    setEditingQuizId(quiz.id);
-                                  }
+                                onEditQuiz={() => {
                                   setShowModuleQuizBuilder(moduleIdx);
                                 }}
-                                onDeleteQuiz={(quizIndex) => {
-                                  const quiz = module.quizzes?.[quizIndex];
+                                onDeleteQuiz={(quizIndex: number) => {
+                                  const quiz = module.quizzes[quizIndex];
                                   if (quiz?.id) {
                                     handleDeleteModuleQuiz(moduleIdx, quiz.id);
                                   }
-                                }}
-                                onEditAssignment={() => {
-                                  setShowAssignmentBuilder(moduleIdx);
-                                }}
-                                onDeleteAssignment={() => {
-                                  handleDeleteModuleAssignment(moduleIdx);
                                 }}
                               />
                             )}
@@ -2040,84 +2150,57 @@ const EditCoursePage = () => {
                                           />
                                         </div>
 
-                                        {/* Section Média actuel */}
-                                        {(lesson.videoFileName || lesson.pdfFileName || lesson.imageFileName || lesson.video_url) && (
-                                          <div className="space-y-2">
-                                            <Label>Média actuel de la leçon</Label>
-                                            <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                                              {lesson.videoFileName && (
-                                                <>
-                                                  <Video className="h-5 w-5 text-blue-600" />
-                                                  <span className="text-sm">{lesson.videoFileName}</span>
-                                                </>
-                                              )}
-                                              {lesson.pdfFileName && (
-                                                <>
-                                                  <FileText className="h-5 w-5 text-blue-600" />
-                                                  <span className="text-sm">{lesson.pdfFileName}</span>
-                                                </>
-                                              )}
-                                              {lesson.imageFileName && (
-                                                <>
-                                                  <ImageIcon className="h-5 w-5 text-blue-600" />
-                                                  <span className="text-sm">{lesson.imageFileName}</span>
-                                                </>
-                                              )}
-                                              {lesson.video_url && (
-                                                <>
-                                                  <LinkIcon className="h-5 w-5 text-blue-600" />
-                                                  <span className="text-sm truncate">{lesson.video_url}</span>
-                                                </>
-                                              )}
-                                            </div>
-                                          </div>
-                                        )}
+                                        {/* Media Upload/URL Section - même UX que la création */}
+                                        <div>
+                                          <Label className="text-base mb-3 block">Média (Vidéo, PDF ou Image)</Label>
 
-                                        {/* Section Média (Vidéo, PDF ou Image) */}
-                                        <div className="space-y-4 border-t pt-4">
-                                          <Label className="text-base font-semibold">Média (Vidéo, PDF ou Image)</Label>
-                                          
-                                          <div className="flex gap-2">
+                                          {/* Toggle Buttons: Upload fichier / Lien URL */}
+                                          <div className="flex gap-2 mb-4">
                                             <Button
                                               type="button"
-                                              variant="default"
+                                              variant={!lesson.useMediaUrl ? "default" : "outline"}
                                               size="sm"
+                                              className={!lesson.useMediaUrl ? "bg-pink-500 hover:bg-pink-600 text-white" : ""}
                                               onClick={() => {
-                                                const input = document.createElement('input');
-                                                input.type = 'file';
-                                                input.accept = 'video/*,application/pdf,image/*';
-                                                input.onchange = async (e) => {
-                                                  const file = (e.target as HTMLInputElement).files?.[0];
-                                                  if (file) {
-                                                    await handleLessonVideoUpload(moduleIdx, editingLessonId.lessonIdx, file);
-                                                  }
-                                                };
-                                                input.click();
+                                                setModules(prev => prev.map((m, mIdx) =>
+                                                  mIdx === moduleIdx
+                                                    ? {
+                                                      ...m,
+                                                      lessons: m.lessons.map((l, lIdx) =>
+                                                        lIdx === editingLessonId.lessonIdx
+                                                          ? { ...l, useMediaUrl: false }
+                                                          : l
+                                                      )
+                                                    }
+                                                    : m
+                                                ));
                                               }}
                                             >
                                               <Upload className="h-4 w-4 mr-2" />
                                               Upload fichier
                                             </Button>
-                                            
                                             <Button
                                               type="button"
-                                              variant="outline"
+                                              variant={lesson.useMediaUrl ? "default" : "outline"}
                                               size="sm"
+                                              className={lesson.useMediaUrl ? "bg-purple-500 hover:bg-purple-600 text-white" : ""}
                                               onClick={() => {
-                                                const url = prompt('Entrez l\'URL de la vidéo:');
-                                                if (url) {
-                                                  setModules(prev => prev.map((m, mIdx) =>
-                                                    mIdx === moduleIdx
-                                                      ? {
-                                                        ...m,
-                                                        lessons: m.lessons.map((l, lIdx) =>
-                                                          lIdx === editingLessonId.lessonIdx ? { ...l, video_url: url } : l
-                                                        )
-                                                      }
-                                                      : m
-                                                  ));
-                                                  handleLessonVideoUrl(moduleIdx, editingLessonId.lessonIdx, url);
-                                                }
+                                                setModules(prev => prev.map((m, mIdx) =>
+                                                  mIdx === moduleIdx
+                                                    ? {
+                                                      ...m,
+                                                      lessons: m.lessons.map((l, lIdx) =>
+                                                        lIdx === editingLessonId.lessonIdx
+                                                          ? {
+                                                            ...l,
+                                                            useMediaUrl: true,
+                                                            video_url: l.video_url || '',
+                                                          }
+                                                          : l
+                                                      )
+                                                    }
+                                                    : m
+                                                ));
                                               }}
                                             >
                                               <LinkIcon className="h-4 w-4 mr-2" />
@@ -2125,46 +2208,99 @@ const EditCoursePage = () => {
                                             </Button>
                                           </div>
 
-                                          {/* Zone de drag and drop */}
-                                          <div 
-                                            className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-primary transition-colors cursor-pointer"
-                                            onClick={() => {
-                                              const input = document.createElement('input');
-                                              input.type = 'file';
-                                              input.accept = 'video/*,application/pdf,image/*';
-                                              input.onchange = async (e) => {
-                                                const file = (e.target as HTMLInputElement).files?.[0];
-                                                if (file) {
-                                                  await handleLessonVideoUpload(moduleIdx, editingLessonId.lessonIdx, file);
-                                                }
-                                              };
-                                              input.click();
-                                            }}
-                                            onDragOver={(e) => {
-                                              e.preventDefault();
-                                              e.stopPropagation();
-                                            }}
-                                            onDrop={async (e) => {
-                                              e.preventDefault();
-                                              e.stopPropagation();
-                                              const file = e.dataTransfer.files?.[0];
-                                              if (file) {
-                                                await handleLessonVideoUpload(moduleIdx, editingLessonId.lessonIdx, file);
-                                              }
-                                            }}
-                                          >
-                                            <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                                            <p className="text-base font-medium mb-2">Vidéo, PDF ou Image</p>
-                                            <p className="text-sm text-gray-500 mb-4">
-                                              Glissez-déposez ou cliquez pour parcourir
-                                            </p>
-                                            <Button type="button" variant="outline" size="sm">
-                                              Choisir un fichier
-                                            </Button>
-                                            <p className="text-xs text-gray-400 mt-3">
-                                              Limites : Vidéo (500MB) + PDF (50MB) + Image (10MB)
-                                            </p>
-                                          </div>
+                                          {/* Upload File Section (même UX que la création) */}
+                                          {!lesson.useMediaUrl && (
+                                            <div className="space-y-3">
+                                              {(lesson.video_key || lesson.pdf_key || lesson.image_key) && (
+                                                <div className="space-y-2">
+                                                  <button
+                                                    type="button"
+                                                    onClick={async () => {
+                                                      if (!lesson.video_key && !lesson.pdf_key && !lesson.image_key) return;
+
+                                                      let kind: 'video' | 'pdf' | 'image' = 'video';
+                                                      if (lesson.pdf_key) kind = 'pdf';
+                                                      else if (lesson.image_key) kind = 'image';
+
+                                                      setPreviewLessonMedia({
+                                                        moduleIdx,
+                                                        lessonIdx: editingLessonId.lessonIdx,
+                                                        kind,
+                                                      });
+                                                    }}
+                                                    className="w-full text-left flex items-center gap-2 p-3 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors"
+                                                  >
+                                                    {lesson.video_key && <Video className="h-5 w-5 text-blue-600" />}
+                                                    {lesson.pdf_key && <FileText className="h-5 w-5 text-blue-600" />}
+                                                    {lesson.image_key && <ImageIcon className="h-5 w-5 text-blue-600" />}
+                                                    <span className="text-sm font-medium">Média actuel de la leçon</span>
+                                                  </button>
+                                                </div>
+                                              )}
+
+                                              {/* Dropzone / zone d'upload */}
+                                              <div
+                                                className="mt-2 border-2 border-dashed border-muted-foreground/25 rounded-xl p-8 text-center hover:border-pink-500 hover:bg-pink-50 transition-all duration-300 cursor-pointer group"
+                                                onClick={() => {
+                                                  const input = document.getElementById(`lesson-media-${moduleIdx}-${editingLessonId.lessonIdx}`) as HTMLInputElement | null;
+                                                  input?.click();
+                                                }}
+                                              >
+                                                <div className="inline-flex p-4 bg-pink-100 rounded-full mb-4 group-hover:scale-110 transition-transform">
+                                                  <Upload className="h-8 w-8 text-pink-600" />
+                                                </div>
+                                                <p className="text-base font-semibold mb-1">Vidéo, PDF ou Image</p>
+                                                <p className="text-sm text-muted-foreground mb-4">Glissez-déposez ou cliquez pour parcourir</p>
+                                                <Button
+                                                  type="button"
+                                                  variant="outline"
+                                                  className="hover-scale"
+                                                >
+                                                  Choisir un fichier
+                                                </Button>
+                                                <p className="mt-3 text-xs text-muted-foreground">
+                                                  Limites : Vidéo (500MB) • PDF (50MB) • Image (10MB)
+                                                </p>
+                                              </div>
+
+                                              <input
+                                                id={`lesson-media-${moduleIdx}-${editingLessonId.lessonIdx}`}
+                                                type="file"
+                                                accept="video/*,application/pdf,image/*"
+                                                className="hidden"
+                                                onChange={(e) => {
+                                                  const file = e.target.files?.[0];
+                                                  if (!file) return;
+                                                  handleLessonVideoUpload(moduleIdx, editingLessonId.lessonIdx, file);
+                                                  e.target.value = '';
+                                                }}
+                                              />
+                                            </div>
+                                          )}
+
+                                          {/* URL Input Section */}
+                                          {lesson.useMediaUrl && (
+                                            <div className="space-y-2">
+                                              <Input
+                                                value={lesson.video_url || ''}
+                                                onChange={(e) => setModules(prev => prev.map((m, mIdx) =>
+                                                  mIdx === moduleIdx
+                                                    ? {
+                                                      ...m,
+                                                      lessons: m.lessons.map((l, lIdx) =>
+                                                        lIdx === editingLessonId.lessonIdx
+                                                          ? { ...l, video_url: e.target.value }
+                                                          : l
+                                                      )
+                                                    }
+                                                    : m
+                                                ))}
+                                                placeholder="https://www.youtube.com/watch?v=... ou URL directe"
+                                                className="w-full"
+                                              />
+                                              <p className="text-xs text-gray-500">Formats supportés : YouTube, Vimeo, MP4, PDF ou URL d'image</p>
+                                            </div>
+                                          )}
                                         </div>
 
                                         <div className="flex justify-end gap-2 pt-4 border-t">
@@ -2438,6 +2574,69 @@ const EditCoursePage = () => {
                               </div>
                             </div>
                           </div>
+                          {/* Aperçu mixte leçons + quizzes */}
+                          <div className="mt-4 border-t pt-4">
+                            <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Ordre du contenu</p>
+                            {(() => {
+                              const desc = module.description || '';
+                              const match = desc.match(/<!--\s*mixed_order:(\[.*?\])\s*-->/i);
+                              let tokens: string[] | null = null;
+                              if (match) {
+                                try {
+                                  const arr = JSON.parse(match[1]);
+                                  if (Array.isArray(arr)) tokens = arr.filter(t => typeof t === 'string');
+                                } catch { }
+                              }
+                              // Maps
+                              const lessonMap = new Map<string, { title: string; duration: string; content_type?: string }>();
+                              module.lessons.forEach((l: any, i: number) => {
+                                const key = l.backendId || `idx-${i}`;
+                                lessonMap.set(key, { title: l.title || `Leçon ${i + 1}`, duration: l.duration || '', content_type: l.content_type });
+                              });
+                              const quizMap = new Map<string, { title: string; questions: number }>();
+                              (module.quizzes || []).forEach((q: any, i: number) => {
+                                const key = q.id || `qidx-${i}`;
+                                quizMap.set(key, { title: q.title || `Quiz ${i + 1}`, questions: (q.questions || []).length });
+                              });
+                              const ordered: Array<{ kind: 'lesson' | 'quiz'; label: string; meta: string }> = [];
+                              if (tokens && tokens.length) {
+                                tokens.forEach(tok => {
+                                  if (tok.startsWith('L:')) {
+                                    const id = tok.substring(2);
+                                    const l = lessonMap.get(id);
+                                    if (l) ordered.push({ kind: 'lesson', label: l.title, meta: l.duration || l.content_type || '' });
+                                  } else if (tok.startsWith('Q:')) {
+                                    const id = tok.substring(2);
+                                    const q = quizMap.get(id);
+                                    if (q) ordered.push({ kind: 'quiz', label: q.title, meta: `${q.questions} questions` });
+                                  }
+                                });
+                                // Add extras not referenced (robustness)
+                                lessonMap.forEach((l, k) => {
+                                  if (!tokens!.some(t => t === `L:${k}`)) ordered.push({ kind: 'lesson', label: l.title, meta: l.duration || l.content_type || '' });
+                                });
+                                quizMap.forEach((q, k) => {
+                                  if (!tokens!.some(t => t === `Q:${k}`)) ordered.push({ kind: 'quiz', label: q.title, meta: `${q.questions} questions` });
+                                });
+                              } else {
+                                // Fallback: simple concat leçons puis quizzes
+                                module.lessons.forEach((l: any, i: number) => ordered.push({ kind: 'lesson', label: l.title || `Leçon ${i + 1}`, meta: l.duration || l.content_type || '' }));
+                                (module.quizzes || []).forEach((q: any, i: number) => ordered.push({ kind: 'quiz', label: q.title || `Quiz ${i + 1}`, meta: `${(q.questions || []).length} questions` }));
+                              }
+                              if (!ordered.length) return <p className="text-sm text-muted-foreground">Aucun contenu</p>;
+                              return (
+                                <ul className="space-y-1">
+                                  {ordered.map((it, i2) => (
+                                    <li key={i2} className="flex items-center gap-2 text-sm">
+                                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${it.kind === 'lesson' ? 'bg-blue-100 text-blue-700' : 'bg-indigo-100 text-indigo-700'}`}>{it.kind === 'lesson' ? 'Leçon' : 'Quiz'}</span>
+                                      <span className="font-medium truncate max-w-xs" title={it.label}>{it.label}</span>
+                                      {it.meta && <span className="text-muted-foreground">• {it.meta}</span>}
+                                    </li>
+                                  ))}
+                                </ul>
+                              );
+                            })()}
+                          </div>
                         </CardContent>
                       </Card>
                     ))}
@@ -2473,9 +2672,9 @@ const EditCoursePage = () => {
       {/* Module Quiz Builder Dialog */}
       {showModuleQuizBuilder !== null && (
         <Dialog open={true} onOpenChange={() => setShowModuleQuizBuilder(null)}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
             <DialogHeader>
-              <DialogTitle>Configurer le quiz du module</DialogTitle>
+              <DialogTitle>Configurer le quiz</DialogTitle>
             </DialogHeader>
             <QuizBuilder
               quiz={modules[showModuleQuizBuilder]?.quizzes?.[0] ? {
@@ -2514,13 +2713,71 @@ const EditCoursePage = () => {
         </Dialog>
       )}
 
+      {/* Lesson Media Preview Dialog */}
+      {previewLessonMedia && (
+        <Dialog open={true} onOpenChange={() => setPreviewLessonMedia(null)}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
+            <DialogHeader>
+              <DialogTitle>Média de la leçon</DialogTitle>
+            </DialogHeader>
+            {(() => {
+              const mod = modules[previewLessonMedia.moduleIdx];
+              const lesson = mod?.lessons[previewLessonMedia.lessonIdx];
+              if (!lesson) return null;
+
+              if (previewLessonMedia.kind === 'video') {
+                return (
+                  <div className="rounded-xl overflow-hidden bg-black/5 border">
+                    <VideoPlayer
+                      videoKey={lesson.video_key || (lesson as any).backendId || (lesson as any).key}
+                      videoUrl={lesson.video_url}
+                      title={lesson.title}
+                    />
+                  </div>
+                );
+              }
+
+              if (previewLessonMedia.kind === 'pdf' && lesson.pdf_key) {
+                return (
+                  <div className="rounded-xl overflow-hidden border bg-muted/30">
+                    <iframe
+                      src={`${import.meta.env.VITE_API_URL || ''}/api/storage/play?key=${encodeURIComponent(lesson.pdf_key)}`}
+                      className="w-full h-[480px]"
+                      title="Prévisualisation PDF"
+                    />
+                  </div>
+                );
+              }
+
+              if (previewLessonMedia.kind === 'image' && (lesson.image_key || (lesson as any).image_url)) {
+                const imageSrc = lesson.image_key
+                  ? `${import.meta.env.VITE_API_URL || ''}/api/storage/play?key=${encodeURIComponent(lesson.image_key)}`
+                  : (lesson as any).image_url;
+
+                return (
+                  <div className="flex items-center justify-center bg-muted/30 rounded-xl border p-4">
+                    <img
+                      src={imageSrc}
+                      alt="Média de la leçon"
+                      className="max-h-[480px] max-w-full rounded-lg shadow-md"
+                    />
+                  </div>
+                );
+              }
+
+              return null;
+            })()}
+          </DialogContent>
+        </Dialog>
+      )}
+
       {/* Module Assignment Builder Dialog */}
       {showAssignmentBuilder !== null && (
         <Dialog open={true} onOpenChange={() => setShowAssignmentBuilder(null)}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
             <DialogHeader>
               <DialogTitle>
-                {modules[showAssignmentBuilder]?.assignments?.length > 0 
+                {modules[showAssignmentBuilder]?.assignments?.length > 0
                   ? "Modifier le devoir du module"
                   : "Créer un devoir pour le module"
                 }
@@ -2543,15 +2800,17 @@ const EditCoursePage = () => {
                     ? (q.options || []).indexOf(q.correct_answer)
                     : undefined,
                   correctAnswers: q.type === 'multiple-choice'
-                    ? (q.options || []).map((opt: string, i: number) => 
-                        Array.isArray(q.correct_answer) && q.correct_answer.includes(opt) ? i : -1
-                      ).filter((i: number) => i >= 0)
+                    ? (q.options || []).map((opt: string, i: number) =>
+                      Array.isArray(q.correct_answer) && q.correct_answer.includes(opt) ? i : -1
+                    ).filter((i: number) => i >= 0)
                     : undefined,
                 })),
                 settings: {
                   passingScore: modules[showAssignmentBuilder].assignments![0].settings?.passing_score || 60,
                   maxAttempts: modules[showAssignmentBuilder].assignments![0].settings?.max_attempts || 3,
-                  timeLimit: modules[showAssignmentBuilder].assignments![0].settings?.time_limit,
+                  timeLimit: typeof modules[showAssignmentBuilder].assignments![0].settings?.time_limit === 'number'
+                    ? modules[showAssignmentBuilder].assignments![0].settings!.time_limit
+                    : undefined,
                   allowLateSubmission: modules[showAssignmentBuilder].assignments![0].settings?.allow_late_submission || false,
                   requiresManualGrading: modules[showAssignmentBuilder].assignments![0].settings?.requires_manual_grading || false,
                   rubric: [], // Rubric simplifiée pour l'instant
