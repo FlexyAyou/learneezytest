@@ -293,7 +293,8 @@ const EditCoursePage = () => {
       }));
       const quizzesRaw: Quiz[] = mod.quizzes || [];
 
-      // Assignment: récupérer uniquement via endpoints d'évaluation
+      // Assignments: le document de cours ne contient pas le payload
+      // complet; ils seront chargés paresseusement via getAssignment.
       const assignmentsRaw: AssignmentResponse[] = (mod as any).assignments || [];
 
       // Construire l'ordre mixte local à partir de Module.order si présent
@@ -1038,122 +1039,94 @@ const EditCoursePage = () => {
     try {
       const module = modules[moduleIdx];
 
-      // Si le module est en attente, le créer d'abord dans la DB
+      // Mapper AssignmentBuilder -> AssignmentCreate
+      const assignmentPayload: any = {
+        title: assignment.title,
+        description: assignment.description || '',
+        instructions: assignment.instructions || '',
+        questions: assignment.questions.map((q: any) => {
+          const base: any = {
+            question: q.question,
+            type: q.type,
+            points: q.points || 1,
+          };
+
+          if (q.type === 'single-choice') {
+            base.options = q.options || [];
+            base.correct_answer = base.options[q.correctAnswer] ?? '';
+          } else if (q.type === 'multiple-choice') {
+            base.options = q.options || [];
+            base.correct_answer = (q.correctAnswers || []).map((idx: number) => base.options[idx]).filter(Boolean);
+          } else if (q.type === 'true-false') {
+            base.options = ['Vrai', 'Faux'];
+            base.correct_answer = q.correctAnswer ? 'Vrai' : 'Faux';
+          } else if (q.type === 'short-answer') {
+            base.correct_answer = q.correctAnswers || [];
+          } else if (q.type === 'essay') {
+            // Pas d'options / correct_answer strict, évalué manuellement
+          }
+
+          return base;
+        }),
+        settings: {
+          passing_score: assignment.settings?.passingScore ?? 70,
+          max_attempts: assignment.settings?.maxAttempts ?? 1,
+          time_limit: assignment.settings?.timeLimit ?? null,
+          allow_late_submission: assignment.settings?.allowLateSubmission ?? false,
+          requires_manual_grading: assignment.settings?.requiresManualGrading ?? false,
+          rubric: assignment.settings?.rubric ?? [],
+        },
+      };
+
+      // Si le module est en attente, le créer d'abord dans la DB puis créer l'assignment
       if (module.isPending) {
         await fastAPIClient.createModule(id, {
           title: module.title,
           description: module.description,
           duration: module.duration,
-          content: []
+          content: [],
         });
 
-        // Recharger pour obtenir l'index réel du module
         const updatedCourse = await fastAPIClient.getCourse(id);
         const realModuleIdx = updatedCourse.modules.length - 1;
-
-        // Créer l'assignment sur le module réel
-        const assignmentPayload = {
-          title: assignment.title,
-          description: assignment.description || '',
-          instructions: assignment.instructions || '',
-          questions: assignment.questions.map((q: any) => ({
-            question: q.question,
-            type: q.type,
-            options: q.options || [],
-            correct_answer: q.type === 'single-choice' || q.type === 'true-false'
-              ? q.options[q.correctAnswer]
-              : q.options.filter((_: any, idx: number) => q.correctAnswers?.includes(idx)),
-            points: q.points || 1,
-          })),
-          settings: {
-            passing_score: assignment.settings?.passingScore ?? 70,
-            max_attempts: assignment.settings?.maxAttempts ?? 1,
-            time_limit: assignment.settings?.timeLimit ?? null,
-            allow_late_submission: assignment.settings?.allowLateSubmission ?? false,
-            requires_manual_grading: assignment.settings?.requiresManualGrading ?? false,
-            rubric: assignment.settings?.rubric ?? [],
-          },
-        };
-
-        const updatedModuleData = {
-          title: module.title,
-          description: module.description,
-          duration: module.duration,
-          content: module.lessons.map(l => ({
-            title: l.title,
-            description: l.description,
-            duration: l.duration,
-          })) as any,
-          assignments: [assignmentPayload],
-        };
-
         const moduleId = updatedCourse.modules[realModuleIdx].id!;
-        await fastAPIClient.updateModule(id, moduleId, updatedModuleData);
 
-        // Rafraîchir tout
+        await fastAPIClient.createAssignment(id, moduleId, assignmentPayload);
+
         const finalCourse = await fastAPIClient.getCourse(id);
         setModules(mapCourseToEditableModules(finalCourse));
 
         setShowAssignmentBuilder(null);
         toast({
-          title: '✅ Module et devoir créés',
-          description: 'Le module a été enregistré avec son devoir'
+          title: '\u2705 Module et devoir créés',
+          description: 'Le module a été enregistré avec son devoir',
         });
       } else {
-        // Mise à jour ou création d'assignment pour module existant
-        const assignmentPayload = {
-          title: assignment.title,
-          description: assignment.description || '',
-          instructions: assignment.instructions || '',
-          questions: assignment.questions.map((q: any) => ({
-            question: q.question,
-            type: q.type,
-            options: q.options || [],
-            correct_answer: q.type === 'single-choice' || q.type === 'true-false'
-              ? q.options[q.correctAnswer]
-              : q.options.filter((_: any, idx: number) => q.correctAnswers?.includes(idx)),
-            points: q.points || 1,
-          })),
-          settings: {
-            passing_score: assignment.settings?.passingScore ?? 70,
-            max_attempts: assignment.settings?.maxAttempts ?? 1,
-            time_limit: assignment.settings?.timeLimit ?? null,
-            allow_late_submission: assignment.settings?.allowLateSubmission ?? false,
-            requires_manual_grading: assignment.settings?.requiresManualGrading ?? false,
-            rubric: assignment.settings?.rubric ?? [],
-          },
-        };
-
-        const updatedModuleData = {
-          title: module.title,
-          description: module.description,
-          duration: module.duration,
-          content: module.lessons.map(l => ({
-            title: l.title,
-            description: l.description,
-            duration: l.duration,
-          })) as any,
-          assignments: [assignmentPayload],
-        };
-
         const currentCourse = await fastAPIClient.getCourse(id);
         const moduleId = currentCourse.modules[moduleIdx].id!;
-        await fastAPIClient.updateModule(id, moduleId, updatedModuleData);
+        const order = (currentCourse.modules[moduleIdx] as any).order as Array<{ type: string; id: string }> | undefined;
+        const hasAssignment = order?.some(o => o.type === 'assignment');
+
+        if (hasAssignment) {
+          await fastAPIClient.updateAssignment(id, moduleId, assignmentPayload);
+        } else {
+          await fastAPIClient.createAssignment(id, moduleId, assignmentPayload);
+        }
 
         const updatedCourse = await fastAPIClient.getCourse(id);
         setModules(mapCourseToEditableModules(updatedCourse));
 
         setShowAssignmentBuilder(null);
         toast({
-          title: '✅ Devoir sauvegardé',
-          description: 'Le devoir du module a été enregistré avec succès.'
+          title: '\u2705 Devoir sauvegardé',
+          description: 'Le devoir du module a été enregistré avec succès.',
         });
       }
     } catch (error: any) {
       toast({
-        title: '❌ Erreur',
+        title: '\u274c Erreur',
         description: error.response?.data?.detail || 'Impossible de sauvegarder le devoir',
-        variant: 'destructive'
+        variant: 'destructive',
       });
     }
   };
@@ -1163,37 +1136,23 @@ const EditCoursePage = () => {
     if (!id || !confirm('Supprimer ce devoir ?')) return;
 
     try {
-      const module = modules[moduleIdx];
-
-      // Utiliser updateModule avec le payload complet sans assignment
-      const updatedModuleData = {
-        title: module.title,
-        description: module.description,
-        duration: module.duration,
-        content: module.lessons.map(l => ({
-          title: l.title,
-          description: l.description,
-          duration: l.duration,
-        })) as any,
-        assignments: [],
-      };
-
       const currentCourse = await fastAPIClient.getCourse(id);
       const moduleId = currentCourse.modules[moduleIdx].id!;
-      await fastAPIClient.updateModule(id, moduleId, updatedModuleData);
+
+      await fastAPIClient.deleteAssignment(id, moduleId);
 
       const updatedCourse = await fastAPIClient.getCourse(id);
       setModules(mapCourseToEditableModules(updatedCourse));
 
       toast({
-        title: '✅ Devoir supprimé',
-        description: 'Le devoir du module a été supprimé.'
+        title: '\u2705 Devoir supprimé',
+        description: 'Le devoir du module a été supprimé.',
       });
     } catch (error: any) {
       toast({
-        title: '❌ Erreur',
+        title: '\u274c Erreur',
         description: error.response?.data?.detail || 'Impossible de supprimer le devoir',
-        variant: 'destructive'
+        variant: 'destructive',
       });
     }
   };
@@ -1853,7 +1812,32 @@ const EditCoursePage = () => {
                 <Accordion type="single" collapsible value={expandedModules[0] || undefined} onValueChange={(value) => setExpandedModules(value ? [value] : [])}>
                   {modules.map((module, moduleIdx) => (
                     <AccordionItem key={`module-${moduleIdx}`} value={`module-${moduleIdx}`} className="border rounded-lg mb-4 overflow-hidden">
-                      <AccordionTrigger className="hover:no-underline px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100">
+                      <AccordionTrigger
+                        className="hover:no-underline px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100"
+                        onClick={async () => {
+                          if (!id) return;
+                          // Chargement paresseux du devoir si présent dans order mais pas encore en state
+                          try {
+                            const courseWithOrder = await fastAPIClient.getCourse(id);
+                            const modWithOrder = courseWithOrder.modules[moduleIdx] as any;
+                            const order = modWithOrder.order as Array<{ type: string; id: string }> | undefined;
+                            const hasAssignment = order?.some(o => o.type === 'assignment');
+
+                            if (hasAssignment && (!modules[moduleIdx].assignments || modules[moduleIdx].assignments!.length === 0)) {
+                              const moduleId = modWithOrder.id as string;
+                              const assignment = await fastAPIClient.getAssignment(id, moduleId);
+
+                              setModules(prev => prev.map((m, idx) =>
+                                idx === moduleIdx
+                                  ? { ...m, assignments: [assignment] }
+                                  : m
+                              ));
+                            }
+                          } catch (e) {
+                            console.warn('Impossible de charger le devoir du module', e);
+                          }
+                        }}
+                      >
                         <div className="flex items-center justify-between w-full pr-4">
                           <div className="flex items-center space-x-4">
                             <Badge className="bg-gradient-to-r from-pink-600 to-purple-600">
