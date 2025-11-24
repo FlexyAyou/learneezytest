@@ -515,10 +515,68 @@ class FastAPIClient {
     );
   }
 
-  // ============= QUIZ ENDPOINTS (NEW) =============
+  // ============= MODULE QUIZ ENDPOINTS =============
 
   /**
-   * Créer un quiz pour une leçon
+   * Créer un quiz pour un module
+   */
+  async createModuleQuiz(
+    courseId: string,
+    moduleId: string,
+    quizData: QuizCreate
+  ): Promise<QuizResponse> {
+    return this.post<QuizResponse>(
+      `/api/courses/${courseId}/modules/${moduleId}/quizzes`,
+      quizData
+    );
+  }
+
+  /**
+   * Mettre à jour un quiz de module
+   */
+  async updateModuleQuiz(
+    courseId: string,
+    moduleId: string,
+    quizId: string,
+    quizData: QuizUpdate
+  ): Promise<QuizResponse> {
+    return this.put<QuizResponse>(
+      `/api/courses/${courseId}/modules/${moduleId}/quizzes/${quizId}`,
+      quizData
+    );
+  }
+
+  /**
+   * Supprimer un quiz de module
+   */
+  async deleteModuleQuiz(
+    courseId: string,
+    moduleId: string,
+    quizId: string
+  ): Promise<void> {
+    return this.delete<void>(
+      `/api/courses/${courseId}/modules/${moduleId}/quizzes/${quizId}`
+    );
+  }
+
+  /**
+   * Réorganiser le contenu d'un module (leçons + quizzes + assignments)
+   */
+  async reorderModuleContent(
+    courseId: string,
+    moduleId: string,
+    orderData: { items: Array<{ type: 'lesson' | 'quiz' | 'assignment'; id: string }> }
+  ): Promise<Module> {
+    return this.patch<Module>(
+      `/api/courses/${courseId}/modules/${moduleId}/quizzes/reorder`,
+      { order: orderData.items.map(item => item.id) }
+    );
+  }
+
+  // ============= DEPRECATED LESSON QUIZ ENDPOINTS =============
+
+  /**
+   * @deprecated Les quizzes sont maintenant au niveau module, utiliser createModuleQuiz
    */
   async createLessonQuiz(
     courseId: string,
@@ -526,6 +584,7 @@ class FastAPIClient {
     lessonId: string,
     quizData: QuizCreate
   ): Promise<QuizResponse> {
+    console.warn('createLessonQuiz is deprecated, use createModuleQuiz instead');
     return this.post<QuizResponse>(
       `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/quiz`,
       quizData
@@ -533,20 +592,21 @@ class FastAPIClient {
   }
 
   /**
-   * Récupérer le quiz d'une leçon
+   * @deprecated Les quizzes sont maintenant au niveau module
    */
   async getLessonQuiz(
     courseId: string,
     moduleId: string,
     lessonId: string
   ): Promise<QuizResponse> {
+    console.warn('getLessonQuiz is deprecated');
     return this.get<QuizResponse>(
       `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/quiz`
     );
   }
 
   /**
-   * Mettre à jour le quiz d'une leçon
+   * @deprecated Les quizzes sont maintenant au niveau module, utiliser updateModuleQuiz
    */
   async updateLessonQuiz(
     courseId: string,
@@ -554,6 +614,7 @@ class FastAPIClient {
     lessonId: string,
     quizData: QuizUpdate
   ): Promise<QuizResponse> {
+    console.warn('updateLessonQuiz is deprecated, use updateModuleQuiz instead');
     return this.put<QuizResponse>(
       `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/quiz`,
       quizData
@@ -561,20 +622,21 @@ class FastAPIClient {
   }
 
   /**
-   * Supprimer le quiz d'une leçon
+   * @deprecated Les quizzes sont maintenant au niveau module, utiliser deleteModuleQuiz
    */
   async deleteLessonQuiz(
     courseId: string,
     moduleId: string,
     lessonId: string
   ): Promise<void> {
+    console.warn('deleteLessonQuiz is deprecated, use deleteModuleQuiz instead');
     return this.delete<void>(
       `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/quiz`
     );
   }
 
   /**
-   * Récupérer un quiz par son ID
+   * @deprecated Quiz IDs are now managed at module level
    */
   async getQuizById(
     courseId: string,
@@ -582,13 +644,14 @@ class FastAPIClient {
     lessonId: string,
     quizId: string
   ): Promise<QuizResponse> {
+    console.warn('getQuizById is deprecated');
     return this.get<QuizResponse>(
       `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/quiz/${quizId}`
     );
   }
 
   /**
-   * Mettre à jour un quiz par son ID
+   * @deprecated Use updateModuleQuiz instead
    */
   async updateQuizById(
     courseId: string,
@@ -597,6 +660,7 @@ class FastAPIClient {
     quizId: string,
     quizData: QuizUpdate
   ): Promise<QuizResponse> {
+    console.warn('updateQuizById is deprecated, use updateModuleQuiz instead');
     return this.put<QuizResponse>(
       `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/quiz/${quizId}`,
       quizData
@@ -604,7 +668,7 @@ class FastAPIClient {
   }
 
   /**
-   * Supprimer un quiz par son ID
+   * @deprecated Use deleteModuleQuiz instead
    */
   async deleteQuizById(
     courseId: string,
@@ -612,6 +676,7 @@ class FastAPIClient {
     lessonId: string,
     quizId: string
   ): Promise<void> {
+    console.warn('deleteQuizById is deprecated, use deleteModuleQuiz instead');
     return this.delete<void>(
       `/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/quiz/${quizId}`
     );
@@ -715,23 +780,26 @@ class FastAPIClient {
   // ============= DEPRECATED QUIZ METHODS =============
 
   /**
-   * @deprecated Use createLessonQuiz instead
+   * @deprecated Use createModuleQuiz instead
    */
   async createQuiz(courseId: string, moduleId: number, lessonId: number, quizData: QuizCreate): Promise<Quiz> {
+    console.warn('createQuiz is deprecated, use createModuleQuiz instead');
     return this.post<Quiz>(`/api/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/quizzes`, quizData);
   }
 
   /**
-   * @deprecated Use updateLessonQuiz instead
+   * @deprecated Use updateModuleQuiz instead (renamed to avoid conflict)
    */
-  async updateModuleQuiz(courseId: string, moduleId: number, quizData: QuizCreate): Promise<Quiz> {
+  async updateModuleQuizOld(courseId: string, moduleId: number, quizData: QuizCreate): Promise<Quiz> {
+    console.warn('updateModuleQuizOld is deprecated, use updateModuleQuiz instead');
     return this.put<Quiz>(`/api/courses/${courseId}/modules/${moduleId}/quiz`, quizData);
   }
 
   /**
-   * @deprecated Use deleteLessonQuiz instead
+   * @deprecated Use deleteModuleQuiz instead (renamed to avoid conflict)
    */
-  async deleteModuleQuiz(courseId: string, moduleId: number): Promise<void> {
+  async deleteModuleQuizOld(courseId: string, moduleId: number): Promise<void> {
+    console.warn('deleteModuleQuizOld is deprecated, use deleteModuleQuiz instead');
     return this.delete<void>(`/api/courses/${courseId}/modules/${moduleId}/quiz`);
   }
 

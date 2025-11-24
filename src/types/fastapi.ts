@@ -341,7 +341,7 @@ export interface QuizQuestion {
  * Quiz associé à un module
  */
 export interface Quiz {
-  id?: string; // ID attribué par le backend
+  id: string; // ID attribué par le backend (requis)
   title: string;
   questions: QuizQuestion[];
   lesson_id?: string; // ID de la leçon associée
@@ -379,6 +379,7 @@ export interface Module {
   content: Content[];
   quizzes?: Quiz[];
   assignments?: AssignmentResponse[];
+  order?: Array<{ type: 'lesson' | 'quiz' | 'assignment'; id: string }>; // Ordre du contenu mixte
 }
 
 /**
@@ -412,15 +413,32 @@ export interface Course {
   learning_cycle?: string | null; // primaire|college|lycee|pro
   levels?: string[] | null; // Available levels for the selected learning cycle
   resources?: Resource[];
-  modules: Module[]; // minItems 1
+  modules: ModuleCreate[]; // ModuleCreate pour la création (sans IDs)
   id?: string | null;
+  resources_downloadable?: boolean; // Permet aux apprenants de télécharger les ressources
 }
 
 /**
  * Réponse du backend après création/récupération d'un cours
  */
-export interface CourseResponse extends Course {
+export interface CourseResponse {
   id: string;
+  title: string;
+  description: string;
+  objectives?: string[] | null;
+  price?: number | null;
+  category?: string | null;
+  category_ids?: number[] | null;
+  category_names?: string[] | null;
+  duration?: string | null;
+  level?: string | null;
+  image_url?: string | null;
+  cover_key?: string | null;
+  program_pdf_key?: string | null;
+  learning_cycle?: string | null;
+  levels?: string[] | null;
+  resources?: Resource[];
+  modules: Module[]; // Module complet avec IDs pour la réponse
   owner_type?: CourseOwnerType;
   owner_id?: number | null;
   status?: CourseStatus;
@@ -430,6 +448,7 @@ export interface CourseResponse extends Course {
   thumbnails?: string[];
   intro_video?: string;
   modules_count?: number;
+  resources_downloadable?: boolean;
 }
 
 /**
@@ -478,7 +497,7 @@ export interface ModuleCreate {
   description?: string;
   duration: string;
   content: Content[];
-  quizzes?: Quiz[];
+  quizzes?: QuizCreate[]; // Quizzes sans ID pour la création
 }
 
 export interface ModuleFullUpdate {
@@ -486,7 +505,7 @@ export interface ModuleFullUpdate {
   description?: string;
   duration?: string;
   content?: Content[];
-  quizzes?: Quiz[];
+  quizzes?: QuizCreate[]; // Quizzes sans ID pour la mise à jour
 }
 
 export interface LessonCreate {
@@ -555,8 +574,7 @@ export interface QuizResponse {
   id: string;
   title: string;
   questions: QuizQuestion[];
-  lesson_id?: string;
-  module_id?: string;
+  module_id: string; // Module ID requis
   created_at?: string;
 }
 

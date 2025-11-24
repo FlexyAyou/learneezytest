@@ -36,7 +36,7 @@ import RichTextEditor from '@/components/admin/RichTextEditor';
 import { QuizBuilder, AssignmentBuilder } from '@/components/quiz';
 import type { QuizConfig, AssignmentConfig } from '@/types/quiz';
 import { CycleTagSelector } from '@/components/admin/CycleTagSelector';
-import { useCategories, useCreateCategory } from '@/hooks/useApi';
+import { useCategories, useCreateCategory, useCreateModuleQuiz, useUpdateModuleQuiz, useDeleteModuleQuiz, useReorderModuleContent } from '@/hooks/useApi';
 import { UploadNotification, UploadItem } from '@/components/common/UploadNotification';
 import { useToast } from '@/hooks/use-toast';
 import { useAutoSave } from '@/hooks/useAutoSave';
@@ -77,6 +77,7 @@ interface EditableModule {
 }
 
 interface EditableLesson {
+  id?: string;  // ID backend de la leçon
   index: number;
   title: string;
   description: string;
@@ -138,6 +139,12 @@ const EditCoursePage = () => {
   const [customCategory, setCustomCategory] = useState('');
   const [isAddingCategory, setIsAddingCategory] = useState(false);
 
+  // Module quiz hooks
+  const createModuleQuizMutation = useCreateModuleQuiz();
+  const updateModuleQuizMutation = useUpdateModuleQuiz();
+  const deleteModuleQuizMutation = useDeleteModuleQuiz();
+  const reorderModuleContentMutation = useReorderModuleContent();
+
   const [modules, setModules] = useState<EditableModule[]>([]);
   const [resources, setResources] = useState<PedagogicalResource[]>([]);
   const [newImage, setNewImage] = useState<File | null>(null);
@@ -147,8 +154,8 @@ const EditCoursePage = () => {
   const [editingModuleId, setEditingModuleId] = useState<number | null>(null);
   const [editingLessonId, setEditingLessonId] = useState<{ moduleIdx: number; lessonIdx: number } | null>(null);
   const [expandedModules, setExpandedModules] = useState<string[]>([]);
-  const [showQuizBuilder, setShowQuizBuilder] = useState<number | null>(null);
   const [showModuleQuizBuilder, setShowModuleQuizBuilder] = useState<number | null>(null);
+  const [editingQuizId, setEditingQuizId] = useState<string | null>(null); // ID du quiz en cours d'édition
   const [showAssignmentBuilder, setShowAssignmentBuilder] = useState<number | null>(null);
   const [moduleHasChanges, setModuleHasChanges] = useState<Record<number, boolean>>({});
   const [savingModule, setSavingModule] = useState<number | null>(null);
@@ -703,14 +710,14 @@ const EditCoursePage = () => {
 
   // Durée totale éditable manuellement par l'utilisateur
 
-  // Save module quiz
+  // Save module quiz using new hooks
   const handleSaveModuleQuiz = async (moduleIdx: number, quiz: QuizConfig) => {
-    if (!id) return;
+    if (!id || !course) return;
 
     try {
       const module = modules[moduleIdx];
 
-      // Si le module est en attente, le créer d'abord dans la DB
+      // Gestion des modules pending
       if (module.isPending) {
         await fastAPIClient.createModule(id, {
           title: module.title,
@@ -719,20 +726,10 @@ const EditCoursePage = () => {
           content: []
         });
 
-        // Recharger pour obtenir l'index réel du module
         const updatedCourse = await fastAPIClient.getCourse(id);
-        const realModuleIdx = updatedCourse.modules.length - 1;
+        const moduleId = updatedCourse.modules[updatedCourse.modules.length - 1]?.id;
 
-        // Créer le quiz sur le module réel
-        const quizPayload: QuizCreate = {
-          title: quiz.title,
-          questions: quiz.questions.map(q => {
-            const baseQuestion: any = {
-              type: q.type,
-              question: q.question,
-              options: [],
-              correct_answer: ''
-            };
+        if (!moduleId) throw new Error('Module ID introuvable');
 
             if (q.type === 'single-choice') {
               const scq = q as any;
@@ -815,11 +812,23 @@ const EditCoursePage = () => {
         // Rafraîchir tout
         const finalCourse = await fastAPIClient.getCourse(id);
         setModules(mapCourseToEditableModules(finalCourse));
-
         setShowModuleQuizBuilder(null);
-        toast({
-          title: '✅ Module et quiz créés',
-          description: 'Le module a été enregistré avec son quiz'
+        return;
+      }
+
+      // Modules existants
+      const moduleId = course.modules[moduleIdx]?.id;
+      if (!moduleId) throw new Error('Module ID introuvable');
+
+      const quizPayload = buildQuizPayload(quiz);
+
+      // Créer ou mettre à jour
+      if (editingQuizId) {
+        await updateModuleQuizMutation.mutateAsync({
+          courseId: id,
+          moduleId,
+          quizId: editingQuizId,
+          quizData: quizPayload
         });
       } else {
         // Comportement actuel pour les modules existants
@@ -924,6 +933,12 @@ const EditCoursePage = () => {
           description: 'Le quiz du module a été enregistré avec succès.'
         });
       }
+
+      // Rafraîchir
+      const updatedCourse = await fastAPIClient.getCourse(id);
+      setModules(mapCourseToEditableModules(updatedCourse));
+      setShowModuleQuizBuilder(null);
+      setEditingQuizId(null);
     } catch (error: any) {
       toast({
         title: '❌ Erreur',
@@ -933,12 +948,69 @@ const EditCoursePage = () => {
     }
   };
 
-  // Delete module quiz
-  const handleDeleteModuleQuiz = async (moduleIdx: number) => {
-    if (!id || !confirm('Supprimer ce quiz ?')) return;
+  // Helper to build quiz payload
+  const buildQuizPayload = (quiz: QuizConfig): QuizCreate => {
+    return {
+      title: quiz.title,
+      questions: quiz.questions.map(q => {
+        const baseQuestion: any = {
+          type: q.type,
+          question: q.question,
+          options: [],
+          correct_answer: ''
+        };
+
+        if (q.type === 'single-choice') {
+          const scq = q as any;
+          baseQuestion.options = scq.options || [];
+          baseQuestion.correct_answer = scq.options?.[scq.correctAnswer] || '';
+        } else if (q.type === 'true-false') {
+          const tfq = q as any;
+          baseQuestion.options = ['Vrai', 'Faux'];
+          baseQuestion.correct_answer = tfq.correctAnswer === true || tfq.correctAnswer === 0;
+        } else if (q.type === 'multiple-choice') {
+          const mcq = q as any;
+          baseQuestion.options = mcq.options || [];
+          baseQuestion.correct_answer = mcq.correctAnswers?.map((idx: number) => mcq.options[idx]).join(', ') || '';
+          baseQuestion.correct_answers = mcq.correctAnswers?.map((idx: number) => mcq.options[idx]) || [];
+        } else if (q.type === 'short-answer') {
+          const saq = q as any;
+          baseQuestion.correct_answer = saq.correctAnswers?.[0] || '';
+          baseQuestion.correct_answers = saq.correctAnswers || [];
+          baseQuestion.case_sensitive = saq.caseSensitive || false;
+        } else if (q.type === 'long-answer') {
+          const laq = q as any;
+          baseQuestion.min_words = laq.minWords;
+          baseQuestion.max_words = laq.maxWords;
+          baseQuestion.rubric = laq.rubric;
+        } else if (q.type === 'fill-blank') {
+          const fbq = q as any;
+          baseQuestion.correct_answer = fbq.correctAnswers?.[0] || '';
+          baseQuestion.text = fbq.text;
+          baseQuestion.correct_answers = fbq.correctAnswers || [];
+        } else if (q.type === 'matching') {
+          const mq = q as any;
+          baseQuestion.left_items = mq.leftItems || [];
+          baseQuestion.right_items = mq.rightItems || [];
+          baseQuestion.correct_matches = mq.correctMatches || {};
+        } else if (q.type === 'ordering') {
+          const oq = q as any;
+          baseQuestion.items = oq.items || [];
+          baseQuestion.correct_order = oq.correctOrder || [];
+        }
+
+        return baseQuestion;
+      }) as any[]
+    };
+  };
+
+  // Delete module quiz using new hooks
+  const handleDeleteModuleQuiz = async (moduleIdx: number, quizId: string) => {
+    if (!id || !course || !confirm('Supprimer ce quiz ?')) return;
 
     try {
-      const module = modules[moduleIdx];
+      const moduleId = course.modules[moduleIdx]?.id;
+      if (!moduleId) return;
 
       // Utiliser updateModule avec le payload complet sans quiz
       const updatedModuleData = {
@@ -959,11 +1031,6 @@ const EditCoursePage = () => {
 
       const updatedCourse = await fastAPIClient.getCourse(id);
       setModules(mapCourseToEditableModules(updatedCourse));
-
-      toast({
-        title: '✅ Quiz supprimé',
-        description: 'Le quiz du module a été supprimé.'
-      });
     } catch (error: any) {
       toast({
         title: '❌ Erreur',
@@ -1186,7 +1253,12 @@ const EditCoursePage = () => {
 
         // Rafraîchir tout
         const finalCourse = await fastAPIClient.getCourse(id);
-        setModules(mapCourseToEditableModules(finalCourse));
+        const editableModules = mapCourseToEditableModules(finalCourse);
+        setModules(editableModules);
+
+        // Ouvrir automatiquement l'édition de la nouvelle leçon (la première du dernier module)
+        const lastModuleIdx = editableModules.length - 1;
+        setEditingLessonId({ moduleIdx: lastModuleIdx, lessonIdx: 0 });
 
         toast({
           title: '✅ Module et leçon créés',
@@ -1204,7 +1276,12 @@ const EditCoursePage = () => {
         });
 
         const updatedCourse = await fastAPIClient.getCourse(id);
-        setModules(mapCourseToEditableModules(updatedCourse));
+        const editableModules = mapCourseToEditableModules(updatedCourse);
+        setModules(editableModules);
+
+        // Ouvrir automatiquement l'édition de la nouvelle leçon (la dernière du module)
+        const newLessonIdx = editableModules[moduleIdx].lessons.length - 1;
+        setEditingLessonId({ moduleIdx, lessonIdx: newLessonIdx });
 
         toast({
           title: '✅ Leçon créée',
@@ -1956,7 +2033,10 @@ const EditCoursePage = () => {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => setShowModuleQuizBuilder(moduleIdx)}
+                                  onClick={() => {
+                                    setEditingQuizId(null); // Nouveau quiz
+                                    setShowModuleQuizBuilder(moduleIdx);
+                                  }}
                                 >
                                   <Plus className="h-4 w-4 mr-2" />
                                   Ajouter un quiz
@@ -1991,13 +2071,13 @@ const EditCoursePage = () => {
                                   ]}
                                 onReorder={(newItems) => handleContentReorder(moduleIdx, newItems)}
                                 onEditLesson={(lessonId) => {
-                                  const lessonIdx = module.lessons.findIndex((_, idx) => `lesson-${moduleIdx}-${idx}` === lessonId);
+                                  const lessonIdx = module.lessons.findIndex((l) => l.id === lessonId);
                                   if (lessonIdx !== -1) {
                                     setEditingLessonId({ moduleIdx, lessonIdx });
                                   }
                                 }}
                                 onDeleteLesson={(lessonId) => {
-                                  const lessonIdx = module.lessons.findIndex((_, idx) => `lesson-${moduleIdx}-${idx}` === lessonId);
+                                  const lessonIdx = module.lessons.findIndex((l) => l.id === lessonId);
                                   if (lessonIdx !== -1) {
                                     handleDeleteLesson(moduleIdx, lessonIdx);
                                   }
@@ -2244,6 +2324,100 @@ const EditCoursePage = () => {
                                               <p className="text-xs text-gray-500">Formats supportés : YouTube, Vimeo, MP4, PDF ou URL d'image</p>
                                             </div>
                                           )}
+                                        </div>
+
+                                        {/* Section Média (Vidéo, PDF ou Image) */}
+                                        <div className="space-y-4 border-t pt-4">
+                                          <Label className="text-base font-semibold">Média (Vidéo, PDF ou Image)</Label>
+                                          
+                                          <div className="flex gap-2">
+                                            <Button
+                                              type="button"
+                                              variant="default"
+                                              size="sm"
+                                              onClick={() => {
+                                                const input = document.createElement('input');
+                                                input.type = 'file';
+                                                input.accept = 'video/*,application/pdf,image/*';
+                                                input.onchange = async (e) => {
+                                                  const file = (e.target as HTMLInputElement).files?.[0];
+                                                  if (file) {
+                                                    await handleLessonVideoUpload(moduleIdx, editingLessonId.lessonIdx, file);
+                                                  }
+                                                };
+                                                input.click();
+                                              }}
+                                            >
+                                              <Upload className="h-4 w-4 mr-2" />
+                                              Upload fichier
+                                            </Button>
+                                            
+                                            <Button
+                                              type="button"
+                                              variant="outline"
+                                              size="sm"
+                                              onClick={() => {
+                                                const url = prompt('Entrez l\'URL de la vidéo:');
+                                                if (url) {
+                                                  setModules(prev => prev.map((m, mIdx) =>
+                                                    mIdx === moduleIdx
+                                                      ? {
+                                                        ...m,
+                                                        lessons: m.lessons.map((l, lIdx) =>
+                                                          lIdx === editingLessonId.lessonIdx ? { ...l, video_url: url } : l
+                                                        )
+                                                      }
+                                                      : m
+                                                  ));
+                                                  handleLessonVideoUrl(moduleIdx, editingLessonId.lessonIdx, url);
+                                                }
+                                              }}
+                                            >
+                                              <LinkIcon className="h-4 w-4 mr-2" />
+                                              Lien URL
+                                            </Button>
+                                          </div>
+
+                                          {/* Zone de drag and drop */}
+                                          <div 
+                                            className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-primary transition-colors cursor-pointer"
+                                            onClick={() => {
+                                              const input = document.createElement('input');
+                                              input.type = 'file';
+                                              input.accept = 'video/*,application/pdf,image/*';
+                                              input.onchange = async (e) => {
+                                                const file = (e.target as HTMLInputElement).files?.[0];
+                                                if (file) {
+                                                  await handleLessonVideoUpload(moduleIdx, editingLessonId.lessonIdx, file);
+                                                }
+                                              };
+                                              input.click();
+                                            }}
+                                            onDragOver={(e) => {
+                                              e.preventDefault();
+                                              e.stopPropagation();
+                                            }}
+                                            onDrop={async (e) => {
+                                              e.preventDefault();
+                                              e.stopPropagation();
+                                              const file = e.dataTransfer.files?.[0];
+                                              if (file) {
+                                                await handleLessonVideoUpload(moduleIdx, editingLessonId.lessonIdx, file);
+                                              }
+                                            }}
+                                          >
+                                            <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                                            <p className="text-base font-medium mb-2">Vidéo, PDF ou Image</p>
+                                            <p className="text-sm text-gray-500 mb-4">
+                                              Glissez-déposez ou cliquez pour parcourir
+                                            </p>
+                                            <Button type="button" variant="outline" size="sm">
+                                              Choisir un fichier
+                                            </Button>
+                                            <p className="text-xs text-gray-400 mt-3">
+                                              Limites : Vidéo (500MB) + PDF (50MB) + Image (10MB)
+                                            </p>
+                                          </div>
                                         </div>
 
                                         <div className="flex justify-end gap-2 pt-4 border-t">

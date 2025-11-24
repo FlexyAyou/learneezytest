@@ -18,18 +18,20 @@ import { SortableContentItem } from './SortableContentItem';
 
 export interface ContentItem {
   id: string;
-  type: 'lesson' | 'quiz';
+  type: 'lesson' | 'quiz' | 'assignment';
   originalIndex: number;
-  data: any; // Lesson or Quiz data
+  data: any; // Lesson, Quiz or Assignment data
 }
 
 interface SortableContentListProps {
   items: ContentItem[];
   onReorder: (items: ContentItem[]) => void;
-  onEditLesson: (lessonId: string) => void;
-  onDeleteLesson: (lessonId: string) => void;
-  onEditQuiz: (quizIndex: number) => void;
-  onDeleteQuiz: (quizIndex: number) => void;
+  onEditLesson?: (lessonId: string) => void;
+  onDeleteLesson?: (lessonId: string) => void;
+  onEditQuiz?: (quizIndex: number) => void;
+  onDeleteQuiz?: (quizIndex: number) => void;
+  onEditAssignment?: () => void;
+  onDeleteAssignment?: () => void;
 }
 
 export const SortableContentList: React.FC<SortableContentListProps> = ({
@@ -39,6 +41,8 @@ export const SortableContentList: React.FC<SortableContentListProps> = ({
   onDeleteLesson,
   onEditQuiz,
   onDeleteQuiz,
+  onEditAssignment,
+  onDeleteAssignment,
 }) => {
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -90,7 +94,7 @@ export const SortableContentList: React.FC<SortableContentListProps> = ({
                   onDelete={() => onDeleteLesson(item.id)}
                 />
               );
-            } else {
+            } else if (item.type === 'quiz') {
               const quiz = item.data;
               const questionsCount = Array.isArray(quiz.questions) ? quiz.questions.length : 0;
               const passing = quiz.settings?.passingScore ?? 0;
@@ -106,6 +110,7 @@ export const SortableContentList: React.FC<SortableContentListProps> = ({
                 />
               );
             }
+            return null;
           })}
         </div>
       </SortableContext>

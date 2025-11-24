@@ -701,149 +701,347 @@ const CourseDetailPage = () => {
                                     </Badge>
                                   </div>
 
-                                  {selectedLesson?.title === lesson.title && (
-                                    <div className="px-4 pb-4 space-y-4 border-t-2 pt-4">
-                                      {lesson.description && (
-                                        <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400">
-                                          <h5 className="font-semibold text-sm mb-2 flex items-center text-blue-900">
-                                            <FileText className="h-4 w-4 mr-2" />
-                                            Description
-                                          </h5>
-                                          <div
-                                            className="content-html prose max-w-none text-sm text-gray-700 leading-relaxed"
-                                            dangerouslySetInnerHTML={{ __html: sanitizeHTML(lesson.description) }}
-                                          />
-                                        </div>
-                                      )}
+                            // Construire l'ordre unifié si disponible
+                            let orderedContent: Array<{
+                              type: 'lesson' | 'quiz' | 'assignment';
+                              data: any;
+                              index: number;
+                            }> = [];
 
-                                      {(lesson.video_key || lesson.key || lesson.video_url) && (() => {
-                                        const contentType = getContentType(lesson);
+                            if (module.order && Array.isArray(module.order) && module.order.length > 0) {
+                              // Utiliser l'ordre défini par le backend (IDs ou objets {type, id})
+                              module.order.forEach((orderItem: any) => {
+                                const itemId = typeof orderItem === 'string' ? orderItem : orderItem.id;
+                                const itemType = typeof orderItem === 'object' ? orderItem.type : null;
 
-                                        if (contentType === 'pdf') {
-                                          return (
-                                            <div>
-                                              <h5 className="font-semibold text-sm mb-3 flex items-center text-gray-900">
-                                                <FileText className="h-4 w-4 mr-2 text-red-600" />
-                                                Document PDF
-                                              </h5>
-                                              <PDFViewer
-                                                pdfKey={lesson.pdf_key || lesson.video_key || lesson.key}
-                                                pdfUrl={lesson.video_url}
-                                                title={lesson.title}
-                                                height="500px"
-                                              />
-                                            </div>
-                                          );
-                                        }
+                                if (itemType === 'lesson' || !itemType) {
+                                  const lessonIdx = lessons.findIndex((l) => l.id === itemId);
+                                  if (lessonIdx !== -1) {
+                                    orderedContent.push({
+                                      type: 'lesson',
+                                      data: lessons[lessonIdx],
+                                      index: lessonIdx,
+                                    });
+                                  }
+                                }
 
-                                        if (contentType === 'image') {
-                                          return (
-                                            <ImageViewer
-                                              imageKey={lesson.image_key || lesson.video_key || lesson.key}
-                                              imageUrl={lesson.video_url}
-                                              title={lesson.title}
-                                            />
-                                          );
-                                        }
+                                if (itemType === 'quiz' || !itemType) {
+                                  const quizIdx = quizzes.findIndex((q) => q.id === itemId);
+                                  if (quizIdx !== -1) {
+                                    orderedContent.push({
+                                      type: 'quiz',
+                                      data: quizzes[quizIdx],
+                                      index: quizIdx,
+                                    });
+                                  }
+                                }
 
-                                        return (
-                                          <div>
-                                            <h5 className="font-semibold text-sm mb-3 flex items-center text-gray-900">
-                                              <Video className="h-4 w-4 mr-2 text-pink-600" />
-                                              Vidéo de la leçon
-                                            </h5>
-                                            <VideoPlayer
-                                              videoKey={lesson.video_key || lesson.key}
-                                              videoUrl={lesson.video_url}
-                                              title={lesson.title}
-                                            />
-                                          </div>
-                                        );
-                                      })()}
+                                if (itemType === 'assignment') {
+                                  const assignmentIdx = assignments.findIndex((a) => a.id === itemId);
+                                  if (assignmentIdx !== -1) {
+                                    orderedContent.push({
+                                      type: 'assignment',
+                                      data: assignments[assignmentIdx],
+                                      index: assignmentIdx,
+                                    });
+                                  }
+                                }
+                              });
 
-                                      {lesson.transcription && (
-                                        <div className="bg-gray-100 p-4 rounded-lg border-l-4 border-gray-400">
-                                          <h5 className="font-semibold text-sm mb-2 flex items-center text-gray-900">
-                                            <FileText className="h-4 w-4 mr-2" />
-                                            Transcription
-                                          </h5>
-                                          <p className="text-sm text-gray-700 leading-relaxed max-h-60 overflow-y-auto">
-                                            {lesson.transcription}
-                                          </p>
-                                        </div>
-                                      )}
-                                    </div>
-                                  )}
+                              // Ajouter en fin de liste les contenus qui n'apparaissent pas encore dans order
+                              const lessonIdsInOrder = new Set(
+                                orderedContent
+                                  .filter((item) => item.type === 'lesson')
+                                  .map((item) => item.data.id)
+                              );
+                              const quizIdsInOrder = new Set(
+                                orderedContent
+                                  .filter((item) => item.type === 'quiz')
+                                  .map((item) => item.data.id)
+                              );
+                              const assignmentIdsInOrder = new Set(
+                                orderedContent
+                                  .filter((item) => item.type === 'assignment')
+                                  .map((item) => item.data.id)
+                              );
+
+                              lessons.forEach((lesson, idx) => {
+                                if (lesson.id && !lessonIdsInOrder.has(lesson.id)) {
+                                  orderedContent.push({ type: 'lesson', data: lesson, index: idx });
+                                }
+                              });
+
+                              quizzes.forEach((quiz, idx) => {
+                                if (quiz.id && !quizIdsInOrder.has(quiz.id)) {
+                                  orderedContent.push({ type: 'quiz', data: quiz, index: idx });
+                                }
+                              });
+
+                              assignments.forEach((assignment, idx) => {
+                                if (assignment.id && !assignmentIdsInOrder.has(assignment.id)) {
+                                  orderedContent.push({ type: 'assignment', data: assignment, index: idx });
+                                }
+                              });
+                            } else {
+                              // Ordre par défaut: leçons → quizzes → assignments
+                              orderedContent = [
+                                ...lessons.map((lesson, idx) => ({
+                                  type: 'lesson' as const,
+                                  data: lesson,
+                                  index: idx,
+                                })),
+                                ...quizzes.map((quiz, idx) => ({
+                                  type: 'quiz' as const,
+                                  data: quiz,
+                                  index: idx,
+                                })),
+                                ...assignments.map((assignment, idx) => ({
+                                  type: 'assignment' as const,
+                                  data: assignment,
+                                  index: idx,
+                                })),
+                              ];
+                            }
+
+                            if (orderedContent.length === 0) {
+                              return (
+                                <div className="text-center py-8 text-gray-500">
+                                  <FileText className="h-12 w-12 mx-auto mb-2 opacity-30" />
+                                  <p>Aucun contenu dans ce module</p>
                                 </div>
-                              ))}
-                            </div>
-                          )}
+                              );
+                            }
 
-                          {/* Quizzes */}
-                          {module.quizzes && module.quizzes.length > 0 && (
-                            <div className="space-y-3 mt-6">
-                              <h4 className="font-semibold flex items-center text-gray-900">
-                                <Award className="h-5 w-5 mr-2 text-orange-600" />
-                                Quiz ({module.quizzes.length})
-                              </h4>
-                              {module.quizzes.map((quiz, quizIndex) => (
-                                <div key={quizIndex} className="bg-white rounded-lg border-2 border-orange-200 overflow-hidden">
-                                  <div className="flex items-center justify-between p-4 bg-gradient-to-r from-orange-50 to-yellow-50">
-                                    <div className="flex items-center space-x-3">
-                                      <span className="bg-orange-500 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs font-bold">
-                                        {quizIndex + 1}
-                                      </span>
-                                      <span className="font-semibold">{quiz.title}</span>
-                                    </div>
-                                    <Badge variant="outline" className="border-orange-400">
-                                      {quiz.questions?.length || 0} questions
-                                    </Badge>
-                                  </div>
-
-                                  {quiz.questions && quiz.questions.length > 0 && (
-                                    <div className="p-4 space-y-4">
-                                      {quiz.questions.map((question, qIndex) => (
-                                        <div key={qIndex} className="space-y-3 p-4 bg-gray-50 rounded-lg">
-                                          <p className="font-semibold text-gray-900">
-                                            <span className="bg-gray-200 text-gray-700 rounded px-2 py-1 text-sm mr-2">
-                                              Q{qIndex + 1}
+                            return (
+                              <div className="space-y-3">
+                                {orderedContent.map((item, idx) => {
+                                  if (item.type === 'lesson') {
+                                    const lesson = item.data;
+                                    return (
+                                      <div key={`lesson-${idx}`} className="space-y-3 bg-white rounded-lg border-2 hover:border-pink-300 transition-all">
+                                        <div
+                                          className="flex items-center justify-between p-4 cursor-pointer"
+                                          onClick={() => setSelectedLesson(selectedLesson?.title === lesson.title ? null : lesson)}
+                                        >
+                                          <div className="flex items-center space-x-3">
+                                            <span className="bg-green-100 text-green-700 rounded-full w-7 h-7 flex items-center justify-center text-xs font-bold">
+                                              L{item.index + 1}
                                             </span>
-                                            {question.question}
-                                          </p>
-                                          <div className="space-y-2 pl-4">
-                                            {question.options.map((option, optIndex) => {
-                                              const isCorrect = option === question.correct_answer;
-                                              return (
+                                            <div>
+                                              <p className="font-medium">{lesson.title}</p>
+                                              {(lesson.video_key || lesson.key || lesson.video_url) && (() => {
+                                                const contentType = getContentType(lesson);
+                                                if (contentType === 'video') {
+                                                  return (
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                      <Badge variant="secondary" className="text-xs">
+                                                        <Video className="h-3 w-3 mr-1" />
+                                                        Vidéo disponible
+                                                      </Badge>
+                                                      {(lesson.video_key || lesson.key) && (
+                                                        <MediaStatusBadge assetKey={lesson.video_key || lesson.key} />
+                                                      )}
+                                                    </div>
+                                                  );
+                                                }
+                                                if (contentType === 'pdf') {
+                                                  return (
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                      <Badge variant="secondary" className="text-xs bg-red-100 text-red-700">
+                                                        <FileText className="h-3 w-3 mr-1" />
+                                                        Fichier PDF disponible
+                                                      </Badge>
+                                                      {(lesson.video_key || lesson.key) && (
+                                                        <MediaStatusBadge assetKey={lesson.video_key || lesson.key} />
+                                                      )}
+                                                    </div>
+                                                  );
+                                                }
+                                                if (contentType === 'image') {
+                                                  return (
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                      <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
+                                                        <ImageIcon className="h-3 w-3 mr-1" />
+                                                        Image disponible
+                                                      </Badge>
+                                                      {(lesson.video_key || lesson.key) && (
+                                                        <MediaStatusBadge assetKey={lesson.video_key || lesson.key} />
+                                                      )}
+                                                    </div>
+                                                  );
+                                                }
+                                                return null;
+                                              })()}
+                                            </div>
+                                          </div>
+                                          <Badge variant="outline" className="text-xs">
+                                            <Clock className="h-3 w-3 mr-1" />
+                                            {lesson.duration}
+                                          </Badge>
+                                        </div>
+
+                                        {selectedLesson?.title === lesson.title && (
+                                          <div className="px-4 pb-4 space-y-4 border-t-2 pt-4">
+                                            {lesson.description && (
+                                              <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400">
+                                                <h5 className="font-semibold text-sm mb-2 flex items-center text-blue-900">
+                                                  <FileText className="h-4 w-4 mr-2" />
+                                                  Description
+                                                </h5>
                                                 <div
-                                                  key={optIndex}
-                                                  className={`text-sm p-3 rounded-lg flex items-center space-x-3 transition-all ${isCorrect
-                                                    ? 'bg-green-100 text-green-900 border-2 border-green-400 font-semibold shadow-sm'
-                                                    : 'bg-white text-gray-700 border border-gray-300'
-                                                    }`}
-                                                >
-                                                  {isCorrect ? (
-                                                    <CheckCircle className="h-5 w-5 text-green-600" />
-                                                  ) : (
-                                                    <XCircle className="h-5 w-5 text-gray-400" />
-                                                  )}
-                                                  <span>{option}</span>
-                                                  {isCorrect && (
-                                                    <Badge className="ml-auto bg-green-600">
-                                                      Réponse correcte
-                                                    </Badge>
-                                                  )}
+                                                  className="content-html prose max-w-none text-sm text-gray-700 leading-relaxed"
+                                                  dangerouslySetInnerHTML={{ __html: sanitizeHTML(lesson.description) }}
+                                                />
+                                              </div>
+                                            )}
+
+                                            {(lesson.video_key || lesson.key || lesson.video_url) && (() => {
+                                              const contentType = getContentType(lesson);
+
+                                              if (contentType === 'pdf') {
+                                                return (
+                                                  <div>
+                                                    <h5 className="font-semibold text-sm mb-3 flex items-center text-gray-900">
+                                                      <FileText className="h-4 w-4 mr-2 text-red-600" />
+                                                      Document PDF
+                                                    </h5>
+                                                    <PDFViewer
+                                                      pdfKey={lesson.pdf_key || lesson.video_key || lesson.key}
+                                                      pdfUrl={lesson.video_url}
+                                                      title={lesson.title}
+                                                      height="500px"
+                                                    />
+                                                  </div>
+                                                );
+                                              }
+
+                                              if (contentType === 'image') {
+                                                return (
+                                                  <ImageViewer
+                                                    imageKey={lesson.image_key || lesson.video_key || lesson.key}
+                                                    imageUrl={lesson.video_url}
+                                                    title={lesson.title}
+                                                  />
+                                                );
+                                              }
+
+                                              return (
+                                                <div>
+                                                  <h5 className="font-semibold text-sm mb-3 flex items-center text-gray-900">
+                                                    <Video className="h-4 w-4 mr-2 text-pink-600" />
+                                                    Vidéo de la leçon
+                                                  </h5>
+                                                  <VideoPlayer
+                                                    videoKey={lesson.video_key || lesson.key}
+                                                    videoUrl={lesson.video_url}
+                                                    title={lesson.title}
+                                                  />
                                                 </div>
                                               );
-                                            })}
+                                            })()}
+
+                                            {lesson.transcription && (
+                                              <div className="bg-gray-100 p-4 rounded-lg border-l-4 border-gray-400">
+                                                <h5 className="font-semibold text-sm mb-2 flex items-center text-gray-900">
+                                                  <FileText className="h-4 w-4 mr-2" />
+                                                  Transcription
+                                                </h5>
+                                                <p className="text-sm text-gray-700 leading-relaxed max-h-60 overflow-y-auto">
+                                                  {lesson.transcription}
+                                                </p>
+                                              </div>
+                                            )}
                                           </div>
+                                        )}
+                                      </div>
+                                    );
+                                  }
+
+                                  if (item.type === 'quiz') {
+                                    const quiz = item.data;
+                                    return (
+                                      <div key={`quiz-${idx}`} className="bg-white rounded-lg border-2 border-orange-200 overflow-hidden">
+                                        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-orange-50 to-yellow-50">
+                                          <div className="flex items-center space-x-3">
+                                            <span className="bg-orange-500 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs font-bold">
+                                              Q{item.index + 1}
+                                            </span>
+                                            <span className="font-semibold">{quiz.title}</span>
+                                          </div>
+                                          <Badge variant="outline" className="border-orange-400">
+                                            {quiz.questions?.length || 0} questions
+                                          </Badge>
                                         </div>
-                                      ))}
-                                    </div>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          )}
+
+                                        {quiz.questions && quiz.questions.length > 0 && (
+                                          <div className="p-4 space-y-4">
+                                            {quiz.questions.map((question: any, qIndex: number) => (
+                                              <div key={qIndex} className="space-y-3 p-4 bg-gray-50 rounded-lg">
+                                                <p className="font-semibold text-gray-900">
+                                                  <span className="bg-gray-200 text-gray-700 rounded px-2 py-1 text-sm mr-2">
+                                                    Q{qIndex + 1}
+                                                  </span>
+                                                  {question.question}
+                                                </p>
+                                                <div className="space-y-2 pl-4">
+                                                  {question.options?.map((option: string, optIndex: number) => {
+                                                    const isCorrect = option === question.correct_answer;
+                                                    return (
+                                                      <div
+                                                        key={optIndex}
+                                                        className={`text-sm p-3 rounded-lg flex items-center space-x-3 transition-all ${
+                                                          isCorrect
+                                                            ? 'bg-green-100 text-green-900 border-2 border-green-400 font-semibold shadow-sm'
+                                                            : 'bg-white text-gray-700 border border-gray-300'
+                                                        }`}
+                                                      >
+                                                        {isCorrect ? (
+                                                          <CheckCircle className="h-5 w-5 text-green-600" />
+                                                        ) : (
+                                                          <XCircle className="h-5 w-5 text-gray-400" />
+                                                        )}
+                                                        <span>{option}</span>
+                                                        {isCorrect && (
+                                                          <Badge className="ml-auto bg-green-600">Réponse correcte</Badge>
+                                                        )}
+                                                      </div>
+                                                    );
+                                                  })}
+                                                </div>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  }
+
+                                  if (item.type === 'assignment') {
+                                    const assignment = item.data;
+                                    return (
+                                      <div key={`assignment-${idx}`} className="bg-white rounded-lg border-2 border-purple-200 overflow-hidden">
+                                        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-pink-50">
+                                          <div className="flex items-center space-x-3">
+                                            <span className="bg-purple-500 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs font-bold">
+                                              <ClipboardList className="h-4 w-4" />
+                                            </span>
+                                            <span className="font-semibold">{assignment.title}</span>
+                                          </div>
+                                          <Badge variant="outline" className="border-purple-400">Devoir</Badge>
+                                        </div>
+                                        <div className="p-4">
+                                          <p className="text-sm text-gray-600">{assignment.description || 'Devoir de fin de module'}</p>
+                                        </div>
+                                      </div>
+                                    );
+                                  }
+
+                                  return null;
+                                })}
+                              </div>
+                            );
+                          })()}
+
                         </div>
                       </AccordionContent>
                     </AccordionItem>

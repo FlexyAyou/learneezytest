@@ -56,6 +56,7 @@ interface ModuleWithLessons {
   lessons: Lesson[];
   quizzes: QuizConfig[]; // Plusieurs quiz au niveau du module
   assignment?: AssignmentConfig; // Devoir optionnel par module
+  order?: Array<{ type: 'lesson' | 'quiz' | 'assignment'; id: string }>; // Ordre unifié des contenus
 }
 
 const CreateCoursePage = () => {
@@ -347,16 +348,28 @@ const CreateCoursePage = () => {
       fileType: null,
       fileName: ''
     };
-    setModules(modules.map(m =>
-      m.id === moduleId ? { ...m, lessons: [...m.lessons, newLesson] } : m
-    ));
+    setModules(modules.map(m => {
+      if (m.id === moduleId) {
+        const newLessons = [...m.lessons, newLesson];
+        // Mettre à jour l'ordre unifié
+        const newOrder = [...(m.order || []), { type: 'lesson' as const, id: newLesson.id }];
+        return { ...m, lessons: newLessons, order: newOrder };
+      }
+      return m;
+    }));
     setEditingLesson({ moduleId, lessonId: newLesson.id });
   };
 
   const removeLesson = (moduleId: string, lessonId: string) => {
-    setModules(modules.map(m =>
-      m.id === moduleId ? { ...m, lessons: m.lessons.filter(l => l.id !== lessonId) } : m
-    ));
+    setModules(modules.map(m => {
+      if (m.id === moduleId) {
+        const newLessons = m.lessons.filter(l => l.id !== lessonId);
+        // Retirer de l'ordre unifié aussi
+        const newOrder = (m.order || []).filter(item => !(item.type === 'lesson' && item.id === lessonId));
+        return { ...m, lessons: newLessons, order: newOrder };
+      }
+      return m;
+    }));
   };
 
   const updateLesson = (moduleId: string, lessonId: string, updates: Partial<Lesson>) => {
@@ -573,15 +586,22 @@ const CreateCoursePage = () => {
   const handleSaveModuleQuiz = (moduleId: string, quiz: QuizConfig) => {
     setModules(modules.map(m => {
       if (m.id === moduleId) {
+        let newQuizzes = [...m.quizzes];
+        let quizId: string;
+        
         if (editingQuizIndex !== null) {
           // Modifier un quiz existant
-          const updatedQuizzes = [...m.quizzes];
-          updatedQuizzes[editingQuizIndex] = quiz;
-          return { ...m, quizzes: updatedQuizzes };
+          newQuizzes[editingQuizIndex] = quiz;
+          quizId = `quiz-${moduleId}-${editingQuizIndex}`;
         } else {
           // Ajouter un nouveau quiz
-          return { ...m, quizzes: [...m.quizzes, quiz] };
+          newQuizzes = [...m.quizzes, quiz];
+          quizId = `quiz-${moduleId}-${newQuizzes.length - 1}`;
+          // Ajouter à l'ordre unifié
+          const newOrder = [...(m.order || []), { type: 'quiz' as const, id: quizId }];
+          return { ...m, quizzes: newQuizzes, order: newOrder };
         }
+        return { ...m, quizzes: newQuizzes };
       }
       return m;
     }));
@@ -598,7 +618,10 @@ const CreateCoursePage = () => {
       setModules(modules.map(m => {
         if (m.id === moduleId) {
           const updatedQuizzes = m.quizzes.filter((_, idx) => idx !== quizIndex);
-          return { ...m, quizzes: updatedQuizzes };
+          // Retirer de l'ordre unifié aussi
+          const quizId = `quiz-${moduleId}-${quizIndex}`;
+          const newOrder = (m.order || []).filter(item => !(item.type === 'quiz' && item.id === quizId));
+          return { ...m, quizzes: updatedQuizzes, order: newOrder };
         }
         return m;
       }));
@@ -621,7 +644,7 @@ const CreateCoursePage = () => {
         // Séparer les leçons et quizzes réorganisés
         const newLessons: Lesson[] = [];
         const newQuizzes: QuizConfig[] = [];
-
+        
         reorderedItems.forEach(item => {
           if (item.type === 'lesson') {
             newLessons.push(item.data);
@@ -629,7 +652,7 @@ const CreateCoursePage = () => {
             newQuizzes.push(item.data);
           }
         });
-
+        
         return { ...m, lessons: newLessons, quizzes: newQuizzes };
       }
       return m;
@@ -955,8 +978,7 @@ const CreateCoursePage = () => {
               } else if (q.type === 'true-false') {
                 const tfq = q as any;
                 baseQuestion.options = ['Vrai', 'Faux'];
-                // Backend: booléen ou 'true'/'false' requis
-                baseQuestion.correct_answer = tfq.correctAnswer === 0;
+                baseQuestion.correct_answer = tfq.correctAnswer === 0 ? 'Vrai' : 'Faux';
               } else if (q.type === 'multiple-choice') {
                 const mcq = q as any;
                 baseQuestion.options = mcq.options || [];
@@ -1078,6 +1100,69 @@ const CreateCoursePage = () => {
         description: `Le cours "${courseData.title}" a été créé avec ${modules.length} module(s)`,
       });
 
+      // 5. APPLIQUER L'ORDRE UNIFIÉ DES CONTENUS POUR CHAQUE MODULE
+      try {
+        // Recharger le cours pour obtenir les IDs backend des modules et contenus
+        const createdCourse = await fastAPIClient.getCourse(courseId);
+        console.log('📚 Cours rechargé:', createdCourse);
+
+        // Pour chaque module, si on a un ordre unifié défini, l'appliquer
+        for (let i = 0; i < modules.length; i++) {
+          const localModule = modules[i];
+          const backendModule = createdCourse.modules[i];
+          
+          if (!backendModule || !localModule.order || localModule.order.length === 0) {
+            continue; // Pas d'ordre à appliquer
+          }
+
+          // Construire le mapping des IDs locaux vers IDs backend
+          const lessonIdMap = new Map<string, string>();
+          localModule.lessons.forEach((lesson, idx) => {
+            const backendLesson = backendModule.content[idx];
+            if (backendLesson) {
+              lessonIdMap.set(lesson.id, backendLesson.id);
+            }
+          });
+
+          const quizIdMap = new Map<string, string>();
+          localModule.quizzes.forEach((quiz, idx) => {
+            const backendQuiz = backendModule.quizzes?.[idx];
+            if (backendQuiz) {
+              const localQuizId = `quiz-${localModule.id}-${idx}`;
+              quizIdMap.set(localQuizId, backendQuiz.id);
+            }
+          });
+
+          // Construire l'ordre avec les IDs backend
+          const orderItems = localModule.order.map(orderItem => {
+            let backendId = orderItem.id;
+            
+            if (orderItem.type === 'lesson' && lessonIdMap.has(orderItem.id)) {
+              backendId = lessonIdMap.get(orderItem.id)!;
+            } else if (orderItem.type === 'quiz' && quizIdMap.has(orderItem.id)) {
+              backendId = quizIdMap.get(orderItem.id)!;
+            }
+
+            return {
+              type: orderItem.type,
+              id: backendId
+            };
+          });
+
+          // Appeler l'API de reorder
+          console.log(`🔄 Reorder module ${i + 1}:`, orderItems);
+          await fastAPIClient.reorderModuleContent(courseId, backendModule.id, { items: orderItems });
+        }
+
+        toast({
+          title: "✅ Ordre des contenus appliqué",
+          description: "L'organisation de vos modules a été enregistrée",
+        });
+      } catch (reorderError) {
+        console.warn('⚠️ Erreur lors de l\'application de l\'ordre:', reorderError);
+        // Ne pas bloquer la création du cours si le reordering échoue
+      }
+
       toast({
         title: "✅ Cours créé avec succès",
         description: `Le cours "${courseData.title}" est maintenant disponible`,
@@ -1093,9 +1178,39 @@ const CreateCoursePage = () => {
 
     } catch (error: any) {
       console.error('Erreur création cours:', error);
+      
+      // Formatter les erreurs de validation FastAPI (422)
+      let errorMessage = "Une erreur est survenue lors de la création du cours";
+      
+      if (error?.response?.data?.detail) {
+        const detail = error.response.data.detail;
+        
+        // Si detail est un tableau d'erreurs de validation Pydantic
+        if (Array.isArray(detail)) {
+          errorMessage = detail
+            .map((err: any) => {
+              const field = err.loc ? err.loc.join(' > ') : 'Champ inconnu';
+              return `${field}: ${err.msg || 'Erreur de validation'}`;
+            })
+            .join('\n');
+        } 
+        // Si detail est une chaîne
+        else if (typeof detail === 'string') {
+          errorMessage = detail;
+        }
+        // Si detail est un objet unique
+        else if (typeof detail === 'object') {
+          errorMessage = detail.msg || JSON.stringify(detail);
+        }
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      console.error('📋 Erreur formatée:', errorMessage);
+      
       toast({
-        title: "Erreur",
-        description: error?.response?.data?.detail || error?.message || "Une erreur est survenue lors de la création du cours",
+        title: "Erreur de création",
+        description: errorMessage,
         variant: "destructive"
       });
     }
@@ -1577,31 +1692,20 @@ const CreateCoursePage = () => {
                           </div>
                         ) : (
                           <SortableContentList
-                            items={(() => {
-                              const items: ContentItem[] = [];
-
-                              // Dans la création, on n'a pas encore Module.order côté backend.
-                              // On respecte donc l'ordre actuel du tableau mixte lessons+quizzes.
-                              module.lessons.forEach((lesson, idx) => {
-                                items.push({
-                                  id: lesson.id,
-                                  type: 'lesson',
-                                  originalIndex: idx,
-                                  data: lesson,
-                                });
-                              });
-
-                              module.quizzes.forEach((quiz, idx) => {
-                                items.push({
-                                  id: `quiz-${module.id}-${idx}`,
-                                  type: 'quiz',
-                                  originalIndex: idx,
-                                  data: quiz,
-                                });
-                              });
-
-                              return items;
-                            })()}
+                            items={[
+                              ...module.lessons.map((lesson, idx) => ({
+                                id: lesson.id,
+                                type: 'lesson' as const,
+                                originalIndex: idx,
+                                data: lesson
+                              })),
+                              ...module.quizzes.map((quiz, idx) => ({
+                                id: `quiz-${module.id}-${idx}`,
+                                type: 'quiz' as const,
+                                originalIndex: idx,
+                                data: quiz
+                              }))
+                            ]}
                             onReorder={(newItems) => handleContentReorder(module.id, newItems)}
                             onEditLesson={(lessonId) => setEditingLesson({ moduleId: module.id, lessonId })}
                             onDeleteLesson={(lessonId) => removeLesson(module.id, lessonId)}

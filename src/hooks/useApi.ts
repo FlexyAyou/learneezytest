@@ -355,8 +355,119 @@ export const useAttachLessonMedia = () => {
   });
 };
 
-// ============= QUIZ HOOKS (NEW) =============
+// ============= MODULE QUIZ HOOKS =============
 
+export const useCreateModuleQuiz = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ courseId, moduleId, quizData }: { 
+      courseId: string; 
+      moduleId: string; 
+      quizData: QuizCreate 
+    }) => fastAPIClient.createModuleQuiz(courseId, moduleId, quizData),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['course', variables.courseId] });
+      toast({
+        title: "Quiz créé",
+        description: "Le quiz a été ajouté au module",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erreur",
+        description: error.response?.data?.detail || "Impossible de créer le quiz",
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useUpdateModuleQuiz = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ courseId, moduleId, quizId, quizData }: { 
+      courseId: string; 
+      moduleId: string; 
+      quizId: string;
+      quizData: QuizUpdate 
+    }) => fastAPIClient.updateModuleQuiz(courseId, moduleId, quizId, quizData),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['course', variables.courseId] });
+      toast({
+        title: "Quiz mis à jour",
+        description: "Les modifications ont été enregistrées",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erreur",
+        description: error.response?.data?.detail || "Impossible de mettre à jour le quiz",
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useDeleteModuleQuiz = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ courseId, moduleId, quizId }: { 
+      courseId: string; 
+      moduleId: string; 
+      quizId: string 
+    }) => fastAPIClient.deleteModuleQuiz(courseId, moduleId, quizId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['course', variables.courseId] });
+      toast({
+        title: "Quiz supprimé",
+        description: "Le quiz a été supprimé du module",
+        variant: "destructive",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erreur",
+        description: error.response?.data?.detail || "Impossible de supprimer le quiz",
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useReorderModuleContent = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ courseId, moduleId, items }: {
+      courseId: string;
+      moduleId: string;
+      items: Array<{ type: 'lesson' | 'quiz' | 'assignment'; id: string }>;
+    }) => fastAPIClient.reorderModuleContent(courseId, moduleId, { items }),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['course', variables.courseId] });
+      toast({
+        title: "Ordre mis à jour",
+        description: "L'ordre du contenu a été enregistré",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erreur",
+        description: error.response?.data?.detail || "Impossible de réorganiser le contenu",
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+// ============= DEPRECATED LESSON QUIZ HOOKS =============
+
+/**
+ * @deprecated Les quizzes sont maintenant au niveau module, utiliser useCreateModuleQuiz
+ */
 export const useCreateLessonQuiz = () => {
   const queryClient = useQueryClient();
   
@@ -384,6 +495,9 @@ export const useCreateLessonQuiz = () => {
   });
 };
 
+/**
+ * @deprecated Les quizzes sont maintenant au niveau module, utiliser useUpdateModuleQuiz
+ */
 export const useUpdateLessonQuiz = () => {
   const queryClient = useQueryClient();
   
@@ -411,6 +525,9 @@ export const useUpdateLessonQuiz = () => {
   });
 };
 
+/**
+ * @deprecated Les quizzes sont maintenant au niveau module, utiliser useDeleteModuleQuiz
+ */
 export const useDeleteLessonQuiz = () => {
   const queryClient = useQueryClient();
   
