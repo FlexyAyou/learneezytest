@@ -982,7 +982,6 @@ const CreateCoursePage = () => {
               } else if (q.type === 'multiple-choice') {
                 const mcq = q as any;
                 baseQuestion.options = mcq.options || [];
-                baseQuestion.correct_answer = mcq.options?.[mcq.correctAnswers?.[0]] || '';
                 baseQuestion.correct_answers = mcq.correctAnswers?.map((i: number) => mcq.options[i]) || [];
               } else if (q.type === 'short-answer') {
                 const saq = q as any;
@@ -996,18 +995,24 @@ const CreateCoursePage = () => {
                 baseQuestion.rubric = laq.rubric;
               } else if (q.type === 'fill-blank') {
                 const fbq = q as any;
-                baseQuestion.correct_answer = fbq.correctAnswers?.[0] || '';
                 baseQuestion.text = fbq.text;
                 baseQuestion.correct_answers = fbq.correctAnswers || [];
               } else if (q.type === 'matching') {
                 const mq = q as any;
                 baseQuestion.left_items = mq.leftItems || [];
                 baseQuestion.right_items = mq.rightItems || [];
-                baseQuestion.correct_matches = mq.correctMatches || {};
+                baseQuestion.correct_matches = (mq.correctMatches || []).reduce((acc: Record<string, string>, match: any) => {
+                  const leftItem = mq.leftItems[match.left];
+                  const rightItem = mq.rightItems[match.right];
+                  if (leftItem && rightItem) {
+                    acc[leftItem] = rightItem;
+                  }
+                  return acc;
+                }, {});
               } else if (q.type === 'ordering') {
                 const oq = q as any;
                 baseQuestion.items = oq.items || [];
-                baseQuestion.correct_order = oq.correctOrder || [];
+                baseQuestion.correct_order = (oq.correctOrder || []).map((idx: number) => oq.items[idx]).filter(Boolean);
               }
 
               return baseQuestion;
