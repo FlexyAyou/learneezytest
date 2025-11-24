@@ -727,87 +727,22 @@ const EditCoursePage = () => {
         });
 
         const updatedCourse = await fastAPIClient.getCourse(id);
-        const moduleId = updatedCourse.modules[updatedCourse.modules.length - 1]?.id;
+        const newModuleId = updatedCourse.modules[updatedCourse.modules.length - 1]?.id;
 
-        if (!moduleId) throw new Error('Module ID introuvable');
+        if (!newModuleId) throw new Error('Module ID introuvable');
 
-            if (q.type === 'single-choice') {
-              const scq = q as any;
-              baseQuestion.options = scq.options || [];
-              baseQuestion.correct_answer = scq.options?.[scq.correctAnswer] || '';
-            } else if (q.type === 'true-false') {
-              const tfq = q as any;
-              baseQuestion.options = ['Vrai', 'Faux'];
-              // Backend attend un booléen ou 'true'/'false'
-              baseQuestion.correct_answer = !!tfq.correctAnswer;
-            } else if (q.type === 'multiple-choice') {
-              const mcq = q as any;
-              baseQuestion.options = mcq.options || [];
-              baseQuestion.correct_answer = mcq.correctAnswers?.map((idx: number) => mcq.options[idx]).join(', ') || '';
-              baseQuestion.correct_answers = mcq.correctAnswers?.map((idx: number) => mcq.options[idx]) || [];
-            } else if (q.type === 'short-answer') {
-              const saq = q as any;
-              baseQuestion.correct_answer = saq.correctAnswers?.[0] || '';
-              baseQuestion.correct_answers = saq.correctAnswers || [];
-              baseQuestion.case_sensitive = saq.caseSensitive || false;
-            } else if (q.type === 'long-answer') {
-              const laq = q as any;
-              baseQuestion.min_words = laq.minWords;
-              baseQuestion.max_words = laq.maxWords;
-              baseQuestion.rubric = laq.rubric;
-            } else if (q.type === 'fill-blank') {
-              const fbq = q as any;
-              baseQuestion.correct_answer = fbq.correctAnswers?.[0] || '';
-              baseQuestion.text = fbq.text;
-              baseQuestion.correct_answers = fbq.correctAnswers || [];
-            } else if (q.type === 'matching') {
-              const mq = q as any;
-              baseQuestion.left_items = mq.leftItems || [];
-              baseQuestion.right_items = mq.rightItems || [];
-              baseQuestion.correct_matches = mq.correctMatches || {};
-            } else if (q.type === 'ordering') {
-              const oq = q as any;
-              baseQuestion.items = oq.items || [];
-              baseQuestion.correct_order = oq.correctOrder || [];
-            }
+        const quizPayload = buildQuizPayload(quiz);
 
-            // Étape 2 – Médias et attributs supplémentaires
-            const qAny: any = q as any;
-            if (qAny.media) {
-              baseQuestion.media = {
-                type: qAny.media.type,
-                key: qAny.media.key,
-                url: qAny.media.url,
-                caption: qAny.media.caption,
-              };
-            }
-            if (typeof qAny.points !== 'undefined') baseQuestion.points = qAny.points;
-            if (qAny.difficulty) baseQuestion.difficulty = qAny.difficulty;
-            if (qAny.explanation) baseQuestion.explanation = qAny.explanation;
-            if (qAny.tags) baseQuestion.tags = qAny.tags;
-
-            if (q.type === 'single-choice' || q.type === 'multiple-choice') {
-              const om = Array.isArray(qAny.optionsMedia) ? qAny.optionsMedia : [];
-              baseQuestion.options_media = (baseQuestion.options || []).map((_: any, i: number) => {
-                const m = om[i];
-                return m ? { type: m.type, key: m.key, url: m.url, caption: m.caption } : undefined;
-              });
-            }
-
-            return baseQuestion;
-          }) as any[]
-        };
-
+        const lastModuleIdx = updatedCourse.modules.length - 1;
         const updatedModuleData = {
-          title: updatedCourse.modules[realModuleIdx].title,
-          description: updatedCourse.modules[realModuleIdx].description,
-          duration: updatedCourse.modules[realModuleIdx].duration,
-          content: updatedCourse.modules[realModuleIdx].content as any,
+          title: updatedCourse.modules[lastModuleIdx].title,
+          description: updatedCourse.modules[lastModuleIdx].description,
+          duration: updatedCourse.modules[lastModuleIdx].duration,
+          content: updatedCourse.modules[lastModuleIdx].content as any,
           quizzes: [quizPayload],
         };
 
-        const moduleId = updatedCourse.modules[realModuleIdx].id!;
-        await fastAPIClient.updateModule(id, moduleId, updatedModuleData);
+        await fastAPIClient.updateModule(id, newModuleId, updatedModuleData);
 
         // Rafraîchir tout
         const finalCourse = await fastAPIClient.getCourse(id);
@@ -1009,15 +944,16 @@ const EditCoursePage = () => {
     if (!id || !course || !confirm('Supprimer ce quiz ?')) return;
 
     try {
+      const editableModule = modules[moduleIdx];
       const moduleId = course.modules[moduleIdx]?.id;
       if (!moduleId) return;
 
       // Utiliser updateModule avec le payload complet sans quiz
       const updatedModuleData = {
-        title: module.title,
-        description: module.description,
-        duration: module.duration,
-        content: module.lessons.map(l => ({
+        title: editableModule.title,
+        description: editableModule.description,
+        duration: editableModule.duration,
+        content: editableModule.lessons.map(l => ({
           title: l.title,
           description: l.description,
           duration: l.duration,
@@ -1025,8 +961,6 @@ const EditCoursePage = () => {
         quizzes: [],
       };
 
-      const currentCourse = await fastAPIClient.getCourse(id);
-      const moduleId = currentCourse.modules[moduleIdx].id!;
       await fastAPIClient.updateModule(id, moduleId, updatedModuleData);
 
       const updatedCourse = await fastAPIClient.getCourse(id);
@@ -1080,7 +1014,8 @@ const EditCoursePage = () => {
       // Synchroniser immédiatement l'ordre dans courseData (utile pour un futur rechargement complet)
       setCourseData(prev => {
         if (!prev) return prev;
-        const modules = [...(prev.modules || [])];
+        const prevAny = prev as any;
+        const modules = [...(prevAny.modules || [])];
         if (modules[moduleIdx]) {
           modules[moduleIdx] = {
             ...(modules[moduleIdx] as any),
@@ -2085,8 +2020,11 @@ const EditCoursePage = () => {
                                 onEditQuiz={() => {
                                   setShowModuleQuizBuilder(moduleIdx);
                                 }}
-                                onDeleteQuiz={() => {
-                                  handleDeleteModuleQuiz(moduleIdx);
+                                onDeleteQuiz={(quizIndex: number) => {
+                                  const quiz = module.quizzes[quizIndex];
+                                  if (quiz?.id) {
+                                    handleDeleteModuleQuiz(moduleIdx, quiz.id);
+                                  }
                                 }}
                               />
                             )}
