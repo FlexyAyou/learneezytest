@@ -370,6 +370,21 @@ const EditCoursePage = () => {
         }
       });
 
+      // Ajouter les assignments au contentOrder
+      assignmentsRaw.forEach((assignment, aIdx) => {
+        const exists = contentOrder.some(
+          it => it.type === 'assignment' && it.originalIndex === aIdx
+        );
+        if (!exists) {
+          contentOrder.push({
+            id: `assignment-${idx}-${aIdx}`,
+            type: 'assignment',
+            originalIndex: aIdx,
+            data: assignment,
+          });
+        }
+      });
+
       return {
         index: idx,
         title: mod.title || '',
@@ -880,15 +895,20 @@ const EditCoursePage = () => {
         });
       }
 
-      // Rafraîchir
-      const updatedCourse = await fastAPIClient.getCourse(id);
-      setModules(mapCourseToEditableModules(updatedCourse));
+      // Rafraîchir après création/modification du quiz
+      const finalRefreshedCourse = await fastAPIClient.getCourse(id);
+      const refreshedModules = mapCourseToEditableModules(finalRefreshedCourse);
+      setModules(refreshedModules);
       setShowModuleQuizBuilder(null);
       setEditingQuizId(null);
+      
+      console.log('Quiz sauvegardé, modules rafraîchis:', refreshedModules);
     } catch (error: any) {
+      console.error('Erreur lors de la sauvegarde du quiz:', error);
+      console.error('Détails de l\'erreur:', error.response?.data);
       toast({
         title: '❌ Erreur',
-        description: error.response?.data?.detail || 'Impossible de sauvegarder le quiz',
+        description: error.response?.data?.detail || error.message || 'Impossible de sauvegarder le quiz',
         variant: 'destructive'
       });
     }
@@ -1074,14 +1094,17 @@ const EditCoursePage = () => {
             base.correct_answer = base.options[q.correctAnswer] ?? '';
           } else if (q.type === 'multiple-choice') {
             base.options = q.options || [];
+            // Pour les assignments, correct_answer accepte string[] pour multiple-choice
             base.correct_answer = (q.correctAnswers || []).map((idx: number) => base.options[idx]).filter(Boolean);
           } else if (q.type === 'true-false') {
             base.options = ['Vrai', 'Faux'];
             base.correct_answer = !!q.correctAnswer;
           } else if (q.type === 'short-answer') {
+            // Pour short-answer dans assignments, correct_answer accepte string[]
             base.correct_answer = q.correctAnswers || [];
           } else if (q.type === 'essay') {
             // Pas d'options / correct_answer strict, évalué manuellement
+            // Pas besoin de correct_answer pour les essays
           }
 
           return base;
