@@ -1067,7 +1067,7 @@ const EditCoursePage = () => {
             base.correct_answer = (q.correctAnswers || []).map((idx: number) => base.options[idx]).filter(Boolean);
           } else if (q.type === 'true-false') {
             base.options = ['Vrai', 'Faux'];
-            base.correct_answer = q.correctAnswer ? 'Vrai' : 'Faux';
+            base.correct_answer = !!q.correctAnswer;
           } else if (q.type === 'short-answer') {
             base.correct_answer = q.correctAnswers || [];
           } else if (q.type === 'essay') {

@@ -978,7 +978,7 @@ const CreateCoursePage = () => {
               } else if (q.type === 'true-false') {
                 const tfq = q as any;
                 baseQuestion.options = ['Vrai', 'Faux'];
-                baseQuestion.correct_answer = tfq.correctAnswer === 0 ? 'Vrai' : 'Faux';
+                baseQuestion.correct_answer = !!tfq.correctAnswer;
               } else if (q.type === 'multiple-choice') {
                 const mcq = q as any;
                 baseQuestion.options = mcq.options || [];
