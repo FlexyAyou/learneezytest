@@ -631,75 +631,11 @@ const CourseDetailPage = () => {
                             </div>
                           )}
 
-                          {/* Lessons */}
-                          {module.content && module.content.length > 0 && (
-                            <div className="space-y-3">
-                              <h4 className="font-semibold flex items-center text-gray-900">
-                                <PlayCircle className="h-5 w-5 mr-2 text-green-600" />
-                                Leçons ({module.content.length})
-                              </h4>
-                              {module.content.map((lesson, lessonIndex) => (
-                                <div key={lessonIndex} className="space-y-3 bg-white rounded-lg border-2 hover:border-pink-300 transition-all">
-                                  <div
-                                    className="flex items-center justify-between p-4 cursor-pointer"
-                                    onClick={() => setSelectedLesson(selectedLesson?.title === lesson.title ? null : lesson)}
-                                  >
-                                    <div className="flex items-center space-x-3">
-                                      <span className="bg-green-100 text-green-700 rounded-full w-7 h-7 flex items-center justify-center text-xs font-bold">
-                                        {lessonIndex + 1}
-                                      </span>
-                                      <div>
-                                        <p className="font-medium">{lesson.title}</p>
-                                        {(lesson.video_key || lesson.key || lesson.video_url) && (() => {
-                                          const contentType = getContentType(lesson);
-                                          if (contentType === 'video') {
-                                            return (
-                                              <div className="flex items-center gap-2 mt-1">
-                                                <Badge variant="secondary" className="text-xs">
-                                                  <Video className="h-3 w-3 mr-1" />
-                                                  Vidéo disponible
-                                                </Badge>
-                                                {(lesson.video_key || lesson.key) && (
-                                                  <MediaStatusBadge assetKey={lesson.video_key || lesson.key} />
-                                                )}
-                                              </div>
-                                            );
-                                          }
-                                          if (contentType === 'pdf') {
-                                            return (
-                                              <div className="flex items-center gap-2 mt-1">
-                                                <Badge variant="secondary" className="text-xs bg-red-100 text-red-700">
-                                                  <FileText className="h-3 w-3 mr-1" />
-                                                  Fichier PDF disponible
-                                                </Badge>
-                                                {(lesson.video_key || lesson.key) && (
-                                                  <MediaStatusBadge assetKey={lesson.video_key || lesson.key} />
-                                                )}
-                                              </div>
-                                            );
-                                          }
-                                          if (contentType === 'image') {
-                                            return (
-                                              <div className="flex items-center gap-2 mt-1">
-                                                <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
-                                                  <ImageIcon className="h-3 w-3 mr-1" />
-                                                  Image disponible
-                                                </Badge>
-                                                {(lesson.video_key || lesson.key) && (
-                                                  <MediaStatusBadge assetKey={lesson.video_key || lesson.key} />
-                                                )}
-                                              </div>
-                                            );
-                                          }
-                                          return null;
-                                        })()}
-                                      </div>
-                                    </div>
-                                    <Badge variant="outline" className="text-xs">
-                                      <Clock className="h-3 w-3 mr-1" />
-                                      {lesson.duration}
-                                    </Badge>
-                                  </div>
+                          {/* Contenu du module (ordre unifié) */}
+                          {(() => {
+                            const lessons = module.content || [];
+                            const quizzes = module.quizzes || [];
+                            const assignments = (module as any).assignment ? [(module as any).assignment] : [];
 
                             // Construire l'ordre unifié si disponible
                             let orderedContent: Array<{
