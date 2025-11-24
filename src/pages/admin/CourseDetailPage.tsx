@@ -20,7 +20,7 @@ import { ArrowLeft, Edit, Trash2, Eye, EyeOff, Clock, BookOpen, PlayCircle, File
 import { useToast } from '@/hooks/use-toast';
 import { sanitizeHTML } from '@/utils/sanitizeHTML';
 import { fastAPIClient } from '@/services/fastapi-client';
-import { CourseResponse, Content } from '@/types/fastapi';
+import { CourseResponse, Content, AssignmentResponse } from '@/types/fastapi';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import PDFViewer from '@/components/common/PDFViewer';
 import { usePresignedUrl } from '@/hooks/usePresignedUrl';
@@ -52,9 +52,9 @@ const ImageViewer: React.FC<{ imageKey?: string; imageUrl?: string; title: strin
 
   return (
     <div className="w-full">
-      <img 
-        src={presignedUrl} 
-        alt={title} 
+      <img
+        src={presignedUrl}
+        alt={title}
         className="w-full h-auto rounded-lg"
       />
     </div>
@@ -229,7 +229,11 @@ const CourseDetailPage = () => {
   // Calculer les statistiques
   const totalLessons = course?.modules?.reduce((acc, mod) => acc + (mod.content?.length || 0), 0) || 0;
   const totalQuizzes = course?.modules?.reduce((acc, mod) => acc + (mod.quizzes?.length || 0), 0) || 0;
-  const totalAssignments = course?.modules?.reduce((acc, mod) => acc + (mod.assignments?.length || 0), 0) || 0;
+  const totalAssignments = course?.modules?.reduce((acc, mod) => {
+    const anyMod: any = mod;
+    const order = anyMod.order as Array<{ type: string; id: string }> | undefined;
+    return acc + (order?.some(o => o.type === 'assignment') ? 1 : 0);
+  }, 0) || 0;
 
   if (loading) {
     return (
@@ -492,7 +496,36 @@ const CourseDetailPage = () => {
                 <Accordion type="single" collapsible className="w-full">
                   {course.modules.map((module, index) => (
                     <AccordionItem key={index} value={`module-${index}`} className="border-2 rounded-lg mb-3 overflow-hidden">
-                      <AccordionTrigger className="px-4 hover:bg-gray-50">
+                      <AccordionTrigger
+                        className="px-4 hover:bg-gray-50"
+                        onClick={async () => {
+                          if (!courseId) return;
+                          try {
+                            const anyMod: any = module;
+                            const order = anyMod.order as Array<{ type: string; id: string }> | undefined;
+                            const hasAssignment = order?.some(o => o.type === 'assignment');
+
+                            if (hasAssignment && !(anyMod.__assignment_loaded)) {
+                              const moduleId = anyMod.id as string;
+                              const assignment = await fastAPIClient.getAssignment(courseId, moduleId);
+
+                              setCourse(prev => {
+                                if (!prev) return prev;
+                                const cloned = { ...prev } as any;
+                                const mods = [...(cloned.modules || [])];
+                                const target = { ...(mods[index] as any) };
+                                target.assignment = assignment;
+                                target.__assignment_loaded = true;
+                                mods[index] = target;
+                                cloned.modules = mods;
+                                return cloned;
+                              });
+                            }
+                          } catch (e) {
+                            console.warn('Impossible de charger le devoir pour ce module', e);
+                          }
+                        }}
+                      >
                         <div className="flex items-center justify-between w-full pr-4">
                           <div className="flex items-center">
                             <span className="bg-pink-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-3">
@@ -508,6 +541,12 @@ const CourseDetailPage = () => {
                               <Clock className="h-3 w-3 mr-1" />
                               {module.duration}
                             </Badge>
+                            {(module as any).assignment && (
+                              <Badge variant="outline" className="border-orange-300 text-orange-700 flex items-center gap-1">
+                                <ClipboardList className="h-3 w-3" />
+                                Devoir
+                              </Badge>
+                            )}
                           </div>
                         </div>
                       </AccordionTrigger>
@@ -519,6 +558,76 @@ const CourseDetailPage = () => {
                                 className="content-html prose max-w-none text-gray-700 leading-relaxed"
                                 dangerouslySetInnerHTML={{ __html: sanitizeHTML(module.description) }}
                               />
+                            </div>
+                          )}
+
+                          {/* Assignment (devoir) */}
+                          {(module as any).assignment && (
+                            <div className="space-y-3 mt-6">
+                              <h4 className="font-semibold flex items-center text-gray-900">
+                                <ClipboardList className="h-5 w-5 mr-2 text-orange-600" />
+                                Devoir du module
+                              </h4>
+                              <div className="bg-white rounded-lg border-2 border-orange-200 p-4 space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <p className="font-semibold text-lg">{(module as any).assignment.title}</p>
+                                    {(module as any).assignment.description && (
+                                      <p className="text-sm text-gray-600 mt-1">{(module as any).assignment.description}</p>
+                                    )}
+                                  </div>
+                                  {(module as any).assignment.settings && (
+                                    <div className="text-right text-xs text-gray-600 space-y-1">
+                                      {typeof (module as any).assignment.settings.passing_score === 'number' && (
+                                        <div>Score minimum : {(module as any).assignment.settings.passing_score}%</div>
+                                      )}
+                                      {typeof (module as any).assignment.settings.max_attempts === 'number' && (
+                                        <div>Essais max : {(module as any).assignment.settings.max_attempts}</div>
+                                      )}
+                                      {typeof (module as any).assignment.settings.time_limit === 'number' && (module as any).assignment.settings.time_limit > 0 && (
+                                        <div>Limite de temps : {(module as any).assignment.settings.time_limit} min</div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+
+                                {(module as any).assignment.instructions && (
+                                  <div className="bg-orange-50 border-l-4 border-orange-400 p-3 rounded">
+                                    <p className="text-xs font-semibold text-orange-800 mb-1">Consignes</p>
+                                    <p className="text-sm text-orange-900">{(module as any).assignment.instructions}</p>
+                                  </div>
+                                )}
+
+                                {(module as any).assignment.questions && (module as any).assignment.questions.length > 0 && (
+                                  <div className="space-y-3 mt-2">
+                                    {(module as any).assignment.questions.map((q: any, qIndex: number) => (
+                                      <div key={qIndex} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                                        <p className="font-medium text-sm mb-1">
+                                          <span className="bg-gray-200 text-gray-700 rounded px-2 py-0.5 text-xs mr-2">
+                                            Q{qIndex + 1}
+                                          </span>
+                                          {q.question}
+                                          {q.points && (
+                                            <span className="ml-2 text-xs text-gray-500">({q.points} pt{q.points > 1 ? 's' : ''})</span>
+                                          )}
+                                        </p>
+                                        {q.type && (
+                                          <p className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">
+                                            Type : {q.type}
+                                          </p>
+                                        )}
+                                        {Array.isArray(q.options) && q.options.length > 0 && (
+                                          <ul className="mt-1 ml-4 list-disc text-xs text-gray-700 space-y-0.5">
+                                            {q.options.map((opt: string, optIndex: number) => (
+                                              <li key={optIndex}>{opt}</li>
+                                            ))}
+                                          </ul>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           )}
 
@@ -799,14 +908,14 @@ const CourseDetailPage = () => {
                         });
                         return;
                       }
-                      
+
                       try {
                         const { download_url } = await fastAPIClient.getDownloadUrl(course.program_pdf_key);
                         const link = document.createElement('a');
                         link.href = download_url;
                         link.download = 'programme-formation.pdf';
                         link.click();
-                        
+
                         toast({
                           title: "✅ Téléchargement démarré",
                           description: "Téléchargement du programme de formation",
