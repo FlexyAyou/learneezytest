@@ -188,14 +188,14 @@ const LessonViewer = () => {
     <div className="min-h-screen bg-gray-50 flex">
       {/* Table des matières */}
       {showTableOfContents && (
-        <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
-          <div className="flex items-center justify-between p-4 border-b border-gray-200">
-            <h2 className="font-semibold text-lg">Table des matières</h2>
+        <div className="w-80 bg-gradient-to-br from-background to-infinitia-pink-50/30 border-r border-infinitia-pink-100 flex flex-col shadow-lg">
+          <div className="flex items-center justify-between p-4 border-b border-infinitia-pink-100 bg-gradient-to-r from-infinitia-pink-500 to-infinitia-orange-500">
+            <h2 className="font-semibold text-lg text-white">Table des matières</h2>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setShowTableOfContents(false)}
-              className="p-1"
+              className="p-1 hover:bg-white/20 text-white"
             >
               <X className="w-4 h-4" />
             </Button>
@@ -205,8 +205,8 @@ const LessonViewer = () => {
             <div className="p-4">
               {course.modules.map((module: any, moduleIndex: number) => (
                 <div key={module.title} className="mb-6">
-                  <h3 className="text-sm font-semibold text-blue-600 uppercase tracking-wide mb-3">
-                    {module.title}
+                  <h3 className="text-sm font-bold bg-gradient-to-r from-infinitia-pink-600 to-infinitia-orange-600 bg-clip-text text-transparent uppercase tracking-wide mb-3">
+                    MODULE {moduleIndex + 1}
                   </h3>
                   
                   <div className="space-y-2">
@@ -214,23 +214,23 @@ const LessonViewer = () => {
                     {module.content.map((lessonItem: any, index: number) => (
                       <div
                         key={lessonItem.title}
-                        className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                        className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200 ${
                           lessonItem.title === lessonId 
-                            ? 'bg-blue-50 border-l-4 border-l-blue-500' 
-                            : 'hover:bg-gray-50'
+                            ? 'bg-gradient-to-r from-infinitia-pink-50 to-infinitia-orange-50 border-l-4 border-l-infinitia-pink-500 shadow-md' 
+                            : 'hover:bg-infinitia-pink-50/50 hover:shadow-sm'
                         }`}
                         onClick={() => handleItemClick(lessonItem.title)}
                       >
                         <div className="flex-shrink-0">
                           {isLessonCompleted(lessonItem.title) ? (
-                            <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
-                              <CheckCircle className="w-4 h-4 text-green-600" />
+                            <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center shadow-md">
+                              <CheckCircle className="w-5 h-5 text-white" />
                             </div>
                           ) : (
-                            <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs font-semibold ${
+                            <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-bold shadow-sm ${
                               lessonItem.title === lessonId 
-                                ? 'border-blue-500 bg-blue-500 text-white' 
-                                : 'border-gray-300 text-gray-500'
+                                ? 'border-infinitia-pink-500 bg-gradient-to-br from-infinitia-pink-500 to-infinitia-orange-500 text-white' 
+                                : 'border-gray-300 bg-white text-gray-600'
                             }`}>
                               {moduleIndex + 1}.{index + 1}
                             </div>
@@ -239,11 +239,11 @@ const LessonViewer = () => {
                         
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            {lessonItem.video_key && <Video className="w-3 h-3 text-blue-500" />}
-                            {lessonItem.pdf_key && <FileText className="w-3 h-3 text-red-500" />}
-                            {lessonItem.image_key && <ImageIcon className="w-3 h-3 text-purple-500" />}
-                            <p className={`text-sm font-medium truncate ${
-                              lessonItem.title === lessonId ? 'text-blue-900' : 'text-gray-900'
+                            {lessonItem.video_key && <Video className="w-3 h-3 text-infinitia-pink-500" />}
+                            {lessonItem.pdf_key && <FileText className="w-3 h-3 text-infinitia-orange-500" />}
+                            {lessonItem.image_key && <ImageIcon className="w-3 h-3 text-infinitia-pink-600" />}
+                            <p className={`text-sm font-semibold truncate ${
+                              lessonItem.title === lessonId ? 'text-infinitia-pink-900' : 'text-gray-900'
                             }`}>
                               {lessonItem.title}
                             </p>
@@ -265,32 +265,30 @@ const LessonViewer = () => {
                       return (
                         <div
                           key={quiz.title}
-                          className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors border-l-4 ${
+                          className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200 border-l-4 ${
                             quiz.title === lessonId 
-                              ? 'bg-purple-50 border-l-purple-500' 
+                              ? 'bg-gradient-to-r from-infinitia-orange-50 to-infinitia-pink-50 border-l-infinitia-orange-500 shadow-md' 
                               : isQuizDone
-                              ? 'bg-green-50 border-l-green-500 hover:bg-green-100'
-                              : 'border-l-purple-300 hover:bg-purple-50'
+                              ? 'bg-green-50 border-l-green-500 hover:bg-green-100 hover:shadow-sm'
+                              : 'border-l-infinitia-orange-300 hover:bg-infinitia-orange-50/50 hover:shadow-sm'
                           }`}
                           onClick={() => handleItemClick(quiz.title)}
                         >
                           <div className="flex-shrink-0">
                             {isQuizDone ? (
-                              <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                                quizResult?.passed ? 'bg-green-100' : 'bg-orange-100'
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow-md ${
+                                quizResult?.passed ? 'bg-gradient-to-br from-green-400 to-emerald-500' : 'bg-gradient-to-br from-orange-400 to-amber-500'
                               }`}>
-                                <CheckCircle className={`w-4 h-4 ${
-                                  quizResult?.passed ? 'text-green-600' : 'text-orange-600'
-                                }`} />
+                                <CheckCircle className="w-5 h-5 text-white" />
                               </div>
                             ) : (
-                              <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                              <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center shadow-sm ${
                                 quiz.title === lessonId 
-                                  ? 'border-purple-500 bg-purple-500' 
-                                  : 'border-purple-300 bg-white'
+                                  ? 'border-infinitia-orange-500 bg-gradient-to-br from-infinitia-orange-500 to-infinitia-pink-500' 
+                                  : 'border-infinitia-orange-300 bg-white'
                               }`}>
-                                <ClipboardList className={`w-3 h-3 ${
-                                  quiz.title === lessonId ? 'text-white' : 'text-purple-500'
+                                <ClipboardList className={`w-4 h-4 ${
+                                  quiz.title === lessonId ? 'text-white' : 'text-infinitia-orange-500'
                                 }`} />
                               </div>
                             )}
@@ -298,9 +296,9 @@ const LessonViewer = () => {
                           
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
-                              <ClipboardList className="w-3 h-3 text-purple-500" />
-                              <p className={`text-sm font-medium truncate ${
-                                quiz.title === lessonId ? 'text-purple-900' : 'text-gray-900'
+                              <ClipboardList className="w-3 h-3 text-infinitia-orange-500" />
+                              <p className={`text-sm font-semibold truncate ${
+                                quiz.title === lessonId ? 'text-infinitia-orange-900' : 'text-gray-900'
                               }`}>
                                 {quiz.title}
                               </p>
@@ -310,7 +308,7 @@ const LessonViewer = () => {
                                 {quiz.questions?.length || 0} questions
                               </p>
                               {isQuizDone && quizResult && (
-                                <Badge variant={quizResult.passed ? "default" : "secondary"} className="text-xs h-4 px-1">
+                                <Badge variant={quizResult.passed ? "default" : "secondary"} className="text-xs h-5 px-2 font-semibold">
                                   {quizResult.passed ? '✓ Réussi' : '○ À revoir'}
                                 </Badge>
                               )}
