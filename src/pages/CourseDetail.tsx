@@ -159,10 +159,6 @@ const CourseDetail = () => {
                     <Award className="h-4 w-4 mr-3 text-gray-400" />
                     <span>Certificat de completion</span>
                   </div>
-                  <div className="flex items-center">
-                    <Clock className="h-4 w-4 mr-3 text-gray-400" />
-                    <span>Accès à vie</span>
-                  </div>
                 </div>
               </div>
 
