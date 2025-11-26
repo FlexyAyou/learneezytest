@@ -623,6 +623,39 @@ const CourseDetailPage = () => {
                                             ))}
                                           </ul>
                                         )}
+                                        {/* Affichage des réponses correctes */}
+                                        {(() => {
+                                          const ca = q.correct_answer;
+                                          if (q.type === 'single-choice' || q.type === 'true-false') {
+                                            if (typeof ca === 'string' && ca) {
+                                              return (
+                                                <div className="mt-2 text-xs">
+                                                  <span className="px-2 py-1 rounded bg-green-600 text-white">Réponse correcte: {ca}</span>
+                                                </div>
+                                              );
+                                            }
+                                          }
+                                          if (q.type === 'multiple-choice' || q.type === 'short-answer') {
+                                            if (Array.isArray(ca) && ca.length > 0) {
+                                              return (
+                                                <div className="mt-2 text-xs space-y-1">
+                                                  <span className="font-semibold text-green-700">Réponses correctes:</span>
+                                                  <div className="flex flex-wrap gap-1">
+                                                    {ca.map((ans: string, i: number) => (
+                                                      <span key={i} className="px-2 py-1 rounded bg-green-100 text-green-800 border border-green-300">{ans}</span>
+                                                    ))}
+                                                  </div>
+                                                </div>
+                                              );
+                                            }
+                                          }
+                                          if (q.type === 'essay') {
+                                            return (
+                                              <div className="mt-2 text-xs italic text-gray-500">Évaluation manuelle (pas de réponse pré-définie)</div>
+                                            );
+                                          }
+                                          return null;
+                                        })()}
                                       </div>
                                     ))}
                                   </div>
@@ -925,11 +958,10 @@ const CourseDetailPage = () => {
                                                     return (
                                                       <div
                                                         key={optIndex}
-                                                        className={`text-sm p-3 rounded-lg flex items-center space-x-3 transition-all ${
-                                                          isCorrect
+                                                        className={`text-sm p-3 rounded-lg flex items-center space-x-3 transition-all ${isCorrect
                                                             ? 'bg-green-100 text-green-900 border-2 border-green-400 font-semibold shadow-sm'
                                                             : 'bg-white text-gray-700 border border-gray-300'
-                                                        }`}
+                                                          }`}
                                                       >
                                                         {isCorrect ? (
                                                           <CheckCircle className="h-5 w-5 text-green-600" />
