@@ -113,9 +113,8 @@ export const CoursePurchaseModal = ({ isOpen, onClose, course }: CoursePurchaseM
                   <span className="font-medium">Contenu du cours</span>
                 </div>
                 <div className="space-y-1 text-sm text-gray-600">
-                  <div>• {course.modules} modules de formation</div>
+                <div>• {course.modules} modules de formation</div>
                   <div>• {course.exercises} exercices pratiques</div>
-                  <div>• Accès à vie au contenu</div>
                   <div>• Support instructeur inclus</div>
                   {course.certificates && <div>• Certificat de completion</div>}
                 </div>
