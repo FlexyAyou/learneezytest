@@ -36,7 +36,8 @@ import RichTextEditor from '@/components/admin/RichTextEditor';
 import { QuizBuilder, AssignmentBuilder } from '@/components/quiz';
 import type { QuizConfig, AssignmentConfig } from '@/types/quiz';
 import { CycleTagSelector } from '@/components/admin/CycleTagSelector';
-import { useCategories, useCreateCategory, useCreateModuleQuiz, useUpdateModuleQuiz, useDeleteModuleQuiz, useReorderModuleContent } from '@/hooks/useApi';
+import { CategoryTagSelector } from '@/components/admin/CategoryTagSelector';
+import { useCreateModuleQuiz, useUpdateModuleQuiz, useDeleteModuleQuiz, useReorderModuleContent } from '@/hooks/useApi';
 import { UploadNotification, UploadItem } from '@/components/common/UploadNotification';
 import { useToast } from '@/hooks/use-toast';
 import { useAutoSave } from '@/hooks/useAutoSave';
@@ -132,12 +133,6 @@ const EditCoursePage = () => {
     cycle: '',
     cycleTags: [],
   });
-
-  // Catégories dynamiques (liste + création)
-  const { data: categories = [], isLoading: isLoadingCategories } = useCategories();
-  const createCategoryMutation = useCreateCategory();
-  const [customCategory, setCustomCategory] = useState('');
-  const [isAddingCategory, setIsAddingCategory] = useState(false);
 
   // Module quiz hooks
   const createModuleQuizMutation = useCreateModuleQuiz();
@@ -434,35 +429,6 @@ const EditCoursePage = () => {
     delay: 2000,
     enabled: activeTab === 'general' && !loading
   });
-
-  // Création de catégorie personnalisée (sans perturber l'auto-save)
-  const saveCustomCategory = async () => {
-    const newName = customCategory.trim();
-    if (!newName) {
-      toast({ title: 'Erreur', description: 'Veuillez entrer un nom de catégorie', variant: 'destructive' });
-      return;
-    }
-    try {
-      const created = await createCategoryMutation.mutateAsync({ name: newName });
-
-      // Mettre à jour le cache pour apparition immédiate
-      queryClient.setQueryData(['categories'], (old: any) => {
-        if (Array.isArray(old)) {
-          const exists = old.some((c: any) => c?.name === created?.name);
-          return exists ? old : [...old, created];
-        }
-        return created ? [created] : [];
-      });
-
-      // Sélectionner immédiatement
-      setCourseData(prev => ({ ...prev, category: created?.name || newName }));
-      setCustomCategory('');
-      setIsAddingCategory(false);
-    } catch (error) {
-      // Les toasts d'erreur sont gérés par le hook
-      console.error('Error creating category:', error);
-    }
-  };
 
   // Functions for managing objectives
   const addObjective = () => {
@@ -1642,59 +1608,10 @@ const EditCoursePage = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="category" className="text-base font-semibold">
-                      Catégorie
-                    </Label>
-                    <Select
-                      value={courseData.category}
-                      onValueChange={(value) => {
-                        if (value === 'custom') {
-                          setIsAddingCategory(true);
-                          return;
-                        }
-                        setIsAddingCategory(false);
-                        setCourseData(prev => ({ ...prev, category: value }));
-                      }}
-                    >
-                      <SelectTrigger className="h-11 focus:ring-2 focus:ring-primary transition-all">
-                        <SelectValue placeholder="Choisir une catégorie" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <>
-                          {isLoadingCategories ? (
-                            <SelectItem value="__loading" disabled>Chargement...</SelectItem>
-                          ) : categories && categories.length > 0 ? (
-                            categories.map((cat: any) => (
-                              <SelectItem key={cat.id} value={cat.name}>
-                                {cat.name}
-                              </SelectItem>
-                            ))
-                          ) : (
-                            <SelectItem value="__empty" disabled>Aucune catégorie disponible</SelectItem>
-                          )}
-                        </>
-                        <SelectItem value="custom">➕ Ajouter une nouvelle catégorie</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {isAddingCategory && (
-                      <div className="mt-2 space-y-2">
-                        <Input
-                          value={customCategory}
-                          onChange={(e) => setCustomCategory(e.target.value)}
-                          placeholder="Entrez une catégorie personnalisée"
-                        />
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={saveCustomCategory}
-                          className="w-full"
-                          disabled={createCategoryMutation.isPending}
-                        >
-                          <Save className="h-4 w-4 mr-2" />
-                          {createCategoryMutation.isPending ? 'Enregistrement...' : 'Enregistrer et ajouter à la liste'}
-                        </Button>
-                      </div>
-                    )}
+                    <CategoryTagSelector
+                      selectedCategory={courseData.category}
+                      onCategoryChange={(category) => setCourseData(prev => ({ ...prev, category }))}
+                    />
                   </div>
                 </div>
 
