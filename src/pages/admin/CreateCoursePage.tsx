@@ -14,6 +14,7 @@ import { Progress } from '@/components/ui/progress';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Upload, Plus, X, Save, ArrowLeft, ArrowRight, Video, FileText, Image as ImageIcon, Edit2, Trash2, Check, BookOpen, ClipboardList, HelpCircle, Link as LinkIcon, Loader2 } from 'lucide-react';
+import VideoPlayer from '@/components/common/VideoPlayer';
 import { CycleTagSelector } from '@/components/admin/CycleTagSelector';
 import { CategoryTagSelector } from '@/components/admin/CategoryTagSelector';
 import { useToast } from '@/hooks/use-toast';
@@ -1787,8 +1788,7 @@ const CreateCoursePage = () => {
                                       className={!lesson.useMediaUrl ? "bg-pink-500 hover:bg-pink-600 text-white" : ""}
                                       onClick={() => {
                                         updateLesson(module.id, lesson.id, {
-                                          useMediaUrl: false,
-                                          mediaUrl: ''
+                                          useMediaUrl: false
                                         });
                                       }}
                                     >
@@ -1889,7 +1889,7 @@ const CreateCoursePage = () => {
 
                                   {/* URL Input Section */}
                                   {lesson.useMediaUrl && (
-                                    <div className="space-y-2">
+                                    <div className="space-y-4">
                                       <Input
                                         value={lesson.mediaUrl || ''}
                                         onChange={(e) => updateLesson(module.id, lesson.id, { mediaUrl: e.target.value })}
@@ -1897,6 +1897,16 @@ const CreateCoursePage = () => {
                                         className="w-full"
                                       />
                                       <p className="text-xs text-gray-500">Formats supportés : YouTube, Vimeo, MP4, PDF ou URL d'image</p>
+                                      
+                                      {/* Video Preview */}
+                                      {lesson.mediaUrl && (
+                                        <div className="mt-4 rounded-lg overflow-hidden border bg-black">
+                                          <VideoPlayer 
+                                            videoUrl={lesson.mediaUrl} 
+                                            title="Aperçu vidéo"
+                                          />
+                                        </div>
+                                      )}
                                     </div>
                                   )}
                                 </div>
