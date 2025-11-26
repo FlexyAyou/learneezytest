@@ -2108,11 +2108,7 @@ const EditCoursePage = () => {
                                                       ...m,
                                                       lessons: m.lessons.map((l, lIdx) =>
                                                         lIdx === editingLessonId.lessonIdx
-                                                          ? {
-                                                            ...l,
-                                                            useMediaUrl: true,
-                                                            video_url: l.video_url || '',
-                                                          }
+                                                          ? { ...l, useMediaUrl: true }
                                                           : l
                                                       )
                                                     }
@@ -2197,7 +2193,7 @@ const EditCoursePage = () => {
 
                                           {/* URL Input Section */}
                                           {lesson.useMediaUrl && (
-                                            <div className="space-y-2">
+                                            <div className="space-y-4">
                                               <Input
                                                 value={lesson.video_url || ''}
                                                 onChange={(e) => setModules(prev => prev.map((m, mIdx) =>
@@ -2216,6 +2212,16 @@ const EditCoursePage = () => {
                                                 className="w-full"
                                               />
                                               <p className="text-xs text-gray-500">Formats supportés : YouTube, Vimeo, MP4, PDF ou URL d'image</p>
+                                              
+                                              {/* Video Preview */}
+                                              {lesson.video_url && (
+                                                <div className="mt-4 rounded-lg overflow-hidden border bg-black">
+                                                  <VideoPlayer 
+                                                    videoUrl={lesson.video_url} 
+                                                    title="Aperçu vidéo"
+                                                  />
+                                                </div>
+                                              )}
                                             </div>
                                           )}
                                         </div>
