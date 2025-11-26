@@ -2123,58 +2123,109 @@ const EditCoursePage = () => {
 
                                           {/* Upload File Section (même UX que la création) */}
                                           {!lesson.useMediaUrl && (
-                                            <div className="space-y-3">
+                                            <div className="space-y-4">
+                                              {/* Affichage du fichier uploadé avec nom et bouton X */}
                                               {(lesson.video_key || lesson.pdf_key || lesson.image_key) && (
-                                                <div className="space-y-2">
-                                                  <button
-                                                    type="button"
-                                                    onClick={async () => {
-                                                      if (!lesson.video_key && !lesson.pdf_key && !lesson.image_key) return;
+                                                <>
+                                                  <div className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                                                    <div className="flex items-center gap-3">
+                                                      {lesson.video_key && <Video className="h-5 w-5 text-blue-600" />}
+                                                      {lesson.pdf_key && <FileText className="h-5 w-5 text-red-600" />}
+                                                      {lesson.image_key && <ImageIcon className="h-5 w-5 text-green-600" />}
+                                                      <span className="text-sm font-medium text-gray-700">
+                                                        {lesson.video_key && 'Vidéo uploadée'}
+                                                        {lesson.pdf_key && 'Document PDF uploadé'}
+                                                        {lesson.image_key && 'Image uploadée'}
+                                                      </span>
+                                                    </div>
+                                                    <Button
+                                                      type="button"
+                                                      variant="ghost"
+                                                      size="sm"
+                                                      onClick={() => {
+                                                        setModules(prev => prev.map((m, mIdx) =>
+                                                          mIdx === moduleIdx
+                                                            ? {
+                                                              ...m,
+                                                              lessons: m.lessons.map((l, lIdx) =>
+                                                                lIdx === editingLessonId.lessonIdx
+                                                                  ? { ...l, video_key: null, pdf_key: null, image_key: null }
+                                                                  : l
+                                                              )
+                                                            }
+                                                            : m
+                                                        ));
+                                                      }}
+                                                    >
+                                                      <X className="h-4 w-4" />
+                                                    </Button>
+                                                  </div>
 
-                                                      let kind: 'video' | 'pdf' | 'image' = 'video';
-                                                      if (lesson.pdf_key) kind = 'pdf';
-                                                      else if (lesson.image_key) kind = 'image';
+                                                  {/* Aperçu du média */}
+                                                  <div>
+                                                    <Label className="mb-2">Aperçu :</Label>
+                                                    <button
+                                                      type="button"
+                                                      onClick={async () => {
+                                                        let kind: 'video' | 'pdf' | 'image' = 'video';
+                                                        if (lesson.pdf_key) kind = 'pdf';
+                                                        else if (lesson.image_key) kind = 'image';
 
-                                                      setPreviewLessonMedia({
-                                                        moduleIdx,
-                                                        lessonIdx: editingLessonId.lessonIdx,
-                                                        kind,
-                                                      });
-                                                    }}
-                                                    className="w-full text-left flex items-center gap-2 p-3 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors"
-                                                  >
-                                                    {lesson.video_key && <Video className="h-5 w-5 text-blue-600" />}
-                                                    {lesson.pdf_key && <FileText className="h-5 w-5 text-blue-600" />}
-                                                    {lesson.image_key && <ImageIcon className="h-5 w-5 text-blue-600" />}
-                                                    <span className="text-sm font-medium">Média actuel de la leçon</span>
-                                                  </button>
-                                                </div>
+                                                        setPreviewLessonMedia({
+                                                          moduleIdx,
+                                                          lessonIdx: editingLessonId.lessonIdx,
+                                                          kind,
+                                                        });
+                                                      }}
+                                                      className="w-full rounded-lg overflow-hidden border bg-black hover:opacity-90 transition-opacity"
+                                                    >
+                                                      {lesson.video_key && (
+                                                        <div className="aspect-video flex items-center justify-center">
+                                                          <Video className="h-12 w-12 text-white" />
+                                                        </div>
+                                                      )}
+                                                      {lesson.pdf_key && (
+                                                        <div className="flex items-center gap-3 p-4 bg-red-50">
+                                                          <FileText className="h-8 w-8 text-red-600" />
+                                                          <span className="text-sm font-medium">Cliquez pour prévisualiser le PDF</span>
+                                                        </div>
+                                                      )}
+                                                      {lesson.image_key && (
+                                                        <div className="aspect-video flex items-center justify-center bg-gray-100">
+                                                          <ImageIcon className="h-12 w-12 text-gray-400" />
+                                                        </div>
+                                                      )}
+                                                    </button>
+                                                  </div>
+                                                </>
                                               )}
 
                                               {/* Dropzone / zone d'upload */}
-                                              <div
-                                                className="mt-2 border-2 border-dashed border-muted-foreground/25 rounded-xl p-8 text-center hover:border-pink-500 hover:bg-pink-50 transition-all duration-300 cursor-pointer group"
-                                                onClick={() => {
-                                                  const input = document.getElementById(`lesson-media-${moduleIdx}-${editingLessonId.lessonIdx}`) as HTMLInputElement | null;
-                                                  input?.click();
-                                                }}
-                                              >
-                                                <div className="inline-flex p-4 bg-pink-100 rounded-full mb-4 group-hover:scale-110 transition-transform">
-                                                  <Upload className="h-8 w-8 text-pink-600" />
-                                                </div>
-                                                <p className="text-base font-semibold mb-1">Vidéo, PDF ou Image</p>
-                                                <p className="text-sm text-muted-foreground mb-4">Glissez-déposez ou cliquez pour parcourir</p>
-                                                <Button
-                                                  type="button"
-                                                  variant="outline"
-                                                  className="hover-scale"
+                                              {!(lesson.video_key || lesson.pdf_key || lesson.image_key) && (
+                                                <div
+                                                  className="mt-2 border-2 border-dashed border-muted-foreground/25 rounded-xl p-8 text-center hover:border-pink-500 hover:bg-pink-50 transition-all duration-300 cursor-pointer group"
+                                                  onClick={() => {
+                                                    const input = document.getElementById(`lesson-media-${moduleIdx}-${editingLessonId.lessonIdx}`) as HTMLInputElement | null;
+                                                    input?.click();
+                                                  }}
                                                 >
-                                                  Choisir un fichier
-                                                </Button>
-                                                <p className="mt-3 text-xs text-muted-foreground">
-                                                  Limites : Vidéo (500MB) • PDF (50MB) • Image (10MB)
-                                                </p>
-                                              </div>
+                                                  <div className="inline-flex p-4 bg-pink-100 rounded-full mb-4 group-hover:scale-110 transition-transform">
+                                                    <Upload className="h-8 w-8 text-pink-600" />
+                                                  </div>
+                                                  <p className="text-base font-semibold mb-1">Vidéo, PDF ou Image</p>
+                                                  <p className="text-sm text-muted-foreground mb-4">Glissez-déposez ou cliquez pour parcourir</p>
+                                                  <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    className="hover-scale"
+                                                  >
+                                                    Choisir un fichier
+                                                  </Button>
+                                                  <p className="mt-3 text-xs text-muted-foreground">
+                                                    Limites : Vidéo (500MB) • PDF (50MB) • Image (10MB)
+                                                  </p>
+                                                </div>
+                                              )}
 
                                               <input
                                                 id={`lesson-media-${moduleIdx}-${editingLessonId.lessonIdx}`}

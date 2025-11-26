@@ -1837,51 +1837,63 @@ const CreateCoursePage = () => {
                                           />
                                         </label>
                                       ) : (
-                                        <div className="space-y-3">
-                                          {lesson.fileType === 'video' && lesson.filePreview && (
-                                            <div className="relative rounded-lg overflow-hidden bg-black">
-                                              <video
-                                                src={lesson.filePreview}
-                                                controls
-                                                className="w-full"
-                                              />
+                                        <div className="space-y-4">
+                                          {/* Fichier uploadé avec nom et bouton X */}
+                                          <div className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                                            <div className="flex items-center gap-3">
+                                              {lesson.fileType === 'video' && <Video className="h-5 w-5 text-blue-600" />}
+                                              {lesson.fileType === 'pdf' && <FileText className="h-5 w-5 text-red-600" />}
+                                              {lesson.fileType === 'image' && <ImageIcon className="h-5 w-5 text-green-600" />}
+                                              <span className="text-sm font-medium text-gray-700">{lesson.fileName}</span>
                                             </div>
-                                          )}
-                                          {lesson.fileType === 'pdf' && (
-                                            <div className="flex items-center gap-3 p-4 bg-red-50 rounded-lg">
-                                              <FileText className="h-8 w-8 text-red-600" />
-                                              <div className="flex-1">
-                                                <p className="font-medium">{lesson.fileName}</p>
-                                                <p className="text-sm text-gray-600">Document PDF</p>
-                                              </div>
-                                            </div>
-                                          )}
-                                          {lesson.fileType === 'image' && lesson.filePreview && (
-                                            <div className="relative rounded-lg overflow-hidden">
-                                              <img
-                                                src={lesson.filePreview}
-                                                alt="Preview"
-                                                className="w-full max-h-64 object-contain bg-gray-100"
-                                              />
-                                            </div>
-                                          )}
-                                          <label>
                                             <Button
-                                              variant="outline"
-                                              size="sm"
-                                              className="w-full"
                                               type="button"
+                                              variant="ghost"
+                                              size="sm"
+                                              onClick={() => {
+                                                updateLesson(module.id, lesson.id, {
+                                                  file: undefined,
+                                                  fileType: null,
+                                                  fileName: '',
+                                                  filePreview: undefined
+                                                });
+                                              }}
                                             >
-                                              <Upload className="h-4 w-4 mr-2" />
-                                              Changer le fichier
+                                              <X className="h-4 w-4" />
                                             </Button>
-                                            <input
-                                              type="file"
-                                              className="hidden"
-                                              accept="video/*,.pdf,image/*"
-                                              onChange={(e) => handleFileUpload(module.id, lesson.id, e)}
-                                            />
-                                          </label>
+                                          </div>
+
+                                          {/* Aperçu du média */}
+                                          <div>
+                                            <Label className="mb-2">Aperçu :</Label>
+                                            {lesson.fileType === 'video' && lesson.filePreview && (
+                                              <div className="rounded-lg overflow-hidden bg-black border">
+                                                <video
+                                                  src={lesson.filePreview}
+                                                  controls
+                                                  className="w-full"
+                                                />
+                                              </div>
+                                            )}
+                                            {lesson.fileType === 'pdf' && (
+                                              <div className="flex items-center gap-3 p-4 bg-red-50 rounded-lg border border-red-200">
+                                                <FileText className="h-8 w-8 text-red-600" />
+                                                <div className="flex-1">
+                                                  <p className="font-medium">{lesson.fileName}</p>
+                                                  <p className="text-sm text-gray-600">Document PDF</p>
+                                                </div>
+                                              </div>
+                                            )}
+                                            {lesson.fileType === 'image' && lesson.filePreview && (
+                                              <div className="rounded-lg overflow-hidden border">
+                                                <img
+                                                  src={lesson.filePreview}
+                                                  alt="Preview"
+                                                  className="w-full max-h-64 object-contain bg-gray-100"
+                                                />
+                                              </div>
+                                            )}
+                                          </div>
                                         </div>
                                       )}
                                     </>
