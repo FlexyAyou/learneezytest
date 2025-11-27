@@ -34,7 +34,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import RichTextEditor from '@/components/admin/RichTextEditor';
 import { QuizBuilder, AssignmentBuilder } from '@/components/quiz';
-import type { QuizConfig, AssignmentConfig } from '@/types/quiz';
+import type { QuizConfig, AssignmentConfig, QuestionType } from '@/types/quiz';
 import { CycleTagSelector } from '@/components/admin/CycleTagSelector';
 import { CategoryTagSelector } from '@/components/admin/CategoryTagSelector';
 import { useCreateModuleQuiz, useUpdateModuleQuiz, useDeleteModuleQuiz, useReorderModuleContent } from '@/hooks/useApi';
@@ -299,7 +299,98 @@ const EditCoursePage = () => {
           backendId: stringId,
         };
       });
-      const quizzesRaw: Quiz[] = mod.quizzes || [];
+      // Transformer les quizzes backend (snake_case, formes simples) vers la forme interne QuizConfig
+      const quizzesRaw: Quiz[] = (mod.quizzes || []).map((quiz: any) => {
+        const internalQuestions: any[] = (quiz.questions || []).map((q: any, qi: number) => {
+          const id = String(q.id ?? `quizq-${idx}-${qi}-${Date.now()}`);
+          const type = q.type as QuestionType;
+          // Champs communs
+          const common: any = {
+            id,
+            type,
+            question: q.question || '',
+            points: typeof q.points === 'number' ? q.points : 1,
+            difficulty: q.difficulty || undefined,
+            explanation: q.explanation || undefined,
+            tags: q.tags || undefined,
+          };
+          if (q.media) {
+            common.media = {
+              type: q.media.type,
+              key: q.media.key,
+              url: q.media.url,
+              caption: q.media.caption,
+            };
+          }
+          // Reconstruction par type
+          if (type === 'single-choice') {
+            const options: string[] = q.options || [];
+            const value: string = q.correct_answer;
+            const correctIndex = options.indexOf(value);
+            return { ...common, options, correctAnswer: correctIndex >= 0 ? correctIndex : 0 };
+          } else if (type === 'multiple-choice') {
+            const options: string[] = q.options || [];
+            const values: string[] = Array.isArray(q.correct_answer) ? q.correct_answer : [];
+            const indices = values.map(v => options.indexOf(v)).filter(i => i >= 0);
+            return { ...common, options, correctAnswers: indices };
+          } else if (type === 'true-false') {
+            const boolVal = !!q.correct_answer;
+            return { ...common, correctAnswer: boolVal };
+          } else if (type === 'short-answer') {
+            const answers: string[] = Array.isArray(q.correct_answer) ? q.correct_answer : (q.correct_answers || []);
+            return { ...common, correctAnswers: answers, caseSensitive: !!q.case_sensitive };
+          } else if (type === 'long-answer') {
+            return {
+              ...common,
+              minWords: q.min_words || undefined,
+              maxWords: q.max_words || undefined,
+              rubric: q.rubric || [],
+            };
+          } else if (type === 'fill-blank') {
+            return {
+              ...common,
+              text: q.text || '',
+              correctAnswers: Array.isArray(q.correct_answer) ? q.correct_answer : [],
+            };
+          } else if (type === 'matching') {
+            // Forme simple envoyée: options (left) + correct_answer dict { left: right }
+            const leftItems: string[] = (q.options || []).filter((s: string) => s && s.trim());
+            const dict: Record<string, string> = q.correct_answer || {};
+            const rightValues = Array.from(new Set(Object.values(dict)));
+            const correctMatches = Object.entries(dict).map(([l, r]) => ({
+              left: leftItems.indexOf(l),
+              right: rightValues.indexOf(r),
+            })).filter(m => m.left >= 0 && m.right >= 0);
+            return {
+              ...common,
+              leftItems,
+              rightItems: rightValues,
+              correctMatches,
+            };
+          } else if (type === 'ordering') {
+            const items: string[] = (q.options || []).filter((s: string) => s && s.trim());
+            const order: number[] = Array.isArray(q.correct_answer) ? q.correct_answer : [];
+            return { ...common, items, correctOrder: order };
+          }
+          // Fallback inconnu
+          return { ...common };
+        });
+        return {
+          id: String(quiz.id ?? `quiz-${idx}-${Date.now()}`),
+          type: 'quiz',
+          title: quiz.title || '',
+          description: quiz.description || '',
+          questions: internalQuestions,
+          settings: quiz.settings || {
+            showFeedback: 'after-submit',
+            allowRetry: true,
+            maxAttempts: 3,
+            randomizeQuestions: false,
+            randomizeOptions: false,
+            passingScore: 70,
+          }
+        } as Quiz;
+      });
 
       // Assignments: le document de cours ne contient pas le payload
       // complet; ils seront chargés paresseusement via getAssignment.
