@@ -1035,10 +1035,14 @@ const CreateCoursePage = () => {
               // Médias des options (seulement choix)
               if ((q.type === 'single-choice' || q.type === 'multiple-choice') && Array.isArray(qAny.optionsMedia)) {
                 const om = qAny.optionsMedia;
-                base.options_media = (base.options || []).map((_: any, i: number) => {
+                const mapped = (base.options || []).map((_: any, i: number) => {
                   const m = om[i];
                   return m ? { type: m.type, key: m.key, url: m.url, caption: m.caption } : undefined;
                 });
+                // N'envoyer options_media que si au moins une entrée est définie
+                if (mapped.some(Boolean)) {
+                  base.options_media = mapped;
+                }
               }
 
               return base;
@@ -1947,12 +1951,12 @@ const CreateCoursePage = () => {
                                         className="w-full"
                                       />
                                       <p className="text-xs text-gray-500">Formats supportés : YouTube, Vimeo, MP4, PDF ou URL d'image</p>
-                                      
+
                                       {/* Video Preview */}
                                       {lesson.mediaUrl && (
                                         <div className="mt-4 rounded-lg overflow-hidden border bg-black">
-                                          <VideoPlayer 
-                                            videoUrl={lesson.mediaUrl} 
+                                          <VideoPlayer
+                                            videoUrl={lesson.mediaUrl}
                                             title="Aperçu vidéo"
                                           />
                                         </div>

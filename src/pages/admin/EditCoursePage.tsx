@@ -822,10 +822,13 @@ const EditCoursePage = () => {
 
             if ((q.type === 'single-choice' || q.type === 'multiple-choice') && Array.isArray(qAny.optionsMedia)) {
               const om = qAny.optionsMedia;
-              baseQuestion.options_media = (baseQuestion.options || []).map((_: any, i: number) => {
+              const mapped = (baseQuestion.options || []).map((_: any, i: number) => {
                 const m = om[i];
                 return m ? { type: m.type, key: m.key, url: m.url, caption: m.caption } : undefined;
               });
+              if (mapped.some(Boolean)) {
+                baseQuestion.options_media = mapped;
+              }
             }
 
             return baseQuestion;
@@ -2260,12 +2263,12 @@ const EditCoursePage = () => {
                                                 className="w-full"
                                               />
                                               <p className="text-xs text-gray-500">Formats supportés : YouTube, Vimeo, MP4, PDF ou URL d'image</p>
-                                              
+
                                               {/* Video Preview */}
                                               {lesson.video_url && (
                                                 <div className="mt-4 rounded-lg overflow-hidden border bg-black">
-                                                  <VideoPlayer 
-                                                    videoUrl={lesson.video_url} 
+                                                  <VideoPlayer
+                                                    videoUrl={lesson.video_url}
                                                     title="Aperçu vidéo"
                                                   />
                                                 </div>
