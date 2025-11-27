@@ -2643,7 +2643,7 @@ const EditCoursePage = () => {
                 if (!rawQuiz) return undefined;
                 const internalQuestions = (rawQuiz.questions || []).map((q: any, idx: number) => {
                   const type = q.type as QuestionType;
-                  const id = `q-${idx}`;
+                  const id = q.id || `q-${idx}`;
                   const common: any = {
                     id,
                     type,
@@ -2652,49 +2652,33 @@ const EditCoursePage = () => {
                     difficulty: q.difficulty || undefined,
                     explanation: q.explanation || undefined,
                     tags: q.tags || undefined,
+                    media: q.media,
                   };
-                  if (q.media) {
-                    common.media = { type: q.media.type, key: q.media.key, url: q.media.url, caption: q.media.caption };
-                  }
+                  
+                  // Lire les propriétés déjà converties en camelCase par mapCourseToEditableModules
                   if (type === 'single-choice') {
-                    const options: string[] = Array.isArray(q.options) ? q.options : [];
-                    const value: string = q.correct_answer;
-                    const idxVal = options.indexOf(value);
-                    return { ...common, options, correctAnswer: idxVal >= 0 ? idxVal : 0 };
+                    return { ...common, options: q.options || [], correctAnswer: q.correctAnswer ?? 0 };
                   }
                   if (type === 'multiple-choice') {
-                    const options: string[] = Array.isArray(q.options) ? q.options : [];
-                    const values: string[] = Array.isArray(q.correct_answer) ? q.correct_answer : [];
-                    const indices = values.map(v => options.indexOf(v)).filter(i => i >= 0);
-                    return { ...common, options, correctAnswers: indices };
+                    return { ...common, options: q.options || [], correctAnswers: q.correctAnswers || [] };
                   }
                   if (type === 'true-false') {
-                    return { ...common, correctAnswer: !!q.correct_answer };
+                    return { ...common, correctAnswer: q.correctAnswer };
                   }
                   if (type === 'short-answer') {
-                    const answers: string[] = Array.isArray(q.correct_answer) ? q.correct_answer : (q.correct_answers || []);
-                    return { ...common, correctAnswers: answers, caseSensitive: !!q.case_sensitive };
+                    return { ...common, correctAnswers: q.correctAnswers || [], caseSensitive: q.caseSensitive };
                   }
                   if (type === 'long-answer') {
-                    return { ...common, minWords: q.min_words ?? undefined, maxWords: q.max_words ?? undefined, rubric: q.rubric || [] };
+                    return { ...common, minWords: q.minWords, maxWords: q.maxWords, rubric: q.rubric || [] };
                   }
                   if (type === 'fill-blank') {
-                    return { ...common, text: q.text || '', correctAnswers: Array.isArray(q.correct_answer) ? q.correct_answer : [] };
+                    return { ...common, text: q.text || '', correctAnswers: q.correctAnswers || [] };
                   }
                   if (type === 'matching') {
-                    const leftItems: string[] = (Array.isArray(q.options) ? q.options : []).filter((s: string) => s && s.trim());
-                    const dict: Record<string, string> = q.correct_answer || {};
-                    const rightValues = Array.from(new Set(Object.values(dict)));
-                    const correctMatches = Object.entries(dict).map(([l, r]) => ({
-                      left: leftItems.indexOf(l),
-                      right: rightValues.indexOf(r),
-                    })).filter(m => m.left >= 0 && m.right >= 0);
-                    return { ...common, leftItems, rightItems: rightValues, correctMatches };
+                    return { ...common, leftItems: q.leftItems || [], rightItems: q.rightItems || [], correctMatches: q.correctMatches || [] };
                   }
                   if (type === 'ordering') {
-                    const items: string[] = (Array.isArray(q.options) ? q.options : []).filter((s: string) => s && s.trim());
-                    const order: number[] = Array.isArray(q.correct_answer) ? q.correct_answer : [];
-                    return { ...common, items, correctOrder: order };
+                    return { ...common, items: q.items || [], correctOrder: q.correctOrder || [] };
                   }
                   return { ...common };
                 });
@@ -2907,11 +2891,11 @@ const EditCoursePage = () => {
                   return { ...common } as Question;
                 }),
                 settings: {
-                  passingScore: modules[showAssignmentBuilder].assignments![0].settings?.passingScore
-                    ?? modules[showAssignmentBuilder].assignments![0].settings?.passing_score
+                  passingScore: (modules[showAssignmentBuilder].assignments![0].settings as any)?.passingScore
+                    ?? (modules[showAssignmentBuilder].assignments![0].settings as any)?.passing_score
                     ?? 60,
-                  maxAttempts: modules[showAssignmentBuilder].assignments![0].settings?.maxAttempts
-                    ?? modules[showAssignmentBuilder].assignments![0].settings?.max_attempts
+                  maxAttempts: (modules[showAssignmentBuilder].assignments![0].settings as any)?.maxAttempts
+                    ?? (modules[showAssignmentBuilder].assignments![0].settings as any)?.max_attempts
                     ?? 3,
                   timeLimit: ((): number | undefined => {
                     const s: any = modules[showAssignmentBuilder].assignments![0].settings || {};
@@ -2919,11 +2903,11 @@ const EditCoursePage = () => {
                     if (typeof s.time_limit === 'number') return s.time_limit;
                     return undefined;
                   })(),
-                  allowLateSubmission: modules[showAssignmentBuilder].assignments![0].settings?.allowLateSubmission
-                    ?? modules[showAssignmentBuilder].assignments![0].settings?.allow_late_submission
+                  allowLateSubmission: (modules[showAssignmentBuilder].assignments![0].settings as any)?.allowLateSubmission
+                    ?? (modules[showAssignmentBuilder].assignments![0].settings as any)?.allow_late_submission
                     ?? false,
-                  requiresManualGrading: modules[showAssignmentBuilder].assignments![0].settings?.requiresManualGrading
-                    ?? modules[showAssignmentBuilder].assignments![0].settings?.requires_manual_grading
+                  requiresManualGrading: (modules[showAssignmentBuilder].assignments![0].settings as any)?.requiresManualGrading
+                    ?? (modules[showAssignmentBuilder].assignments![0].settings as any)?.requires_manual_grading
                     ?? false,
                   rubric: [], // Rubric simplifiée pour l'instant
                 }
