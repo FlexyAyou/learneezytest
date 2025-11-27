@@ -71,6 +71,7 @@ const CourseDetailPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<Content | null>(null);
   const [statusUpdating, setStatusUpdating] = useState(false);
+  const [explanationsOpen, setExplanationsOpen] = useState<Record<string, boolean>>({});
 
   // Édition désactivée sur la page de détail (lecture seule)
 
@@ -224,6 +225,29 @@ const CourseDetailPage = () => {
     if (lesson.image_key) return 'image';
 
     return 'none';
+  };
+
+  // Harmonisation et style des badges de difficulté
+  const formatDifficulty = (raw?: string) => {
+    if (!raw) return undefined;
+    const v = String(raw).toLowerCase();
+    if (['easy', 'facile', 'simple', 'débutant', 'beginner'].includes(v)) return 'Facile';
+    if (['medium', 'moyen', 'intermédiaire', 'intermediate'].includes(v)) return 'Moyen';
+    if (['hard', 'difficile', 'difficult', 'avancé', 'advanced'].includes(v)) return 'Difficile';
+    return raw; // valeur telle quelle si non reconnue
+  };
+
+  const difficultyBadgeClass = (label?: string) => {
+    switch (label) {
+      case 'Facile':
+        return 'bg-green-100 text-green-700 border-green-300';
+      case 'Moyen':
+        return 'bg-orange-100 text-orange-700 border-orange-300';
+      case 'Difficile':
+        return 'bg-red-100 text-red-700 border-red-300';
+      default:
+        return 'bg-gray-100 text-gray-700 border-gray-300';
+    }
   };
 
   // Calculer les statistiques
@@ -607,9 +631,17 @@ const CourseDetailPage = () => {
                                             Q{qIndex + 1}
                                           </span>
                                           {q.question}
-                                          {q.points && (
+                                          {typeof q.points === 'number' && (
                                             <span className="ml-2 text-xs text-gray-500">({q.points} pt{q.points > 1 ? 's' : ''})</span>
                                           )}
+                                          {(() => {
+                                            const label = formatDifficulty(q.difficulty);
+                                            return label ? (
+                                              <Badge variant="outline" className={`ml-2 text-[10px] ${difficultyBadgeClass(label)} border`}>
+                                                Difficulté: {label}
+                                              </Badge>
+                                            ) : null;
+                                          })()}
                                         </p>
                                         {q.type && (
                                           <p className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">
@@ -772,6 +804,39 @@ const CourseDetailPage = () => {
                                           }
 
                                           return null;
+                                        })()}
+                                        {(() => {
+                                          const explKey = `assign-${index}-${qIndex}`;
+                                          const isOpen = !!explanationsOpen[explKey];
+                                          return (
+                                            <div className="mt-2">
+                                              {q.explanation && (
+                                                <div className="flex items-center gap-2">
+                                                  <Button
+                                                    variant="outline"
+                                                    className="h-7 px-2 text-[10px]"
+                                                    onClick={() => setExplanationsOpen(prev => ({ ...prev, [explKey]: !prev[explKey] }))}
+                                                  >
+                                                    {isOpen ? (
+                                                      <>
+                                                        <EyeOff className="h-3 w-3 mr-1" /> Masquer explication
+                                                      </>
+                                                    ) : (
+                                                      <>
+                                                        <Eye className="h-3 w-3 mr-1" /> Afficher explication
+                                                      </>
+                                                    )}
+                                                  </Button>
+                                                </div>
+                                              )}
+                                              {q.explanation && isOpen && (
+                                                <div className="mt-2 text-xs bg-yellow-50 border-l-4 border-yellow-400 p-2 rounded">
+                                                  <div className="font-semibold text-yellow-800">Explication</div>
+                                                  <div className="text-yellow-900">{q.explanation}</div>
+                                                </div>
+                                              )}
+                                            </div>
+                                          );
                                         })()}
                                       </div>
                                     ))}
@@ -1068,6 +1133,17 @@ const CourseDetailPage = () => {
                                                     Q{qIndex + 1}
                                                   </span>
                                                   {question.question}
+                                                  {typeof (question as any).points === 'number' && (
+                                                    <span className="ml-2 text-xs text-gray-500">({(question as any).points} pt{(question as any).points > 1 ? 's' : ''})</span>
+                                                  )}
+                                                  {(() => {
+                                                    const label = formatDifficulty((question as any).difficulty);
+                                                    return label ? (
+                                                      <Badge variant="outline" className={`ml-2 text-[10px] ${difficultyBadgeClass(label)} border`}>
+                                                        Difficulté: {label}
+                                                      </Badge>
+                                                    ) : null;
+                                                  })()}
                                                 </p>
                                                 <div className="space-y-2 pl-4">
                                                   {(() => {
@@ -1222,6 +1298,39 @@ const CourseDetailPage = () => {
                                                     }
                                                     return null;
                                                   })()}
+                                                  {(() => {
+                                                    const explKey = `quiz-${idx}-${qIndex}`;
+                                                    const isOpen = !!explanationsOpen[explKey];
+                                                    return (
+                                                      <div className="mt-2">
+                                                        {(question as any).explanation && (
+                                                          <div className="flex items-center gap-2">
+                                                            <Button
+                                                              variant="outline"
+                                                              className="h-7 px-2 text-[10px]"
+                                                              onClick={() => setExplanationsOpen(prev => ({ ...prev, [explKey]: !prev[explKey] }))}
+                                                            >
+                                                              {isOpen ? (
+                                                                <>
+                                                                  <EyeOff className="h-3 w-3 mr-1" /> Masquer explication
+                                                                </>
+                                                              ) : (
+                                                                <>
+                                                                  <Eye className="h-3 w-3 mr-1" /> Afficher explication
+                                                                </>
+                                                              )}
+                                                            </Button>
+                                                          </div>
+                                                        )}
+                                                        {(question as any).explanation && isOpen && (
+                                                          <div className="mt-2 text-xs bg-yellow-50 border-l-4 border-yellow-400 p-2 rounded">
+                                                            <div className="font-semibold text-yellow-800">Explication</div>
+                                                            <div className="text-yellow-900">{(question as any).explanation}</div>
+                                                          </div>
+                                                        )}
+                                                      </div>
+                                                    );
+                                                  })()}
                                                 </div>
                                               </div>
                                             ))}
@@ -1250,7 +1359,6 @@ const CourseDetailPage = () => {
                                       </div>
                                     );
                                   }
-
                                   return null;
                                 })}
                               </div>
