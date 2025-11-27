@@ -34,7 +34,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import RichTextEditor from '@/components/admin/RichTextEditor';
 import { QuizBuilder, AssignmentBuilder } from '@/components/quiz';
-import type { QuizConfig, AssignmentConfig, QuestionType } from '@/types/quiz';
+import type { QuizConfig, AssignmentConfig, QuestionType, Question } from '@/types/quiz';
 import { CycleTagSelector } from '@/components/admin/CycleTagSelector';
 import { CategoryTagSelector } from '@/components/admin/CategoryTagSelector';
 import { useCreateModuleQuiz, useUpdateModuleQuiz, useDeleteModuleQuiz, useReorderModuleContent } from '@/hooks/useApi';
@@ -2884,29 +2884,126 @@ const EditCoursePage = () => {
                 title: modules[showAssignmentBuilder].assignments![0].title,
                 description: modules[showAssignmentBuilder].assignments![0].description || '',
                 instructions: modules[showAssignmentBuilder].assignments![0].instructions || '',
-                questions: (modules[showAssignmentBuilder].assignments![0].questions || []).map((q: any, idx: number) => ({
-                  id: `q-${idx}`,
-                  type: q.type || 'single-choice',
-                  question: q.question,
-                  points: q.points || 1,
-                  options: q.options || [],
-                  correctAnswer: q.type === 'single-choice' || q.type === 'true-false'
-                    ? (q.options || []).indexOf(q.correct_answer)
-                    : undefined,
-                  correctAnswers: q.type === 'multiple-choice'
-                    ? (q.options || []).map((opt: string, i: number) =>
-                      Array.isArray(q.correct_answer) && q.correct_answer.includes(opt) ? i : -1
-                    ).filter((i: number) => i >= 0)
-                    : undefined,
-                })),
+                questions: (modules[showAssignmentBuilder].assignments![0].questions || []).map((q: any, idx: number): Question => {
+                  const type: QuestionType = q.type || 'single-choice';
+                  const id = `q-${idx}`;
+                  const common: any = {
+                    id,
+                    type,
+                    question: q.question || '',
+                    points: typeof q.points === 'number' ? q.points : 1,
+                    difficulty: q.difficulty || undefined,
+                    explanation: q.explanation || undefined,
+                    tags: q.tags || undefined,
+                  };
+                  if (q.media) {
+                    common.media = {
+                      type: q.media.type,
+                      key: q.media.key,
+                      url: q.media.url,
+                      caption: q.media.caption,
+                    };
+                  }
+
+                  if (type === 'single-choice') {
+                    const options: string[] = q.options || [];
+                    if (typeof q.correctAnswer === 'number') {
+                      return { ...common, options, correctAnswer: q.correctAnswer };
+                    }
+                    // Legacy snake_case value
+                    const value = q.correct_answer;
+                    const idxVal = options.indexOf(value);
+                    return { ...common, options, correctAnswer: idxVal >= 0 ? idxVal : 0 };
+                  }
+
+                  if (type === 'multiple-choice') {
+                    const options: string[] = q.options || [];
+                    if (Array.isArray(q.correctAnswers)) {
+                      return { ...common, options, correctAnswers: q.correctAnswers };
+                    }
+                    const values: string[] = Array.isArray(q.correct_answer) ? q.correct_answer : (q.correct_answers || []);
+                    const indices = values.map((v: string) => options.indexOf(v)).filter((i: number) => i >= 0);
+                    return { ...common, options, correctAnswers: indices };
+                  }
+
+                  if (type === 'true-false') {
+                    const boolVal = typeof q.correctAnswer === 'boolean' ? q.correctAnswer : !!q.correct_answer;
+                    return { ...common, correctAnswer: boolVal };
+                  }
+
+                  if (type === 'short-answer') {
+                    const answers: string[] = Array.isArray(q.correctAnswers) ? q.correctAnswers
+                      : (Array.isArray(q.correct_answer) ? q.correct_answer : (q.correct_answers || []));
+                    const caseSensitive = typeof q.caseSensitive === 'boolean' ? q.caseSensitive : !!q.case_sensitive;
+                    return { ...common, correctAnswers: answers, caseSensitive };
+                  }
+
+                  if (type === 'long-answer') {
+                    return {
+                      ...common,
+                      minWords: q.minWords ?? q.min_words ?? undefined,
+                      maxWords: q.maxWords ?? q.max_words ?? undefined,
+                      rubric: q.rubric || [],
+                    };
+                  }
+
+                  if (type === 'fill-blank') {
+                    const text: string = q.text || '';
+                    const answers: string[] = Array.isArray(q.correctAnswers) ? q.correctAnswers
+                      : (Array.isArray(q.correct_answer) ? q.correct_answer : []);
+                    return { ...common, text, correctAnswers: answers };
+                  }
+
+                  if (type === 'matching') {
+                    // Advanced camelCase
+                    if (Array.isArray(q.leftItems) && Array.isArray(q.rightItems) && Array.isArray(q.correctMatches)) {
+                      return {
+                        ...common,
+                        leftItems: q.leftItems,
+                        rightItems: q.rightItems,
+                        correctMatches: q.correctMatches,
+                      };
+                    }
+                    // Legacy simple snake_case: options (left) + correct_answer dict
+                    const leftItems: string[] = Array.isArray(q.options) ? q.options : (q.left_items || []);
+                    const dict: Record<string, string> = q.correct_answer || {};
+                    const rightValues = Array.from(new Set(Object.values(dict)));
+                    const correctMatches = Object.entries(dict).map(([l, r]) => ({
+                      left: leftItems.indexOf(l),
+                      right: rightValues.indexOf(r),
+                    })).filter((m) => m.left >= 0 && m.right >= 0);
+                    return { ...common, leftItems, rightItems: rightValues, correctMatches };
+                  }
+
+                  if (type === 'ordering') {
+                    const items: string[] = q.items || q.options || [];
+                    const order: number[] = Array.isArray(q.correctOrder) ? q.correctOrder
+                      : (Array.isArray(q.correct_answer) ? q.correct_answer : []);
+                    return { ...common, items, correctOrder: order };
+                  }
+
+                  // Fallback
+                  return { ...common } as Question;
+                }),
                 settings: {
-                  passingScore: modules[showAssignmentBuilder].assignments![0].settings?.passing_score || 60,
-                  maxAttempts: modules[showAssignmentBuilder].assignments![0].settings?.max_attempts || 3,
-                  timeLimit: typeof modules[showAssignmentBuilder].assignments![0].settings?.time_limit === 'number'
-                    ? modules[showAssignmentBuilder].assignments![0].settings!.time_limit
-                    : undefined,
-                  allowLateSubmission: modules[showAssignmentBuilder].assignments![0].settings?.allow_late_submission || false,
-                  requiresManualGrading: modules[showAssignmentBuilder].assignments![0].settings?.requires_manual_grading || false,
+                  passingScore: modules[showAssignmentBuilder].assignments![0].settings?.passingScore
+                    ?? modules[showAssignmentBuilder].assignments![0].settings?.passing_score
+                    ?? 60,
+                  maxAttempts: modules[showAssignmentBuilder].assignments![0].settings?.maxAttempts
+                    ?? modules[showAssignmentBuilder].assignments![0].settings?.max_attempts
+                    ?? 3,
+                  timeLimit: ((): number | undefined => {
+                    const s: any = modules[showAssignmentBuilder].assignments![0].settings || {};
+                    if (typeof s.timeLimit === 'number') return s.timeLimit;
+                    if (typeof s.time_limit === 'number') return s.time_limit;
+                    return undefined;
+                  })(),
+                  allowLateSubmission: modules[showAssignmentBuilder].assignments![0].settings?.allowLateSubmission
+                    ?? modules[showAssignmentBuilder].assignments![0].settings?.allow_late_submission
+                    ?? false,
+                  requiresManualGrading: modules[showAssignmentBuilder].assignments![0].settings?.requiresManualGrading
+                    ?? modules[showAssignmentBuilder].assignments![0].settings?.requires_manual_grading
+                    ?? false,
                   rubric: [], // Rubric simplifiée pour l'instant
                 }
               } : undefined}
