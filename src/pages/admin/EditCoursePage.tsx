@@ -34,9 +34,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import RichTextEditor from '@/components/admin/RichTextEditor';
 import { QuizBuilder, AssignmentBuilder } from '@/components/quiz';
-import type { QuizConfig, AssignmentConfig } from '@/types/quiz';
+import type { QuizConfig, AssignmentConfig, QuestionType, Question } from '@/types/quiz';
 import { CycleTagSelector } from '@/components/admin/CycleTagSelector';
-import { useCategories, useCreateCategory, useCreateModuleQuiz, useUpdateModuleQuiz, useDeleteModuleQuiz, useReorderModuleContent } from '@/hooks/useApi';
+import { CategoryTagSelector } from '@/components/admin/CategoryTagSelector';
+import { useCreateModuleQuiz, useUpdateModuleQuiz, useDeleteModuleQuiz, useReorderModuleContent } from '@/hooks/useApi';
 import { UploadNotification, UploadItem } from '@/components/common/UploadNotification';
 import { useToast } from '@/hooks/use-toast';
 import { useAutoSave } from '@/hooks/useAutoSave';
@@ -132,12 +133,6 @@ const EditCoursePage = () => {
     cycle: '',
     cycleTags: [],
   });
-
-  // Catégories dynamiques (liste + création)
-  const { data: categories = [], isLoading: isLoadingCategories } = useCategories();
-  const createCategoryMutation = useCreateCategory();
-  const [customCategory, setCustomCategory] = useState('');
-  const [isAddingCategory, setIsAddingCategory] = useState(false);
 
   // Module quiz hooks
   const createModuleQuizMutation = useCreateModuleQuiz();
@@ -304,7 +299,98 @@ const EditCoursePage = () => {
           backendId: stringId,
         };
       });
-      const quizzesRaw: Quiz[] = mod.quizzes || [];
+      // Transformer les quizzes backend (snake_case, formes simples) vers la forme interne QuizConfig
+      const quizzesRaw: Quiz[] = (mod.quizzes || []).map((quiz: any) => {
+        const internalQuestions: any[] = (quiz.questions || []).map((q: any, qi: number) => {
+          const id = String(q.id ?? `quizq-${idx}-${qi}-${Date.now()}`);
+          const type = q.type as QuestionType;
+          // Champs communs
+          const common: any = {
+            id,
+            type,
+            question: q.question || '',
+            points: typeof q.points === 'number' ? q.points : 1,
+            difficulty: q.difficulty || undefined,
+            explanation: q.explanation || undefined,
+            tags: q.tags || undefined,
+          };
+          if (q.media) {
+            common.media = {
+              type: q.media.type,
+              key: q.media.key,
+              url: q.media.url,
+              caption: q.media.caption,
+            };
+          }
+          // Reconstruction par type
+          if (type === 'single-choice') {
+            const options: string[] = Array.isArray(q.options) ? q.options : [];
+            const value: string = q.correct_answer;
+            const correctIndex = options.indexOf(value);
+            return { ...common, options, correctAnswer: correctIndex >= 0 ? correctIndex : 0 };
+          } else if (type === 'multiple-choice') {
+            const options: string[] = Array.isArray(q.options) ? q.options : [];
+            const values: string[] = Array.isArray(q.correct_answer) ? q.correct_answer : [];
+            const indices = values.map(v => options.indexOf(v)).filter(i => i >= 0);
+            return { ...common, options, correctAnswers: indices };
+          } else if (type === 'true-false') {
+            const boolVal = !!q.correct_answer;
+            return { ...common, correctAnswer: boolVal };
+          } else if (type === 'short-answer') {
+            const answers: string[] = Array.isArray(q.correct_answer) ? q.correct_answer : (q.correct_answers || []);
+            return { ...common, correctAnswers: answers, caseSensitive: !!q.case_sensitive };
+          } else if (type === 'long-answer') {
+            return {
+              ...common,
+              minWords: q.min_words || undefined,
+              maxWords: q.max_words || undefined,
+              rubric: q.rubric || [],
+            };
+          } else if (type === 'fill-blank') {
+            return {
+              ...common,
+              text: q.text || '',
+              correctAnswers: Array.isArray(q.correct_answer) ? q.correct_answer : [],
+            };
+          } else if (type === 'matching') {
+            // Forme simple envoyée: options (left) + correct_answer dict { left: right }
+            const leftItems: string[] = (Array.isArray(q.options) ? q.options : []).filter((s: string) => s && s.trim());
+            const dict: Record<string, string> = q.correct_answer || {};
+            const rightValues = Array.from(new Set(Object.values(dict)));
+            const correctMatches = Object.entries(dict).map(([l, r]) => ({
+              left: leftItems.indexOf(l),
+              right: rightValues.indexOf(r),
+            })).filter(m => m.left >= 0 && m.right >= 0);
+            return {
+              ...common,
+              leftItems,
+              rightItems: rightValues,
+              correctMatches,
+            };
+          } else if (type === 'ordering') {
+            const items: string[] = (Array.isArray(q.options) ? q.options : []).filter((s: string) => s && s.trim());
+            const order: number[] = Array.isArray(q.correct_answer) ? q.correct_answer : [];
+            return { ...common, items, correctOrder: order };
+          }
+          // Fallback inconnu
+          return { ...common };
+        });
+        return {
+          id: String(quiz.id ?? `quiz-${idx}-${Date.now()}`),
+          type: 'quiz',
+          title: quiz.title || '',
+          description: quiz.description || '',
+          questions: internalQuestions,
+          settings: quiz.settings || {
+            showFeedback: 'after-submit',
+            allowRetry: true,
+            maxAttempts: 3,
+            randomizeQuestions: false,
+            randomizeOptions: false,
+            passingScore: 70,
+          }
+        } as Quiz;
+      });
 
       // Assignments: le document de cours ne contient pas le payload
       // complet; ils seront chargés paresseusement via getAssignment.
@@ -434,35 +520,6 @@ const EditCoursePage = () => {
     delay: 2000,
     enabled: activeTab === 'general' && !loading
   });
-
-  // Création de catégorie personnalisée (sans perturber l'auto-save)
-  const saveCustomCategory = async () => {
-    const newName = customCategory.trim();
-    if (!newName) {
-      toast({ title: 'Erreur', description: 'Veuillez entrer un nom de catégorie', variant: 'destructive' });
-      return;
-    }
-    try {
-      const created = await createCategoryMutation.mutateAsync({ name: newName });
-
-      // Mettre à jour le cache pour apparition immédiate
-      queryClient.setQueryData(['categories'], (old: any) => {
-        if (Array.isArray(old)) {
-          const exists = old.some((c: any) => c?.name === created?.name);
-          return exists ? old : [...old, created];
-        }
-        return created ? [created] : [];
-      });
-
-      // Sélectionner immédiatement
-      setCourseData(prev => ({ ...prev, category: created?.name || newName }));
-      setCustomCategory('');
-      setIsAddingCategory(false);
-    } catch (error) {
-      // Les toasts d'erreur sont gérés par le hook
-      console.error('Error creating category:', error);
-    }
-  };
 
   // Functions for managing objectives
   const addObjective = () => {
@@ -753,17 +810,11 @@ const EditCoursePage = () => {
         if (!newModuleId) throw new Error('Module ID introuvable');
 
         const quizPayload = buildQuizPayload(quiz);
-
-        const lastModuleIdx = updatedCourse.modules.length - 1;
-        const updatedModuleData = {
-          title: updatedCourse.modules[lastModuleIdx].title,
-          description: updatedCourse.modules[lastModuleIdx].description,
-          duration: updatedCourse.modules[lastModuleIdx].duration,
-          content: updatedCourse.modules[lastModuleIdx].content as any,
-          quizzes: [quizPayload],
-        };
-
-        await fastAPIClient.updateModule(id, newModuleId, updatedModuleData);
+        await createModuleQuizMutation.mutateAsync({
+          courseId: id,
+          moduleId: newModuleId,
+          quizData: quizPayload,
+        });
 
         // Rafraîchir tout
         const finalCourse = await fastAPIClient.getCourse(id);
@@ -778,7 +829,7 @@ const EditCoursePage = () => {
 
       const quizPayload = buildQuizPayload(quiz);
 
-      // Créer ou mettre à jour
+      // Créer ou mettre à jour via endpoints dédiés
       if (editingQuizId) {
         await updateModuleQuizMutation.mutateAsync({
           courseId: id,
@@ -787,111 +838,10 @@ const EditCoursePage = () => {
           quizData: quizPayload
         });
       } else {
-        // Comportement actuel pour les modules existants
-        const quizPayload: QuizCreate = {
-          title: quiz.title,
-          questions: quiz.questions.map(q => {
-            const baseQuestion: any = {
-              type: q.type,
-              question: q.question,
-              options: [],
-              correct_answer: ''
-            };
-
-            if (q.type === 'single-choice') {
-              const scq = q as any;
-              baseQuestion.options = scq.options || [];
-              baseQuestion.correct_answer = scq.options?.[scq.correctAnswer] || '';
-            } else if (q.type === 'true-false') {
-              const tfq = q as any;
-              baseQuestion.options = ['Vrai', 'Faux'];
-              baseQuestion.correct_answer = !!tfq.correctAnswer;
-            } else if (q.type === 'multiple-choice') {
-              const mcq = q as any;
-              baseQuestion.options = mcq.options || [];
-              baseQuestion.correct_answers = mcq.correctAnswers?.map((idx: number) => mcq.options[idx]) || [];
-            } else if (q.type === 'short-answer') {
-              const saq = q as any;
-              baseQuestion.correct_answer = saq.correctAnswers?.[0] || '';
-              baseQuestion.correct_answers = saq.correctAnswers || [];
-              baseQuestion.case_sensitive = saq.caseSensitive || false;
-            } else if (q.type === 'long-answer') {
-              const laq = q as any;
-              baseQuestion.min_words = laq.minWords;
-              baseQuestion.max_words = laq.maxWords;
-              baseQuestion.rubric = laq.rubric;
-            } else if (q.type === 'fill-blank') {
-              const fbq = q as any;
-              baseQuestion.text = fbq.text;
-              baseQuestion.correct_answers = fbq.correctAnswers || [];
-            } else if (q.type === 'matching') {
-              const mq = q as any;
-              baseQuestion.left_items = mq.leftItems || [];
-              baseQuestion.right_items = mq.rightItems || [];
-              baseQuestion.correct_matches = (mq.correctMatches || []).reduce((acc: Record<string, string>, match: any) => {
-                const leftItem = mq.leftItems[match.left];
-                const rightItem = mq.rightItems[match.right];
-                if (leftItem && rightItem) {
-                  acc[leftItem] = rightItem;
-                }
-                return acc;
-              }, {});
-            } else if (q.type === 'ordering') {
-              const oq = q as any;
-              baseQuestion.items = oq.items || [];
-              baseQuestion.correct_order = (oq.correctOrder || []).map((idx: number) => oq.items[idx]).filter(Boolean);
-            }
-
-            // Étape 2 – Médias et attributs supplémentaires
-            const qAny: any = q as any;
-            if (qAny.media) {
-              baseQuestion.media = {
-                type: qAny.media.type,
-                key: qAny.media.key,
-                url: qAny.media.url,
-                caption: qAny.media.caption,
-              };
-            }
-            if (typeof qAny.points !== 'undefined') baseQuestion.points = qAny.points;
-            if (qAny.difficulty) baseQuestion.difficulty = qAny.difficulty;
-            if (qAny.explanation) baseQuestion.explanation = qAny.explanation;
-            if (qAny.tags) baseQuestion.tags = qAny.tags;
-
-            if (q.type === 'single-choice' || q.type === 'multiple-choice') {
-              const om = Array.isArray(qAny.optionsMedia) ? qAny.optionsMedia : [];
-              baseQuestion.options_media = (baseQuestion.options || []).map((_: any, i: number) => {
-                const m = om[i];
-                return m ? { type: m.type, key: m.key, url: m.url, caption: m.caption } : undefined;
-              });
-            }
-
-            return baseQuestion;
-          }) as any[]
-        };
-
-        const updatedModuleData = {
-          title: module.title,
-          description: module.description,
-          duration: module.duration,
-          content: module.lessons.map(l => ({
-            title: l.title,
-            description: l.description,
-            duration: l.duration,
-          })) as any,
-          quizzes: [quizPayload],
-        };
-
-        const currentCourse = await fastAPIClient.getCourse(id);
-        const moduleId = currentCourse.modules[moduleIdx].id!;
-        await fastAPIClient.updateModule(id, moduleId, updatedModuleData);
-
-        const updatedCourse = await fastAPIClient.getCourse(id);
-        setModules(mapCourseToEditableModules(updatedCourse));
-
-        setShowModuleQuizBuilder(null);
-        toast({
-          title: '✅ Quiz sauvegardé',
-          description: 'Le quiz du module a été enregistré avec succès.'
+        await createModuleQuizMutation.mutateAsync({
+          courseId: id,
+          moduleId,
+          quizData: quizPayload,
         });
       }
 
@@ -901,7 +851,7 @@ const EditCoursePage = () => {
       setModules(refreshedModules);
       setShowModuleQuizBuilder(null);
       setEditingQuizId(null);
-      
+
       console.log('Quiz sauvegardé, modules rafraîchis:', refreshedModules);
     } catch (error: any) {
       console.error('Erreur lors de la sauvegarde du quiz:', error);
@@ -922,26 +872,25 @@ const EditCoursePage = () => {
         const baseQuestion: any = {
           type: q.type,
           question: q.question,
-          options: [],
-          correct_answer: ''
         };
 
         if (q.type === 'single-choice') {
           const scq = q as any;
-          baseQuestion.options = scq.options || [];
-          baseQuestion.correct_answer = scq.options?.[scq.correctAnswer] || '';
+          baseQuestion.options = Array.isArray(scq.options) ? scq.options : [];
+          baseQuestion.correct_answer = baseQuestion.options?.[scq.correctAnswer] || '';
         } else if (q.type === 'true-false') {
           const tfq = q as any;
           baseQuestion.options = ['Vrai', 'Faux'];
-          baseQuestion.correct_answer = tfq.correctAnswer === true || tfq.correctAnswer === 0;
+          baseQuestion.correct_answer = !!tfq.correctAnswer;
         } else if (q.type === 'multiple-choice') {
           const mcq = q as any;
-          baseQuestion.options = mcq.options || [];
-          baseQuestion.correct_answers = mcq.correctAnswers?.map((idx: number) => mcq.options[idx]) || [];
+          baseQuestion.options = Array.isArray(mcq.options) ? mcq.options : [];
+          baseQuestion.correct_answer = (mcq.correctAnswers || [])
+            .map((idx: number) => baseQuestion.options[idx])
+            .filter((v: any) => typeof v === 'string' && v.length > 0);
         } else if (q.type === 'short-answer') {
           const saq = q as any;
-          baseQuestion.correct_answer = saq.correctAnswers?.[0] || '';
-          baseQuestion.correct_answers = saq.correctAnswers || [];
+          baseQuestion.correct_answer = (saq.correctAnswers || []).filter((s: string) => !!s?.trim());
           baseQuestion.case_sensitive = saq.caseSensitive || false;
         } else if (q.type === 'long-answer') {
           const laq = q as any;
@@ -951,23 +900,31 @@ const EditCoursePage = () => {
         } else if (q.type === 'fill-blank') {
           const fbq = q as any;
           baseQuestion.text = fbq.text;
-          baseQuestion.correct_answers = fbq.correctAnswers || [];
+          baseQuestion.correct_answer = fbq.correctAnswers || [];
         } else if (q.type === 'matching') {
           const mq = q as any;
-          baseQuestion.left_items = mq.leftItems || [];
-          baseQuestion.right_items = mq.rightItems || [];
-          baseQuestion.correct_matches = (mq.correctMatches || []).reduce((acc: Record<string, string>, match: any) => {
-            const leftItem = mq.leftItems[match.left];
-            const rightItem = mq.rightItems[match.right];
-            if (leftItem && rightItem) {
-              acc[leftItem] = rightItem;
-            }
-            return acc;
-          }, {});
+          const leftItems = Array.isArray(mq.leftItems) ? mq.leftItems : [];
+          const rightItems = Array.isArray(mq.rightItems) ? mq.rightItems : [];
+          baseQuestion.options = leftItems.filter((s: string) => s && s.trim());
+          const dict: Record<string, string> = {};
+          (mq.correctMatches || []).forEach((m: any) => {
+            const l = leftItems[m.left];
+            const r = rightItems[m.right];
+            if (l && r) dict[l] = r;
+          });
+          if (!Object.keys(dict).length && leftItems.length && rightItems.length) {
+            leftItems.forEach((l: string, i: number) => {
+              const r = rightItems[i];
+              if (l && r) dict[l] = r;
+            });
+          }
+          baseQuestion.correct_answer = dict;
         } else if (q.type === 'ordering') {
           const oq = q as any;
-          baseQuestion.items = oq.items || [];
-          baseQuestion.correct_order = (oq.correctOrder || []).map((idx: number) => oq.items[idx]).filter(Boolean);
+          const items = Array.isArray(oq.items) ? oq.items : [];
+          baseQuestion.options = items.filter((s: string) => s && s.trim());
+          const orderIdx = (oq.correctOrder || []).length ? oq.correctOrder : baseQuestion.options.map((_: any, i: number) => i);
+          baseQuestion.correct_answer = orderIdx;
         }
 
         return baseQuestion;
@@ -980,24 +937,9 @@ const EditCoursePage = () => {
     if (!id || !course || !confirm('Supprimer ce quiz ?')) return;
 
     try {
-      const editableModule = modules[moduleIdx];
       const moduleId = course.modules[moduleIdx]?.id;
       if (!moduleId) return;
-
-      // Utiliser updateModule avec le payload complet sans quiz
-      const updatedModuleData = {
-        title: editableModule.title,
-        description: editableModule.description,
-        duration: editableModule.duration,
-        content: editableModule.lessons.map(l => ({
-          title: l.title,
-          description: l.description,
-          duration: l.duration,
-        })) as any,
-        quizzes: [],
-      };
-
-      await fastAPIClient.updateModule(id, moduleId, updatedModuleData);
+      await deleteModuleQuizMutation.mutateAsync({ courseId: id, moduleId, quizId });
 
       const updatedCourse = await fastAPIClient.getCourse(id);
       setModules(mapCourseToEditableModules(updatedCourse));
@@ -1077,7 +1019,7 @@ const EditCoursePage = () => {
     try {
       const module = modules[moduleIdx];
 
-      // Mapper AssignmentBuilder -> AssignmentCreate
+      // Mapper AssignmentBuilder -> Payload domaine évaluations (camelCase)
       const assignmentPayload: any = {
         title: assignment.title,
         description: assignment.description || '',
@@ -1091,20 +1033,29 @@ const EditCoursePage = () => {
 
           if (q.type === 'single-choice') {
             base.options = q.options || [];
-            base.correct_answer = base.options[q.correctAnswer] ?? '';
+            base.correctAnswer = typeof q.correctAnswer === 'number' ? q.correctAnswer : 0;
           } else if (q.type === 'multiple-choice') {
             base.options = q.options || [];
-            // Pour les assignments, correct_answer accepte string[] pour multiple-choice
-            base.correct_answer = (q.correctAnswers || []).map((idx: number) => base.options[idx]).filter(Boolean);
+            base.correctAnswers = q.correctAnswers || [];
           } else if (q.type === 'true-false') {
-            base.options = ['Vrai', 'Faux'];
-            base.correct_answer = !!q.correctAnswer;
+            base.correctAnswer = !!q.correctAnswer;
           } else if (q.type === 'short-answer') {
-            // Pour short-answer dans assignments, correct_answer accepte string[]
-            base.correct_answer = q.correctAnswers || [];
-          } else if (q.type === 'essay') {
-            // Pas d'options / correct_answer strict, évalué manuellement
-            // Pas besoin de correct_answer pour les essays
+            base.correctAnswers = (q.correctAnswers || []).filter((s: string) => !!s?.trim());
+            base.caseSensitive = !!q.caseSensitive;
+          } else if (q.type === 'long-answer' || q.type === 'essay') {
+            base.minWords = q.minWords || undefined;
+            base.maxWords = q.maxWords || undefined;
+            base.rubric = q.rubric || [];
+          } else if (q.type === 'fill-blank') {
+            base.text = q.text;
+            base.correctAnswers = q.correctAnswers || [];
+          } else if (q.type === 'matching') {
+            base.leftItems = q.leftItems || [];
+            base.rightItems = q.rightItems || [];
+            base.correctMatches = q.correctMatches || [];
+          } else if (q.type === 'ordering') {
+            base.items = q.items || [];
+            base.correctOrder = q.correctOrder || (base.items || []).map((_: any, i: number) => i);
           }
 
           return base;
@@ -1642,59 +1593,10 @@ const EditCoursePage = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="category" className="text-base font-semibold">
-                      Catégorie
-                    </Label>
-                    <Select
-                      value={courseData.category}
-                      onValueChange={(value) => {
-                        if (value === 'custom') {
-                          setIsAddingCategory(true);
-                          return;
-                        }
-                        setIsAddingCategory(false);
-                        setCourseData(prev => ({ ...prev, category: value }));
-                      }}
-                    >
-                      <SelectTrigger className="h-11 focus:ring-2 focus:ring-primary transition-all">
-                        <SelectValue placeholder="Choisir une catégorie" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <>
-                          {isLoadingCategories ? (
-                            <SelectItem value="__loading" disabled>Chargement...</SelectItem>
-                          ) : categories && categories.length > 0 ? (
-                            categories.map((cat: any) => (
-                              <SelectItem key={cat.id} value={cat.name}>
-                                {cat.name}
-                              </SelectItem>
-                            ))
-                          ) : (
-                            <SelectItem value="__empty" disabled>Aucune catégorie disponible</SelectItem>
-                          )}
-                        </>
-                        <SelectItem value="custom">➕ Ajouter une nouvelle catégorie</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {isAddingCategory && (
-                      <div className="mt-2 space-y-2">
-                        <Input
-                          value={customCategory}
-                          onChange={(e) => setCustomCategory(e.target.value)}
-                          placeholder="Entrez une catégorie personnalisée"
-                        />
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={saveCustomCategory}
-                          className="w-full"
-                          disabled={createCategoryMutation.isPending}
-                        >
-                          <Save className="h-4 w-4 mr-2" />
-                          {createCategoryMutation.isPending ? 'Enregistrement...' : 'Enregistrer et ajouter à la liste'}
-                        </Button>
-                      </div>
-                    )}
+                    <CategoryTagSelector
+                      selectedCategory={courseData.category}
+                      onCategoryChange={(category) => setCourseData(prev => ({ ...prev, category }))}
+                    />
                   </div>
                 </div>
 
@@ -2056,7 +1958,9 @@ const EditCoursePage = () => {
                                     handleDeleteLesson(moduleIdx, lessonIdx);
                                   }
                                 }}
-                                onEditQuiz={() => {
+                                onEditQuiz={(quizIndex: number) => {
+                                  const quiz = module.quizzes?.[quizIndex];
+                                  setEditingQuizId(quiz?.id ?? null);
                                   setShowModuleQuizBuilder(moduleIdx);
                                 }}
                                 onDeleteQuiz={(quizIndex: number) => {
@@ -2191,11 +2095,7 @@ const EditCoursePage = () => {
                                                       ...m,
                                                       lessons: m.lessons.map((l, lIdx) =>
                                                         lIdx === editingLessonId.lessonIdx
-                                                          ? {
-                                                            ...l,
-                                                            useMediaUrl: true,
-                                                            video_url: l.video_url || '',
-                                                          }
+                                                          ? { ...l, useMediaUrl: true }
                                                           : l
                                                       )
                                                     }
@@ -2210,58 +2110,109 @@ const EditCoursePage = () => {
 
                                           {/* Upload File Section (même UX que la création) */}
                                           {!lesson.useMediaUrl && (
-                                            <div className="space-y-3">
+                                            <div className="space-y-4">
+                                              {/* Affichage du fichier uploadé avec nom et bouton X */}
                                               {(lesson.video_key || lesson.pdf_key || lesson.image_key) && (
-                                                <div className="space-y-2">
-                                                  <button
-                                                    type="button"
-                                                    onClick={async () => {
-                                                      if (!lesson.video_key && !lesson.pdf_key && !lesson.image_key) return;
+                                                <>
+                                                  <div className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                                                    <div className="flex items-center gap-3">
+                                                      {lesson.video_key && <Video className="h-5 w-5 text-blue-600" />}
+                                                      {lesson.pdf_key && <FileText className="h-5 w-5 text-red-600" />}
+                                                      {lesson.image_key && <ImageIcon className="h-5 w-5 text-green-600" />}
+                                                      <span className="text-sm font-medium text-gray-700">
+                                                        {lesson.video_key && 'Vidéo uploadée'}
+                                                        {lesson.pdf_key && 'Document PDF uploadé'}
+                                                        {lesson.image_key && 'Image uploadée'}
+                                                      </span>
+                                                    </div>
+                                                    <Button
+                                                      type="button"
+                                                      variant="ghost"
+                                                      size="sm"
+                                                      onClick={() => {
+                                                        setModules(prev => prev.map((m, mIdx) =>
+                                                          mIdx === moduleIdx
+                                                            ? {
+                                                              ...m,
+                                                              lessons: m.lessons.map((l, lIdx) =>
+                                                                lIdx === editingLessonId.lessonIdx
+                                                                  ? { ...l, video_key: null, pdf_key: null, image_key: null }
+                                                                  : l
+                                                              )
+                                                            }
+                                                            : m
+                                                        ));
+                                                      }}
+                                                    >
+                                                      <X className="h-4 w-4" />
+                                                    </Button>
+                                                  </div>
 
-                                                      let kind: 'video' | 'pdf' | 'image' = 'video';
-                                                      if (lesson.pdf_key) kind = 'pdf';
-                                                      else if (lesson.image_key) kind = 'image';
+                                                  {/* Aperçu du média */}
+                                                  <div>
+                                                    <Label className="mb-2">Aperçu :</Label>
+                                                    <button
+                                                      type="button"
+                                                      onClick={async () => {
+                                                        let kind: 'video' | 'pdf' | 'image' = 'video';
+                                                        if (lesson.pdf_key) kind = 'pdf';
+                                                        else if (lesson.image_key) kind = 'image';
 
-                                                      setPreviewLessonMedia({
-                                                        moduleIdx,
-                                                        lessonIdx: editingLessonId.lessonIdx,
-                                                        kind,
-                                                      });
-                                                    }}
-                                                    className="w-full text-left flex items-center gap-2 p-3 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors"
-                                                  >
-                                                    {lesson.video_key && <Video className="h-5 w-5 text-blue-600" />}
-                                                    {lesson.pdf_key && <FileText className="h-5 w-5 text-blue-600" />}
-                                                    {lesson.image_key && <ImageIcon className="h-5 w-5 text-blue-600" />}
-                                                    <span className="text-sm font-medium">Média actuel de la leçon</span>
-                                                  </button>
-                                                </div>
+                                                        setPreviewLessonMedia({
+                                                          moduleIdx,
+                                                          lessonIdx: editingLessonId.lessonIdx,
+                                                          kind,
+                                                        });
+                                                      }}
+                                                      className="w-full rounded-lg overflow-hidden border bg-black hover:opacity-90 transition-opacity"
+                                                    >
+                                                      {lesson.video_key && (
+                                                        <div className="aspect-video flex items-center justify-center">
+                                                          <Video className="h-12 w-12 text-white" />
+                                                        </div>
+                                                      )}
+                                                      {lesson.pdf_key && (
+                                                        <div className="flex items-center gap-3 p-4 bg-red-50">
+                                                          <FileText className="h-8 w-8 text-red-600" />
+                                                          <span className="text-sm font-medium">Cliquez pour prévisualiser le PDF</span>
+                                                        </div>
+                                                      )}
+                                                      {lesson.image_key && (
+                                                        <div className="aspect-video flex items-center justify-center bg-gray-100">
+                                                          <ImageIcon className="h-12 w-12 text-gray-400" />
+                                                        </div>
+                                                      )}
+                                                    </button>
+                                                  </div>
+                                                </>
                                               )}
 
                                               {/* Dropzone / zone d'upload */}
-                                              <div
-                                                className="mt-2 border-2 border-dashed border-muted-foreground/25 rounded-xl p-8 text-center hover:border-pink-500 hover:bg-pink-50 transition-all duration-300 cursor-pointer group"
-                                                onClick={() => {
-                                                  const input = document.getElementById(`lesson-media-${moduleIdx}-${editingLessonId.lessonIdx}`) as HTMLInputElement | null;
-                                                  input?.click();
-                                                }}
-                                              >
-                                                <div className="inline-flex p-4 bg-pink-100 rounded-full mb-4 group-hover:scale-110 transition-transform">
-                                                  <Upload className="h-8 w-8 text-pink-600" />
-                                                </div>
-                                                <p className="text-base font-semibold mb-1">Vidéo, PDF ou Image</p>
-                                                <p className="text-sm text-muted-foreground mb-4">Glissez-déposez ou cliquez pour parcourir</p>
-                                                <Button
-                                                  type="button"
-                                                  variant="outline"
-                                                  className="hover-scale"
+                                              {!(lesson.video_key || lesson.pdf_key || lesson.image_key) && (
+                                                <div
+                                                  className="mt-2 border-2 border-dashed border-muted-foreground/25 rounded-xl p-8 text-center hover:border-pink-500 hover:bg-pink-50 transition-all duration-300 cursor-pointer group"
+                                                  onClick={() => {
+                                                    const input = document.getElementById(`lesson-media-${moduleIdx}-${editingLessonId.lessonIdx}`) as HTMLInputElement | null;
+                                                    input?.click();
+                                                  }}
                                                 >
-                                                  Choisir un fichier
-                                                </Button>
-                                                <p className="mt-3 text-xs text-muted-foreground">
-                                                  Limites : Vidéo (500MB) • PDF (50MB) • Image (10MB)
-                                                </p>
-                                              </div>
+                                                  <div className="inline-flex p-4 bg-pink-100 rounded-full mb-4 group-hover:scale-110 transition-transform">
+                                                    <Upload className="h-8 w-8 text-pink-600" />
+                                                  </div>
+                                                  <p className="text-base font-semibold mb-1">Vidéo, PDF ou Image</p>
+                                                  <p className="text-sm text-muted-foreground mb-4">Glissez-déposez ou cliquez pour parcourir</p>
+                                                  <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    className="hover-scale"
+                                                  >
+                                                    Choisir un fichier
+                                                  </Button>
+                                                  <p className="mt-3 text-xs text-muted-foreground">
+                                                    Limites : Vidéo (500MB) • PDF (50MB) • Image (10MB)
+                                                  </p>
+                                                </div>
+                                              )}
 
                                               <input
                                                 id={`lesson-media-${moduleIdx}-${editingLessonId.lessonIdx}`}
@@ -2280,7 +2231,7 @@ const EditCoursePage = () => {
 
                                           {/* URL Input Section */}
                                           {lesson.useMediaUrl && (
-                                            <div className="space-y-2">
+                                            <div className="space-y-4">
                                               <Input
                                                 value={lesson.video_url || ''}
                                                 onChange={(e) => setModules(prev => prev.map((m, mIdx) =>
@@ -2299,6 +2250,16 @@ const EditCoursePage = () => {
                                                 className="w-full"
                                               />
                                               <p className="text-xs text-gray-500">Formats supportés : YouTube, Vimeo, MP4, PDF ou URL d'image</p>
+
+                                              {/* Video Preview */}
+                                              {lesson.video_url && (
+                                                <div className="mt-4 rounded-lg overflow-hidden border bg-black">
+                                                  <VideoPlayer
+                                                    videoUrl={lesson.video_url}
+                                                    title="Aperçu vidéo"
+                                                  />
+                                                </div>
+                                              )}
                                             </div>
                                           )}
                                         </div>
@@ -2671,31 +2632,69 @@ const EditCoursePage = () => {
 
       {/* Module Quiz Builder Dialog */}
       {showModuleQuizBuilder !== null && (
-        <Dialog open={true} onOpenChange={() => setShowModuleQuizBuilder(null)}>
+        <Dialog open={true} onOpenChange={() => { setShowModuleQuizBuilder(null); setEditingQuizId(null); }}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
             <DialogHeader>
               <DialogTitle>Configurer le quiz</DialogTitle>
             </DialogHeader>
             <QuizBuilder
-              quiz={modules[showModuleQuizBuilder]?.quizzes?.[0] ? {
-                id: `quiz-${showModuleQuizBuilder}`,
-                type: 'quiz',
-                title: modules[showModuleQuizBuilder].quizzes![0].title,
-                description: '',
-                questions: modules[showModuleQuizBuilder].quizzes![0].questions.map((q, idx) => ({
-                  id: `q-${idx}`,
-                  type: 'single-choice' as const,
-                  question: q.question,
-                  points: 1,
-                  options: q.options,
-                  correctAnswer: q.options.indexOf(q.correct_answer)
-                })),
-                settings: {
-                  showFeedback: 'after-submit' as const,
-                  allowRetry: true,
-                  passingScore: 70,
-                }
-              } : undefined}
+              quiz={editingQuizId ? (() => {
+                const rawQuiz: any = modules[showModuleQuizBuilder!]?.quizzes?.find((q: any) => q.id === editingQuizId);
+                if (!rawQuiz) return undefined;
+                const internalQuestions = (rawQuiz.questions || []).map((q: any, idx: number) => {
+                  const type = q.type as QuestionType;
+                  const id = q.id || `q-${idx}`;
+                  const common: any = {
+                    id,
+                    type,
+                    question: q.question || '',
+                    points: typeof q.points === 'number' ? q.points : 1,
+                    difficulty: q.difficulty || undefined,
+                    explanation: q.explanation || undefined,
+                    tags: q.tags || undefined,
+                    media: q.media,
+                  };
+                  
+                  // Lire les propriétés déjà converties en camelCase par mapCourseToEditableModules
+                  if (type === 'single-choice') {
+                    return { ...common, options: q.options || [], correctAnswer: q.correctAnswer ?? 0 };
+                  }
+                  if (type === 'multiple-choice') {
+                    return { ...common, options: q.options || [], correctAnswers: q.correctAnswers || [] };
+                  }
+                  if (type === 'true-false') {
+                    return { ...common, correctAnswer: q.correctAnswer };
+                  }
+                  if (type === 'short-answer') {
+                    return { ...common, correctAnswers: q.correctAnswers || [], caseSensitive: q.caseSensitive };
+                  }
+                  if (type === 'long-answer') {
+                    return { ...common, minWords: q.minWords, maxWords: q.maxWords, rubric: q.rubric || [] };
+                  }
+                  if (type === 'fill-blank') {
+                    return { ...common, text: q.text || '', correctAnswers: q.correctAnswers || [] };
+                  }
+                  if (type === 'matching') {
+                    return { ...common, leftItems: q.leftItems || [], rightItems: q.rightItems || [], correctMatches: q.correctMatches || [] };
+                  }
+                  if (type === 'ordering') {
+                    return { ...common, items: q.items || [], correctOrder: q.correctOrder || [] };
+                  }
+                  return { ...common };
+                });
+                return {
+                  id: `quiz-${showModuleQuizBuilder}`,
+                  type: 'quiz' as const,
+                  title: rawQuiz.title,
+                  description: rawQuiz.description || '',
+                  questions: internalQuestions,
+                  settings: {
+                    showFeedback: 'after-submit' as const,
+                    allowRetry: true,
+                    passingScore: 70,
+                  }
+                } as QuizConfig;
+              })() : undefined}
               onSave={(quiz) => handleSaveModuleQuiz(showModuleQuizBuilder, quiz)}
               onCancel={() => setShowModuleQuizBuilder(null)}
               availableTypes={[
@@ -2790,29 +2789,126 @@ const EditCoursePage = () => {
                 title: modules[showAssignmentBuilder].assignments![0].title,
                 description: modules[showAssignmentBuilder].assignments![0].description || '',
                 instructions: modules[showAssignmentBuilder].assignments![0].instructions || '',
-                questions: (modules[showAssignmentBuilder].assignments![0].questions || []).map((q: any, idx: number) => ({
-                  id: `q-${idx}`,
-                  type: q.type || 'single-choice',
-                  question: q.question,
-                  points: q.points || 1,
-                  options: q.options || [],
-                  correctAnswer: q.type === 'single-choice' || q.type === 'true-false'
-                    ? (q.options || []).indexOf(q.correct_answer)
-                    : undefined,
-                  correctAnswers: q.type === 'multiple-choice'
-                    ? (q.options || []).map((opt: string, i: number) =>
-                      Array.isArray(q.correct_answer) && q.correct_answer.includes(opt) ? i : -1
-                    ).filter((i: number) => i >= 0)
-                    : undefined,
-                })),
+                questions: (modules[showAssignmentBuilder].assignments![0].questions || []).map((q: any, idx: number): Question => {
+                  const type: QuestionType = q.type || 'single-choice';
+                  const id = `q-${idx}`;
+                  const common: any = {
+                    id,
+                    type,
+                    question: q.question || '',
+                    points: typeof q.points === 'number' ? q.points : 1,
+                    difficulty: q.difficulty || undefined,
+                    explanation: q.explanation || undefined,
+                    tags: q.tags || undefined,
+                  };
+                  if (q.media) {
+                    common.media = {
+                      type: q.media.type,
+                      key: q.media.key,
+                      url: q.media.url,
+                      caption: q.media.caption,
+                    };
+                  }
+
+                  if (type === 'single-choice') {
+                    const options: string[] = Array.isArray(q.options) ? q.options : [];
+                    if (typeof q.correctAnswer === 'number') {
+                      return { ...common, options, correctAnswer: q.correctAnswer };
+                    }
+                    // Legacy snake_case value
+                    const value = q.correct_answer;
+                    const idxVal = options.indexOf(value);
+                    return { ...common, options, correctAnswer: idxVal >= 0 ? idxVal : 0 };
+                  }
+
+                  if (type === 'multiple-choice') {
+                    const options: string[] = Array.isArray(q.options) ? q.options : [];
+                    if (Array.isArray(q.correctAnswers)) {
+                      return { ...common, options, correctAnswers: q.correctAnswers };
+                    }
+                    const values: string[] = Array.isArray(q.correct_answer) ? q.correct_answer : (q.correct_answers || []);
+                    const indices = values.map((v: string) => options.indexOf(v)).filter((i: number) => i >= 0);
+                    return { ...common, options, correctAnswers: indices };
+                  }
+
+                  if (type === 'true-false') {
+                    const boolVal = typeof q.correctAnswer === 'boolean' ? q.correctAnswer : !!q.correct_answer;
+                    return { ...common, correctAnswer: boolVal };
+                  }
+
+                  if (type === 'short-answer') {
+                    const answers: string[] = Array.isArray(q.correctAnswers) ? q.correctAnswers
+                      : (Array.isArray(q.correct_answer) ? q.correct_answer : (q.correct_answers || []));
+                    const caseSensitive = typeof q.caseSensitive === 'boolean' ? q.caseSensitive : !!q.case_sensitive;
+                    return { ...common, correctAnswers: answers, caseSensitive };
+                  }
+
+                  if (type === 'long-answer') {
+                    return {
+                      ...common,
+                      minWords: q.minWords ?? q.min_words ?? undefined,
+                      maxWords: q.maxWords ?? q.max_words ?? undefined,
+                      rubric: q.rubric || [],
+                    };
+                  }
+
+                  if (type === 'fill-blank') {
+                    const text: string = q.text || '';
+                    const answers: string[] = Array.isArray(q.correctAnswers) ? q.correctAnswers
+                      : (Array.isArray(q.correct_answer) ? q.correct_answer : []);
+                    return { ...common, text, correctAnswers: answers };
+                  }
+
+                  if (type === 'matching') {
+                    // Advanced camelCase
+                    if (Array.isArray(q.leftItems) && Array.isArray(q.rightItems) && Array.isArray(q.correctMatches)) {
+                      return {
+                        ...common,
+                        leftItems: q.leftItems,
+                        rightItems: q.rightItems,
+                        correctMatches: q.correctMatches,
+                      };
+                    }
+                    // Legacy simple snake_case: options (left) + correct_answer dict
+                    const leftItems: string[] = Array.isArray(q.options) ? q.options : (q.left_items || []);
+                    const dict: Record<string, string> = q.correct_answer || {};
+                    const rightValues = Array.from(new Set(Object.values(dict)));
+                    const correctMatches = Object.entries(dict).map(([l, r]) => ({
+                      left: leftItems.indexOf(l),
+                      right: rightValues.indexOf(r),
+                    })).filter((m) => m.left >= 0 && m.right >= 0);
+                    return { ...common, leftItems, rightItems: rightValues, correctMatches };
+                  }
+
+                  if (type === 'ordering') {
+                    const items: string[] = q.items || q.options || [];
+                    const order: number[] = Array.isArray(q.correctOrder) ? q.correctOrder
+                      : (Array.isArray(q.correct_answer) ? q.correct_answer : []);
+                    return { ...common, items, correctOrder: order };
+                  }
+
+                  // Fallback
+                  return { ...common } as Question;
+                }),
                 settings: {
-                  passingScore: modules[showAssignmentBuilder].assignments![0].settings?.passing_score || 60,
-                  maxAttempts: modules[showAssignmentBuilder].assignments![0].settings?.max_attempts || 3,
-                  timeLimit: typeof modules[showAssignmentBuilder].assignments![0].settings?.time_limit === 'number'
-                    ? modules[showAssignmentBuilder].assignments![0].settings!.time_limit
-                    : undefined,
-                  allowLateSubmission: modules[showAssignmentBuilder].assignments![0].settings?.allow_late_submission || false,
-                  requiresManualGrading: modules[showAssignmentBuilder].assignments![0].settings?.requires_manual_grading || false,
+                  passingScore: (modules[showAssignmentBuilder].assignments![0].settings as any)?.passingScore
+                    ?? (modules[showAssignmentBuilder].assignments![0].settings as any)?.passing_score
+                    ?? 60,
+                  maxAttempts: (modules[showAssignmentBuilder].assignments![0].settings as any)?.maxAttempts
+                    ?? (modules[showAssignmentBuilder].assignments![0].settings as any)?.max_attempts
+                    ?? 3,
+                  timeLimit: ((): number | undefined => {
+                    const s: any = modules[showAssignmentBuilder].assignments![0].settings || {};
+                    if (typeof s.timeLimit === 'number') return s.timeLimit;
+                    if (typeof s.time_limit === 'number') return s.time_limit;
+                    return undefined;
+                  })(),
+                  allowLateSubmission: (modules[showAssignmentBuilder].assignments![0].settings as any)?.allowLateSubmission
+                    ?? (modules[showAssignmentBuilder].assignments![0].settings as any)?.allow_late_submission
+                    ?? false,
+                  requiresManualGrading: (modules[showAssignmentBuilder].assignments![0].settings as any)?.requiresManualGrading
+                    ?? (modules[showAssignmentBuilder].assignments![0].settings as any)?.requires_manual_grading
+                    ?? false,
                   rubric: [], // Rubric simplifiée pour l'instant
                 }
               } : undefined}

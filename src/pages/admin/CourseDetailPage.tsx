@@ -625,35 +625,142 @@ const CourseDetailPage = () => {
                                         )}
                                         {/* Affichage des réponses correctes */}
                                         {(() => {
-                                          const ca = q.correct_answer;
-                                          if (q.type === 'single-choice' || q.type === 'true-false') {
-                                            if (typeof ca === 'string' && ca) {
+                                          const type = q.type;
+                                          const options: string[] = Array.isArray(q.options) ? q.options : [];
+
+                                          // Normaliser les valeurs correctes selon les formes possibles
+                                          let correctValues: string[] = [];
+                                          if (type === 'true-false') {
+                                            const boolVal = typeof q.correctAnswer === 'boolean' ? q.correctAnswer
+                                              : (typeof q.correct_answer === 'boolean' ? q.correct_answer : undefined);
+                                            if (typeof boolVal === 'boolean') correctValues = [boolVal ? 'Vrai' : 'Faux'];
+                                          } else if (type === 'single-choice') {
+                                            if (typeof q.correctAnswer === 'number' && options[q.correctAnswer]) {
+                                              correctValues = [options[q.correctAnswer]];
+                                            } else if (typeof q.correct_answer === 'string') {
+                                              correctValues = [q.correct_answer];
+                                            }
+                                          } else if (type === 'multiple-choice') {
+                                            if (Array.isArray(q.correctAnswers) && q.correctAnswers.length && options.length) {
+                                              correctValues = q.correctAnswers
+                                                .map((i: number) => options[i])
+                                                .filter((v: string | undefined): v is string => !!v);
+                                            } else if (Array.isArray((q as any).correct_answers)) {
+                                              correctValues = (q as any).correct_answers as string[];
+                                            } else if (Array.isArray(q.correct_answer)) {
+                                              correctValues = q.correct_answer as string[];
+                                            }
+                                          } else if (type === 'short-answer') {
+                                            if (Array.isArray(q.correctAnswers)) correctValues = q.correctAnswers;
+                                            else if (Array.isArray((q as any).correct_answers)) correctValues = (q as any).correct_answers;
+                                            else if (Array.isArray(q.correct_answer)) correctValues = q.correct_answer;
+                                          }
+
+                                          if (type === 'true-false' || type === 'single-choice') {
+                                            if (correctValues.length === 1) {
                                               return (
                                                 <div className="mt-2 text-xs">
-                                                  <span className="px-2 py-1 rounded bg-green-600 text-white">Réponse correcte: {ca}</span>
+                                                  <span className="px-2 py-1 rounded bg-green-600 text-white">Réponse correcte: {correctValues[0]}</span>
                                                 </div>
                                               );
                                             }
                                           }
-                                          if (q.type === 'multiple-choice' || q.type === 'short-answer') {
-                                            if (Array.isArray(ca) && ca.length > 0) {
-                                              return (
-                                                <div className="mt-2 text-xs space-y-1">
-                                                  <span className="font-semibold text-green-700">Réponses correctes:</span>
-                                                  <div className="flex flex-wrap gap-1">
-                                                    {ca.map((ans: string, i: number) => (
-                                                      <span key={i} className="px-2 py-1 rounded bg-green-100 text-green-800 border border-green-300">{ans}</span>
-                                                    ))}
-                                                  </div>
-                                                </div>
-                                              );
-                                            }
-                                          }
-                                          if (q.type === 'essay') {
+
+                                          if ((type === 'multiple-choice' || type === 'short-answer') && correctValues.length > 0) {
                                             return (
-                                              <div className="mt-2 text-xs italic text-gray-500">Évaluation manuelle (pas de réponse pré-définie)</div>
+                                              <div className="mt-2 text-xs space-y-1">
+                                                <span className="font-semibold text-green-700">Réponses correctes:</span>
+                                                <div className="flex flex-wrap gap-1">
+                                                  {correctValues.map((ans: string, i: number) => (
+                                                    <span key={i} className="px-2 py-1 rounded bg-green-100 text-green-800 border border-green-300">{ans}</span>
+                                                  ))}
+                                                </div>
+                                              </div>
                                             );
                                           }
+
+                                          // Long answer: afficher contraintes
+                                          if (type === 'essay' || type === 'long-answer') {
+                                            const min = (q as any).minWords ?? (q as any).min_words;
+                                            const max = (q as any).maxWords ?? (q as any).max_words;
+                                            const rubric: string[] = (q as any).rubric || [];
+                                            return (
+                                              <div className="mt-2 text-xs space-y-1">
+                                                <div className="italic text-gray-600">Évaluation manuelle (pas de réponse pré-définie)</div>
+                                                {(typeof min === 'number' || typeof max === 'number') && (
+                                                  <div className="text-gray-700">Contraintes: {typeof min === 'number' ? `min ${min} mots` : ''}{typeof max === 'number' ? `${typeof min === 'number' ? ', ' : ''}max ${max} mots` : ''}</div>
+                                                )}
+                                                {Array.isArray(rubric) && rubric.length > 0 && (
+                                                  <div>
+                                                    <div className="font-semibold text-gray-700">Rubric:</div>
+                                                    <ul className="mt-1 ml-4 list-disc space-y-0.5">
+                                                      {rubric.map((r, i) => (
+                                                        <li key={i} className="text-gray-700">{r}</li>
+                                                      ))}
+                                                    </ul>
+                                                  </div>
+                                                )}
+                                              </div>
+                                            );
+                                          }
+
+                                          // Fill-blank
+                                          if (type === 'fill-blank') {
+                                            const text: string = (q as any).text || '';
+                                            const answers: string[] = Array.isArray(q.correctAnswers) ? q.correctAnswers
+                                              : (Array.isArray((q as any).correct_answers) ? (q as any).correct_answers : (Array.isArray(q.correct_answer) ? q.correct_answer : []));
+                                            return (
+                                              <div className="mt-2 text-xs space-y-1">
+                                                <div className="text-gray-700">Texte: <span className="font-mono bg-gray-100 px-2 py-0.5 rounded">{text}</span></div>
+                                                {answers.length > 0 && (
+                                                  <div>
+                                                    <span className="font-semibold text-green-700">Réponses des trous:</span>
+                                                    <div className="flex flex-wrap gap-1 mt-1">
+                                                      {answers.map((ans, i) => (
+                                                        <span key={i} className="px-2 py-1 rounded bg-green-100 text-green-800 border border-green-300">[{i + 1}] {ans}</span>
+                                                      ))}
+                                                    </div>
+                                                  </div>
+                                                )}
+                                              </div>
+                                            );
+                                          }
+
+                                          // Matching (simple)
+                                          if (type === 'matching') {
+                                            const dict: Record<string, string> = (q as any).correct_answer || {};
+                                            const entries = Object.entries(dict);
+                                            if (entries.length === 0) return null;
+                                            return (
+                                              <div className="mt-2 text-xs">
+                                                <span className="font-semibold text-green-700">Appariements corrects:</span>
+                                                <ul className="mt-1 ml-4 list-disc space-y-1">
+                                                  {entries.map(([l, r], i) => (
+                                                    <li key={i} className="text-gray-700"><span className="font-medium">{l}</span> → <span className="font-medium">{r}</span></li>
+                                                  ))}
+                                                </ul>
+                                              </div>
+                                            );
+                                          }
+
+                                          // Ordering
+                                          if (type === 'ordering') {
+                                            const items: string[] = Array.isArray((q as any).items) ? (q as any).items : (Array.isArray(q.options) ? q.options : []);
+                                            const order: number[] = Array.isArray((q as any).correctOrder) ? (q as any).correctOrder
+                                              : (Array.isArray((q as any).correct_answer) ? (q as any).correct_answer : []);
+                                            if (!items.length || !order.length) return null;
+                                            return (
+                                              <div className="mt-2 text-xs">
+                                                <span className="font-semibold text-green-700">Ordre correct:</span>
+                                                <ol className="mt-1 ml-4 list-decimal space-y-1">
+                                                  {order.map((idx, i) => (
+                                                    <li key={i} className="text-gray-700">{items[idx]}</li>
+                                                  ))}
+                                                </ol>
+                                              </div>
+                                            );
+                                          }
+
                                           return null;
                                         })()}
                                       </div>
@@ -953,28 +1060,122 @@ const CourseDetailPage = () => {
                                                   {question.question}
                                                 </p>
                                                 <div className="space-y-2 pl-4">
-                                                  {question.options?.map((option: string, optIndex: number) => {
-                                                    const isCorrect = option === question.correct_answer;
-                                                    return (
-                                                      <div
-                                                        key={optIndex}
-                                                        className={`text-sm p-3 rounded-lg flex items-center space-x-3 transition-all ${isCorrect
-                                                            ? 'bg-green-100 text-green-900 border-2 border-green-400 font-semibold shadow-sm'
-                                                            : 'bg-white text-gray-700 border border-gray-300'
-                                                          }`}
-                                                      >
-                                                        {isCorrect ? (
-                                                          <CheckCircle className="h-5 w-5 text-green-600" />
-                                                        ) : (
-                                                          <XCircle className="h-5 w-5 text-gray-400" />
-                                                        )}
-                                                        <span>{option}</span>
-                                                        {isCorrect && (
-                                                          <Badge className="ml-auto bg-green-600">Réponse correcte</Badge>
-                                                        )}
-                                                      </div>
-                                                    );
-                                                  })}
+                                                  {(() => {
+                                                    const type = question.type;
+                                                    // Cas 1: choix (QCU/QCM/TF)
+                                                    if (type === 'single-choice' || type === 'multiple-choice' || type === 'true-false') {
+                                                      const optionList: string[] = Array.isArray(question.options) && question.options.length
+                                                        ? question.options
+                                                        : (type === 'true-false' ? ['Vrai', 'Faux'] : []);
+                                                      let correctValues: string[] = [];
+                                                      if (type === 'true-false') {
+                                                        const val = question.correct_answer === true ? 'Vrai' : 'Faux';
+                                                        correctValues = [val];
+                                                      } else if (Array.isArray((question as any).correct_answers)) {
+                                                        correctValues = (question as any).correct_answers as string[];
+                                                      } else if (Array.isArray(question.correct_answer)) {
+                                                        correctValues = question.correct_answer as string[];
+                                                      } else if (typeof question.correct_answer === 'string') {
+                                                        correctValues = [question.correct_answer as string];
+                                                      }
+                                                      return optionList.map((option: string, optIndex: number) => {
+                                                        const isCorrect = correctValues.includes(option);
+                                                        return (
+                                                          <div
+                                                            key={optIndex}
+                                                            className={`text-sm p-3 rounded-lg flex items-center space-x-3 transition-all ${isCorrect
+                                                              ? 'bg-green-100 text-green-900 border-2 border-green-400 font-semibold shadow-sm'
+                                                              : 'bg-white text-gray-700 border border-gray-300'
+                                                              }`}
+                                                          >
+                                                            {isCorrect ? (
+                                                              <CheckCircle className="h-5 w-5 text-green-600" />
+                                                            ) : (
+                                                              <XCircle className="h-5 w-5 text-gray-400" />
+                                                            )}
+                                                            <span>{option}</span>
+                                                            {isCorrect && (
+                                                              <Badge className="ml-auto bg-green-600">Réponse correcte</Badge>
+                                                            )}
+                                                          </div>
+                                                        );
+                                                      });
+                                                    }
+                                                    // Cas 2: fill-blank
+                                                    if (type === 'fill-blank') {
+                                                      const text: string = (question as any).text || '';
+                                                      const answers: string[] = Array.isArray((question as any).correct_answers)
+                                                        ? (question as any).correct_answers
+                                                        : (Array.isArray(question.correct_answer) ? (question.correct_answer as string[]) : []);
+                                                      return (
+                                                        <div className="space-y-2">
+                                                          <div className="text-sm text-gray-700">Texte: <span className="font-mono bg-gray-100 px-2 py-0.5 rounded">{text}</span></div>
+                                                          {answers.length > 0 && (
+                                                            <div className="text-xs">
+                                                              <span className="font-semibold text-green-700">Réponses des trous:</span>
+                                                              <div className="flex flex-wrap gap-1 mt-1">
+                                                                {answers.map((ans, i) => (
+                                                                  <span key={i} className="px-2 py-1 rounded bg-green-100 text-green-800 border border-green-300">[{i + 1}] {ans}</span>
+                                                                ))}
+                                                              </div>
+                                                            </div>
+                                                          )}
+                                                        </div>
+                                                      );
+                                                    }
+                                                    // Cas 3: matching (forme avancée et simple)
+                                                    if (type === 'matching') {
+                                                      // Avancée: leftItems/rightItems/correctMatches (indices)
+                                                      const leftItems: string[] = (question as any).leftItems || [];
+                                                      const rightItems: string[] = (question as any).rightItems || [];
+                                                      const matches: Array<{ left: number; right: number }> = (question as any).correctMatches || [];
+                                                      if (leftItems.length && rightItems.length && matches.length) {
+                                                        return (
+                                                          <div className="text-xs">
+                                                            <span className="font-semibold text-green-700">Appariements corrects:</span>
+                                                            <ul className="mt-1 ml-4 list-disc space-y-1">
+                                                              {matches.map((m, i) => (
+                                                                <li key={i} className="text-gray-700">
+                                                                  <span className="font-medium">{leftItems[m.left]}</span> → <span className="font-medium">{rightItems[m.right]}</span>
+                                                                </li>
+                                                              ))}
+                                                            </ul>
+                                                          </div>
+                                                        );
+                                                      }
+                                                      // Simple: dict { left: right }
+                                                      const dict: Record<string, string> = (question as any).correct_answer || {};
+                                                      const entries = Object.entries(dict);
+                                                      if (entries.length === 0) return null;
+                                                      return (
+                                                        <div className="text-xs">
+                                                          <span className="font-semibold text-green-700">Appariements corrects:</span>
+                                                          <ul className="mt-1 ml-4 list-disc space-y-1">
+                                                            {entries.map(([l, r], i) => (
+                                                              <li key={i} className="text-gray-700"><span className="font-medium">{l}</span> → <span className="font-medium">{r}</span></li>
+                                                            ))}
+                                                          </ul>
+                                                        </div>
+                                                      );
+                                                    }
+                                                    // Cas 4: ordering
+                                                    if (type === 'ordering') {
+                                                      const items: string[] = Array.isArray((question as any).items) ? (question as any).items : (Array.isArray(question.options) ? question.options : []);
+                                                      const order: number[] = Array.isArray((question as any).correct_answer) ? (question as any).correct_answer : [];
+                                                      if (!items.length || !order.length) return null;
+                                                      return (
+                                                        <div className="text-xs">
+                                                          <span className="font-semibold text-green-700">Ordre correct:</span>
+                                                          <ol className="mt-1 ml-4 list-decimal space-y-1">
+                                                            {order.map((idx, i) => (
+                                                              <li key={i} className="text-gray-700">{items[idx]}</li>
+                                                            ))}
+                                                          </ol>
+                                                        </div>
+                                                      );
+                                                    }
+                                                    return null;
+                                                  })()}
                                                 </div>
                                               </div>
                                             ))}
