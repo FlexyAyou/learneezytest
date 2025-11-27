@@ -44,7 +44,7 @@ export function CourseTutorialModal({ open, onOpenChange }: CourseTutorialModalP
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
-        className="max-w-4xl max-h-[90vh] overflow-y-auto"
+        className="max-w-6xl w-[95vw] max-h-[85vh] overflow-y-auto"
         onKeyDown={handleKeyDown}
       >
         <DialogHeader className="space-y-4">
