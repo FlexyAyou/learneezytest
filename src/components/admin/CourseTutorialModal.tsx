@@ -44,7 +44,7 @@ export function CourseTutorialModal({ open, onOpenChange }: CourseTutorialModalP
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
-        className="max-w-6xl w-[95vw] max-h-[85vh] overflow-y-auto"
+        className="max-w-6xl w-[95vw] h-[85vh] flex flex-col"
         onKeyDown={handleKeyDown}
       >
         <DialogHeader className="space-y-4">
@@ -78,9 +78,9 @@ export function CourseTutorialModal({ open, onOpenChange }: CourseTutorialModalP
         </DialogHeader>
 
         {/* Content */}
-        <div className="space-y-6 py-6">
+        <div className="flex-1 flex flex-col gap-4 py-4 overflow-hidden">
           {/* Image */}
-          <div className="w-full aspect-video bg-muted rounded-lg overflow-hidden flex items-center justify-center">
+          <div className="w-full flex-shrink-0 h-[400px] bg-muted rounded-lg overflow-hidden flex items-center justify-center">
             <img 
               src={step.image} 
               alt={step.title}
@@ -88,30 +88,33 @@ export function CourseTutorialModal({ open, onOpenChange }: CourseTutorialModalP
             />
           </div>
 
-          {/* Title */}
-          <h3 className="text-xl font-semibold text-foreground">
-            {step.title}
-          </h3>
+          {/* Text content - scrollable if needed */}
+          <div className="flex-1 overflow-y-auto space-y-4">
+            {/* Title */}
+            <h3 className="text-xl font-semibold text-foreground">
+              {step.title}
+            </h3>
 
-          {/* Description */}
-          <p className="text-muted-foreground leading-relaxed">
-            {step.description}
-          </p>
+            {/* Description */}
+            <p className="text-muted-foreground leading-relaxed">
+              {step.description}
+            </p>
 
-          {/* Tips */}
-          {step.tips && step.tips.length > 0 && (
-            <div className="bg-accent/50 rounded-lg p-4 space-y-2">
-              <p className="font-medium text-sm text-accent-foreground">💡 Points clés :</p>
-              <ul className="space-y-1 text-sm text-accent-foreground">
-                {step.tips.map((tip, index) => (
-                  <li key={index} className="flex items-start gap-2">
-                    <span className="text-primary mt-0.5">•</span>
-                    <span>{tip}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+            {/* Tips */}
+            {step.tips && step.tips.length > 0 && (
+              <div className="bg-accent/50 rounded-lg p-4 space-y-2">
+                <p className="font-medium text-sm text-accent-foreground">💡 Points clés :</p>
+                <ul className="space-y-1 text-sm text-accent-foreground">
+                  {step.tips.map((tip, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <span className="text-primary mt-0.5">•</span>
+                      <span>{tip}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Navigation */}
