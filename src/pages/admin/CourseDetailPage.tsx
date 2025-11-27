@@ -1123,6 +1123,32 @@ const CourseDetailPage = () => {
                                                         </div>
                                                       );
                                                     }
+                                                    // Cas 2bis: short-answer (réponse courte)
+                                                    if (type === 'short-answer') {
+                                                      const answers: string[] = Array.isArray((question as any).correct_answers)
+                                                        ? (question as any).correct_answers
+                                                        : (Array.isArray(question.correct_answer) ? (question.correct_answer as string[]) : []);
+                                                      const caseSensitive: boolean = !!((question as any).case_sensitive);
+                                                      return (
+                                                        <div className="space-y-2">
+                                                          <div className="flex items-center gap-2 text-xs">
+                                                            <span className="font-semibold text-green-700">Réponses attendues:</span>
+                                                            {caseSensitive && (
+                                                              <Badge variant="secondary" className="text-[10px] bg-amber-100 text-amber-800 border-amber-300">Sensible à la casse</Badge>
+                                                            )}
+                                                          </div>
+                                                          {answers.length > 0 ? (
+                                                            <div className="flex flex-wrap gap-1">
+                                                              {answers.map((ans, i) => (
+                                                                <span key={i} className="px-2 py-1 rounded bg-green-100 text-green-800 border border-green-300">{ans}</span>
+                                                              ))}
+                                                            </div>
+                                                          ) : (
+                                                            <div className="text-[11px] text-gray-500">Aucune réponse de référence définie</div>
+                                                          )}
+                                                        </div>
+                                                      );
+                                                    }
                                                     // Cas 3: matching (forme avancée et simple)
                                                     if (type === 'matching') {
                                                       // Avancée: leftItems/rightItems/correctMatches (indices)
