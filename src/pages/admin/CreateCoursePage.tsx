@@ -1033,16 +1033,37 @@ const CreateCoursePage = () => {
               }
 
               // Médias des options (seulement choix)
-              if ((q.type === 'single-choice' || q.type === 'multiple-choice') && Array.isArray(qAny.optionsMedia)) {
-                const om = qAny.optionsMedia;
-                const mapped = (base.options || []).map((_: any, i: number) => {
-                  const m = om[i];
-                  return m ? { type: m.type, key: m.key, url: m.url, caption: m.caption } : undefined;
+              // Backend: options_media supprimé (plus accepté). Un seul média question-level via base.media
+
+              // Ajustements matching / ordering formes simples
+              if (q.type === 'matching') {
+                // Utiliser la forme simple: options + correct_answer (dict)
+                const mq: any = q;
+                base.options = (mq.leftItems || []).filter((s: string) => s && s.trim());
+                const dict: Record<string, string> = {};
+                (mq.correctMatches || []).forEach((m: any) => {
+                  const left = mq.leftItems?.[m.left];
+                  const right = mq.rightItems?.[m.right];
+                  if (left && right) dict[left] = right;
                 });
-                // N'envoyer options_media que si au moins une entrée est définie
-                if (mapped.some(Boolean)) {
-                  base.options_media = mapped;
+                // fallback si pas correctMatches mais left/right parallèles
+                if (!Object.keys(dict).length && Array.isArray(mq.leftItems) && Array.isArray(mq.rightItems)) {
+                  mq.leftItems.forEach((l: string, idx: number) => {
+                    const r = mq.rightItems[idx];
+                    if (l && r) dict[l] = r;
+                  });
                 }
+                base.correct_answer = dict;
+                delete base.left_items;
+                delete base.right_items;
+              } else if (q.type === 'ordering') {
+                const oq: any = q;
+                base.options = (oq.items || []).filter((s: string) => s && s.trim());
+                const orderIdx = (oq.correctOrder || []).length
+                  ? oq.correctOrder
+                  : base.options.map((_: any, i: number) => i);
+                base.correct_answer = orderIdx;
+                delete base.items;
               }
 
               return base;
