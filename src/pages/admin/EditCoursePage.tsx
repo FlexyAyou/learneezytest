@@ -2771,25 +2771,78 @@ const EditCoursePage = () => {
               <DialogTitle>Configurer le quiz</DialogTitle>
             </DialogHeader>
             <QuizBuilder
-              quiz={modules[showModuleQuizBuilder]?.quizzes?.[0] ? {
-                id: `quiz-${showModuleQuizBuilder}`,
-                type: 'quiz',
-                title: modules[showModuleQuizBuilder].quizzes![0].title,
-                description: '',
-                questions: modules[showModuleQuizBuilder].quizzes![0].questions.map((q, idx) => ({
-                  id: `q-${idx}`,
-                  type: 'single-choice' as const,
-                  question: q.question,
-                  points: 1,
-                  options: q.options,
-                  correctAnswer: q.options.indexOf(q.correct_answer)
-                })),
-                settings: {
-                  showFeedback: 'after-submit' as const,
-                  allowRetry: true,
-                  passingScore: 70,
-                }
-              } : undefined}
+              quiz={modules[showModuleQuizBuilder]?.quizzes?.[0] ? (() => {
+                const rawQuiz: any = modules[showModuleQuizBuilder]!.quizzes![0];
+                const internalQuestions = (rawQuiz.questions || []).map((q: any, idx: number) => {
+                  const type = q.type as QuestionType;
+                  const id = `q-${idx}`;
+                  const common: any = {
+                    id,
+                    type,
+                    question: q.question || '',
+                    points: typeof q.points === 'number' ? q.points : 1,
+                    difficulty: q.difficulty || undefined,
+                    explanation: q.explanation || undefined,
+                    tags: q.tags || undefined,
+                  };
+                  if (q.media) {
+                    common.media = { type: q.media.type, key: q.media.key, url: q.media.url, caption: q.media.caption };
+                  }
+                  if (type === 'single-choice') {
+                    const options: string[] = q.options || [];
+                    const value: string = q.correct_answer;
+                    const idxVal = options.indexOf(value);
+                    return { ...common, options, correctAnswer: idxVal >= 0 ? idxVal : 0 };
+                  }
+                  if (type === 'multiple-choice') {
+                    const options: string[] = q.options || [];
+                    const values: string[] = Array.isArray(q.correct_answer) ? q.correct_answer : [];
+                    const indices = values.map(v => options.indexOf(v)).filter(i => i >= 0);
+                    return { ...common, options, correctAnswers: indices };
+                  }
+                  if (type === 'true-false') {
+                    return { ...common, correctAnswer: !!q.correct_answer };
+                  }
+                  if (type === 'short-answer') {
+                    const answers: string[] = Array.isArray(q.correct_answer) ? q.correct_answer : (q.correct_answers || []);
+                    return { ...common, correctAnswers: answers, caseSensitive: !!q.case_sensitive };
+                  }
+                  if (type === 'long-answer') {
+                    return { ...common, minWords: q.min_words ?? undefined, maxWords: q.max_words ?? undefined, rubric: q.rubric || [] };
+                  }
+                  if (type === 'fill-blank') {
+                    return { ...common, text: q.text || '', correctAnswers: Array.isArray(q.correct_answer) ? q.correct_answer : [] };
+                  }
+                  if (type === 'matching') {
+                    const leftItems: string[] = (q.options || []).filter((s: string) => s && s.trim());
+                    const dict: Record<string, string> = q.correct_answer || {};
+                    const rightValues = Array.from(new Set(Object.values(dict)));
+                    const correctMatches = Object.entries(dict).map(([l, r]) => ({
+                      left: leftItems.indexOf(l),
+                      right: rightValues.indexOf(r),
+                    })).filter(m => m.left >= 0 && m.right >= 0);
+                    return { ...common, leftItems, rightItems: rightValues, correctMatches };
+                  }
+                  if (type === 'ordering') {
+                    const items: string[] = (q.options || []).filter((s: string) => s && s.trim());
+                    const order: number[] = Array.isArray(q.correct_answer) ? q.correct_answer : [];
+                    return { ...common, items, correctOrder: order };
+                  }
+                  return { ...common };
+                });
+                return {
+                  id: `quiz-${showModuleQuizBuilder}`,
+                  type: 'quiz' as const,
+                  title: rawQuiz.title,
+                  description: rawQuiz.description || '',
+                  questions: internalQuestions,
+                  settings: {
+                    showFeedback: 'after-submit' as const,
+                    allowRetry: true,
+                    passingScore: 70,
+                  }
+                } as QuizConfig;
+              })() : undefined}
               onSave={(quiz) => handleSaveModuleQuiz(showModuleQuizBuilder, quiz)}
               onCancel={() => setShowModuleQuizBuilder(null)}
               availableTypes={[
