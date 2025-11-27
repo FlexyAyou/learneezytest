@@ -760,52 +760,49 @@ const EditCoursePage = () => {
             const baseQuestion: any = {
               type: q.type,
               question: q.question,
-              options: [],
-              correct_answer: ''
             };
 
             if (q.type === 'single-choice') {
-              const scq = q as any;
+              const scq: any = q;
               baseQuestion.options = scq.options || [];
-              baseQuestion.correct_answer = scq.options?.[scq.correctAnswer] || '';
+              baseQuestion.correct_answer = baseQuestion.options[scq.correctAnswer] ?? baseQuestion.options[0] ?? '';
+            } else if (q.type === 'multiple-choice') {
+              const mcq: any = q;
+              baseQuestion.options = mcq.options || [];
+              baseQuestion.correct_answer = (mcq.correctAnswers || []).map((idx: number) => baseQuestion.options[idx]).filter(Boolean);
             } else if (q.type === 'true-false') {
-              const tfq = q as any;
+              const tfq: any = q;
               baseQuestion.options = ['Vrai', 'Faux'];
               baseQuestion.correct_answer = !!tfq.correctAnswer;
-            } else if (q.type === 'multiple-choice') {
-              const mcq = q as any;
-              baseQuestion.options = mcq.options || [];
-              baseQuestion.correct_answers = mcq.correctAnswers?.map((idx: number) => mcq.options[idx]) || [];
             } else if (q.type === 'short-answer') {
-              const saq = q as any;
-              baseQuestion.correct_answer = saq.correctAnswers?.[0] || '';
-              baseQuestion.correct_answers = saq.correctAnswers || [];
-              baseQuestion.case_sensitive = saq.caseSensitive || false;
+              const saq: any = q;
+              baseQuestion.correct_answer = (saq.correctAnswers || []).filter((s: string) => !!s.trim());
+              baseQuestion.case_sensitive = !!saq.caseSensitive;
             } else if (q.type === 'long-answer') {
-              const laq = q as any;
-              baseQuestion.min_words = laq.minWords;
-              baseQuestion.max_words = laq.maxWords;
-              baseQuestion.rubric = laq.rubric;
+              const laq: any = q;
+              baseQuestion.min_words = laq.minWords || undefined;
+              baseQuestion.max_words = laq.maxWords || undefined;
+              baseQuestion.rubric = laq.rubric || [];
             } else if (q.type === 'fill-blank') {
-              const fbq = q as any;
+              const fbq: any = q;
               baseQuestion.text = fbq.text;
-              baseQuestion.correct_answers = fbq.correctAnswers || [];
+              baseQuestion.correct_answer = fbq.correctAnswers || [];
             } else if (q.type === 'matching') {
-              const mq = q as any;
+              const mq: any = q;
               baseQuestion.left_items = mq.leftItems || [];
               baseQuestion.right_items = mq.rightItems || [];
-              baseQuestion.correct_matches = (mq.correctMatches || []).reduce((acc: Record<string, string>, match: any) => {
-                const leftItem = mq.leftItems[match.left];
-                const rightItem = mq.rightItems[match.right];
-                if (leftItem && rightItem) {
-                  acc[leftItem] = rightItem;
-                }
+              baseQuestion.options = baseQuestion.left_items;
+              baseQuestion.correct_answer = (mq.correctMatches || []).reduce((acc: Record<string, string>, m: any) => {
+                const l = mq.leftItems[m.left];
+                const r = mq.rightItems[m.right];
+                if (l && r) acc[l] = r;
                 return acc;
               }, {});
             } else if (q.type === 'ordering') {
-              const oq = q as any;
+              const oq: any = q;
               baseQuestion.items = oq.items || [];
-              baseQuestion.correct_order = (oq.correctOrder || []).map((idx: number) => oq.items[idx]).filter(Boolean);
+              baseQuestion.options = baseQuestion.items;
+              baseQuestion.correct_answer = (oq.correctOrder || []).map((i: number) => i);
             }
 
             // Étape 2 – Médias et attributs supplémentaires
@@ -823,8 +820,8 @@ const EditCoursePage = () => {
             if (qAny.explanation) baseQuestion.explanation = qAny.explanation;
             if (qAny.tags) baseQuestion.tags = qAny.tags;
 
-            if (q.type === 'single-choice' || q.type === 'multiple-choice') {
-              const om = Array.isArray(qAny.optionsMedia) ? qAny.optionsMedia : [];
+            if ((q.type === 'single-choice' || q.type === 'multiple-choice') && Array.isArray(qAny.optionsMedia)) {
+              const om = qAny.optionsMedia;
               baseQuestion.options_media = (baseQuestion.options || []).map((_: any, i: number) => {
                 const m = om[i];
                 return m ? { type: m.type, key: m.key, url: m.url, caption: m.caption } : undefined;
@@ -867,7 +864,7 @@ const EditCoursePage = () => {
       setModules(refreshedModules);
       setShowModuleQuizBuilder(null);
       setEditingQuizId(null);
-      
+
       console.log('Quiz sauvegardé, modules rafraîchis:', refreshedModules);
     } catch (error: any) {
       console.error('Erreur lors de la sauvegarde du quiz:', error);
