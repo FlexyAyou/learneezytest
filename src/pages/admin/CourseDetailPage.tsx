@@ -628,7 +628,7 @@ const CourseDetailPage = () => {
                                       <div key={qIndex} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
                                         <p className="font-medium text-sm mb-1">
                                           <span className="bg-gray-200 text-gray-700 rounded px-2 py-0.5 text-xs mr-2">
-                                            Q{qIndex + 1}
+                                            Question {qIndex + 1}
                                           </span>
                                           {q.question}
                                           {typeof q.points === 'number' && (
@@ -1114,8 +1114,8 @@ const CourseDetailPage = () => {
                                       <div key={`quiz-${idx}`} className="bg-white rounded-lg border-2 border-orange-200 overflow-hidden">
                                         <div className="flex items-center justify-between p-4 bg-gradient-to-r from-orange-50 to-yellow-50">
                                           <div className="flex items-center space-x-3">
-                                            <span className="bg-orange-500 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs font-bold">
-                                              Q{item.index + 1}
+                                            <span className="bg-orange-500 text-white rounded-full w-14 h-7 flex items-center justify-center text-[11px] font-bold">
+                                              Quiz {item.index + 1}
                                             </span>
                                             <span className="font-semibold">{quiz.title}</span>
                                           </div>
@@ -1130,7 +1130,7 @@ const CourseDetailPage = () => {
                                               <div key={qIndex} className="space-y-3 p-4 bg-gray-50 rounded-lg">
                                                 <p className="font-semibold text-gray-900">
                                                   <span className="bg-gray-200 text-gray-700 rounded px-2 py-1 text-sm mr-2">
-                                                    Q{qIndex + 1}
+                                                    Question {qIndex + 1}
                                                   </span>
                                                   {question.question}
                                                   {typeof (question as any).points === 'number' && (
