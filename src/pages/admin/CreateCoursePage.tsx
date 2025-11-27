@@ -593,7 +593,7 @@ const CreateCoursePage = () => {
       if (m.id === moduleId) {
         let newQuizzes = [...m.quizzes];
         let quizId: string;
-        
+
         if (editingQuizIndex !== null) {
           // Modifier un quiz existant
           newQuizzes[editingQuizIndex] = quiz;
@@ -649,7 +649,7 @@ const CreateCoursePage = () => {
         // Séparer les leçons et quizzes réorganisés
         const newLessons: Lesson[] = [];
         const newQuizzes: QuizConfig[] = [];
-        
+
         reorderedItems.forEach(item => {
           if (item.type === 'lesson') {
             newLessons.push(item.data);
@@ -657,7 +657,7 @@ const CreateCoursePage = () => {
             newQuizzes.push(item.data);
           }
         });
-        
+
         return { ...m, lessons: newLessons, quizzes: newQuizzes };
       }
       return m;
@@ -968,59 +968,109 @@ const CreateCoursePage = () => {
           quizzes: module.quizzes.map(quiz => ({
             title: quiz.title,
             questions: quiz.questions.map(q => {
-              // Gérer TOUS les types de questions avec tous les champs requis
-              const baseQuestion: any = {
+              // Mapping aligné au modèle backend QuizQuestion (snake_case)
+              const base: any = {
                 type: q.type,
                 question: q.question,
-                options: [],
-                correct_answer: ''
               };
 
               if (q.type === 'single-choice') {
-                const scq = q as any;
-                baseQuestion.options = scq.options || [];
-                baseQuestion.correct_answer = scq.options?.[scq.correctAnswer] || '';
-              } else if (q.type === 'true-false') {
-                const tfq = q as any;
-                baseQuestion.options = ['Vrai', 'Faux'];
-                baseQuestion.correct_answer = !!tfq.correctAnswer;
+                const scq: any = q;
+                base.options = scq.options || [];
+                base.correct_answer = base.options[scq.correctAnswer] ?? base.options[0] ?? '';
               } else if (q.type === 'multiple-choice') {
-                const mcq = q as any;
-                baseQuestion.options = mcq.options || [];
-                baseQuestion.correct_answers = mcq.correctAnswers?.map((i: number) => mcq.options[i]) || [];
+                const mcq: any = q;
+                base.options = mcq.options || [];
+                const answers = (mcq.correctAnswers || []).map((idx: number) => base.options[idx]).filter(Boolean);
+                base.correct_answer = answers.length ? answers : [base.options[0]].filter(Boolean); // liste attendue
+              } else if (q.type === 'true-false') {
+                const tfq: any = q;
+                base.options = ['Vrai', 'Faux'];
+                base.correct_answer = !!tfq.correctAnswer; // bool attendu
               } else if (q.type === 'short-answer') {
-                const saq = q as any;
-                baseQuestion.correct_answer = saq.correctAnswers?.[0] || '';
-                baseQuestion.correct_answers = saq.correctAnswers || [];
-                baseQuestion.case_sensitive = saq.caseSensitive || false;
+                const saq: any = q;
+                base.correct_answer = (saq.correctAnswers || []).filter((s: string) => !!s.trim()); // liste de réponses
+                base.case_sensitive = !!saq.caseSensitive;
               } else if (q.type === 'long-answer') {
-                const laq = q as any;
-                baseQuestion.min_words = laq.minWords;
-                baseQuestion.max_words = laq.maxWords;
-                baseQuestion.rubric = laq.rubric;
+                const laq: any = q;
+                base.min_words = laq.minWords || undefined;
+                base.max_words = laq.maxWords || undefined;
+                base.rubric = laq.rubric || [];
               } else if (q.type === 'fill-blank') {
-                const fbq = q as any;
-                baseQuestion.text = fbq.text;
-                baseQuestion.correct_answers = fbq.correctAnswers || [];
+                const fbq: any = q;
+                base.text = fbq.text; // le texte doit contenir [blank] plutôt que la réponse
+                base.correct_answer = (fbq.correctAnswers || []);
               } else if (q.type === 'matching') {
-                const mq = q as any;
-                baseQuestion.left_items = mq.leftItems || [];
-                baseQuestion.right_items = mq.rightItems || [];
-                baseQuestion.correct_matches = (mq.correctMatches || []).reduce((acc: Record<string, string>, match: any) => {
-                  const leftItem = mq.leftItems[match.left];
-                  const rightItem = mq.rightItems[match.right];
-                  if (leftItem && rightItem) {
-                    acc[leftItem] = rightItem;
-                  }
+                const mq: any = q;
+                base.left_items = mq.leftItems || [];
+                base.right_items = mq.rightItems || [];
+                base.options = base.left_items; // backend exige options non vide
+                base.correct_answer = (mq.correctMatches || []).reduce((acc: Record<string, string>, m: any) => {
+                  const l = mq.leftItems[m.left];
+                  const r = mq.rightItems[m.right];
+                  if (l && r) acc[l] = r;
                   return acc;
                 }, {});
               } else if (q.type === 'ordering') {
-                const oq = q as any;
-                baseQuestion.items = oq.items || [];
-                baseQuestion.correct_order = (oq.correctOrder || []).map((idx: number) => oq.items[idx]).filter(Boolean);
+                const oq: any = q;
+                base.items = oq.items || [];
+                base.options = base.items;
+                // correct_answer = permutation d'indices
+                base.correct_answer = (oq.correctOrder || []).map((i: number) => i);
               }
 
-              return baseQuestion;
+              // Métadonnées communes
+              const qAny: any = q;
+              if (typeof qAny.points !== 'undefined') base.points = qAny.points;
+              if (qAny.difficulty) base.difficulty = qAny.difficulty;
+              if (qAny.explanation) base.explanation = qAny.explanation;
+              if (qAny.tags) base.tags = qAny.tags;
+
+              // Média principal
+              if (qAny.media) {
+                base.media = {
+                  type: qAny.media.type,
+                  key: qAny.media.key,
+                  url: qAny.media.url,
+                  caption: qAny.media.caption,
+                };
+              }
+
+              // Médias des options (seulement choix)
+              // Backend: options_media supprimé (plus accepté). Un seul média question-level via base.media
+
+              // Ajustements matching / ordering formes simples
+              if (q.type === 'matching') {
+                // Utiliser la forme simple: options + correct_answer (dict)
+                const mq: any = q;
+                base.options = (mq.leftItems || []).filter((s: string) => s && s.trim());
+                const dict: Record<string, string> = {};
+                (mq.correctMatches || []).forEach((m: any) => {
+                  const left = mq.leftItems?.[m.left];
+                  const right = mq.rightItems?.[m.right];
+                  if (left && right) dict[left] = right;
+                });
+                // fallback si pas correctMatches mais left/right parallèles
+                if (!Object.keys(dict).length && Array.isArray(mq.leftItems) && Array.isArray(mq.rightItems)) {
+                  mq.leftItems.forEach((l: string, idx: number) => {
+                    const r = mq.rightItems[idx];
+                    if (l && r) dict[l] = r;
+                  });
+                }
+                base.correct_answer = dict;
+                delete base.left_items;
+                delete base.right_items;
+              } else if (q.type === 'ordering') {
+                const oq: any = q;
+                base.options = (oq.items || []).filter((s: string) => s && s.trim());
+                const orderIdx = (oq.correctOrder || []).length
+                  ? oq.correctOrder
+                  : base.options.map((_: any, i: number) => i);
+                base.correct_answer = orderIdx;
+                delete base.items;
+              }
+
+              return base;
             })
           })),
           // Assignment (devoir) optionnel par module - domaine évaluations
@@ -1046,12 +1096,25 @@ const CreateCoursePage = () => {
                   base.correctAnswers = q.correctAnswers || [];
                 } else if (q.type === 'true-false') {
                   // TrueFalseQuestion: correctAnswer (bool attendu par le backend de domaine évaluations)
-                  base.correctAnswer = q.correctAnswer === 0;
+                  base.correctAnswer = !!q.correctAnswer;
                 } else if (q.type === 'short-answer') {
                   // ShortAnswerQuestion: correctAnswers (liste de chaînes)
                   base.correctAnswers = q.correctAnswers || [];
-                } else if (q.type === 'essay') {
-                  // Long/Essay question: rien de plus, évaluée manuellement via rubric/settings
+                } else if (q.type === 'long-answer') {
+                  // Long answer: contraintes/rubric
+                  base.minWords = q.minWords || undefined;
+                  base.maxWords = q.maxWords || undefined;
+                  base.rubric = q.rubric || [];
+                } else if (q.type === 'fill-blank') {
+                  base.text = q.text;
+                  base.correctAnswers = q.correctAnswers || [];
+                } else if (q.type === 'matching') {
+                  base.leftItems = q.leftItems || [];
+                  base.rightItems = q.rightItems || [];
+                  base.correctMatches = q.correctMatches || [];
+                } else if (q.type === 'ordering') {
+                  base.items = q.items || [];
+                  base.correctOrder = q.correctOrder || base.items.map((_: any, i: number) => i);
                 }
 
                 return base;
@@ -1120,7 +1183,7 @@ const CreateCoursePage = () => {
         for (let i = 0; i < modules.length; i++) {
           const localModule = modules[i];
           const backendModule = createdCourse.modules[i];
-          
+
           if (!backendModule || !localModule.order || localModule.order.length === 0) {
             continue; // Pas d'ordre à appliquer
           }
@@ -1146,7 +1209,7 @@ const CreateCoursePage = () => {
           // Construire l'ordre avec les IDs backend
           const orderItems = localModule.order.map(orderItem => {
             let backendId = orderItem.id;
-            
+
             if (orderItem.type === 'lesson' && lessonIdMap.has(orderItem.id)) {
               backendId = lessonIdMap.get(orderItem.id)!;
             } else if (orderItem.type === 'quiz' && quizIdMap.has(orderItem.id)) {
@@ -1188,13 +1251,13 @@ const CreateCoursePage = () => {
 
     } catch (error: any) {
       console.error('Erreur création cours:', error);
-      
+
       // Formatter les erreurs de validation FastAPI (422)
       let errorMessage = "Une erreur est survenue lors de la création du cours";
-      
+
       if (error?.response?.data?.detail) {
         const detail = error.response.data.detail;
-        
+
         // Si detail est un tableau d'erreurs de validation Pydantic
         if (Array.isArray(detail)) {
           errorMessage = detail
@@ -1203,7 +1266,7 @@ const CreateCoursePage = () => {
               return `${field}: ${err.msg || 'Erreur de validation'}`;
             })
             .join('\n');
-        } 
+        }
         // Si detail est une chaîne
         else if (typeof detail === 'string') {
           errorMessage = detail;
@@ -1215,9 +1278,9 @@ const CreateCoursePage = () => {
       } else if (error?.message) {
         errorMessage = error.message;
       }
-      
+
       console.error('📋 Erreur formatée:', errorMessage);
-      
+
       toast({
         title: "Erreur de création",
         description: errorMessage,
@@ -1924,12 +1987,12 @@ const CreateCoursePage = () => {
                                         className="w-full"
                                       />
                                       <p className="text-xs text-gray-500">Formats supportés : YouTube, Vimeo, MP4, PDF ou URL d'image</p>
-                                      
+
                                       {/* Video Preview */}
                                       {lesson.mediaUrl && (
                                         <div className="mt-4 rounded-lg overflow-hidden border bg-black">
-                                          <VideoPlayer 
-                                            videoUrl={lesson.mediaUrl} 
+                                          <VideoPlayer
+                                            videoUrl={lesson.mediaUrl}
                                             title="Aperçu vidéo"
                                           />
                                         </div>
