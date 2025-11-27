@@ -17,6 +17,7 @@ import { Upload, Plus, X, Save, ArrowLeft, ArrowRight, Video, FileText, Image as
 import VideoPlayer from '@/components/common/VideoPlayer';
 import { CycleTagSelector } from '@/components/admin/CycleTagSelector';
 import { CategoryTagSelector } from '@/components/admin/CategoryTagSelector';
+import { CourseTutorialModal } from '@/components/admin/CourseTutorialModal';
 import { useToast } from '@/hooks/use-toast';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { QuizBuilder, AssignmentBuilder } from '@/components/quiz';
@@ -134,6 +135,9 @@ const CreateCoursePage = () => {
     totalFiles: 0,
     progress: 0
   });
+
+  // État pour le tutoriel
+  const [showTutorial, setShowTutorial] = useState(false);
 
   // Upload notification state pour uploads individuels
   const [uploads, setUploads] = useState<UploadItem[]>([]);
@@ -1271,6 +1275,17 @@ const CreateCoursePage = () => {
               </Badge>
             )}
 
+            {/* Bouton aide/tutoriel */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowTutorial(true)}
+              className="gap-2"
+            >
+              <HelpCircle className="h-4 w-4" />
+              Aide
+            </Button>
+
             {/* Bouton effacer le brouillon */}
             {hasDraft() && (
               <Button
@@ -2227,6 +2242,12 @@ const CreateCoursePage = () => {
           draftTimestamp={draftToRestore.timestamp}
         />
       )}
+
+      {/* Tutoriel slideshow */}
+      <CourseTutorialModal
+        open={showTutorial}
+        onOpenChange={setShowTutorial}
+      />
     </div>
   );
 };
