@@ -472,6 +472,15 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
                       )}
                     </div>
                   )}
+                  
+                  {question.type === 'short-answer' && (
+                    <div className="text-sm mt-2">
+                      <p className="text-gray-600">Votre réponse: <span className="font-medium">{userAnswer || 'Aucune réponse'}</span></p>
+                      {!isCorrect && (
+                        <p className="text-green-600">Réponses acceptées: <span className="font-medium">{question.correctAnswers.join(', ')}</span></p>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}
