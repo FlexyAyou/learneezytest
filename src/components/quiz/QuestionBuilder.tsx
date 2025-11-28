@@ -10,7 +10,6 @@ import { Plus, X, Save, ChevronDown, ChevronUp } from 'lucide-react';
 import { QuestionTypeSelector } from './QuestionTypeSelector';
 import type { Question, QuestionType, DifficultyLevel } from '@/types/quiz';
 import QuestionMediaField from './QuestionMediaField';
-import OptionsMediaGrid from './OptionsMediaGrid';
 
 interface QuestionBuilderProps {
   question?: Question;
@@ -41,35 +40,10 @@ export const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
     if (Array.isArray(val)) return val.map(v => (typeof v === 'string' ? v : String(v ?? '')));
     return new Array(fallbackCount).fill('').map(() => '');
   };
-  const asMediaArray = (val: any, count: number): Array<{ type: 'image' | 'video' | 'pdf'; key?: string; url?: string; caption?: string } | null> => {
-    if (!Array.isArray(val)) return new Array(count).fill(null);
-    const arr = val.slice(0, count);
-    // Compléter si trop court
-    while (arr.length < count) arr.push(null);
-    return arr.map(m => {
-      if (!m) return null;
-      const type = (m.type === 'video' || m.type === 'pdf' || m.type === 'image') ? m.type : 'image';
-      return { type, key: m.key, url: m.url, caption: m.caption };
-    });
-  };
   const isChoice = question?.type === 'single-choice' || question?.type === 'multiple-choice';
   const initialOptions = isChoice ? asStringArray((question as any)?.options, 4) : ['', '', '', ''];
   const [options, setOptions] = useState<string[]>(initialOptions);
-  const [optionsMedia, setOptionsMedia] = useState<Array<{ type: 'image' | 'video' | 'pdf'; key?: string; url?: string; caption?: string } | null>>(
-    isChoice ? asMediaArray((question as any)?.optionsMedia, initialOptions.length) : new Array(initialOptions.length).fill(null)
-  );
-
-  // Sync longueur optionsMedia ←→ options
-  useEffect(() => {
-    setOptionsMedia(prev => {
-      const safePrev = Array.isArray(prev) ? prev : [];
-      if (options.length === safePrev.length) return safePrev;
-      if (options.length > safePrev.length) {
-        return [...safePrev, ...new Array(options.length - safePrev.length).fill(null)];
-      }
-      return safePrev.slice(0, options.length);
-    });
-  }, [options.length]);
+  // Suppression des médias par option: plus de gestion optionsMedia
   const [correctAnswer, setCorrectAnswer] = useState<number>(
     question?.type === 'single-choice' && typeof (question as any)?.correctAnswer === 'number'
       ? (question as any).correctAnswer
@@ -161,7 +135,6 @@ export const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
           type: 'single-choice',
           options: options.filter(o => o.trim()),
           correctAnswer,
-          optionsMedia,
         };
         break;
       case 'multiple-choice':
@@ -170,7 +143,6 @@ export const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
           type: 'multiple-choice',
           options: options.filter(o => o.trim()),
           correctAnswers,
-          optionsMedia,
         };
         break;
       case 'true-false':
@@ -287,7 +259,7 @@ export const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
               >
                 <Plus className="h-4 w-4 mr-2" /> Ajouter une option
               </Button>
-              <OptionsMediaGrid options={options} value={optionsMedia} onChange={setOptionsMedia} />
+              {/* Médias par option supprimés (non supportés côté backend) */}
             </div>
           </div>
         );
