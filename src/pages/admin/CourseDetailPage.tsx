@@ -813,7 +813,7 @@ const CourseDetailPage = () => {
                                                 </div>
                                                 <div className="flex flex-wrap items-center gap-2">
                                                   {order.map((idx, i) => (
-                                                    <React.Fragment key={i}>
+                                                    <span key={i} className="flex items-center gap-2" data-lov-ignore>
                                                       <div className="inline-flex items-center gap-2 rounded-full border border-purple-200 bg-purple-50 px-3 py-1">
                                                         <span className="flex h-5 w-5 items-center justify-center rounded-full bg-purple-600 text-white text-[10px] font-bold">{i + 1}</span>
                                                         <span className="text-gray-800">{items[idx]}</span>
@@ -821,7 +821,7 @@ const CourseDetailPage = () => {
                                                       {i < order.length - 1 && (
                                                         <ArrowRight className="h-4 w-4 text-purple-400" />
                                                       )}
-                                                    </React.Fragment>
+                                                    </span>
                                                   ))}
                                                 </div>
                                               </div>
@@ -1307,7 +1307,7 @@ const CourseDetailPage = () => {
                                                           </div>
                                                           <div className="flex flex-wrap items-center gap-2">
                                                             {order.map((idx, i) => (
-                                                              <React.Fragment key={i}>
+                                                              <span key={i} className="flex items-center gap-2" data-lov-ignore>
                                                                 <div className="inline-flex items-center gap-2 rounded-full border border-purple-200 bg-purple-50 px-3 py-1">
                                                                   <span className="flex h-5 w-5 items-center justify-center rounded-full bg-purple-600 text-white text-[10px] font-bold">{i + 1}</span>
                                                                   <span className="text-gray-800">{items[idx]}</span>
@@ -1315,7 +1315,7 @@ const CourseDetailPage = () => {
                                                                 {i < order.length - 1 && (
                                                                   <ArrowRight className="h-4 w-4 text-purple-400" />
                                                                 )}
-                                                              </React.Fragment>
+                                                              </span>
                                                             ))}
                                                           </div>
                                                         </div>
