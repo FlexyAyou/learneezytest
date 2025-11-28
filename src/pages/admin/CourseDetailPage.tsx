@@ -26,6 +26,7 @@ import PDFViewer from '@/components/common/PDFViewer';
 import { usePresignedUrl } from '@/hooks/usePresignedUrl';
 import VideoPlayer from '@/components/common/VideoPlayer';
 import MediaStatusBadge from '@/components/common/MediaStatusBadge';
+import MediaPreview from '@/components/quiz/MediaPreview';
 
 // Component pour afficher les images
 const ImageViewer: React.FC<{ imageKey?: string; imageUrl?: string; title: string }> = ({ imageKey, imageUrl, title }) => {
@@ -72,6 +73,7 @@ const CourseDetailPage = () => {
   const [selectedLesson, setSelectedLesson] = useState<Content | null>(null);
   const [statusUpdating, setStatusUpdating] = useState(false);
   const [explanationsOpen, setExplanationsOpen] = useState<Record<string, boolean>>({});
+  const [mediaOpen, setMediaOpen] = useState<Record<string, boolean>>({});
 
   // Édition désactivée sur la page de détail (lecture seule)
 
@@ -860,6 +862,43 @@ const CourseDetailPage = () => {
                                                   <div className="text-yellow-900">{q.explanation}</div>
                                                 </div>
                                               )}
+                                              {q.media && q.media.type && (
+                                                <div className="mt-2">
+                                                  <Button
+                                                    variant="outline"
+                                                    className="h-7 px-2 text-[10px]"
+                                                    onClick={() => {
+                                                      const k = `media-assign-${index}-${qIndex}`;
+                                                      setMediaOpen(prev => ({ ...prev, [k]: !prev[k] }));
+                                                    }}
+                                                  >
+                                                    {mediaOpen[`media-assign-${index}-${qIndex}`] ? (
+                                                      <>
+                                                        <EyeOff className="h-3 w-3 mr-1" /> Masquer média
+                                                      </>
+                                                    ) : (
+                                                      <>
+                                                        <Eye className="h-3 w-3 mr-1" /> Afficher média
+                                                      </>
+                                                    )}
+                                                  </Button>
+                                                  {mediaOpen[`media-assign-${index}-${qIndex}`] && (
+                                                    <div className="mt-2 space-y-2">
+                                                      <MediaPreview
+                                                        mediaType={q.media.type}
+                                                        mediaKey={q.media.key}
+                                                        mediaUrl={q.media.url}
+                                                      />
+                                                      <div className="text-xs text-gray-600">
+                                                        <div>Type: <span className="font-medium capitalize">{q.media.type}</span></div>
+                                                        {q.media.caption && (
+                                                          <div>Légende: <span className="text-gray-800">{q.media.caption}</span></div>
+                                                        )}
+                                                      </div>
+                                                    </div>
+                                                  )}
+                                                </div>
+                                              )}
                                             </div>
                                           );
                                         })()}
@@ -1351,6 +1390,43 @@ const CourseDetailPage = () => {
                                                           <div className="mt-2 text-xs bg-yellow-50 border-l-4 border-yellow-400 p-2 rounded">
                                                             <div className="font-semibold text-yellow-800">Explication</div>
                                                             <div className="text-yellow-900">{(question as any).explanation}</div>
+                                                          </div>
+                                                        )}
+                                                        {(question as any).media && (question as any).media.type && (
+                                                          <div className="mt-2">
+                                                            <Button
+                                                              variant="outline"
+                                                              className="h-7 px-2 text-[10px]"
+                                                              onClick={() => {
+                                                                const k = `media-quiz-${idx}-${qIndex}`;
+                                                                setMediaOpen(prev => ({ ...prev, [k]: !prev[k] }));
+                                                              }}
+                                                            >
+                                                              {mediaOpen[`media-quiz-${idx}-${qIndex}`] ? (
+                                                                <>
+                                                                  <EyeOff className="h-3 w-3 mr-1" /> Masquer média
+                                                                </>
+                                                              ) : (
+                                                                <>
+                                                                  <Eye className="h-3 w-3 mr-1" /> Afficher média
+                                                                </>
+                                                              )}
+                                                            </Button>
+                                                            {mediaOpen[`media-quiz-${idx}-${qIndex}`] && (
+                                                              <div className="mt-2 space-y-2">
+                                                                <MediaPreview
+                                                                  mediaType={(question as any).media.type}
+                                                                  mediaKey={(question as any).media.key}
+                                                                  mediaUrl={(question as any).media.url}
+                                                                />
+                                                                <div className="text-xs text-gray-600">
+                                                                  <div>Type: <span className="font-medium capitalize">{(question as any).media.type}</span></div>
+                                                                  {(question as any).media.caption && (
+                                                                    <div>Légende: <span className="text-gray-800">{(question as any).media.caption}</span></div>
+                                                                  )}
+                                                                </div>
+                                                              </div>
+                                                            )}
                                                           </div>
                                                         )}
                                                       </div>
