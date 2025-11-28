@@ -172,6 +172,22 @@ const EditCoursePage = () => {
   const isManagerContext = location.pathname.includes('/gestionnaire/');
   const coursesBasePath = isManagerContext ? '/dashboard/gestionnaire/courses' : '/dashboard/superadmin/courses';
 
+  // Helper pour formatter proprement les erreurs API (éviter enfants objets dans JSX)
+  const formatApiError = (error: any): string => {
+    const data = error?.response?.data;
+    const detail = data?.detail ?? data?.message ?? data;
+    if (!detail) return error?.message || 'Erreur inconnue';
+    if (typeof detail === 'string') return detail;
+    if (Array.isArray(detail)) {
+      // Pydantic-style list of errors
+      return detail.map((d: any) => d?.msg || JSON.stringify(d)).join(' | ');
+    }
+    // Object: try common keys or stringify
+    if (detail.msg) return detail.msg;
+    if (detail.error) return String(detail.error);
+    try { return JSON.stringify(detail); } catch { return String(detail); }
+  };
+
   // Load course data
   useEffect(() => {
     const loadCourse = async () => {
@@ -1205,7 +1221,7 @@ const EditCoursePage = () => {
     } catch (error: any) {
       toast({
         title: '\u274c Erreur',
-        description: error.response?.data?.detail || 'Impossible de sauvegarder le devoir',
+        description: formatApiError(error) || 'Impossible de sauvegarder le devoir',
         variant: 'destructive',
       });
     }
