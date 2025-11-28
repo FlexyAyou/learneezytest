@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, X, Save, ChevronDown, ChevronUp } from 'lucide-react';
 import { QuestionTypeSelector } from './QuestionTypeSelector';
 import type { Question, QuestionType, DifficultyLevel } from '@/types/quiz';
-import QuestionMediaField from './QuestionMediaField';
+import QuestionMediaField, { MediaValue } from './QuestionMediaField';
 
 interface QuestionBuilderProps {
   question?: Question;
@@ -33,7 +33,7 @@ export const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   // Media states
-  const [questionMedia, setQuestionMedia] = useState(question?.media);
+  const [questionMedia, setQuestionMedia] = useState<MediaValue | null | undefined>(question?.media as any);
 
   // --- Normalisation défensive des options & médias par option ---
   const asStringArray = (val: any, fallbackCount = 4): string[] => {
@@ -125,7 +125,7 @@ export const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
       points,
       difficulty,
       explanation: explanation || undefined,
-      media: questionMedia,
+      media: questionMedia as any,
     };
 
     switch (questionType) {
