@@ -758,8 +758,33 @@ const CourseDetailPage = () => {
                                             );
                                           }
 
-                                          // Matching (simple)
+                                          // Matching (assignment avancé ou fallback simple)
                                           if (type === 'matching') {
+                                            const leftItems: string[] = (q as any).leftItems || [];
+                                            const rightItems: string[] = (q as any).rightItems || [];
+                                            const matches: Array<{ left: number; right: number }> = (q as any).correctMatches || [];
+
+                                            if (leftItems.length && rightItems.length && matches.length) {
+                                              return (
+                                                <div className="mt-2 text-xs">
+                                                  <span className="font-semibold text-green-700">Appariements corrects:</span>
+                                                  <ul className="mt-1 ml-4 list-disc space-y-1">
+                                                    {matches.map((m, i) => {
+                                                      const l = leftItems[m.left];
+                                                      const r = rightItems[m.right];
+                                                      if (!l || !r) return null;
+                                                      return (
+                                                        <li key={i} className="text-gray-700">
+                                                          <span className="font-medium">{l}</span> → <span className="font-medium">{r}</span>
+                                                        </li>
+                                                      );
+                                                    })}
+                                                  </ul>
+                                                </div>
+                                              );
+                                            }
+
+                                            // Fallback simple: dictionnaire correct_answer (forme quiz)
                                             const dict: Record<string, string> = (q as any).correct_answer || {};
                                             const entries = Object.entries(dict);
                                             if (entries.length === 0) return null;
@@ -1341,23 +1366,8 @@ const CourseDetailPage = () => {
                                   }
 
                                   if (item.type === 'assignment') {
-                                    const assignment = item.data;
-                                    return (
-                                      <div key={`assignment-${idx}`} className="bg-white rounded-lg border-2 border-purple-200 overflow-hidden">
-                                        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-pink-50">
-                                          <div className="flex items-center space-x-3">
-                                            <span className="bg-purple-500 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs font-bold">
-                                              <ClipboardList className="h-4 w-4" />
-                                            </span>
-                                            <span className="font-semibold">{assignment.title}</span>
-                                          </div>
-                                          <Badge variant="outline" className="border-purple-400">Devoir</Badge>
-                                        </div>
-                                        <div className="p-4">
-                                          <p className="text-sm text-gray-600">{assignment.description || 'Devoir de fin de module'}</p>
-                                        </div>
-                                      </div>
-                                    );
+                                    // Ne pas afficher le devoir ici pour éviter le doublon
+                                    return null;
                                   }
                                   return null;
                                 })}
