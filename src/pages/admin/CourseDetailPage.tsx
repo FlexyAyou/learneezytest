@@ -626,7 +626,7 @@ const CourseDetailPage = () => {
                                   <div className="space-y-3 mt-2">
                                     {(module as any).assignment.questions.map((q: any, qIndex: number) => (
                                       <div key={qIndex} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                                        <p className="font-medium text-sm mb-1">
+                                        <div className="font-medium text-sm mb-1">
                                           <span className="bg-gray-200 text-gray-700 rounded px-2 py-0.5 text-xs mr-2">
                                             Question {qIndex + 1}
                                           </span>
@@ -642,7 +642,7 @@ const CourseDetailPage = () => {
                                               </Badge>
                                             ) : null;
                                           })()}
-                                        </p>
+                                        </div>
                                         {q.type && (
                                           <p className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">
                                             Type : {q.type}
@@ -1153,7 +1153,7 @@ const CourseDetailPage = () => {
                                           <div className="p-4 space-y-4">
                                             {quiz.questions.map((question: any, qIndex: number) => (
                                               <div key={qIndex} className="space-y-3 p-4 bg-gray-50 rounded-lg">
-                                                <p className="font-semibold text-gray-900">
+                                                <div className="font-semibold text-gray-900">
                                                   <span className="bg-gray-200 text-gray-700 rounded px-2 py-1 text-sm mr-2">
                                                     Question {qIndex + 1}
                                                   </span>
@@ -1169,7 +1169,7 @@ const CourseDetailPage = () => {
                                                       </Badge>
                                                     ) : null;
                                                   })()}
-                                                </p>
+                                                </div>
                                                 <div className="space-y-2 pl-4">
                                                   {(() => {
                                                     const type = question.type;
