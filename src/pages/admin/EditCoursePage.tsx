@@ -156,6 +156,7 @@ const EditCoursePage = () => {
   const [savingModule, setSavingModule] = useState<number | null>(null);
   // Préchargement des assignments
   const [assignmentsPreloaded, setAssignmentsPreloaded] = useState(false);
+  const [preloadingAssignments, setPreloadingAssignments] = useState(false);
 
   // Prévisualisation du média de leçon
   const [previewLessonMedia, setPreviewLessonMedia] = useState<{
@@ -280,6 +281,7 @@ const EditCoursePage = () => {
       if (activeTab !== 'modules') return;
       if (assignmentsPreloaded) return;
       try {
+        setPreloadingAssignments(true);
         // Récupérer le cours pour avoir les IDs réels des modules
         const freshCourse = await fastAPIClient.getCourse(id);
         const courseModules = freshCourse.modules || [];
@@ -313,6 +315,7 @@ const EditCoursePage = () => {
         }
       } finally {
         setAssignmentsPreloaded(true);
+        setPreloadingAssignments(false);
       }
     };
     preloadAssignments();
@@ -1816,6 +1819,12 @@ const EditCoursePage = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-8">
+                {preloadingAssignments && !assignmentsPreloaded && (
+                  <div className="flex items-center gap-2 mb-6 px-4 py-2 bg-orange-50 border border-orange-200 rounded-lg text-orange-700 text-sm animate-pulse">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Chargement des devoirs...
+                  </div>
+                )}
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-2xl font-bold text-gray-800">Modules et contenus</h2>
                   <Button
