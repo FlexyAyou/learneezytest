@@ -943,6 +943,25 @@ const EditCoursePage = () => {
           explanation: (q as any).explanation || undefined,
         };
 
+        // Media au niveau question: un seul, type requis, key XOR url, caption optionnel; null pour suppression
+        const media = (q as any).media;
+        if (media === null) {
+          baseQuestion.media = null;
+        } else if (media && typeof media === 'object') {
+          const t = media.type;
+          const k = media.key;
+          const u = media.url;
+          const c = media.caption;
+          if (t && (t === 'image' || t === 'video' || t === 'pdf')) {
+            if ((k && !u) || (!k && u) || (!k && !u)) {
+              baseQuestion.media = { type: t };
+              if (k) baseQuestion.media.key = k;
+              if (u) baseQuestion.media.url = u;
+              if (c) baseQuestion.media.caption = c;
+            }
+          }
+        }
+
         if (q.type === 'single-choice') {
           const scq = q as any;
           baseQuestion.options = Array.isArray(scq.options) ? scq.options : [];
@@ -1144,6 +1163,25 @@ const EditCoursePage = () => {
           } else if (q.type === 'ordering') {
             base.items = q.items || [];
             base.correctOrder = q.correctOrder || (base.items || []).map((_: any, i: number) => i);
+          }
+
+          // Media au niveau question (Assignment): mêmes règles
+          const media = q.media;
+          if (media === null) {
+            base.media = null;
+          } else if (media && typeof media === 'object') {
+            const t = media.type;
+            const k = media.key;
+            const u = media.url;
+            const c = media.caption;
+            if (t && (t === 'image' || t === 'video' || t === 'pdf')) {
+              if ((k && !u) || (!k && u) || (!k && !u)) {
+                base.media = { type: t };
+                if (k) base.media.key = k;
+                if (u) base.media.url = u;
+                if (c) base.media.caption = c;
+              }
+            }
           }
 
           return base;

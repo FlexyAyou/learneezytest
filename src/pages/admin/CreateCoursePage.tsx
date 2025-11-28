@@ -1026,14 +1026,26 @@ const CreateCoursePage = () => {
               if (qAny.explanation) base.explanation = qAny.explanation;
               if (qAny.tags) base.tags = qAny.tags;
 
-              // Média principal
-              if (qAny.media) {
-                base.media = {
-                  type: qAny.media.type,
-                  key: qAny.media.key,
-                  url: qAny.media.url,
-                  caption: qAny.media.caption,
-                };
+              // Média principal (un seul média par question)
+              // Règles: type requis (image|video|pdf); key XOR url; caption optionnel; media: null pour suppression
+              if (qAny.media === null) {
+                base.media = null;
+              } else if (qAny.media && typeof qAny.media === 'object') {
+                const m = qAny.media as any;
+                const allowed = ['image', 'video', 'pdf'];
+                if (m.type && allowed.includes(m.type)) {
+                  const hasKey = !!m.key;
+                  const hasUrl = !!m.url;
+                  if (hasKey && !hasUrl) {
+                    base.media = { type: m.type, key: m.key, caption: m.caption || undefined };
+                  } else if (!hasKey && hasUrl) {
+                    base.media = { type: m.type, url: m.url, caption: m.caption || undefined };
+                  } else if (hasKey && hasUrl) {
+                    // Préférer key si les deux sont fournis
+                    base.media = { type: m.type, key: m.key, caption: m.caption || undefined };
+                  }
+                  // Si ni key ni url: ne pas inclure base.media
+                }
               }
 
               // Médias des options (seulement choix)
@@ -1134,7 +1146,26 @@ const CreateCoursePage = () => {
                   base.correctOrder = q.correctOrder || base.items.map((_: any, i: number) => i);
                 }
 
-                return base;
+                // Média par question (assignment): mêmes règles que pour quiz
+                if (q.media === null) {
+                  base.media = null;
+                } else if (q.media && typeof (q as any).media === 'object') {
+                  const m: any = (q as any).media;
+                  const allowed = ['image', 'video', 'pdf'];
+                  if (m.type && allowed.includes(m.type)) {
+                    const hasKey = !!m.key;
+                    const hasUrl = !!m.url;
+                    if (hasKey && !hasUrl) {
+                      (base as any).media = { type: m.type, key: m.key, caption: m.caption || undefined };
+                    } else if (!hasKey && hasUrl) {
+                      (base as any).media = { type: m.type, url: m.url, caption: m.caption || undefined };
+                    } else if (hasKey && hasUrl) {
+                      (base as any).media = { type: m.type, key: m.key, caption: m.caption || undefined };
+                    }
+                  }
+                }
+
+                return base as any;
               }),
               settings: {
                 passing_score: module.assignment.settings?.passingScore ?? 70,
