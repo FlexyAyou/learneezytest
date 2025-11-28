@@ -1107,8 +1107,13 @@ const EditCoursePage = () => {
 
         await fastAPIClient.createAssignment(id, moduleId, assignmentPayload);
 
+        // Recharger et injecter le devoir pour affichage immédiat
         const finalCourse = await fastAPIClient.getCourse(id);
-        setModules(mapCourseToEditableModules(finalCourse));
+        const assignmentCreated = await fastAPIClient.getAssignment(id, moduleId);
+        const mapped = mapCourseToEditableModules(finalCourse);
+        // Affecter le devoir récupéré dans le module concerné
+        const withAssignment = mapped.map((m, idx) => idx === realModuleIdx ? { ...m, assignments: [assignmentCreated] } : m);
+        setModules(withAssignment);
 
         setShowAssignmentBuilder(null);
         toast({
@@ -1118,17 +1123,28 @@ const EditCoursePage = () => {
       } else {
         const currentCourse = await fastAPIClient.getCourse(id);
         const moduleId = currentCourse.modules[moduleIdx].id!;
-        const order = (currentCourse.modules[moduleIdx] as any).order as Array<{ type: string; id: string }> | undefined;
-        const hasAssignment = order?.some(o => o.type === 'assignment');
 
-        if (hasAssignment) {
+        // Déterminer create vs update via getAssignment (404 => create)
+        let exists = false;
+        try {
+          await fastAPIClient.getAssignment(id, moduleId);
+          exists = true;
+        } catch (err: any) {
+          exists = err?.response?.status !== 404; // true if other errors, else false
+        }
+
+        if (exists) {
           await fastAPIClient.updateAssignment(id, moduleId, assignmentPayload);
         } else {
           await fastAPIClient.createAssignment(id, moduleId, assignmentPayload);
         }
 
+        // Recharger cours et injecter le devoir
         const updatedCourse = await fastAPIClient.getCourse(id);
-        setModules(mapCourseToEditableModules(updatedCourse));
+        const freshAssignment = await fastAPIClient.getAssignment(id, moduleId);
+        const mapped = mapCourseToEditableModules(updatedCourse);
+        const withAssignment = mapped.map((m, idx) => idx === moduleIdx ? { ...m, assignments: [freshAssignment] } : m);
+        setModules(withAssignment);
 
         setShowAssignmentBuilder(null);
         toast({
@@ -1791,25 +1807,31 @@ const EditCoursePage = () => {
                         className="hover:no-underline px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100"
                         onClick={async () => {
                           if (!id) return;
-                          // Chargement paresseux du devoir si présent dans order mais pas encore en state
+                          // Chargement paresseux du devoir sans dépendre de order
                           try {
-                            const courseWithOrder = await fastAPIClient.getCourse(id);
-                            const modWithOrder = courseWithOrder.modules[moduleIdx] as any;
-                            const order = modWithOrder.order as Array<{ type: string; id: string }> | undefined;
-                            const hasAssignment = order?.some(o => o.type === 'assignment');
+                            // Si déjà chargé, ne rien faire
+                            if (modules[moduleIdx]?.assignments && modules[moduleIdx].assignments!.length > 0) return;
 
-                            if (hasAssignment && (!modules[moduleIdx].assignments || modules[moduleIdx].assignments!.length === 0)) {
-                              const moduleId = modWithOrder.id as string;
+                            const courseWithIds = await fastAPIClient.getCourse(id);
+                            const mod = courseWithIds.modules[moduleIdx] as any;
+                            const moduleId = mod?.id as string | undefined;
+                            if (!moduleId) return;
+
+                            try {
                               const assignment = await fastAPIClient.getAssignment(id, moduleId);
-
                               setModules(prev => prev.map((m, idx) =>
                                 idx === moduleIdx
                                   ? { ...m, assignments: [assignment] }
                                   : m
                               ));
+                            } catch (err: any) {
+                              // Silencieux si 404 (pas de devoir pour ce module)
+                              if (err?.response?.status !== 404) {
+                                console.warn('Impossible de charger le devoir du module', err);
+                              }
                             }
                           } catch (e) {
-                            console.warn('Impossible de charger le devoir du module', e);
+                            console.warn('Erreur lors du chargement du module pour devoir', e);
                           }
                         }}
                       >
