@@ -154,6 +154,8 @@ const EditCoursePage = () => {
   const [showAssignmentBuilder, setShowAssignmentBuilder] = useState<number | null>(null);
   const [moduleHasChanges, setModuleHasChanges] = useState<Record<number, boolean>>({});
   const [savingModule, setSavingModule] = useState<number | null>(null);
+  // Préchargement des assignments
+  const [assignmentsPreloaded, setAssignmentsPreloaded] = useState(false);
 
   // Prévisualisation du média de leçon
   const [previewLessonMedia, setPreviewLessonMedia] = useState<{
@@ -270,6 +272,51 @@ const EditCoursePage = () => {
     };
     loadCourse();
   }, [id, toast]);
+
+  // Précharger tous les devoirs dès l'ouverture du tab "modules"
+  useEffect(() => {
+    const preloadAssignments = async () => {
+      if (!id) return;
+      if (activeTab !== 'modules') return;
+      if (assignmentsPreloaded) return;
+      try {
+        // Récupérer le cours pour avoir les IDs réels des modules
+        const freshCourse = await fastAPIClient.getCourse(id);
+        const courseModules = freshCourse.modules || [];
+
+        const results = await Promise.allSettled(courseModules.map(async (m: any, idx: number) => {
+          if (!m?.id) return null;
+          try {
+            const assignment = await fastAPIClient.getAssignment(id, m.id);
+            return { idx, assignment };
+          } catch (e: any) {
+            // 404 = pas de devoir; autres erreurs loguées
+            if (e?.response?.status !== 404) {
+              console.warn('Préchargement devoir - erreur module', m.id, e);
+            }
+            return null;
+          }
+        }));
+
+        const toInject: Array<{ idx: number; assignment: any }> = results
+          .filter(r => r.status === 'fulfilled' && r.value && (r.value as any).assignment)
+          .map(r => (r as any).value);
+
+        if (toInject.length) {
+          setModules(prev => prev.map((mod, mIdx) => {
+            const found = toInject.find(t => t.idx === mIdx);
+            if (found) {
+              return { ...mod, assignments: [found.assignment] };
+            }
+            return mod;
+          }));
+        }
+      } finally {
+        setAssignmentsPreloaded(true);
+      }
+    };
+    preloadAssignments();
+  }, [activeTab, assignmentsPreloaded, id]);
 
   // Helper function to map course data to editable modules
   const mapCourseToEditableModules = (courseData: CourseResponse): EditableModule[] => {
@@ -1854,21 +1901,22 @@ const EditCoursePage = () => {
                               </div>
                             </div>
                           </div>
-                          {modules.length > 1 && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteModule(moduleIdx);
-                              }}
-                              className="hover:bg-red-50"
-                            >
-                              <Trash2 className="h-4 w-4 text-red-500" />
-                            </Button>
-                          )}
+                          {/* Bouton supprimé du trigger pour éviter button dans button */}
                         </div>
                       </AccordionTrigger>
+                      {/* Actions hors du trigger pour éviter l'imbrication de <button> */}
+                      {modules.length > 1 && (
+                        <div className="px-6 pt-2 -mt-2 flex justify-end">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteModule(moduleIdx)}
+                            className="hover:bg-red-50"
+                          >
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                          </Button>
+                        </div>
+                      )}
                       <AccordionContent className="px-6 py-6 bg-white">
                         <div className="space-y-6">
                           {/* Module Info */}
