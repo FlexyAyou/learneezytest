@@ -692,9 +692,11 @@ class FastAPIClient {
     moduleId: string,
     assignmentData: AssignmentCreate
   ): Promise<AssignmentResponse> {
+    // Certains endpoints exigent course_id et module_id dans le body
+    const payload: any = { course_id: courseId, module_id: moduleId, ...assignmentData };
     return this.post<AssignmentResponse>(
       `/api/courses/${courseId}/modules/${moduleId}/assignment`,
-      assignmentData
+      payload
     );
   }
 
@@ -705,9 +707,17 @@ class FastAPIClient {
     courseId: string,
     moduleId: string
   ): Promise<AssignmentResponse> {
-    return this.get<AssignmentResponse>(
-      `/api/courses/${courseId}/modules/${moduleId}/assignment`
+    // Traiter 404 comme un statut attendu (évite erreurs bruyantes en console)
+    const resp = await this.axiosInstance.get<AssignmentResponse>(
+      `/api/courses/${courseId}/modules/${moduleId}/assignment`,
+      { validateStatus: (s) => s === 200 || s === 404 }
     );
+    if (resp.status === 404) {
+      const err: any = new Error('Assignment not found');
+      err.response = { status: 404 };
+      throw err;
+    }
+    return resp.data;
   }
 
   /**
@@ -718,9 +728,10 @@ class FastAPIClient {
     moduleId: string,
     assignmentData: AssignmentUpdate
   ): Promise<AssignmentResponse> {
+    const payload: any = { course_id: courseId, module_id: moduleId, ...assignmentData };
     return this.put<AssignmentResponse>(
       `/api/courses/${courseId}/modules/${moduleId}/assignment`,
-      assignmentData
+      payload
     );
   }
 
@@ -758,9 +769,10 @@ class FastAPIClient {
     assignmentId: string,
     assignmentData: AssignmentUpdate
   ): Promise<AssignmentResponse> {
+    const payload: any = { course_id: courseId, module_id: moduleId, ...assignmentData };
     return this.put<AssignmentResponse>(
       `/api/courses/${courseId}/modules/${moduleId}/assignment/${assignmentId}`,
-      assignmentData
+      payload
     );
   }
 
