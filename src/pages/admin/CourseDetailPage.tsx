@@ -16,7 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { ArrowLeft, Edit, Trash2, Eye, EyeOff, Clock, BookOpen, PlayCircle, FileText, CheckCircle, XCircle, Video, Download, Users, Award, Save, Tags, ImageIcon, HelpCircle, ClipboardList } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Eye, EyeOff, Clock, BookOpen, PlayCircle, FileText, CheckCircle, XCircle, Video, Download, Users, Award, Save, Tags, ImageIcon, HelpCircle, ClipboardList, ArrowRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { sanitizeHTML } from '@/utils/sanitizeHTML';
 import { fastAPIClient } from '@/services/fastapi-client';
@@ -71,6 +71,7 @@ const CourseDetailPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<Content | null>(null);
   const [statusUpdating, setStatusUpdating] = useState(false);
+  const [explanationsOpen, setExplanationsOpen] = useState<Record<string, boolean>>({});
 
   // Édition désactivée sur la page de détail (lecture seule)
 
@@ -224,6 +225,29 @@ const CourseDetailPage = () => {
     if (lesson.image_key) return 'image';
 
     return 'none';
+  };
+
+  // Harmonisation et style des badges de difficulté
+  const formatDifficulty = (raw?: string) => {
+    if (!raw) return undefined;
+    const v = String(raw).toLowerCase();
+    if (['easy', 'facile', 'simple', 'débutant', 'beginner'].includes(v)) return 'Facile';
+    if (['medium', 'moyen', 'intermédiaire', 'intermediate'].includes(v)) return 'Moyen';
+    if (['hard', 'difficile', 'difficult', 'avancé', 'advanced'].includes(v)) return 'Difficile';
+    return raw; // valeur telle quelle si non reconnue
+  };
+
+  const difficultyBadgeClass = (label?: string) => {
+    switch (label) {
+      case 'Facile':
+        return 'bg-green-100 text-green-700 border-green-300';
+      case 'Moyen':
+        return 'bg-orange-100 text-orange-700 border-orange-300';
+      case 'Difficile':
+        return 'bg-red-100 text-red-700 border-red-300';
+      default:
+        return 'bg-gray-100 text-gray-700 border-gray-300';
+    }
   };
 
   // Calculer les statistiques
@@ -604,12 +628,20 @@ const CourseDetailPage = () => {
                                       <div key={qIndex} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
                                         <p className="font-medium text-sm mb-1">
                                           <span className="bg-gray-200 text-gray-700 rounded px-2 py-0.5 text-xs mr-2">
-                                            Q{qIndex + 1}
+                                            Question {qIndex + 1}
                                           </span>
                                           {q.question}
-                                          {q.points && (
+                                          {typeof q.points === 'number' && (
                                             <span className="ml-2 text-xs text-gray-500">({q.points} pt{q.points > 1 ? 's' : ''})</span>
                                           )}
+                                          {(() => {
+                                            const label = formatDifficulty(q.difficulty);
+                                            return label ? (
+                                              <Badge variant="outline" className={`ml-2 text-[10px] ${difficultyBadgeClass(label)} border`}>
+                                                Difficulté: {label}
+                                              </Badge>
+                                            ) : null;
+                                          })()}
                                         </p>
                                         {q.type && (
                                           <p className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">
@@ -751,17 +783,60 @@ const CourseDetailPage = () => {
                                             if (!items.length || !order.length) return null;
                                             return (
                                               <div className="mt-2 text-xs">
-                                                <span className="font-semibold text-green-700">Ordre correct:</span>
-                                                <ol className="mt-1 ml-4 list-decimal space-y-1">
+                                                <div className="text-gray-700 mb-1 flex items-center gap-2">
+                                                  <span className="font-semibold text-green-700">Ordre correct</span>
+                                                </div>
+                                                <div className="flex flex-wrap items-center gap-2">
                                                   {order.map((idx, i) => (
-                                                    <li key={i} className="text-gray-700">{items[idx]}</li>
+                                                    <React.Fragment key={i}>
+                                                      <div className="inline-flex items-center gap-2 rounded-full border border-purple-200 bg-purple-50 px-3 py-1">
+                                                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-purple-600 text-white text-[10px] font-bold">{i + 1}</span>
+                                                        <span className="text-gray-800">{items[idx]}</span>
+                                                      </div>
+                                                      {i < order.length - 1 && (
+                                                        <ArrowRight className="h-4 w-4 text-purple-400" />
+                                                      )}
+                                                    </React.Fragment>
                                                   ))}
-                                                </ol>
+                                                </div>
                                               </div>
                                             );
                                           }
 
                                           return null;
+                                        })()}
+                                        {(() => {
+                                          const explKey = `assign-${index}-${qIndex}`;
+                                          const isOpen = !!explanationsOpen[explKey];
+                                          return (
+                                            <div className="mt-2">
+                                              {q.explanation && (
+                                                <div className="flex items-center gap-2">
+                                                  <Button
+                                                    variant="outline"
+                                                    className="h-7 px-2 text-[10px]"
+                                                    onClick={() => setExplanationsOpen(prev => ({ ...prev, [explKey]: !prev[explKey] }))}
+                                                  >
+                                                    {isOpen ? (
+                                                      <>
+                                                        <EyeOff className="h-3 w-3 mr-1" /> Masquer explication
+                                                      </>
+                                                    ) : (
+                                                      <>
+                                                        <Eye className="h-3 w-3 mr-1" /> Afficher explication
+                                                      </>
+                                                    )}
+                                                  </Button>
+                                                </div>
+                                              )}
+                                              {q.explanation && isOpen && (
+                                                <div className="mt-2 text-xs bg-yellow-50 border-l-4 border-yellow-400 p-2 rounded">
+                                                  <div className="font-semibold text-yellow-800">Explication</div>
+                                                  <div className="text-yellow-900">{q.explanation}</div>
+                                                </div>
+                                              )}
+                                            </div>
+                                          );
                                         })()}
                                       </div>
                                     ))}
@@ -1039,8 +1114,8 @@ const CourseDetailPage = () => {
                                       <div key={`quiz-${idx}`} className="bg-white rounded-lg border-2 border-orange-200 overflow-hidden">
                                         <div className="flex items-center justify-between p-4 bg-gradient-to-r from-orange-50 to-yellow-50">
                                           <div className="flex items-center space-x-3">
-                                            <span className="bg-orange-500 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs font-bold">
-                                              Q{item.index + 1}
+                                            <span className="bg-orange-500 text-white rounded-full w-14 h-7 flex items-center justify-center text-[11px] font-bold">
+                                              Quiz {item.index + 1}
                                             </span>
                                             <span className="font-semibold">{quiz.title}</span>
                                           </div>
@@ -1055,9 +1130,20 @@ const CourseDetailPage = () => {
                                               <div key={qIndex} className="space-y-3 p-4 bg-gray-50 rounded-lg">
                                                 <p className="font-semibold text-gray-900">
                                                   <span className="bg-gray-200 text-gray-700 rounded px-2 py-1 text-sm mr-2">
-                                                    Q{qIndex + 1}
+                                                    Question {qIndex + 1}
                                                   </span>
                                                   {question.question}
+                                                  {typeof (question as any).points === 'number' && (
+                                                    <span className="ml-2 text-xs text-gray-500">({(question as any).points} pt{(question as any).points > 1 ? 's' : ''})</span>
+                                                  )}
+                                                  {(() => {
+                                                    const label = formatDifficulty((question as any).difficulty);
+                                                    return label ? (
+                                                      <Badge variant="outline" className={`ml-2 text-[10px] ${difficultyBadgeClass(label)} border`}>
+                                                        Difficulté: {label}
+                                                      </Badge>
+                                                    ) : null;
+                                                  })()}
                                                 </p>
                                                 <div className="space-y-2 pl-4">
                                                   {(() => {
@@ -1123,6 +1209,32 @@ const CourseDetailPage = () => {
                                                         </div>
                                                       );
                                                     }
+                                                    // Cas 2bis: short-answer (réponse courte)
+                                                    if (type === 'short-answer') {
+                                                      const answers: string[] = Array.isArray((question as any).correct_answers)
+                                                        ? (question as any).correct_answers
+                                                        : (Array.isArray(question.correct_answer) ? (question.correct_answer as string[]) : []);
+                                                      const caseSensitive: boolean = !!((question as any).case_sensitive);
+                                                      return (
+                                                        <div className="space-y-2">
+                                                          <div className="flex items-center gap-2 text-xs">
+                                                            <span className="font-semibold text-green-700">Réponses attendues:</span>
+                                                            {caseSensitive && (
+                                                              <Badge variant="secondary" className="text-[10px] bg-amber-100 text-amber-800 border-amber-300">Sensible à la casse</Badge>
+                                                            )}
+                                                          </div>
+                                                          {answers.length > 0 ? (
+                                                            <div className="flex flex-wrap gap-1">
+                                                              {answers.map((ans, i) => (
+                                                                <span key={i} className="px-2 py-1 rounded bg-green-100 text-green-800 border border-green-300">{ans}</span>
+                                                              ))}
+                                                            </div>
+                                                          ) : (
+                                                            <div className="text-[11px] text-gray-500">Aucune réponse de référence définie</div>
+                                                          )}
+                                                        </div>
+                                                      );
+                                                    }
                                                     // Cas 3: matching (forme avancée et simple)
                                                     if (type === 'matching') {
                                                       // Avancée: leftItems/rightItems/correctMatches (indices)
@@ -1165,16 +1277,59 @@ const CourseDetailPage = () => {
                                                       if (!items.length || !order.length) return null;
                                                       return (
                                                         <div className="text-xs">
-                                                          <span className="font-semibold text-green-700">Ordre correct:</span>
-                                                          <ol className="mt-1 ml-4 list-decimal space-y-1">
+                                                          <div className="text-gray-700 mb-1 flex items-center gap-2">
+                                                            <span className="font-semibold text-green-700">Ordre correct</span>
+                                                          </div>
+                                                          <div className="flex flex-wrap items-center gap-2">
                                                             {order.map((idx, i) => (
-                                                              <li key={i} className="text-gray-700">{items[idx]}</li>
+                                                              <React.Fragment key={i}>
+                                                                <div className="inline-flex items-center gap-2 rounded-full border border-purple-200 bg-purple-50 px-3 py-1">
+                                                                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-purple-600 text-white text-[10px] font-bold">{i + 1}</span>
+                                                                  <span className="text-gray-800">{items[idx]}</span>
+                                                                </div>
+                                                                {i < order.length - 1 && (
+                                                                  <ArrowRight className="h-4 w-4 text-purple-400" />
+                                                                )}
+                                                              </React.Fragment>
                                                             ))}
-                                                          </ol>
+                                                          </div>
                                                         </div>
                                                       );
                                                     }
                                                     return null;
+                                                  })()}
+                                                  {(() => {
+                                                    const explKey = `quiz-${idx}-${qIndex}`;
+                                                    const isOpen = !!explanationsOpen[explKey];
+                                                    return (
+                                                      <div className="mt-2">
+                                                        {(question as any).explanation && (
+                                                          <div className="flex items-center gap-2">
+                                                            <Button
+                                                              variant="outline"
+                                                              className="h-7 px-2 text-[10px]"
+                                                              onClick={() => setExplanationsOpen(prev => ({ ...prev, [explKey]: !prev[explKey] }))}
+                                                            >
+                                                              {isOpen ? (
+                                                                <>
+                                                                  <EyeOff className="h-3 w-3 mr-1" /> Masquer explication
+                                                                </>
+                                                              ) : (
+                                                                <>
+                                                                  <Eye className="h-3 w-3 mr-1" /> Afficher explication
+                                                                </>
+                                                              )}
+                                                            </Button>
+                                                          </div>
+                                                        )}
+                                                        {(question as any).explanation && isOpen && (
+                                                          <div className="mt-2 text-xs bg-yellow-50 border-l-4 border-yellow-400 p-2 rounded">
+                                                            <div className="font-semibold text-yellow-800">Explication</div>
+                                                            <div className="text-yellow-900">{(question as any).explanation}</div>
+                                                          </div>
+                                                        )}
+                                                      </div>
+                                                    );
                                                   })()}
                                                 </div>
                                               </div>
@@ -1204,7 +1359,6 @@ const CourseDetailPage = () => {
                                       </div>
                                     );
                                   }
-
                                   return null;
                                 })}
                               </div>

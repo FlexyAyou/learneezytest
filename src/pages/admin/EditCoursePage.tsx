@@ -872,6 +872,9 @@ const EditCoursePage = () => {
         const baseQuestion: any = {
           type: q.type,
           question: q.question,
+          points: typeof (q as any).points === 'number' ? (q as any).points : 1,
+          difficulty: (q as any).difficulty || undefined,
+          explanation: (q as any).explanation || undefined,
         };
 
         if (q.type === 'single-choice') {
@@ -1029,6 +1032,8 @@ const EditCoursePage = () => {
             question: q.question,
             type: q.type,
             points: q.points || 1,
+            difficulty: q.difficulty || undefined,
+            explanation: q.explanation || undefined,
           };
 
           if (q.type === 'single-choice') {
@@ -2654,7 +2659,7 @@ const EditCoursePage = () => {
                     tags: q.tags || undefined,
                     media: q.media,
                   };
-                  
+
                   // Lire les propriétés déjà converties en camelCase par mapCourseToEditableModules
                   if (type === 'single-choice') {
                     return { ...common, options: q.options || [], correctAnswer: q.correctAnswer ?? 0 };
