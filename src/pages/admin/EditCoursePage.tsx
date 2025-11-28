@@ -1055,9 +1055,26 @@ const EditCoursePage = () => {
             base.text = q.text;
             base.correctAnswers = q.correctAnswers || [];
           } else if (q.type === 'matching') {
-            base.leftItems = q.leftItems || [];
-            base.rightItems = q.rightItems || [];
-            base.correctMatches = q.correctMatches || [];
+            const leftItems: string[] = Array.isArray(q.leftItems) ? q.leftItems : [];
+            const rightItems: string[] = Array.isArray(q.rightItems) ? q.rightItems : [];
+            let matches: Array<{ left: number; right: number }> = Array.isArray(q.correctMatches) ? q.correctMatches : [];
+
+            // Filtrer les paires invalides
+            matches = matches.filter(m =>
+              Number.isInteger(m.left) && Number.isInteger(m.right) &&
+              m.left >= 0 && m.left < leftItems.length &&
+              m.right >= 0 && m.right < rightItems.length
+            );
+
+            // Fallback: si aucune paire valide fournie mais listes présentes, créer des paires 0..n-1
+            if (matches.length === 0 && leftItems.length > 0 && rightItems.length > 0) {
+              const n = Math.min(leftItems.length, rightItems.length);
+              matches = Array.from({ length: n }, (_, i) => ({ left: i, right: i }));
+            }
+
+            base.leftItems = leftItems;
+            base.rightItems = rightItems;
+            base.correctMatches = matches;
           } else if (q.type === 'ordering') {
             base.items = q.items || [];
             base.correctOrder = q.correctOrder || (base.items || []).map((_: any, i: number) => i);
