@@ -36,11 +36,22 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
     quiz.settings?.timeLimit ? quiz.settings.timeLimit * 60 : null
   );
   const [attemptNumber, setAttemptNumber] = useState(1);
-  const [startTime] = useState(Date.now());
+  const [startTime, setStartTime] = useState(Date.now());
 
   const currentQuestion = quiz.questions[currentQuestionIndex];
   const totalQuestions = quiz.questions.length;
   const progress = ((currentQuestionIndex + 1) / totalQuestions) * 100;
+
+  // Reset state when quiz changes
+  useEffect(() => {
+    setCurrentQuestionIndex(0);
+    setAnswers({});
+    setShowResults(false);
+    setResult(null);
+    setTimeRemaining(quiz.settings?.timeLimit ? quiz.settings.timeLimit * 60 : null);
+    setAttemptNumber(1);
+    setStartTime(Date.now());
+  }, [quiz.id]);
 
   // Timer
   useEffect(() => {
@@ -435,13 +446,10 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
             </div>
 
             <div className="flex gap-3 justify-center mt-6">
-              {quiz.settings?.allowRetry && 
-               (!quiz.settings.maxAttempts || attemptNumber < quiz.settings.maxAttempts) && (
-                <Button onClick={handleRetry} variant="outline">
-                  <RotateCcw className="w-4 h-4 mr-2" />
-                  Réessayer
-                </Button>
-              )}
+              <Button onClick={handleRetry} variant="outline" size="lg">
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Recommencer le quiz
+              </Button>
             </div>
           </CardContent>
         </Card>
