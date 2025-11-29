@@ -230,7 +230,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
               <div className="space-y-3">
                 {question.options.map((option, idx) => (
                   <div
-                    key={idx}
+                    key={`${question.id}-opt-${idx}`}
                     className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
                   >
                     <RadioGroupItem value={String(idx)} id={`${question.id}-${idx}`} />
@@ -251,7 +251,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
           <div className="space-y-3">
             {question.options.map((option, idx) => (
               <div
-                key={idx}
+                key={`${question.id}-opt-${idx}`}
                 className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50"
               >
                 <Checkbox
@@ -342,7 +342,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
               Remplissez les trous dans l'ordre d'apparition :
             </p>
             {Array.from({ length: blankCount }).map((_, idx) => (
-              <div key={idx} className="space-y-2">
+              <div key={`${question.id}-blank-${idx}`} className="space-y-2">
                 <Label>Trou {idx + 1}</Label>
                 <Input
                   value={blanksAnswers[idx] || ''}
@@ -366,7 +366,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
           <div className="space-y-4">
             <p className="text-sm text-gray-600 mb-4">Associez les éléments de gauche avec ceux de droite :</p>
             {(matchingQ.leftItems || []).map((leftItem: string, idx: number) => (
-              <div key={idx} className="flex items-center gap-4 p-3 border rounded-lg">
+              <div key={`${question.id}-left-${idx}`} className="flex items-center gap-4 p-3 border rounded-lg">
                 <div className="flex-1 font-medium">{leftItem}</div>
                 <div className="text-gray-400">→</div>
                 <Select
@@ -380,7 +380,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
                   </SelectTrigger>
                   <SelectContent>
                     {(matchingQ.rightItems || []).map((rightItem: string, ridx: number) => (
-                      <SelectItem key={ridx} value={rightItem}>
+                      <SelectItem key={`${question.id}-right-${ridx}`} value={rightItem}>
                         {rightItem}
                       </SelectItem>
                     ))}
@@ -399,7 +399,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
             <p className="text-sm text-gray-600 mb-4">Réorganisez les éléments dans le bon ordre (du premier au dernier) :</p>
             <div className="space-y-2">
               {orderingAnswers.map((item: string, idx: number) => (
-                <div key={idx} className="flex items-center gap-2 p-3 border rounded-lg bg-white">
+                <div key={`${question.id}-order-${idx}`} className="flex items-center gap-2 p-3 border rounded-lg bg-white">
                   <span className="font-bold text-gray-500">{idx + 1}.</span>
                   <span className="flex-1">{item}</span>
                   <div className="flex gap-1">
@@ -600,7 +600,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
                       <p className="text-gray-600 mb-2">Vos réponses:</p>
                       <ul className="list-disc list-inside space-y-1 ml-2">
                         {Array.isArray(userAnswer) ? userAnswer.map((ans: string, idx: number) => (
-                          <li key={idx}>Trou {idx + 1}: <span className="font-medium">{ans || '(vide)'}</span></li>
+                          <li key={`${question.id}-fb-user-${idx}`}>Trou {idx + 1}: <span className="font-medium">{ans || '(vide)'}</span></li>
                         )) : <li>(Aucune réponse)</li>}
                       </ul>
                       {!isCorrect && (
@@ -608,7 +608,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
                           <p className="text-green-600">Bonnes réponses:</p>
                           <ul className="list-disc list-inside space-y-1 ml-2 text-green-600">
                             {getCorrectAnswers(question).map((ans: string, idx: number) => (
-                              <li key={idx}>Trou {idx + 1}: <span className="font-medium">{ans}</span></li>
+                              <li key={`${question.id}-fb-correct-${idx}`}>Trou {idx + 1}: <span className="font-medium">{ans}</span></li>
                             ))}
                           </ul>
                         </div>
@@ -622,7 +622,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
                       <ul className="list-disc list-inside space-y-1 ml-2">
                         {userAnswer && typeof userAnswer === 'object' ? 
                           Object.entries(userAnswer as Record<string, string>).map(([left, right], idx) => (
-                            <li key={idx}>{left} → <span className="font-medium">{right}</span></li>
+                            <li key={`${question.id}-match-user-${idx}`}>{left} → <span className="font-medium">{right}</span></li>
                           )) : <li>(Aucune réponse)</li>
                         }
                       </ul>
@@ -631,7 +631,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
                           <p className="text-green-600">Bonnes associations:</p>
                           <ul className="list-disc list-inside space-y-1 ml-2 text-green-600">
                             {Object.entries((question as any).correctMatches as Record<string, string>).map(([left, right], idx) => (
-                              <li key={idx}>{left} → <span className="font-medium">{right}</span></li>
+                              <li key={`${question.id}-match-correct-${idx}`}>{left} → <span className="font-medium">{right}</span></li>
                             ))}
                           </ul>
                         </div>
@@ -644,7 +644,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
                       <p className="text-gray-600 mb-2">Votre ordre:</p>
                       <ol className="list-decimal list-inside space-y-1 ml-2">
                         {Array.isArray(userAnswer) ? userAnswer.map((item: string, idx: number) => (
-                          <li key={idx}><span className="font-medium">{item}</span></li>
+                          <li key={`${question.id}-ord-user-${idx}`}><span className="font-medium">{item}</span></li>
                         )) : <li>(Aucune réponse)</li>}
                       </ol>
                       {!isCorrect && (question as any).correctOrder && (
@@ -652,7 +652,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
                           <p className="text-green-600">Bon ordre:</p>
                           <ol className="list-decimal list-inside space-y-1 ml-2 text-green-600">
                             {((question as any).correctOrder as string[]).map((item: string, idx: number) => (
-                              <li key={idx}><span className="font-medium">{item}</span></li>
+                              <li key={`${question.id}-ord-correct-${idx}`}><span className="font-medium">{item}</span></li>
                             ))}
                           </ol>
                         </div>
@@ -700,7 +700,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
           <div className="flex flex-wrap gap-2 mt-4">
             {quiz.questions.map((_, idx) => (
               <button
-                key={idx}
+                key={`nav-${quiz.questions[idx]?.id ?? idx}`}
                 onClick={() => handleQuestionJump(idx)}
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors ${
                   idx === currentQuestionIndex

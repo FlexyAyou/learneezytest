@@ -13,7 +13,7 @@ import { useLearnerProgress } from '@/hooks/useLearnerProgress';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import VideoPlayer from '@/components/common/VideoPlayer';
 import PDFViewer from '@/components/common/PDFViewer';
-import { QuizViewer } from '@/components/student/QuizViewer';
+import StudentQuiz from '@/components/quiz/StudentQuiz';
 import { usePresignedUrl } from '@/hooks/usePresignedUrl';
 import { sanitizeHTML } from '@/utils/sanitizeHTML';
 import { useToast } from '@/hooks/use-toast';
@@ -414,8 +414,8 @@ const LessonViewer = () => {
                   <CardContent className="p-0">
                     {contentType === 'quiz' ? (
                       <div className="p-6">
-                        <QuizViewer 
-                          quiz={currentItem as QuizConfig} 
+                        <StudentQuiz
+                          quiz={currentItem}
                           onComplete={handleQuizComplete}
                         />
                       </div>
