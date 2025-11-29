@@ -620,38 +620,4 @@ const LessonViewer = () => {
   );
 };
 
-// Component pour afficher les images
-const ImageDisplay: React.FC<{ imageKey?: string; title: string }> = ({ imageKey, title }) => {
-  const { url, loading, error } = usePresignedUrl(imageKey);
-
-  if (loading) {
-    return (
-      <div className="w-full aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
-        <LoadingSpinner />
-      </div>
-    );
-  }
-
-  if (error || !url) {
-    return (
-      <div className="w-full aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
-        <div className="text-center">
-          <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-          <p className="text-gray-500">Image non disponible</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="w-full">
-      <img 
-        src={url} 
-        alt={title} 
-        className="w-full h-auto rounded-lg"
-      />
-    </div>
-  );
-};
-
 export default LessonViewer;
