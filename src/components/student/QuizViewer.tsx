@@ -472,12 +472,94 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
                       )}
                     </div>
                   )}
+
+                  {question.type === 'true-false' && (
+                    <div className="text-sm mt-2">
+                      <p className="text-gray-600">Votre réponse: <span className="font-medium">{userAnswer === true ? 'Vrai' : userAnswer === false ? 'Faux' : 'Aucune réponse'}</span></p>
+                      {!isCorrect && (
+                        <p className="text-green-600">Bonne réponse: <span className="font-medium">{question.correctAnswer ? 'Vrai' : 'Faux'}</span></p>
+                      )}
+                    </div>
+                  )}
                   
                   {question.type === 'short-answer' && (
                     <div className="text-sm mt-2">
                       <p className="text-gray-600">Votre réponse: <span className="font-medium">{userAnswer || 'Aucune réponse'}</span></p>
+                      <p className="text-green-600">Réponses acceptées: <span className="font-medium">{question.correctAnswers.join(', ')}</span></p>
+                    </div>
+                  )}
+
+                  {question.type === 'long-answer' && (
+                    <div className="text-sm mt-2">
+                      <p className="text-gray-600">Votre réponse: <span className="font-medium whitespace-pre-wrap">{userAnswer || 'Aucune réponse'}</span></p>
+                      <p className="text-orange-600 mt-2">⚠️ Cette question nécessite une correction manuelle</p>
+                      {(question as any).minWords && (
+                        <p className="text-gray-500 text-xs mt-1">Minimum de mots requis: {(question as any).minWords}</p>
+                      )}
+                    </div>
+                  )}
+
+                  {question.type === 'fill-blank' && (
+                    <div className="text-sm mt-2">
+                      <p className="text-gray-600 mb-2">Vos réponses:</p>
+                      <ul className="list-disc list-inside space-y-1 ml-2">
+                        {Array.isArray(userAnswer) ? userAnswer.map((ans: string, idx: number) => (
+                          <li key={idx}>Trou {idx + 1}: <span className="font-medium">{ans || '(vide)'}</span></li>
+                        )) : <li>(Aucune réponse)</li>}
+                      </ul>
                       {!isCorrect && (
-                        <p className="text-green-600">Réponses acceptées: <span className="font-medium">{question.correctAnswers.join(', ')}</span></p>
+                        <div className="mt-2">
+                          <p className="text-green-600">Bonnes réponses:</p>
+                          <ul className="list-disc list-inside space-y-1 ml-2 text-green-600">
+                            {question.correctAnswers.map((ans: string, idx: number) => (
+                              <li key={idx}>Trou {idx + 1}: <span className="font-medium">{ans}</span></li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {question.type === 'matching' && (
+                    <div className="text-sm mt-2">
+                      <p className="text-gray-600 mb-2">Vos associations:</p>
+                      <ul className="list-disc list-inside space-y-1 ml-2">
+                        {userAnswer && typeof userAnswer === 'object' ? 
+                          Object.entries(userAnswer as Record<string, string>).map(([left, right], idx) => (
+                            <li key={idx}>{left} → <span className="font-medium">{right}</span></li>
+                          )) : <li>(Aucune réponse)</li>
+                        }
+                      </ul>
+                      {!isCorrect && (question as any).correctMatches && (
+                        <div className="mt-2">
+                          <p className="text-green-600">Bonnes associations:</p>
+                          <ul className="list-disc list-inside space-y-1 ml-2 text-green-600">
+                            {Object.entries((question as any).correctMatches as Record<string, string>).map(([left, right], idx) => (
+                              <li key={idx}>{left} → <span className="font-medium">{right}</span></li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {question.type === 'ordering' && (
+                    <div className="text-sm mt-2">
+                      <p className="text-gray-600 mb-2">Votre ordre:</p>
+                      <ol className="list-decimal list-inside space-y-1 ml-2">
+                        {Array.isArray(userAnswer) ? userAnswer.map((item: string, idx: number) => (
+                          <li key={idx}><span className="font-medium">{item}</span></li>
+                        )) : <li>(Aucune réponse)</li>}
+                      </ol>
+                      {!isCorrect && (question as any).correctOrder && (
+                        <div className="mt-2">
+                          <p className="text-green-600">Bon ordre:</p>
+                          <ol className="list-decimal list-inside space-y-1 ml-2 text-green-600">
+                            {((question as any).correctOrder as string[]).map((item: string, idx: number) => (
+                              <li key={idx}><span className="font-medium">{item}</span></li>
+                            ))}
+                          </ol>
+                        </div>
                       )}
                     </div>
                   )}
