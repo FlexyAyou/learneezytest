@@ -177,9 +177,22 @@ const LessonViewer = () => {
 
   const getContentType = (item: any) => {
     if (item.type === 'quiz') return 'quiz';
+    
+    // PDF detection: check pdf_key, resource_key, or key with PDF content_type
+    const isPdf = item.pdf_key || 
+                  item.resource_key || 
+                  (item.key && (item.content_type === 'application/pdf' || item.content_type === 'pdf' || item.content_type?.includes('pdf')));
+    if (isPdf) {
+      return 'pdf';
+    }
+    
+    // Video detection: check video_key, video_url, or key without PDF content_type
     if (item.video_key || item.video_url) return 'video';
-    if (item.pdf_key || item.pdf_url) return 'pdf';
+    if (item.key && !item.content_type) return 'video'; // Assume key is video if no content_type
+    
+    // Image detection
     if (item.image_key || item.image_url) return 'image';
+    
     return 'text';
   };
 
@@ -432,7 +445,7 @@ const LessonViewer = () => {
                         {contentType === 'pdf' && (
                           <div className="bg-gray-50 p-4">
                             <PDFViewer
-                              pdfKey={currentItem.pdf_key}
+                              pdfKey={currentItem.pdf_key || currentItem.resource_key || currentItem.key}
                               pdfUrl={currentItem.pdf_url}
                               title={currentItem.title}
                               height="800px"
