@@ -1026,14 +1026,26 @@ const CreateCoursePage = () => {
               if (qAny.explanation) base.explanation = qAny.explanation;
               if (qAny.tags) base.tags = qAny.tags;
 
-              // Média principal
-              if (qAny.media) {
-                base.media = {
-                  type: qAny.media.type,
-                  key: qAny.media.key,
-                  url: qAny.media.url,
-                  caption: qAny.media.caption,
-                };
+              // Média principal (un seul média par question)
+              // Règles: type requis (image|video|pdf); key XOR url; caption optionnel; media: null pour suppression
+              if (qAny.media === null) {
+                base.media = null;
+              } else if (qAny.media && typeof qAny.media === 'object') {
+                const m = qAny.media as any;
+                const allowed = ['image', 'video', 'pdf'];
+                if (m.type && allowed.includes(m.type)) {
+                  const hasKey = !!m.key;
+                  const hasUrl = !!m.url;
+                  if (hasKey && !hasUrl) {
+                    base.media = { type: m.type, key: m.key, caption: m.caption || undefined };
+                  } else if (!hasKey && hasUrl) {
+                    base.media = { type: m.type, url: m.url, caption: m.caption || undefined };
+                  } else if (hasKey && hasUrl) {
+                    // Préférer key si les deux sont fournis
+                    base.media = { type: m.type, key: m.key, caption: m.caption || undefined };
+                  }
+                  // Si ni key ni url: ne pas inclure base.media
+                }
               }
 
               // Médias des options (seulement choix)
@@ -1109,15 +1121,51 @@ const CreateCoursePage = () => {
                   base.text = q.text;
                   base.correctAnswers = q.correctAnswers || [];
                 } else if (q.type === 'matching') {
-                  base.leftItems = q.leftItems || [];
-                  base.rightItems = q.rightItems || [];
-                  base.correctMatches = q.correctMatches || [];
+                  const leftItems: string[] = Array.isArray(q.leftItems) ? q.leftItems : [];
+                  const rightItems: string[] = Array.isArray(q.rightItems) ? q.rightItems : [];
+                  let matches: Array<{ left: number; right: number }> = Array.isArray(q.correctMatches) ? q.correctMatches : [];
+
+                  // Filtrer les paires invalides
+                  matches = matches.filter(m =>
+                    Number.isInteger(m.left) && Number.isInteger(m.right) &&
+                    m.left >= 0 && m.left < leftItems.length &&
+                    m.right >= 0 && m.right < rightItems.length
+                  );
+
+                  // Fallback si vide: générer des paires 0..n-1
+                  if (matches.length === 0 && leftItems.length > 0 && rightItems.length > 0) {
+                    const n = Math.min(leftItems.length, rightItems.length);
+                    matches = Array.from({ length: n }, (_, i) => ({ left: i, right: i }));
+                  }
+
+                  base.leftItems = leftItems;
+                  base.rightItems = rightItems;
+                  base.correctMatches = matches;
                 } else if (q.type === 'ordering') {
                   base.items = q.items || [];
                   base.correctOrder = q.correctOrder || base.items.map((_: any, i: number) => i);
                 }
 
-                return base;
+                // Média par question (assignment): mêmes règles que pour quiz
+                if (q.media === null) {
+                  base.media = null;
+                } else if (q.media && typeof (q as any).media === 'object') {
+                  const m: any = (q as any).media;
+                  const allowed = ['image', 'video', 'pdf'];
+                  if (m.type && allowed.includes(m.type)) {
+                    const hasKey = !!m.key;
+                    const hasUrl = !!m.url;
+                    if (hasKey && !hasUrl) {
+                      (base as any).media = { type: m.type, key: m.key, caption: m.caption || undefined };
+                    } else if (!hasKey && hasUrl) {
+                      (base as any).media = { type: m.type, url: m.url, caption: m.caption || undefined };
+                    } else if (hasKey && hasUrl) {
+                      (base as any).media = { type: m.type, key: m.key, caption: m.caption || undefined };
+                    }
+                  }
+                }
+
+                return base as any;
               }),
               settings: {
                 passing_score: module.assignment.settings?.passingScore ?? 70,

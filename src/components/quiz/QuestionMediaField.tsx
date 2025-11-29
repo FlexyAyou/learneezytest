@@ -17,8 +17,8 @@ export interface MediaValue {
 }
 
 interface QuestionMediaFieldProps {
-  media?: MediaValue;
-  onChange: (media: MediaValue | undefined) => void;
+  media?: MediaValue | null;
+  onChange: (media: MediaValue | null | undefined) => void;
   label?: string;
   toggleable?: boolean; // si false, toujours visible
 }
@@ -32,7 +32,8 @@ const QuestionMediaField: React.FC<QuestionMediaFieldProps> = ({ media, onChange
   const mediaType = media?.type;
 
   const handleRemove = () => {
-    onChange(undefined);
+    // Signale une suppression explicite (utile côté update: media: null)
+    onChange(null);
   };
 
   const handleUpload = async (file: File) => {
@@ -57,7 +58,7 @@ const QuestionMediaField: React.FC<QuestionMediaFieldProps> = ({ media, onChange
 
   const setUrl = (url: string) => {
     if (!mediaType) return; // Choix du type requis
-    onChange({ type: mediaType, url });
+    onChange({ type: mediaType, url, caption: media?.caption });
   };
 
   return (
@@ -161,8 +162,21 @@ const QuestionMediaField: React.FC<QuestionMediaFieldProps> = ({ media, onChange
             </div>
           )}
           {media && media.type && (
-            <div className="space-y-3">
+            <div className="space-y-4">
               <MediaPreview mediaType={media.type} mediaKey={media.key} mediaUrl={media.url} />
+              <div className="space-y-2">
+                <Label>Légende (optionnel)</Label>
+                <Input
+                  placeholder="Légende du média..."
+                  value={media.caption || ''}
+                  onChange={(e) => {
+                    const newCaption = e.target.value;
+                    if (media.key) onChange({ type: media.type, key: media.key, caption: newCaption });
+                    else if (media.url) onChange({ type: media.type, url: media.url, caption: newCaption });
+                    else onChange({ type: media.type, caption: newCaption });
+                  }}
+                />
+              </div>
               <Button variant="outline" size="sm" onClick={handleRemove} className="w-full">
                 <Trash2 className="h-4 w-4 mr-2" /> Supprimer le média
               </Button>

@@ -26,6 +26,7 @@ import PDFViewer from '@/components/common/PDFViewer';
 import { usePresignedUrl } from '@/hooks/usePresignedUrl';
 import VideoPlayer from '@/components/common/VideoPlayer';
 import MediaStatusBadge from '@/components/common/MediaStatusBadge';
+import MediaPreview from '@/components/quiz/MediaPreview';
 
 // Component pour afficher les images
 const ImageViewer: React.FC<{ imageKey?: string; imageUrl?: string; title: string }> = ({ imageKey, imageUrl, title }) => {
@@ -72,6 +73,7 @@ const CourseDetailPage = () => {
   const [selectedLesson, setSelectedLesson] = useState<Content | null>(null);
   const [statusUpdating, setStatusUpdating] = useState(false);
   const [explanationsOpen, setExplanationsOpen] = useState<Record<string, boolean>>({});
+  const [mediaOpen, setMediaOpen] = useState<Record<string, boolean>>({});
 
   // Édition désactivée sur la page de détail (lecture seule)
 
@@ -626,7 +628,7 @@ const CourseDetailPage = () => {
                                   <div className="space-y-3 mt-2">
                                     {(module as any).assignment.questions.map((q: any, qIndex: number) => (
                                       <div key={qIndex} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                                        <p className="font-medium text-sm mb-1">
+                                        <div className="font-medium text-sm mb-1">
                                           <span className="bg-gray-200 text-gray-700 rounded px-2 py-0.5 text-xs mr-2">
                                             Question {qIndex + 1}
                                           </span>
@@ -642,7 +644,7 @@ const CourseDetailPage = () => {
                                               </Badge>
                                             ) : null;
                                           })()}
-                                        </p>
+                                        </div>
                                         {q.type && (
                                           <p className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">
                                             Type : {q.type}
@@ -758,8 +760,33 @@ const CourseDetailPage = () => {
                                             );
                                           }
 
-                                          // Matching (simple)
+                                          // Matching (assignment avancé ou fallback simple)
                                           if (type === 'matching') {
+                                            const leftItems: string[] = (q as any).leftItems || [];
+                                            const rightItems: string[] = (q as any).rightItems || [];
+                                            const matches: Array<{ left: number; right: number }> = (q as any).correctMatches || [];
+
+                                            if (leftItems.length && rightItems.length && matches.length) {
+                                              return (
+                                                <div className="mt-2 text-xs">
+                                                  <span className="font-semibold text-green-700">Appariements corrects:</span>
+                                                  <ul className="mt-1 ml-4 list-disc space-y-1">
+                                                    {matches.map((m, i) => {
+                                                      const l = leftItems[m.left];
+                                                      const r = rightItems[m.right];
+                                                      if (!l || !r) return null;
+                                                      return (
+                                                        <li key={i} className="text-gray-700">
+                                                          <span className="font-medium">{l}</span> → <span className="font-medium">{r}</span>
+                                                        </li>
+                                                      );
+                                                    })}
+                                                  </ul>
+                                                </div>
+                                              );
+                                            }
+
+                                            // Fallback simple: dictionnaire correct_answer (forme quiz)
                                             const dict: Record<string, string> = (q as any).correct_answer || {};
                                             const entries = Object.entries(dict);
                                             if (entries.length === 0) return null;
@@ -788,7 +815,7 @@ const CourseDetailPage = () => {
                                                 </div>
                                                 <div className="flex flex-wrap items-center gap-2">
                                                   {order.map((idx, i) => (
-                                                    <React.Fragment key={i}>
+                                                    <span key={i} className="flex items-center gap-2" data-lov-ignore>
                                                       <div className="inline-flex items-center gap-2 rounded-full border border-purple-200 bg-purple-50 px-3 py-1">
                                                         <span className="flex h-5 w-5 items-center justify-center rounded-full bg-purple-600 text-white text-[10px] font-bold">{i + 1}</span>
                                                         <span className="text-gray-800">{items[idx]}</span>
@@ -796,7 +823,7 @@ const CourseDetailPage = () => {
                                                       {i < order.length - 1 && (
                                                         <ArrowRight className="h-4 w-4 text-purple-400" />
                                                       )}
-                                                    </React.Fragment>
+                                                    </span>
                                                   ))}
                                                 </div>
                                               </div>
@@ -833,6 +860,43 @@ const CourseDetailPage = () => {
                                                 <div className="mt-2 text-xs bg-yellow-50 border-l-4 border-yellow-400 p-2 rounded">
                                                   <div className="font-semibold text-yellow-800">Explication</div>
                                                   <div className="text-yellow-900">{q.explanation}</div>
+                                                </div>
+                                              )}
+                                              {q.media && q.media.type && (
+                                                <div className="mt-2">
+                                                  <Button
+                                                    variant="outline"
+                                                    className="h-7 px-2 text-[10px]"
+                                                    onClick={() => {
+                                                      const k = `media-assign-${index}-${qIndex}`;
+                                                      setMediaOpen(prev => ({ ...prev, [k]: !prev[k] }));
+                                                    }}
+                                                  >
+                                                    {mediaOpen[`media-assign-${index}-${qIndex}`] ? (
+                                                      <>
+                                                        <EyeOff className="h-3 w-3 mr-1" /> Masquer média
+                                                      </>
+                                                    ) : (
+                                                      <>
+                                                        <Eye className="h-3 w-3 mr-1" /> Afficher média
+                                                      </>
+                                                    )}
+                                                  </Button>
+                                                  {mediaOpen[`media-assign-${index}-${qIndex}`] && (
+                                                    <div className="mt-2 space-y-2">
+                                                      <MediaPreview
+                                                        mediaType={q.media.type}
+                                                        mediaKey={q.media.key}
+                                                        mediaUrl={q.media.url}
+                                                      />
+                                                      <div className="text-xs text-gray-600">
+                                                        <div>Type: <span className="font-medium capitalize">{q.media.type}</span></div>
+                                                        {q.media.caption && (
+                                                          <div>Légende: <span className="text-gray-800">{q.media.caption}</span></div>
+                                                        )}
+                                                      </div>
+                                                    </div>
+                                                  )}
                                                 </div>
                                               )}
                                             </div>
@@ -1128,7 +1192,7 @@ const CourseDetailPage = () => {
                                           <div className="p-4 space-y-4">
                                             {quiz.questions.map((question: any, qIndex: number) => (
                                               <div key={qIndex} className="space-y-3 p-4 bg-gray-50 rounded-lg">
-                                                <p className="font-semibold text-gray-900">
+                                                <div className="font-semibold text-gray-900">
                                                   <span className="bg-gray-200 text-gray-700 rounded px-2 py-1 text-sm mr-2">
                                                     Question {qIndex + 1}
                                                   </span>
@@ -1144,7 +1208,7 @@ const CourseDetailPage = () => {
                                                       </Badge>
                                                     ) : null;
                                                   })()}
-                                                </p>
+                                                </div>
                                                 <div className="space-y-2 pl-4">
                                                   {(() => {
                                                     const type = question.type;
@@ -1282,7 +1346,7 @@ const CourseDetailPage = () => {
                                                           </div>
                                                           <div className="flex flex-wrap items-center gap-2">
                                                             {order.map((idx, i) => (
-                                                              <React.Fragment key={i}>
+                                                              <span key={i} className="flex items-center gap-2" data-lov-ignore>
                                                                 <div className="inline-flex items-center gap-2 rounded-full border border-purple-200 bg-purple-50 px-3 py-1">
                                                                   <span className="flex h-5 w-5 items-center justify-center rounded-full bg-purple-600 text-white text-[10px] font-bold">{i + 1}</span>
                                                                   <span className="text-gray-800">{items[idx]}</span>
@@ -1290,7 +1354,7 @@ const CourseDetailPage = () => {
                                                                 {i < order.length - 1 && (
                                                                   <ArrowRight className="h-4 w-4 text-purple-400" />
                                                                 )}
-                                                              </React.Fragment>
+                                                              </span>
                                                             ))}
                                                           </div>
                                                         </div>
@@ -1328,6 +1392,43 @@ const CourseDetailPage = () => {
                                                             <div className="text-yellow-900">{(question as any).explanation}</div>
                                                           </div>
                                                         )}
+                                                        {(question as any).media && (question as any).media.type && (
+                                                          <div className="mt-2">
+                                                            <Button
+                                                              variant="outline"
+                                                              className="h-7 px-2 text-[10px]"
+                                                              onClick={() => {
+                                                                const k = `media-quiz-${idx}-${qIndex}`;
+                                                                setMediaOpen(prev => ({ ...prev, [k]: !prev[k] }));
+                                                              }}
+                                                            >
+                                                              {mediaOpen[`media-quiz-${idx}-${qIndex}`] ? (
+                                                                <>
+                                                                  <EyeOff className="h-3 w-3 mr-1" /> Masquer média
+                                                                </>
+                                                              ) : (
+                                                                <>
+                                                                  <Eye className="h-3 w-3 mr-1" /> Afficher média
+                                                                </>
+                                                              )}
+                                                            </Button>
+                                                            {mediaOpen[`media-quiz-${idx}-${qIndex}`] && (
+                                                              <div className="mt-2 space-y-2">
+                                                                <MediaPreview
+                                                                  mediaType={(question as any).media.type}
+                                                                  mediaKey={(question as any).media.key}
+                                                                  mediaUrl={(question as any).media.url}
+                                                                />
+                                                                <div className="text-xs text-gray-600">
+                                                                  <div>Type: <span className="font-medium capitalize">{(question as any).media.type}</span></div>
+                                                                  {(question as any).media.caption && (
+                                                                    <div>Légende: <span className="text-gray-800">{(question as any).media.caption}</span></div>
+                                                                  )}
+                                                                </div>
+                                                              </div>
+                                                            )}
+                                                          </div>
+                                                        )}
                                                       </div>
                                                     );
                                                   })()}
@@ -1341,23 +1442,8 @@ const CourseDetailPage = () => {
                                   }
 
                                   if (item.type === 'assignment') {
-                                    const assignment = item.data;
-                                    return (
-                                      <div key={`assignment-${idx}`} className="bg-white rounded-lg border-2 border-purple-200 overflow-hidden">
-                                        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-pink-50">
-                                          <div className="flex items-center space-x-3">
-                                            <span className="bg-purple-500 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs font-bold">
-                                              <ClipboardList className="h-4 w-4" />
-                                            </span>
-                                            <span className="font-semibold">{assignment.title}</span>
-                                          </div>
-                                          <Badge variant="outline" className="border-purple-400">Devoir</Badge>
-                                        </div>
-                                        <div className="p-4">
-                                          <p className="text-sm text-gray-600">{assignment.description || 'Devoir de fin de module'}</p>
-                                        </div>
-                                      </div>
-                                    );
+                                    // Ne pas afficher le devoir ici pour éviter le doublon
+                                    return null;
                                   }
                                   return null;
                                 })}

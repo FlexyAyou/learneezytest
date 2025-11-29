@@ -154,6 +154,9 @@ const EditCoursePage = () => {
   const [showAssignmentBuilder, setShowAssignmentBuilder] = useState<number | null>(null);
   const [moduleHasChanges, setModuleHasChanges] = useState<Record<number, boolean>>({});
   const [savingModule, setSavingModule] = useState<number | null>(null);
+  // Préchargement des assignments
+  const [assignmentsPreloaded, setAssignmentsPreloaded] = useState(false);
+  const [preloadingAssignments, setPreloadingAssignments] = useState(false);
 
   // Prévisualisation du média de leçon
   const [previewLessonMedia, setPreviewLessonMedia] = useState<{
@@ -168,6 +171,22 @@ const EditCoursePage = () => {
   // Detect context path
   const isManagerContext = location.pathname.includes('/gestionnaire/');
   const coursesBasePath = isManagerContext ? '/dashboard/gestionnaire/courses' : '/dashboard/superadmin/courses';
+
+  // Helper pour formatter proprement les erreurs API (éviter enfants objets dans JSX)
+  const formatApiError = (error: any): string => {
+    const data = error?.response?.data;
+    const detail = data?.detail ?? data?.message ?? data;
+    if (!detail) return error?.message || 'Erreur inconnue';
+    if (typeof detail === 'string') return detail;
+    if (Array.isArray(detail)) {
+      // Pydantic-style list of errors
+      return detail.map((d: any) => d?.msg || JSON.stringify(d)).join(' | ');
+    }
+    // Object: try common keys or stringify
+    if (detail.msg) return detail.msg;
+    if (detail.error) return String(detail.error);
+    try { return JSON.stringify(detail); } catch { return String(detail); }
+  };
 
   // Load course data
   useEffect(() => {
@@ -270,6 +289,53 @@ const EditCoursePage = () => {
     };
     loadCourse();
   }, [id, toast]);
+
+  // Précharger tous les devoirs dès l'ouverture du tab "modules"
+  useEffect(() => {
+    const preloadAssignments = async () => {
+      if (!id) return;
+      if (activeTab !== 'modules') return;
+      if (assignmentsPreloaded) return;
+      try {
+        setPreloadingAssignments(true);
+        // Récupérer le cours pour avoir les IDs réels des modules
+        const freshCourse = await fastAPIClient.getCourse(id);
+        const courseModules = freshCourse.modules || [];
+
+        const results = await Promise.allSettled(courseModules.map(async (m: any, idx: number) => {
+          if (!m?.id) return null;
+          try {
+            const assignment = await fastAPIClient.getAssignment(id, m.id);
+            return { idx, assignment };
+          } catch (e: any) {
+            // 404 = pas de devoir; autres erreurs loguées
+            if (e?.response?.status !== 404) {
+              console.warn('Préchargement devoir - erreur module', m.id, e);
+            }
+            return null;
+          }
+        }));
+
+        const toInject: Array<{ idx: number; assignment: any }> = results
+          .filter(r => r.status === 'fulfilled' && r.value && (r.value as any).assignment)
+          .map(r => (r as any).value);
+
+        if (toInject.length) {
+          setModules(prev => prev.map((mod, mIdx) => {
+            const found = toInject.find(t => t.idx === mIdx);
+            if (found) {
+              return { ...mod, assignments: [found.assignment] };
+            }
+            return mod;
+          }));
+        }
+      } finally {
+        setAssignmentsPreloaded(true);
+        setPreloadingAssignments(false);
+      }
+    };
+    preloadAssignments();
+  }, [activeTab, assignmentsPreloaded, id]);
 
   // Helper function to map course data to editable modules
   const mapCourseToEditableModules = (courseData: CourseResponse): EditableModule[] => {
@@ -877,6 +943,25 @@ const EditCoursePage = () => {
           explanation: (q as any).explanation || undefined,
         };
 
+        // Media au niveau question: un seul, type requis, key XOR url, caption optionnel; null pour suppression
+        const media = (q as any).media;
+        if (media === null) {
+          baseQuestion.media = null;
+        } else if (media && typeof media === 'object') {
+          const t = media.type;
+          const k = media.key;
+          const u = media.url;
+          const c = media.caption;
+          if (t && (t === 'image' || t === 'video' || t === 'pdf')) {
+            if ((k && !u) || (!k && u) || (!k && !u)) {
+              baseQuestion.media = { type: t };
+              if (k) baseQuestion.media.key = k;
+              if (u) baseQuestion.media.url = u;
+              if (c) baseQuestion.media.caption = c;
+            }
+          }
+        }
+
         if (q.type === 'single-choice') {
           const scq = q as any;
           baseQuestion.options = Array.isArray(scq.options) ? scq.options : [];
@@ -1055,12 +1140,48 @@ const EditCoursePage = () => {
             base.text = q.text;
             base.correctAnswers = q.correctAnswers || [];
           } else if (q.type === 'matching') {
-            base.leftItems = q.leftItems || [];
-            base.rightItems = q.rightItems || [];
-            base.correctMatches = q.correctMatches || [];
+            const leftItems: string[] = Array.isArray(q.leftItems) ? q.leftItems : [];
+            const rightItems: string[] = Array.isArray(q.rightItems) ? q.rightItems : [];
+            let matches: Array<{ left: number; right: number }> = Array.isArray(q.correctMatches) ? q.correctMatches : [];
+
+            // Filtrer les paires invalides
+            matches = matches.filter(m =>
+              Number.isInteger(m.left) && Number.isInteger(m.right) &&
+              m.left >= 0 && m.left < leftItems.length &&
+              m.right >= 0 && m.right < rightItems.length
+            );
+
+            // Fallback: si aucune paire valide fournie mais listes présentes, créer des paires 0..n-1
+            if (matches.length === 0 && leftItems.length > 0 && rightItems.length > 0) {
+              const n = Math.min(leftItems.length, rightItems.length);
+              matches = Array.from({ length: n }, (_, i) => ({ left: i, right: i }));
+            }
+
+            base.leftItems = leftItems;
+            base.rightItems = rightItems;
+            base.correctMatches = matches;
           } else if (q.type === 'ordering') {
             base.items = q.items || [];
             base.correctOrder = q.correctOrder || (base.items || []).map((_: any, i: number) => i);
+          }
+
+          // Media au niveau question (Assignment): mêmes règles
+          const media = q.media;
+          if (media === null) {
+            base.media = null;
+          } else if (media && typeof media === 'object') {
+            const t = media.type;
+            const k = media.key;
+            const u = media.url;
+            const c = media.caption;
+            if (t && (t === 'image' || t === 'video' || t === 'pdf')) {
+              if ((k && !u) || (!k && u) || (!k && !u)) {
+                base.media = { type: t };
+                if (k) base.media.key = k;
+                if (u) base.media.url = u;
+                if (c) base.media.caption = c;
+              }
+            }
           }
 
           return base;
@@ -1090,8 +1211,13 @@ const EditCoursePage = () => {
 
         await fastAPIClient.createAssignment(id, moduleId, assignmentPayload);
 
+        // Recharger et injecter le devoir pour affichage immédiat
         const finalCourse = await fastAPIClient.getCourse(id);
-        setModules(mapCourseToEditableModules(finalCourse));
+        const assignmentCreated = await fastAPIClient.getAssignment(id, moduleId);
+        const mapped = mapCourseToEditableModules(finalCourse);
+        // Affecter le devoir récupéré dans le module concerné
+        const withAssignment = mapped.map((m, idx) => idx === realModuleIdx ? { ...m, assignments: [assignmentCreated] } : m);
+        setModules(withAssignment);
 
         setShowAssignmentBuilder(null);
         toast({
@@ -1101,17 +1227,28 @@ const EditCoursePage = () => {
       } else {
         const currentCourse = await fastAPIClient.getCourse(id);
         const moduleId = currentCourse.modules[moduleIdx].id!;
-        const order = (currentCourse.modules[moduleIdx] as any).order as Array<{ type: string; id: string }> | undefined;
-        const hasAssignment = order?.some(o => o.type === 'assignment');
 
-        if (hasAssignment) {
+        // Déterminer create vs update via getAssignment (404 => create)
+        let exists = false;
+        try {
+          await fastAPIClient.getAssignment(id, moduleId);
+          exists = true;
+        } catch (err: any) {
+          exists = err?.response?.status !== 404; // true if other errors, else false
+        }
+
+        if (exists) {
           await fastAPIClient.updateAssignment(id, moduleId, assignmentPayload);
         } else {
           await fastAPIClient.createAssignment(id, moduleId, assignmentPayload);
         }
 
+        // Recharger cours et injecter le devoir
         const updatedCourse = await fastAPIClient.getCourse(id);
-        setModules(mapCourseToEditableModules(updatedCourse));
+        const freshAssignment = await fastAPIClient.getAssignment(id, moduleId);
+        const mapped = mapCourseToEditableModules(updatedCourse);
+        const withAssignment = mapped.map((m, idx) => idx === moduleIdx ? { ...m, assignments: [freshAssignment] } : m);
+        setModules(withAssignment);
 
         setShowAssignmentBuilder(null);
         toast({
@@ -1122,7 +1259,7 @@ const EditCoursePage = () => {
     } catch (error: any) {
       toast({
         title: '\u274c Erreur',
-        description: error.response?.data?.detail || 'Impossible de sauvegarder le devoir',
+        description: formatApiError(error) || 'Impossible de sauvegarder le devoir',
         variant: 'destructive',
       });
     }
@@ -1736,6 +1873,12 @@ const EditCoursePage = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-8">
+                {preloadingAssignments && !assignmentsPreloaded && (
+                  <div className="flex items-center gap-2 mb-6 px-4 py-2 bg-orange-50 border border-orange-200 rounded-lg text-orange-700 text-sm animate-pulse">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Chargement des devoirs...
+                  </div>
+                )}
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-2xl font-bold text-gray-800">Modules et contenus</h2>
                   <Button
@@ -1774,25 +1917,31 @@ const EditCoursePage = () => {
                         className="hover:no-underline px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100"
                         onClick={async () => {
                           if (!id) return;
-                          // Chargement paresseux du devoir si présent dans order mais pas encore en state
+                          // Chargement paresseux du devoir sans dépendre de order
                           try {
-                            const courseWithOrder = await fastAPIClient.getCourse(id);
-                            const modWithOrder = courseWithOrder.modules[moduleIdx] as any;
-                            const order = modWithOrder.order as Array<{ type: string; id: string }> | undefined;
-                            const hasAssignment = order?.some(o => o.type === 'assignment');
+                            // Si déjà chargé, ne rien faire
+                            if (modules[moduleIdx]?.assignments && modules[moduleIdx].assignments!.length > 0) return;
 
-                            if (hasAssignment && (!modules[moduleIdx].assignments || modules[moduleIdx].assignments!.length === 0)) {
-                              const moduleId = modWithOrder.id as string;
+                            const courseWithIds = await fastAPIClient.getCourse(id);
+                            const mod = courseWithIds.modules[moduleIdx] as any;
+                            const moduleId = mod?.id as string | undefined;
+                            if (!moduleId) return;
+
+                            try {
                               const assignment = await fastAPIClient.getAssignment(id, moduleId);
-
                               setModules(prev => prev.map((m, idx) =>
                                 idx === moduleIdx
                                   ? { ...m, assignments: [assignment] }
                                   : m
                               ));
+                            } catch (err: any) {
+                              // Silencieux si 404 (pas de devoir pour ce module)
+                              if (err?.response?.status !== 404) {
+                                console.warn('Impossible de charger le devoir du module', err);
+                              }
                             }
                           } catch (e) {
-                            console.warn('Impossible de charger le devoir du module', e);
+                            console.warn('Erreur lors du chargement du module pour devoir', e);
                           }
                         }}
                       >
@@ -1815,21 +1964,22 @@ const EditCoursePage = () => {
                               </div>
                             </div>
                           </div>
-                          {modules.length > 1 && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteModule(moduleIdx);
-                              }}
-                              className="hover:bg-red-50"
-                            >
-                              <Trash2 className="h-4 w-4 text-red-500" />
-                            </Button>
-                          )}
+                          {/* Bouton supprimé du trigger pour éviter button dans button */}
                         </div>
                       </AccordionTrigger>
+                      {/* Actions hors du trigger pour éviter l'imbrication de <button> */}
+                      {modules.length > 1 && (
+                        <div className="px-6 pt-2 -mt-2 flex justify-end">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteModule(moduleIdx)}
+                            className="hover:bg-red-50"
+                          >
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                          </Button>
+                        </div>
+                      )}
                       <AccordionContent className="px-6 py-6 bg-white">
                         <div className="space-y-6">
                           {/* Module Info */}
