@@ -86,12 +86,13 @@ const parseClozePlaceholders = (text: string) => {
   // fallback to [blank] occurrences
   lastIndex = 0;
   const tmpParts: string[] = [];
-  let partIdx = 0;
+  blankRegex.lastIndex = 0; // Reset the regex state
+  let blankIdx = 0;
   while ((m = blankRegex.exec(text)) !== null) {
     tmpParts.push(text.slice(lastIndex, m.index));
-    indices.push(partIdx);
+    indices.push(blankIdx); // Push sequential indices for blanks
     lastIndex = blankRegex.lastIndex;
-    partIdx += 1;
+    blankIdx += 1;
   }
   if (indices.length > 0) {
     tmpParts.push(text.slice(lastIndex));

@@ -244,6 +244,63 @@ const StudentQuiz: React.FC<Props> = ({ quizId, quiz, onComplete }) => {
     }
   };
 
+  // Compute detailed question results
+  const getDetailedResults = () => {
+    const correct: any[] = [];
+    const incorrect: any[] = [];
+
+    questions.forEach(q => {
+      const userAnswer = answers[q.id];
+      let isCorrect = false;
+
+      switch (q.type) {
+        case 'single-choice':
+          isCorrect = userAnswer === q.correctAnswers[0];
+          break;
+        case 'multiple-choice':
+          if (Array.isArray(userAnswer) && Array.isArray(q.correctAnswers)) {
+            const userSet = new Set(userAnswer.map(String));
+            const correctSet = new Set(q.correctAnswers.map(String));
+            isCorrect = userSet.size === correctSet.size && [...userSet].every(x => correctSet.has(x));
+          }
+          break;
+        case 'true-false':
+          isCorrect = userAnswer === q.correctAnswers[0];
+          break;
+        case 'short-answer':
+          if (userAnswer && q.correctAnswers) {
+            const userNorm = String(userAnswer).trim().toLowerCase();
+            isCorrect = q.correctAnswers.some(a => String(a).trim().toLowerCase() === userNorm);
+          }
+          break;
+        case 'fill-blank':
+          if (Array.isArray(userAnswer) && q.cloze?.holes) {
+            let allCorrect = true;
+            for (let i = 0; i < q.cloze.holes.length; i++) {
+              const userAns = (userAnswer[i] || '').trim().toLowerCase();
+              const correctAns = (q.cloze.holes[i]?.answer || '').trim().toLowerCase();
+              if (userAns !== correctAns) allCorrect = false;
+            }
+            isCorrect = allCorrect;
+          }
+          break;
+        case 'ordering':
+          if (Array.isArray(userAnswer) && Array.isArray(q.correctOrder)) {
+            isCorrect = JSON.stringify(userAnswer) === JSON.stringify(q.correctOrder);
+          }
+          break;
+      }
+
+      if (isCorrect) {
+        correct.push(q);
+      } else {
+        incorrect.push(q);
+      }
+    });
+
+    return { correct, incorrect };
+  };
+
   const handleRetry = () => {
     setCurrentQuestionIndex(0);
     setAnswers({});
@@ -269,6 +326,7 @@ const StudentQuiz: React.FC<Props> = ({ quizId, quiz, onComplete }) => {
   // Results view
   if (showResults && result) {
     const percentage = result.total > 0 ? (result.score / result.total) * 100 : 0;
+    const { correct, incorrect } = getDetailedResults();
 
     return (
       <div className="space-y-6">
@@ -292,7 +350,92 @@ const StudentQuiz: React.FC<Props> = ({ quizId, quiz, onComplete }) => {
               Score : {result.score} / {result.total} ({percentage.toFixed(1)}%)
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
+            {/* Summary Stats */}
+            <div className="grid grid-cols-3 gap-4">
+              <div className="bg-white p-4 rounded-lg border">
+                <p className="text-sm text-gray-600 mb-1">Réussies</p>
+                <p className="text-2xl font-bold text-green-600">{correct.length}</p>
+              </div>
+              <div className="bg-white p-4 rounded-lg border">
+                <p className="text-sm text-gray-600 mb-1">Échouées</p>
+                <p className="text-2xl font-bold text-red-600">{incorrect.length}</p>
+              </div>
+              <div className="bg-white p-4 rounded-lg border">
+                <p className="text-sm text-gray-600 mb-1">Taux de réussite</p>
+                <p className="text-2xl font-bold text-blue-600">{correct.length > 0 ? Math.round((correct.length / questions.length) * 100) : 0}%</p>
+              </div>
+            </div>
+
+            {/* Detailed Results */}
+            <div className="space-y-4">
+              {/* Correct Answers */}
+              {correct.length > 0 && (
+                <div className="bg-white border-2 border-green-200 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                    <h3 className="font-semibold text-green-700">Questions réussies ({correct.length})</h3>
+                  </div>
+                  <div className="space-y-3">
+                    {correct.map((q) => (
+                      <div key={q.id} className="p-3 bg-green-50 rounded border-l-4 border-green-600">
+                        <p className="text-sm font-medium text-gray-800">{q.stem}</p>
+                        {q.raw?.explanation && (
+                          <p className="text-xs text-gray-600 mt-2 italic">📝 {q.raw.explanation}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Incorrect Answers */}
+              {incorrect.length > 0 && (
+                <div className="bg-white border-2 border-red-200 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <XCircle className="w-5 h-5 text-red-600" />
+                    <h3 className="font-semibold text-red-700">Questions non réussies ({incorrect.length})</h3>
+                  </div>
+                  <div className="space-y-3">
+                    {incorrect.map((q) => {
+                      const userAnswer = answers[q.id];
+                      let displayAnswer = '';
+                      
+                      if (Array.isArray(userAnswer)) {
+                        displayAnswer = userAnswer.join(', ');
+                      } else if (typeof userAnswer === 'boolean') {
+                        displayAnswer = userAnswer ? 'Vrai' : 'Faux';
+                      } else {
+                        displayAnswer = String(userAnswer || 'Non répondu');
+                      }
+
+                      let correctDisplay = '';
+                      if (q.type === 'fill-blank' && q.cloze?.holes) {
+                        correctDisplay = q.cloze.holes.map(h => h.answer).join(', ');
+                      } else if (Array.isArray(q.correctAnswers)) {
+                        correctDisplay = q.correctAnswers.join(', ');
+                      } else {
+                        correctDisplay = String(q.correctAnswers?.[0] || 'N/A');
+                      }
+
+                      return (
+                        <div key={q.id} className="p-3 bg-red-50 rounded border-l-4 border-red-600">
+                          <p className="text-sm font-medium text-gray-800">{q.stem}</p>
+                          <div className="mt-2 space-y-1 text-xs">
+                            <p><span className="font-medium text-red-600">Votre réponse:</span> {displayAnswer}</p>
+                            <p><span className="font-medium text-green-600">Bonne réponse:</span> {correctDisplay}</p>
+                          </div>
+                          {q.raw?.explanation && (
+                            <p className="text-xs text-gray-600 mt-2 italic">📝 {q.raw.explanation}</p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="flex gap-3 justify-center mt-6">
               <Button onClick={handleRetry} variant="outline" size="lg">
                 <RotateCcw className="w-4 h-4 mr-2" />
@@ -543,7 +686,7 @@ function renderQuestion(
             <p className="text-sm text-gray-600 mb-3">Complétez le texte en remplissant les blancs :</p>
             <div className="text-base leading-relaxed text-gray-800">
               {q.cloze.textParts.map((part, idx) => (
-                <React.Fragment key={`text-${idx}`}>
+                <span key={`text-${idx}`}>
                   <span>{part}</span>
                   {q.cloze && q.cloze.holes && q.cloze.holes[idx] && (
                     <Input
@@ -558,7 +701,7 @@ function renderQuestion(
                       className="inline-block w-24 h-8 mx-1 text-center border-b-2 border-blue-400 focus:border-blue-600"
                     />
                   )}
-                </React.Fragment>
+                </span>
               ))}
             </div>
           </div>
