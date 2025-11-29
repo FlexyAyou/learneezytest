@@ -21,9 +21,14 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   showDownload = true 
 }) => {
   const { toast } = useToast();
+  const [renderKey, setRenderKey] = React.useState(0);
   
   // Utiliser le hook pour gérer l'URL avec rafraîchissement automatique
   const { url: playUrl, loading, error } = usePresignedUrl(pdfKey, pdfUrl);
+
+  React.useEffect(() => {
+    console.log('[PDFViewer] Données reçues:', { pdfKey, pdfUrl, playUrl, loading, error });
+  }, [pdfKey, pdfUrl, playUrl, loading, error]);
 
   const handleDownload = async () => {
     if (!playUrl) return;
@@ -80,6 +85,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
         <div className="text-center">
           <FileText className="h-12 w-12 text-red-400 mx-auto mb-2" />
           <p className="text-red-600 font-medium">{error}</p>
+          <p className="text-xs text-red-500 mt-2">PDF Key: {pdfKey || 'None'}</p>
         </div>
       </div>
     );
@@ -94,6 +100,9 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
         <div className="text-center">
           <FileText className="h-12 w-12 text-gray-400 mx-auto mb-2" />
           <p className="text-gray-500">Aucun PDF disponible</p>
+          <p className="text-xs text-gray-500 mt-2">
+            PDF Key: {pdfKey || 'None'} | PDF URL: {pdfUrl || 'None'}
+          </p>
         </div>
       </div>
     );
@@ -127,25 +136,21 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
         className="w-full rounded-lg overflow-hidden shadow-lg border-2 border-gray-200 bg-white"
         style={{ height }}
       >
-        {/* Try to use embed first, fallback to iframe */}
-        <embed
+        {/* Try iframe first (most browsers support this) */}
+        <iframe
+          key={`pdf-${renderKey}`}
           src={`${playUrl}#toolbar=1&navpanes=1&scrollbar=1`}
           type="application/pdf"
           width="100%"
           height="100%"
-          className="w-full h-full"
+          className="w-full h-full border-0"
+          title={title || "PDF Viewer"}
+          sandbox="allow-same-origin allow-scripts allow-popups"
           onError={() => {
-            // Si embed échoue, utiliser iframe
-            return null;
+            console.warn('[PDFViewer] Error loading PDF via iframe, retrying...');
+            setRenderKey(k => k + 1);
           }}
         />
-        {/* Fallback iframe for better compatibility */}
-        <style>{`
-          embed[type="application/pdf"] {
-            width: 100%;
-            height: 100%;
-          }
-        `}</style>
       </div>
     </div>
   );

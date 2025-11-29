@@ -178,12 +178,28 @@ const LessonViewer = () => {
   const getContentType = (item: any) => {
     if (item.type === 'quiz') return 'quiz';
     if (item.video_key || item.video_url) return 'video';
-    if (item.pdf_key) return 'pdf';
-    if (item.image_key) return 'image';
+    if (item.pdf_key || item.pdf_url) return 'pdf';
+    if (item.image_key || item.image_url) return 'image';
     return 'text';
   };
 
   const contentType = getContentType(currentItem);
+
+  // Log pour déboguer
+  React.useEffect(() => {
+    console.log('[LessonViewer] Current Item:', {
+      title: currentItem?.title,
+      type: itemType,
+      contentType,
+      pdf_key: currentItem?.pdf_key,
+      pdf_url: currentItem?.pdf_url,
+      image_key: currentItem?.image_key,
+      image_url: currentItem?.image_url,
+      video_key: currentItem?.video_key,
+      video_url: currentItem?.video_url,
+      allProps: Object.keys(currentItem || {}).sort(),
+    });
+  }, [currentItem, itemType, contentType]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
