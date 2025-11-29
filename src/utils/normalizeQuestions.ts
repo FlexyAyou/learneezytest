@@ -102,8 +102,24 @@ const parseClozePlaceholders = (text: string) => {
 };
 
 const normalizeCloze = (raw: any): NormalizedCloze | null => {
-  const text: string = raw?.text ?? raw?.stem ?? raw?.question ?? '';
+  // Try to get text from various fields - in priority order
+  let text: string = '';
+  
+  // First, check if there's explicit text with [blank] markers
+  if (typeof raw?.text === 'string' && raw.text.includes('[blank]')) {
+    text = raw.text;
+  } else if (typeof raw?.question === 'string' && raw.question.includes('[blank]')) {
+    text = raw.question;
+  } else if (typeof raw?.stem === 'string' && raw.stem.includes('[blank]')) {
+    text = raw.stem;
+  } else {
+    // Fallback: use any available text field
+    text = raw?.text ?? raw?.question ?? raw?.stem ?? '';
+  }
+
   const holesRaw: any[] = Array.isArray(raw?.holes) ? raw.holes : [];
+  
+  // Get correct answers from various possible field names
   const correctAnswersFromRaw: any[] = Array.isArray(raw?.correctAnswers)
     ? raw.correctAnswers
     : Array.isArray(raw?.correct_answer)
@@ -112,9 +128,20 @@ const normalizeCloze = (raw: any): NormalizedCloze | null => {
     ? raw.correctAnswer
     : [];
 
+  // Validation: need at least text or holes or correct answers
   if (!text && holesRaw.length === 0 && correctAnswersFromRaw.length === 0) return null;
 
   const { parts, indices } = parseClozePlaceholders(String(text));
+  
+  console.log('[normalizeCloze]', {
+    textPreview: String(text).substring(0, 60),
+    hasBlank: indices.length > 0,
+    partCount: parts.length,
+    holeCount: holesRaw.length,
+    correctCount: correctAnswersFromRaw.length,
+  });
+  
+  // Case 1: Placeholders found in text (indexed style: {0}, {{0}}, [[0]], <hole:0>) OR [blank] style
   if (indices.length > 0) {
     const holes: ClozeHole[] = indices.map((idx, order) => {
       const rawHole = holesRaw[idx] ?? {};
@@ -123,22 +150,41 @@ const normalizeCloze = (raw: any): NormalizedCloze | null => {
       const answer = rawHole.answer ?? rawHole.value ?? rawHole.correct ?? correctAnswersFromRaw[idx];
       return { id: holeId, answer, options: opts.length ? opts : undefined, order };
     });
+    console.log('  → Case 1: Placeholders in text (indexed or [blank]) - holes:', holes.length);
     return { type: 'cloze', textParts: parts, holes };
   }
 
-  // fallback for [blank] style: use correctAnswersFromRaw for hole answers
-  if (correctAnswersFromRaw.length > 0) {
-    const partsSeq = parts.length > 0 ? parts : [text];
-    const holes = correctAnswersFromRaw.map((ans, idx) => ({ id: `hole-${idx}-${uid()}`, answer: ans, options: normalizeOptions((raw?.options ?? raw?.choices ?? [])[idx] ?? raw?.options ?? []), order: idx }));
-    return { type: 'cloze', textParts: partsSeq, holes };
-  }
-
+  // Case 2: Explicit holes array provided
   if (holesRaw.length > 0) {
-    const holes = holesRaw.map((rawHole, idx) => ({ id: String(rawHole.id ?? rawHole.uuid ?? `hole-${idx}-${uid()}`), answer: rawHole.answer ?? rawHole.value ?? rawHole.correct, options: normalizeOptions(rawHole.options ?? rawHole.choices ?? []), order: idx }));
+    const holes = holesRaw.map((rawHole, idx) => ({ 
+      id: String(rawHole.id ?? rawHole.uuid ?? `hole-${idx}-${uid()}`), 
+      answer: rawHole.answer ?? rawHole.value ?? rawHole.correct ?? correctAnswersFromRaw[idx],
+      options: normalizeOptions(rawHole.options ?? rawHole.choices ?? []), 
+      order: idx 
+    }));
+    console.log('  → Case 2: Explicit holes array - holes:', holes.length);
     return { type: 'cloze', textParts: [text, ''], holes };
   }
 
-  return { type: 'cloze', textParts: [text], holes: [] };
+  // Case 3: correctAnswers provided but no placeholders (auto-generate)
+  if (correctAnswersFromRaw.length > 0 && text) {
+    const holes = correctAnswersFromRaw.map((ans, idx) => ({
+      id: `hole-${idx}-${uid()}`,
+      answer: ans,
+      options: undefined,
+      order: idx
+    }));
+    console.log('  → Case 3: Auto-generated holes from correctAnswers - holes:', holes.length);
+    return { type: 'cloze', textParts: [text], holes };
+  }
+
+  // Case 4: Only text provided, no answers (fallback)
+  if (text) {
+    console.log('  → Case 4: Only text, no answers');
+    return { type: 'cloze', textParts: [text], holes: [] };
+  }
+
+  return null;
 };
 
 export const normalizeQuestions = (rawQuestions: RawQuestion[] | undefined): NormalizedQuestion[] => {
@@ -202,9 +248,14 @@ export const normalizeQuestions = (rawQuestions: RawQuestion[] | undefined): Nor
 
     const normalized: NormalizedQuestion = { id: qId, type: qType, stem, options: opts, correctAnswers, correctOrder: correctOrder.length ? correctOrder : undefined, raw };
 
-    if (/cloze|trous|texte/i.test(qType)) {
+    // Detect cloze/fill-blank questions by type name
+    if (/cloze|trous|texte|fill[-_]?blank/i.test(qType)) {
       const cloze = normalizeCloze(raw);
-      if (cloze) normalized.cloze = cloze;
+      if (cloze) {
+        normalized.cloze = cloze;
+      } else {
+        console.warn('Question detected as fill-blank but normalizeCloze returned null:', { qId, type: qType });
+      }
     }
 
     return normalized;

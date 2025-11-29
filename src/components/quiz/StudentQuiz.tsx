@@ -496,7 +496,43 @@ function renderQuestion(
       );
 
     case 'fill-blank': {
-      if (!q.cloze) return <p className="text-red-600">Erreur: données cloze manquantes</p>;
+      // Handle missing cloze data - fallback to create simple input fields
+      if (!q.cloze || (q.cloze.holes && q.cloze.holes.length === 0)) {
+        console.warn('Fill-blank question with missing/empty cloze data:', { qId: q.id, qType: q.type, hasOptions: (q.options && q.options.length > 0) });
+        
+        // Fallback: Use correctAnswers as the number of blanks
+        const numBlanks = q.correctAnswers && q.correctAnswers.length > 0 ? q.correctAnswers.length : 1;
+        const userAnswers = Array.isArray(userAnswer) ? userAnswer : [];
+
+        return (
+          <div className="space-y-6">
+            <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
+              <p className="text-sm text-gray-600 mb-3">
+                {q.stem && q.stem.includes('Texte à trous') ? 'Complétez le texte en remplissant les blancs :' : 'Répondez aux questions suivantes :'}
+              </p>
+              <p className="text-base text-gray-800 font-medium mb-4">{q.stem || 'Question'}</p>
+              
+              <div className="space-y-4">
+                {Array.from({ length: numBlanks }).map((_, idx) => (
+                  <div key={`fallback-blank-${q.id}-${idx}`} className="space-y-2">
+                    <Label>Réponse {idx + 1}</Label>
+                    <Input
+                      value={userAnswers[idx] || ''}
+                      onChange={(e) => {
+                        const newAnswers = [...userAnswers];
+                        newAnswers[idx] = e.target.value;
+                        setQAnswer(q.id, newAnswers);
+                      }}
+                      placeholder={`Entrez votre réponse ${idx + 1}`}
+                      className="w-full"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      }
 
       const userAnswers = Array.isArray(userAnswer) ? userAnswer : [];
 
@@ -509,7 +545,7 @@ function renderQuestion(
               {q.cloze.textParts.map((part, idx) => (
                 <React.Fragment key={`text-${idx}`}>
                   <span>{part}</span>
-                  {q.cloze?.holes[idx] && (
+                  {q.cloze && q.cloze.holes && q.cloze.holes[idx] && (
                     <Input
                       key={`blank-${q.id}-${idx}`}
                       value={userAnswers[idx] || ''}
