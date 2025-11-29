@@ -217,34 +217,51 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
 
     switch (question.type) {
       case 'single-choice':
-        return (
-          <RadioGroup value={userAnswer || ''} onValueChange={(val) => handleAnswerChange(question.id, val)}>
-            <div className="space-y-3">
-              {question.options.map((option, idx) => (
-                <div key={idx} className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                  <RadioGroupItem value={option} id={`${question.id}-${idx}`} />
-                  <Label htmlFor={`${question.id}-${idx}`} className="flex-1 cursor-pointer">
-                    {option}
-                  </Label>
-                </div>
-              ))}
-            </div>
-          </RadioGroup>
-        );
+        {
+          const selectedIndex =
+            typeof userAnswer === 'number' || typeof userAnswer === 'string'
+              ? Number(userAnswer)
+              : -1;
+          return (
+            <RadioGroup
+              value={selectedIndex >= 0 ? String(selectedIndex) : ''}
+              onValueChange={(val) => handleAnswerChange(question.id, Number(val))}
+            >
+              <div className="space-y-3">
+                {question.options.map((option, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                  >
+                    <RadioGroupItem value={String(idx)} id={`${question.id}-${idx}`} />
+                    <Label htmlFor={`${question.id}-${idx}`} className="flex-1 cursor-pointer">
+                      {option}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </RadioGroup>
+          );
+        }
 
-      case 'multiple-choice':
-        const selectedOptions = Array.isArray(userAnswer) ? userAnswer : [];
+      case 'multiple-choice': {
+        const raw = Array.isArray(userAnswer) ? userAnswer : [];
+        const selectedIndices = raw.map((v) => Number(v));
         return (
           <div className="space-y-3">
             {question.options.map((option, idx) => (
-              <div key={idx} className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50">
+              <div
+                key={idx}
+                className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50"
+              >
                 <Checkbox
                   id={`${question.id}-${idx}`}
-                  checked={selectedOptions.includes(option)}
+                  checked={selectedIndices.includes(idx)}
                   onCheckedChange={(checked) => {
+                    const current = selectedIndices;
                     const newSelected = checked
-                      ? [...selectedOptions, option]
-                      : selectedOptions.filter((o) => o !== option);
+                      ? [...current, idx]
+                      : current.filter((i) => i !== idx);
                     handleAnswerChange(question.id, newSelected);
                   }}
                 />
@@ -255,6 +272,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
             ))}
           </div>
         );
+      }
 
       case 'true-false': {
         const tfValue = userAnswer === true ? 'true' : userAnswer === false ? 'false' : '';
@@ -300,18 +318,30 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
 
       case 'fill-blank': {
         const fbCorrectAnswers = getCorrectAnswers(question);
+        const text = (question as any).text || '';
+        const blanksInText = (text.match(/\[blank\]/g) || []).length;
+        const blankCount = blanksInText || fbCorrectAnswers.length || 1;
+
         const blanksAnswers = Array.isArray(userAnswer)
           ? userAnswer
-          : Array(fbCorrectAnswers.length || 1).fill('');
+          : Array(blankCount).fill('');
 
         return (
           <div className="space-y-4">
-            <div 
+            <div
               className="text-sm text-gray-700 mb-4 p-4 bg-gray-50 rounded-lg"
-              dangerouslySetInnerHTML={{ __html: (question as any).text?.replace(/\[blank\]/g, '<span class="inline-block w-32 border-b-2 border-blue-500 mx-1">_____</span>') || '' }}
+              dangerouslySetInnerHTML={{
+                __html:
+                  text.replace(
+                    /\[blank\]/g,
+                    '<span class="inline-block w-32 border-b-2 border-blue-500 mx-1">_____</span>'
+                  ) || '',
+              }}
             />
-            <p className="text-xs text-gray-500 mb-4">Remplissez les trous dans l'ordre d'apparition :</p>
-            {fbCorrectAnswers.map((_, idx) => (
+            <p className="text-xs text-gray-500 mb-4">
+              Remplissez les trous dans l'ordre d'apparition :
+            </p>
+            {Array.from({ length: blankCount }).map((_, idx) => (
               <div key={idx} className="space-y-2">
                 <Label>Trou {idx + 1}</Label>
                 <Input
@@ -484,18 +514,57 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
                   
                   {question.type === 'single-choice' && (
                     <div className="text-sm mt-2">
-                      <p className="text-gray-600">Votre réponse: <span className="font-medium">{userAnswer || 'Aucune réponse'}</span></p>
+                      <p className="text-gray-600">
+                        Votre réponse:{' '}
+                        <span className="font-medium">
+                          {(() => {
+                            if (userAnswer === null || userAnswer === undefined) return 'Aucune réponse';
+                            const idx = Number(userAnswer);
+                            return question.options[idx] ?? 'Aucune réponse';
+                          })()}
+                        </span>
+                      </p>
                       {!isCorrect && (
-                        <p className="text-green-600">Bonne réponse: <span className="font-medium">{question.correctAnswer}</span></p>
+                        <p className="text-green-600">
+                          Bonne réponse:{' '}
+                          <span className="font-medium">
+                            {question.options[Number((question as any).correctAnswer)]}
+                          </span>
+                        </p>
                       )}
                     </div>
                   )}
                   
                   {question.type === 'multiple-choice' && (
                     <div className="text-sm mt-2">
-                      <p className="text-gray-600">Vos réponses: <span className="font-medium">{Array.isArray(userAnswer) ? userAnswer.join(', ') : 'Aucune réponse'}</span></p>
+                      <p className="text-gray-600">
+                        Vos réponses:{' '}
+                        <span className="font-medium">
+                          {(() => {
+                            if (!Array.isArray(userAnswer) || userAnswer.length === 0)
+                              return 'Aucune réponse';
+                            const indices = userAnswer.map((v: any) => Number(v));
+                            const labels = indices
+                              .map((i) => question.options[i])
+                              .filter((v) => v !== undefined);
+                            return labels.length ? labels.join(', ') : 'Aucune réponse';
+                          })()}
+                        </span>
+                      </p>
                       {!isCorrect && (
-                        <p className="text-green-600">Bonnes réponses: <span className="font-medium">{getCorrectAnswers(question).join(', ')}</span></p>
+                        <p className="text-green-600">
+                          Bonnes réponses:{' '}
+                          <span className="font-medium">
+                            {(() => {
+                              const raw = getCorrectAnswers(question);
+                              const indices = raw.map((v: any) => Number(v));
+                              const labels = indices
+                                .map((i) => question.options[i])
+                                .filter((v) => v !== undefined);
+                              return labels.join(', ');
+                            })()}
+                          </span>
+                        </p>
                       )}
                     </div>
                   )}
