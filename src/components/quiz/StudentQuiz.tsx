@@ -312,9 +312,22 @@ const StudentQuiz: React.FC<Props> = ({ quizId, quiz, onComplete }) => {
     }
 
     if (q.type === 'single-choice') {
-      const answerIndex = Number(answerValue);
-      if (q.options && q.options[answerIndex]) {
-        return q.options[answerIndex].text || `Option ${answerIndex + 1}`;
+      // Handle both index (0,1,2) and ID (opt-xxx) formats
+      let option = null;
+      
+      if (q.options && q.options.length > 0) {
+        // Try as index first
+        const asIndex = Number(answerValue);
+        if (!isNaN(asIndex) && q.options[asIndex]) {
+          option = q.options[asIndex];
+        } else {
+          // Try as ID
+          option = q.options.find((o: any) => o.id === answerValue);
+        }
+      }
+      
+      if (option) {
+        return option.text || option.label || String(answerValue);
       }
       return String(answerValue);
     }
@@ -322,12 +335,24 @@ const StudentQuiz: React.FC<Props> = ({ quizId, quiz, onComplete }) => {
     if (q.type === 'multiple-choice') {
       if (Array.isArray(answerValue)) {
         return answerValue
-          .map((idx: any) => {
-            const answerIndex = Number(idx);
-            if (q.options && q.options[answerIndex]) {
-              return q.options[answerIndex].text || `Option ${answerIndex + 1}`;
+          .map((val: any) => {
+            let option = null;
+            
+            if (q.options && q.options.length > 0) {
+              // Try as index first
+              const asIndex = Number(val);
+              if (!isNaN(asIndex) && q.options[asIndex]) {
+                option = q.options[asIndex];
+              } else {
+                // Try as ID
+                option = q.options.find((o: any) => o.id === val);
+              }
             }
-            return String(idx);
+            
+            if (option) {
+              return option.text || option.label || String(val);
+            }
+            return String(val);
           })
           .join(', ');
       }
@@ -348,12 +373,22 @@ const StudentQuiz: React.FC<Props> = ({ quizId, quiz, onComplete }) => {
     if (q.type === 'ordering') {
       if (Array.isArray(answerValue) && q.options) {
         return answerValue
-          .map((idx: any) => {
-            const answerIndex = Number(idx);
-            if (q.options && q.options[answerIndex]) {
-              return q.options[answerIndex].text || `Item ${answerIndex + 1}`;
+          .map((val: any) => {
+            let option = null;
+            
+            // Try as index first
+            const asIndex = Number(val);
+            if (!isNaN(asIndex) && q.options[asIndex]) {
+              option = q.options[asIndex];
+            } else {
+              // Try as ID
+              option = q.options.find((o: any) => o.id === val);
             }
-            return String(idx);
+            
+            if (option) {
+              return option.text || option.label || String(val);
+            }
+            return String(val);
           })
           .join(' → ');
       }
@@ -370,21 +405,46 @@ const StudentQuiz: React.FC<Props> = ({ quizId, quiz, onComplete }) => {
     }
 
     if (q.type === 'single-choice') {
-      const answerIndex = Number(q.correctAnswers[0]);
-      if (q.options && q.options[answerIndex]) {
-        return q.options[answerIndex].text || `Option ${answerIndex + 1}`;
+      let option = null;
+      const correctVal = q.correctAnswers[0];
+      
+      if (q.options && q.options.length > 0) {
+        // Try as index first
+        const asIndex = Number(correctVal);
+        if (!isNaN(asIndex) && q.options[asIndex]) {
+          option = q.options[asIndex];
+        } else {
+          // Try as ID
+          option = q.options.find((o: any) => o.id === correctVal);
+        }
       }
-      return String(q.correctAnswers[0]);
+      
+      if (option) {
+        return option.text || option.label || String(correctVal);
+      }
+      return String(correctVal);
     }
 
     if (q.type === 'multiple-choice') {
       return q.correctAnswers
-        .map((ans: any) => {
-          const answerIndex = Number(ans);
-          if (q.options && q.options[answerIndex]) {
-            return q.options[answerIndex].text || `Option ${answerIndex + 1}`;
+        .map((val: any) => {
+          let option = null;
+          
+          if (q.options && q.options.length > 0) {
+            // Try as index first
+            const asIndex = Number(val);
+            if (!isNaN(asIndex) && q.options[asIndex]) {
+              option = q.options[asIndex];
+            } else {
+              // Try as ID
+              option = q.options.find((o: any) => o.id === val);
+            }
           }
-          return String(ans);
+          
+          if (option) {
+            return option.text || option.label || String(val);
+          }
+          return String(val);
         })
         .join(', ');
     }
@@ -403,11 +463,22 @@ const StudentQuiz: React.FC<Props> = ({ quizId, quiz, onComplete }) => {
     if (q.type === 'ordering') {
       if (q.options && q.correctOrder) {
         return q.correctOrder
-          .map((idx: any) => {
-            if (q.options && q.options[idx]) {
-              return q.options[idx].text || `Item ${idx + 1}`;
+          .map((val: any) => {
+            let option = null;
+            
+            // Try as index first
+            const asIndex = Number(val);
+            if (!isNaN(asIndex) && q.options[asIndex]) {
+              option = q.options[asIndex];
+            } else {
+              // Try as ID
+              option = q.options.find((o: any) => o.id === val);
             }
-            return String(idx);
+            
+            if (option) {
+              return option.text || option.label || String(val);
+            }
+            return String(val);
           })
           .join(' → ');
       }
@@ -497,7 +568,7 @@ const StudentQuiz: React.FC<Props> = ({ quizId, quiz, onComplete }) => {
                       <div key={q.id} className="p-3 bg-green-50 rounded border-l-4 border-green-600">
                         <p className="text-sm font-medium text-gray-800">{q.stem}</p>
                         <div className="mt-2 space-y-1 text-xs">
-                          <p><span className="font-medium text-green-600">✓ Votre réponse:</span> {getAnswerText(q, answers[q.id])}</p>
+                          <p><span className="font-medium text-green-600">✓ Réponse:</span> {getAnswerText(q, answers[q.id])}</p>
                         </div>
                         {q.raw?.explanation && (
                           <p className="text-xs text-gray-600 mt-2 italic">📝 {q.raw.explanation}</p>
