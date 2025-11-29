@@ -390,26 +390,23 @@ function renderQuestion(
 
   switch (q.type) {
     case 'single-choice': {
-      const selectedId = Array.isArray(userAnswer) && userAnswer.length > 0 ? userAnswer[0] : undefined;
+      const selectedId = Array.isArray(userAnswer) && userAnswer.length > 0 ? userAnswer[0] : '';
       return (
-        <div className="space-y-3">
-          {(q.options || []).map((opt) => (
-            <div
-              key={`${q.id}-${opt.id}`}
-              className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
-              onClick={() => toggleOption(q, opt.id, true)}
-            >
-              <RadioGroupItem
-                value={opt.id}
-                id={`${q.id}-${opt.id}`}
-                checked={selectedId === opt.id}
-              />
-              <Label htmlFor={`${q.id}-${opt.id}`} className="flex-1 cursor-pointer">
-                {opt.text}
-              </Label>
-            </div>
-          ))}
-        </div>
+        <RadioGroup value={selectedId || ''} onValueChange={(val) => toggleOption(q, val, true)}>
+          <div className="space-y-3">
+            {(q.options || []).map((opt) => (
+              <div
+                key={`${q.id}-${opt.id}`}
+                className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+              >
+                <RadioGroupItem value={opt.id} id={`${q.id}-${opt.id}`} />
+                <Label htmlFor={`${q.id}-${opt.id}`} className="flex-1 cursor-pointer">
+                  {opt.text}
+                </Label>
+              </div>
+            ))}
+          </div>
+        </RadioGroup>
       );
     }
 
@@ -437,26 +434,23 @@ function renderQuestion(
     }
 
     case 'true-false': {
-      const selectedId = Array.isArray(userAnswer) && userAnswer.length > 0 ? userAnswer[0] : undefined;
+      const selectedId = Array.isArray(userAnswer) && userAnswer.length > 0 ? userAnswer[0] : '';
       return (
-        <div className="space-y-3">
-          {(q.options || []).map((opt) => (
-            <div
-              key={`${q.id}-${opt.id}`}
-              className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
-              onClick={() => toggleOption(q, opt.id, true)}
-            >
-              <RadioGroupItem
-                value={opt.id}
-                id={`${q.id}-${opt.id}`}
-                checked={selectedId === opt.id}
-              />
-              <Label htmlFor={`${q.id}-${opt.id}`} className="flex-1 cursor-pointer">
-                {opt.text}
-              </Label>
-            </div>
-          ))}
-        </div>
+        <RadioGroup value={selectedId || ''} onValueChange={(val) => toggleOption(q, val, true)}>
+          <div className="space-y-3">
+            {(q.options || []).map((opt) => (
+              <div
+                key={`${q.id}-${opt.id}`}
+                className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+              >
+                <RadioGroupItem value={opt.id} id={`${q.id}-${opt.id}`} />
+                <Label htmlFor={`${q.id}-${opt.id}`} className="flex-1 cursor-pointer">
+                  {opt.text}
+                </Label>
+              </div>
+            ))}
+          </div>
+        </RadioGroup>
       );
     }
 
