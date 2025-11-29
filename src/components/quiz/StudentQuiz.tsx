@@ -301,6 +301,122 @@ const StudentQuiz: React.FC<Props> = ({ quizId, quiz, onComplete }) => {
     return { correct, incorrect };
   };
 
+  // Helper function to get readable answer text
+  const getAnswerText = (q: NormalizedQuestion, answerValue: any): string => {
+    if (answerValue === undefined || answerValue === null || answerValue === '') {
+      return 'Non répondu';
+    }
+
+    if (q.type === 'true-false') {
+      return typeof answerValue === 'boolean' ? (answerValue ? 'Vrai' : 'Faux') : String(answerValue);
+    }
+
+    if (q.type === 'single-choice') {
+      const answerIndex = Number(answerValue);
+      if (q.options && q.options[answerIndex]) {
+        return q.options[answerIndex].text || `Option ${answerIndex + 1}`;
+      }
+      return String(answerValue);
+    }
+
+    if (q.type === 'multiple-choice') {
+      if (Array.isArray(answerValue)) {
+        return answerValue
+          .map((idx: any) => {
+            const answerIndex = Number(idx);
+            if (q.options && q.options[answerIndex]) {
+              return q.options[answerIndex].text || `Option ${answerIndex + 1}`;
+            }
+            return String(idx);
+          })
+          .join(', ');
+      }
+      return String(answerValue);
+    }
+
+    if (q.type === 'short-answer' || q.type === 'long-answer') {
+      return String(answerValue);
+    }
+
+    if (q.type === 'fill-blank') {
+      if (Array.isArray(answerValue)) {
+        return answerValue.join(' | ');
+      }
+      return String(answerValue);
+    }
+
+    if (q.type === 'ordering') {
+      if (Array.isArray(answerValue) && q.options) {
+        return answerValue
+          .map((idx: any) => {
+            const answerIndex = Number(idx);
+            if (q.options && q.options[answerIndex]) {
+              return q.options[answerIndex].text || `Item ${answerIndex + 1}`;
+            }
+            return String(idx);
+          })
+          .join(' → ');
+      }
+      return String(answerValue);
+    }
+
+    return String(answerValue);
+  };
+
+  // Helper function to get correct answer text
+  const getCorrectAnswerText = (q: NormalizedQuestion): string => {
+    if (q.type === 'true-false') {
+      return q.correctAnswers[0] === 'true' || q.correctAnswers[0] === true ? 'Vrai' : 'Faux';
+    }
+
+    if (q.type === 'single-choice') {
+      const answerIndex = Number(q.correctAnswers[0]);
+      if (q.options && q.options[answerIndex]) {
+        return q.options[answerIndex].text || `Option ${answerIndex + 1}`;
+      }
+      return String(q.correctAnswers[0]);
+    }
+
+    if (q.type === 'multiple-choice') {
+      return q.correctAnswers
+        .map((ans: any) => {
+          const answerIndex = Number(ans);
+          if (q.options && q.options[answerIndex]) {
+            return q.options[answerIndex].text || `Option ${answerIndex + 1}`;
+          }
+          return String(ans);
+        })
+        .join(', ');
+    }
+
+    if (q.type === 'short-answer' || q.type === 'long-answer') {
+      return q.correctAnswers.join(' / ');
+    }
+
+    if (q.type === 'fill-blank') {
+      if (q.cloze?.holes) {
+        return q.cloze.holes.map(h => h.answer).join(' | ');
+      }
+      return q.correctAnswers.join(' | ');
+    }
+
+    if (q.type === 'ordering') {
+      if (q.options && q.correctOrder) {
+        return q.correctOrder
+          .map((idx: any) => {
+            if (q.options && q.options[idx]) {
+              return q.options[idx].text || `Item ${idx + 1}`;
+            }
+            return String(idx);
+          })
+          .join(' → ');
+      }
+      return String(q.correctOrder?.join(' → ') || q.correctAnswers.join(', '));
+    }
+
+    return q.correctAnswers.join(', ');
+  };
+
   const handleRetry = () => {
     setCurrentQuestionIndex(0);
     setAnswers({});
@@ -380,6 +496,9 @@ const StudentQuiz: React.FC<Props> = ({ quizId, quiz, onComplete }) => {
                     {correct.map((q) => (
                       <div key={q.id} className="p-3 bg-green-50 rounded border-l-4 border-green-600">
                         <p className="text-sm font-medium text-gray-800">{q.stem}</p>
+                        <div className="mt-2 space-y-1 text-xs">
+                          <p><span className="font-medium text-green-600">✓ Votre réponse:</span> {getAnswerText(q, answers[q.id])}</p>
+                        </div>
                         {q.raw?.explanation && (
                           <p className="text-xs text-gray-600 mt-2 italic">📝 {q.raw.explanation}</p>
                         )}
@@ -397,40 +516,18 @@ const StudentQuiz: React.FC<Props> = ({ quizId, quiz, onComplete }) => {
                     <h3 className="font-semibold text-red-700">Questions non réussies ({incorrect.length})</h3>
                   </div>
                   <div className="space-y-3">
-                    {incorrect.map((q) => {
-                      const userAnswer = answers[q.id];
-                      let displayAnswer = '';
-                      
-                      if (Array.isArray(userAnswer)) {
-                        displayAnswer = userAnswer.join(', ');
-                      } else if (typeof userAnswer === 'boolean') {
-                        displayAnswer = userAnswer ? 'Vrai' : 'Faux';
-                      } else {
-                        displayAnswer = String(userAnswer || 'Non répondu');
-                      }
-
-                      let correctDisplay = '';
-                      if (q.type === 'fill-blank' && q.cloze?.holes) {
-                        correctDisplay = q.cloze.holes.map(h => h.answer).join(', ');
-                      } else if (Array.isArray(q.correctAnswers)) {
-                        correctDisplay = q.correctAnswers.join(', ');
-                      } else {
-                        correctDisplay = String(q.correctAnswers?.[0] || 'N/A');
-                      }
-
-                      return (
-                        <div key={q.id} className="p-3 bg-red-50 rounded border-l-4 border-red-600">
-                          <p className="text-sm font-medium text-gray-800">{q.stem}</p>
-                          <div className="mt-2 space-y-1 text-xs">
-                            <p><span className="font-medium text-red-600">Votre réponse:</span> {displayAnswer}</p>
-                            <p><span className="font-medium text-green-600">Bonne réponse:</span> {correctDisplay}</p>
-                          </div>
-                          {q.raw?.explanation && (
-                            <p className="text-xs text-gray-600 mt-2 italic">📝 {q.raw.explanation}</p>
-                          )}
+                    {incorrect.map((q) => (
+                      <div key={q.id} className="p-3 bg-red-50 rounded border-l-4 border-red-600">
+                        <p className="text-sm font-medium text-gray-800">{q.stem}</p>
+                        <div className="mt-2 space-y-1 text-xs">
+                          <p><span className="font-medium text-red-600">✗ Votre réponse:</span> {getAnswerText(q, answers[q.id])}</p>
+                          <p><span className="font-medium text-green-600">✓ Bonne réponse:</span> {getCorrectAnswerText(q)}</p>
                         </div>
-                      );
-                    })}
+                        {q.raw?.explanation && (
+                          <p className="text-xs text-gray-600 mt-2 italic">📝 {q.raw.explanation}</p>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}

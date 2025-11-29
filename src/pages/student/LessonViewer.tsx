@@ -13,6 +13,7 @@ import { useLearnerProgress } from '@/hooks/useLearnerProgress';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import VideoPlayer from '@/components/common/VideoPlayer';
 import PDFViewer from '@/components/common/PDFViewer';
+import ImageDisplay from '@/components/common/ImageDisplay';
 import StudentQuiz from '@/components/quiz/StudentQuiz';
 import { usePresignedUrl } from '@/hooks/usePresignedUrl';
 import { sanitizeHTML } from '@/utils/sanitizeHTML';
@@ -429,14 +430,24 @@ const LessonViewer = () => {
                           />
                         )}
                         {contentType === 'pdf' && (
-                          <PDFViewer
-                            pdfKey={currentItem.pdf_key}
-                            title={currentItem.title}
-                            height="600px"
-                          />
+                          <div className="bg-gray-50 p-4">
+                            <PDFViewer
+                              pdfKey={currentItem.pdf_key}
+                              pdfUrl={currentItem.pdf_url}
+                              title={currentItem.title}
+                              height="800px"
+                              showDownload={true}
+                            />
+                          </div>
                         )}
                         {contentType === 'image' && (
-                          <ImageDisplay imageKey={currentItem.image_key} title={currentItem.title} />
+                          <ImageDisplay 
+                            imageKey={currentItem.image_key}
+                            imageUrl={currentItem.image_url}
+                            title={currentItem.title}
+                            height="800px"
+                            downloadable={true}
+                          />
                         )}
                       </>
                     )}

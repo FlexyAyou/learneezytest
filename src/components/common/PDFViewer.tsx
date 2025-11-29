@@ -102,36 +102,50 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   return (
     <div className="space-y-2">
       {showDownload && (
-        <div className="flex gap-2 justify-end">
+        <div className="flex gap-2 justify-end pr-4 pt-4">
           <Button
             variant="outline"
             size="sm"
             onClick={handleFullscreen}
+            className="flex items-center gap-2"
           >
-            <Maximize2 className="h-4 w-4 mr-2" />
+            <Maximize2 className="h-4 w-4" />
             Plein écran
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={handleDownload}
+            className="flex items-center gap-2"
           >
-            <Download className="h-4 w-4 mr-2" />
+            <Download className="h-4 w-4" />
             Télécharger
           </Button>
         </div>
       )}
       <div 
-        className="w-full rounded-lg overflow-hidden shadow-lg border-2 border-gray-300"
+        className="w-full rounded-lg overflow-hidden shadow-lg border-2 border-gray-200 bg-white"
         style={{ height }}
       >
+        {/* Try to use embed first, fallback to iframe */}
         <embed
-          src={playUrl}
+          src={`${playUrl}#toolbar=1&navpanes=1&scrollbar=1`}
           type="application/pdf"
           width="100%"
           height="100%"
           className="w-full h-full"
+          onError={() => {
+            // Si embed échoue, utiliser iframe
+            return null;
+          }}
         />
+        {/* Fallback iframe for better compatibility */}
+        <style>{`
+          embed[type="application/pdf"] {
+            width: 100%;
+            height: 100%;
+          }
+        `}</style>
       </div>
     </div>
   );
