@@ -65,6 +65,13 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const getCorrectAnswers = (question: any): string[] => {
+    if (!question) return [];
+    const raw = (question as any).correctAnswers ?? (question as any).correct_answers;
+    if (!raw) return [];
+    return Array.isArray(raw) ? raw.map((v) => String(v)) : [];
+  };
+
   const handleAnswerChange = (questionId: string, value: any) => {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
   };
@@ -109,15 +116,20 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
       case 'long-answer':
         return 0; // Manual grading required
 
-      case 'fill-blank':
+      case 'fill-blank': {
         if (!Array.isArray(userAnswer)) return 0;
+        const fbCorrectAnswers = getCorrectAnswers(question);
+        if (fbCorrectAnswers.length === 0) return 0;
+
         let correctCount = 0;
-        question.correctAnswers.forEach((correctAns, index) => {
+        fbCorrectAnswers.forEach((correctAns, index) => {
           const userVal = userAnswer[index]?.trim().toLowerCase();
-          const correctVal = correctAns.trim().toLowerCase();
+          const correctVal = String(correctAns).trim().toLowerCase();
           if (userVal === correctVal) correctCount++;
         });
-        return (correctCount / question.correctAnswers.length) * question.points;
+
+        return (correctCount / fbCorrectAnswers.length) * question.points;
+      }
 
       case 'matching':
         if (!userAnswer || typeof userAnswer !== 'object') return 0;
@@ -233,9 +245,10 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
           </div>
         );
 
-      case 'true-false':
+      case 'true-false': {
+        const tfValue = userAnswer === true ? 'true' : userAnswer === false ? 'false' : '';
         return (
-          <RadioGroup value={userAnswer || ''} onValueChange={(val) => handleAnswerChange(question.id, val === 'true')}>
+          <RadioGroup value={tfValue} onValueChange={(val) => handleAnswerChange(question.id, val === 'true')}>
             <div className="space-y-3">
               <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
                 <RadioGroupItem value="true" id={`${question.id}-true`} />
@@ -252,6 +265,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
             </div>
           </RadioGroup>
         );
+      }
 
       case 'short-answer':
         return (
@@ -273,16 +287,20 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
           />
         );
 
-      case 'fill-blank':
-        const blanksAnswers = Array.isArray(userAnswer) ? userAnswer : Array(question.correctAnswers.length).fill('');
+      case 'fill-blank': {
+        const fbCorrectAnswers = getCorrectAnswers(question);
+        const blanksAnswers = Array.isArray(userAnswer)
+          ? userAnswer
+          : Array(fbCorrectAnswers.length || 1).fill('');
+
         return (
           <div className="space-y-4">
             <div 
               className="text-sm text-gray-700 mb-4 p-4 bg-gray-50 rounded-lg"
-              dangerouslySetInnerHTML={{ __html: question.text.replace(/\[blank\]/g, '<span class="inline-block w-32 border-b-2 border-blue-500 mx-1">_____</span>') }}
+              dangerouslySetInnerHTML={{ __html: (question as any).text?.replace(/\[blank\]/g, '<span class="inline-block w-32 border-b-2 border-blue-500 mx-1">_____</span>') || '' }}
             />
             <p className="text-xs text-gray-500 mb-4">Remplissez les trous dans l'ordre d'apparition :</p>
-            {question.correctAnswers.map((_, idx) => (
+            {fbCorrectAnswers.map((_, idx) => (
               <div key={idx} className="space-y-2">
                 <Label>Trou {idx + 1}</Label>
                 <Input
@@ -298,6 +316,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
             ))}
           </div>
         );
+      }
 
       case 'matching':
         const matchingQ = question as any;
@@ -468,7 +487,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
                     <div className="text-sm mt-2">
                       <p className="text-gray-600">Vos réponses: <span className="font-medium">{Array.isArray(userAnswer) ? userAnswer.join(', ') : 'Aucune réponse'}</span></p>
                       {!isCorrect && (
-                        <p className="text-green-600">Bonnes réponses: <span className="font-medium">{question.correctAnswers.join(', ')}</span></p>
+                        <p className="text-green-600">Bonnes réponses: <span className="font-medium">{getCorrectAnswers(question).join(', ')}</span></p>
                       )}
                     </div>
                   )}
@@ -485,7 +504,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
                   {question.type === 'short-answer' && (
                     <div className="text-sm mt-2">
                       <p className="text-gray-600">Votre réponse: <span className="font-medium">{userAnswer || 'Aucune réponse'}</span></p>
-                      <p className="text-green-600">Réponses acceptées: <span className="font-medium">{question.correctAnswers.join(', ')}</span></p>
+                      <p className="text-green-600">Réponses acceptées: <span className="font-medium">{getCorrectAnswers(question).join(', ')}</span></p>
                     </div>
                   )}
 
@@ -511,7 +530,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
                         <div className="mt-2">
                           <p className="text-green-600">Bonnes réponses:</p>
                           <ul className="list-disc list-inside space-y-1 ml-2 text-green-600">
-                            {question.correctAnswers.map((ans: string, idx: number) => (
+                            {getCorrectAnswers(question).map((ans: string, idx: number) => (
                               <li key={idx}>Trou {idx + 1}: <span className="font-medium">{ans}</span></li>
                             ))}
                           </ul>
