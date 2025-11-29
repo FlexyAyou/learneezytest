@@ -556,52 +556,7 @@ const StudentQuiz: React.FC<Props> = ({ quizId, quiz, onComplete }) => {
 
             {/* Detailed Results */}
             <div className="space-y-4">
-              {/* Correct Answers */}
-              {correct.length > 0 && (
-                <div className="bg-white border-2 border-green-200 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                    <h3 className="font-semibold text-green-700">Questions réussies ({correct.length})</h3>
-                  </div>
-                  <div className="space-y-3">
-                    {correct.map((q) => (
-                      <div key={q.id} className="p-3 bg-green-50 rounded border-l-4 border-green-600">
-                        <p className="text-sm font-medium text-gray-800">{q.stem}</p>
-                        <div className="mt-2 space-y-1 text-xs">
-                          <p><span className="font-medium text-green-600">✓ Réponse:</span> {getAnswerText(q, answers[q.id])}</p>
-                        </div>
-                        {q.raw?.explanation && (
-                          <p className="text-xs text-gray-600 mt-2 italic">📝 {q.raw.explanation}</p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Incorrect Answers */}
-              {incorrect.length > 0 && (
-                <div className="bg-white border-2 border-red-200 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <XCircle className="w-5 h-5 text-red-600" />
-                    <h3 className="font-semibold text-red-700">Questions non réussies ({incorrect.length})</h3>
-                  </div>
-                  <div className="space-y-3">
-                    {incorrect.map((q) => (
-                      <div key={q.id} className="p-3 bg-red-50 rounded border-l-4 border-red-600">
-                        <p className="text-sm font-medium text-gray-800">{q.stem}</p>
-                        <div className="mt-2 space-y-1 text-xs">
-                          <p><span className="font-medium text-red-600">✗ Votre réponse:</span> {getAnswerText(q, answers[q.id])}</p>
-                          <p><span className="font-medium text-green-600">✓ Bonne réponse:</span> {getCorrectAnswerText(q)}</p>
-                        </div>
-                        {q.raw?.explanation && (
-                          <p className="text-xs text-gray-600 mt-2 italic">📝 {q.raw.explanation}</p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              {/* Sections will be added later */}
             </div>
 
             <div className="flex gap-3 justify-center mt-6">
