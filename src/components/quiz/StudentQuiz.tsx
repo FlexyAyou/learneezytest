@@ -19,7 +19,24 @@ import {
   RotateCcw,
   Trophy,
   AlertCircle,
+  GripVertical,
 } from 'lucide-react';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 type Props = {
   quizId?: string | number;
@@ -456,12 +473,16 @@ function renderQuestion(
 
     case 'short-answer':
       return (
-        <Input
-          value={userAnswer || ''}
-          onChange={(e) => setQAnswer(q.id, e.target.value)}
-          placeholder="Entrez votre réponse courte..."
-          className="w-full"
-        />
+        <div className="space-y-3">
+          <p className="text-sm text-gray-600">Votre réponse (texte court):</p>
+          <Input
+            value={userAnswer || ''}
+            onChange={(e) => setQAnswer(q.id, e.target.value)}
+            placeholder="Entrez votre réponse courte (50-100 caractères)..."
+            className="w-full h-12 text-base"
+          />
+          <p className="text-xs text-gray-500">{(userAnswer || '').length} caractères</p>
+        </div>
       );
 
     case 'long-answer':
@@ -475,38 +496,48 @@ function renderQuestion(
       );
 
     case 'fill-blank': {
-      if (!q.cloze) return <p>Erreur: données cloze manquantes</p>;
+      if (!q.cloze) return <p className="text-red-600">Erreur: données cloze manquantes</p>;
 
       const userAnswers = Array.isArray(userAnswer) ? userAnswer : [];
 
       return (
-        <div className="space-y-4">
-          {/* Display text with blanks */}
-          <div className="text-sm text-gray-700 mb-4 p-4 bg-gray-50 rounded-lg">
-            {q.cloze.textParts.map((part, idx) => (
-              <React.Fragment key={idx}>
-                <span>{part}</span>
-                {q.cloze?.holes[idx] && <span className="inline-block w-32 border-b-2 border-blue-500 mx-1">_____</span>}
-              </React.Fragment>
-            ))}
+        <div className="space-y-6">
+          {/* Display text with inline inputs for blanks */}
+          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <p className="text-sm text-gray-600 mb-3">Complétez le texte en remplissant les blancs :</p>
+            <div className="text-base leading-relaxed text-gray-800">
+              {q.cloze.textParts.map((part, idx) => (
+                <React.Fragment key={`text-${idx}`}>
+                  <span>{part}</span>
+                  {q.cloze?.holes[idx] && (
+                    <Input
+                      key={`blank-${q.id}-${idx}`}
+                      value={userAnswers[idx] || ''}
+                      onChange={(e) => {
+                        const newAnswers = [...userAnswers];
+                        newAnswers[idx] = e.target.value;
+                        setQAnswer(q.id, newAnswers);
+                      }}
+                      placeholder={`_____`}
+                      className="inline-block w-24 h-8 mx-1 text-center border-b-2 border-blue-400 focus:border-blue-600"
+                    />
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
           </div>
 
-          {/* Input fields */}
-          <p className="text-xs text-gray-500 mb-4">Remplissez les trous dans l'ordre d'apparition :</p>
-          {q.cloze.holes.map((hole, idx) => (
-            <div key={`${q.id}-blank-${idx}`} className="space-y-2">
-              <Label>Trou {idx + 1}</Label>
-              <Input
-                value={userAnswers[idx] || ''}
-                onChange={(e) => {
-                  const newAnswers = [...userAnswers];
-                  newAnswers[idx] = e.target.value;
-                  setQAnswer(q.id, newAnswers);
-                }}
-                placeholder={`Réponse pour le trou ${idx + 1}`}
-              />
+          {/* Summary of blanks filled */}
+          <div className="p-3 bg-gray-50 rounded-lg">
+            <p className="text-sm font-medium text-gray-700 mb-2">Résumé des réponses ({userAnswers.filter(a => a && a.trim().length > 0).length}/{q.cloze.holes.length}) :</p>
+            <div className="space-y-1">
+              {q.cloze.holes.map((hole, idx) => (
+                <div key={`summary-${idx}`} className="text-sm text-gray-600">
+                  <span className="font-medium">Trou {idx + 1}:</span> {userAnswers[idx] ? `"${userAnswers[idx]}"` : '<vide>'}
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
         </div>
       );
     }
@@ -541,51 +572,138 @@ function renderQuestion(
       const items = q.options || [];
 
       return (
-        <div className="space-y-4">
-          <p className="text-sm text-gray-600 mb-4">Réorganisez dans le bon ordre :</p>
-          <div className="space-y-2">
-            {items.map((item, idx) => (
-              <div key={`${q.id}-order-${idx}`} className="flex items-center gap-2 p-3 border rounded-lg bg-white">
-                <span className="font-bold text-gray-500">{idx + 1}.</span>
-                <span className="flex-1">{item.text}</span>
-                <div className="flex gap-1">
-                  {idx > 0 && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        const newOrder = [...items];
-                        [newOrder[idx], newOrder[idx - 1]] = [newOrder[idx - 1], newOrder[idx]];
-                        setQAnswer(q.id, newOrder.map((i) => i.id));
-                      }}
-                    >
-                      ↑
-                    </Button>
-                  )}
-                  {idx < items.length - 1 && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        const newOrder = [...items];
-                        [newOrder[idx], newOrder[idx + 1]] = [newOrder[idx + 1], newOrder[idx]];
-                        setQAnswer(q.id, newOrder.map((i) => i.id));
-                      }}
-                    >
-                      ↓
-                    </Button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <OrderingQuestionRenderer
+          questionId={q.id}
+          items={items}
+          userOrder={userOrder}
+          onOrderChange={(newOrder) => setQAnswer(q.id, newOrder)}
+        />
       );
     }
 
     default:
       return <p>Type de question non supporté: {q.type}</p>;
   }
+}
+
+/**
+ * Drag-and-drop sortable item for ordering questions
+ */
+function SortableOrderItem({
+  id,
+  item,
+  index,
+}: {
+  id: string;
+  item: any;
+  index: number;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={`flex items-center gap-3 p-3 border-2 rounded-lg cursor-move transition-all ${
+        isDragging
+          ? 'bg-blue-100 border-blue-400 shadow-lg'
+          : 'bg-white border-gray-300 hover:border-blue-400 hover:bg-blue-50'
+      }`}
+    >
+      <GripVertical className="w-5 h-5 text-gray-400 flex-shrink-0" />
+      <span className="font-bold text-gray-600 min-w-8">{index + 1}.</span>
+      <span className="flex-1 text-gray-800">{item.text}</span>
+    </div>
+  );
+}
+
+/**
+ * Ordering question renderer with drag-and-drop
+ */
+function OrderingQuestionRenderer({
+  questionId,
+  items,
+  userOrder,
+  onOrderChange,
+}: {
+  questionId: string;
+  items: any[];
+  userOrder: string[];
+  onOrderChange: (newOrder: string[]) => void;
+}) {
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      distance: 8,
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // If no user order yet, initialize with item IDs in original order
+  const orderedIds = userOrder.length === items.length ? userOrder : items.map((i) => i.id);
+  const orderedItems = orderedIds.map((id) => items.find((i) => i.id === id)).filter(Boolean);
+
+  const handleDragEnd = (event: any) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = orderedIds.indexOf(active.id);
+      const newIndex = orderedIds.indexOf(over.id);
+      const newOrder = arrayMove(orderedIds, oldIndex, newIndex);
+      onOrderChange(newOrder);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-gray-600 mb-4">
+        Déplacez les éléments pour les mettre dans le bon ordre. Vous pouvez utiliser la souris ou le clavier.
+      </p>
+
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext
+          items={orderedIds}
+          strategy={verticalListSortingStrategy}
+        >
+          <div className="space-y-2">
+            {orderedItems.map((item, idx) => (
+              <SortableOrderItem
+                key={`${questionId}-item-${item.id}`}
+                id={item.id}
+                item={item}
+                index={idx}
+              />
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
+
+      {/* Preview */}
+      <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 mt-4">
+        <p className="text-xs font-medium text-gray-600 mb-2">Ordre actuel :</p>
+        <div className="text-sm text-gray-700">
+          {orderedItems.map((item, idx) => (
+            <div key={`preview-${item.id}`}>
+              {idx + 1}. {item.text}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default StudentQuiz;
