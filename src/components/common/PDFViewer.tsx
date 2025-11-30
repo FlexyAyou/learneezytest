@@ -23,9 +23,10 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   const { toast } = useToast();
   const [renderKey, setRenderKey] = React.useState(0);
   
-  // Priorité: pdfUrl (presigned URL déjà valide) > pdfKey (storage key) > rien
-  // Utiliser le hook pour gérer l'URL avec rafraîchissement automatique
-  const { url: playUrl, loading, error } = usePresignedUrl(pdfKey, pdfUrl);
+  // Utiliser la clé de stockage en priorité via l'endpoint backend (/api/storage/play)
+  // Cela permet d'obtenir une URL fournie par le backend plutôt qu'une URL directe
+  // depuis MinIO qui peut contenir des en-têtes empêchant l'embed (X-Frame-Options).
+  const { url: playUrl, loading, error } = usePresignedUrl(pdfKey);
 
   React.useEffect(() => {
     console.log('[PDFViewer] Données reçues:', { pdfKey, pdfUrl, playUrl, loading, error });
@@ -38,6 +39,12 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
       const link = document.createElement('a');
       link.href = playUrl;
       link.download = title || 'document.pdf';
+      {/* Aide si l'iframe est bloqué par le navigateur (X-Frame-Options / CSP) */}
+      <div className="text-sm text-gray-500 mt-2">
+        <p>Si la prévisualisation est bloquée par Chrome, utilisez <strong>Plein écran</strong> ou <strong>Télécharger</strong>.</p>
+        <p className="mt-1">Cause probable : l'hébergement du fichier (MinIO/API) renvoie un en-tête empêchant l'intégration (ex. <code>X-Frame-Options</code> ou <code>Content-Security-Policy: frame-ancestors</code>).</p>
+        <p className="mt-1">Correctif côté serveur : permettre l'embed depuis votre domaine frontal ou laisser le backend proxyfier le fichier via <code>/api/storage/play?key=...</code> (sans X-Frame-Options).</p>
+      </div>
       link.target = '_blank';
       document.body.appendChild(link);
       link.click();
