@@ -4,7 +4,6 @@ import { Download, Maximize2, FileText } from 'lucide-react';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { useToast } from '@/hooks/use-toast';
 import { usePresignedUrl } from '@/hooks/usePresignedUrl';
-import { fastAPIClient } from '@/services/fastapi-client';
 
 interface PDFViewerProps {
   pdfUrl?: string;
@@ -24,25 +23,13 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   const { toast } = useToast();
   const [renderKey, setRenderKey] = React.useState(0);
   
-  // Déterminer si pdfKey est un chemin direct (commence par 'public/') ou une clé storage
-  const isDirectPath = pdfKey?.startsWith('public/');
-  
-  // Priorité: pdfUrl (presigned URL déjà valide) > directUrl (redirect endpoint) > storage key
-  let directUrl = pdfUrl; // Si pdfUrl existe, l'utiliser directement (presigned)
-  let storageKey = isDirectPath ? null : pdfKey; // Sinon utiliser la clé storage
-  
-  // Si pas de pdfUrl et chemin direct, utiliser le redirect endpoint
-  if (!pdfUrl && isDirectPath) {
-    directUrl = fastAPIClient.getPlayRedirectUrl(pdfKey);
-    storageKey = null;
-  }
-  
+  // Priorité: pdfUrl (presigned URL déjà valide) > pdfKey (storage key) > rien
   // Utiliser le hook pour gérer l'URL avec rafraîchissement automatique
-  const { url: playUrl, loading, error } = usePresignedUrl(storageKey, directUrl);
+  const { url: playUrl, loading, error } = usePresignedUrl(pdfKey, pdfUrl);
 
   React.useEffect(() => {
-    console.log('[PDFViewer] Données reçues:', { pdfKey, pdfUrl, isDirectPath, directUrl, storageKey, playUrl, loading, error });
-  }, [pdfKey, pdfUrl, isDirectPath, directUrl, storageKey, playUrl, loading, error]);
+    console.log('[PDFViewer] Données reçues:', { pdfKey, pdfUrl, playUrl, loading, error });
+  }, [pdfKey, pdfUrl, playUrl, loading, error]);
 
   const handleDownload = async () => {
     if (!playUrl) return;
