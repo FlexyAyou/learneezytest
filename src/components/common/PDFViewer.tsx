@@ -27,9 +27,15 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   // Déterminer si pdfKey est un chemin direct (commence par 'public/') ou une clé storage
   const isDirectPath = pdfKey?.startsWith('public/');
   
-  // Pour les chemins directs, utiliser le endpoint de redirection
-  const directUrl = isDirectPath ? fastAPIClient.getPlayRedirectUrl(pdfKey) : pdfUrl;
-  const storageKey = isDirectPath ? null : pdfKey;
+  // Priorité: pdfUrl (presigned URL déjà valide) > directUrl (redirect endpoint) > storage key
+  let directUrl = pdfUrl; // Si pdfUrl existe, l'utiliser directement (presigned)
+  let storageKey = isDirectPath ? null : pdfKey; // Sinon utiliser la clé storage
+  
+  // Si pas de pdfUrl et chemin direct, utiliser le redirect endpoint
+  if (!pdfUrl && isDirectPath) {
+    directUrl = fastAPIClient.getPlayRedirectUrl(pdfKey);
+    storageKey = null;
+  }
   
   // Utiliser le hook pour gérer l'URL avec rafraîchissement automatique
   const { url: playUrl, loading, error } = usePresignedUrl(storageKey, directUrl);
