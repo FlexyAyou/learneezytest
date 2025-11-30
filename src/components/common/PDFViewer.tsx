@@ -146,16 +146,17 @@ y-center border-2 border-gray-300"
             onClick={handleFullscreen}
           >
             <Maximize2 className="h-4 w-4 mr-2" />
-            Plein ├®cran
+            Plein écran
           </Button>
-          <Button
+          {/* Bouton Télécharger masqué temporairement - backend à réviser */}
+          {/* <Button
             variant="outline"
             size="sm"
             onClick={handleDownload}
           >
             <Download className="h-4 w-4 mr-2" />
-            T├®l├®charger
-          </Button>
+            Télécharger
+          </Button> */}
         </div>
       )}
       <div
