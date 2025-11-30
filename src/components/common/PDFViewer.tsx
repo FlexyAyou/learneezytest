@@ -13,6 +13,7 @@ interface PDFViewerProps {
   height?: string;
   showDownload?: boolean;
   downloadKey?: string; // Clé alternative pour le téléchargement (ex: program_pdf_key)
+  onDownload?: () => Promise<void>; // Fonction personnalisée pour le téléchargement
 }
 
 const PDFViewer: React.FC<PDFViewerProps> = ({
@@ -21,7 +22,8 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   title,
   height = '600px',
   showDownload = true,
-  downloadKey
+  downloadKey,
+  onDownload
 }) => {
   const { toast } = useToast();
 
@@ -29,7 +31,26 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   const { url: playUrl, loading, error } = usePresignedUrl(pdfKey, pdfUrl);
 
   const handleDownload = async () => {
-    // Utiliser downloadKey si fourni (ex: program_pdf_key), sinon pdfKey
+    // Si une fonction de téléchargement personnalisée est fournie (ex: pour le programme), l'utiliser
+    if (onDownload) {
+      try {
+        await onDownload();
+        toast({
+          title: "✅ Téléchargement démarré",
+          description: title || "Document PDF",
+        });
+      } catch (err) {
+        console.error('Erreur téléchargement:', err);
+        toast({
+          title: "❌ Erreur",
+          description: "Impossible de télécharger le PDF",
+          variant: "destructive",
+        });
+      }
+      return;
+    }
+
+    // Sinon, utiliser le flux standard (downloadKey ou pdfKey)
     const keyToDownload = downloadKey || pdfKey;
     if (!keyToDownload) {
       toast({
