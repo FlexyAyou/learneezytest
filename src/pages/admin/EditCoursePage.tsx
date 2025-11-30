@@ -768,6 +768,10 @@ const EditCoursePage = () => {
         ...(lesson.video_url && { video_url: lesson.video_url }),
       });
 
+      // Recharger les données du cours pour synchroniser l'UI
+      const updatedCourse = await fastAPIClient.getCourse(id);
+      setModules(mapCourseToEditableModules(updatedCourse));
+
       setEditingLessonId(null);
       toast({ title: "✅ Leçon sauvegardée", description: lesson.title });
     } catch (error) {
@@ -815,11 +819,12 @@ const EditCoursePage = () => {
       const lessonId = course.modules[moduleIdx].content[lessonIdx].id!;
 
       await fastAPIClient.deleteLesson(id, moduleId, lessonId, false);
-      setModules(prev => prev.map((mod, idx) =>
-        idx === moduleIdx
-          ? { ...mod, lessons: mod.lessons.filter((_, lIdx) => lIdx !== lessonIdx) }
-          : mod
-      ));
+      
+      // Recharger les données du cours pour synchroniser l'UI
+      const updatedCourse = await fastAPIClient.getCourse(id);
+      setModules(mapCourseToEditableModules(updatedCourse));
+      
+      setEditingLessonId(null); // Fermer le formulaire d'édition
       toast({ title: "✅ Leçon supprimée" });
     } catch (error) {
       console.error('Error deleting lesson:', error);
