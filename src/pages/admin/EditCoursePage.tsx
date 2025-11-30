@@ -764,7 +764,8 @@ const EditCoursePage = () => {
         title: lesson.title,
         description: lesson.description,
         duration: lesson.duration,
-        // Ne pas toucher au média ici
+        // Inclure la vidéo URL si elle existe
+        ...(lesson.video_url && { video_url: lesson.video_url }),
       });
 
       setEditingLessonId(null);
