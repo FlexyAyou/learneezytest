@@ -4,6 +4,7 @@ import { Download, Maximize2, FileText } from 'lucide-react';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { useToast } from '@/hooks/use-toast';
 import { usePresignedUrl } from '@/hooks/usePresignedUrl';
+import { fastAPIClient } from '@/services/fastapi-client';
 
 interface PDFViewerProps {
   pdfUrl?: string;
@@ -25,7 +26,9 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   
   // Déterminer si pdfKey est un chemin direct (commence par 'public/') ou une clé storage
   const isDirectPath = pdfKey?.startsWith('public/');
-  const directUrl = isDirectPath ? `/${pdfKey}` : pdfUrl;
+  
+  // Pour les chemins directs, utiliser le endpoint de redirection
+  const directUrl = isDirectPath ? fastAPIClient.getPlayRedirectUrl(pdfKey) : pdfUrl;
   const storageKey = isDirectPath ? null : pdfKey;
   
   // Utiliser le hook pour gérer l'URL avec rafraîchissement automatique
@@ -150,7 +153,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
           height="100%"
           className="w-full h-full border-0"
           title={title || "PDF Viewer"}
-          sandbox="allow-same-origin allow-scripts allow-popups"
+          sandbox="allow-same-origin allow-popups"
           onError={() => {
             console.warn('[PDFViewer] Error loading PDF via iframe, retrying...');
             setRenderKey(k => k + 1);
