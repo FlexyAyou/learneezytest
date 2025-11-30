@@ -1718,6 +1718,7 @@ const CourseDetailPage = () => {
             {viewingProgramPDF && course && (
               <PDFViewer
                 pdfKey={course.program_pdf_key}
+                downloadKey={course.program_pdf_key}
                 title="Programme de formation"
                 height="calc(90vh - 120px)"
               />
@@ -1737,6 +1738,7 @@ const CourseDetailPage = () => {
               <PDFViewer
                 pdfKey={resources[viewingResourcePDF.index]?.key}
                 pdfUrl={resources[viewingResourcePDF.index]?.url}
+                downloadKey={resources[viewingResourcePDF.index]?.key}
                 title={viewingResourcePDF.name}
                 height="calc(90vh - 120px)"
               />

@@ -4,6 +4,7 @@ import { Download, Maximize2, FileText } from 'lucide-react';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { useToast } from '@/hooks/use-toast';
 import { usePresignedUrl } from '@/hooks/usePresignedUrl';
+import { fastAPIClient } from '@/services/fastapi-client';
 
 interface PDFViewerProps {
   pdfUrl?: string;
@@ -11,6 +12,7 @@ interface PDFViewerProps {
   title: string;
   height?: string;
   showDownload?: boolean;
+  downloadKey?: string; // Clé alternative pour le téléchargement (ex: program_pdf_key)
 }
 
 const PDFViewer: React.FC<PDFViewerProps> = ({
@@ -18,7 +20,8 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   pdfKey,
   title,
   height = '600px',
-  showDownload = true
+  showDownload = true,
+  downloadKey
 }) => {
   const { toast } = useToast();
 
@@ -26,11 +29,21 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   const { url: playUrl, loading, error } = usePresignedUrl(pdfKey, pdfUrl);
 
   const handleDownload = async () => {
-    if (!playUrl) return;
+    // Utiliser downloadKey si fourni (ex: program_pdf_key), sinon pdfKey
+    const keyToDownload = downloadKey || pdfKey;
+    if (!keyToDownload) {
+      toast({
+        title: "Erreur",
+        description: "Clé de téléchargement introuvable",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
+      const { download_url } = await fastAPIClient.getDownloadUrl(keyToDownload);
       const link = document.createElement('a');
-      link.href = playUrl;
+      link.href = download_url;
       link.download = title || 'document.pdf';
       link.target = '_blank';
       document.body.appendChild(link);
@@ -38,14 +51,14 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
       document.body.removeChild(link);
 
       toast({
-        title: "Ô£à T├®l├®chargement d├®marr├®",
+        title: "✅ Téléchargement démarré",
         description: title || "Document PDF",
       });
     } catch (err) {
-      console.error('Erreur t├®l├®chargement:', err);
+      console.error('Erreur téléchargement:', err);
       toast({
-        title: "ÔØî Erreur",
-        description: "Impossible de t├®l├®charger le PDF",
+        title: "❌ Erreur",
+        description: "Impossible de télécharger le PDF",
         variant: "destructive",
       });
     }
