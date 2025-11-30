@@ -4,6 +4,7 @@ import { Download, Maximize2, FileText } from 'lucide-react';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { useToast } from '@/hooks/use-toast';
 import { usePresignedUrl } from '@/hooks/usePresignedUrl';
+import { fastAPIClient } from '@/services/fastapi-client';
 
 interface PDFViewerProps {
   pdfUrl?: string;
@@ -70,6 +71,26 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     }
   };
 
+  const handleOpenViaPlayEndpoint = async () => {
+    if (!pdfKey) {
+      toast({ title: 'Aucune clé disponible', description: 'Clé PDF introuvable', variant: 'destructive' });
+      return;
+    }
+
+    try {
+      const res = await fastAPIClient.getPlayUrl(pdfKey);
+      const url = res.url;
+      if (url) {
+        window.open(url, '_blank');
+      } else {
+        toast({ title: 'Erreur', description: "Impossible d'obtenir l'URL de lecture", variant: 'destructive' });
+      }
+    } catch (err) {
+      console.error('Erreur getPlayUrl:', err);
+      toast({ title: 'Erreur', description: "Impossible d'appeler l'endpoint /api/storage/play", variant: 'destructive' });
+    }
+  };
+
   if (loading) {
     return (
       <div 
@@ -128,6 +149,15 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
           >
             <Maximize2 className="h-4 w-4" />
             Plein écran
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleOpenViaPlayEndpoint}
+            className="flex items-center gap-2"
+          >
+            <FileText className="h-4 w-4" />
+            Ouvrir via backend
           </Button>
           <Button
             variant="outline"
