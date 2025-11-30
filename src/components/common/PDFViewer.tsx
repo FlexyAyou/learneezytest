@@ -23,12 +23,17 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   const { toast } = useToast();
   const [renderKey, setRenderKey] = React.useState(0);
   
+  // Déterminer si pdfKey est un chemin direct (commence par 'public/') ou une clé storage
+  const isDirectPath = pdfKey?.startsWith('public/');
+  const directUrl = isDirectPath ? `/${pdfKey}` : pdfUrl;
+  const storageKey = isDirectPath ? null : pdfKey;
+  
   // Utiliser le hook pour gérer l'URL avec rafraîchissement automatique
-  const { url: playUrl, loading, error } = usePresignedUrl(pdfKey, pdfUrl);
+  const { url: playUrl, loading, error } = usePresignedUrl(storageKey, directUrl);
 
   React.useEffect(() => {
-    console.log('[PDFViewer] Données reçues:', { pdfKey, pdfUrl, playUrl, loading, error });
-  }, [pdfKey, pdfUrl, playUrl, loading, error]);
+    console.log('[PDFViewer] Données reçues:', { pdfKey, pdfUrl, isDirectPath, directUrl, storageKey, playUrl, loading, error });
+  }, [pdfKey, pdfUrl, isDirectPath, directUrl, storageKey, playUrl, loading, error]);
 
   const handleDownload = async () => {
     if (!playUrl) return;
