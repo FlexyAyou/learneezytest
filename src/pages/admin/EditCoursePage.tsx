@@ -362,6 +362,7 @@ const EditCoursePage = () => {
           resourceFileName: (lesson as any).resource_key ? 'Fichier existant' : undefined,
           video_url: (lesson as any).video_url,
           content_type: (lesson as any).content_type || 'video',
+          useMediaUrl: !!(lesson as any).video_url, // Si video_url existe, on utilise le mode URL; sinon mode Upload
           backendId: stringId,
         };
       });
