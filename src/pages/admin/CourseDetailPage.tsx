@@ -1503,7 +1503,8 @@ const CourseDetailPage = () => {
                       <span className="text-sm truncate font-medium">Visualiser</span>
                     </div>
                   </Button>
-                  <Button
+                  {/* Bouton Télécharger masqué temporairement - backend à réviser */}
+                  {/* <Button
                     variant="outline"
                     className="w-full justify-between h-auto py-3 hover:bg-blue-50"
                     onClick={async () => {
@@ -1541,7 +1542,7 @@ const CourseDetailPage = () => {
                       <Download className="h-4 w-4 flex-shrink-0 text-blue-600" />
                       <span className="text-sm truncate font-medium">Télécharger</span>
                     </div>
-                  </Button>
+                  </Button> */}
                 </div>
               ) : (
                 <div className="text-center py-4 text-muted-foreground">
@@ -1720,6 +1721,7 @@ const CourseDetailPage = () => {
                 pdfKey={course.program_pdf_key}
                 title="Programme de formation"
                 height="calc(90vh - 120px)"
+                onDownload={() => fastAPIClient.downloadCourseProgram(course.id)}
               />
             )}
           </div>
@@ -1739,6 +1741,7 @@ const CourseDetailPage = () => {
                 pdfUrl={resources[viewingResourcePDF.index]?.url}
                 title={viewingResourcePDF.name}
                 height="calc(90vh - 120px)"
+                onDownload={() => fastAPIClient.downloadCourseResource(courseId, viewingResourcePDF.index)}
               />
             )}
           </div>

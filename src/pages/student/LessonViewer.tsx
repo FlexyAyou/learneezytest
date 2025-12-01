@@ -13,7 +13,8 @@ import { useLearnerProgress } from '@/hooks/useLearnerProgress';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import VideoPlayer from '@/components/common/VideoPlayer';
 import PDFViewer from '@/components/common/PDFViewer';
-import { QuizViewer } from '@/components/student/QuizViewer';
+import ImageDisplay from '@/components/common/ImageDisplay';
+import StudentQuiz from '@/components/quiz/StudentQuiz';
 import { usePresignedUrl } from '@/hooks/usePresignedUrl';
 import { sanitizeHTML } from '@/utils/sanitizeHTML';
 import { useToast } from '@/hooks/use-toast';
@@ -175,10 +176,64 @@ const LessonViewer = () => {
     : isQuizCompleted(currentItem.id);
 
   const getContentType = (item: any) => {
-    if (item.type === 'quiz') return 'quiz';
-    if (item.video_key || item.video_url) return 'video';
-    if (item.pdf_key) return 'pdf';
-    if (item.image_key) return 'image';
+    console.log('[getContentType] Analyzing item:', {
+      title: item?.title,
+      type: item?.type,
+      pdf_key: item?.pdf_key,
+      resource_key: item?.resource_key,
+      key: item?.key,
+      content_type: item?.content_type,
+      video_key: item?.video_key,
+      video_url: item?.video_url,
+      image_key: item?.image_key,
+      image_url: item?.image_url,
+    });
+
+    if (item.type === 'quiz') {
+      console.log('[getContentType] Result: quiz');
+      return 'quiz';
+    }
+    
+    // PDF detection: check content_type first (most reliable)
+    if (item.content_type === 'application/pdf' || item.content_type === 'pdf') {
+      console.log('[getContentType] Result: pdf (via content_type)');
+      return 'pdf';
+    }
+    
+    // PDF detection: check pdf_key, resource_key, or key with PDF-related properties
+    if (item.pdf_key || item.resource_key) {
+      console.log('[getContentType] Result: pdf (via pdf_key or resource_key)');
+      return 'pdf';
+    }
+    
+    if (item.key && (item.content_type?.includes('pdf') || item.content_type?.includes('application'))) {
+      console.log('[getContentType] Result: pdf (via key + content_type pattern)');
+      return 'pdf';
+    }
+    
+    // Video detection: check video_key, video_url, or key without PDF content_type
+    if (item.video_key || item.video_url) {
+      console.log('[getContentType] Result: video (via video_key or video_url)');
+      return 'video';
+    }
+    
+    if (item.key && (!item.content_type || item.content_type.includes('video') || item.content_type.includes('mp4'))) {
+      console.log('[getContentType] Result: video (via key as default video)');
+      return 'video';
+    }
+    
+    // Image detection
+    if (item.image_key || item.image_url) {
+      console.log('[getContentType] Result: image');
+      return 'image';
+    }
+    
+    if (item.key && item.content_type?.includes('image')) {
+      console.log('[getContentType] Result: image (via key + content_type)');
+      return 'image';
+    }
+    
+    console.log('[getContentType] Result: text (default)');
     return 'text';
   };
 
@@ -414,8 +469,8 @@ const LessonViewer = () => {
                   <CardContent className="p-0">
                     {contentType === 'quiz' ? (
                       <div className="p-6">
-                        <QuizViewer 
-                          quiz={currentItem as QuizConfig} 
+                        <StudentQuiz
+                          quiz={currentItem}
                           onComplete={handleQuizComplete}
                         />
                       </div>
@@ -429,14 +484,24 @@ const LessonViewer = () => {
                           />
                         )}
                         {contentType === 'pdf' && (
-                          <PDFViewer
-                            pdfKey={currentItem.pdf_key}
-                            title={currentItem.title}
-                            height="600px"
-                          />
+                          <div className="bg-gray-50 p-4">
+                            <PDFViewer
+                              pdfKey={currentItem.pdf_key || currentItem.resource_key || currentItem.key}
+                              pdfUrl={currentItem.pdf_url}
+                              title={currentItem.title}
+                              height="800px"
+                              showDownload={true}
+                            />
+                          </div>
                         )}
                         {contentType === 'image' && (
-                          <ImageDisplay imageKey={currentItem.image_key} title={currentItem.title} />
+                          <ImageDisplay 
+                            imageKey={currentItem.image_key}
+                            imageUrl={currentItem.image_url}
+                            title={currentItem.title}
+                            height="800px"
+                            downloadable={true}
+                          />
                         )}
                       </>
                     )}
@@ -605,40 +670,6 @@ const LessonViewer = () => {
           </div>
         </div>
       </div>
-    </div>
-  );
-};
-
-// Component pour afficher les images
-const ImageDisplay: React.FC<{ imageKey?: string; title: string }> = ({ imageKey, title }) => {
-  const { url, loading, error } = usePresignedUrl(imageKey);
-
-  if (loading) {
-    return (
-      <div className="w-full aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
-        <LoadingSpinner />
-      </div>
-    );
-  }
-
-  if (error || !url) {
-    return (
-      <div className="w-full aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
-        <div className="text-center">
-          <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-          <p className="text-gray-500">Image non disponible</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="w-full">
-      <img 
-        src={url} 
-        alt={title} 
-        className="w-full h-auto rounded-lg"
-      />
     </div>
   );
 };
