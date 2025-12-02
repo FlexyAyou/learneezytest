@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -27,53 +27,7 @@ interface QuizViewerProps {
   onComplete?: (score: number, passed: boolean, answers: UserAnswer[]) => void;
 }
 
-// Normaliser les questions pour s'assurer qu'elles ont toutes un id unique et les champs corrects
-const normalizeQuestions = (questions: Question[]): Question[] => {
-  return questions.map((q, idx) => {
-    // Générer un id unique si manquant
-    const id = q.id || `question-${idx}-${Date.now()}`;
-    
-    // Mapper les champs backend en camelCase
-    const normalized: any = {
-      ...q,
-      id,
-    };
-
-    // Pour chaque type, s'assurer que les champs sont corrects
-    if (q.type === 'single-choice') {
-      normalized.correctAnswer = (q as any).correctAnswer ?? (q as any).correct_answer ?? 0;
-    } else if (q.type === 'multiple-choice') {
-      const raw = (q as any).correctAnswers ?? (q as any).correct_answers ?? [];
-      normalized.correctAnswers = Array.isArray(raw) ? raw : [];
-    } else if (q.type === 'true-false') {
-      const rawAnswer = (q as any).correctAnswer ?? (q as any).correct_answer;
-      normalized.correctAnswer = typeof rawAnswer === 'boolean' ? rawAnswer : rawAnswer === 'true' || rawAnswer === 'Vrai';
-    } else if (q.type === 'short-answer' || q.type === 'fill-blank') {
-      const raw = (q as any).correctAnswers ?? (q as any).correct_answers ?? [];
-      normalized.correctAnswers = Array.isArray(raw) ? raw.map(String) : [];
-    } else if (q.type === 'long-answer') {
-      normalized.minWords = (q as any).minWords ?? (q as any).min_words;
-      normalized.maxWords = (q as any).maxWords ?? (q as any).max_words;
-      normalized.rubric = (q as any).rubric ?? [];
-    } else if (q.type === 'matching') {
-      normalized.leftItems = (q as any).leftItems ?? (q as any).left_items ?? [];
-      normalized.rightItems = (q as any).rightItems ?? (q as any).right_items ?? [];
-      const rawMatches = (q as any).correctMatches ?? (q as any).correct_matches ?? {};
-      normalized.correctMatches = rawMatches;
-    } else if (q.type === 'ordering') {
-      normalized.items = (q as any).items ?? [];
-      const rawOrder = (q as any).correctOrder ?? (q as any).correct_order ?? [];
-      normalized.correctOrder = Array.isArray(rawOrder) ? rawOrder : [];
-    }
-
-    return normalized as Question;
-  });
-};
-
 export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
-  // Normaliser les questions au chargement
-  const normalizedQuestions = useMemo(() => normalizeQuestions(quiz.questions), [quiz.questions]);
-  
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [showResults, setShowResults] = useState(false);
@@ -84,8 +38,8 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
   const [attemptNumber, setAttemptNumber] = useState(1);
   const [startTime, setStartTime] = useState(Date.now());
 
-  const currentQuestion = normalizedQuestions[currentQuestionIndex];
-  const totalQuestions = normalizedQuestions.length;
+  const currentQuestion = quiz.questions[currentQuestionIndex];
+  const totalQuestions = quiz.questions.length;
   const progress = ((currentQuestionIndex + 1) / totalQuestions) * 100;
 
   // Reset state when quiz changes
@@ -122,81 +76,6 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const checkAnswer = (question: Question, userAnswer: any): number => {
-    if (!userAnswer && userAnswer !== 0 && userAnswer !== false) return 0;
-
-    switch (question.type) {
-      case 'single-choice': {
-        const correctIdx = (question as any).correctAnswer;
-        return userAnswer === correctIdx ? question.points : 0;
-      }
-
-      case 'multiple-choice': {
-        if (!Array.isArray(userAnswer)) return 0;
-        const correctAnswers = (question as any).correctAnswers || [];
-        const correctSet = new Set(correctAnswers.map((v: any) => Number(v)));
-        const userSet = new Set(userAnswer.map((v: any) => Number(v)));
-        if (correctSet.size !== userSet.size) return 0;
-        for (const ans of userSet) {
-          if (!correctSet.has(ans)) return 0;
-        }
-        return question.points;
-      }
-
-      case 'true-false': {
-        const correctAnswer = (question as any).correctAnswer;
-        return userAnswer === correctAnswer ? question.points : 0;
-      }
-
-      case 'short-answer':
-      case 'long-answer':
-        return 0; // Manual grading required
-
-      case 'fill-blank': {
-        if (!Array.isArray(userAnswer)) return 0;
-        const correctAnswers = (question as any).correctAnswers || [];
-        if (correctAnswers.length === 0) return 0;
-
-        let correctCount = 0;
-        correctAnswers.forEach((correctAns: any, index: number) => {
-          const userVal = (userAnswer[index] || '').trim().toLowerCase();
-          const correctVal = String(correctAns).trim().toLowerCase();
-          if (userVal === correctVal) correctCount++;
-        });
-
-        return (correctCount / correctAnswers.length) * question.points;
-      }
-
-      case 'matching': {
-        if (!userAnswer || typeof userAnswer !== 'object') return 0;
-        const correctMatches = (question as any).correctMatches || {};
-        const userMatches = userAnswer as Record<string, string>;
-        let correctCount = 0;
-        let totalMatches = 0;
-        
-        Object.keys(correctMatches).forEach(key => {
-          totalMatches++;
-          if (userMatches[key] === correctMatches[key]) {
-            correctCount++;
-          }
-        });
-        
-        return totalMatches > 0 ? (correctCount / totalMatches) * question.points : 0;
-      }
-
-      case 'ordering': {
-        if (!Array.isArray(userAnswer)) return 0;
-        const correctOrder = (question as any).correctOrder || [];
-        if (userAnswer.length !== correctOrder.length) return 0;
-        const isCorrect = userAnswer.every((item, idx) => item === correctOrder[idx]);
-        return isCorrect ? question.points : 0;
-      }
-
-      default:
-        return 0;
-    }
-  };
-
   const getCorrectAnswers = (question: any): string[] => {
     if (!question) return [];
     const raw = (question as any).correctAnswers ?? (question as any).correct_answers;
@@ -224,12 +103,78 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
     setCurrentQuestionIndex(index);
   };
 
+  const checkAnswer = (question: Question, userAnswer: any): number => {
+    if (!userAnswer) return 0;
+
+    switch (question.type) {
+      case 'single-choice':
+        return userAnswer === question.correctAnswer ? question.points : 0;
+
+      case 'multiple-choice':
+        if (!Array.isArray(userAnswer)) return 0;
+        const correctSet = new Set(question.correctAnswers);
+        const userSet = new Set(userAnswer);
+        if (correctSet.size !== userSet.size) return 0;
+        for (const ans of userSet) {
+          if (!correctSet.has(ans)) return 0;
+        }
+        return question.points;
+
+      case 'true-false':
+        return userAnswer === question.correctAnswer ? question.points : 0;
+
+      case 'short-answer':
+      case 'long-answer':
+        return 0; // Manual grading required
+
+      case 'fill-blank': {
+        if (!Array.isArray(userAnswer)) return 0;
+        const fbCorrectAnswers = getCorrectAnswers(question);
+        if (fbCorrectAnswers.length === 0) return 0;
+
+        let correctCount = 0;
+        fbCorrectAnswers.forEach((correctAns, index) => {
+          const userVal = userAnswer[index]?.trim().toLowerCase();
+          const correctVal = String(correctAns).trim().toLowerCase();
+          if (userVal === correctVal) correctCount++;
+        });
+
+        return (correctCount / fbCorrectAnswers.length) * question.points;
+      }
+
+      case 'matching':
+        if (!userAnswer || typeof userAnswer !== 'object') return 0;
+        const matchingQuestion = question as any;
+        const userMatches = userAnswer as Record<string, string>;
+        let correctMatches = 0;
+        Object.keys(matchingQuestion.correctMatches || {}).forEach(key => {
+          if (userMatches[key] === matchingQuestion.correctMatches[key]) {
+            correctMatches++;
+          }
+        });
+        const totalMatches = Object.keys(matchingQuestion.correctMatches || {}).length;
+        return totalMatches > 0 ? (correctMatches / totalMatches) * question.points : 0;
+
+      case 'ordering':
+        if (!Array.isArray(userAnswer)) return 0;
+        const orderingQuestion = question as any;
+        const correctOrder = orderingQuestion.correctOrder || [];
+        // Check if arrays are equal
+        if (userAnswer.length !== correctOrder.length) return 0;
+        const isCorrect = userAnswer.every((item, idx) => item === correctOrder[idx]);
+        return isCorrect ? question.points : 0;
+
+      default:
+        return 0;
+    }
+  };
+
   const handleSubmitQuiz = () => {
     let totalScore = 0;
-    const totalPoints = normalizedQuestions.reduce((sum, q) => sum + q.points, 0);
+    const totalPoints = quiz.questions.reduce((sum, q) => sum + q.points, 0);
     const userAnswers: UserAnswer[] = [];
 
-    normalizedQuestions.forEach((question) => {
+    quiz.questions.forEach((question) => {
       const userAnswer = answers[question.id];
       const earnedPoints = checkAnswer(question, userAnswer);
       totalScore += earnedPoints;
@@ -285,7 +230,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
               <div className="space-y-3">
                 {question.options.map((option, idx) => (
                   <div
-                    key={idx}
+                    key={`${question.id}-opt-${idx}`}
                     className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
                   >
                     <RadioGroupItem value={String(idx)} id={`${question.id}-${idx}`} />
@@ -306,7 +251,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
           <div className="space-y-3">
             {question.options.map((option, idx) => (
               <div
-                key={idx}
+                key={`${question.id}-opt-${idx}`}
                 className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50"
               >
                 <Checkbox
@@ -372,21 +317,17 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
         );
 
       case 'fill-blank': {
-        const correctAnswers = (question as any).correctAnswers || [];
+        const fbCorrectAnswers = getCorrectAnswers(question);
         const text = (question as any).text || '';
         const blanksInText = (text.match(/\[blank\]/g) || []).length;
-        const blankCount = blanksInText || correctAnswers.length || 1;
+        const blankCount = blanksInText || fbCorrectAnswers.length || 1;
 
         const blanksAnswers = Array.isArray(userAnswer)
           ? userAnswer
           : Array(blankCount).fill('');
 
-        // Options disponibles pour choisir (basées sur les réponses correctes mélangées avec des distracteurs)
-        const allOptions = [...correctAnswers];
-        
         return (
           <div className="space-y-4">
-            {/* Afficher le texte avec les blancs */}
             <div
               className="text-sm text-gray-700 mb-4 p-4 bg-gray-50 rounded-lg"
               dangerouslySetInnerHTML={{
@@ -397,70 +338,21 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
                   ) || '',
               }}
             />
-            
-            {/* Options cliquables */}
-            {allOptions.length > 0 && (
-              <div className="mb-4">
-                <p className="text-xs text-gray-500 mb-2">Options disponibles (cliquez pour ajouter) :</p>
-                <div className="flex flex-wrap gap-2">
-                  {allOptions.map((option, optIdx) => (
-                    <Button
-                      key={optIdx}
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="text-xs"
-                      onClick={() => {
-                        // Trouver le premier trou vide ou remplacer le dernier
-                        const newAnswers = [...blanksAnswers];
-                        const emptyIndex = newAnswers.findIndex(a => !a);
-                        if (emptyIndex !== -1) {
-                          newAnswers[emptyIndex] = String(option);
-                        } else if (newAnswers.length > 0) {
-                          newAnswers[newAnswers.length - 1] = String(option);
-                        }
-                        handleAnswerChange(question.id, newAnswers);
-                      }}
-                    >
-                      {option}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            )}
-            
-            {/* Champs de saisie pour chaque trou */}
-            <p className="text-xs text-gray-500 mb-2">
-              Remplissez les trous dans l'ordre (vous pouvez aussi saisir directement) :
+            <p className="text-xs text-gray-500 mb-4">
+              Remplissez les trous dans l'ordre d'apparition :
             </p>
             {Array.from({ length: blankCount }).map((_, idx) => (
-              <div key={idx} className="space-y-2">
+              <div key={`${question.id}-blank-${idx}`} className="space-y-2">
                 <Label>Trou {idx + 1}</Label>
-                <div className="flex gap-2 items-center">
-                  <Input
-                    value={blanksAnswers[idx] || ''}
-                    onChange={(e) => {
-                      const newAnswers = [...blanksAnswers];
-                      newAnswers[idx] = e.target.value;
-                      handleAnswerChange(question.id, newAnswers);
-                    }}
-                    placeholder={`Réponse pour le trou ${idx + 1}`}
-                  />
-                  {blanksAnswers[idx] && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        const newAnswers = [...blanksAnswers];
-                        newAnswers[idx] = '';
-                        handleAnswerChange(question.id, newAnswers);
-                      }}
-                    >
-                      <XCircle className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
+                <Input
+                  value={blanksAnswers[idx] || ''}
+                  onChange={(e) => {
+                    const newAnswers = [...blanksAnswers];
+                    newAnswers[idx] = e.target.value;
+                    handleAnswerChange(question.id, newAnswers);
+                  }}
+                  placeholder={`Réponse pour le trou ${idx + 1}`}
+                />
               </div>
             ))}
           </div>
@@ -474,7 +366,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
           <div className="space-y-4">
             <p className="text-sm text-gray-600 mb-4">Associez les éléments de gauche avec ceux de droite :</p>
             {(matchingQ.leftItems || []).map((leftItem: string, idx: number) => (
-              <div key={idx} className="flex items-center gap-4 p-3 border rounded-lg">
+              <div key={`${question.id}-left-${idx}`} className="flex items-center gap-4 p-3 border rounded-lg">
                 <div className="flex-1 font-medium">{leftItem}</div>
                 <div className="text-gray-400">→</div>
                 <Select
@@ -488,7 +380,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
                   </SelectTrigger>
                   <SelectContent>
                     {(matchingQ.rightItems || []).map((rightItem: string, ridx: number) => (
-                      <SelectItem key={ridx} value={rightItem}>
+                      <SelectItem key={`${question.id}-right-${ridx}`} value={rightItem}>
                         {rightItem}
                       </SelectItem>
                     ))}
@@ -507,7 +399,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
             <p className="text-sm text-gray-600 mb-4">Réorganisez les éléments dans le bon ordre (du premier au dernier) :</p>
             <div className="space-y-2">
               {orderingAnswers.map((item: string, idx: number) => (
-                <div key={idx} className="flex items-center gap-2 p-3 border rounded-lg bg-white">
+                <div key={`${question.id}-order-${idx}`} className="flex items-center gap-2 p-3 border rounded-lg bg-white">
                   <span className="font-bold text-gray-500">{idx + 1}.</span>
                   <span className="flex-1">{item}</span>
                   <div className="flex gap-1">
@@ -598,7 +490,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
             <CardTitle>Détail des réponses</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {normalizedQuestions.map((question, idx) => {
+            {quiz.questions.map((question, idx) => {
               const userAnswer = answers[question.id];
               const earnedPoints = checkAnswer(question, userAnswer);
               const isCorrect = earnedPoints === question.points;
@@ -664,8 +556,8 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
                           Bonnes réponses:{' '}
                           <span className="font-medium">
                             {(() => {
-                              const correctAnswers = (question as any).correctAnswers || [];
-                              const indices = correctAnswers.map((v: any) => Number(v));
+                              const raw = getCorrectAnswers(question);
+                              const indices = raw.map((v: any) => Number(v));
                               const labels = indices
                                 .map((i) => question.options[i])
                                 .filter((v) => v !== undefined);
@@ -681,7 +573,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
                     <div className="text-sm mt-2">
                       <p className="text-gray-600">Votre réponse: <span className="font-medium">{userAnswer === true ? 'Vrai' : userAnswer === false ? 'Faux' : 'Aucune réponse'}</span></p>
                       {!isCorrect && (
-                        <p className="text-green-600">Bonne réponse: <span className="font-medium">{(question as any).correctAnswer ? 'Vrai' : 'Faux'}</span></p>
+                        <p className="text-green-600">Bonne réponse: <span className="font-medium">{question.correctAnswer ? 'Vrai' : 'Faux'}</span></p>
                       )}
                     </div>
                   )}
@@ -689,7 +581,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
                   {question.type === 'short-answer' && (
                     <div className="text-sm mt-2">
                       <p className="text-gray-600">Votre réponse: <span className="font-medium">{userAnswer || 'Aucune réponse'}</span></p>
-                      <p className="text-green-600">Réponses acceptées: <span className="font-medium">{((question as any).correctAnswers || []).join(', ')}</span></p>
+                      <p className="text-green-600">Réponses acceptées: <span className="font-medium">{getCorrectAnswers(question).join(', ')}</span></p>
                     </div>
                   )}
 
@@ -708,15 +600,15 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
                       <p className="text-gray-600 mb-2">Vos réponses:</p>
                       <ul className="list-disc list-inside space-y-1 ml-2">
                         {Array.isArray(userAnswer) ? userAnswer.map((ans: string, idx: number) => (
-                          <li key={idx}>Trou {idx + 1}: <span className="font-medium">{ans || '(vide)'}</span></li>
+                          <li key={`${question.id}-fb-user-${idx}`}>Trou {idx + 1}: <span className="font-medium">{ans || '(vide)'}</span></li>
                         )) : <li>(Aucune réponse)</li>}
                       </ul>
                       {!isCorrect && (
                         <div className="mt-2">
                           <p className="text-green-600">Bonnes réponses:</p>
                           <ul className="list-disc list-inside space-y-1 ml-2 text-green-600">
-                            {((question as any).correctAnswers || []).map((ans: string, idx: number) => (
-                              <li key={idx}>Trou {idx + 1}: <span className="font-medium">{ans}</span></li>
+                            {getCorrectAnswers(question).map((ans: string, idx: number) => (
+                              <li key={`${question.id}-fb-correct-${idx}`}>Trou {idx + 1}: <span className="font-medium">{ans}</span></li>
                             ))}
                           </ul>
                         </div>
@@ -730,7 +622,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
                       <ul className="list-disc list-inside space-y-1 ml-2">
                         {userAnswer && typeof userAnswer === 'object' ? 
                           Object.entries(userAnswer as Record<string, string>).map(([left, right], idx) => (
-                            <li key={idx}>{left} → <span className="font-medium">{right}</span></li>
+                            <li key={`${question.id}-match-user-${idx}`}>{left} → <span className="font-medium">{right}</span></li>
                           )) : <li>(Aucune réponse)</li>
                         }
                       </ul>
@@ -739,7 +631,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
                           <p className="text-green-600">Bonnes associations:</p>
                           <ul className="list-disc list-inside space-y-1 ml-2 text-green-600">
                             {Object.entries((question as any).correctMatches as Record<string, string>).map(([left, right], idx) => (
-                              <li key={idx}>{left} → <span className="font-medium">{right}</span></li>
+                              <li key={`${question.id}-match-correct-${idx}`}>{left} → <span className="font-medium">{right}</span></li>
                             ))}
                           </ul>
                         </div>
@@ -752,7 +644,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
                       <p className="text-gray-600 mb-2">Votre ordre:</p>
                       <ol className="list-decimal list-inside space-y-1 ml-2">
                         {Array.isArray(userAnswer) ? userAnswer.map((item: string, idx: number) => (
-                          <li key={idx}><span className="font-medium">{item}</span></li>
+                          <li key={`${question.id}-ord-user-${idx}`}><span className="font-medium">{item}</span></li>
                         )) : <li>(Aucune réponse)</li>}
                       </ol>
                       {!isCorrect && (question as any).correctOrder && (
@@ -760,7 +652,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
                           <p className="text-green-600">Bon ordre:</p>
                           <ol className="list-decimal list-inside space-y-1 ml-2 text-green-600">
                             {((question as any).correctOrder as string[]).map((item: string, idx: number) => (
-                              <li key={idx}><span className="font-medium">{item}</span></li>
+                              <li key={`${question.id}-ord-correct-${idx}`}><span className="font-medium">{item}</span></li>
                             ))}
                           </ol>
                         </div>
@@ -806,14 +698,14 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
 
           {/* Navigation par points */}
           <div className="flex flex-wrap gap-2 mt-4">
-            {normalizedQuestions.map((q, idx) => (
+            {quiz.questions.map((_, idx) => (
               <button
-                key={q.id}
+                key={`nav-${quiz.questions[idx]?.id ?? idx}`}
                 onClick={() => handleQuestionJump(idx)}
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors ${
                   idx === currentQuestionIndex
                     ? 'bg-blue-600 text-white'
-                    : answers[q.id]
+                    : answers[quiz.questions[idx].id]
                     ? 'bg-green-100 text-green-700 border border-green-300'
                     : 'bg-gray-100 text-gray-600 border border-gray-300 hover:bg-gray-200'
                 }`}
