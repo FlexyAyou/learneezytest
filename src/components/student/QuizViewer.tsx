@@ -99,17 +99,6 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
     setStartTime(Date.now());
   }, [quiz.id]);
 
-  // Safety check: if no questions, show empty state
-  if (!quiz.questions || quiz.questions.length === 0) {
-    return (
-      <Card>
-        <CardContent className="p-6 text-center">
-          <p className="text-gray-500">Aucune question disponible pour ce quiz/devoir.</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
   // Timer
   useEffect(() => {
     if (timeRemaining === null || timeRemaining <= 0 || showResults) return;
@@ -784,6 +773,17 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
           </CardContent>
         </Card>
       </div>
+    );
+  }
+
+  // Safety check: if no questions, show empty state
+  if (!normalizedQuestions || normalizedQuestions.length === 0) {
+    return (
+      <Card>
+        <CardContent className="p-6 text-center">
+          <p className="text-gray-500">Aucune question disponible pour ce quiz/devoir.</p>
+        </CardContent>
+      </Card>
     );
   }
 
