@@ -72,7 +72,18 @@ const normalizeQuestions = (questions: Question[]): Question[] => {
 
 export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
   // Normaliser les questions au chargement
-  const normalizedQuestions = useMemo(() => normalizeQuestions(quiz.questions), [quiz.questions]);
+  const normalizedQuestions = useMemo(() => normalizeQuestions(quiz.questions || []), [quiz.questions]);
+  
+  // Safety check: if no questions, show empty state
+  if (!quiz.questions || quiz.questions.length === 0) {
+    return (
+      <Card>
+        <CardContent className="p-6 text-center">
+          <p className="text-gray-500">Aucune question disponible pour ce quiz/devoir.</p>
+        </CardContent>
+      </Card>
+    );
+  }
   
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, any>>({});
@@ -831,13 +842,13 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <CardTitle className="text-lg">Question {currentQuestionIndex + 1}</CardTitle>
-              <CardDescription className="text-base mt-2">{currentQuestion.question}</CardDescription>
+              <CardDescription className="text-base mt-2">{currentQuestion?.question || 'Aucune question'}</CardDescription>
             </div>
-            <Badge variant="secondary">{currentQuestion.points} pts</Badge>
+            <Badge variant="secondary">{currentQuestion?.points || 0} pts</Badge>
           </div>
         </CardHeader>
         <CardContent>
-          {currentQuestion.media && (
+          {currentQuestion?.media && (
             <div className="mb-6">
               <p className="text-sm text-muted-foreground mb-3 font-medium">Média associé à la question :</p>
               <MediaPreview
@@ -847,7 +858,7 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
               />
             </div>
           )}
-          {renderQuestion(currentQuestion)}
+          {currentQuestion && renderQuestion(currentQuestion)}
         </CardContent>
       </Card>
 
