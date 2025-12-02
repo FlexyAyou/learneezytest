@@ -14,6 +14,7 @@ import { sanitizeHTML } from '@/utils/sanitizeHTML';
 import { usePresignedUrl } from '@/hooks/usePresignedUrl';
 import { QuizModal } from '@/components/student/QuizModal';
 import { QuizConfig } from '@/types/quiz';
+import { AssignmentModal } from '@/components/student/AssignmentModal';
 
 const CourseViewer = () => {
   const { id } = useParams<{ id: string }>();
@@ -24,6 +25,8 @@ const CourseViewer = () => {
   const [completedLessons, setCompletedLessons] = useState<string[]>([]);
   const [selectedQuiz, setSelectedQuiz] = useState<QuizConfig | null>(null);
   const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
+  const [currentAssignment, setCurrentAssignment] = useState<any | null>(null);
+  const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false);
   const [downloadingProgram, setDownloadingProgram] = useState(false);
   const [downloadingResourceIndex, setDownloadingResourceIndex] = useState<number | null>(null);
   const [zippingResources, setZippingResources] = useState(false);
@@ -242,6 +245,11 @@ const CourseViewer = () => {
     navigate(`/dashboard/apprenant/courses/${id}/lessons/${lessonTitle}`);
   };
 
+  const openAssignment = (assignment: any, moduleId: string) => {
+    setCurrentAssignment({ ...assignment, __moduleId: moduleId });
+    setIsAssignmentModalOpen(true);
+  };
+
   const getLearningCycle = () => {
     if (!course.learning_cycle) return null;
     const cycles: Record<string, string> = {
@@ -421,6 +429,30 @@ const CourseViewer = () => {
                           ))}
                         </>
                       )}
+                      {/* Assignments */}
+                      {(module.assignment || module.order?.some((o:any)=>o.type==='assignment')) && (
+                        <>
+                          <div className="pt-2 border-t">
+                            <h4 className="text-sm font-semibold text-gray-700 mb-2">Devoir du module</h4>
+                          </div>
+                          <div className="flex items-center justify-between p-3 border rounded-lg bg-yellow-50 hover:bg-yellow-100 cursor-pointer transition-colors">
+                            <div className="flex items-center gap-3">
+                              <Book className="w-5 h-5 text-yellow-600" />
+                              <div>
+                                <p className="font-medium">📚 {module.assignment?.title || 'Devoir du module'}</p>
+                                <p className="text-sm text-gray-600">{module.assignment?.questions?.length ?? '–'} question(s)</p>
+                              </div>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => openAssignment(module.assignment || { id: module.id, title: 'Devoir' }, module.id)}
+                            >
+                              Passer le devoir
+                            </Button>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -595,6 +627,24 @@ const CourseViewer = () => {
               // Mark quiz as completed
               setCompletedLessons([...completedLessons, selectedQuiz.id]);
             }
+          }}
+        />
+      )}
+
+      {/* Assignment Modal */}
+      {currentAssignment && (
+        <AssignmentModal
+          open={isAssignmentModalOpen}
+          onOpenChange={setIsAssignmentModalOpen}
+          assignment={currentAssignment}
+          courseId={id || ''}
+          moduleId={currentAssignment.__moduleId}
+          onComplete={(result) => {
+            console.log('Assignment completed:', result);
+            if (result.isPassing) {
+              setCompletedLessons([...completedLessons, currentAssignment.id]);
+            }
+            setIsAssignmentModalOpen(false);
           }}
         />
       )}
