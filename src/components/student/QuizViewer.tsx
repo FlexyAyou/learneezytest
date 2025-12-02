@@ -74,17 +74,6 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
   // Normaliser les questions au chargement
   const normalizedQuestions = useMemo(() => normalizeQuestions(quiz.questions || []), [quiz.questions]);
   
-  // Safety check: if no questions, show empty state
-  if (!quiz.questions || quiz.questions.length === 0) {
-    return (
-      <Card>
-        <CardContent className="p-6 text-center">
-          <p className="text-gray-500">Aucune question disponible pour ce quiz/devoir.</p>
-        </CardContent>
-      </Card>
-    );
-  }
-  
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [showResults, setShowResults] = useState(false);
@@ -109,6 +98,17 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
     setAttemptNumber(1);
     setStartTime(Date.now());
   }, [quiz.id]);
+
+  // Safety check: if no questions, show empty state
+  if (!quiz.questions || quiz.questions.length === 0) {
+    return (
+      <Card>
+        <CardContent className="p-6 text-center">
+          <p className="text-gray-500">Aucune question disponible pour ce quiz/devoir.</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   // Timer
   useEffect(() => {
