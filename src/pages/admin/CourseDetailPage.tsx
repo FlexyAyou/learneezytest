@@ -257,8 +257,9 @@ const CourseDetailPage = () => {
   const totalQuizzes = course?.modules?.reduce((acc, mod) => acc + (mod.quizzes?.length || 0), 0) || 0;
   const totalAssignments = course?.modules?.reduce((acc, mod) => {
     const anyMod: any = mod;
-    const order = anyMod.order as Array<{ type: string; id: string }> | undefined;
-    return acc + (order?.some(o => o.type === 'assignment') ? 1 : 0);
+    const hasAssignmentInOrder = (anyMod.order as Array<{ type: string; id: string }> | undefined)?.some(o => o.type === 'assignment');
+    const hasAssignmentProp = !!anyMod.assignment;
+    return acc + (hasAssignmentInOrder || hasAssignmentProp ? 1 : 0);
   }, 0) || 0;
 
   if (loading) {
