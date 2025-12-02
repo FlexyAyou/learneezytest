@@ -14,6 +14,7 @@ import LoadingSpinner from '@/components/common/LoadingSpinner';
 import VideoPlayer from '@/components/common/VideoPlayer';
 import PDFViewer from '@/components/common/PDFViewer';
 import { QuizViewer } from '@/components/student/QuizViewer';
+import { AssignmentModal } from '@/components/student/AssignmentModal';
 import { usePresignedUrl } from '@/hooks/usePresignedUrl';
 import { sanitizeHTML } from '@/utils/sanitizeHTML';
 import { useToast } from '@/hooks/use-toast';
@@ -25,6 +26,8 @@ const LessonViewer = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [showTableOfContents, setShowTableOfContents] = useState(true);
+  const [currentAssignment, setCurrentAssignment] = useState<any | null>(null);
+  const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false);
 
   // Fetch course data
   const { data: course, isLoading } = useCourse(courseId!);
@@ -82,6 +85,22 @@ const LessonViewer = () => {
             foundType = 'quiz';
           }
         });
+      }
+
+      // Add assignment if present or declared in order
+      const hasAssignmentInOrder = module.order?.some((o: any) => o.type === 'assignment');
+      if (module.assignment || hasAssignmentInOrder) {
+        const assignmentItem = module.assignment
+          ? { ...module.assignment, module, type: 'assignment', id: `${module.id}-assignment` }
+          : { id: `${module.id}-assignment`, title: 'Devoir du module', module, type: 'assignment' };
+
+        items.push(assignmentItem);
+        if ((assignmentItem.title || '') === lessonId) {
+          foundItem = assignmentItem;
+          foundModule = module;
+          foundIndex = items.length - 1;
+          foundType = 'assignment';
+        }
       }
     });
 
@@ -317,6 +336,34 @@ const LessonViewer = () => {
                         </div>
                       );
                     })}
+                    {/* Assignments (module-level) */}
+                    {((module.assignment) || module.order?.some((o:any)=>o.type==='assignment')) && (
+                      <div
+                        key={`assignment-${module.id}`}
+                        className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200 border-l-4 ${{}.toString()}`}
+                        onClick={() => handleItemClick(module.assignment?.title || `Devoir du module ${module.title}`)}
+                      >
+                        <div className="flex-shrink-0">
+                          <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center shadow-sm ${module.assignment ? 'border-yellow-400 bg-yellow-50' : 'border-gray-300 bg-white'}`}>
+                            <ClipboardList className={`w-4 h-4 ${module.assignment ? 'text-yellow-600' : 'text-gray-400'}`} />
+                          </div>
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <ClipboardList className="w-3 h-3 text-yellow-500" />
+                            <p className={`text-sm font-semibold truncate ${module.assignment?.title === lessonId ? 'text-yellow-900' : 'text-gray-900'}`}>
+                              {module.assignment?.title || 'Devoir du module'}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2 mt-1">
+                            <p className="text-xs text-gray-500 flex items-center">
+                              {module.assignment?.questions?.length ?? '–'} questions
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -412,12 +459,25 @@ const LessonViewer = () => {
                 {/* Contenu de la leçon */}
                 <Card className="mb-6">
                   <CardContent className="p-0">
-                    {contentType === 'quiz' ? (
+                    {itemType === 'quiz' ? (
                       <div className="p-6">
                         <QuizViewer 
                           quiz={currentItem as QuizConfig} 
                           onComplete={handleQuizComplete}
                         />
+                      </div>
+                    ) : itemType === 'assignment' ? (
+                      <div className="p-6">
+                        <div className="mb-4">
+                          <h2 className="text-2xl font-semibold">{currentItem.title}</h2>
+                          <p className="text-sm text-gray-600 mt-2">{currentItem.instructions || currentItem.description}</p>
+                        </div>
+                        <div className="mb-6">
+                          <Button onClick={() => { setCurrentAssignment(currentItem); setIsAssignmentModalOpen(true); }}>
+                            Passer le devoir
+                          </Button>
+                        </div>
+                        <div className="prose max-w-none mt-4" dangerouslySetInnerHTML={{ __html: sanitizeHTML(currentItem.description || '') }} />
                       </div>
                     ) : (
                       <>
@@ -442,6 +502,23 @@ const LessonViewer = () => {
                     )}
                   </CardContent>
                 </Card>
+
+                {currentAssignment && (
+                  <AssignmentModal
+                    open={isAssignmentModalOpen}
+                    onOpenChange={(open) => {
+                      setIsAssignmentModalOpen(open);
+                      if (!open) setCurrentAssignment(null);
+                    }}
+                    assignment={currentAssignment}
+                    courseId={courseId!}
+                    moduleId={currentModule?.id}
+                    onComplete={(result) => {
+                      setIsAssignmentModalOpen(false);
+                      // Optionally: mark lesson/assignment as completed in progress hook
+                    }}
+                  />
+                )}
 
                 {/* Onglets de contenu */}
                 <Tabs defaultValue="overview" className="w-full">
@@ -608,6 +685,9 @@ const LessonViewer = () => {
     </div>
   );
 };
+
+// Render AssignmentModal at root so it can be opened from lesson page
+const _withAssignmentModal = () => null;
 
 // Component pour afficher les images
 const ImageDisplay: React.FC<{ imageKey?: string; title: string }> = ({ imageKey, title }) => {
