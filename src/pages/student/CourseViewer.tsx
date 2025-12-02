@@ -14,7 +14,6 @@ import { sanitizeHTML } from '@/utils/sanitizeHTML';
 import { usePresignedUrl } from '@/hooks/usePresignedUrl';
 import { QuizModal } from '@/components/student/QuizModal';
 import { QuizConfig } from '@/types/quiz';
-import { AssignmentModal } from '@/components/student/AssignmentModal';
 
 const CourseViewer = () => {
   const { id } = useParams<{ id: string }>();
@@ -25,8 +24,6 @@ const CourseViewer = () => {
   const [completedLessons, setCompletedLessons] = useState<string[]>([]);
   const [selectedQuiz, setSelectedQuiz] = useState<QuizConfig | null>(null);
   const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
-  const [currentAssignment, setCurrentAssignment] = useState<any | null>(null);
-  const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false);
   const [downloadingProgram, setDownloadingProgram] = useState(false);
   const [downloadingResourceIndex, setDownloadingResourceIndex] = useState<number | null>(null);
   const [zippingResources, setZippingResources] = useState(false);
@@ -245,11 +242,6 @@ const CourseViewer = () => {
     navigate(`/dashboard/apprenant/courses/${id}/lessons/${lessonTitle}`);
   };
 
-  const openAssignment = (assignment: any, moduleId: string) => {
-    setCurrentAssignment({ ...assignment, __moduleId: moduleId });
-    setIsAssignmentModalOpen(true);
-  };
-
   const getLearningCycle = () => {
     if (!course.learning_cycle) return null;
     const cycles: Record<string, string> = {
@@ -429,7 +421,6 @@ const CourseViewer = () => {
                           ))}
                         </>
                       )}
-                      {/* Assignments disabled for learners for now */}
                     </div>
                   </CardContent>
                 </Card>
@@ -604,24 +595,6 @@ const CourseViewer = () => {
               // Mark quiz as completed
               setCompletedLessons([...completedLessons, selectedQuiz.id]);
             }
-          }}
-        />
-      )}
-
-      {/* Assignment Modal */}
-      {currentAssignment && (
-        <AssignmentModal
-          open={isAssignmentModalOpen}
-          onOpenChange={setIsAssignmentModalOpen}
-          assignment={currentAssignment}
-          courseId={id || ''}
-          moduleId={currentAssignment.__moduleId}
-          onComplete={(result) => {
-            console.log('Assignment completed:', result);
-            if (result.isPassing) {
-              setCompletedLessons([...completedLessons, currentAssignment.id]);
-            }
-            setIsAssignmentModalOpen(false);
           }}
         />
       )}

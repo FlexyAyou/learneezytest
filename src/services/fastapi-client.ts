@@ -945,28 +945,6 @@ class FastAPIClient {
   }
 
   /**
-   * Commencer une évaluation pour un assignment (création d'une session d'évaluation)
-   */
-  async startAssignmentEvaluation(
-    courseId: string,
-    moduleId: string,
-    assignmentId: string
-  ): Promise<any> {
-    return this.post<any>(`/api/evaluations/assignment`, {
-      course_id: courseId,
-      module_id: moduleId,
-      assignment_id: assignmentId,
-    });
-  }
-
-  /**
-   * Soumettre les réponses d'une évaluation
-   */
-  async submitEvaluation(evaluationId: string, payload: any): Promise<any> {
-    return this.post<any>(`/api/evaluations/${evaluationId}/submit`, payload);
-  }
-
-  /**
    * S'inscrire à un cours (enrollment)
    */
   async enrollCourse(courseId: string): Promise<EnrollResponse> {
