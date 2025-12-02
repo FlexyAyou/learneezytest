@@ -529,23 +529,45 @@ const CourseDetailPage = () => {
                           try {
                             const anyMod: any = module;
                             const order = anyMod.order as Array<{ type: string; id: string }> | undefined;
-                            const hasAssignment = order?.some(o => o.type === 'assignment');
+                            const hasAssignmentInOrder = order?.some(o => o.type === 'assignment');
+                            const hasAssignmentProp = !!anyMod.assignment;
 
-                            if (hasAssignment && !(anyMod.__assignment_loaded)) {
+                            // Charger l'assignment si:
+                            // 1. Il est dans order ET pas encore chargé, OU
+                            // 2. Il n'est pas dans order mais pourrait exister (faire une tentative)
+                            if (!anyMod.__assignment_loaded) {
                               const moduleId = anyMod.id as string;
-                              const assignment = await fastAPIClient.getAssignment(courseId, moduleId);
-
-                              setCourse(prev => {
-                                if (!prev) return prev;
-                                const cloned = { ...prev } as any;
-                                const mods = [...(cloned.modules || [])];
-                                const target = { ...(mods[index] as any) };
-                                target.assignment = assignment;
-                                target.__assignment_loaded = true;
-                                mods[index] = target;
-                                cloned.modules = mods;
-                                return cloned;
-                              });
+                              try {
+                                const assignment = await fastAPIClient.getAssignment(courseId, moduleId);
+                                setCourse(prev => {
+                                  if (!prev) return prev;
+                                  const cloned = { ...prev } as any;
+                                  const mods = [...(cloned.modules || [])];
+                                  const target = { ...(mods[index] as any) };
+                                  target.assignment = assignment;
+                                  target.__assignment_loaded = true;
+                                  mods[index] = target;
+                                  cloned.modules = mods;
+                                  return cloned;
+                                });
+                              } catch (err: any) {
+                                // 404 est acceptable (pas de devoir pour ce module)
+                                if (err?.response?.status === 404) {
+                                  // Marquer comme chargé pour ne pas réessayer
+                                  setCourse(prev => {
+                                    if (!prev) return prev;
+                                    const cloned = { ...prev } as any;
+                                    const mods = [...(cloned.modules || [])];
+                                    const target = { ...(mods[index] as any) };
+                                    target.__assignment_loaded = true;
+                                    mods[index] = target;
+                                    cloned.modules = mods;
+                                    return cloned;
+                                  });
+                                } else {
+                                  throw err;
+                                }
+                              }
                             }
                           } catch (e) {
                             console.warn('Impossible de charger le devoir pour ce module', e);
@@ -567,7 +589,7 @@ const CourseDetailPage = () => {
                               <Clock className="h-3 w-3 mr-1" />
                               {module.duration}
                             </Badge>
-                            {(module as any).assignment && (
+                            {((module as any).assignment || (module as any).order?.some((o: any) => o.type === 'assignment')) && (
                               <Badge variant="outline" className="border-orange-300 text-orange-700 flex items-center gap-1">
                                 <ClipboardList className="h-3 w-3" />
                                 Devoir
