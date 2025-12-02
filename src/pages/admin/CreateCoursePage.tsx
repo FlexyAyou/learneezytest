@@ -1099,27 +1099,30 @@ const CreateCoursePage = () => {
                 };
 
                 if (q.type === 'single-choice') {
-                  // SingleChoiceQuestion: options + correctAnswer (index)
+                  // SingleChoiceQuestion: options + correct_answer (index) - snake_case pour backend
                   base.options = q.options || [];
-                  base.correctAnswer = typeof q.correctAnswer === 'number' ? q.correctAnswer : 0;
+                  base.correct_answer = typeof q.correctAnswer === 'number' ? q.correctAnswer : 0;
                 } else if (q.type === 'multiple-choice') {
-                  // MultipleChoiceQuestion: options + correctAnswers (indexes)
+                  // MultipleChoiceQuestion: options + correct_answers (indexes) - snake_case pour backend
                   base.options = q.options || [];
-                  base.correctAnswers = q.correctAnswers || [];
+                  const answers = q.correctAnswers || [];
+                  base.correct_answers = answers.length > 0 ? answers : [0];
                 } else if (q.type === 'true-false') {
-                  // TrueFalseQuestion: correctAnswer (bool attendu par le backend de domaine évaluations)
-                  base.correctAnswer = !!q.correctAnswer;
+                  // TrueFalseQuestion: correct_answer (bool attendu par le backend)
+                  base.correct_answer = !!q.correctAnswer;
                 } else if (q.type === 'short-answer') {
-                  // ShortAnswerQuestion: correctAnswers (liste de chaînes)
-                  base.correctAnswers = q.correctAnswers || [];
+                  // ShortAnswerQuestion: correct_answers (liste de chaînes)
+                  const answers = q.correctAnswers || [];
+                  base.correct_answers = answers.length > 0 ? answers : [''];
                 } else if (q.type === 'long-answer') {
-                  // Long answer: contraintes/rubric
-                  base.minWords = q.minWords || undefined;
-                  base.maxWords = q.maxWords || undefined;
+                  // Long answer: contraintes/rubric - snake_case
+                  base.min_words = q.minWords || undefined;
+                  base.max_words = q.maxWords || undefined;
                   base.rubric = q.rubric || [];
                 } else if (q.type === 'fill-blank') {
-                  base.text = q.text;
-                  base.correctAnswers = q.correctAnswers || [];
+                  base.text = q.text || q.question;
+                  const answers = q.correctAnswers || [];
+                  base.correct_answers = answers.length > 0 ? answers : [''];
                 } else if (q.type === 'matching') {
                   const leftItems: string[] = Array.isArray(q.leftItems) ? q.leftItems : [];
                   const rightItems: string[] = Array.isArray(q.rightItems) ? q.rightItems : [];
@@ -1138,12 +1141,13 @@ const CreateCoursePage = () => {
                     matches = Array.from({ length: n }, (_, i) => ({ left: i, right: i }));
                   }
 
-                  base.leftItems = leftItems;
-                  base.rightItems = rightItems;
-                  base.correctMatches = matches;
+                  // snake_case pour backend
+                  base.left_items = leftItems;
+                  base.right_items = rightItems;
+                  base.correct_matches = matches;
                 } else if (q.type === 'ordering') {
                   base.items = q.items || [];
-                  base.correctOrder = q.correctOrder || base.items.map((_: any, i: number) => i);
+                  base.correct_order = q.correctOrder || base.items.map((_: any, i: number) => i);
                 }
 
                 // Média par question (assignment): mêmes règles que pour quiz
