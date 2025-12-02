@@ -61,7 +61,8 @@ const normalizeQuestions = (questions: Question[]): Question[] => {
       const rawMatches = (q as any).correctMatches ?? (q as any).correct_matches ?? {};
       normalized.correctMatches = rawMatches;
     } else if (q.type === 'ordering') {
-      normalized.items = (q as any).items ?? [];
+      // Older data or some payloads may use `options` instead of `items`
+      normalized.items = (q as any).items ?? (q as any).options ?? [];
       const rawOrder = (q as any).correctOrder ?? (q as any).correct_order ?? [];
       normalized.correctOrder = Array.isArray(rawOrder) ? rawOrder : [];
     }
