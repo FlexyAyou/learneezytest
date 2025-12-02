@@ -468,16 +468,32 @@ const LessonViewer = () => {
                       </div>
                     ) : itemType === 'assignment' ? (
                       <div className="p-6">
-                        <div className="mb-4">
-                          <h2 className="text-2xl font-semibold">{currentItem.title}</h2>
-                          <p className="text-sm text-gray-600 mt-2">{currentItem.instructions || currentItem.description}</p>
-                        </div>
-                        <div className="mb-6">
-                          <Button onClick={() => { setCurrentAssignment(currentItem); setIsAssignmentModalOpen(true); }}>
-                            Passer le devoir
-                          </Button>
-                        </div>
-                        <div className="prose max-w-none mt-4" dangerouslySetInnerHTML={{ __html: sanitizeHTML(currentItem.description || '') }} />
+                        {/* Render assignment inline using QuizViewer so questions appear like quizzes */}
+                        {(() => {
+                          const assignmentQuiz: QuizConfig = {
+                            id: currentItem.id || `${currentModule.id}-assignment`,
+                            title: currentItem.title || 'Devoir',
+                            questions: currentItem.questions || [],
+                            settings: {
+                              timeLimit: currentItem.time_limit || currentItem.settings?.timeLimit,
+                              passingScore: currentItem.passing_score || currentItem.settings?.passingScore || 70,
+                            },
+                          } as unknown as QuizConfig;
+
+                          const handleAssignmentComplete = (score: number, passed: boolean, answers?: any[]) => {
+                            const assignmentId = assignmentQuiz.id;
+                            markQuizComplete(assignmentId, score, passed);
+                            toast({
+                              title: passed ? '✅ Devoir réussi' : '📝 Devoir terminé',
+                              description: `Score: ${score}`,
+                              variant: passed ? 'default' : 'destructive',
+                            });
+                          };
+
+                          return (
+                            <QuizViewer quiz={assignmentQuiz} onComplete={handleAssignmentComplete} />
+                          );
+                        })()}
                       </div>
                     ) : (
                       <>
