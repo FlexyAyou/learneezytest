@@ -401,7 +401,9 @@ const StudentQuiz: React.FC<Props> = ({ quizId, quiz, onComplete }) => {
   // Helper function to get correct answer text
   const getCorrectAnswerText = (q: NormalizedQuestion): string => {
     if (q.type === 'true-false') {
-      return q.correctAnswers[0] === 'true' || q.correctAnswers[0] === true ? 'Vrai' : 'Faux';
+      const val = q.correctAnswers[0];
+      const isTrue = val === 'true' || String(val) === 'true' || val === '1' || Number(val) === 1;
+      return isTrue ? 'Vrai' : 'Faux';
     }
 
     if (q.type === 'single-choice') {
@@ -943,7 +945,9 @@ function OrderingQuestionRenderer({
 }) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      distance: 8,
+      activationConstraint: {
+        distance: 8,
+      },
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,

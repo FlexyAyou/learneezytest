@@ -15,7 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Clock, Trophy, XCircle } from 'lucide-react';
-import { Question, AssignmentConfigLike, UserAnswer, EvaluationResult } from '@/types/quiz';
+import { Question, AssignmentConfig, UserAnswer, EvaluationResult } from '@/types/quiz';
 import { fastAPIClient } from '@/services/fastapi-client';
 
 interface AssignmentModalProps {
