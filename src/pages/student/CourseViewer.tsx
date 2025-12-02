@@ -429,30 +429,7 @@ const CourseViewer = () => {
                           ))}
                         </>
                       )}
-                      {/* Assignments */}
-                      {(module.assignment || module.order?.some((o:any)=>o.type==='assignment')) && (
-                        <>
-                          <div className="pt-2 border-t">
-                            <h4 className="text-sm font-semibold text-gray-700 mb-2">Devoir du module</h4>
-                          </div>
-                          <div className="flex items-center justify-between p-3 border rounded-lg bg-yellow-50 hover:bg-yellow-100 cursor-pointer transition-colors">
-                            <div className="flex items-center gap-3">
-                              <Book className="w-5 h-5 text-yellow-600" />
-                              <div>
-                                <p className="font-medium">📚 {module.assignment?.title || 'Devoir du module'}</p>
-                                <p className="text-sm text-gray-600">{module.assignment?.questions?.length ?? '–'} question(s)</p>
-                              </div>
-                            </div>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => openAssignment(module.assignment || { id: module.id, title: 'Devoir' }, module.id)}
-                            >
-                              Passer le devoir
-                            </Button>
-                          </div>
-                        </>
-                      )}
+                      {/* Assignments disabled for learners for now */}
                     </div>
                   </CardContent>
                 </Card>
