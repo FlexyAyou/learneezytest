@@ -1092,6 +1092,9 @@ const CreateCoursePage = () => {
               description: module.assignment.description || '',
               instructions: module.assignment.instructions || '',
               questions: module.assignment.questions.map((q: any) => {
+                // Debug: voir la structure de la question
+                console.log('🔍 Assignment question raw:', JSON.stringify(q, null, 2));
+                
                 const base: any = {
                   question: q.question,
                   type: q.type,
@@ -1099,30 +1102,30 @@ const CreateCoursePage = () => {
                 };
 
                 if (q.type === 'single-choice') {
-                  // SingleChoiceQuestion: options + correct_answer (index) - snake_case pour backend
+                  // SingleChoiceQuestion: options + correctAnswer (index) - camelCase pour assignment backend
                   base.options = q.options || [];
-                  base.correct_answer = typeof q.correctAnswer === 'number' ? q.correctAnswer : 0;
+                  base.correctAnswer = typeof q.correctAnswer === 'number' ? q.correctAnswer : 0;
                 } else if (q.type === 'multiple-choice') {
-                  // MultipleChoiceQuestion: options + correct_answers (indexes) - snake_case pour backend
+                  // MultipleChoiceQuestion: options + correctAnswers (indexes) - camelCase pour assignment backend
                   base.options = q.options || [];
                   const answers = q.correctAnswers || [];
-                  base.correct_answers = answers.length > 0 ? answers : [0];
+                  base.correctAnswers = answers.length > 0 ? answers : [0];
                 } else if (q.type === 'true-false') {
-                  // TrueFalseQuestion: correct_answer (bool attendu par le backend)
-                  base.correct_answer = !!q.correctAnswer;
+                  // TrueFalseQuestion: correctAnswer (bool attendu par le backend)
+                  base.correctAnswer = !!q.correctAnswer;
                 } else if (q.type === 'short-answer') {
-                  // ShortAnswerQuestion: correct_answers (liste de chaînes)
+                  // ShortAnswerQuestion: correctAnswers (liste de chaînes)
                   const answers = q.correctAnswers || [];
-                  base.correct_answers = answers.length > 0 ? answers : [''];
+                  base.correctAnswers = answers.length > 0 ? answers : [''];
                 } else if (q.type === 'long-answer') {
-                  // Long answer: contraintes/rubric - snake_case
-                  base.min_words = q.minWords || undefined;
-                  base.max_words = q.maxWords || undefined;
+                  // Long answer: contraintes/rubric - camelCase
+                  base.minWords = q.minWords || undefined;
+                  base.maxWords = q.maxWords || undefined;
                   base.rubric = q.rubric || [];
                 } else if (q.type === 'fill-blank') {
                   base.text = q.text || q.question;
                   const answers = q.correctAnswers || [];
-                  base.correct_answers = answers.length > 0 ? answers : [''];
+                  base.correctAnswers = answers.length > 0 ? answers : [''];
                 } else if (q.type === 'matching') {
                   const leftItems: string[] = Array.isArray(q.leftItems) ? q.leftItems : [];
                   const rightItems: string[] = Array.isArray(q.rightItems) ? q.rightItems : [];
@@ -1141,13 +1144,13 @@ const CreateCoursePage = () => {
                     matches = Array.from({ length: n }, (_, i) => ({ left: i, right: i }));
                   }
 
-                  // snake_case pour backend
-                  base.left_items = leftItems;
-                  base.right_items = rightItems;
-                  base.correct_matches = matches;
+                  // camelCase pour assignment backend
+                  base.leftItems = leftItems;
+                  base.rightItems = rightItems;
+                  base.correctMatches = matches;
                 } else if (q.type === 'ordering') {
                   base.items = q.items || [];
-                  base.correct_order = q.correctOrder || base.items.map((_: any, i: number) => i);
+                  base.correctOrder = q.correctOrder || base.items.map((_: any, i: number) => i);
                 }
 
                 // Média par question (assignment): mêmes règles que pour quiz
