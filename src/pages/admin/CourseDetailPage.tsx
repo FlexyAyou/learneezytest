@@ -75,6 +75,60 @@ const CourseDetailPage = () => {
   const [explanationsOpen, setExplanationsOpen] = useState<Record<string, boolean>>({});
   const [mediaOpen, setMediaOpen] = useState<Record<string, boolean>>({});
 
+  // Préchargement des assignments : pour afficher les counts sans dérouler
+  const [assignmentsPreloaded, setAssignmentsPreloaded] = useState(false);
+  const [preloadingAssignments, setPreloadingAssignments] = useState(false);
+
+  const preloadAssignments = async (courseData?: CourseResponse | null) => {
+    // Eviter double préchargement
+    if (assignmentsPreloaded) return;
+    const c = courseData || course;
+    if (!c || !c.modules || c.modules.length === 0) {
+      setAssignmentsPreloaded(true);
+      return;
+    }
+
+    setPreloadingAssignments(true);
+    try {
+      const promises = c.modules.map(async (mod, idx) => {
+        const anyMod: any = mod as any;
+        // Si déjà présent ou pas d'id, ne rien faire
+        if (!anyMod?.id || anyMod.assignment) return null;
+
+        try {
+          const assignment = await fastAPIClient.getAssignment((courseId as string), anyMod.id as string);
+          return { idx, assignment };
+        } catch (err: any) {
+          // Silencieux sur 404
+          if (err?.response?.status === 404) return null;
+          console.warn('Erreur preload assignment module', anyMod.id, err);
+          return null;
+        }
+      });
+
+      const results = await Promise.all(promises);
+      const toInject = results.filter(r => r && (r as any).assignment);
+      if (toInject.length) {
+        setCourse(prev => {
+          if (!prev) return prev;
+          const cloned = { ...prev } as any;
+          const mods = [...(cloned.modules || [])];
+          toInject.forEach((t: any) => {
+            const target = { ...(mods[t.idx] as any) };
+            target.assignment = t.assignment;
+            target.__assignment_loaded = true;
+            mods[t.idx] = target;
+          });
+          cloned.modules = mods;
+          return cloned;
+        });
+      }
+    } finally {
+      setAssignmentsPreloaded(true);
+      setPreloadingAssignments(false);
+    }
+  };
+
   // Édition désactivée sur la page de détail (lecture seule)
 
   // States pour les URLs de téléchargement
@@ -141,6 +195,12 @@ const CourseDetailPage = () => {
         } catch (err) {
           console.error('Erreur chargement ressources:', err);
           setResources([]);
+        }
+        // Précharger les assignments pour que les counts et badges s'affichent immédiatement
+        try {
+          await preloadAssignments(courseData);
+        } catch (e) {
+          console.warn('Erreur lors du préchargement des devoirs', e);
         }
       } catch (err: any) {
         setError(err.message || 'Erreur lors du chargement du cours');
@@ -257,8 +317,9 @@ const CourseDetailPage = () => {
   const totalQuizzes = course?.modules?.reduce((acc, mod) => acc + (mod.quizzes?.length || 0), 0) || 0;
   const totalAssignments = course?.modules?.reduce((acc, mod) => {
     const anyMod: any = mod;
-    const order = anyMod.order as Array<{ type: string; id: string }> | undefined;
-    return acc + (order?.some(o => o.type === 'assignment') ? 1 : 0);
+    const hasAssignmentInOrder = (anyMod.order as Array<{ type: string; id: string }> | undefined)?.some(o => o.type === 'assignment');
+    const hasAssignmentProp = !!anyMod.assignment;
+    return acc + (hasAssignmentInOrder || hasAssignmentProp ? 1 : 0);
   }, 0) || 0;
 
   if (loading) {
@@ -529,23 +590,45 @@ const CourseDetailPage = () => {
                           try {
                             const anyMod: any = module;
                             const order = anyMod.order as Array<{ type: string; id: string }> | undefined;
-                            const hasAssignment = order?.some(o => o.type === 'assignment');
+                            const hasAssignmentInOrder = order?.some(o => o.type === 'assignment');
+                            const hasAssignmentProp = !!anyMod.assignment;
 
-                            if (hasAssignment && !(anyMod.__assignment_loaded)) {
+                            // Charger l'assignment si:
+                            // 1. Il est dans order ET pas encore chargé, OU
+                            // 2. Il n'est pas dans order mais pourrait exister (faire une tentative)
+                            if (!anyMod.__assignment_loaded) {
                               const moduleId = anyMod.id as string;
-                              const assignment = await fastAPIClient.getAssignment(courseId, moduleId);
-
-                              setCourse(prev => {
-                                if (!prev) return prev;
-                                const cloned = { ...prev } as any;
-                                const mods = [...(cloned.modules || [])];
-                                const target = { ...(mods[index] as any) };
-                                target.assignment = assignment;
-                                target.__assignment_loaded = true;
-                                mods[index] = target;
-                                cloned.modules = mods;
-                                return cloned;
-                              });
+                              try {
+                                const assignment = await fastAPIClient.getAssignment(courseId, moduleId);
+                                setCourse(prev => {
+                                  if (!prev) return prev;
+                                  const cloned = { ...prev } as any;
+                                  const mods = [...(cloned.modules || [])];
+                                  const target = { ...(mods[index] as any) };
+                                  target.assignment = assignment;
+                                  target.__assignment_loaded = true;
+                                  mods[index] = target;
+                                  cloned.modules = mods;
+                                  return cloned;
+                                });
+                              } catch (err: any) {
+                                // 404 est acceptable (pas de devoir pour ce module)
+                                if (err?.response?.status === 404) {
+                                  // Marquer comme chargé pour ne pas réessayer
+                                  setCourse(prev => {
+                                    if (!prev) return prev;
+                                    const cloned = { ...prev } as any;
+                                    const mods = [...(cloned.modules || [])];
+                                    const target = { ...(mods[index] as any) };
+                                    target.__assignment_loaded = true;
+                                    mods[index] = target;
+                                    cloned.modules = mods;
+                                    return cloned;
+                                  });
+                                } else {
+                                  throw err;
+                                }
+                              }
                             }
                           } catch (e) {
                             console.warn('Impossible de charger le devoir pour ce module', e);
@@ -567,7 +650,7 @@ const CourseDetailPage = () => {
                               <Clock className="h-3 w-3 mr-1" />
                               {module.duration}
                             </Badge>
-                            {(module as any).assignment && (
+                            {((module as any).assignment || (module as any).order?.some((o: any) => o.type === 'assignment')) && (
                               <Badge variant="outline" className="border-orange-300 text-orange-700 flex items-center gap-1">
                                 <ClipboardList className="h-3 w-3" />
                                 Devoir
