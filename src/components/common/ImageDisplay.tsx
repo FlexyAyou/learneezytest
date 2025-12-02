@@ -28,7 +28,7 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
   const { toast } = useToast();
 
   // Récupérer l'URL présignée si imageKey est fourni
-  const { presignedUrl: presignedImageUrl, isLoading: urlLoading, error: urlError } = usePresignedUrl(
+  const { url: presignedImageUrl, loading: urlLoading, error: urlError } = usePresignedUrl(
     imageKey ? `media/${imageKey}` : null
   );
 
