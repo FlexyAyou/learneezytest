@@ -75,6 +75,60 @@ const CourseDetailPage = () => {
   const [explanationsOpen, setExplanationsOpen] = useState<Record<string, boolean>>({});
   const [mediaOpen, setMediaOpen] = useState<Record<string, boolean>>({});
 
+  // Préchargement des assignments : pour afficher les counts sans dérouler
+  const [assignmentsPreloaded, setAssignmentsPreloaded] = useState(false);
+  const [preloadingAssignments, setPreloadingAssignments] = useState(false);
+
+  const preloadAssignments = async (courseData?: CourseResponse | null) => {
+    // Eviter double préchargement
+    if (assignmentsPreloaded) return;
+    const c = courseData || course;
+    if (!c || !c.modules || c.modules.length === 0) {
+      setAssignmentsPreloaded(true);
+      return;
+    }
+
+    setPreloadingAssignments(true);
+    try {
+      const promises = c.modules.map(async (mod, idx) => {
+        const anyMod: any = mod as any;
+        // Si déjà présent ou pas d'id, ne rien faire
+        if (!anyMod?.id || anyMod.assignment) return null;
+
+        try {
+          const assignment = await fastAPIClient.getAssignment((courseId as string), anyMod.id as string);
+          return { idx, assignment };
+        } catch (err: any) {
+          // Silencieux sur 404
+          if (err?.response?.status === 404) return null;
+          console.warn('Erreur preload assignment module', anyMod.id, err);
+          return null;
+        }
+      });
+
+      const results = await Promise.all(promises);
+      const toInject = results.filter(r => r && (r as any).assignment);
+      if (toInject.length) {
+        setCourse(prev => {
+          if (!prev) return prev;
+          const cloned = { ...prev } as any;
+          const mods = [...(cloned.modules || [])];
+          toInject.forEach((t: any) => {
+            const target = { ...(mods[t.idx] as any) };
+            target.assignment = t.assignment;
+            target.__assignment_loaded = true;
+            mods[t.idx] = target;
+          });
+          cloned.modules = mods;
+          return cloned;
+        });
+      }
+    } finally {
+      setAssignmentsPreloaded(true);
+      setPreloadingAssignments(false);
+    }
+  };
+
   // Édition désactivée sur la page de détail (lecture seule)
 
   // States pour les URLs de téléchargement
@@ -141,6 +195,12 @@ const CourseDetailPage = () => {
         } catch (err) {
           console.error('Erreur chargement ressources:', err);
           setResources([]);
+        }
+        // Précharger les assignments pour que les counts et badges s'affichent immédiatement
+        try {
+          await preloadAssignments(courseData);
+        } catch (e) {
+          console.warn('Erreur lors du préchargement des devoirs', e);
         }
       } catch (err: any) {
         setError(err.message || 'Erreur lors du chargement du cours');
