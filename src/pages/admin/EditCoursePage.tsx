@@ -362,7 +362,6 @@ const EditCoursePage = () => {
           resourceFileName: (lesson as any).resource_key ? 'Fichier existant' : undefined,
           video_url: (lesson as any).video_url,
           content_type: (lesson as any).content_type || 'video',
-          useMediaUrl: !!(lesson as any).video_url, // Si video_url existe, on utilise le mode URL; sinon mode Upload
           backendId: stringId,
         };
       });
@@ -764,13 +763,8 @@ const EditCoursePage = () => {
         title: lesson.title,
         description: lesson.description,
         duration: lesson.duration,
-        // Inclure la vidéo URL si elle existe
-        ...(lesson.video_url && { video_url: lesson.video_url }),
+        // Ne pas toucher au média ici
       });
-
-      // Recharger les données du cours pour synchroniser l'UI
-      const updatedCourse = await fastAPIClient.getCourse(id);
-      setModules(mapCourseToEditableModules(updatedCourse));
 
       setEditingLessonId(null);
       toast({ title: "✅ Leçon sauvegardée", description: lesson.title });
@@ -819,12 +813,11 @@ const EditCoursePage = () => {
       const lessonId = course.modules[moduleIdx].content[lessonIdx].id!;
 
       await fastAPIClient.deleteLesson(id, moduleId, lessonId, false);
-      
-      // Recharger les données du cours pour synchroniser l'UI
-      const updatedCourse = await fastAPIClient.getCourse(id);
-      setModules(mapCourseToEditableModules(updatedCourse));
-      
-      setEditingLessonId(null); // Fermer le formulaire d'édition
+      setModules(prev => prev.map((mod, idx) =>
+        idx === moduleIdx
+          ? { ...mod, lessons: mod.lessons.filter((_, lIdx) => lIdx !== lessonIdx) }
+          : mod
+      ));
       toast({ title: "✅ Leçon supprimée" });
     } catch (error) {
       console.error('Error deleting lesson:', error);

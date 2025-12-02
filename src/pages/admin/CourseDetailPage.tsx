@@ -587,9 +587,9 @@ const CourseDetailPage = () => {
                             </div>
                           )}
 
-                          {/* Assignments (devoirs) */}
-                          {Array.isArray((module as any).assignments) && (module as any).assignments.length > 0 && (module as any).assignments.map((assignment: any, assignIndex: number) => (
-                            <div key={assignment.id || assignIndex} className="space-y-3 mt-6">
+                          {/* Assignment (devoir) */}
+                          {(module as any).assignment && (
+                            <div className="space-y-3 mt-6">
                               <h4 className="font-semibold flex items-center text-gray-900">
                                 <ClipboardList className="h-5 w-5 mr-2 text-orange-600" />
                                 Devoir du module
@@ -597,36 +597,36 @@ const CourseDetailPage = () => {
                               <div className="bg-white rounded-lg border-2 border-orange-200 p-4 space-y-3">
                                 <div className="flex items-center justify-between">
                                   <div>
-                                    <p className="font-semibold text-lg">{assignment.title}</p>
-                                    {assignment.description && (
-                                      <p className="text-sm text-gray-600 mt-1">{assignment.description}</p>
+                                    <p className="font-semibold text-lg">{(module as any).assignment.title}</p>
+                                    {(module as any).assignment.description && (
+                                      <p className="text-sm text-gray-600 mt-1">{(module as any).assignment.description}</p>
                                     )}
                                   </div>
-                                  {assignment.settings && (
+                                  {(module as any).assignment.settings && (
                                     <div className="text-right text-xs text-gray-600 space-y-1">
-                                      {typeof assignment.settings.passing_score === 'number' && (
-                                        <div>Score minimum : {assignment.settings.passing_score}%</div>
+                                      {typeof (module as any).assignment.settings.passing_score === 'number' && (
+                                        <div>Score minimum : {(module as any).assignment.settings.passing_score}%</div>
                                       )}
-                                      {typeof assignment.settings.max_attempts === 'number' && (
-                                        <div>Essais max : {assignment.settings.max_attempts}</div>
+                                      {typeof (module as any).assignment.settings.max_attempts === 'number' && (
+                                        <div>Essais max : {(module as any).assignment.settings.max_attempts}</div>
                                       )}
-                                      {typeof assignment.settings.time_limit === 'number' && assignment.settings.time_limit > 0 && (
-                                        <div>Limite de temps : {assignment.settings.time_limit} min</div>
+                                      {typeof (module as any).assignment.settings.time_limit === 'number' && (module as any).assignment.settings.time_limit > 0 && (
+                                        <div>Limite de temps : {(module as any).assignment.settings.time_limit} min</div>
                                       )}
                                     </div>
                                   )}
                                 </div>
 
-                                {assignment.instructions && (
+                                {(module as any).assignment.instructions && (
                                   <div className="bg-orange-50 border-l-4 border-orange-400 p-3 rounded">
                                     <p className="text-xs font-semibold text-orange-800 mb-1">Consignes</p>
-                                    <p className="text-sm text-orange-900">{assignment.instructions}</p>
+                                    <p className="text-sm text-orange-900">{(module as any).assignment.instructions}</p>
                                   </div>
                                 )}
 
-                                {assignment.questions && assignment.questions.length > 0 && (
+                                {(module as any).assignment.questions && (module as any).assignment.questions.length > 0 && (
                                   <div className="space-y-3 mt-2">
-                                    {assignment.questions.map((q: any, qIndex: number) => (
+                                    {(module as any).assignment.questions.map((q: any, qIndex: number) => (
                                       <div key={qIndex} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
                                         <div className="font-medium text-sm mb-1">
                                           <span className="bg-gray-200 text-gray-700 rounded px-2 py-0.5 text-xs mr-2">
@@ -908,13 +908,13 @@ const CourseDetailPage = () => {
                                 )}
                               </div>
                             </div>
-                          ))}
+                          )}
 
                           {/* Contenu du module (ordre unifié) */}
                           {(() => {
                             const lessons = module.content || [];
                             const quizzes = module.quizzes || [];
-                            const assignments = Array.isArray((module as any).assignments) ? (module as any).assignments : [];
+                            const assignments = (module as any).assignment ? [(module as any).assignment] : [];
 
                             // Construire l'ordre unifié si disponible
                             let orderedContent: Array<{
@@ -1503,8 +1503,7 @@ const CourseDetailPage = () => {
                       <span className="text-sm truncate font-medium">Visualiser</span>
                     </div>
                   </Button>
-                  {/* Bouton Télécharger masqué temporairement - backend à réviser */}
-                  {/* <Button
+                  <Button
                     variant="outline"
                     className="w-full justify-between h-auto py-3 hover:bg-blue-50"
                     onClick={async () => {
@@ -1542,7 +1541,7 @@ const CourseDetailPage = () => {
                       <Download className="h-4 w-4 flex-shrink-0 text-blue-600" />
                       <span className="text-sm truncate font-medium">Télécharger</span>
                     </div>
-                  </Button> */}
+                  </Button>
                 </div>
               ) : (
                 <div className="text-center py-4 text-muted-foreground">
@@ -1721,7 +1720,6 @@ const CourseDetailPage = () => {
                 pdfKey={course.program_pdf_key}
                 title="Programme de formation"
                 height="calc(90vh - 120px)"
-                onDownload={() => fastAPIClient.downloadCourseProgram(course.id)}
               />
             )}
           </div>
@@ -1741,7 +1739,6 @@ const CourseDetailPage = () => {
                 pdfUrl={resources[viewingResourcePDF.index]?.url}
                 title={viewingResourcePDF.name}
                 height="calc(90vh - 120px)"
-                onDownload={() => fastAPIClient.downloadCourseResource(courseId, viewingResourcePDF.index)}
               />
             )}
           </div>

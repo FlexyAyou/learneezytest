@@ -1092,9 +1092,6 @@ const CreateCoursePage = () => {
               description: module.assignment.description || '',
               instructions: module.assignment.instructions || '',
               questions: module.assignment.questions.map((q: any) => {
-                // Debug: voir la structure de la question
-                console.log('🔍 Assignment question raw:', JSON.stringify(q, null, 2));
-                
                 const base: any = {
                   question: q.question,
                   type: q.type,
@@ -1102,30 +1099,27 @@ const CreateCoursePage = () => {
                 };
 
                 if (q.type === 'single-choice') {
-                  // SingleChoiceQuestion: options + correctAnswer (index) - camelCase pour assignment backend
+                  // SingleChoiceQuestion: options + correctAnswer (index)
                   base.options = q.options || [];
                   base.correctAnswer = typeof q.correctAnswer === 'number' ? q.correctAnswer : 0;
                 } else if (q.type === 'multiple-choice') {
-                  // MultipleChoiceQuestion: options + correctAnswers (indexes) - camelCase pour assignment backend
+                  // MultipleChoiceQuestion: options + correctAnswers (indexes)
                   base.options = q.options || [];
-                  const answers = q.correctAnswers || [];
-                  base.correctAnswers = answers.length > 0 ? answers : [0];
+                  base.correctAnswers = q.correctAnswers || [];
                 } else if (q.type === 'true-false') {
-                  // TrueFalseQuestion: correctAnswer (bool attendu par le backend)
+                  // TrueFalseQuestion: correctAnswer (bool attendu par le backend de domaine évaluations)
                   base.correctAnswer = !!q.correctAnswer;
                 } else if (q.type === 'short-answer') {
                   // ShortAnswerQuestion: correctAnswers (liste de chaînes)
-                  const answers = q.correctAnswers || [];
-                  base.correctAnswers = answers.length > 0 ? answers : [''];
+                  base.correctAnswers = q.correctAnswers || [];
                 } else if (q.type === 'long-answer') {
-                  // Long answer: contraintes/rubric - camelCase
+                  // Long answer: contraintes/rubric
                   base.minWords = q.minWords || undefined;
                   base.maxWords = q.maxWords || undefined;
                   base.rubric = q.rubric || [];
                 } else if (q.type === 'fill-blank') {
-                  base.text = q.text || q.question;
-                  const answers = q.correctAnswers || [];
-                  base.correctAnswers = answers.length > 0 ? answers : [''];
+                  base.text = q.text;
+                  base.correctAnswers = q.correctAnswers || [];
                 } else if (q.type === 'matching') {
                   const leftItems: string[] = Array.isArray(q.leftItems) ? q.leftItems : [];
                   const rightItems: string[] = Array.isArray(q.rightItems) ? q.rightItems : [];
@@ -1144,7 +1138,6 @@ const CreateCoursePage = () => {
                     matches = Array.from({ length: n }, (_, i) => ({ left: i, right: i }));
                   }
 
-                  // camelCase pour assignment backend
                   base.leftItems = leftItems;
                   base.rightItems = rightItems;
                   base.correctMatches = matches;
