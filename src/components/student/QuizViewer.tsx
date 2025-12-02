@@ -375,8 +375,8 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
       case 'fill-blank': {
         const correctAnswers = (question as any).correctAnswers || [];
         const text = (question as any).text || '';
-        const blanksInText = (text.match(/\[blank\]/g) || []).length;
-        const blankCount = blanksInText || correctAnswers.length || 1;
+        const parts = text.split(/\[blank\]/g);
+        const blankCount = Math.max(parts.length - 1, correctAnswers.length, 1);
 
         const blanksAnswers = Array.isArray(userAnswer)
           ? userAnswer
@@ -384,24 +384,52 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
 
         // Options disponibles pour choisir (basées sur les réponses correctes mélangées avec des distracteurs)
         const allOptions = [...correctAnswers];
-        
+
         return (
           <div className="space-y-4">
-            {/* Afficher le texte avec les blancs */}
-            <div
-              className="text-sm text-gray-700 mb-4 p-4 bg-gray-50 rounded-lg"
-              dangerouslySetInnerHTML={{
-                __html:
-                  text.replace(
-                    /\[blank\]/g,
-                    '<span class="inline-block w-32 border-b-2 border-blue-500 mx-1">_____</span>'
-                  ) || '',
-              }}
-            />
-            
-            {/* Options cliquables */}
+            {/* Texte avec inputs inline pour chaque blanc */}
+            <div className="text-sm text-gray-700 mb-4 p-4 bg-gray-50 rounded-lg">
+              {parts.map((part, i) => (
+                <React.Fragment key={i}>
+                  {/* Rendre le fragment HTML du texte avant le blank */}
+                  <span dangerouslySetInnerHTML={{ __html: part || '' }} />
+                  {/* Si ce n'est pas le dernier fragment, insérer le champ inline */}
+                  {i < parts.length - 1 && (
+                    <span className="inline-flex items-center align-middle mx-1">
+                      <Input
+                        value={blanksAnswers[i] || ''}
+                        onChange={(e) => {
+                          const newAnswers = [...blanksAnswers];
+                          newAnswers[i] = e.target.value;
+                          handleAnswerChange(question.id, newAnswers);
+                        }}
+                        placeholder="..."
+                        className="inline-block w-40 border-b-2 border-blue-500 bg-transparent focus:outline-none"
+                      />
+                      {blanksAnswers[i] && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const newAnswers = [...blanksAnswers];
+                            newAnswers[i] = '';
+                            handleAnswerChange(question.id, newAnswers);
+                          }}
+                          className="ml-1"
+                        >
+                          <XCircle className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </span>
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
+
+            {/* Options cliquables (remplissent le premier blanc vide) */}
             {allOptions.length > 0 && (
-              <div className="mb-4">
+              <div className="mb-2">
                 <p className="text-xs text-gray-500 mb-2">Options disponibles (cliquez pour ajouter) :</p>
                 <div className="flex flex-wrap gap-2">
                   {allOptions.map((option, optIdx) => (
@@ -412,9 +440,8 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
                       size="sm"
                       className="text-xs"
                       onClick={() => {
-                        // Trouver le premier trou vide ou remplacer le dernier
                         const newAnswers = [...blanksAnswers];
-                        const emptyIndex = newAnswers.findIndex(a => !a);
+                        const emptyIndex = newAnswers.findIndex((a) => !a);
                         if (emptyIndex !== -1) {
                           newAnswers[emptyIndex] = String(option);
                         } else if (newAnswers.length > 0) {
@@ -429,41 +456,8 @@ export const QuizViewer: React.FC<QuizViewerProps> = ({ quiz, onComplete }) => {
                 </div>
               </div>
             )}
-            
-            {/* Champs de saisie pour chaque trou */}
-            <p className="text-xs text-gray-500 mb-2">
-              Remplissez les trous dans l'ordre (vous pouvez aussi saisir directement) :
-            </p>
-            {Array.from({ length: blankCount }).map((_, idx) => (
-              <div key={idx} className="space-y-2">
-                <Label>Trou {idx + 1}</Label>
-                <div className="flex gap-2 items-center">
-                  <Input
-                    value={blanksAnswers[idx] || ''}
-                    onChange={(e) => {
-                      const newAnswers = [...blanksAnswers];
-                      newAnswers[idx] = e.target.value;
-                      handleAnswerChange(question.id, newAnswers);
-                    }}
-                    placeholder={`Réponse pour le trou ${idx + 1}`}
-                  />
-                  {blanksAnswers[idx] && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        const newAnswers = [...blanksAnswers];
-                        newAnswers[idx] = '';
-                        handleAnswerChange(question.id, newAnswers);
-                      }}
-                    >
-                      <XCircle className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
-              </div>
-            ))}
+
+            <p className="text-xs text-gray-500">Tapez directement dans les blancs au sein du texte ci-dessus.</p>
           </div>
         );
       }
