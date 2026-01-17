@@ -4,8 +4,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { IndependentTrainerDetailView } from '@/components/admin/user-details/IndependentTrainerDetailView';
-import { useUserBySlug, useOrganizations } from '@/hooks/useApi';
+import { useUserBySlug, useOrganizations, useValidateTrainer } from '@/hooks/useApi';
 import { UserStatusToggleButton } from '@/components/admin/UserStatusToggleButton';
+import { TrainerValidationCard } from '@/components/admin/TrainerValidationCard';
 import { useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import {
@@ -26,12 +27,30 @@ const IndependentTrainerDetailPage = () => {
   const { data: foundUser, isLoading: usersLoading, error } = useUserBySlug(userSlug);
   const { data: organizations } = useOrganizations(1, 100);
 
+  // Hook pour valider/rejeter le formateur
+  const validateTrainerMutation = useValidateTrainer();
+
   const { userStatus, handleStatusChanged } = useUserStatusSync({
     initialStatus: foundUser?.status || 'inactive',
     onStatusChanged: () => {
       queryClient.invalidateQueries({ queryKey: ['userBySlug', userSlug] });
     },
   });
+
+  // Handlers pour la validation du formateur
+  const handleValidateTrainer = (userId: number) => {
+    validateTrainerMutation.mutate({
+      userId,
+      request: { status: 'validated' }
+    });
+  };
+
+  const handleRejectTrainer = (userId: number, motif: string) => {
+    validateTrainerMutation.mutate({
+      userId,
+      request: { status: 'rejected', motif }
+    });
+  };
 
   if (usersLoading) {
     return (
@@ -204,6 +223,16 @@ const IndependentTrainerDetailPage = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Carte de validation du formateur */}
+      <TrainerValidationCard
+        userId={user.id}
+        userName={user.name}
+        currentStatus={user.status}
+        onValidate={handleValidateTrainer}
+        onReject={handleRejectTrainer}
+        isLoading={validateTrainerMutation.isPending}
+      />
 
       {/* Contenu spécialisé pour le formateur indépendant */}
       <IndependentTrainerDetailView user={user} />

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Search, Plus, Eye, Mail, UserCheck, Users, Phone, MapPin, Calendar, Clock, Euro, EyeOff, Send, UserCircle } from 'lucide-react';
+import { Search, Plus, Eye, Mail, UserCheck, Users, Phone, MapPin, Calendar, Clock, Euro, EyeOff, Send, UserCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TrainerApplicationModal } from './TrainerApplicationModal';
@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { mockTrainerFiscalInfo } from '@/data/mockTrainerApplicationsData';
 import { TrainerApplication } from '@/types/trainer-application';
-import { useSuperadminUsers } from '@/hooks/useApi';
+import { useSuperadminUsers, useValidateTrainer } from '@/hooks/useApi';
 
 const AdminTrainers = () => {
   const { toast } = useToast();
@@ -29,6 +29,9 @@ const AdminTrainers = () => {
   
   // Récupérer les utilisateurs depuis l'API
   const { data: allUsers, isLoading } = useSuperadminUsers();
+  
+  // Hook pour valider/rejeter un formateur
+  const validateTrainerMutation = useValidateTrainer();
 
   // Mapper les formateurs de l'API
   const applications = useMemo(() => {
@@ -127,38 +130,57 @@ const AdminTrainers = () => {
       return;
     }
 
-    // 3. Approuver et activer
-    setLocalApplications(prev => prev.map(app => 
-      app.id === id 
-        ? { 
-            ...app, 
-            status: 'approved' as const,
-            isActive: true,
-            adminNotes: notes,
-            reviewedAt: new Date().toISOString(),
-            reviewedBy: 'current-admin'
-          }
-        : app
-    ));
-
-    toast({
-      title: "Formateur approuvé et activé",
-      description: `${application.firstName} ${application.lastName} peut maintenant accéder à la plateforme.`,
+    // 3. Appel API pour valider le formateur
+    validateTrainerMutation.mutate({
+      userId: parseInt(application.userId),
+      request: { status: 'validated' }
+    }, {
+      onSuccess: () => {
+        // Mise à jour locale optimiste (sera synchronisée par invalidateQueries)
+        setLocalApplications(prev => prev.map(app => 
+          app.id === id 
+            ? { 
+                ...app, 
+                status: 'approved' as const,
+                isActive: true,
+                adminNotes: notes,
+                reviewedAt: new Date().toISOString(),
+                reviewedBy: 'current-admin'
+              }
+            : app
+        ));
+        setIsModalOpen(false);
+      }
     });
   };
 
   const handleRejectApplication = (id: string, notes: string) => {
-    setLocalApplications(prev => prev.map(app => 
-      app.id === id 
-        ? { 
-            ...app, 
-            status: 'rejected' as const, 
-            adminNotes: notes,
-            reviewedAt: new Date().toISOString(),
-            reviewedBy: 'current-admin'
-          }
-        : app
-    ));
+    const application = localApplications.find(app => app.id === id);
+    if (!application) return;
+
+    // Appel API pour rejeter le formateur
+    validateTrainerMutation.mutate({
+      userId: parseInt(application.userId),
+      request: { 
+        status: 'rejected',
+        motif: notes 
+      }
+    }, {
+      onSuccess: () => {
+        setLocalApplications(prev => prev.map(app => 
+          app.id === id 
+            ? { 
+                ...app, 
+                status: 'rejected' as const, 
+                adminNotes: notes,
+                reviewedAt: new Date().toISOString(),
+                reviewedBy: 'current-admin'
+              }
+            : app
+        ));
+        setIsModalOpen(false);
+      }
+    });
   };
 
   const getStatusBadge = (status: string) => {
@@ -428,6 +450,7 @@ const AdminTrainers = () => {
         }}
         onApprove={handleApproveApplication}
         onReject={handleRejectApplication}
+        isValidating={validateTrainerMutation.isPending}
       />
 
       <Dialog open={isInviteModalOpen} onOpenChange={setIsInviteModalOpen}>

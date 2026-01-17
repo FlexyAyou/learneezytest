@@ -26,6 +26,7 @@ import {
   CategoryCreate,
   ProLevelItem,
   ProLevelCreate,
+  ValidateTrainerRequest,
 } from '@/types/fastapi';
 import { toast } from '@/hooks/use-toast';
 
@@ -762,6 +763,35 @@ export const useSuperadminUsers = () => {
   return useQuery({
     queryKey: ['superadmin-users'],
     queryFn: () => fastAPIClient.get<ListAllUsersResponse[]>('/api/auth/superadmin/users'),
+  });
+};
+
+// Hook pour valider ou rejeter un formateur indépendant (superadmin)
+export const useValidateTrainer = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ userId, request }: { userId: number; request: ValidateTrainerRequest }) =>
+      fastAPIClient.validateTrainer(userId, request),
+    onSuccess: (data, variables) => {
+      // Invalider les queries pour rafraîchir les listes
+      queryClient.invalidateQueries({ queryKey: ['superadmin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['userBySlug'] });
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      
+      const action = variables.request.status === 'validated' ? 'validé' : 'rejeté';
+      toast({
+        title: `Formateur ${action}`,
+        description: `Le formateur a été ${action} avec succès.`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erreur de validation",
+        description: error.response?.data?.detail || "Impossible de valider le formateur",
+        variant: "destructive",
+      });
+    },
   });
 };
 

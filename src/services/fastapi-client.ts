@@ -49,6 +49,7 @@ import {
   ProLevelItem,
   ProLevelCreate,
   ProLevelUpdateActive,
+  ValidateTrainerRequest,
 } from '@/types/fastapi';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.plateforme-test-infinitiax.com';
@@ -1248,6 +1249,23 @@ class FastAPIClient {
    */
   async deleteProLevel(levelId: number): Promise<void> {
     return this.delete(`/api/levels/${levelId}`);
+  }
+
+  // ============= TRAINER VALIDATION (Superadmin) =============
+
+  /**
+   * Valide ou rejette un formateur indépendant
+   * PATCH /api/auth/superadmin/validate-trainer/{user_id}
+   */
+  async validateTrainer(
+    userId: number,
+    request: ValidateTrainerRequest
+  ): Promise<UserResponse> {
+    const response = await this.axiosInstance.patch<UserResponse>(
+      `/api/auth/superadmin/validate-trainer/${userId}`,
+      request
+    );
+    return response.data;
   }
 }
 

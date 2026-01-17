@@ -43,6 +43,7 @@ interface TrainerApplicationModalProps {
   onClose: () => void;
   onApprove: (id: string, notes?: string) => void;
   onReject: (id: string, notes: string) => void;
+  isValidating?: boolean;
 }
 
 export const TrainerApplicationModal = ({
@@ -51,6 +52,7 @@ export const TrainerApplicationModal = ({
   onClose,
   onApprove,
   onReject,
+  isValidating = false,
 }: TrainerApplicationModalProps) => {
   const { toast } = useToast();
   const [adminNotes, setAdminNotes] = useState("");
@@ -633,7 +635,7 @@ export const TrainerApplicationModal = ({
                     <Button
                       onClick={() => setSelectedAction("approve")}
                       className="bg-green-600 hover:bg-green-700 text-white"
-                      disabled={selectedAction !== null}
+                      disabled={selectedAction !== null || isValidating}
                     >
                       <CheckCircle className="h-4 w-4 mr-2" />
                       Approuver la candidature
@@ -642,7 +644,7 @@ export const TrainerApplicationModal = ({
                     <Button
                       onClick={() => setSelectedAction("reject")}
                       variant="destructive"
-                      disabled={selectedAction !== null}
+                      disabled={selectedAction !== null || isValidating}
                     >
                       <XCircle className="h-4 w-4 mr-2" />
                       Rejeter la candidature
@@ -653,7 +655,9 @@ export const TrainerApplicationModal = ({
                         <Button
                           onClick={handleAction}
                           variant={selectedAction === "approve" ? "default" : "destructive"}
+                          disabled={isValidating}
                         >
+                          {isValidating && <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />}
                           Confirmer {selectedAction === "approve" ? "l'approbation" : "le rejet"}
                         </Button>
                         <Button
@@ -662,6 +666,7 @@ export const TrainerApplicationModal = ({
                             setSelectedAction(null);
                             setAdminNotes("");
                           }}
+                          disabled={isValidating}
                         >
                           Annuler
                         </Button>
