@@ -20,6 +20,7 @@ import InternalTrainerDashboard from "./pages/InternalTrainerDashboard";
 import ContentCreatorDashboard from "./pages/ContentCreatorDashboard";
 import TechnicianDashboard from "./pages/TechnicianDashboard";
 import Login from "./pages/Login";
+import LoginOF from "./pages/LoginOF";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
@@ -57,6 +58,7 @@ function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/documentation" element={<Documentation />} />
           <Route path="/connexion" element={<Login />} />
+          <Route path="/connexion-of" element={<LoginOF />} />
           <Route path="/inscription" element={<Register />} />
           <Route path="/mot-de-passe-oublié" element={<ForgotPassword />} />
           <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
