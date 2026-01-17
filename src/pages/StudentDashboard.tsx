@@ -20,7 +20,7 @@ import VideoConference from '@/components/common/VideoConference';
 import StudentVideoConferences from '@/components/student/StudentVideoConferences';
 import { StudentDashboardHome } from '@/components/student/StudentDashboardHome';
 import { StudentShop } from '@/components/student/StudentShop';
-import StudentCatalog from '@/components/student/StudentCatalog';
+import StudentCourseCatalog from './student/StudentCourseCatalog';
 import AIChatButton from '@/components/common/AIChatButton';
 
 const StudentDashboard = () => {
@@ -38,7 +38,7 @@ const StudentDashboard = () => {
           <main className="flex-1 p-6">
             <Routes>
               <Route path="/" element={<StudentDashboardHome />} />
-              <Route path="/catalogue" element={<StudentCatalog />} />
+              <Route path="/catalogue" element={<StudentCourseCatalog />} />
               <Route path="/courses" element={<StudentCourses />} />
               <Route path="/courses/:id" element={<CourseViewer />} />
               <Route path="/progress" element={<StudentProgress />} />

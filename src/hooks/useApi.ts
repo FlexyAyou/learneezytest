@@ -690,19 +690,26 @@ export const useEnrollCourse = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (courseId: string) => fastAPIClient.enrollCourse(courseId),
-    onSuccess: () => {
+    mutationFn: (courseId: string | number) => fastAPIClient.enrollCourse(String(courseId)),
+    onSuccess: (data, courseId) => {
+      // Invalider le solde de tokens et les cours
+      queryClient.invalidateQueries({ queryKey: ['tokenBalance'] });
       queryClient.invalidateQueries({ queryKey: ['userEnrollments'] });
+      queryClient.invalidateQueries({ queryKey: ['courses'] });
+      queryClient.invalidateQueries({ queryKey: ['enrolledCourses'] });
+      queryClient.invalidateQueries({ queryKey: ['course', String(courseId)] });
+      
       toast({
-        title: "Inscription réussie",
-        description: "Vous êtes maintenant inscrit à ce cours",
+        title: '🎉 Inscription réussie !',
+        description: data.message || 'Vous êtes maintenant inscrit au cours.',
       });
     },
     onError: (error: any) => {
+      const errorMessage = error.response?.data?.detail || 'Impossible de vous inscrire à ce cours';
       toast({
-        title: "Erreur",
-        description: error.response?.data?.detail || "Impossible de s'inscrire au cours",
-        variant: "destructive",
+        title: 'Erreur d\'inscription',
+        description: errorMessage,
+        variant: 'destructive',
       });
     },
   });
@@ -1205,3 +1212,4 @@ export const useBuyTokens = () => {
     },
   });
 };
+
