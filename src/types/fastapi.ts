@@ -125,6 +125,19 @@ export interface StatusUpdate {
   status: UserStatus;
 }
 
+// ============= TRAINER VALIDATION (Superadmin) =============
+export type TrainerValidationStatus = 'validated' | 'rejected';
+
+export interface ValidateTrainerRequest {
+  status: TrainerValidationStatus;
+  motif?: string | null; // Raison du rejet (sera envoyée par email)
+}
+
+export interface ValidateTrainerResponse {
+  user: UserResponse;
+  message: string;
+}
+
 // ============= TOKENS (BOUTIQUE) =============
 export interface TokenBalanceResponse {
   balance: number;
