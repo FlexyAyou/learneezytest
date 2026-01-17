@@ -79,6 +79,19 @@ export default {
 						600: '#ea580c',
 						700: '#c2410c'
 					}
+				},
+				token: {
+					DEFAULT: 'hsl(var(--token))',
+					foreground: 'hsl(var(--token-foreground))',
+					muted: 'hsl(var(--token-muted))'
+				},
+				bonus: {
+					DEFAULT: 'hsl(var(--bonus))',
+					foreground: 'hsl(var(--bonus-foreground))'
+				},
+				success: {
+					DEFAULT: 'hsl(var(--success))',
+					foreground: 'hsl(var(--success-foreground))'
 				}
 			},
 			fontFamily: {
