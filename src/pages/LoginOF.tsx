@@ -75,7 +75,6 @@ const LoginOF = () => {
     setLoginError("");
     try {
       await handleLogin(data.email, data.password);
-      // La redirection est gérée par handleLogin via redirectByRole
     } catch (error) {
       setLoginError("Votre email ou mot de passe est incorrect!");
     }
@@ -87,42 +86,42 @@ const LoginOF = () => {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left Side - OF Branding */}
-      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-blue-600 via-indigo-700 to-blue-800 items-center justify-center p-8">
+      {/* Left Side - OF Branding (mêmes couleurs que /connexion) */}
+      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-pink-600 via-orange-700 to-pink-600 items-center justify-center p-8">
         <div className="max-w-md text-white">
           <div className="flex items-center gap-3 mb-6">
-            <Building2 className="h-12 w-12 text-blue-200" />
+            <Building2 className="h-12 w-12 text-pink-200" />
             <h2 className="text-4xl font-bold">{ofName}</h2>
           </div>
-          <p className="text-blue-100 mb-8 text-lg leading-relaxed">
+          <p className="text-pink-100 mb-8 text-lg leading-relaxed">
             Bienvenue sur votre espace de formation. Connectez-vous pour accéder à vos parcours d'apprentissage et suivre votre progression.
           </p>
 
           <div className="space-y-4 mb-8">
             <div className="flex items-center space-x-3">
-              <div className="h-5 w-5 text-blue-200">✓</div>
-              <span className="text-blue-100">Formations assignées par votre organisme</span>
+              <div className="h-5 w-5 text-pink-200">✓</div>
+              <span className="text-pink-100">Formations assignées par votre organisme</span>
             </div>
             <div className="flex items-center space-x-3">
-              <div className="h-5 w-5 text-blue-200">✓</div>
-              <span className="text-blue-100">Suivi pédagogique personnalisé</span>
+              <div className="h-5 w-5 text-pink-200">✓</div>
+              <span className="text-pink-100">Suivi pédagogique personnalisé</span>
             </div>
             <div className="flex items-center space-x-3">
-              <div className="h-5 w-5 text-blue-200">✓</div>
-              <span className="text-blue-100">Contact direct avec votre formateur</span>
+              <div className="h-5 w-5 text-pink-200">✓</div>
+              <span className="text-pink-100">Contact direct avec votre formateur</span>
             </div>
             <div className="flex items-center space-x-3">
-              <div className="h-5 w-5 text-blue-200">✓</div>
-              <span className="text-blue-100">Émargement et attestations en ligne</span>
+              <div className="h-5 w-5 text-pink-200">✓</div>
+              <span className="text-pink-100">Émargement et attestations en ligne</span>
             </div>
           </div>
 
           <div className="bg-white/10 rounded-lg p-6 backdrop-blur-sm">
             <div className="flex items-center gap-2 mb-2">
-              <Building2 className="h-5 w-5 text-blue-200" />
-              <span className="text-blue-100 font-medium">Espace Organisme de Formation</span>
+              <Building2 className="h-5 w-5 text-pink-200" />
+              <span className="text-pink-100 font-medium">Espace Organisme de Formation</span>
             </div>
-            <p className="text-sm text-blue-200">
+            <p className="text-sm text-pink-200">
               Cette plateforme est réservée aux apprenants et personnels de {ofName}.
             </p>
           </div>
@@ -142,7 +141,7 @@ const LoginOF = () => {
               />
             ) : (
               <div className="flex flex-col items-center">
-                <Building2 className="h-16 w-16 text-blue-600 mb-2" />
+                <Building2 className="h-16 w-16 text-pink-600 mb-2" />
                 <span className="text-xl font-bold text-gray-800">{ofName}</span>
               </div>
             )}
@@ -164,8 +163,8 @@ const LoginOF = () => {
           {/* Form */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {isVerifying && (
-              <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
-                <div className="animate-spin h-4 w-4 border-2 border-blue-700 border-t-transparent rounded-full"></div>
+              <div className="bg-pink-50 border border-pink-200 text-pink-700 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
+                <div className="animate-spin h-4 w-4 border-2 border-pink-700 border-t-transparent rounded-full"></div>
                 Vérification de votre email en cours...
               </div>
             )}
@@ -237,12 +236,12 @@ const LoginOF = () => {
                   Se souvenir de moi
                 </label>
               </div>
-              <Link to="/mot-de-passe-oublie" className="text-sm text-blue-600 hover:text-blue-700">
+              <Link to="/mot-de-passe-oublie" className="text-sm text-pink-600 hover:text-pink-700">
                 Mot de passe oublié ?
               </Link>
             </div>
 
-            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white" disabled={isLoading}>
+            <Button type="submit" className="w-full bg-pink-600 hover:bg-pink-700 text-white" disabled={isLoading}>
               {isLoading ? "Connexion..." : "Se connecter"}
             </Button>
           </form>
@@ -251,7 +250,7 @@ const LoginOF = () => {
           <div className="mt-8 text-center">
             <p className="text-xs text-gray-500">
               Propulsé par{" "}
-              <a href="https://learneezy.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+              <a href="https://learneezy.com" target="_blank" rel="noopener noreferrer" className="text-pink-600 hover:underline">
                 Learneezy
               </a>
             </p>
