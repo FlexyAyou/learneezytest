@@ -13,7 +13,8 @@ import {
   FileArchive,
   Home,
   CreditCard,
-  LogOut
+  LogOut,
+  Tag
 } from 'lucide-react';
 import {
   Sidebar,
@@ -42,6 +43,7 @@ const sidebarItems = [
   { title: "Visioconférence", href: "/dashboard/organisme-formation/visio", icon: Video },
   { title: "Envois", href: "/dashboard/organisme-formation/envois", icon: Mail },
   { title: "Abonnement", href: "/dashboard/organisme-formation/abonnement", icon: CreditCard },
+  { title: "Offres", href: "/dashboard/organisme-formation/offres", icon: Tag },
   { title: "Intégrations", href: "/dashboard/organisme-formation/integrations", icon: Puzzle },
   { title: "Logs", href: "/dashboard/organisme-formation/logs", icon: FileArchive },
   { title: "Paramètres", href: "/dashboard/organisme-formation/parametres", icon: Settings },
