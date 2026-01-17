@@ -1168,3 +1168,40 @@ export const useDeleteProLevel = () => {
     },
   });
 };
+
+// ============= TOKENS (BOUTIQUE) =============
+
+/**
+ * Hook pour récupérer le solde de tokens
+ */
+export const useTokenBalance = () => {
+  return useQuery({
+    queryKey: ['tokenBalance'],
+    queryFn: () => fastAPIClient.getTokenBalance(),
+  });
+};
+
+/**
+ * Hook pour acheter des tokens
+ */
+export const useBuyTokens = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (amount: number) => fastAPIClient.buyTokens({ amount }),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['tokenBalance'] });
+      toast({
+        title: '🎉 Achat réussi !',
+        description: `${data.tokens_added} tokens ajoutés à votre compte.`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erreur de paiement',
+        description: error.response?.data?.detail || 'Impossible de traiter votre achat',
+        variant: 'destructive',
+      });
+    },
+  });
+};

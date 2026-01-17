@@ -50,6 +50,9 @@ import {
   ProLevelCreate,
   ProLevelUpdateActive,
   ValidateTrainerRequest,
+  TokenBalanceResponse,
+  TokenBuyRequest,
+  TokenBuyResponse,
 } from '@/types/fastapi';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.plateforme-test-infinitiax.com';
@@ -1263,6 +1266,31 @@ class FastAPIClient {
   ): Promise<UserResponse> {
     const response = await this.axiosInstance.patch<UserResponse>(
       `/api/auth/superadmin/validate-trainer/${userId}`,
+      request
+    );
+    return response.data;
+  }
+
+  // ============= TOKENS (BOUTIQUE) =============
+
+  /**
+   * Récupère le solde de tokens de l'utilisateur connecté
+   * GET /api/tokens/balance
+   */
+  async getTokenBalance(): Promise<TokenBalanceResponse> {
+    const response = await this.axiosInstance.get<TokenBalanceResponse>(
+      '/api/tokens/balance'
+    );
+    return response.data;
+  }
+
+  /**
+   * Achète des tokens avec le montant spécifié
+   * POST /api/tokens/buy
+   */
+  async buyTokens(request: TokenBuyRequest): Promise<TokenBuyResponse> {
+    const response = await this.axiosInstance.post<TokenBuyResponse>(
+      '/api/tokens/buy',
       request
     );
     return response.data;

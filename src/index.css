@@ -38,6 +38,15 @@ All colors MUST be HSL.
 
     --radius: 0.5rem;
 
+    /* Token/Gold theme colors */
+    --token: 45 93% 47%;
+    --token-foreground: 45 100% 15%;
+    --token-muted: 45 80% 92%;
+    --bonus: 25 95% 53%;
+    --bonus-foreground: 25 100% 15%;
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
@@ -76,6 +85,16 @@ All colors MUST be HSL.
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
+
+    /* Token/Gold theme colors - dark mode */
+    --token: 45 93% 55%;
+    --token-foreground: 45 100% 95%;
+    --token-muted: 45 40% 20%;
+    --bonus: 25 95% 60%;
+    --bonus-foreground: 25 100% 95%;
+    --success: 142 76% 46%;
+    --success-foreground: 0 0% 100%;
+
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 330 81% 60%;
