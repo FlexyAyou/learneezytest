@@ -1,5 +1,6 @@
+import { useMemo } from 'react';
 import { Link, useLocation } from "react-router-dom";
-import { BookOpen, User, Award, MessageSquare, Settings, Home, Video, Download, FileText, PenTool, TrendingUp, CreditCard, ShoppingBag, LogOut } from 'lucide-react';
+import { BookOpen, User, Award, MessageSquare, Settings, Home, Video, Download, FileText, PenTool, TrendingUp, CreditCard, ShoppingBag, LogOut, Building2 } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -15,37 +16,24 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 import { useFastAPIAuth } from "@/hooks/useFastAPIAuth";
+import { useStudentContext } from "@/hooks/useStudentContext";
 
-const navigationItems = [
-  { title: "Tableau de bord", href: "/dashboard/apprenant", icon: Home },
-  { title: "Catalogue", href: "/dashboard/apprenant/catalogue", icon: BookOpen },
-  { title: "Mes cours", href: "/dashboard/apprenant/courses", icon: BookOpen },
-  { title: "Mon parcours", href: "/dashboard/apprenant/progress", icon: Award },
-  { title: "Certificats", href: "/dashboard/apprenant/certificates", icon: Award },
-];
-
-const formationItems = [
-  { title: "Mes inscriptions", href: "/dashboard/apprenant/inscriptions", icon: FileText },
-  { title: "Émargement", href: "/dashboard/apprenant/emargements", icon: PenTool },
-  { title: "Évaluations", href: "/dashboard/apprenant/evaluations", icon: TrendingUp },
-];
-
-const toolsItems = [
-  { title: "Boutique", href: "/dashboard/apprenant/boutique", icon: ShoppingBag },
-  { title: "Mes documents", href: "/dashboard/apprenant/documents", icon: Download },
-  { title: "Abonnements", href: "/dashboard/apprenant/subscription", icon: CreditCard },
-  { title: "Messages", href: "/dashboard/apprenant/messages", icon: MessageSquare, badge: "3" },
-  { title: "Visioconférence", href: "/dashboard/apprenant/video", icon: Video },
-  { title: "Paramètres", href: "/dashboard/apprenant/settings", icon: Settings },
-];
+interface NavItem {
+  title: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  badge?: string;
+}
 
 export function StudentSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
   const { user, logout } = useFastAPIAuth();
+  const { isOFStudent, ofName, hasAccess } = useStudentContext();
   
   // Utiliser l'image du backend en priorité, fallback sur localStorage pour compatibilité
   const avatar = user?.image || localStorage.getItem('student-avatar') || '';
@@ -62,6 +50,58 @@ export function StudentSidebar() {
   const isActive = (path: string) => currentPath === path;
   const isCollapsed = state === "collapsed";
 
+  // Items de navigation filtrés selon le type d'apprenant
+  const navigationItems = useMemo<NavItem[]>(() => {
+    const items: NavItem[] = [
+      { title: "Tableau de bord", href: "/dashboard/apprenant", icon: Home },
+    ];
+
+    // Catalogue uniquement pour apprenants Learneezy
+    if (hasAccess('catalogue')) {
+      items.push({ title: "Catalogue", href: "/dashboard/apprenant/catalogue", icon: BookOpen });
+    }
+
+    items.push(
+      { title: "Mes cours", href: "/dashboard/apprenant/courses", icon: BookOpen },
+      { title: "Mon parcours", href: "/dashboard/apprenant/progress", icon: Award },
+      { title: "Certificats", href: "/dashboard/apprenant/certificates", icon: Award }
+    );
+
+    return items;
+  }, [hasAccess]);
+
+  // Items formation (identiques pour tous)
+  const formationItems: NavItem[] = [
+    { title: "Mes inscriptions", href: "/dashboard/apprenant/inscriptions", icon: FileText },
+    { title: "Émargement", href: "/dashboard/apprenant/emargements", icon: PenTool },
+    { title: "Évaluations", href: "/dashboard/apprenant/evaluations", icon: TrendingUp },
+  ];
+
+  // Items outils filtrés selon le type d'apprenant
+  const toolsItems = useMemo<NavItem[]>(() => {
+    const items: NavItem[] = [];
+
+    // Boutique uniquement pour apprenants Learneezy
+    if (hasAccess('boutique')) {
+      items.push({ title: "Boutique", href: "/dashboard/apprenant/boutique", icon: ShoppingBag });
+    }
+
+    items.push({ title: "Mes documents", href: "/dashboard/apprenant/documents", icon: Download });
+
+    // Abonnements uniquement pour apprenants Learneezy
+    if (hasAccess('subscription')) {
+      items.push({ title: "Abonnements", href: "/dashboard/apprenant/subscription", icon: CreditCard });
+    }
+
+    items.push(
+      { title: "Messages", href: "/dashboard/apprenant/messages", icon: MessageSquare, badge: "3" },
+      { title: "Visioconférence", href: "/dashboard/apprenant/video", icon: Video },
+      { title: "Paramètres", href: "/dashboard/apprenant/settings", icon: Settings }
+    );
+
+    return items;
+  }, [hasAccess]);
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-border p-4">
@@ -75,7 +115,16 @@ export function StudentSidebar() {
         {!isCollapsed && (
           <div className="text-center">
             <h2 className="text-lg font-semibold">Espace Apprenant</h2>
-            <p className="text-sm text-muted-foreground">Votre parcours d'apprentissage</p>
+            {isOFStudent && ofName ? (
+              <div className="flex items-center justify-center gap-1 mt-1">
+                <Building2 className="h-3 w-3 text-muted-foreground" />
+                <Badge variant="secondary" className="text-xs">
+                  {ofName}
+                </Badge>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">Votre parcours d'apprentissage</p>
+            )}
           </div>
         )}
       </SidebarHeader>
