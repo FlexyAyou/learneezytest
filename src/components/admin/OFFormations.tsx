@@ -25,94 +25,22 @@ export const OFFormations = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [formations, setFormations] = useState([
     { 
-      id: '1', 
-      titre: 'Développement Web Full Stack - React & Node.js', 
-      description: 'Formation complète en développement web moderne avec React, Node.js et bases de données',
-      formateur: 'Jean Dupont', 
-      niveau: 'Professionnel',
-      duree: '120h',
-      dateDebut: '27 mars 2025',
-      dateFin: '15 mai 2025', 
-      participants: 12, 
-      capaciteMax: 20,
-      inscrits: 8,
-      termines: 1,
-      status: 'planned',
-      progression: 0,
-      vues: 345,
-      stats: '2.1k'
-    },
-    { 
-      id: '2', 
-      titre: 'Intelligence Artificielle et Machine Learning avec Python', 
-      description: 'Maîtrisez les techniques d\'IA et ML avec Python, TensorFlow et scikit-learn',
-      formateur: 'Marie Martin', 
-      niveau: 'Avancé',
-      duree: '80h',
-      dateDebut: '10 avril 2025',
-      dateFin: '20 mai 2025', 
-      participants: 15, 
-      capaciteMax: 18,
-      inscrits: 5,
-      termines: 2,
-      status: 'planned',
-      progression: 0,
-      vues: 289,
-      stats: '1.8k'
-    },
-    { 
-      id: '3', 
-      titre: 'DevOps et Cloud Computing - AWS & Docker', 
-      description: 'Formation aux pratiques DevOps modernes avec AWS, Docker et Kubernetes',
-      formateur: 'Pierre Bernard', 
+      id: 'demo-course-1', 
+      titre: 'Formation exemple - Développement Web', 
+      description: 'Ceci est un cours de démonstration pour illustrer l\'affichage. Créez vos propres cours via le bouton "Créer un cours".',
+      formateur: 'Formateur OF', 
       niveau: 'Intermédiaire',
-      duree: '60h',
-      dateDebut: '05 avril 2025',
-      dateFin: '25 avril 2025', 
-      participants: 10, 
-      capaciteMax: 16,
+      duree: '40h',
+      dateDebut: '15 avril 2025',
+      dateFin: '30 mai 2025', 
+      participants: 5, 
+      capaciteMax: 15,
       inscrits: 3,
       termines: 0,
       status: 'planned',
       progression: 0,
-      vues: 456,
-      stats: '3.2k'
-    },
-    { 
-      id: '4', 
-      titre: 'Cybersécurité et Tests de Pénétration', 
-      description: 'Formation complète en cybersécurité avec pratiques de pentesting',
-      formateur: 'Sophie Dubois', 
-      niveau: 'Professionnel',
-      duree: '100h',
-      dateDebut: '23 janv. 2025',
-      dateFin: '15 mars 2025', 
-      participants: 8, 
-      capaciteMax: 12,
-      inscrits: 6,
-      termines: 1,
-      status: 'active',
-      progression: 67,
-      vues: 523,
-      stats: '4.1k'
-    },
-    { 
-      id: '5', 
-      titre: 'Développement Mobile - Flutter & React Native', 
-      description: 'Créez des applications mobiles multiplateformes avec Flutter et React Native',
-      formateur: 'Alexandre Petit', 
-      niveau: 'Intermédiaire',
-      duree: '90h',
-      dateDebut: '10 janv. 2025',
-      dateFin: '28 février 2025', 
-      participants: 14, 
-      capaciteMax: 20,
-      inscrits: 4,
-      termines: 1,
-      status: 'active',
-      progression: 50,
-      vues: 634,
-      stats: '2.9k'
+      vues: 120,
+      stats: '450'
     },
   ]);
 
@@ -146,7 +74,8 @@ export const OFFormations = () => {
   });
 
   const handleViewFormation = (formation: any) => {
-    setSelectedFormation(formation);
+    // Naviguer vers la page de détail du cours (comme SuperAdmin)
+    navigate(`/dashboard/organisme-formation/formations/${formation.id}`);
   };
 
   const handleAssignFormation = (formation: any) => {
@@ -160,8 +89,8 @@ export const OFFormations = () => {
   };
 
   const handleEditFormation = (formation: any) => {
-    setSelectedFormationForEdit(formation);
-    setShowEditModal(true);
+    // Naviguer vers la page d'édition du cours (comme SuperAdmin)
+    navigate(`/dashboard/organisme-formation/formations/${formation.id}/edit`);
   };
 
   const handleSaveFormation = (updatedFormation: any) => {
