@@ -1,33 +1,31 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Settings, Building, User, Mail, Phone, MapPin, Shield, Bell, Palette, Save } from 'lucide-react';
+import { Building, Shield, Bell, Save, Lock, Eye, EyeOff, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export const OFSettings = () => {
   const { toast } = useToast();
+  const { user } = useFastAPIAuth();
   const [isLoading, setIsLoading] = useState(false);
 
-  // État des paramètres généraux
-  const [generalSettings, setGeneralSettings] = useState({
-    organizationName: 'Centre de Formation Digital',
-    description: 'Organisme de formation spécialisé dans le numérique',
-    address: '123 Rue de la Formation, 75001 Paris',
-    phone: '01 23 45 67 89',
-    email: 'contact@cfdigital.fr',
-    website: 'https://cfdigital.fr',
-    siret: '12345678901234',
-    numeroDeclaration: '11-75-12345-75',
-    qualiopiCertified: true
+  // Password change state
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
   });
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // État des paramètres de notification
   const [notificationSettings, setNotificationSettings] = useState({
@@ -38,34 +36,6 @@ export const OFSettings = () => {
     weeklyReports: true,
     monthlyReports: true
   });
-
-  // État des paramètres d'apparence
-  const [appearanceSettings, setAppearanceSettings] = useState({
-    primaryColor: '#ec4899',
-    secondaryColor: '#8b5cf6',
-    logoUrl: '/lovable-uploads/52aaa383-7635-46d0-ac37-eb3ee6b878d1.png',
-    customCss: ''
-  });
-
-  const handleSaveGeneral = async () => {
-    setIsLoading(true);
-    try {
-      // Simulation de sauvegarde
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      toast({
-        title: "Paramètres sauvegardés",
-        description: "Les paramètres généraux ont été mis à jour avec succès.",
-      });
-    } catch (error) {
-      toast({
-        title: "Erreur",
-        description: "Impossible de sauvegarder les paramètres.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleSaveNotifications = async () => {
     setIsLoading(true);
@@ -86,18 +56,51 @@ export const OFSettings = () => {
     }
   };
 
-  const handleSaveAppearance = async () => {
+  const handlePasswordChange = async () => {
+    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez remplir tous les champs.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast({
+        title: "Erreur",
+        description: "Les nouveaux mots de passe ne correspondent pas.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (passwordData.newPassword.length < 8) {
+      toast({
+        title: "Erreur",
+        description: "Le mot de passe doit contenir au moins 8 caractères.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
+      // TODO: Implement actual password change API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       toast({
-        title: "Apparence sauvegardée",
-        description: "Les paramètres d'apparence ont été mis à jour.",
+        title: "Mot de passe modifié",
+        description: "Votre mot de passe a été mis à jour avec succès.",
+      });
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
       });
     } catch (error) {
       toast({
         title: "Erreur",
-        description: "Impossible de sauvegarder l'apparence.",
+        description: "Impossible de modifier le mot de passe.",
         variant: "destructive",
       });
     } finally {
@@ -109,13 +112,13 @@ export const OFSettings = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Paramètres de l'organisme</h1>
-          <p className="text-gray-600">Gérer les paramètres et la configuration de votre organisme</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Paramètres de l'organisme</h1>
+          <p className="text-muted-foreground">Gérer les paramètres et la configuration de votre organisme</p>
         </div>
       </div>
 
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="general" className="flex items-center gap-2">
             <Building className="h-4 w-4" />
             Général
@@ -123,10 +126,6 @@ export const OFSettings = () => {
           <TabsTrigger value="notifications" className="flex items-center gap-2">
             <Bell className="h-4 w-4" />
             Notifications
-          </TabsTrigger>
-          <TabsTrigger value="appearance" className="flex items-center gap-2">
-            <Palette className="h-4 w-4" />
-            Apparence
           </TabsTrigger>
           <TabsTrigger value="security" className="flex items-center gap-2">
             <Shield className="h-4 w-4" />
@@ -139,121 +138,60 @@ export const OFSettings = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Building className="h-5 w-5" />
-                Informations générales
+                Informations de votre compte
               </CardTitle>
+              <CardDescription>
+                Ces informations sont gérées par l'administrateur Learneezy. Contactez le support pour toute modification.
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              <Alert>
+                <Info className="h-4 w-4" />
+                <AlertDescription>
+                  Les informations ci-dessous sont en lecture seule. Pour les modifier, veuillez contacter l'équipe Learneezy.
+                </AlertDescription>
+              </Alert>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="organizationName">Nom de l'organisme</Label>
-                  <Input
-                    id="organizationName"
-                    value={generalSettings.organizationName}
-                    onChange={(e) => setGeneralSettings(prev => ({
-                      ...prev,
-                      organizationName: e.target.value
-                    }))}
-                  />
+                  <Label className="text-muted-foreground">Prénom</Label>
+                  <div className="p-3 bg-muted rounded-md text-foreground">
+                    {user?.first_name || '-'}
+                  </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email principal</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={generalSettings.email}
-                    onChange={(e) => setGeneralSettings(prev => ({
-                      ...prev,
-                      email: e.target.value
-                    }))}
-                  />
+                  <Label className="text-muted-foreground">Nom</Label>
+                  <div className="p-3 bg-muted rounded-md text-foreground">
+                    {user?.last_name || '-'}
+                  </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Téléphone</Label>
-                  <Input
-                    id="phone"
-                    value={generalSettings.phone}
-                    onChange={(e) => setGeneralSettings(prev => ({
-                      ...prev,
-                      phone: e.target.value
-                    }))}
-                  />
+                  <Label className="text-muted-foreground">Email</Label>
+                  <div className="p-3 bg-muted rounded-md text-foreground">
+                    {user?.email || '-'}
+                  </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="website">Site web</Label>
-                  <Input
-                    id="website"
-                    value={generalSettings.website}
-                    onChange={(e) => setGeneralSettings(prev => ({
-                      ...prev,
-                      website: e.target.value
-                    }))}
-                  />
+                  <Label className="text-muted-foreground">Rôle</Label>
+                  <div className="p-3 bg-muted rounded-md">
+                    <Badge variant="secondary">{user?.role || '-'}</Badge>
+                  </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="siret">SIRET</Label>
-                  <Input
-                    id="siret"
-                    value={generalSettings.siret}
-                    onChange={(e) => setGeneralSettings(prev => ({
-                      ...prev,
-                      siret: e.target.value
-                    }))}
-                  />
+                  <Label className="text-muted-foreground">Organisme</Label>
+                  <div className="p-3 bg-muted rounded-md text-foreground">
+                    {(user as any)?.organization_name || '-'}
+                  </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="numeroDeclaration">Numéro de déclaration</Label>
-                  <Input
-                    id="numeroDeclaration"
-                    value={generalSettings.numeroDeclaration}
-                    onChange={(e) => setGeneralSettings(prev => ({
-                      ...prev,
-                      numeroDeclaration: e.target.value
-                    }))}
-                  />
+                  <Label className="text-muted-foreground">Statut</Label>
+                  <div className="p-3 bg-muted rounded-md">
+                    <Badge className="bg-green-100 text-green-800">
+                      Actif
+                    </Badge>
+                  </div>
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={generalSettings.description}
-                  onChange={(e) => setGeneralSettings(prev => ({
-                    ...prev,
-                    description: e.target.value
-                  }))}
-                  rows={3}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="address">Adresse</Label>
-                <Textarea
-                  id="address"
-                  value={generalSettings.address}
-                  onChange={(e) => setGeneralSettings(prev => ({
-                    ...prev,
-                    address: e.target.value
-                  }))}
-                  rows={2}
-                />
-              </div>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="qualiopi"
-                  checked={generalSettings.qualiopiCertified}
-                  onCheckedChange={(checked) => setGeneralSettings(prev => ({
-                    ...prev,
-                    qualiopiCertified: checked
-                  }))}
-                />
-                <Label htmlFor="qualiopi">Certifié Qualiopi</Label>
-                {generalSettings.qualiopiCertified && (
-                  <Badge className="bg-green-100 text-green-800">Certifié</Badge>
-                )}
-              </div>
-              <Button onClick={handleSaveGeneral} disabled={isLoading}>
-                <Save className="h-4 w-4 mr-2" />
-                Sauvegarder les informations générales
-              </Button>
             </CardContent>
           </Card>
         </TabsContent>
@@ -354,159 +292,98 @@ export const OFSettings = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="appearance">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Palette className="h-5 w-5" />
-                Personnalisation de l'apparence
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="primaryColor">Couleur principale</Label>
-                  <div className="flex items-center space-x-2">
-                    <Input
-                      id="primaryColor"
-                      type="color"
-                      value={appearanceSettings.primaryColor}
-                      onChange={(e) => setAppearanceSettings(prev => ({
-                        ...prev,
-                        primaryColor: e.target.value
-                      }))}
-                      className="w-16 h-10"
-                    />
-                    <Input
-                      value={appearanceSettings.primaryColor}
-                      onChange={(e) => setAppearanceSettings(prev => ({
-                        ...prev,
-                        primaryColor: e.target.value
-                      }))}
-                      className="flex-1"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="secondaryColor">Couleur secondaire</Label>
-                  <div className="flex items-center space-x-2">
-                    <Input
-                      id="secondaryColor"
-                      type="color"
-                      value={appearanceSettings.secondaryColor}
-                      onChange={(e) => setAppearanceSettings(prev => ({
-                        ...prev,
-                        secondaryColor: e.target.value
-                      }))}
-                      className="w-16 h-10"
-                    />
-                    <Input
-                      value={appearanceSettings.secondaryColor}
-                      onChange={(e) => setAppearanceSettings(prev => ({
-                        ...prev,
-                        secondaryColor: e.target.value
-                      }))}
-                      className="flex-1"
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="logoUrl">URL du logo</Label>
-                <Input
-                  id="logoUrl"
-                  value={appearanceSettings.logoUrl}
-                  onChange={(e) => setAppearanceSettings(prev => ({
-                    ...prev,
-                    logoUrl: e.target.value
-                  }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="customCss">CSS personnalisé</Label>
-                <Textarea
-                  id="customCss"
-                  value={appearanceSettings.customCss}
-                  onChange={(e) => setAppearanceSettings(prev => ({
-                    ...prev,
-                    customCss: e.target.value
-                  }))}
-                  rows={5}
-                  placeholder="/* Votre CSS personnalisé */"
-                />
-              </div>
-              <Button onClick={handleSaveAppearance} disabled={isLoading}>
-                <Save className="h-4 w-4 mr-2" />
-                Sauvegarder l'apparence
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
         <TabsContent value="security">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5" />
-                Paramètres de sécurité
+                <Lock className="h-5 w-5" />
+                Modifier votre mot de passe
               </CardTitle>
+              <CardDescription>
+                Changez votre mot de passe pour sécuriser votre compte
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Authentification</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="twoFactor">Authentification à deux facteurs</Label>
-                    <Switch id="twoFactor" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="sessionTimeout">Délai d'expiration de session (minutes)</Label>
-                    <Select defaultValue="30">
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="15">15 minutes</SelectItem>
-                        <SelectItem value="30">30 minutes</SelectItem>
-                        <SelectItem value="60">1 heure</SelectItem>
-                        <SelectItem value="120">2 heures</SelectItem>
-                        <SelectItem value="480">8 heures</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Politique de mot de passe</h3>
-                <div className="space-y-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="minPasswordLength">Longueur minimale</Label>
-                    <Select defaultValue="8">
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="6">6 caractères</SelectItem>
-                        <SelectItem value="8">8 caractères</SelectItem>
-                        <SelectItem value="10">10 caractères</SelectItem>
-                        <SelectItem value="12">12 caractères</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="requireSpecialChars">Caractères spéciaux requis</Label>
-                    <Switch id="requireSpecialChars" defaultChecked />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="requireNumbers">Chiffres requis</Label>
-                    <Switch id="requireNumbers" defaultChecked />
+              <div className="max-w-md space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="currentPassword">Mot de passe actuel</Label>
+                  <div className="relative">
+                    <Input
+                      id="currentPassword"
+                      type={showCurrentPassword ? "text" : "password"}
+                      value={passwordData.currentPassword}
+                      onChange={(e) => setPasswordData(prev => ({
+                        ...prev,
+                        currentPassword: e.target.value
+                      }))}
+                      placeholder="Entrez votre mot de passe actuel"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword">Nouveau mot de passe</Label>
+                  <div className="relative">
+                    <Input
+                      id="newPassword"
+                      type={showNewPassword ? "text" : "password"}
+                      value={passwordData.newPassword}
+                      onChange={(e) => setPasswordData(prev => ({
+                        ...prev,
+                        newPassword: e.target.value
+                      }))}
+                      placeholder="Entrez votre nouveau mot de passe"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Minimum 8 caractères</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirmer le nouveau mot de passe</Label>
+                  <div className="relative">
+                    <Input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      value={passwordData.confirmPassword}
+                      onChange={(e) => setPasswordData(prev => ({
+                        ...prev,
+                        confirmPassword: e.target.value
+                      }))}
+                      placeholder="Confirmez votre nouveau mot de passe"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <Button 
+                  onClick={handlePasswordChange} 
+                  disabled={isLoading || !passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword}
+                  className="w-full"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Mettre à jour le mot de passe
+                </Button>
               </div>
-              <Button disabled={isLoading}>
-                <Save className="h-4 w-4 mr-2" />
-                Sauvegarder la sécurité
-              </Button>
             </CardContent>
           </Card>
         </TabsContent>
