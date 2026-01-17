@@ -7,9 +7,7 @@
   "paths": {
     "/api/auth/me": {
       "get": {
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "summary": "Get Me",
         "description": "Retourne les informations minimales du user courant pour tests et front sans ré-exposer sensitive fields.",
         "operationId": "get_me_api_auth_me_get",
@@ -18,9 +16,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           }
@@ -34,9 +30,7 @@
     },
     "/api/auth/register": {
       "post": {
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "summary": "Register",
         "operationId": "register_api_auth_register_post",
         "requestBody": {
@@ -75,9 +69,7 @@
     },
     "/api/auth/verify-email": {
       "post": {
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "summary": "Verify Email",
         "operationId": "verify_email_api_auth_verify_email_post",
         "parameters": [
@@ -119,9 +111,7 @@
     },
     "/api/auth/login": {
       "post": {
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "summary": "Login",
         "operationId": "login_api_auth_login_post",
         "requestBody": {
@@ -160,9 +150,7 @@
     },
     "/api/auth/logout": {
       "post": {
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "summary": "Logout",
         "operationId": "logout_api_auth_logout_post",
         "security": [
@@ -193,9 +181,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -214,9 +200,7 @@
     },
     "/api/auth/reset-password-request": {
       "post": {
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "summary": "Reset Password Request",
         "operationId": "reset_password_request_api_auth_reset_password_request_post",
         "requestBody": {
@@ -234,9 +218,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -255,9 +237,7 @@
     },
     "/api/auth/reset-password/validate": {
       "get": {
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "summary": "Validate Reset Password Token",
         "description": "Vérifie la validité d'un token de réinitialisation sans effectuer le reset.\nRetour: { \"valid\": True } ou { \"valid\": False, \"detail\": \"...\" }",
         "operationId": "validate_reset_password_token_api_auth_reset_password_validate_get",
@@ -279,9 +259,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -300,9 +278,7 @@
     },
     "/api/auth/reset-password": {
       "post": {
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "summary": "Reset Password",
         "operationId": "reset_password_api_auth_reset_password_post",
         "parameters": [
@@ -332,9 +308,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -353,9 +327,7 @@
     },
     "/api/auth/refresh": {
       "post": {
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "summary": "Refresh Token",
         "operationId": "refresh_token_api_auth_refresh_post",
         "requestBody": {
@@ -394,9 +366,7 @@
     },
     "/api/auth/protected": {
       "get": {
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "summary": "Protected Route",
         "operationId": "protected_route_api_auth_protected_get",
         "responses": {
@@ -420,9 +390,7 @@
     },
     "/api/auth/user/alert": {
       "get": {
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "summary": "Get User Alert",
         "operationId": "get_user_alert_api_auth_user_alert_get",
         "responses": {
@@ -454,9 +422,7 @@
     },
     "/api/auth/user": {
       "put": {
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "summary": "Update User Profile",
         "description": "Met à jour le profil de l'utilisateur authentifié.\nChamps optionnels : first_name, last_name, image (base64), address, phone, bio, accessible_catalogues, is_major",
         "operationId": "update_user_profile_api_auth_user_put",
@@ -501,9 +467,7 @@
     },
     "/api/courses/new-id": {
       "get": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Generate New Id",
         "operationId": "generate_new_id_api_courses_new_id_get",
         "security": [
@@ -553,9 +517,7 @@
     },
     "/api/courses/new-ids": {
       "get": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Generate New Ids",
         "operationId": "generate_new_ids_api_courses_new_ids_get",
         "security": [
@@ -605,9 +567,7 @@
     },
     "/api/courses/catalogue": {
       "get": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Get Global Catalogue",
         "operationId": "get_global_catalogue_api_courses_catalogue_get",
         "security": [
@@ -670,9 +630,7 @@
     },
     "/api/courses/": {
       "post": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Create Course",
         "operationId": "create_course_api_courses__post",
         "security": [
@@ -715,9 +673,7 @@
         }
       },
       "get": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Get Courses",
         "operationId": "get_courses_api_courses__get",
         "security": [
@@ -1050,9 +1006,7 @@
     },
     "/api/courses/{course_id}": {
       "get": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Get Course",
         "operationId": "get_course_api_courses__course_id__get",
         "security": [
@@ -1095,9 +1049,7 @@
         }
       },
       "put": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Update Course",
         "operationId": "update_course_api_courses__course_id__put",
         "security": [
@@ -1150,9 +1102,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Delete Course",
         "operationId": "delete_course_api_courses__course_id__delete",
         "security": [
@@ -1190,9 +1140,7 @@
     },
     "/api/courses/{course_id}/program": {
       "get": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Get Course Program",
         "operationId": "get_course_program_api_courses__course_id__program_get",
         "security": [
@@ -1237,9 +1185,7 @@
     },
     "/api/courses/{course_id}/program/download": {
       "get": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Download Course Program",
         "operationId": "download_course_program_api_courses__course_id__program_download_get",
         "security": [
@@ -1263,9 +1209,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -1284,9 +1228,7 @@
     },
     "/api/courses/{course_id}/resources": {
       "get": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "List Course Resources",
         "operationId": "list_course_resources_api_courses__course_id__resources_get",
         "security": [
@@ -1333,9 +1275,7 @@
         }
       },
       "post": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Attach Course Resource",
         "operationId": "attach_course_resource_api_courses__course_id__resources_post",
         "security": [
@@ -1388,9 +1328,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Detach Course Resource",
         "operationId": "detach_course_resource_api_courses__course_id__resources_delete",
         "security": [
@@ -1454,9 +1392,7 @@
     },
     "/api/courses/{course_id}/resources/{index}/download": {
       "get": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Download Course Resource",
         "operationId": "download_course_resource_api_courses__course_id__resources__index__download_get",
         "security": [
@@ -1489,9 +1425,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -1510,9 +1444,7 @@
     },
     "/api/courses/{course_id}/summary": {
       "get": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Get Course Summary",
         "operationId": "get_course_summary_api_courses__course_id__summary_get",
         "parameters": [
@@ -1552,9 +1484,7 @@
     },
     "/api/courses/{course_id}/status": {
       "patch": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Update Course Status",
         "operationId": "update_course_status_api_courses__course_id__status_patch",
         "security": [
@@ -1607,9 +1537,7 @@
     },
     "/api/courses/{course_id}/modules": {
       "post": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Create Module",
         "operationId": "create_module_api_courses__course_id__modules_post",
         "security": [
@@ -1664,9 +1592,7 @@
     },
     "/api/courses/{course_id}/modules/{module_id}": {
       "delete": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Delete Module",
         "operationId": "delete_module_api_courses__course_id__modules__module_id__delete",
         "security": [
@@ -1723,9 +1649,7 @@
         }
       },
       "put": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Update Module Full",
         "operationId": "update_module_full_api_courses__course_id__modules__module_id__put",
         "security": [
@@ -1789,9 +1713,7 @@
     },
     "/api/courses/{course_id}/modules/{module_id}/lessons": {
       "post": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Create Lesson",
         "operationId": "create_lesson_api_courses__course_id__modules__module_id__lessons_post",
         "security": [
@@ -1855,9 +1777,7 @@
     },
     "/api/courses/{course_id}/modules/{module_id}/quizzes": {
       "post": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Create Module Quiz",
         "operationId": "create_module_quiz_api_courses__course_id__modules__module_id__quizzes_post",
         "security": [
@@ -1921,9 +1841,7 @@
     },
     "/api/courses/{course_id}/modules/{module_id}/quizzes/{quiz_id}": {
       "put": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Update Module Quiz",
         "operationId": "update_module_quiz_api_courses__course_id__modules__module_id__quizzes__quiz_id__put",
         "security": [
@@ -1994,9 +1912,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Delete Module Quiz",
         "operationId": "delete_module_quiz_api_courses__course_id__modules__module_id__quizzes__quiz_id__delete",
         "security": [
@@ -2052,9 +1968,7 @@
     },
     "/api/courses/{course_id}/modules/{module_id}/quizzes/reorder": {
       "patch": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Reorder Quizzes",
         "operationId": "reorder_quizzes_api_courses__course_id__modules__module_id__quizzes_reorder_patch",
         "security": [
@@ -2118,9 +2032,7 @@
     },
     "/api/courses/{course_id}/modules/{module_id}/order": {
       "patch": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Reorder Module Mixed",
         "operationId": "reorder_module_mixed_api_courses__course_id__modules__module_id__order_patch",
         "security": [
@@ -2184,9 +2096,7 @@
     },
     "/api/courses/{course_id}/modules/{module_id}/lessons/{lesson_id}": {
       "put": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Update Lesson",
         "operationId": "update_lesson_api_courses__course_id__modules__module_id__lessons__lesson_id__put",
         "security": [
@@ -2257,9 +2167,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Delete Lesson",
         "operationId": "delete_lesson_api_courses__course_id__modules__module_id__lessons__lesson_id__delete",
         "security": [
@@ -2327,9 +2235,7 @@
     },
     "/api/courses/{course_id}/modules/{module_id}/lessons/reorder": {
       "patch": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Reorder Lessons",
         "operationId": "reorder_lessons_api_courses__course_id__modules__module_id__lessons_reorder_patch",
         "security": [
@@ -2393,9 +2299,7 @@
     },
     "/api/courses/{course_id}/modules/{module_id}/lessons/{lesson_id}/media": {
       "put": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Attach Lesson Media",
         "operationId": "attach_lesson_media_api_courses__course_id__modules__module_id__lessons__lesson_id__media_put",
         "security": [
@@ -2468,9 +2372,7 @@
     },
     "/api/courses/{course_id}/modules/{module_id}/lessons/{lesson_id}/quiz": {
       "post": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Create Quiz",
         "operationId": "create_quiz_api_courses__course_id__modules__module_id__lessons__lesson_id__quiz_post",
         "security": [
@@ -2541,9 +2443,7 @@
         }
       },
       "get": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Get Quiz",
         "operationId": "get_quiz_api_courses__course_id__modules__module_id__lessons__lesson_id__quiz_get",
         "security": [
@@ -2604,9 +2504,7 @@
         }
       },
       "put": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Update Quiz",
         "operationId": "update_quiz_api_courses__course_id__modules__module_id__lessons__lesson_id__quiz_put",
         "security": [
@@ -2677,9 +2575,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Delete Quiz",
         "operationId": "delete_quiz_api_courses__course_id__modules__module_id__lessons__lesson_id__quiz_delete",
         "security": [
@@ -2735,9 +2631,7 @@
     },
     "/api/courses/{course_id}/modules/{module_id}/lessons/{lesson_id}/quiz/{quiz_id}": {
       "get": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Get Quiz By Id",
         "operationId": "get_quiz_by_id_api_courses__course_id__modules__module_id__lessons__lesson_id__quiz__quiz_id__get",
         "security": [
@@ -2807,9 +2701,7 @@
         }
       },
       "put": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Update Quiz By Id",
         "operationId": "update_quiz_by_id_api_courses__course_id__modules__module_id__lessons__lesson_id__quiz__quiz_id__put",
         "security": [
@@ -2889,9 +2781,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Delete Quiz By Id",
         "operationId": "delete_quiz_by_id_api_courses__course_id__modules__module_id__lessons__lesson_id__quiz__quiz_id__delete",
         "security": [
@@ -2956,9 +2846,7 @@
     },
     "/api/courses/{course_id}/modules/{module_id}/assignment": {
       "post": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Create Assignment",
         "operationId": "create_assignment_api_courses__course_id__modules__module_id__assignment_post",
         "security": [
@@ -3020,9 +2908,7 @@
         }
       },
       "get": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Get Assignment",
         "operationId": "get_assignment_api_courses__course_id__modules__module_id__assignment_get",
         "security": [
@@ -3074,9 +2960,7 @@
         }
       },
       "put": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Update Assignment",
         "operationId": "update_assignment_api_courses__course_id__modules__module_id__assignment_put",
         "security": [
@@ -3138,9 +3022,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Delete Assignment",
         "operationId": "delete_assignment_api_courses__course_id__modules__module_id__assignment_delete",
         "security": [
@@ -3187,9 +3069,7 @@
     },
     "/api/courses/{course_id}/modules/{module_id}/assignment/{assignment_id}": {
       "get": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Get Assignment By Id",
         "operationId": "get_assignment_by_id_api_courses__course_id__modules__module_id__assignment__assignment_id__get",
         "security": [
@@ -3250,9 +3130,7 @@
         }
       },
       "put": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Update Assignment By Id",
         "operationId": "update_assignment_by_id_api_courses__course_id__modules__module_id__assignment__assignment_id__put",
         "security": [
@@ -3323,9 +3201,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Delete Assignment By Id",
         "operationId": "delete_assignment_by_id_api_courses__course_id__modules__module_id__assignment__assignment_id__delete",
         "security": [
@@ -3381,9 +3257,7 @@
     },
     "/api/courses/{course_id}/certification": {
       "post": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Create Certification",
         "operationId": "create_certification_api_courses__course_id__certification_post",
         "security": [
@@ -3418,9 +3292,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -3437,9 +3309,7 @@
         }
       },
       "get": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Get Certification",
         "operationId": "get_certification_api_courses__course_id__certification_get",
         "security": [
@@ -3463,9 +3333,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -3482,9 +3350,7 @@
         }
       },
       "put": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Update Certification",
         "operationId": "update_certification_api_courses__course_id__certification_put",
         "security": [
@@ -3519,9 +3385,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -3538,9 +3402,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Delete Certification",
         "operationId": "delete_certification_api_courses__course_id__certification_delete",
         "security": [
@@ -3578,9 +3440,7 @@
     },
     "/api/courses/{course_id}/certification/{certification_id}": {
       "get": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Get Certification By Id",
         "operationId": "get_certification_by_id_api_courses__course_id__certification__certification_id__get",
         "security": [
@@ -3613,9 +3473,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -3632,9 +3490,7 @@
         }
       },
       "put": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Update Certification By Id",
         "operationId": "update_certification_by_id_api_courses__course_id__certification__certification_id__put",
         "security": [
@@ -3678,9 +3534,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -3697,9 +3551,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Delete Certification By Id",
         "operationId": "delete_certification_by_id_api_courses__course_id__certification__certification_id__delete",
         "security": [
@@ -3746,9 +3598,7 @@
     },
     "/api/courses/{course_id}/upload": {
       "post": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Upload Media",
         "operationId": "upload_media_api_courses__course_id__upload_post",
         "security": [
@@ -3803,9 +3653,7 @@
     },
     "/api/courses/{course_id}/stats": {
       "get": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Get Course Stats",
         "operationId": "get_course_stats_api_courses__course_id__stats_get",
         "security": [
@@ -3850,9 +3698,7 @@
     },
     "/api/courses/{course_id}/stats/evaluations": {
       "get": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Get Course Evaluations Stats",
         "operationId": "get_course_evaluations_stats_api_courses__course_id__stats_evaluations_get",
         "security": [
@@ -3876,9 +3722,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -3897,9 +3741,7 @@
     },
     "/api/courses/{course_id}/full": {
       "get": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Get Course Full",
         "operationId": "get_course_full_api_courses__course_id__full_get",
         "security": [
@@ -3923,9 +3765,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -3944,9 +3784,7 @@
     },
     "/api/courses/enroll": {
       "post": {
-        "tags": [
-          "courses"
-        ],
+        "tags": ["courses"],
         "summary": "Enroll Course",
         "operationId": "enroll_course_api_courses_enroll_post",
         "requestBody": {
@@ -3990,9 +3828,7 @@
     },
     "/api/organizations/": {
       "post": {
-        "tags": [
-          "organizations"
-        ],
+        "tags": ["organizations"],
         "summary": "Create Organization",
         "description": "Création OF par superadmin (admin user avec contact_email fourni, pass random).",
         "operationId": "create_organization_api_organizations__post",
@@ -4035,9 +3871,7 @@
         }
       },
       "get": {
-        "tags": [
-          "organizations"
-        ],
+        "tags": ["organizations"],
         "summary": "Get Organizations",
         "description": "Liste OF par superadmin (pagination).",
         "operationId": "get_organizations_api_organizations__get",
@@ -4101,9 +3935,7 @@
     },
     "/api/organizations/verify-subdomain": {
       "get": {
-        "tags": [
-          "organizations"
-        ],
+        "tags": ["organizations"],
         "summary": "Verify Subdomain",
         "description": "Endpoint public (no auth) pour vérifier si un sous-domaine (OF) existe.\nPlacé avant les routes paramétriques pour éviter les collisions avec /{organization_id}.\n\n- Si `host` est fourni, utilisé tel quel; sinon fallback sur headers puis request.url.hostname.\nRetour JSON: { exists: bool, slug?: str, organization_name?: str, login_url?: str, detail?: str }",
         "operationId": "verify_subdomain_api_organizations_verify_subdomain_get",
@@ -4132,9 +3964,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -4153,9 +3983,7 @@
     },
     "/api/organizations/{organization_id}": {
       "get": {
-        "tags": [
-          "organizations"
-        ],
+        "tags": ["organizations"],
         "summary": "Get Organization",
         "description": "Liste OF par superadmin (pagination).",
         "operationId": "get_organization_api_organizations__organization_id__get",
@@ -4201,9 +4029,7 @@
     },
     "/api/organizations/{org_id}": {
       "put": {
-        "tags": [
-          "organizations"
-        ],
+        "tags": ["organizations"],
         "summary": "Update Organization",
         "description": "Update abonnement OF par superadmin.",
         "operationId": "update_organization_api_organizations__org_id__put",
@@ -4259,9 +4085,7 @@
     },
     "/api/organizations/downloads-policy": {
       "patch": {
-        "tags": [
-          "organizations"
-        ],
+        "tags": ["organizations"],
         "summary": "Update Downloads Policy",
         "description": "OF admin: mettre à jour la politique par défaut de téléchargement (ressources cours).",
         "operationId": "update_downloads_policy_api_organizations_downloads_policy_patch",
@@ -4307,9 +4131,7 @@
     },
     "/api/organizations/{of_id}/users": {
       "post": {
-        "tags": [
-          "organizations"
-        ],
+        "tags": ["organizations"],
         "summary": "Create Of User",
         "description": "Création user affilié OF par OF_ADMIN (rôles OF-specific, assign catalogues optionnel).",
         "operationId": "create_of_user_api_organizations__of_id__users_post",
@@ -4365,9 +4187,7 @@
     },
     "/api/subscriptions-and-catalogues/subscriptions": {
       "post": {
-        "tags": [
-          "subscriptions-catalogues"
-        ],
+        "tags": ["subscriptions-catalogues"],
         "summary": "Create Subscription",
         "description": "Création abonnement par OF_ADMIN (end_date calculée, Stripe stub).",
         "operationId": "create_subscription_api_subscriptions_and_catalogues_subscriptions_post",
@@ -4412,9 +4232,7 @@
     },
     "/api/subscriptions-and-catalogues/catalogues": {
       "get": {
-        "tags": [
-          "subscriptions-catalogues"
-        ],
+        "tags": ["subscriptions-catalogues"],
         "summary": "List Catalogues",
         "description": "Liste catalogues filtrée par abonnement OF (global si gold+, pagination).",
         "operationId": "list_catalogues_api_subscriptions_and_catalogues_catalogues_get",
@@ -4478,9 +4296,7 @@
     },
     "/api/subscriptions-and-catalogues/organizations/{of_id}/assign-catalogue/{user_id}": {
       "put": {
-        "tags": [
-          "subscriptions-catalogues"
-        ],
+        "tags": ["subscriptions-catalogues"],
         "summary": "Assign Catalogue To User",
         "description": "Assign catalogues sélectifs à apprenant OF (update accessible_catalogues JSONB).",
         "operationId": "assign_catalogue_to_user_api_subscriptions_and_catalogues_organizations__of_id__assign_catalogue__user_id__put",
@@ -4549,9 +4365,7 @@
     },
     "/api/tokens/balance": {
       "get": {
-        "tags": [
-          "tokens"
-        ],
+        "tags": ["tokens"],
         "summary": "Get Balance",
         "operationId": "get_balance_api_tokens_balance_get",
         "responses": {
@@ -4575,9 +4389,7 @@
     },
     "/api/tokens/buy": {
       "post": {
-        "tags": [
-          "tokens"
-        ],
+        "tags": ["tokens"],
         "summary": "Buy Tokens",
         "operationId": "buy_tokens_api_tokens_buy_post",
         "requestBody": {
@@ -4621,9 +4433,7 @@
     },
     "/api/auth/superadmin/register": {
       "post": {
-        "tags": [
-          "admin"
-        ],
+        "tags": ["admin"],
         "summary": "Superadmin Register",
         "operationId": "superadmin_register_api_auth_superadmin_register_post",
         "requestBody": {
@@ -4667,9 +4477,7 @@
     },
     "/api/auth/superadmin/users": {
       "get": {
-        "tags": [
-          "admin"
-        ],
+        "tags": ["admin"],
         "summary": "Superadmin Get Users",
         "operationId": "superadmin_get_users_api_auth_superadmin_users_get",
         "responses": {
@@ -4697,9 +4505,7 @@
     },
     "/api/auth/superadmin/validate-trainer/{user_id}": {
       "patch": {
-        "tags": [
-          "admin"
-        ],
+        "tags": ["admin"],
         "summary": "Validate Trainer",
         "operationId": "validate_trainer_api_auth_superadmin_validate_trainer__user_id__patch",
         "security": [
@@ -4754,9 +4560,7 @@
     },
     "/api/auth/superadmin/users/{user_id}/status": {
       "patch": {
-        "tags": [
-          "admin"
-        ],
+        "tags": ["admin"],
         "summary": "Update User Status",
         "operationId": "update_user_status_api_auth_superadmin_users__user_id__status_patch",
         "security": [
@@ -4811,9 +4615,7 @@
     },
     "/api/evaluations/{evaluation_id}/start-exam": {
       "post": {
-        "tags": [
-          "evaluations"
-        ],
+        "tags": ["evaluations"],
         "summary": "Start Exam",
         "operationId": "start_exam_api_evaluations__evaluation_id__start_exam_post",
         "security": [
@@ -4837,9 +4639,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -4858,9 +4658,7 @@
     },
     "/api/evaluations/quiz": {
       "post": {
-        "tags": [
-          "evaluations"
-        ],
+        "tags": ["evaluations"],
         "summary": "Create Quiz",
         "operationId": "create_quiz_api_evaluations_quiz_post",
         "requestBody": {
@@ -4904,9 +4702,7 @@
     },
     "/api/evaluations/assignment": {
       "post": {
-        "tags": [
-          "evaluations"
-        ],
+        "tags": ["evaluations"],
         "summary": "Create Assignment",
         "operationId": "create_assignment_api_evaluations_assignment_post",
         "requestBody": {
@@ -4950,9 +4746,7 @@
     },
     "/api/evaluations/certification": {
       "post": {
-        "tags": [
-          "evaluations"
-        ],
+        "tags": ["evaluations"],
         "summary": "Create Certification",
         "operationId": "create_certification_api_evaluations_certification_post",
         "requestBody": {
@@ -4971,9 +4765,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -4997,9 +4789,7 @@
     },
     "/api/evaluations/{evaluation_id}": {
       "get": {
-        "tags": [
-          "evaluations"
-        ],
+        "tags": ["evaluations"],
         "summary": "Get Evaluation",
         "operationId": "get_evaluation_api_evaluations__evaluation_id__get",
         "security": [
@@ -5050,9 +4840,7 @@
         }
       },
       "put": {
-        "tags": [
-          "evaluations"
-        ],
+        "tags": ["evaluations"],
         "summary": "Update Evaluation",
         "operationId": "update_evaluation_api_evaluations__evaluation_id__put",
         "security": [
@@ -5121,9 +4909,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "evaluations"
-        ],
+        "tags": ["evaluations"],
         "summary": "Delete Evaluation",
         "operationId": "delete_evaluation_api_evaluations__evaluation_id__delete",
         "security": [
@@ -5161,9 +4947,7 @@
     },
     "/api/evaluations/{evaluation_id}/submit": {
       "post": {
-        "tags": [
-          "evaluations"
-        ],
+        "tags": ["evaluations"],
         "summary": "Submit Evaluation",
         "operationId": "submit_evaluation_api_evaluations__evaluation_id__submit_post",
         "security": [
@@ -5218,9 +5002,7 @@
     },
     "/api/evaluations/{evaluation_id}/results": {
       "get": {
-        "tags": [
-          "evaluations"
-        ],
+        "tags": ["evaluations"],
         "summary": "Get Latest Result",
         "operationId": "get_latest_result_api_evaluations__evaluation_id__results_get",
         "security": [
@@ -5297,9 +5079,7 @@
     },
     "/api/evaluations/{evaluation_id}/results/history": {
       "get": {
-        "tags": [
-          "evaluations"
-        ],
+        "tags": ["evaluations"],
         "summary": "Get Results History",
         "operationId": "get_results_history_api_evaluations__evaluation_id__results_history_get",
         "security": [
@@ -5364,9 +5144,7 @@
     },
     "/api/evaluations/{evaluation_id}/grade": {
       "post": {
-        "tags": [
-          "evaluations"
-        ],
+        "tags": ["evaluations"],
         "summary": "Manual Grade",
         "operationId": "manual_grade_api_evaluations__evaluation_id__grade_post",
         "security": [
@@ -5400,9 +5178,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -5421,9 +5197,7 @@
     },
     "/api/evaluations/{evaluation_id}/stats": {
       "get": {
-        "tags": [
-          "evaluations"
-        ],
+        "tags": ["evaluations"],
         "summary": "Evaluation Stats",
         "operationId": "evaluation_stats_api_evaluations__evaluation_id__stats_get",
         "security": [
@@ -5447,9 +5221,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -5468,9 +5240,7 @@
     },
     "/api/users/me/evaluations/history": {
       "get": {
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "summary": "Get My Evaluations History",
         "description": "Retourne l'historique d'évaluations de l'utilisateur courant:\n- Agrégats globaux\n- Liste des évaluations avec best_score, attempts, last_attempt_at",
         "operationId": "get_my_evaluations_history_api_users_me_evaluations_history_get",
@@ -5479,9 +5249,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           }
@@ -5495,9 +5263,7 @@
     },
     "/api/users/{user_id}/evaluations/history": {
       "get": {
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "summary": "Get User Evaluations History",
         "description": "Alias sécurisé pour récupérer l'historique d'évaluations d'un utilisateur donné.\nPermissions: superadmin, ou OF admin de l'OF de l'utilisateur ciblé.",
         "operationId": "get_user_evaluations_history_api_users__user_id__evaluations_history_get",
@@ -5522,9 +5288,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -5543,9 +5307,7 @@
     },
     "/api/storage/assets": {
       "get": {
-        "tags": [
-          "storage"
-        ],
+        "tags": ["storage"],
         "summary": "List Assets",
         "description": "Liste paginée des media assets.\n- Superadmin: voit tous les assets\n- OF admin: voit uniquement les assets de son organisation\n- Filtres: status (uploaded|processing|ready|failed), recherche par key (substring)\n- Tri: created_at asc/desc (par défaut desc)",
         "operationId": "list_assets_api_storage_assets_get",
@@ -5654,9 +5416,7 @@
     },
     "/api/storage/hls/master": {
       "get": {
-        "tags": [
-          "storage"
-        ],
+        "tags": ["storage"],
         "summary": "Hls Master",
         "description": "Signed HLS master proxy: requires exp/sig. Rewrites variant URIs with matching signature.",
         "operationId": "hls_master_api_storage_hls_master_get",
@@ -5694,9 +5454,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -5715,9 +5473,7 @@
     },
     "/api/storage/hls/master.m3u8": {
       "get": {
-        "tags": [
-          "storage"
-        ],
+        "tags": ["storage"],
         "summary": "Hls Master M3U8",
         "operationId": "hls_master_m3u8_api_storage_hls_master_m3u8_get",
         "parameters": [
@@ -5754,9 +5510,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -5775,9 +5529,7 @@
     },
     "/api/storage/hls/variant": {
       "get": {
-        "tags": [
-          "storage"
-        ],
+        "tags": ["storage"],
         "summary": "Hls Variant",
         "description": "Signed HLS variant proxy: requires exp/sig; rewrites segment URIs as presigned absolute URLs.",
         "operationId": "hls_variant_api_storage_hls_variant_get",
@@ -5815,9 +5567,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -5836,9 +5586,7 @@
     },
     "/api/storage/hls/variant.m3u8": {
       "get": {
-        "tags": [
-          "storage"
-        ],
+        "tags": ["storage"],
         "summary": "Hls Variant M3U8",
         "operationId": "hls_variant_m3u8_api_storage_hls_variant_m3u8_get",
         "parameters": [
@@ -5875,9 +5623,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -5896,9 +5642,7 @@
     },
     "/api/storage/prepare-upload": {
       "post": {
-        "tags": [
-          "storage"
-        ],
+        "tags": ["storage"],
         "summary": "Prepare Upload",
         "description": "Prépare un upload sécurisé vers MinIO via URL présignée.\nPermissions: superadmin ou admin de l'OF courant.\nChoisit automatiquement single-part (\u003C10MB) ou multipart (\u003E=10MB).",
         "operationId": "prepare_upload_api_storage_prepare_upload_post",
@@ -5951,9 +5695,7 @@
     },
     "/api/storage/complete-upload": {
       "post": {
-        "tags": [
-          "storage"
-        ],
+        "tags": ["storage"],
         "summary": "Complete Upload",
         "description": "Finalise un upload:\n- single: no-op (l'upload PUT direct est déjà fait côté client)\n- multipart: appelle S3 CompleteMultipartUpload; nécessite la liste des parts (ETag + PartNumber)",
         "operationId": "complete_upload_api_storage_complete_upload_post",
@@ -6006,9 +5748,7 @@
     },
     "/api/storage/abort-upload": {
       "post": {
-        "tags": [
-          "storage"
-        ],
+        "tags": ["storage"],
         "summary": "Abort Upload",
         "description": "Annule un upload multipart en cours.\nPermissions: superadmin ou admin de l'OF courant.\nVérifie que la clé appartient au tenant courant si non-superadmin.",
         "operationId": "abort_upload_api_storage_abort_upload_post",
@@ -6053,9 +5793,7 @@
     },
     "/api/storage/play": {
       "get": {
-        "tags": [
-          "storage"
-        ],
+        "tags": ["storage"],
         "summary": "Play",
         "description": "Renvoie une URL présignée GET pour lecture. Pour MVP: réservé superadmin/OF admin.\nVérifie que la clé appartient au tenant courant si non-superadmin.",
         "operationId": "play_api_storage_play_get",
@@ -6101,9 +5839,7 @@
     },
     "/api/storage/play/redirect": {
       "get": {
-        "tags": [
-          "storage"
-        ],
+        "tags": ["storage"],
         "summary": "Play Redirect",
         "description": "Convenience endpoint: issues a 302 redirect to a fresh presigned/proxied playback URL.\n\nUtile pour les balises \u003Cvideo src=\"...\"\u003E qui ne consomment pas de JSON.",
         "operationId": "play_redirect_api_storage_play_redirect_get",
@@ -6128,9 +5864,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -6149,9 +5883,7 @@
     },
     "/api/storage/play/multi": {
       "get": {
-        "tags": [
-          "storage"
-        ],
+        "tags": ["storage"],
         "summary": "Play Multi",
         "operationId": "play_multi_api_storage_play_multi_get",
         "security": [
@@ -6201,9 +5933,7 @@
     },
     "/api/storage/assets/by-key": {
       "get": {
-        "tags": [
-          "storage"
-        ],
+        "tags": ["storage"],
         "summary": "Get Asset By Key",
         "operationId": "get_asset_by_key_api_storage_assets_by_key_get",
         "security": [
@@ -6248,9 +5978,7 @@
     },
     "/api/storage/transcode-status": {
       "get": {
-        "tags": [
-          "storage"
-        ],
+        "tags": ["storage"],
         "summary": "Transcode Status",
         "description": "Retourne le statut de transcodage et la progression (approximative) pour une clé vidéo.\nAccessible aux utilisateurs authentifiés; restrictions tenant similaires à /play (tolérantes pour le MVP).",
         "operationId": "transcode_status_api_storage_transcode_status_get",
@@ -6296,9 +6024,7 @@
     },
     "/api/storage/transcode-status/multi": {
       "get": {
-        "tags": [
-          "storage"
-        ],
+        "tags": ["storage"],
         "summary": "Transcode Status Multi",
         "operationId": "transcode_status_multi_api_storage_transcode_status_multi_get",
         "security": [
@@ -6348,9 +6074,7 @@
     },
     "/api/storage/assets/{asset_id}": {
       "delete": {
-        "tags": [
-          "storage"
-        ],
+        "tags": ["storage"],
         "summary": "Delete Asset",
         "description": "Supprime un media asset et purge le stockage associé.\n- AuthZ: superadmin, ou admin de l'OF propriétaire de l'asset.\n- Si l'asset est référencé par un cours (modules[].content[].video_key), renvoie 409 sauf si force=true,\n  auquel cas les références sont détachées (video_key=null) avant suppression.\n- Nettoyage stockage: supprime la source (asset.key) et tout le préfixe HLS (…/hls/*).",
         "operationId": "delete_asset_api_storage_assets__asset_id__delete",
@@ -6385,9 +6109,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -6404,9 +6126,7 @@
         }
       },
       "get": {
-        "tags": [
-          "storage"
-        ],
+        "tags": ["storage"],
         "summary": "Get Asset",
         "operationId": "get_asset_api_storage_assets__asset_id__get",
         "security": [
@@ -6451,9 +6171,7 @@
     },
     "/api/videos/{asset_id}/play": {
       "get": {
-        "tags": [
-          "videos"
-        ],
+        "tags": ["videos"],
         "summary": "Learner Play",
         "description": "Learner playback endpoint secured by enrollment:\n- Resolve MediaAsset by id\n- Find the Mongo course that references this asset key in any lesson (modules[].content[].video_key)\n- Enforce enrollment for the current user on that course (superadmin bypass)\n- If HLS is ready, return signed master proxy URL; otherwise presign source object",
         "operationId": "learner_play_api_videos__asset_id__play_get",
@@ -6499,9 +6217,7 @@
     },
     "/api/categories/": {
       "get": {
-        "tags": [
-          "categories"
-        ],
+        "tags": ["categories"],
         "summary": "List Categories",
         "operationId": "list_categories_api_categories__get",
         "responses": {
@@ -6522,9 +6238,7 @@
         }
       },
       "post": {
-        "tags": [
-          "categories"
-        ],
+        "tags": ["categories"],
         "summary": "Create Category",
         "description": "Création unifiée:\n- Superadmin =\u003E catégorie globale (of_id NULL)\n- Admin OF (ou superadmin souhaitant créer scoped en forçant subdomain?) : selon règle business on garde global pour superadmin.\n- OF admin =\u003E catégorie scoped (of_id == current_of.id)\nPas de second endpoint /global.",
         "operationId": "create_category_api_categories__post",
@@ -6569,9 +6283,7 @@
     },
     "/api/categories/global": {
       "post": {
-        "tags": [
-          "categories"
-        ],
+        "tags": ["categories"],
         "summary": "Create Global Category",
         "description": "Compat rétro: création globale via /global pour le superadmin.\nEn interne identique à POST /api/categories/ quand superadmin.",
         "operationId": "create_global_category_api_categories_global_post",
@@ -6616,9 +6328,7 @@
     },
     "/api/categories/global/{category_id}": {
       "delete": {
-        "tags": [
-          "categories"
-        ],
+        "tags": ["categories"],
         "summary": "Delete Global Category",
         "operationId": "delete_global_category_api_categories_global__category_id__delete",
         "security": [
@@ -6654,9 +6364,7 @@
         }
       },
       "patch": {
-        "tags": [
-          "categories"
-        ],
+        "tags": ["categories"],
         "summary": "Toggle Global Category Active",
         "operationId": "toggle_global_category_active_api_categories_global__category_id__patch",
         "security": [
@@ -6711,9 +6419,7 @@
     },
     "/api/categories/{category_id}": {
       "delete": {
-        "tags": [
-          "categories"
-        ],
+        "tags": ["categories"],
         "summary": "Delete Category",
         "operationId": "delete_category_api_categories__category_id__delete",
         "security": [
@@ -6749,9 +6455,7 @@
         }
       },
       "patch": {
-        "tags": [
-          "categories"
-        ],
+        "tags": ["categories"],
         "summary": "Toggle Category Active",
         "operationId": "toggle_category_active_api_categories__category_id__patch",
         "security": [
@@ -6806,9 +6510,7 @@
     },
     "/api/categories/{category_id}/toggle": {
       "patch": {
-        "tags": [
-          "categories"
-        ],
+        "tags": ["categories"],
         "summary": "Toggle Category",
         "operationId": "toggle_category_api_categories__category_id__toggle_patch",
         "security": [
@@ -6862,9 +6564,7 @@
     },
     "/api/levels/": {
       "get": {
-        "tags": [
-          "levels"
-        ],
+        "tags": ["levels"],
         "summary": "Get Levels",
         "operationId": "get_levels_api_levels__get",
         "parameters": [
@@ -6908,9 +6608,7 @@
         }
       },
       "post": {
-        "tags": [
-          "levels"
-        ],
+        "tags": ["levels"],
         "summary": "Create Pro Level",
         "operationId": "create_pro_level_api_levels__post",
         "security": [
@@ -6954,9 +6652,7 @@
     },
     "/api/levels/{level_id}": {
       "delete": {
-        "tags": [
-          "levels"
-        ],
+        "tags": ["levels"],
         "summary": "Delete Pro Level",
         "operationId": "delete_pro_level_api_levels__level_id__delete",
         "security": [
@@ -6992,9 +6688,7 @@
         }
       },
       "patch": {
-        "tags": [
-          "levels"
-        ],
+        "tags": ["levels"],
         "summary": "Toggle Pro Level Active",
         "operationId": "toggle_pro_level_active_api_levels__level_id__patch",
         "security": [
@@ -7049,9 +6743,7 @@
     },
     "/api/levels/{level_id}/toggle": {
       "patch": {
-        "tags": [
-          "levels"
-        ],
+        "tags": ["levels"],
         "summary": "Toggle Pro Level",
         "operationId": "toggle_pro_level_api_levels__level_id__toggle_patch",
         "security": [
@@ -7165,19 +6857,14 @@
           }
         },
         "type": "object",
-        "required": [
-          "key",
-          "upload_id"
-        ],
+        "required": ["key", "upload_id"],
         "title": "AbortUploadRequest"
       },
       "AbortUploadResponse": {
         "properties": {
           "status": {
             "type": "string",
-            "enum": [
-              "aborted"
-            ],
+            "enum": ["aborted"],
             "const": "aborted",
             "title": "Status",
             "default": "aborted"
@@ -7188,21 +6875,12 @@
           }
         },
         "type": "object",
-        "required": [
-          "key"
-        ],
+        "required": ["key"],
         "title": "AbortUploadResponse"
       },
       "Agrement": {
         "type": "string",
-        "enum": [
-          "none",
-          "Qualiopi",
-          "OPCO",
-          "Datadock",
-          "ISQ",
-          "Autre"
-        ],
+        "enum": ["none", "Qualiopi", "OPCO", "Datadock", "ISQ", "Autre"],
         "title": "Agrement"
       },
       "AlertMessage": {
@@ -7270,10 +6948,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "question_id",
-          "answer"
-        ],
+        "required": ["question_id", "answer"],
         "title": "AnswerSubmission"
       },
       "AssignCatalogueRequest": {
@@ -7288,18 +6963,14 @@
           }
         },
         "type": "object",
-        "required": [
-          "catalogue_ids"
-        ],
+        "required": ["catalogue_ids"],
         "title": "AssignCatalogueRequest"
       },
       "AssignmentCreate": {
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "assignment"
-            ],
+            "enum": ["assignment"],
             "const": "assignment",
             "title": "Type",
             "default": "assignment"
@@ -7379,14 +7050,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "course_id",
-          "module_id",
-          "title",
-          "description",
-          "questions",
-          "settings"
-        ],
+        "required": ["course_id", "module_id", "title", "description", "questions", "settings"],
         "title": "AssignmentCreate"
       },
       "AssignmentInline-Input": {
@@ -7468,11 +7132,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "title",
-          "description",
-          "questions"
-        ],
+        "required": ["title", "description", "questions"],
         "title": "AssignmentInline"
       },
       "AssignmentInline-Output": {
@@ -7554,20 +7214,14 @@
           }
         },
         "type": "object",
-        "required": [
-          "title",
-          "description",
-          "questions"
-        ],
+        "required": ["title", "description", "questions"],
         "title": "AssignmentInline"
       },
       "AssignmentResponse": {
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "assignment"
-            ],
+            "enum": ["assignment"],
             "const": "assignment",
             "title": "Type",
             "default": "assignment"
@@ -7905,13 +7559,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "id",
-          "name",
-          "courses",
-          "type_",
-          "of_id"
-        ],
+        "required": ["id", "name", "courses", "type_", "of_id"],
         "title": "CatalogueResponse"
       },
       "CategoryCreate": {
@@ -7956,9 +7604,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "name"
-        ],
+        "required": ["name"],
         "title": "CategoryCreate"
       },
       "CategoryItem": {
@@ -7993,11 +7639,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "id",
-          "name",
-          "slug"
-        ],
+        "required": ["id", "name", "slug"],
         "title": "CategoryItem"
       },
       "CategoryUpdateActive": {
@@ -8021,9 +7663,7 @@
         "properties": {
           "strategy": {
             "type": "string",
-            "enum": [
-              "multipart"
-            ],
+            "enum": ["multipart"],
             "const": "multipart",
             "title": "Strategy",
             "default": "multipart"
@@ -8067,20 +7707,14 @@
           }
         },
         "type": "object",
-        "required": [
-          "key",
-          "upload_id",
-          "parts"
-        ],
+        "required": ["key", "upload_id", "parts"],
         "title": "CompleteUploadMultipartRequest"
       },
       "CompleteUploadResponse": {
         "properties": {
           "status": {
             "type": "string",
-            "enum": [
-              "ok"
-            ],
+            "enum": ["ok"],
             "const": "ok",
             "title": "Status",
             "default": "ok"
@@ -8102,18 +7736,14 @@
           }
         },
         "type": "object",
-        "required": [
-          "key"
-        ],
+        "required": ["key"],
         "title": "CompleteUploadResponse"
       },
       "CompleteUploadSingleRequest": {
         "properties": {
           "strategy": {
             "type": "string",
-            "enum": [
-              "single"
-            ],
+            "enum": ["single"],
             "const": "single",
             "title": "Strategy",
             "default": "single"
@@ -8146,9 +7776,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "key"
-        ],
+        "required": ["key"],
         "title": "CompleteUploadSingleRequest"
       },
       "CompletedMultipartPart": {
@@ -8163,10 +7791,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "ETag",
-          "PartNumber"
-        ],
+        "required": ["ETag", "PartNumber"],
         "title": "CompletedMultipartPart"
       },
       "Content": {
@@ -8249,11 +7874,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "title",
-          "duration",
-          "description"
-        ],
+        "required": ["title", "duration", "description"],
         "title": "Content"
       },
       "Course": {
@@ -8469,11 +8090,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "title",
-          "description",
-          "modules"
-        ],
+        "required": ["title", "description", "modules"],
         "title": "Course",
         "example": {
           "category": "development",
@@ -8800,11 +8417,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "title",
-          "description",
-          "modules"
-        ],
+        "required": ["title", "description", "modules"],
         "title": "CourseResponse",
         "example": {
           "category": "development",
@@ -8898,11 +8511,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "enrolled_count",
-          "revenue_tokens",
-          "average_score"
-        ],
+        "required": ["enrolled_count", "revenue_tokens", "average_score"],
         "title": "CourseStatsResponse"
       },
       "CourseSummary": {
@@ -9085,11 +8694,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "id",
-          "title",
-          "modules_count"
-        ],
+        "required": ["id", "title", "modules_count"],
         "title": "CourseSummary"
       },
       "CourseSummaryPage": {
@@ -9179,15 +8784,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "items",
-          "page",
-          "per_page",
-          "total_items",
-          "total_pages",
-          "has_next",
-          "has_previous"
-        ],
+        "required": ["items", "page", "per_page", "total_items", "total_pages", "has_next", "has_previous"],
         "title": "CourseSummaryPage"
       },
       "CourseUpdate": {
@@ -9436,9 +9033,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "course_id"
-        ],
+        "required": ["course_id"],
         "title": "EnrollRequest"
       },
       "EnrollResponse": {
@@ -9456,10 +9051,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "message",
-          "progress"
-        ],
+        "required": ["message", "progress"],
         "title": "EnrollResponse"
       },
       "EvaluationResultResponse": {
@@ -9474,10 +9066,7 @@
           },
           "evaluation_type": {
             "type": "string",
-            "enum": [
-              "quiz",
-              "assignment"
-            ],
+            "enum": ["quiz", "assignment"],
             "title": "Evaluation Type"
           },
           "user_id": {
@@ -9600,11 +9189,7 @@
         "properties": {
           "show_feedback": {
             "type": "string",
-            "enum": [
-              "immediate",
-              "after-submit",
-              "never"
-            ],
+            "enum": ["immediate", "after-submit", "never"],
             "title": "Show Feedback",
             "description": "Controls feedback visibility: immediate | after-submit | never. French labels are normalized (Immédiat/À la fin du quiz/Jamais).",
             "default": "after-submit"
@@ -9685,12 +9270,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "evaluation_id",
-          "answers",
-          "started_at",
-          "completed_at"
-        ],
+        "required": ["evaluation_id", "answers", "started_at", "completed_at"],
         "title": "EvaluationSubmission"
       },
       "FillBlankQuestion": {
@@ -9708,9 +9288,7 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "fill-blank"
-            ],
+            "enum": ["fill-blank"],
             "const": "fill-blank",
             "title": "Type",
             "default": "fill-blank"
@@ -9730,11 +9308,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "easy",
-                  "medium",
-                  "hard"
-                ]
+                "enum": ["easy", "medium", "hard"]
               },
               {
                 "type": "null"
@@ -9787,12 +9361,7 @@
         },
         "additionalProperties": true,
         "type": "object",
-        "required": [
-          "question",
-          "points",
-          "text",
-          "correctAnswers"
-        ],
+        "required": ["question", "points", "text", "correctAnswers"],
         "title": "FillBlankQuestion"
       },
       "HTTPValidationError": {
@@ -9888,11 +9457,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "title",
-          "description",
-          "questions"
-        ],
+        "required": ["title", "description", "questions"],
         "title": "InlineAssignment"
       },
       "LessonCreate": {
@@ -9946,11 +9511,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "title",
-          "duration",
-          "description"
-        ],
+        "required": ["title", "duration", "description"],
         "title": "LessonCreate"
       },
       "LessonReorderRequest": {
@@ -9965,9 +9526,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "order"
-        ],
+        "required": ["order"],
         "title": "LessonReorderRequest"
       },
       "LessonResponse": {
@@ -10050,11 +9609,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "title",
-          "duration",
-          "description"
-        ],
+        "required": ["title", "duration", "description"],
         "title": "LessonResponse"
       },
       "LessonUpdate": {
@@ -10250,9 +9805,7 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "long-answer"
-            ],
+            "enum": ["long-answer"],
             "const": "long-answer",
             "title": "Type",
             "default": "long-answer"
@@ -10272,11 +9825,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "easy",
-                  "medium",
-                  "hard"
-                ]
+                "enum": ["easy", "medium", "hard"]
               },
               {
                 "type": "null"
@@ -10347,10 +9896,7 @@
         },
         "additionalProperties": true,
         "type": "object",
-        "required": [
-          "question",
-          "points"
-        ],
+        "required": ["question", "points"],
         "title": "LongAnswerQuestion"
       },
       "ManualGradeBody": {
@@ -10397,9 +9943,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "result_id"
-        ],
+        "required": ["result_id"],
         "title": "ManualGradeBody"
       },
       "MatchPair": {
@@ -10414,10 +9958,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "left",
-          "right"
-        ],
+        "required": ["left", "right"],
         "title": "MatchPair"
       },
       "MatchingQuestion": {
@@ -10435,9 +9976,7 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "matching"
-            ],
+            "enum": ["matching"],
             "const": "matching",
             "title": "Type",
             "default": "matching"
@@ -10457,11 +9996,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "easy",
-                  "medium",
-                  "hard"
-                ]
+                "enum": ["easy", "medium", "hard"]
               },
               {
                 "type": "null"
@@ -10525,13 +10060,7 @@
         },
         "additionalProperties": true,
         "type": "object",
-        "required": [
-          "question",
-          "points",
-          "leftItems",
-          "rightItems",
-          "correctMatches"
-        ],
+        "required": ["question", "points", "leftItems", "rightItems", "correctMatches"],
         "title": "MatchingQuestion"
       },
       "MediaAssetListResponse": {
@@ -10557,12 +10086,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "items",
-          "page",
-          "per_page",
-          "total"
-        ],
+        "required": ["items", "page", "per_page", "total"],
         "title": "MediaAssetListResponse"
       },
       "MediaAssetResponse": {
@@ -10701,13 +10225,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "id",
-          "key",
-          "status",
-          "created_at",
-          "updated_at"
-        ],
+        "required": ["id", "key", "status", "created_at", "updated_at"],
         "title": "MediaAssetResponse"
       },
       "MixedReorderItem": {
@@ -10724,10 +10242,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "type",
-          "id"
-        ],
+        "required": ["type", "id"],
         "title": "MixedReorderItem"
       },
       "Module-Input": {
@@ -10811,11 +10326,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "title",
-          "duration",
-          "content"
-        ],
+        "required": ["title", "duration", "content"],
         "title": "Module"
       },
       "Module-Output": {
@@ -10899,11 +10410,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "title",
-          "duration",
-          "content"
-        ],
+        "required": ["title", "duration", "content"],
         "title": "Module"
       },
       "ModuleCreate": {
@@ -10955,11 +10462,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "title",
-          "duration",
-          "content"
-        ],
+        "required": ["title", "duration", "content"],
         "title": "ModuleCreate",
         "example": {
           "assignment": {
@@ -11112,20 +10615,14 @@
           }
         },
         "type": "object",
-        "required": [
-          "sequence"
-        ],
+        "required": ["sequence"],
         "title": "ModuleMixedReorderRequest"
       },
       "ModuleOrderItem": {
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "lesson",
-              "quiz",
-              "assignment"
-            ],
+            "enum": ["lesson", "quiz", "assignment"],
             "title": "Type"
           },
           "id": {
@@ -11134,10 +10631,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "type",
-          "id"
-        ],
+        "required": ["type", "id"],
         "title": "ModuleOrderItem"
       },
       "ModuleResponse": {
@@ -11233,11 +10727,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "title",
-          "duration",
-          "content"
-        ],
+        "required": ["title", "duration", "content"],
         "title": "ModuleResponse",
         "example": {
           "content": [
@@ -11317,9 +10807,7 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "multiple-choice"
-            ],
+            "enum": ["multiple-choice"],
             "const": "multiple-choice",
             "title": "Type",
             "default": "multiple-choice"
@@ -11339,11 +10827,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "easy",
-                  "medium",
-                  "hard"
-                ]
+                "enum": ["easy", "medium", "hard"]
               },
               {
                 "type": "null"
@@ -11400,12 +10884,7 @@
         },
         "additionalProperties": true,
         "type": "object",
-        "required": [
-          "question",
-          "points",
-          "options",
-          "correctAnswers"
-        ],
+        "required": ["question", "points", "options", "correctAnswers"],
         "title": "MultipleChoiceQuestion"
       },
       "NewIdsResponse": {
@@ -11419,9 +10898,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "ids"
-        ],
+        "required": ["ids"],
         "title": "NewIdsResponse"
       },
       "OrderingQuestion": {
@@ -11439,9 +10916,7 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "ordering"
-            ],
+            "enum": ["ordering"],
             "const": "ordering",
             "title": "Type",
             "default": "ordering"
@@ -11461,11 +10936,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "easy",
-                  "medium",
-                  "hard"
-                ]
+                "enum": ["easy", "medium", "hard"]
               },
               {
                 "type": "null"
@@ -11521,12 +10992,7 @@
         },
         "additionalProperties": true,
         "type": "object",
-        "required": [
-          "question",
-          "points",
-          "items",
-          "correctOrder"
-        ],
+        "required": ["question", "points", "items", "correctOrder"],
         "title": "OrderingQuestion"
       },
       "OrganizationCreate": {
@@ -11665,9 +11131,7 @@
         "example": {
           "address": "123 Rue de la Formation, 75001 Paris",
           "advanced_reporting": true,
-          "agrement": [
-            "Qualiopi"
-          ],
+          "agrement": ["Qualiopi"],
           "api_access": false,
           "custom_branding": true,
           "description": "Organisme spécialisé dans la formation digitale",
@@ -11876,10 +11340,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "mp4",
-                  "hls"
-                ]
+                "enum": ["mp4", "hls"]
               },
               {
                 "type": "null"
@@ -11911,9 +11372,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "key"
-        ],
+        "required": ["key"],
         "title": "PlayMultiItem"
       },
       "PlayMultiResponse": {
@@ -11927,9 +11386,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "items"
-        ],
+        "required": ["items"],
         "title": "PlayMultiResponse"
       },
       "PlayResponse": {
@@ -11940,10 +11397,7 @@
           },
           "stream_type": {
             "type": "string",
-            "enum": [
-              "mp4",
-              "hls"
-            ],
+            "enum": ["mp4", "hls"],
             "title": "Stream Type",
             "description": "Type de flux retourné: mp4 (direct) ou hls (manifest proxied)",
             "default": "mp4"
@@ -11954,9 +11408,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "url"
-        ],
+        "required": ["url"],
         "title": "PlayResponse"
       },
       "PointsAdjustment": {
@@ -11971,19 +11423,14 @@
           }
         },
         "type": "object",
-        "required": [
-          "question_id",
-          "points"
-        ],
+        "required": ["question_id", "points"],
         "title": "PointsAdjustment"
       },
       "PrepareUploadMultipartResponse": {
         "properties": {
           "strategy": {
             "type": "string",
-            "enum": [
-              "multipart"
-            ],
+            "enum": ["multipart"],
             "const": "multipart",
             "title": "Strategy",
             "default": "multipart"
@@ -12009,12 +11456,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "key",
-          "upload_id",
-          "part_size",
-          "parts"
-        ],
+        "required": ["key", "upload_id", "part_size", "parts"],
         "title": "PrepareUploadMultipartResponse"
       },
       "PrepareUploadRequest": {
@@ -12037,31 +11479,21 @@
           },
           "kind": {
             "type": "string",
-            "enum": [
-              "video",
-              "image",
-              "resource"
-            ],
+            "enum": ["video", "image", "resource"],
             "title": "Kind",
             "description": "Type logique de média à stocker (video par défaut).",
             "default": "video"
           }
         },
         "type": "object",
-        "required": [
-          "filename",
-          "content_type",
-          "size"
-        ],
+        "required": ["filename", "content_type", "size"],
         "title": "PrepareUploadRequest"
       },
       "PrepareUploadSingleResponse": {
         "properties": {
           "strategy": {
             "type": "string",
-            "enum": [
-              "single"
-            ],
+            "enum": ["single"],
             "const": "single",
             "title": "Strategy",
             "default": "single"
@@ -12087,12 +11519,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "key",
-          "url",
-          "headers",
-          "expires_in"
-        ],
+        "required": ["key", "url", "headers", "expires_in"],
         "title": "PrepareUploadSingleResponse"
       },
       "PresignedPart": {
@@ -12107,10 +11534,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "partNumber",
-          "url"
-        ],
+        "required": ["partNumber", "url"],
         "title": "PresignedPart"
       },
       "ProLevelCreate": {
@@ -12148,9 +11572,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "name"
-        ],
+        "required": ["name"],
         "title": "ProLevelCreate"
       },
       "ProLevelItem": {
@@ -12173,12 +11595,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "id",
-          "name",
-          "slug",
-          "is_active"
-        ],
+        "required": ["id", "name", "slug", "is_active"],
         "title": "ProLevelItem"
       },
       "ProLevelUpdateActive": {
@@ -12251,14 +11668,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "question_id",
-          "answer",
-          "is_correct",
-          "points_earned",
-          "max_points",
-          "time_spent"
-        ],
+        "required": ["question_id", "answer", "is_correct", "points_earned", "max_points", "time_spent"],
         "title": "QuestionResult"
       },
       "QuestionType": {
@@ -12318,10 +11728,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "title",
-          "questions"
-        ],
+        "required": ["title", "questions"],
         "title": "Quiz",
         "example": {
           "questions": [
@@ -12393,10 +11800,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "title",
-          "questions"
-        ],
+        "required": ["title", "questions"],
         "title": "Quiz",
         "example": {
           "questions": [
@@ -12655,11 +12059,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "easy",
-                  "medium",
-                  "hard"
-                ]
+                "enum": ["easy", "medium", "hard"]
               },
               {
                 "type": "null"
@@ -12690,10 +12090,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "question",
-          "type"
-        ],
+        "required": ["question", "type"],
         "title": "QuizQuestion",
         "examples": [
           {
@@ -12710,26 +12107,15 @@
               ],
               "points": 1,
               "question": "Qu'est-ce qu'un composant React ?",
-              "tags": [
-                "react",
-                "bases"
-              ],
+              "tags": ["react", "bases"],
               "type": "single-choice"
             }
           },
           {
             "summary": "Multiple choice",
             "value": {
-              "correct_answer": [
-                "2",
-                "4"
-              ],
-              "options": [
-                "1",
-                "2",
-                "3",
-                "4"
-              ],
+              "correct_answer": ["2", "4"],
+              "options": ["1", "2", "3", "4"],
               "points": 2,
               "question": "Sélectionne les nombres pairs",
               "type": "multiple-choice"
@@ -12759,19 +12145,13 @@
           {
             "summary": "Fill in the blank",
             "value": {
-              "correct_answer": [
-                "State"
-              ],
+              "correct_answer": ["State"],
               "media": {
                 "caption": "Extrait du cours",
                 "key": "public/docs/extrait.pdf",
                 "type": "pdf"
               },
-              "options": [
-                "State",
-                "Effect",
-                "Memo"
-              ],
+              "options": ["State", "Effect", "Memo"],
               "question": "Complétez: use[blank] permet de gérer l'état",
               "type": "fill-blank"
             }
@@ -12790,9 +12170,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "order"
-        ],
+        "required": ["order"],
         "title": "QuizReorderRequest"
       },
       "RefreshRequest": {
@@ -12803,9 +12181,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "refresh_token"
-        ],
+        "required": ["refresh_token"],
         "title": "RefreshRequest"
       },
       "ResetPasswordRequest": {
@@ -12818,9 +12194,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "new_password"
-        ],
+        "required": ["new_password"],
         "title": "ResetPasswordRequest",
         "example": {
           "new_password": "NewPass123"
@@ -12871,9 +12245,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "name"
-        ],
+        "required": ["name"],
         "title": "Resource"
       },
       "ResourceAttachBody": {
@@ -12930,9 +12302,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "name"
-        ],
+        "required": ["name"],
         "title": "ResourceAttachBody"
       },
       "ResourceAttachResponse": {
@@ -12964,9 +12334,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "status"
-        ],
+        "required": ["status"],
         "title": "ResourceAttachResponse"
       },
       "ResourceAttachment": {
@@ -12981,10 +12349,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "name",
-          "url"
-        ],
+        "required": ["name", "url"],
         "title": "ResourceAttachment"
       },
       "ResourceDetachResponse": {
@@ -13003,11 +12368,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "status",
-          "detached_key",
-          "deleted_from_storage"
-        ],
+        "required": ["status", "detached_key", "deleted_from_storage"],
         "title": "ResourceDetachResponse"
       },
       "ResourceItem": {
@@ -13064,9 +12425,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "name"
-        ],
+        "required": ["name"],
         "title": "ResourceItem"
       },
       "ShortAnswerQuestion": {
@@ -13084,9 +12443,7 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "short-answer"
-            ],
+            "enum": ["short-answer"],
             "const": "short-answer",
             "title": "Type",
             "default": "short-answer"
@@ -13106,11 +12463,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "easy",
-                  "medium",
-                  "hard"
-                ]
+                "enum": ["easy", "medium", "hard"]
               },
               {
                 "type": "null"
@@ -13163,11 +12516,7 @@
         },
         "additionalProperties": true,
         "type": "object",
-        "required": [
-          "question",
-          "points",
-          "correctAnswers"
-        ],
+        "required": ["question", "points", "correctAnswers"],
         "title": "ShortAnswerQuestion"
       },
       "SingleChoiceQuestion": {
@@ -13185,9 +12534,7 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "single-choice"
-            ],
+            "enum": ["single-choice"],
             "const": "single-choice",
             "title": "Type",
             "default": "single-choice"
@@ -13207,11 +12554,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "easy",
-                  "medium",
-                  "hard"
-                ]
+                "enum": ["easy", "medium", "hard"]
               },
               {
                 "type": "null"
@@ -13265,20 +12608,12 @@
         },
         "additionalProperties": true,
         "type": "object",
-        "required": [
-          "question",
-          "points",
-          "options",
-          "correctAnswer"
-        ],
+        "required": ["question", "points", "options", "correctAnswer"],
         "title": "SingleChoiceQuestion"
       },
       "Status": {
         "type": "string",
-        "enum": [
-          "draft",
-          "published"
-        ],
+        "enum": ["draft", "published"],
         "title": "Status"
       },
       "StatusUpdate": {
@@ -13289,9 +12624,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "status"
-        ],
+        "required": ["status"],
         "title": "StatusUpdate"
       },
       "SubscriptionCreate": {
@@ -13302,9 +12635,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "type_"
-        ],
+        "required": ["type_"],
         "title": "SubscriptionCreate"
       },
       "SubscriptionResponse": {
@@ -13343,23 +12674,12 @@
           }
         },
         "type": "object",
-        "required": [
-          "id",
-          "of_id",
-          "type_",
-          "start_date",
-          "end_date",
-          "status"
-        ],
+        "required": ["id", "of_id", "type_", "start_date", "end_date", "status"],
         "title": "SubscriptionResponse"
       },
       "SubscriptionType": {
         "type": "string",
-        "enum": [
-          "starter",
-          "gold",
-          "premium"
-        ],
+        "enum": ["starter", "gold", "premium"],
         "title": "SubscriptionType"
       },
       "SuperAdminUserCreate": {
@@ -13389,13 +12709,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "email",
-          "role",
-          "first_name",
-          "last_name",
-          "accept_terms"
-        ],
+        "required": ["email", "role", "first_name", "last_name", "accept_terms"],
         "title": "SuperAdminUserCreate",
         "example": {
           "accept_terms": true,
@@ -13421,11 +12735,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "access_token",
-          "refresh_token",
-          "token_type"
-        ],
+        "required": ["access_token", "refresh_token", "token_type"],
         "title": "Token",
         "example": {
           "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -13448,9 +12758,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "balance"
-        ],
+        "required": ["balance"],
         "title": "TokenBalanceResponse"
       },
       "TokenBuyRequest": {
@@ -13463,9 +12771,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "amount"
-        ],
+        "required": ["amount"],
         "title": "TokenBuyRequest"
       },
       "TokenBuyResponse": {
@@ -13484,19 +12790,12 @@
           }
         },
         "type": "object",
-        "required": [
-          "new_balance",
-          "tokens_added",
-          "transaction_id"
-        ],
+        "required": ["new_balance", "tokens_added", "transaction_id"],
         "title": "TokenBuyResponse"
       },
       "TrainerStatus": {
         "type": "string",
-        "enum": [
-          "validated",
-          "rejected"
-        ],
+        "enum": ["validated", "rejected"],
         "title": "TrainerStatus"
       },
       "TranscodeStatusItem": {
@@ -13561,10 +12860,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "key",
-          "status"
-        ],
+        "required": ["key", "status"],
         "title": "TranscodeStatusItem"
       },
       "TranscodeStatusMultiResponse": {
@@ -13578,9 +12874,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "items"
-        ],
+        "required": ["items"],
         "title": "TranscodeStatusMultiResponse"
       },
       "TranscodeStatusResponse": {
@@ -13590,9 +12884,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "item"
-        ],
+        "required": ["item"],
         "title": "TranscodeStatusResponse"
       },
       "TrueFalseQuestion": {
@@ -13610,9 +12902,7 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "true-false"
-            ],
+            "enum": ["true-false"],
             "const": "true-false",
             "title": "Type",
             "default": "true-false"
@@ -13632,11 +12922,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "easy",
-                  "medium",
-                  "hard"
-                ]
+                "enum": ["easy", "medium", "hard"]
               },
               {
                 "type": "null"
@@ -13680,11 +12966,7 @@
         },
         "additionalProperties": true,
         "type": "object",
-        "required": [
-          "question",
-          "points",
-          "correctAnswer"
-        ],
+        "required": ["question", "points", "correctAnswer"],
         "title": "TrueFalseQuestion"
       },
       "UploadRequest": {
@@ -13701,10 +12983,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "file_type",
-          "file_name"
-        ],
+        "required": ["file_type", "file_name"],
         "title": "UploadRequest"
       },
       "UploadResponse": {
@@ -13715,9 +12994,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "url"
-        ],
+        "required": ["url"],
         "title": "UploadResponse"
       },
       "UserCreate": {
@@ -13811,18 +13088,11 @@
           }
         },
         "type": "object",
-        "required": [
-          "email",
-          "password",
-          "role"
-        ],
+        "required": ["email", "password", "role"],
         "title": "UserCreate",
         "example": {
           "accept_terms": true,
-          "accessible_catalogues": [
-            "cat1",
-            "cat2"
-          ],
+          "accessible_catalogues": ["cat1", "cat2"],
           "email": "user@example.com",
           "first_name": "John",
           "is_major": true,
@@ -13846,10 +13116,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "email",
-          "password"
-        ],
+        "required": ["email", "password"],
         "title": "UserLogin",
         "example": {
           "email": "user@example.com",
@@ -13865,9 +13132,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "email"
-        ],
+        "required": ["email"],
         "title": "UserResetPassword",
         "example": {
           "email": "user@example.com"
@@ -14020,14 +13285,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "id",
-          "email",
-          "role",
-          "first_name",
-          "last_name",
-          "accept_terms"
-        ],
+        "required": ["id", "email", "role", "first_name", "last_name", "accept_terms"],
         "title": "UserResponse"
       },
       "UserRole": {
@@ -14051,10 +13309,7 @@
       },
       "UserStatus": {
         "type": "string",
-        "enum": [
-          "active",
-          "inactive"
-        ],
+        "enum": ["active", "inactive"],
         "title": "UserStatus"
       },
       "UserUpdate": {
@@ -14163,9 +13418,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "status"
-        ],
+        "required": ["status"],
         "title": "ValidateTrainerRequest"
       },
       "ValidationError": {
@@ -14194,22 +13447,14 @@
           }
         },
         "type": "object",
-        "required": [
-          "loc",
-          "msg",
-          "type"
-        ],
+        "required": ["loc", "msg", "type"],
         "title": "ValidationError"
       },
       "app__courses__models__QuestionMedia": {
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "image",
-              "video",
-              "pdf"
-            ],
+            "enum": ["image", "video", "pdf"],
             "title": "Type"
           },
           "key": {
@@ -14260,9 +13505,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "type"
-        ],
+        "required": ["type"],
         "title": "QuestionMedia"
       },
       "app__courses__schemas__QuizCreate": {
@@ -14293,18 +13536,12 @@
           }
         },
         "type": "object",
-        "required": [
-          "title",
-          "questions"
-        ],
+        "required": ["title", "questions"],
         "title": "QuizCreate",
         "example": {
           "questions": [
             {
-              "correct_answer": [
-                "2",
-                "4"
-              ],
+              "correct_answer": ["2", "4"],
               "difficulty": "medium",
               "explanation": "2 et 4 sont pairs.",
               "media": {
@@ -14312,18 +13549,10 @@
                 "key": "public/docs/quiz.pdf",
                 "type": "pdf"
               },
-              "options": [
-                "1",
-                "2",
-                "3",
-                "4"
-              ],
+              "options": ["1", "2", "3", "4"],
               "points": 2,
               "question": "Sélectionne les nombres pairs",
-              "tags": [
-                "maths",
-                "pairs"
-              ],
+              "tags": ["maths", "pairs"],
               "type": "multiple-choice"
             }
           ],
@@ -14373,10 +13602,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "title",
-          "questions"
-        ],
+        "required": ["title", "questions"],
         "title": "QuizResponse",
         "example": {
           "questions": [
@@ -14453,11 +13679,7 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "image",
-              "video",
-              "pdf"
-            ],
+            "enum": ["image", "video", "pdf"],
             "title": "Type"
           },
           "key": {
@@ -14495,18 +13717,14 @@
           }
         },
         "type": "object",
-        "required": [
-          "type"
-        ],
+        "required": ["type"],
         "title": "QuestionMedia"
       },
       "app__evaluations__schemas__QuizCreate": {
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "quiz"
-            ],
+            "enum": ["quiz"],
             "const": "quiz",
             "title": "Type",
             "default": "quiz"
@@ -14578,14 +13796,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "course_id",
-          "module_id",
-          "lesson_id",
-          "title",
-          "questions",
-          "settings"
-        ],
+        "required": ["course_id", "module_id", "lesson_id", "title", "questions", "settings"],
         "title": "QuizCreate",
         "example": {
           "course_id": "656aa9f3e9d5a9e4b1c2d3e4",
@@ -14595,10 +13806,7 @@
           "questions": [
             {
               "correctAnswer": 0,
-              "options": [
-                "2",
-                "3"
-              ],
+              "options": ["2", "3"],
               "points": 1,
               "question": "1+1?",
               "type": "single-choice"
@@ -14620,9 +13828,7 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "quiz"
-            ],
+            "enum": ["quiz"],
             "const": "quiz",
             "title": "Type",
             "default": "quiz"
@@ -14733,10 +13939,7 @@
           "questions": [
             {
               "correctAnswer": 0,
-              "options": [
-                "2",
-                "3"
-              ],
+              "options": ["2", "3"],
               "points": 1,
               "question": "1+1?",
               "type": "single-choice"
@@ -14837,9 +14040,7 @@
         "type": "oauth2",
         "flows": {
           "password": {
-            "scopes": {
-
-            },
+            "scopes": {},
             "tokenUrl": "api/auth/login"
           }
         }
