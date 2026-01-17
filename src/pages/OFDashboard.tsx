@@ -14,7 +14,6 @@ import { OFEnvois } from '@/components/admin/OFEnvois';
 import { OFIntegrations } from '@/components/admin/OFIntegrations';
 import { OFLogs } from '@/components/admin/OFLogs';
 import { OFSettings } from '@/components/admin/OFSettings';
-import { OFSubscription } from '@/components/admin/OFSubscription';
 import { OFOffres } from '@/components/admin/OFOffres';
 import OFStudentDetailPage from '@/pages/admin/OFStudentDetailPage';
 import OFTrainerDetailPage from '@/pages/admin/OFTrainerDetailPage';
@@ -53,7 +52,6 @@ const OFDashboard = () => {
                 <Route path="/suivi-pedagogique" element={<OFSuiviPedagogique />} />
                 <Route path="/visio" element={<OFVideoConferences />} />
                 <Route path="/envois" element={<OFEnvois />} />
-                <Route path="/abonnement" element={<OFSubscription />} />
                 <Route path="/offres" element={<OFOffres />} />
                 <Route path="/integrations" element={<OFIntegrations />} />
                 <Route path="/logs" element={<OFLogs />} />
