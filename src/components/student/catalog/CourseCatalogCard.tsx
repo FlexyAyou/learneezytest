@@ -14,6 +14,17 @@ import {
   Sparkles
 } from 'lucide-react';
 import { CourseResponse } from '@/types/fastapi';
+import DOMPurify from 'dompurify';
+
+// Helper pour nettoyer le HTML et extraire le texte brut
+const stripHtmlTags = (html: string | null | undefined): string => {
+  if (!html) return '';
+  // Nettoyer le HTML puis extraire le texte
+  const clean = DOMPurify.sanitize(html, { ALLOWED_TAGS: [] });
+  // Décoder les entités HTML comme &nbsp;
+  const doc = new DOMParser().parseFromString(clean, 'text/html');
+  return doc.body.textContent || '';
+};
 
 interface CourseCatalogCardProps {
   course: CourseResponse;
@@ -108,7 +119,7 @@ export const CourseCatalogCard = ({
             {course.title}
           </h3>
           <p className="text-sm text-muted-foreground line-clamp-2">
-            {course.description}
+            {stripHtmlTags(course.description)}
           </p>
         </div>
 

@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Coins, Plus, Sparkles } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface TokenBalanceWidgetProps {
   balance: number;
@@ -11,6 +11,15 @@ interface TokenBalanceWidgetProps {
 
 export const TokenBalanceWidget = ({ balance, isLoading = false }: TokenBalanceWidgetProps) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Déterminer la route de boutique selon le contexte (tuteur ou apprenant)
+  const getShopRoute = () => {
+    if (location.pathname.includes('/dashboard/tuteur')) {
+      return '/dashboard/tuteur/boutique';
+    }
+    return '/dashboard/apprenant/boutique';
+  };
 
   return (
     <Card className="bg-gradient-to-r from-token/10 via-background to-primary/10 border-token/30">
@@ -34,7 +43,7 @@ export const TokenBalanceWidget = ({ balance, isLoading = false }: TokenBalanceW
           </div>
           
           <Button 
-            onClick={() => navigate('/dashboard/apprenant/boutique')}
+            onClick={() => navigate(getShopRoute())}
             className="bg-token hover:bg-token/90 text-token-foreground gap-2"
           >
             <Plus className="h-4 w-4" />
