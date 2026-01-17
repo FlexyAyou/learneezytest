@@ -42,7 +42,6 @@ const sidebarItems = [
   { title: "Suivi pédagogique", href: "/dashboard/organisme-formation/suivi-pedagogique", icon: BarChart3 },
   { title: "Visioconférence", href: "/dashboard/organisme-formation/visio", icon: Video },
   { title: "Envois", href: "/dashboard/organisme-formation/envois", icon: Mail },
-  { title: "Abonnement", href: "/dashboard/organisme-formation/abonnement", icon: CreditCard },
   { title: "Offres", href: "/dashboard/organisme-formation/offres", icon: Tag },
   { title: "Intégrations", href: "/dashboard/organisme-formation/integrations", icon: Puzzle },
   { title: "Logs", href: "/dashboard/organisme-formation/logs", icon: FileArchive },

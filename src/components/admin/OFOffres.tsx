@@ -14,7 +14,14 @@ import {
   History,
   ArrowUpRight,
   TrendingUp,
-  AlertCircle
+  AlertCircle,
+  Coins,
+  BookOpen,
+  Library,
+  Headphones,
+  FileText,
+  Shield,
+  Sparkles
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -56,10 +63,24 @@ export const OFOffres = () => {
     startDate: "15 janvier 2024",
     renewalDate: "15 février 2025",
     billingPeriod: "annual" as const,
-    maxStudents: 50,
-    currentStudents: 32,
+    maxStudents: 500,
+    currentStudents: 234,
+    maxFormations: 50,
+    activeFormations: 12,
+    tokensTotal: 10000,
+    tokensUsed: 3450,
     price: 4490,
   };
+
+  // Fonctionnalités incluses
+  const includedFeatures = [
+    { icon: Library, label: "Accès catalogue Learneezy", description: "Accès à toutes les formations du catalogue" },
+    { icon: Headphones, label: "Support prioritaire", description: "Assistance dédiée par téléphone et email" },
+    { icon: FileText, label: "Certificats automatiques", description: "Génération automatique des attestations" },
+    { icon: Shield, label: "Conformité Qualiopi", description: "Outils de conformité certification qualité" },
+    { icon: Sparkles, label: "Intelligence artificielle", description: "Tuteurs IA et génération de contenu" },
+    { icon: Users, label: "Gestion multi-formateurs", description: "Invitez et gérez vos formateurs" },
+  ];
 
   // Historique des abonnements (mock)
   const subscriptionHistory: SubscriptionHistory[] = [
@@ -189,6 +210,20 @@ export const OFOffres = () => {
   };
 
   const studentsUsagePercentage = (currentSubscription.currentStudents / currentSubscription.maxStudents) * 100;
+  const formationsUsagePercentage = (currentSubscription.activeFormations / currentSubscription.maxFormations) * 100;
+  const tokensUsagePercentage = (currentSubscription.tokensUsed / currentSubscription.tokensTotal) * 100;
+
+  const getUsageColor = (percentage: number) => {
+    if (percentage >= 80) return "text-red-500";
+    if (percentage >= 60) return "text-amber-500";
+    return "text-green-500";
+  };
+
+  const getProgressBgColor = (percentage: number) => {
+    if (percentage >= 80) return "bg-red-500";
+    if (percentage >= 60) return "bg-amber-500";
+    return "bg-green-500";
+  };
 
   return (
     <div className="space-y-6">
@@ -302,53 +337,115 @@ export const OFOffres = () => {
             </CardContent>
           </Card>
 
-          {/* Statistiques rapides */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Apprenants actifs</p>
-                    <p className="text-2xl font-bold">{currentSubscription.currentStudents}</p>
-                  </div>
-                  <Users className="h-8 w-8 text-indigo-500 opacity-80" />
+          {/* Cartes d'usage - Tokens, Apprenants, Formations */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Tokens */}
+            <Card className="border shadow-sm">
+              <CardContent className="pt-6 space-y-4">
+                <div className="flex items-center gap-2">
+                  <Coins className="h-5 w-5 text-amber-500" />
+                  <span className="font-medium text-muted-foreground">Tokens</span>
                 </div>
+                <div className="flex items-baseline justify-between">
+                  <span className={`text-4xl font-bold ${getUsageColor(tokensUsagePercentage)}`}>
+                    {(currentSubscription.tokensTotal - currentSubscription.tokensUsed).toLocaleString()}
+                  </span>
+                  <span className="text-muted-foreground">restants</span>
+                </div>
+                <div className="relative h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+                  <div 
+                    className={`absolute left-0 top-0 h-full ${getProgressBgColor(tokensUsagePercentage)} rounded-full transition-all`}
+                    style={{ width: `${tokensUsagePercentage}%` }}
+                  />
+                </div>
+                <div className="flex justify-between text-sm text-muted-foreground">
+                  <span>{currentSubscription.tokensUsed.toLocaleString()} utilisés</span>
+                  <span>{currentSubscription.tokensTotal.toLocaleString()} total</span>
+                </div>
+                <p className="text-xs text-muted-foreground">{tokensUsagePercentage.toFixed(1)}% utilisés</p>
               </CardContent>
             </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Places disponibles</p>
-                    <p className="text-2xl font-bold">{currentSubscription.maxStudents - currentSubscription.currentStudents}</p>
-                  </div>
-                  <Gift className="h-8 w-8 text-green-500 opacity-80" />
+
+            {/* Apprenants */}
+            <Card className="border shadow-sm">
+              <CardContent className="pt-6 space-y-4">
+                <div className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-blue-500" />
+                  <span className="font-medium text-muted-foreground">Apprenants</span>
                 </div>
+                <div className="flex items-baseline justify-between">
+                  <span className={`text-4xl font-bold ${getUsageColor(studentsUsagePercentage)}`}>
+                    {currentSubscription.maxStudents - currentSubscription.currentStudents}
+                  </span>
+                  <span className="text-muted-foreground">restants</span>
+                </div>
+                <div className="relative h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+                  <div 
+                    className={`absolute left-0 top-0 h-full ${getProgressBgColor(studentsUsagePercentage)} rounded-full transition-all`}
+                    style={{ width: `${studentsUsagePercentage}%` }}
+                  />
+                </div>
+                <div className="flex justify-between text-sm text-muted-foreground">
+                  <span>{currentSubscription.currentStudents} actifs</span>
+                  <span>{currentSubscription.maxStudents} max</span>
+                </div>
+                <p className="text-xs text-muted-foreground">{studentsUsagePercentage.toFixed(1)}% utilisés</p>
               </CardContent>
             </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Jours restants</p>
-                    <p className="text-2xl font-bold">28</p>
-                  </div>
-                  <Calendar className="h-8 w-8 text-amber-500 opacity-80" />
+
+            {/* Formations */}
+            <Card className="border shadow-sm">
+              <CardContent className="pt-6 space-y-4">
+                <div className="flex items-center gap-2">
+                  <BookOpen className="h-5 w-5 text-purple-500" />
+                  <span className="font-medium text-muted-foreground">Formations</span>
                 </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Économies annuelles</p>
-                    <p className="text-2xl font-bold text-green-600">-17%</p>
-                  </div>
-                  <TrendingUp className="h-8 w-8 text-green-500 opacity-80" />
+                <div className="flex items-baseline justify-between">
+                  <span className={`text-4xl font-bold ${getUsageColor(formationsUsagePercentage)}`}>
+                    {currentSubscription.maxFormations - currentSubscription.activeFormations}
+                  </span>
+                  <span className="text-muted-foreground">restantes</span>
                 </div>
+                <div className="relative h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+                  <div 
+                    className={`absolute left-0 top-0 h-full ${getProgressBgColor(formationsUsagePercentage)} rounded-full transition-all`}
+                    style={{ width: `${formationsUsagePercentage}%` }}
+                  />
+                </div>
+                <div className="flex justify-between text-sm text-muted-foreground">
+                  <span>{currentSubscription.activeFormations} actives</span>
+                  <span>{currentSubscription.maxFormations} max</span>
+                </div>
+                <p className="text-xs text-muted-foreground">{formationsUsagePercentage.toFixed(1)}% utilisées</p>
               </CardContent>
             </Card>
           </div>
+
+          {/* Fonctionnalités incluses */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Check className="h-5 w-5 text-green-500" />
+                Fonctionnalités incluses
+              </CardTitle>
+              <CardDescription>Les fonctionnalités disponibles avec votre abonnement</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {includedFeatures.map((feature, idx) => (
+                  <div key={idx} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <feature.icon className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm">{feature.label}</p>
+                      <p className="text-xs text-muted-foreground">{feature.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Onglet Offres Disponibles */}
