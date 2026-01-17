@@ -12,11 +12,11 @@ import TutorPlanningNotifications from '@/components/tutor/TutorPlanningNotifica
 import { TutorAddStudent } from '@/components/tutor/TutorAddStudent';
 import { TutorSettings } from '@/components/tutor/TutorSettings';
 import { TutorSubscription } from '@/components/tutor/TutorSubscription';
-import { TutorShop } from '@/components/tutor/TutorShop';
+import TutorTokenShop from '@/pages/tutor/TutorTokenShop';
 import AIChatButton from '@/components/common/AIChatButton';
 import { TutorDocuments } from '@/components/tutor/TutorDocuments';
 import { TutorStudentDetailedView } from '@/components/tutor/TutorStudentDetailedView';
-import { TutorCatalog } from '@/components/tutor/TutorCatalog';
+import TutorCourseCatalog from '@/pages/tutor/TutorCourseCatalog';
 import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 import { 
   Users, 
@@ -315,10 +315,10 @@ const TutorDashboard = () => {
           <main className="flex-1 p-8">
             <Routes>
               <Route path="/" element={<TutorDashboardHome />} />
-              <Route path="/catalogue" element={<TutorCatalog />} />
+              <Route path="/catalogue" element={<TutorCourseCatalog />} />
               <Route path="/suivi" element={<TutorStudentTracking />} />
               <Route path="/ajouter-eleve" element={<TutorAddStudent />} />
-              <Route path="/boutique" element={<TutorShop />} />
+              <Route path="/boutique" element={<TutorTokenShop />} />
               <Route path="/abonnements" element={<TutorSubscription />} />
               <Route path="/documents" element={<TutorDocuments />} />
               <Route path="/messagerie" element={<TutorMessaging />} />
