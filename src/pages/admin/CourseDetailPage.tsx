@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -65,7 +65,14 @@ const ImageViewer: React.FC<{ imageKey?: string; imageUrl?: string; title: strin
 const CourseDetailPage = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
+  
+  // Detect context path
+  const isOFAdminContext = location.pathname.includes('/organisme-formation/');
+  const coursesBasePath = isOFAdminContext 
+    ? '/dashboard/organisme-formation/formations' 
+    : '/dashboard/superadmin/courses';
 
   const [course, setCourse] = useState<CourseResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -226,7 +233,7 @@ const CourseDetailPage = () => {
         title: "✅ Cours supprimé",
         description: "Le cours a été supprimé avec succès.",
       });
-      navigate('/dashboard/superadmin/courses');
+      navigate(coursesBasePath);
     } catch (err: any) {
       toast({
         title: "❌ Erreur",
@@ -336,7 +343,7 @@ const CourseDetailPage = () => {
   if (error || !course) {
     return (
       <div className="space-y-6">
-        <Button variant="ghost" onClick={() => navigate('/dashboard/superadmin/courses')}>
+        <Button variant="ghost" onClick={() => navigate(coursesBasePath)}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Retour
         </Button>
@@ -353,7 +360,7 @@ const CourseDetailPage = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <Button variant="ghost" onClick={() => navigate('/dashboard/superadmin/courses')}>
+        <Button variant="ghost" onClick={() => navigate(coursesBasePath)}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Retour aux cours
         </Button>
@@ -382,7 +389,7 @@ const CourseDetailPage = () => {
           </Button>
           <Button
             variant="outline"
-            onClick={() => navigate(`/dashboard/superadmin/courses/${course.id}/edit`)}
+            onClick={() => navigate(`${coursesBasePath}/${course.id}/edit`)}
             className="hover:bg-blue-50 hover:text-blue-700"
           >
             <Edit className="h-4 w-4 mr-2" />
