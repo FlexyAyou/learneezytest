@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { StudentSidebar } from '@/components/student/StudentSidebar';
 import StudentCourses from './StudentCourses';
@@ -22,6 +22,20 @@ import { StudentDashboardHome } from '@/components/student/StudentDashboardHome'
 import { StudentShop } from '@/components/student/StudentShop';
 import StudentCourseCatalog from './student/StudentCourseCatalog';
 import AIChatButton from '@/components/common/AIChatButton';
+import { useStudentContext } from '@/hooks/useStudentContext';
+
+/**
+ * Composant de protection de route pour les fonctionnalités Learneezy uniquement
+ */
+const LearneezyOnlyRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isOFStudent } = useStudentContext();
+  
+  if (isOFStudent) {
+    return <Navigate to="/dashboard/apprenant" replace />;
+  }
+  
+  return <>{children}</>;
+};
 
 const StudentDashboard = () => {
   return (
@@ -38,7 +52,25 @@ const StudentDashboard = () => {
           <main className="flex-1 p-6">
             <Routes>
               <Route path="/" element={<StudentDashboardHome />} />
-              <Route path="/catalogue" element={<StudentCourseCatalog />} />
+              
+              {/* Routes restreintes pour apprenants Learneezy uniquement */}
+              <Route path="/catalogue" element={
+                <LearneezyOnlyRoute>
+                  <StudentCourseCatalog />
+                </LearneezyOnlyRoute>
+              } />
+              <Route path="/boutique" element={
+                <LearneezyOnlyRoute>
+                  <StudentShop />
+                </LearneezyOnlyRoute>
+              } />
+              <Route path="/subscription" element={
+                <LearneezyOnlyRoute>
+                  <StudentSubscription />
+                </LearneezyOnlyRoute>
+              } />
+              
+              {/* Routes accessibles à tous les apprenants */}
               <Route path="/courses" element={<StudentCourses />} />
               <Route path="/courses/:id" element={<CourseViewer />} />
               <Route path="/progress" element={<StudentProgress />} />
@@ -48,10 +80,8 @@ const StudentDashboard = () => {
               <Route path="/evaluations" element={<StudentEvaluations />} />
               <Route path="/evaluations/:id/results" element={<EvaluationDetail />} />
               <Route path="/evaluations/:id/take" element={<TakeEvaluation />} />
-              <Route path="/boutique" element={<StudentShop />} />
               <Route path="/video" element={<StudentVideoConferences />} />
               <Route path="/documents" element={<StudentDocuments />} />
-              <Route path="/subscription" element={<StudentSubscription />} />
               <Route path="/messages" element={<StudentMessaging />} />
               <Route path="/settings" element={<StudentSettings />} />
             </Routes>

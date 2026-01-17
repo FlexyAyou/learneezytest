@@ -2,22 +2,25 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { BookOpen, Award, TrendingUp, Clock, Video, Brain, TestTube, Target, Calendar, MessageSquare } from 'lucide-react';
+import { BookOpen, Award, TrendingUp, Clock, Video, Brain, TestTube, Target, Calendar, MessageSquare, Building2 } from 'lucide-react';
 import { StatsCard } from '@/components/common/StatsCard';
 import { InteractiveChart } from '@/components/common/InteractiveChart';
 import { BadgeDisplay } from '@/components/common/BadgeDisplay';
 import { useStudentAchievements } from '@/hooks/useStudentAchievements';
 import { useNavigate } from 'react-router-dom';
 import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
+import { useStudentContext } from '@/hooks/useStudentContext';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export const StudentDashboardHome = () => {
   const navigate = useNavigate();
   const { user } = useFastAPIAuth();
+  const { isOFStudent, ofName, hasAccess } = useStudentContext();
   const { badges, loading } = useStudentAchievements('1');
 
   const stats = [
     {
-      title: "Cours en cours",
+      title: isOFStudent ? "Formations assignées" : "Cours en cours",
       value: "0",
       icon: BookOpen,
       change: "0 à terminer",
@@ -93,6 +96,27 @@ export const StudentDashboardHome = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
+      {/* Bandeau OF si apprenant OF */}
+      {isOFStudent && ofName && (
+        <Alert className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+          <Building2 className="h-4 w-4 text-blue-600" />
+          <AlertDescription className="flex items-center justify-between">
+            <span>
+              Vous êtes en formation avec <strong>{ofName}</strong>
+            </span>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => navigate('/dashboard/apprenant/messages')}
+              className="ml-4"
+            >
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Contacter mon organisme
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Header avec animation */}
       <div className="flex items-center justify-between">
         <div className="space-y-1">
@@ -100,14 +124,29 @@ export const StudentDashboardHome = () => {
             Bonjour {user?.first_name || 'Apprenant'} ! 
             <span className="inline-block animate-bounce ml-2">👋</span>
           </h1>
-          <p className="text-gray-600">Continuez votre apprentissage</p>
+          <p className="text-gray-600">
+            {isOFStudent 
+              ? "Continuez vos formations assignées" 
+              : "Continuez votre apprentissage"
+            }
+          </p>
         </div>
-        <Button 
-          onClick={() => navigate('/cours')}
-          className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 transition-all duration-300"
-        >
-          Catalogue de formations
-        </Button>
+        {/* Bouton principal adapté */}
+        {hasAccess('catalogue') ? (
+          <Button 
+            onClick={() => navigate('/dashboard/apprenant/catalogue')}
+            className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 transition-all duration-300"
+          >
+            Catalogue de formations
+          </Button>
+        ) : (
+          <Button 
+            onClick={() => navigate('/dashboard/apprenant/courses')}
+            className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 transition-all duration-300"
+          >
+            Mes formations
+          </Button>
+        )}
       </div>
 
       {/* Stats rapides avec animations */}
@@ -189,37 +228,46 @@ export const StudentDashboardHome = () => {
           <CardHeader>
             <CardTitle className="flex items-center">
               <BookOpen className="mr-2 h-5 w-5 text-pink-600" />
-              Cours en cours
+              {isOFStudent ? "Formations en cours" : "Cours en cours"}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {recentCourses.map((course) => (
-                <div key={course.id} className="space-y-3 p-4 border rounded-lg hover:bg-gradient-to-r hover:from-pink-50 hover:to-purple-50 hover:shadow-md transition-all duration-300 group">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-medium group-hover:text-pink-700 transition-colors">{course.title}</h4>
-                      <p className="text-sm text-gray-600">Prochain: {course.nextLesson}</p>
-                      <p className="text-xs text-gray-500">Formateur: {course.instructor}</p>
+            {recentCourses.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                {isOFStudent 
+                  ? "Aucune formation ne vous a encore été assignée."
+                  : "Aucun cours en cours. Découvrez notre catalogue !"
+                }
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {recentCourses.map((course) => (
+                  <div key={course.id} className="space-y-3 p-4 border rounded-lg hover:bg-gradient-to-r hover:from-pink-50 hover:to-purple-50 hover:shadow-md transition-all duration-300 group">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium group-hover:text-pink-700 transition-colors">{course.title}</h4>
+                        <p className="text-sm text-gray-600">Prochain: {course.nextLesson}</p>
+                        <p className="text-xs text-gray-500">Formateur: {course.instructor}</p>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        className="hover:bg-pink-500 hover:text-white hover:border-pink-500 transition-all duration-300"
+                      >
+                        Continuer
+                      </Button>
                     </div>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      className="hover:bg-pink-500 hover:text-white hover:border-pink-500 transition-all duration-300"
-                    >
-                      Continuer
-                    </Button>
-                  </div>
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-sm">
-                      <span>Progression</span>
-                      <span>{course.progress}%</span>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-sm">
+                        <span>Progression</span>
+                        <span>{course.progress}%</span>
+                      </div>
+                      <Progress value={course.progress} className="h-2" />
                     </div>
-                    <Progress value={course.progress} className="h-2" />
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -232,19 +280,25 @@ export const StudentDashboardHome = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {upcomingEvents.map((event) => (
-                <div key={event.id} className={`p-4 rounded-lg border-2 ${getEventTypeColor(event.type)} hover:shadow-md transition-all duration-300 cursor-pointer group`}>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-medium group-hover:opacity-80 transition-opacity">{event.title}</h4>
-                      <p className="text-sm">{event.date} à {event.time}</p>
+            {upcomingEvents.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                Aucune échéance à venir
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {upcomingEvents.map((event) => (
+                  <div key={event.id} className={`p-4 rounded-lg border-2 ${getEventTypeColor(event.type)} hover:shadow-md transition-all duration-300 cursor-pointer group`}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium group-hover:opacity-80 transition-opacity">{event.title}</h4>
+                        <p className="text-sm">{event.date} à {event.time}</p>
+                      </div>
+                      <Target className="h-4 w-4 group-hover:scale-110 transition-transform" />
                     </div>
-                    <Target className="h-4 w-4 group-hover:scale-110 transition-transform" />
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -274,7 +328,7 @@ export const StudentDashboardHome = () => {
           </CardContent>
         </Card>
 
-        {/* Actions rapides améliorées */}
+        {/* Actions rapides adaptées */}
         <Card className="hover:shadow-lg transition-all duration-300">
           <CardHeader>
             <CardTitle className="flex items-center">
@@ -286,10 +340,10 @@ export const StudentDashboardHome = () => {
             <Button 
               className="w-full justify-start hover:bg-gradient-to-r hover:from-pink-500 hover:to-purple-500 hover:text-white transition-all duration-300 group" 
               variant="outline"
-              onClick={() => navigate('/dashboard/apprenant/tests')}
+              onClick={() => navigate('/dashboard/apprenant/evaluations')}
             >
               <TestTube className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
-              Passer un test de positionnement
+              {isOFStudent ? "Mes évaluations" : "Passer un test de positionnement"}
             </Button>
             <Button 
               className="w-full justify-start hover:bg-gradient-to-r hover:from-blue-500 hover:to-cyan-500 hover:text-white transition-all duration-300 group" 
@@ -313,7 +367,7 @@ export const StudentDashboardHome = () => {
               onClick={() => navigate('/dashboard/apprenant/messages')}
             >
               <MessageSquare className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
-              Messages
+              {isOFStudent ? "Contacter mon formateur" : "Messages"}
             </Button>
           </CardContent>
         </Card>

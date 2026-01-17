@@ -955,6 +955,13 @@ class FastAPIClient {
     return this.post<EnrollResponse>('/api/courses/enroll', { course_id: courseId });
   }
 
+  /**
+   * Récupérer mes inscriptions (enrollments)
+   */
+  async getMyEnrollments(): Promise<any[]> {
+    return this.get<any[]>('/api/enrollments/my');
+  }
+
   // ============= ORGANIZATIONS =============
 
   /**

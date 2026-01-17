@@ -1,101 +1,133 @@
 
-import React, { useState, useEffect } from 'react';
-import { Send, Search, Phone, Video, MoreVertical, Paperclip, Smile } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Send, Search, Phone, Video, MoreVertical, Paperclip, Smile, Building2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useLocation } from 'react-router-dom';
+import { useStudentContext } from '@/hooks/useStudentContext';
+
+interface Conversation {
+  id: number;
+  name: string;
+  role: string;
+  course: string;
+  lastMessage: string;
+  time: string;
+  unread: number;
+  online: boolean;
+}
 
 const StudentMessaging = () => {
   const location = useLocation();
+  const { isOFStudent, ofName } = useStudentContext();
   const [selectedConversation, setSelectedConversation] = useState(1);
   const [message, setMessage] = useState('');
+
+  // Conversations adaptées selon le type d'apprenant
+  const conversations = useMemo<Conversation[]>(() => {
+    if (isOFStudent) {
+      // Conversations pour apprenants OF : contact OF + formateurs assignés
+      return [
+        {
+          id: 1,
+          name: ofName || "Mon Organisme",
+          role: "Organisme de formation",
+          course: "Administration",
+          lastMessage: "Bienvenue dans votre espace de formation !",
+          time: "14:30",
+          unread: 1,
+          online: true
+        },
+        {
+          id: 2,
+          name: "Mon Formateur",
+          role: "Formateur",
+          course: "Formation assignée",
+          lastMessage: "N'hésitez pas si vous avez des questions",
+          time: "12:15",
+          unread: 0,
+          online: true
+        }
+      ];
+    }
+
+    // Conversations pour apprenants Learneezy
+    return [
+      {
+        id: 1,
+        name: "Sophie Dubois",
+        role: "Professeur",
+        course: "Mathématiques",
+        lastMessage: "Avez-vous terminé le chapitre 3 ?",
+        time: "14:30",
+        unread: 2,
+        online: true
+      },
+      {
+        id: 2,
+        name: "Marc Lefebvre",
+        role: "Professeur",
+        course: "Physique-Chimie",
+        lastMessage: "Le projet final est disponible",
+        time: "12:15",
+        unread: 1,
+        online: false
+      },
+      {
+        id: 3,
+        name: "Claire Martinez",
+        role: "Professeur",
+        course: "Français",
+        lastMessage: "Excellent travail sur la dissertation !",
+        time: "Hier",
+        unread: 0,
+        online: true
+      },
+      {
+        id: 4,
+        name: "Support Learneezy",
+        role: "Admin",
+        course: "Support",
+        lastMessage: "Votre demande a été traitée",
+        time: "Hier",
+        unread: 0,
+        online: true
+      }
+    ];
+  }, [isOFStudent, ofName]);
 
   // Check if we have a selected teacher from navigation
   useEffect(() => {
     if (location.state?.selectedTeacher) {
       const teacher = location.state.selectedTeacher;
-      // Find or create conversation with this teacher
       const teacherConversation = conversations.find(conv => conv.name === teacher.name);
       if (teacherConversation) {
         setSelectedConversation(teacherConversation.id);
       }
     }
-  }, [location.state]);
-
-  const conversations = [
-    {
-      id: 1,
-      name: "Sophie Dubois",
-      role: "Professeur",
-      course: "Mathématiques",
-      lastMessage: "Avez-vous terminé le chapitre 3 ?",
-      time: "14:30",
-      unread: 2,
-      online: true
-    },
-    {
-      id: 2,
-      name: "Marc Lefebvre",
-      role: "Professeur",
-      course: "Physique-Chimie",
-      lastMessage: "Le projet final est disponible",
-      time: "12:15",
-      unread: 1,
-      online: false
-    },
-    {
-      id: 3,
-      name: "Claire Martinez",
-      role: "Professeur",
-      course: "Français",
-      lastMessage: "Excellent travail sur la dissertation !",
-      time: "Hier",
-      unread: 0,
-      online: true
-    },
-    {
-      id: 4,
-      name: "Support Learneezy",
-      role: "Admin",
-      course: "Support",
-      lastMessage: "Votre demande a été traitée",
-      time: "Hier",
-      unread: 0,
-      online: true
-    }
-  ];
+  }, [location.state, conversations]);
 
   const messages = [
     {
       id: 1,
-      sender: "Sophie Dubois",
-      content: "Bonjour ! Comment avancez-vous avec le cours de mathématiques ?",
+      sender: conversations[0]?.name || "Contact",
+      content: isOFStudent 
+        ? "Bienvenue ! Nous sommes ravis de vous accompagner dans votre formation."
+        : "Bonjour ! Comment avancez-vous avec le cours de mathématiques ?",
       time: "14:20",
       isMe: false
     },
     {
       id: 2,
       sender: "Moi",
-      content: "Bonjour ! Ça va bien, j'ai terminé les 2 premiers chapitres. Très intéressant !",
+      content: isOFStudent
+        ? "Merci ! J'ai hâte de commencer mes formations."
+        : "Bonjour ! Ça va bien, j'ai terminé les 2 premiers chapitres. Très intéressant !",
       time: "14:25",
       isMe: true
     },
-    {
-      id: 3,
-      sender: "Sophie Dubois",
-      content: "Parfait ! Avez-vous terminé le chapitre 3 ? Il y a quelques exercices pratiques importants.",
-      time: "14:30",
-      isMe: false
-    },
-    {
-      id: 4,
-      sender: "Sophie Dubois",
-      content: "N'hésitez pas si vous avez des questions sur les équations !",
-      time: "14:30",
-      isMe: false
-    }
   ];
 
   const selectedUser = conversations.find(conv => conv.id === selectedConversation);
@@ -114,7 +146,9 @@ const StudentMessaging = () => {
           {/* Liste des conversations */}
           <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
             <div className="p-4 border-b border-gray-200">
-              <h2 className="text-xl font-semibold mb-4">Messages</h2>
+              <h2 className="text-xl font-semibold mb-4">
+                {isOFStudent ? "Mes contacts" : "Messages"}
+              </h2>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input placeholder="Rechercher une conversation..." className="pl-10" />
@@ -133,8 +167,14 @@ const StudentMessaging = () => {
                   <div className="flex items-center space-x-3">
                     <div className="relative">
                       <Avatar>
-                        <AvatarFallback className="bg-pink-100 text-pink-600">
-                          {conversation.name.split(' ').map(n => n[0]).join('')}
+                        <AvatarFallback className={isOFStudent && conversation.role === "Organisme de formation" 
+                          ? "bg-blue-100 text-blue-600" 
+                          : "bg-pink-100 text-pink-600"
+                        }>
+                          {conversation.role === "Organisme de formation" 
+                            ? <Building2 className="h-4 w-4" />
+                            : conversation.name.split(' ').map(n => n[0]).join('')
+                          }
                         </AvatarFallback>
                       </Avatar>
                       {conversation.online && (
@@ -174,8 +214,14 @@ const StudentMessaging = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <Avatar>
-                        <AvatarFallback className="bg-pink-100 text-pink-600">
-                          {selectedUser.name.split(' ').map(n => n[0]).join('')}
+                        <AvatarFallback className={isOFStudent && selectedUser.role === "Organisme de formation"
+                          ? "bg-blue-100 text-blue-600"
+                          : "bg-pink-100 text-pink-600"
+                        }>
+                          {selectedUser.role === "Organisme de formation"
+                            ? <Building2 className="h-4 w-4" />
+                            : selectedUser.name.split(' ').map(n => n[0]).join('')
+                          }
                         </AvatarFallback>
                       </Avatar>
                       <div>

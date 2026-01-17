@@ -1,34 +1,55 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Play, Clock, Search, Filter } from 'lucide-react';
+import { Play, Clock, Search, Filter, Building2, AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { fastAPIClient } from '@/services/fastapi-client';
 import { CourseResponse } from '@/types/fastapi';
+import { useStudentContext } from '@/hooks/useStudentContext';
 
 const StudentCourses = () => {
   const navigate = useNavigate();
+  const { isOFStudent, ofName } = useStudentContext();
   const [courses, setCourses] = useState<CourseResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
     fetchCourses();
-  }, []);
+  }, [isOFStudent]);
 
   const fetchCourses = async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fastAPIClient.getCourses({
-        status: 'published',
-        page: 1,
-        per_page: 20
-      });
-      setCourses(response.items);
+      
+      if (isOFStudent) {
+        // Pour les apprenants OF : charger uniquement les cours assignés via enrollments
+        try {
+          const enrollments = await fastAPIClient.getMyEnrollments();
+          // Extraire les cours des enrollments
+          const enrolledCourses = enrollments
+            .filter((enrollment: any) => enrollment.course)
+            .map((enrollment: any) => enrollment.course);
+          setCourses(enrolledCourses);
+        } catch (enrollError) {
+          console.error('Error fetching enrollments:', enrollError);
+          // Fallback : pas de cours assignés
+          setCourses([]);
+        }
+      } else {
+        // Pour les apprenants Learneezy : charger tous les cours publiés
+        const response = await fastAPIClient.getCourses({
+          status: 'published',
+          page: 1,
+          per_page: 20
+        });
+        setCourses(response.items);
+      }
     } catch (err) {
       console.error('Error fetching courses:', err);
       setError('Erreur lors du chargement des cours');
@@ -72,9 +93,27 @@ const StudentCourses = () => {
   return (
     <div className="space-y-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground mb-2">Mes Cours</h1>
-        <p className="text-muted-foreground">Gérez et suivez vos cours en ligne</p>
+        <h1 className="text-3xl font-bold text-foreground mb-2">
+          {isOFStudent ? "Mes Formations" : "Mes Cours"}
+        </h1>
+        <p className="text-muted-foreground">
+          {isOFStudent 
+            ? "Formations assignées par votre organisme de formation" 
+            : "Gérez et suivez vos cours en ligne"
+          }
+        </p>
       </div>
+
+      {/* Bandeau OF */}
+      {isOFStudent && ofName && (
+        <Alert className="border-blue-200 bg-blue-50">
+          <Building2 className="h-4 w-4 text-blue-600" />
+          <AlertDescription>
+            Ces formations vous ont été assignées par <strong>{ofName}</strong>. 
+            Contactez votre organisme pour toute question.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Filtres et recherche */}
       <div className="mb-8 flex flex-col sm:flex-row gap-4">
@@ -113,8 +152,41 @@ const StudentCourses = () => {
       {!loading && !error && (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {courses.length === 0 ? (
-            <div className="col-span-full text-center py-12 text-muted-foreground">
-              Aucun cours disponible pour le moment
+            <div className="col-span-full">
+              <Card className="border-dashed">
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium mb-2">
+                    {isOFStudent 
+                      ? "Aucune formation assignée" 
+                      : "Aucun cours disponible"
+                    }
+                  </h3>
+                  <p className="text-muted-foreground text-center max-w-md">
+                    {isOFStudent 
+                      ? "Aucune formation ne vous a encore été assignée par votre organisme de formation. Contactez votre responsable pour plus d'informations."
+                      : "Découvrez notre catalogue de formations pour commencer votre apprentissage !"
+                    }
+                  </p>
+                  {!isOFStudent && (
+                    <Button 
+                      className="mt-4"
+                      onClick={() => navigate('/dashboard/apprenant/catalogue')}
+                    >
+                      Voir le catalogue
+                    </Button>
+                  )}
+                  {isOFStudent && (
+                    <Button 
+                      variant="outline"
+                      className="mt-4"
+                      onClick={() => navigate('/dashboard/apprenant/messages')}
+                    >
+                      Contacter mon organisme
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
             </div>
           ) : (
             courses.map((course) => (
@@ -134,6 +206,12 @@ const StudentCourses = () => {
                   <Badge className="absolute top-3 right-3 bg-blue-500">
                     En cours
                   </Badge>
+                  {isOFStudent && (
+                    <Badge className="absolute top-3 left-3 bg-indigo-500">
+                      <Building2 className="h-3 w-3 mr-1" />
+                      Formation OF
+                    </Badge>
+                  )}
                 </div>
                 
                 <CardHeader>
