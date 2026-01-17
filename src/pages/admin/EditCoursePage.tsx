@@ -170,7 +170,14 @@ const EditCoursePage = () => {
 
   // Detect context path
   const isManagerContext = location.pathname.includes('/gestionnaire/');
-  const coursesBasePath = isManagerContext ? '/dashboard/gestionnaire/courses' : '/dashboard/superadmin/courses';
+  const isOFAdminContext = location.pathname.includes('/organisme-formation/');
+  
+  let coursesBasePath = '/dashboard/superadmin/courses';
+  if (isManagerContext) {
+    coursesBasePath = '/dashboard/gestionnaire/courses';
+  } else if (isOFAdminContext) {
+    coursesBasePath = '/dashboard/organisme-formation/formations';
+  }
 
   // Helper pour formatter proprement les erreurs API (éviter enfants objets dans JSX)
   const formatApiError = (error: any): string => {

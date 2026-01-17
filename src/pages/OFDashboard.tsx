@@ -18,6 +18,9 @@ import { OFSubscription } from '@/components/admin/OFSubscription';
 import OFStudentDetailPage from '@/pages/admin/OFStudentDetailPage';
 import OFTrainerDetailPage from '@/pages/admin/OFTrainerDetailPage';
 import OFManagerDetailPage from '@/pages/admin/OFManagerDetailPage';
+import CreateCoursePage from '@/pages/admin/CreateCoursePage';
+import EditCoursePage from '@/pages/admin/EditCoursePage';
+import CourseDetailPage from '@/pages/admin/CourseDetailPage';
 
 const OFDashboard = () => {
   return (
@@ -40,6 +43,9 @@ const OFDashboard = () => {
                 <Route path="/utilisateurs/formateur/:userSlug" element={<OFTrainerDetailPage />} />
                 <Route path="/utilisateurs/gestionnaire/:userSlug" element={<OFManagerDetailPage />} />
                 <Route path="/formations" element={<OFFormations />} />
+                <Route path="/formations/create" element={<CreateCoursePage />} />
+                <Route path="/formations/:courseId" element={<CourseDetailPage />} />
+                <Route path="/formations/:id/edit" element={<EditCoursePage />} />
                 <Route path="/documents-of" element={<OFDocuments />} />
                 <Route path="/documents" element={<OFDocuments />} />
                 <Route path="/licences" element={<OFLicences />} />

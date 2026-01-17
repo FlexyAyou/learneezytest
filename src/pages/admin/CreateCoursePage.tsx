@@ -69,9 +69,16 @@ const CreateCoursePage = () => {
   const queryClient = useQueryClient();
   const { organization, isOFContext } = useOrganization();
 
-  // Détecter si on est dans le contexte gestionnaire ou superadmin
+  // Détecter si on est dans le contexte gestionnaire, OF ou superadmin
   const isManagerContext = location.pathname.includes('/gestionnaire/');
-  const coursesBasePath = isManagerContext ? '/dashboard/gestionnaire/courses' : '/dashboard/superadmin/courses';
+  const isOFAdminContext = location.pathname.includes('/organisme-formation/');
+  
+  let coursesBasePath = '/dashboard/superadmin/courses';
+  if (isManagerContext) {
+    coursesBasePath = '/dashboard/gestionnaire/courses';
+  } else if (isOFAdminContext) {
+    coursesBasePath = '/dashboard/organisme-formation/formations';
+  }
 
   // Déterminer le propriétaire par défaut
   const defaultOwner = isOFContext && organization ? organization.slug : 'Learneezy';
