@@ -958,6 +958,9 @@ const CreateCoursePage = () => {
         levels: courseData.cycleTags.length > 0 ? courseData.cycleTags : null,
         cover_key: uploadedCoverKey,
         program_pdf_key: uploadedProgramKey,
+        // Propriétaire du cours: OF si contexte OF, sinon Learneezy
+        owner_type: (isOFContext && organization?.organizationId) ? 'of' as const : 'learneezy' as const,
+        owner_id: (isOFContext && organization?.organizationId) ? organization.organizationId : null,
         modules: modules.map(module => ({
           title: module.title,
           description: module.description || `Description du ${module.title}`,

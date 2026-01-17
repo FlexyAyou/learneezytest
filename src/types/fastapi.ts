@@ -429,6 +429,8 @@ export interface Course {
   modules: ModuleCreate[]; // ModuleCreate pour la création (sans IDs)
   id?: string | null;
   resources_downloadable?: boolean; // Permet aux apprenants de télécharger les ressources
+  owner_type?: CourseOwnerType; // 'learneezy' ou 'of'
+  owner_id?: number | null; // ID de l'organisation si owner_type === 'of'
 }
 
 /**

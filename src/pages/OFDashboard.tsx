@@ -5,7 +5,7 @@ import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/s
 import { OFSidebar } from '@/components/admin/OFSidebar';
 import { OFDashboard as OFDashboardContent } from '@/components/admin/OFDashboard';
 import { OFUtilisateurs } from '@/components/admin/OFUtilisateurs';
-import { OFFormations } from '@/components/admin/OFFormations';
+import { OFCourses } from '@/components/admin/OFCourses';
 import OFDocuments from '@/components/admin/OFDocuments';
 import { OFLicences } from '@/components/admin/OFLicences';
 import { OFSuiviPedagogique } from '@/components/admin/OFSuiviPedagogique';
@@ -42,7 +42,7 @@ const OFDashboard = () => {
                 <Route path="/utilisateurs/apprenant/:userSlug" element={<OFStudentDetailPage />} />
                 <Route path="/utilisateurs/formateur/:userSlug" element={<OFTrainerDetailPage />} />
                 <Route path="/utilisateurs/gestionnaire/:userSlug" element={<OFManagerDetailPage />} />
-                <Route path="/formations" element={<OFFormations />} />
+                <Route path="/formations" element={<OFCourses />} />
                 <Route path="/formations/create" element={<CreateCoursePage />} />
                 <Route path="/formations/:courseId" element={<CourseDetailPage />} />
                 <Route path="/formations/:id/edit" element={<EditCoursePage />} />
