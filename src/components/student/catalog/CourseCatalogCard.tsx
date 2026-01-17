@@ -69,7 +69,7 @@ export const CourseCatalogCard = ({
         
         {/* Price Badge */}
         <div className="absolute top-3 right-3">
-          <Badge className="bg-gradient-to-r from-token to-token/80 text-token-foreground font-bold px-3 py-1.5 text-sm shadow-lg">
+          <Badge className="bg-pink-600 text-white font-bold px-3 py-1.5 text-sm shadow-lg">
             <Coins className="h-3.5 w-3.5 mr-1.5" />
             {tokenPrice} tokens
           </Badge>
@@ -143,7 +143,7 @@ export const CourseCatalogCard = ({
             <Button
               className={`w-full gap-2 ${
                 canAfford 
-                  ? 'bg-gradient-to-r from-token to-primary hover:from-token/90 hover:to-primary/90 text-token-foreground' 
+                  ? 'bg-pink-600 hover:bg-pink-700 text-white' 
                   : 'bg-muted text-muted-foreground cursor-not-allowed'
               }`}
               onClick={() => canAfford && onPurchase(course)}
