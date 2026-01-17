@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Coins,
   Clock,
@@ -21,6 +23,9 @@ import {
   Sparkles,
   ArrowRight,
   Shield,
+  Lock,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { CourseResponse } from '@/types/fastapi';
 
@@ -29,8 +34,9 @@ interface CoursePurchaseDialogProps {
   onOpenChange: (open: boolean) => void;
   course: CourseResponse | null;
   userTokenBalance: number;
-  onConfirm: () => void;
+  onConfirm: (password: string) => void;
   isLoading: boolean;
+  passwordError?: string;
 }
 
 export const CoursePurchaseDialog = ({
@@ -40,7 +46,11 @@ export const CoursePurchaseDialog = ({
   userTokenBalance,
   onConfirm,
   isLoading,
+  passwordError,
 }: CoursePurchaseDialogProps) => {
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
   if (!course) return null;
 
   const tokenPrice = course.price || 0;
@@ -55,18 +65,34 @@ export const CoursePurchaseDialog = ({
     return course.modules?.length || 0;
   };
 
+  const handleConfirm = () => {
+    if (password.trim()) {
+      onConfirm(password);
+    }
+  };
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen) {
+      setPassword('');
+      setShowPassword(false);
+    }
+    onOpenChange(newOpen);
+  };
+
+  const isFormValid = password.trim().length >= 1 && canAfford;
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader className="text-left">
           <DialogTitle className="flex items-center gap-3 text-xl">
-            <div className="p-2 bg-token-muted rounded-xl">
-              <ShoppingCart className="h-5 w-5 text-token" />
+            <div className="p-2 bg-pink-100 rounded-xl">
+              <ShoppingCart className="h-5 w-5 text-pink-600" />
             </div>
             Confirmer l'achat
           </DialogTitle>
           <DialogDescription>
-            Vérifiez les détails avant de confirmer votre inscription
+            Vérifiez les détails et confirmez avec votre mot de passe
           </DialogDescription>
         </DialogHeader>
 
@@ -83,8 +109,8 @@ export const CoursePurchaseDialog = ({
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-token/20">
-                      <BookOpen className="h-8 w-8 text-primary/50" />
+                    <div className="w-full h-full flex items-center justify-center bg-pink-50">
+                      <BookOpen className="h-8 w-8 text-pink-300" />
                     </div>
                   )}
                 </div>
@@ -111,39 +137,39 @@ export const CoursePurchaseDialog = ({
           </Card>
 
           {/* What you get */}
-          <div className="bg-success/5 border border-success/20 rounded-xl p-4">
+          <div className="bg-green-50 border border-green-200 rounded-xl p-4">
             <h4 className="font-medium text-foreground flex items-center gap-2 mb-3">
-              <Sparkles className="h-4 w-4 text-success" />
+              <Sparkles className="h-4 w-4 text-green-600" />
               Ce que vous obtenez
             </h4>
             <ul className="space-y-2">
               <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                <CheckCircle className="h-4 w-4 text-success flex-shrink-0" />
+                <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
                 Accès illimité au contenu du cours
               </li>
               <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                <CheckCircle className="h-4 w-4 text-success flex-shrink-0" />
+                <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
                 {getTotalLessons()} leçons interactives
               </li>
               <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                <CheckCircle className="h-4 w-4 text-success flex-shrink-0" />
+                <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
                 Certificat de complétion
               </li>
             </ul>
           </div>
 
           {/* Transaction Summary */}
-          <Card className="border-2 border-token/30 bg-token/5">
+          <Card className="border-2 border-pink-200 bg-pink-50/50">
             <CardContent className="p-4 space-y-3">
               <h4 className="font-semibold text-foreground flex items-center gap-2">
-                <Coins className="h-4 w-4 text-token" />
+                <Coins className="h-4 w-4 text-pink-600" />
                 Récapitulatif
               </h4>
               
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Prix du cours</span>
-                  <span className="font-semibold text-token">{tokenPrice} tokens</span>
+                  <span className="font-semibold text-pink-600">{tokenPrice} tokens</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Votre solde actuel</span>
@@ -154,7 +180,7 @@ export const CoursePurchaseDialog = ({
                 
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Solde après achat</span>
-                  <span className={`font-bold ${canAfford ? 'text-success' : 'text-destructive'}`}>
+                  <span className={`font-bold ${canAfford ? 'text-green-600' : 'text-destructive'}`}>
                     {canAfford ? remainingBalance : userTokenBalance} tokens
                   </span>
                 </div>
@@ -172,7 +198,7 @@ export const CoursePurchaseDialog = ({
                       <button 
                         className="underline font-medium hover:text-destructive"
                         onClick={() => {
-                          onOpenChange(false);
+                          handleOpenChange(false);
                           window.location.href = '/dashboard/apprenant/boutique';
                         }}
                       >
@@ -185,6 +211,47 @@ export const CoursePurchaseDialog = ({
             </CardContent>
           </Card>
 
+          {/* Password Confirmation */}
+          {canAfford && (
+            <div className="space-y-3">
+              <Label htmlFor="password" className="flex items-center gap-2 text-sm font-medium">
+                <Lock className="h-4 w-4 text-muted-foreground" />
+                Confirmez avec votre mot de passe
+              </Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Entrez votre mot de passe"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={`pr-10 ${passwordError ? 'border-destructive' : ''}`}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && isFormValid && !isLoading) {
+                      handleConfirm();
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              {passwordError && (
+                <p className="text-sm text-destructive flex items-center gap-1">
+                  <AlertCircle className="h-3.5 w-3.5" />
+                  {passwordError}
+                </p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Pour votre sécurité, confirmez cet achat avec votre mot de passe de connexion.
+              </p>
+            </div>
+          )}
+
           {/* Security note */}
           <div className="flex items-center gap-2 text-xs text-muted-foreground justify-center">
             <Shield className="h-3.5 w-3.5" />
@@ -195,32 +262,30 @@ export const CoursePurchaseDialog = ({
         <DialogFooter className="gap-2 sm:gap-2">
           <Button 
             variant="outline" 
-            onClick={() => onOpenChange(false)}
+            onClick={() => handleOpenChange(false)}
             disabled={isLoading}
           >
             Annuler
           </Button>
           <Button
-            onClick={onConfirm}
-            disabled={!canAfford || isLoading}
-            className={`gap-2 ${
-              canAfford 
-                ? 'bg-gradient-to-r from-token to-primary hover:from-token/90 hover:to-primary/90' 
-                : ''
-            }`}
+            onClick={handleConfirm}
+            disabled={!isFormValid || isLoading}
+            className="gap-2 bg-pink-600 hover:bg-pink-700 text-white"
           >
             {isLoading ? (
               <>
                 <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                Traitement...
+                Vérification...
               </>
-            ) : canAfford ? (
+            ) : isFormValid ? (
               <>
                 Confirmer l'achat
                 <ArrowRight className="h-4 w-4" />
               </>
-            ) : (
+            ) : !canAfford ? (
               'Solde insuffisant'
+            ) : (
+              'Entrez votre mot de passe'
             )}
           </Button>
         </DialogFooter>

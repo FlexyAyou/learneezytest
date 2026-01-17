@@ -20,6 +20,7 @@ import {
 import { fastAPIClient } from '@/services/fastapi-client';
 import { CourseResponse } from '@/types/fastapi';
 import { useTokenBalance, useEnrollCourse } from '@/hooks/useApi';
+import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 import { CourseCatalogCard } from '@/components/student/catalog/CourseCatalogCard';
 import { CoursePurchaseDialog } from '@/components/student/catalog/CoursePurchaseDialog';
 import { TokenBalanceWidget } from '@/components/student/catalog/TokenBalanceWidget';
@@ -34,10 +35,13 @@ const StudentCourseCatalog = () => {
   const [sortBy, setSortBy] = useState<string>('newest');
   const [selectedCourse, setSelectedCourse] = useState<CourseResponse | null>(null);
   const [showPurchaseDialog, setShowPurchaseDialog] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | undefined>(undefined);
+  const [isVerifyingPassword, setIsVerifyingPassword] = useState(false);
   
   // API hooks
   const { data: balanceData, isLoading: isLoadingBalance } = useTokenBalance();
   const enrollMutation = useEnrollCourse();
+  const { user } = useFastAPIAuth();
   
   const userBalance = balanceData?.balance ?? 0;
 
@@ -137,20 +141,39 @@ const StudentCourseCatalog = () => {
 
   const handlePurchaseClick = (course: CourseResponse) => {
     setSelectedCourse(course);
+    setPasswordError(undefined);
     setShowPurchaseDialog(true);
   };
 
-  const handleConfirmPurchase = async () => {
+  const handleConfirmPurchase = async (password: string) => {
     if (!selectedCourse) return;
     
+    setIsVerifyingPassword(true);
+    setPasswordError(undefined);
+    
     try {
+      // Vérifier le mot de passe via l'API de login
+      const userEmail = user?.email || '';
+      await fastAPIClient.login({ email: userEmail, password });
+      
+      // Mot de passe correct, procéder à l'inscription
       await enrollMutation.mutateAsync(selectedCourse.id);
       setShowPurchaseDialog(false);
       setSelectedCourse(null);
       // Refresh courses to update enrollment status
       fetchCourses();
-    } catch (error) {
-      // Error is handled by the mutation
+    } catch (error: any) {
+      // Vérifier si c'est une erreur de mot de passe
+      if (error.response?.status === 401 || error.response?.status === 400) {
+        setPasswordError('Mot de passe incorrect');
+      } else if (error.response?.data?.detail) {
+        setPasswordError(error.response.data.detail);
+      } else {
+        // Erreur d'inscription, pas de mot de passe
+        setPasswordError('Erreur lors de l\'achat. Veuillez réessayer.');
+      }
+    } finally {
+      setIsVerifyingPassword(false);
     }
   };
 
@@ -343,11 +366,15 @@ const StudentCourseCatalog = () => {
       {/* Purchase Dialog */}
       <CoursePurchaseDialog
         open={showPurchaseDialog}
-        onOpenChange={setShowPurchaseDialog}
+        onOpenChange={(open) => {
+          setShowPurchaseDialog(open);
+          if (!open) setPasswordError(undefined);
+        }}
         course={selectedCourse}
         userTokenBalance={userBalance}
         onConfirm={handleConfirmPurchase}
-        isLoading={enrollMutation.isPending}
+        isLoading={enrollMutation.isPending || isVerifyingPassword}
+        passwordError={passwordError}
       />
     </div>
   );
