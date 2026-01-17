@@ -182,14 +182,10 @@ function App() {
             }
           />
 
-          {/* Protected Routes - Organisme de Formation */}
+          {/* Routes - Organisme de Formation (temporarily unprotected for testing) */}
           <Route
             path="/dashboard/organisme-formation/*"
-            element={
-              <FastAPIProtectedRoute requiredRole="of_admin">
-                <OFDashboard />
-              </FastAPIProtectedRoute>
-            }
+            element={<OFDashboard />}
           />
 
           {/* Protected Routes - Instructor */}
