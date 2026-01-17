@@ -808,6 +808,33 @@ export const useUserDetail = (userId: string | number) => {
   });
 };
 
+// ============= OF USERS HOOKS =============
+
+/**
+ * Hook pour récupérer les utilisateurs d'un organisme de formation (OF)
+ * Prêt pour l'API GET /api/organizations/{of_id}/users
+ * 
+ * NOTE: L'endpoint backend n'existe pas encore. Ce hook est prêt à l'emploi
+ * une fois que l'API sera implémentée.
+ */
+export const useOFUsers = (ofId: number | string | undefined) => {
+  return useQuery({
+    queryKey: ['of-users', ofId],
+    queryFn: async () => {
+      if (!ofId) throw new Error('OF ID is required');
+      
+      // Appel à l'endpoint GET /api/organizations/{of_id}/users
+      // qui sera implémenté côté backend
+      const response = await fastAPIClient.get<ListAllUsersResponse[]>(
+        `/api/organizations/${ofId}/users`
+      );
+      return response;
+    },
+    enabled: !!ofId,
+    retry: 1,
+  });
+};
+
 // ============= ORGANIZATIONS HOOKS =============
 
 /**
