@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,58 +15,113 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Search, Plus, Eye, Edit, Trash2, BookOpen, Users, Star, Clock } from 'lucide-react';
+import { Search, Plus, Eye, Edit, Trash2, BookOpen, Users, Clock, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { fastAPIClient } from '@/services/fastapi-client';
+import { CourseSummaryPage, CourseFilters, CourseResponse } from '@/types/fastapi';
+import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 
 const ManagerCourses = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useFastAPIAuth();
+  
+  // State
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'draft' | 'published'>('all');
+  const [sortOption, setSortOption] = useState<'newest' | 'price_asc' | 'price_desc'>('newest');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [coursesPage, setCoursesPage] = useState<CourseSummaryPage | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   // Delete confirmation state
   const [courseToDelete, setCourseToDelete] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
-  // Mock data for courses
-  const publishedCourses = [
-    {
-      id: '1',
-      title: 'Développement Web avec React',
-      instructor: 'Jean Dupont',
-      category: 'Développement',
-      price: 89,
-      students: 245,
-      rating: 4.8,
-      status: 'publié',
-      duration: '15h',
-      createdAt: '2023-10-15',
-      thumbnail: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80',
-    },
-    {
-      id: '2',
-      title: 'Design UX/UI avec Figma',
-      instructor: 'Marie Martin',
-      category: 'Design',
-      price: 99,
-      students: 189,
-      rating: 4.6,
-      status: 'publié',
-      duration: '12h',
-      createdAt: '2023-11-02',
-      thumbnail: 'https://images.unsplash.com/photo-1586717791821-3f44a563fa4c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80',
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setCurrentPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Fetch courses
+  useEffect(() => {
+    const fetchCourses = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        const filters: CourseFilters = {
+          page: currentPage,
+          per_page: 12,
+          search: debouncedSearch || undefined,
+          status: statusFilter !== 'all' ? statusFilter : undefined,
+          sort: sortOption,
+          owner_type: 'of',
+          owner_id: user?.of_id,
+          facets: true,
+        };
+
+        const data = await fastAPIClient.getCourses(filters);
+        setCoursesPage(data);
+      } catch (err) {
+        console.error('Error fetching courses:', err);
+        setError('Erreur lors du chargement des cours');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user?.of_id) {
+      fetchCourses();
     }
-  ];
+  }, [currentPage, debouncedSearch, statusFilter, sortOption, user?.of_id]);
 
-  const confirmDeleteCourse = () => {
+  // Stats calculations
+  const stats = useMemo(() => {
+    if (!coursesPage?.facets) {
+      return {
+        total: coursesPage?.total_items || 0,
+        published: 0,
+        draft: 0,
+      };
+    }
+    
+    return {
+      total: coursesPage.total_items,
+      published: coursesPage.facets.by_status?.published || 0,
+      draft: coursesPage.facets.by_status?.draft || 0,
+    };
+  }, [coursesPage]);
+
+  const confirmDeleteCourse = async () => {
     if (!courseToDelete) return;
     
-    toast({
-      title: "Cours supprimé",
-      description: "Le cours a été supprimé avec succès.",
-      variant: "destructive"
-    });
-    setCourseToDelete(null);
+    setDeleting(true);
+    try {
+      await fastAPIClient.deleteCourse(courseToDelete);
+      toast({
+        title: "Cours supprimé",
+        description: "Le cours a été supprimé avec succès.",
+      });
+      // Refresh list
+      setCurrentPage(1);
+    } catch (err) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer le cours.",
+        variant: "destructive"
+      });
+    } finally {
+      setDeleting(false);
+      setCourseToDelete(null);
+    }
   };
 
   const handleEditCourse = (courseId: string) => {
@@ -79,38 +134,32 @@ const ManagerCourses = () => {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'publié':
+      case 'published':
         return <Badge className="bg-green-100 text-green-800">Publié</Badge>;
-      case 'en_attente':
-        return <Badge className="bg-yellow-100 text-yellow-800">En attente</Badge>;
-      case 'brouillon':
+      case 'draft':
         return <Badge className="bg-gray-100 text-gray-800">Brouillon</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
   };
 
-  const filteredCourses = publishedCourses.filter(course => {
-    const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         course.instructor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         course.category.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === 'all' || course.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  });
+  const getCourseImage = (course: CourseResponse) => {
+    return course.image_url || course.thumbnails?.[0] || '/placeholder.svg';
+  };
+
+  const courses = coursesPage?.items || [];
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestion des cours</h1>
-          <p className="text-gray-600">Gérer les cours de la plateforme</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Gestion des cours</h1>
+          <p className="text-muted-foreground">Gérer les cours de votre organisme</p>
         </div>
         <div className="flex space-x-2">
           <Button 
             onClick={() => navigate('/dashboard/gestionnaire/courses/create')}
-            className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
+            className="bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600"
           >
             <Plus className="h-4 w-4 mr-2" />
             Créer un cours
@@ -119,13 +168,13 @@ const ManagerCourses = () => {
       </div>
 
       {/* Stats cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Total cours</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{publishedCourses.length}</div>
+            <div className="text-2xl font-bold">{stats.total}</div>
             <p className="text-xs text-muted-foreground">Tous les cours</p>
           </CardContent>
         </Card>
@@ -134,34 +183,19 @@ const ManagerCourses = () => {
             <CardTitle className="text-sm font-medium">Cours publiés</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {publishedCourses.filter(c => c.status === 'publié').length}
-            </div>
+            <div className="text-2xl font-bold text-green-600">{stats.published}</div>
             <p className="text-xs text-muted-foreground">
-              {Math.round((publishedCourses.filter(c => c.status === 'publié').length / publishedCourses.length) * 100)}% du total
+              {stats.total > 0 ? Math.round((stats.published / stats.total) * 100) : 0}% du total
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Note moyenne</CardTitle>
+            <CardTitle className="text-sm font-medium">Brouillons</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
-              {(publishedCourses.reduce((sum, c) => sum + c.rating, 0) / publishedCourses.length).toFixed(1)}
-            </div>
-            <p className="text-xs text-muted-foreground">Sur 5 étoiles</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Étudiants totaux</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {publishedCourses.reduce((sum, course) => sum + course.students, 0)}
-            </div>
-            <p className="text-xs text-muted-foreground">Tous cours confondus</p>
+            <div className="text-2xl font-bold text-muted-foreground">{stats.draft}</div>
+            <p className="text-xs text-muted-foreground">En cours de création</p>
           </CardContent>
         </Card>
       </div>
@@ -175,115 +209,177 @@ const ManagerCourses = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center space-x-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <div className="flex flex-wrap items-center gap-4 mb-6">
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
-                placeholder="Rechercher par titre, instructeur ou catégorie..."
+                placeholder="Rechercher par titre..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
               />
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v as any); setCurrentPage(1); }}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Filtrer par statut" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tous les statuts</SelectItem>
-                <SelectItem value="publié">Publié</SelectItem>
-                <SelectItem value="en_attente">En attente</SelectItem>
-                <SelectItem value="brouillon">Brouillon</SelectItem>
+                <SelectItem value="published">Publié</SelectItem>
+                <SelectItem value="draft">Brouillon</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={sortOption} onValueChange={(v) => { setSortOption(v as any); setCurrentPage(1); }}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Trier par" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">Plus récent</SelectItem>
+                <SelectItem value="price_asc">Prix croissant</SelectItem>
+                <SelectItem value="price_desc">Prix décroissant</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Cours</TableHead>
-                <TableHead>Instructeur</TableHead>
-                <TableHead>Catégorie</TableHead>
-                <TableHead>Prix</TableHead>
-                <TableHead>Étudiants</TableHead>
-                <TableHead>Note</TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredCourses.map((course) => (
-                <TableRow key={course.id}>
-                  <TableCell>
-                    <div className="flex items-center space-x-3">
-                      <img 
-                        src={course.thumbnail} 
-                        alt={course.title}
-                        className="w-16 h-10 rounded object-cover"
-                      />
-                      <div>
-                        <div className="font-medium">{course.title}</div>
-                        <div className="text-sm text-gray-500 flex items-center">
-                          <Clock className="h-3 w-3 mr-1" />
-                          {course.duration}
-                        </div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{course.instructor}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{course.category}</Badge>
-                  </TableCell>
-                  <TableCell>{course.price}€</TableCell>
-                  <TableCell>
-                    <div className="flex items-center">
-                      <Users className="h-4 w-4 mr-1 text-gray-400" />
-                      {course.students}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center">
-                      <Star className="h-4 w-4 mr-1 text-yellow-400 fill-yellow-400" />
-                      {course.rating}
-                    </div>
-                  </TableCell>
-                  <TableCell>{getStatusBadge(course.status)}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end space-x-2">
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => handleViewCourse(course.id)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => handleEditCourse(course.id)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => setCourseToDelete(course.id)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-
-          {filteredCourses.length === 0 && (
-            <div className="text-center py-12">
-              <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">Aucun cours trouvé</p>
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <p className="text-destructive">{error}</p>
+              <Button variant="outline" className="mt-4" onClick={() => setCurrentPage(1)}>
+                Réessayer
+              </Button>
+            </div>
+          ) : courses.length === 0 ? (
+            <div className="text-center py-12">
+              <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">Aucun cours trouvé</p>
+              {debouncedSearch && (
+                <Button variant="link" onClick={() => setSearchTerm('')}>
+                  Effacer la recherche
+                </Button>
+              )}
+            </div>
+          ) : (
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Cours</TableHead>
+                    <TableHead>Catégorie</TableHead>
+                    <TableHead>Prix</TableHead>
+                    <TableHead>Apprenants</TableHead>
+                    <TableHead>Statut</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {courses.map((course: CourseResponse) => (
+                    <TableRow key={course.id}>
+                      <TableCell>
+                        <div className="flex items-center space-x-3">
+                          <img 
+                            src={getCourseImage(course)} 
+                            alt={course.title}
+                            className="w-16 h-10 rounded object-cover bg-muted"
+                            onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }}
+                          />
+                          <div>
+                            <div className="font-medium">{course.title}</div>
+                            {course.level && (
+                              <div className="text-sm text-muted-foreground flex items-center">
+                                <Clock className="h-3 w-3 mr-1" />
+                                {course.level}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {course.category_names?.length ? (
+                          <div className="flex flex-wrap gap-1">
+                            {course.category_names.slice(0, 2).map((cat, idx) => (
+                              <Badge key={idx} variant="outline">{cat}</Badge>
+                            ))}
+                          </div>
+                        ) : course.category ? (
+                          <Badge variant="outline">{course.category}</Badge>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {course.price ? `${course.price} tokens` : 'Gratuit'}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center">
+                          <Users className="h-4 w-4 mr-1 text-muted-foreground" />
+                          -
+                        </div>
+                      </TableCell>
+                      <TableCell>{getStatusBadge(course.status)}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end space-x-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleViewCourse(course.id)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleEditCourse(course.id)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => setCourseToDelete(course.id)}
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+
+              {/* Pagination */}
+              {coursesPage && coursesPage.total_pages > 1 && (
+                <div className="flex items-center justify-between mt-4">
+                  <p className="text-sm text-muted-foreground">
+                    Page {coursesPage.page} sur {coursesPage.total_pages} ({coursesPage.total_items} cours)
+                  </p>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={!coursesPage.has_previous}
+                      onClick={() => setCurrentPage(p => p - 1)}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Précédent
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={!coursesPage.has_next}
+                      onClick={() => setCurrentPage(p => p + 1)}
+                    >
+                      Suivant
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
@@ -298,11 +394,13 @@ const ManagerCourses = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleting}>Annuler</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDeleteCourse}
-              className="bg-red-600 hover:bg-red-700"
+              disabled={deleting}
+              className="bg-destructive hover:bg-destructive/90"
             >
+              {deleting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               Supprimer
             </AlertDialogAction>
           </AlertDialogFooter>
