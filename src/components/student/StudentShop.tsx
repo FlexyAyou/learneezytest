@@ -15,7 +15,7 @@ import {
 import { useTokenBalance, useBuyTokens } from '@/hooks/useApi';
 import { TokenPackageCard, TokenPackage } from './shop/TokenPackageCard';
 import { TokenBalanceCard } from './shop/TokenBalanceCard';
-import { PurchaseConfirmDialog } from './shop/PurchaseConfirmDialog';
+import { MockStripeCheckout } from './shop/MockStripeCheckout';
 import { PurchaseHistoryList } from './shop/PurchaseHistoryList';
 import { CustomAmountInput } from './shop/CustomAmountInput';
 
@@ -264,12 +264,12 @@ export const StudentShop = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Confirm Dialog */}
-      <PurchaseConfirmDialog
+      {/* Stripe Checkout Modal */}
+      <MockStripeCheckout
         open={showConfirmDialog}
         onOpenChange={setShowConfirmDialog}
         selectedPackage={selectedPackage}
-        onConfirm={handleConfirmPurchase}
+        onPaymentSuccess={handleConfirmPurchase}
         isLoading={buyTokensMutation.isPending}
       />
     </div>
