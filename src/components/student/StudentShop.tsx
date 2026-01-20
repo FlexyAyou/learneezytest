@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
 import { 
   ShoppingBag, 
   Coins, 
@@ -13,6 +14,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { useTokenBalance, useBuyTokens } from '@/hooks/useApi';
+import { useTokenConfig, getApplicableBonusPercent, calculateBonusTokens, DEFAULT_TOKEN_CONFIG } from '@/hooks/useTokenConfig';
 import { TokenPackageCard, TokenPackage } from './shop/TokenPackageCard';
 import { TokenBalanceCard } from './shop/TokenBalanceCard';
 import { MockStripeCheckout } from './shop/MockStripeCheckout';
@@ -26,37 +28,37 @@ export const StudentShop = () => {
   
   // API hooks
   const { data: balanceData, isLoading: isLoadingBalance } = useTokenBalance();
+  const { data: tokenConfig, isLoading: isLoadingConfig } = useTokenConfig();
   const buyTokensMutation = useBuyTokens();
   
-  // Configuration boutique
-  const conversionRate = 10; // 1€ = 10 tokens (selon la spec: 10€ = 100 tokens)
-  const maxAmount = 500;
+  // Configuration dynamique depuis le backend (avec fallback)
+  const config = tokenConfig ?? DEFAULT_TOKEN_CONFIG;
+  const conversionRate = config.base_conversion_rate;
+  const maxAmount = config.max_purchase_euros;
+  const bonusTiers = config.bonus_tiers;
   
-  // Calcul des bonus selon le montant
+  // Calcul des bonus selon les paliers configurés
   const calculateBonus = (amount: number): number => {
-    if (amount >= 100) return Math.floor(amount * conversionRate * 0.2); // 20% bonus
-    if (amount >= 50) return Math.floor(amount * conversionRate * 0.15);  // 15% bonus
-    if (amount >= 25) return Math.floor(amount * conversionRate * 0.1);   // 10% bonus
-    if (amount >= 10) return Math.floor(amount * conversionRate * 0.05);  // 5% bonus
-    return 0;
+    return calculateBonusTokens(amount, conversionRate, bonusTiers);
   };
 
   const getBonusPercent = (amount: number): number => {
-    if (amount >= 100) return 20;
-    if (amount >= 50) return 15;
-    if (amount >= 25) return 10;
-    if (amount >= 10) return 5;
-    return 0;
+    return getApplicableBonusPercent(amount, bonusTiers);
   };
 
-  // Packages prédéfinis
-  const packages: TokenPackage[] = useMemo(() => [
-    { id: '1', amount: 5, tokens: 50, bonusPercent: 0, bonus: 0 },
-    { id: '2', amount: 10, tokens: 100, bonusPercent: 5, bonus: 5, isPopular: true },
-    { id: '3', amount: 25, tokens: 250, bonusPercent: 10, bonus: 25 },
-    { id: '4', amount: 50, tokens: 500, bonusPercent: 15, bonus: 75 },
-    { id: '5', amount: 100, tokens: 1000, bonusPercent: 20, bonus: 200, isBestValue: true },
-  ], []);
+  // Packages prédéfinis (générés dynamiquement selon la config)
+  const packages: TokenPackage[] = useMemo(() => {
+    const amounts = [5, 10, 25, 50, 100];
+    return amounts.map((amount, index) => ({
+      id: String(index + 1),
+      amount,
+      tokens: Math.floor(amount * conversionRate),
+      bonusPercent: getBonusPercent(amount),
+      bonus: calculateBonus(amount),
+      isPopular: amount === 10,
+      isBestValue: amount === 100,
+    }));
+  }, [conversionRate, bonusTiers]);
 
   // Custom package from slider
   const customPackage: TokenPackage = useMemo(() => ({
@@ -65,7 +67,7 @@ export const StudentShop = () => {
     tokens: Math.floor(customAmount * conversionRate),
     bonusPercent: getBonusPercent(customAmount),
     bonus: calculateBonus(customAmount),
-  }), [customAmount]);
+  }), [customAmount, conversionRate, bonusTiers]);
 
   // Purchase history from API
   const purchaseHistory = useMemo(() => {
@@ -108,6 +110,29 @@ export const StudentShop = () => {
     setSelectedPackage(customPackage);
   };
 
+  // Loading state pour la configuration
+  if (isLoadingConfig) {
+    return (
+      <div className="space-y-6 animate-fade-in">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
+              <div className="p-2 bg-token-muted rounded-xl">
+                <ShoppingBag className="h-7 w-7 text-token" />
+              </div>
+              Boutique de Tokens
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              Chargement de la configuration...
+            </p>
+          </div>
+        </div>
+        <Skeleton className="h-32 w-full" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
@@ -144,7 +169,7 @@ export const StudentShop = () => {
         </TabsList>
 
         <TabsContent value="purchase" className="space-y-6">
-          {/* Bonus tiers info */}
+          {/* Bonus tiers info - dynamique */}
           <Card className="bg-gradient-to-r from-token-muted via-background to-bonus/10 border-token/20">
             <CardContent className="p-4">
               <div className="flex items-center gap-3 mb-3">
@@ -157,22 +182,25 @@ export const StudentShop = () => {
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Badge variant="outline" className="text-xs border-token/30 bg-token/5">
-                  <Zap className="h-3 w-3 mr-1 text-token" />
-                  10€+ → +5%
-                </Badge>
-                <Badge variant="outline" className="text-xs border-token/30 bg-token/5">
-                  <Zap className="h-3 w-3 mr-1 text-token" />
-                  25€+ → +10%
-                </Badge>
-                <Badge variant="outline" className="text-xs border-token/30 bg-token/5">
-                  <Zap className="h-3 w-3 mr-1 text-token" />
-                  50€+ → +15%
-                </Badge>
-                <Badge variant="outline" className="text-xs border-bonus/30 bg-bonus/10 text-bonus">
-                  <Sparkles className="h-3 w-3 mr-1" />
-                  100€+ → +20%
-                </Badge>
+                {bonusTiers.map((tier, index) => {
+                  const isLastTier = index === bonusTiers.length - 1;
+                  return (
+                    <Badge 
+                      key={tier.min_amount_euros}
+                      variant="outline" 
+                      className={isLastTier 
+                        ? "text-xs border-bonus/30 bg-bonus/10 text-bonus" 
+                        : "text-xs border-token/30 bg-token/5"
+                      }
+                    >
+                      {isLastTier 
+                        ? <Sparkles className="h-3 w-3 mr-1" />
+                        : <Zap className="h-3 w-3 mr-1 text-token" />
+                      }
+                      {tier.min_amount_euros}€+ → +{tier.bonus_percent}%
+                    </Badge>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>

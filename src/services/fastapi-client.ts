@@ -53,6 +53,8 @@ import {
   TokenBalanceResponse,
   TokenBuyRequest,
   TokenBuyResponse,
+  TokenConfigResponse,
+  TokenConfigUpdate,
 } from '@/types/fastapi';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.plateforme-test-infinitiax.com';
@@ -1299,6 +1301,29 @@ class FastAPIClient {
     const response = await this.axiosInstance.post<TokenBuyResponse>(
       '/api/tokens/buy',
       request
+    );
+    return response.data;
+  }
+
+  /**
+   * Récupère la configuration de tarification des tokens
+   * GET /api/tokens/config
+   */
+  async getTokenConfig(): Promise<TokenConfigResponse> {
+    const response = await this.axiosInstance.get<TokenConfigResponse>(
+      '/api/tokens/config'
+    );
+    return response.data;
+  }
+
+  /**
+   * Met à jour la configuration de tarification (admin)
+   * PATCH /api/tokens/config
+   */
+  async updateTokenConfig(config: TokenConfigUpdate): Promise<TokenConfigResponse> {
+    const response = await this.axiosInstance.patch<TokenConfigResponse>(
+      '/api/tokens/config',
+      config
     );
     return response.data;
   }

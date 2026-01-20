@@ -812,3 +812,43 @@ export interface CourseSummaryPage {
   applied_filters?: CourseFilters | null;
   facets?: CourseFacets | null;
 }
+
+// ============= TOKEN CONFIGURATION =============
+
+/**
+ * Palier de bonus pour les achats de tokens
+ */
+export interface BonusTier {
+  min_amount_euros: number;
+  bonus_percent: number;
+}
+
+/**
+ * Configuration globale de tarification des tokens
+ * GET /api/tokens/config
+ */
+export interface TokenConfigResponse {
+  base_token_value_euros: number;      // Valeur d'1 token en euros (ex: 0.10)
+  base_conversion_rate: number;        // Combien de tokens pour 1€ (ex: 10)
+  tutor_conversion_rate: number;       // Taux préférentiel tuteur (ex: 12.5)
+  min_purchase_euros: number;          // Achat minimum (ex: 5)
+  max_purchase_euros: number;          // Achat maximum (ex: 1000)
+  bonus_tiers: BonusTier[];            // Paliers de bonus standard
+  tutor_bonus_tiers: BonusTier[];      // Paliers bonus tuteur
+  updated_at: string;
+  updated_by?: string;
+}
+
+/**
+ * Mise à jour de la configuration de tarification
+ * PATCH /api/tokens/config
+ */
+export interface TokenConfigUpdate {
+  base_token_value_euros?: number;
+  base_conversion_rate?: number;
+  tutor_conversion_rate?: number;
+  min_purchase_euros?: number;
+  max_purchase_euros?: number;
+  bonus_tiers?: BonusTier[];
+  tutor_bonus_tiers?: BonusTier[];
+}
