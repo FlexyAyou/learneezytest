@@ -204,10 +204,10 @@ export const DocumentTemplateEditor: React.FC<DocumentTemplateEditorProps> = ({
   };
 
   return (
-    <div className="flex gap-6 min-h-[600px]" style={{ height: 'calc(100vh - 180px)' }}>
+    <div className="flex gap-6" style={{ minHeight: '600px' }}>
       {/* Main Editor */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Card className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col">
+        <Card className="flex-1 flex flex-col">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
@@ -338,19 +338,19 @@ export const DocumentTemplateEditor: React.FC<DocumentTemplateEditorProps> = ({
             </div>
 
             {/* Editor Content */}
-            <div className="flex-1 border rounded-lg overflow-hidden min-h-0">
+            <div className="border rounded-lg" style={{ minHeight: '400px' }}>
               {viewMode === 'edit' && (
                 <div
                   ref={editorRef}
                   contentEditable
                   onInput={handleInput}
-                  className="p-6 h-full overflow-y-auto focus:outline-none prose prose-sm max-w-none bg-white"
-                  style={{ minHeight: '300px', maxHeight: '100%' }}
+                  className="p-6 focus:outline-none prose prose-sm max-w-none bg-white"
+                  style={{ minHeight: '400px' }}
                 />
               )}
 
               {viewMode === 'preview' && (
-                <div className="p-6 h-full overflow-y-auto bg-white">
+                <div className="p-6 bg-white" style={{ minHeight: '400px' }}>
                   <div 
                     className="prose prose-sm max-w-none"
                     dangerouslySetInnerHTML={{ __html: getPreviewContent() }}
@@ -370,7 +370,8 @@ export const DocumentTemplateEditor: React.FC<DocumentTemplateEditorProps> = ({
                 <textarea
                   value={htmlContent}
                   onChange={(e) => setHtmlContent(e.target.value)}
-                  className="w-full h-full p-4 font-mono text-sm resize-none focus:outline-none"
+                  className="w-full p-4 font-mono text-sm resize-none focus:outline-none"
+                  style={{ minHeight: '400px' }}
                   spellCheck={false}
                 />
               )}
