@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +13,6 @@ import {
 } from 'lucide-react';
 import { DocumentTemplateEditor } from './DocumentTemplateEditor';
 import { PhaseDocumentSender } from './PhaseDocumentSender';
-import { ProgrammeLibrary, UploadedProgramme } from './ProgrammeLibrary';
 import { DEFAULT_TEMPLATES } from './defaultTemplates';
 import { 
   DocumentTemplate, DocumentPhase, DocumentType, Learner, Formation, OF,
@@ -56,7 +56,6 @@ export const OFDocumentsAdvanced: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showEditor, setShowEditor] = useState(false);
   const [showPhaseSender, setShowPhaseSender] = useState(false);
-  const [showProgrammeLibrary, setShowProgrammeLibrary] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<DocumentTemplate | null>(null);
   const [templates, setTemplates] = useState<DocumentTemplate[]>([
     // Phase Inscription - CGV et Programme
@@ -70,16 +69,7 @@ export const OFDocumentsAdvanced: React.FC = () => {
     { id: '6', type: 'certificat', phase: 'post-formation', title: 'Certificat de réalisation', description: 'Certificat de réalisation de la formation', htmlContent: DEFAULT_TEMPLATES.certificat || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
   ]);
   const [sentDocuments, setSentDocuments] = useState<any[]>([]);
-  const [uploadedProgrammes, setUploadedProgrammes] = useState<UploadedProgramme[]>([]);
   const { toast } = useToast();
-
-  const handleProgrammeUpload = (programme: UploadedProgramme) => {
-    setUploadedProgrammes(prev => [...prev, programme]);
-  };
-
-  const handleProgrammeDelete = (programmeId: string) => {
-    setUploadedProgrammes(prev => prev.filter(p => p.id !== programmeId));
-  };
 
   const handleCreateTemplate = () => {
     setSelectedTemplate(null);
@@ -133,12 +123,11 @@ export const OFDocumentsAdvanced: React.FC = () => {
           <p className="text-muted-foreground">Personnalisation et envoi de documents par phase de formation</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setShowProgrammeLibrary(true)}>
-            <BookOpen className="h-4 w-4 mr-2" />
-            Bibliothèque des Programmes
-            {uploadedProgrammes.length > 0 && (
-              <Badge variant="secondary" className="ml-2">{uploadedProgrammes.length}</Badge>
-            )}
+          <Button variant="outline" asChild>
+            <Link to="/dashboard/organisme-formation/programmes">
+              <BookOpen className="h-4 w-4 mr-2" />
+              Bibliothèque des Programmes
+            </Link>
           </Button>
           <Button onClick={handleCreateTemplate}>
             <Plus className="h-4 w-4 mr-2" />
@@ -313,17 +302,6 @@ export const OFDocumentsAdvanced: React.FC = () => {
         formations={mockFormations}
         ofInfo={mockOF}
         onSend={handleDocumentsSent}
-        uploadedProgrammes={uploadedProgrammes}
-      />
-
-      {/* Programme Library Modal */}
-      <ProgrammeLibrary
-        isOpen={showProgrammeLibrary}
-        onClose={() => setShowProgrammeLibrary(false)}
-        formations={mockFormations}
-        uploadedProgrammes={uploadedProgrammes}
-        onUpload={handleProgrammeUpload}
-        onDelete={handleProgrammeDelete}
       />
     </div>
   );
