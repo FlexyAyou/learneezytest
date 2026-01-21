@@ -8,6 +8,7 @@ import { OFUtilisateurs } from '@/components/admin/OFUtilisateurs';
 import { OFCourses } from '@/components/admin/OFCourses';
 import OFDocumentsAdvanced from '@/components/admin/documents/OFDocumentsAdvanced';
 import OFProgrammeLibraryPage from '@/pages/admin/OFProgrammeLibraryPage';
+import OFEmargementPage from '@/pages/admin/OFEmargementPage';
 import { OFLicences } from '@/components/admin/OFLicences';
 import { OFSuiviPedagogique } from '@/components/admin/OFSuiviPedagogique';
 import OFVideoConferences from '@/components/admin/OFVideoConferences';
@@ -22,6 +23,7 @@ import OFManagerDetailPage from '@/pages/admin/OFManagerDetailPage';
 import CreateCoursePage from '@/pages/admin/CreateCoursePage';
 import EditCoursePage from '@/pages/admin/EditCoursePage';
 import CourseDetailPage from '@/pages/admin/CourseDetailPage';
+
 
 const OFDashboard = () => {
   return (
@@ -50,6 +52,7 @@ const OFDashboard = () => {
               <Route path="/documents-of" element={<OFDocumentsAdvanced />} />
               <Route path="/documents" element={<OFDocumentsAdvanced />} />
               <Route path="/programmes" element={<OFProgrammeLibraryPage />} />
+              <Route path="/emargements" element={<OFEmargementPage />} />
                 <Route path="/licences" element={<OFLicences />} />
                 <Route path="/suivi-pedagogique" element={<OFSuiviPedagogique />} />
                 <Route path="/visio" element={<OFVideoConferences />} />
