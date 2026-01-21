@@ -1,5 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { fabric } from 'fabric';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,10 +19,12 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
+const OF_SIGNATURE_STORAGE_KEY = 'of_official_signature';
+
 interface OFSignatureManagerProps {
   currentSignatureUrl?: string;
-  onSave: (signatureData: string) => Promise<void>;
-  onDelete?: () => Promise<void>;
+  onSave: (signatureData: string) => void;
+  onDelete?: () => void;
 }
 
 export const OFSignatureManager: React.FC<OFSignatureManagerProps> = ({
@@ -34,46 +35,96 @@ export const OFSignatureManager: React.FC<OFSignatureManagerProps> = ({
   const { toast } = useToast();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [fabricCanvas, setFabricCanvas] = useState<fabric.Canvas | null>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
   const [hasDrawn, setHasDrawn] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>("draw");
-  const [isLoading, setIsLoading] = useState(false);
+  const [lastPoint, setLastPoint] = useState<{ x: number; y: number } | null>(null);
 
-  // Initialize fabric canvas
+  // Initialize canvas
   useEffect(() => {
-    if (!canvasRef.current) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-    const canvas = new fabric.Canvas(canvasRef.current, {
-      width: 400,
-      height: 150,
-      backgroundColor: '#ffffff',
-      isDrawingMode: true,
-    });
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-    if (canvas.freeDrawingBrush) {
-      canvas.freeDrawingBrush.color = '#000000';
-      canvas.freeDrawingBrush.width = 2;
+    // Set canvas size
+    canvas.width = 500;
+    canvas.height = 180;
+
+    // Set white background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Set drawing style
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+  }, []);
+
+  const getCanvasCoordinates = useCallback((e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    if ('touches' in e) {
+      const touch = e.touches[0];
+      return {
+        x: (touch.clientX - rect.left) * scaleX,
+        y: (touch.clientY - rect.top) * scaleY
+      };
+    } else {
+      return {
+        x: (e.clientX - rect.left) * scaleX,
+        y: (e.clientY - rect.top) * scaleY
+      };
     }
+  }, []);
 
-    canvas.on('path:created', () => {
-      setHasDrawn(true);
-    });
+  const startDrawing = useCallback((e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    const point = getCanvasCoordinates(e);
+    setIsDrawing(true);
+    setLastPoint(point);
+  }, [getCanvasCoordinates]);
 
-    setFabricCanvas(canvas);
+  const draw = useCallback((e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    if (!isDrawing || !lastPoint) return;
 
-    return () => {
-      canvas.dispose();
-    };
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext('2d');
+    if (!canvas || !ctx) return;
+
+    const currentPoint = getCanvasCoordinates(e);
+
+    ctx.beginPath();
+    ctx.moveTo(lastPoint.x, lastPoint.y);
+    ctx.lineTo(currentPoint.x, currentPoint.y);
+    ctx.stroke();
+
+    setLastPoint(currentPoint);
+    setHasDrawn(true);
+  }, [isDrawing, lastPoint, getCanvasCoordinates]);
+
+  const stopDrawing = useCallback(() => {
+    setIsDrawing(false);
+    setLastPoint(null);
   }, []);
 
   const handleClear = () => {
-    if (fabricCanvas) {
-      fabricCanvas.clear();
-      fabricCanvas.backgroundColor = '#ffffff';
-      fabricCanvas.renderAll();
-      setHasDrawn(false);
-    }
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext('2d');
+    if (!canvas || !ctx) return;
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    setHasDrawn(false);
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -96,68 +147,47 @@ export const OFSignatureManager: React.FC<OFSignatureManagerProps> = ({
     }
   };
 
-  const handleSaveSignature = async () => {
-    setIsLoading(true);
-    try {
-      let signatureData: string;
-      
-      if (activeTab === "draw" && fabricCanvas && hasDrawn) {
-        // Get canvas data as PNG
-        signatureData = fabricCanvas.toDataURL({
-          format: 'png',
-          quality: 1,
-          multiplier: 2
-        });
-      } else if (activeTab === "upload" && uploadedImage) {
-        signatureData = uploadedImage;
-      } else {
-        toast({
-          title: "Aucune signature",
-          description: "Veuillez dessiner ou uploader votre signature",
-          variant: "destructive"
-        });
-        setIsLoading(false);
-        return;
-      }
+  const handleSaveSignature = () => {
+    let signatureData: string | null = null;
+    
+    if (activeTab === "draw" && hasDrawn && canvasRef.current) {
+      signatureData = canvasRef.current.toDataURL('image/png');
+    } else if (activeTab === "upload" && uploadedImage) {
+      signatureData = uploadedImage;
+    }
 
-      await onSave(signatureData);
+    if (!signatureData) {
       toast({
-        title: "Signature enregistrée",
-        description: "Votre signature officielle a été sauvegardée avec succès"
-      });
-      
-      // Reset
-      handleClear();
-      setUploadedImage(null);
-    } catch (error) {
-      toast({
-        title: "Erreur",
-        description: "Impossible de sauvegarder la signature",
+        title: "Aucune signature",
+        description: "Veuillez dessiner ou uploader votre signature",
         variant: "destructive"
       });
-    } finally {
-      setIsLoading(false);
+      return;
     }
+
+    // Store in localStorage
+    localStorage.setItem(OF_SIGNATURE_STORAGE_KEY, signatureData);
+    
+    onSave(signatureData);
+    toast({
+      title: "Signature enregistrée",
+      description: "Votre signature officielle a été sauvegardée"
+    });
+    
+    // Reset drawing area
+    handleClear();
+    setUploadedImage(null);
   };
 
-  const handleDeleteSignature = async () => {
-    if (!onDelete) return;
-    setIsLoading(true);
-    try {
-      await onDelete();
-      toast({
-        title: "Signature supprimée",
-        description: "Votre signature officielle a été supprimée"
-      });
-    } catch (error) {
-      toast({
-        title: "Erreur",
-        description: "Impossible de supprimer la signature",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
+  const handleDeleteSignature = () => {
+    localStorage.removeItem(OF_SIGNATURE_STORAGE_KEY);
+    if (onDelete) {
+      onDelete();
     }
+    toast({
+      title: "Signature supprimée",
+      description: "Votre signature officielle a été supprimée"
+    });
   };
 
   const isValid = (activeTab === "draw" && hasDrawn) || (activeTab === "upload" && uploadedImage);
@@ -170,14 +200,16 @@ export const OFSignatureManager: React.FC<OFSignatureManagerProps> = ({
           Signature officielle de l'organisme
         </CardTitle>
         <CardDescription>
-          Cette signature sera automatiquement apposée sur les documents officiels de votre organisme (conventions, attestations, certificats, CGV).
+          Cette signature sera automatiquement apposée sur les documents officiels (conventions, attestations, certificats, CGV).
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Current signature status */}
         <div className="flex items-center gap-3 p-4 rounded-lg border bg-muted/30">
           <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-            currentSignatureUrl ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' : 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'
+            currentSignatureUrl 
+              ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' 
+              : 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'
           }`}>
             {currentSignatureUrl ? <Check className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
           </div>
@@ -188,11 +220,11 @@ export const OFSignatureManager: React.FC<OFSignatureManagerProps> = ({
             <p className="text-sm text-muted-foreground">
               {currentSignatureUrl 
                 ? 'Votre signature sera utilisée sur les documents officiels' 
-                : 'Configurez votre signature pour pouvoir envoyer des documents officiels'}
+                : 'Configurez votre signature pour envoyer des documents officiels'}
             </p>
           </div>
           {currentSignatureUrl && (
-            <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+            <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
               Active
             </Badge>
           )}
@@ -202,17 +234,16 @@ export const OFSignatureManager: React.FC<OFSignatureManagerProps> = ({
         {currentSignatureUrl && (
           <div className="space-y-3">
             <p className="text-sm font-medium">Signature actuelle :</p>
-            <div className="flex items-center gap-4 p-4 border rounded-lg bg-white dark:bg-gray-950">
+            <div className="flex items-center gap-4 p-4 border rounded-lg bg-background">
               <img 
                 src={currentSignatureUrl} 
                 alt="Signature officielle actuelle" 
-                className="max-h-20 border rounded"
+                className="max-h-24 border rounded bg-white p-2"
               />
               <Button 
                 variant="destructive" 
                 size="sm" 
                 onClick={handleDeleteSignature}
-                disabled={isLoading}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Supprimer
@@ -239,23 +270,52 @@ export const OFSignatureManager: React.FC<OFSignatureManagerProps> = ({
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="draw" className="space-y-4">
-              <div className="border-2 border-gray-300 dark:border-gray-700 rounded-lg bg-white">
-                <canvas ref={canvasRef} className="rounded-lg" />
+            <TabsContent value="draw" className="space-y-4 mt-4">
+              <div 
+                className="border-2 border-dashed border-muted-foreground/30 rounded-lg bg-white overflow-hidden"
+                style={{ touchAction: 'none' }}
+              >
+                <canvas 
+                  ref={canvasRef}
+                  className="w-full cursor-crosshair"
+                  style={{ 
+                    height: '180px',
+                    display: 'block'
+                  }}
+                  onMouseDown={startDrawing}
+                  onMouseMove={draw}
+                  onMouseUp={stopDrawing}
+                  onMouseLeave={stopDrawing}
+                  onTouchStart={startDrawing}
+                  onTouchMove={draw}
+                  onTouchEnd={stopDrawing}
+                />
               </div>
-              <p className="text-xs text-muted-foreground text-center">
-                Dessinez votre signature avec votre souris ou votre doigt
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-muted-foreground">
+                  Dessinez votre signature avec votre souris ou votre doigt
+                </p>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleClear}
+                  disabled={!hasDrawn}
+                >
+                  <RotateCcw className="w-4 h-4 mr-1" />
+                  Effacer
+                </Button>
+              </div>
             </TabsContent>
 
-            <TabsContent value="upload" className="space-y-4">
-              <div className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-8 text-center bg-muted/30">
+            <TabsContent value="upload" className="space-y-4 mt-4">
+              <div className="border-2 border-dashed border-muted-foreground/30 rounded-lg p-8 text-center bg-muted/30">
                 {uploadedImage ? (
                   <div className="space-y-4">
                     <img 
                       src={uploadedImage} 
                       alt="Signature uploadée" 
-                      className="max-h-32 mx-auto border rounded bg-white"
+                      className="max-h-32 mx-auto border rounded bg-white p-2"
                     />
                     <Button 
                       variant="outline" 
@@ -296,25 +356,15 @@ export const OFSignatureManager: React.FC<OFSignatureManagerProps> = ({
             </TabsContent>
           </Tabs>
 
-          {/* Action buttons */}
-          <div className="flex justify-between items-center pt-4 border-t">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={activeTab === "draw" ? handleClear : () => setUploadedImage(null)}
-              disabled={!isValid || isLoading}
-            >
-              <RotateCcw className="w-4 h-4 mr-2" />
-              {activeTab === "draw" ? "Effacer" : "Supprimer"}
-            </Button>
-            
+          {/* Save button */}
+          <div className="flex justify-end pt-4 border-t">
             <Button
               type="button"
               onClick={handleSaveSignature}
-              disabled={!isValid || isLoading}
+              disabled={!isValid}
             >
               <Save className="w-4 h-4 mr-2" />
-              {isLoading ? 'Enregistrement...' : 'Enregistrer la signature'}
+              Enregistrer la signature
             </Button>
           </div>
         </div>
@@ -336,4 +386,9 @@ export const OFSignatureManager: React.FC<OFSignatureManagerProps> = ({
       </CardContent>
     </Card>
   );
+};
+
+// Helper function to get stored signature
+export const getStoredOFSignature = (): string | null => {
+  return localStorage.getItem(OF_SIGNATURE_STORAGE_KEY);
 };

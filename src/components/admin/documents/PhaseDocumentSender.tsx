@@ -15,14 +15,17 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   Send, Search, FileSignature, CalendarIcon, Check, 
-  ChevronRight, ChevronLeft, Eye, Maximize2, User, Upload, FileText, FolderOpen, ChevronDown
+  ChevronRight, ChevronLeft, Eye, Maximize2, User, Upload, FileText, FolderOpen, ChevronDown,
+  AlertTriangle
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { DocumentTemplate, Learner, Formation, OF, DocumentPhase } from './types';
+import { DocumentTemplate, Learner, Formation, OF, DocumentPhase, DocumentType } from './types';
 import { UploadedProgramme } from './ProgrammeLibrary';
 import { DocumentPreviewFullscreen } from './DocumentPreviewFullscreen';
 import { useToast } from '@/hooks/use-toast';
+import { getStoredOFSignature } from '@/components/admin/OFSignatureManager';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface PhaseDocumentSenderProps {
   isOpen: boolean;
@@ -130,12 +133,29 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
     [templates, selectedTemplateIds]
   );
 
+  // Documents requiring OF signature
+  const OFFICIAL_DOCUMENT_TYPES: DocumentType[] = ['convention', 'cgv', 'attestation', 'certificat'];
+
+  // Check if OF signature is configured (from localStorage or ofInfo)
+  const storedSignature = getStoredOFSignature();
+  const hasOFSignature = !!(ofInfo.signatureUrl || storedSignature);
+  const effectiveSignatureUrl = ofInfo.signatureUrl || storedSignature;
+
+  // Check if selected templates include official documents
+  const hasOfficialDocuments = useMemo(() => 
+    selectedTemplates.some(t => OFFICIAL_DOCUMENT_TYPES.includes(t.type)),
+    [selectedTemplates]
+  );
+
+  // Show warning if sending official documents without signature
+  const showSignatureWarning = hasOfficialDocuments && !hasOFSignature;
+
   const personalizeContent = (htmlContent: string): string => {
     if (!selectedLearner || !selectedFormation) return htmlContent;
 
     // Build signature HTML if available
-    const signatureHtml = ofInfo.signatureUrl 
-      ? `<img src="${ofInfo.signatureUrl}" alt="Signature officielle ${ofInfo.name}" style="max-height: 80px; display: inline-block;" />`
+    const signatureHtml = effectiveSignatureUrl 
+      ? `<img src="${effectiveSignatureUrl}" alt="Signature officielle ${ofInfo.name}" style="max-height: 80px; display: inline-block;" />`
       : '<span style="color: #999; font-style: italic;">[Signature OF non configurée]</span>';
 
     const replacements: Record<string, string> = {
@@ -548,6 +568,21 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
             {/* Step 4: Preview */}
             {currentStep === 4 && (
               <div className="space-y-4 py-4">
+                {/* Signature warning */}
+                {showSignatureWarning && (
+                  <Alert variant="destructive" className="border-amber-500 bg-amber-50 dark:bg-amber-950/20">
+                    <AlertTriangle className="h-4 w-4 text-amber-600" />
+                    <AlertDescription className="text-amber-800 dark:text-amber-200">
+                      <strong>Attention :</strong> Votre signature officielle n'est pas configurée. 
+                      Les documents officiels (convention, attestation, certificat, CGV) seront envoyés sans votre signature.
+                      <br />
+                      <span className="text-sm">
+                        Configurez votre signature dans <strong>Paramètres → Signature</strong> pour l'ajouter automatiquement.
+                      </span>
+                    </AlertDescription>
+                  </Alert>
+                )}
+
                 <Tabs value={activePreviewTab} onValueChange={setActivePreviewTab}>
                   <TabsList className="w-full justify-start">
                     {selectedTemplates.map(template => (
