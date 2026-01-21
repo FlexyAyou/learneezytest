@@ -15,7 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   Send, Search, FileSignature, CalendarIcon, Check, 
-  ChevronRight, ChevronLeft, Eye, Maximize2, User
+  ChevronRight, ChevronLeft, Eye, Maximize2, User, Upload, FileText
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -38,7 +38,6 @@ interface CustomFields {
   dateDebut: Date | undefined;
   dateFin: Date | undefined;
   duree: string;
-  lieu: string;
   prix: string;
 }
 
@@ -59,11 +58,11 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
   const [activePreviewTab, setActivePreviewTab] = useState<string>('');
   const [showFullscreen, setShowFullscreen] = useState(false);
   const [fullscreenContent, setFullscreenContent] = useState({ title: '', content: '' });
+  const [uploadedProgramme, setUploadedProgramme] = useState<File | null>(null);
   const [customFields, setCustomFields] = useState<CustomFields>({
     dateDebut: undefined,
     dateFin: undefined,
     duree: '',
-    lieu: '',
     prix: ''
   });
   const { toast } = useToast();
@@ -80,7 +79,6 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
         dateDebut: undefined,
         dateFin: undefined,
         duree: '',
-        lieu: '',
         prix: ''
       });
     }
@@ -97,7 +95,6 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
             dateDebut: formation.startDate ? new Date(formation.startDate) : undefined,
             dateFin: formation.endDate ? new Date(formation.endDate) : undefined,
             duree: formation.duration || '',
-            lieu: formation.location || '',
             prix: formation.price ? `${formation.price} €` : ''
           });
         }
@@ -160,7 +157,6 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
       '{{dates.debut}}': customFields.dateDebut ? format(customFields.dateDebut, 'dd/MM/yyyy', { locale: fr }) : '',
       '{{dates.fin}}': customFields.dateFin ? format(customFields.dateFin, 'dd/MM/yyyy', { locale: fr }) : '',
       '{{formation.duree}}': customFields.duree,
-      '{{formation.lieu}}': customFields.lieu,
       '{{formation.prix}}': customFields.prix,
       // Date du jour
       '{{date.jour}}': format(new Date(), 'dd/MM/yyyy', { locale: fr }),
@@ -329,8 +325,7 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
                   {templates.map(template => (
                     <div
                       key={template.id}
-                      onClick={() => handleTemplateToggle(template.id)}
-                      className={`p-4 rounded-lg border cursor-pointer transition-all ${
+                      className={`p-4 rounded-lg border transition-all ${
                         selectedTemplateIds.includes(template.id)
                           ? 'border-primary bg-primary/5'
                           : 'border-border hover:border-primary/50'
@@ -341,7 +336,10 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
                           checked={selectedTemplateIds.includes(template.id)}
                           onCheckedChange={() => handleTemplateToggle(template.id)}
                         />
-                        <div className="flex-1">
+                        <div 
+                          className="flex-1 cursor-pointer" 
+                          onClick={() => handleTemplateToggle(template.id)}
+                        >
                           <div className="font-medium">{template.title}</div>
                           <div className="text-sm text-muted-foreground">{template.description}</div>
                         </div>
@@ -352,6 +350,52 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
                           </Badge>
                         )}
                       </div>
+                      
+                      {/* Upload option for Programme */}
+                      {template.type === 'programme' && selectedTemplateIds.includes(template.id) && (
+                        <div className="mt-3 pt-3 border-t border-border">
+                          <div className="flex items-center gap-3">
+                            <label 
+                              htmlFor="programme-upload"
+                              className="flex items-center gap-2 px-3 py-2 rounded-md border border-dashed border-muted-foreground/50 hover:border-primary cursor-pointer transition-colors"
+                            >
+                              <Upload className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm text-muted-foreground">
+                                {uploadedProgramme ? 'Changer le fichier' : 'Uploader un PDF'}
+                              </span>
+                              <input
+                                id="programme-upload"
+                                type="file"
+                                accept=".pdf"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) setUploadedProgramme(file);
+                                }}
+                              />
+                            </label>
+                            {uploadedProgramme && (
+                              <div className="flex items-center gap-2 text-sm">
+                                <FileText className="h-4 w-4 text-primary" />
+                                <span className="font-medium">{uploadedProgramme.name}</span>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="h-6 px-2"
+                                  onClick={() => setUploadedProgramme(null)}
+                                >
+                                  ✕
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-2">
+                            {uploadedProgramme 
+                              ? 'Le PDF uploadé sera envoyé à la place du modèle HTML' 
+                              : 'Optionnel : uploadez un PDF personnalisé ou utilisez le modèle HTML'}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -420,15 +464,6 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
                       value={customFields.duree}
                       onChange={(e) => setCustomFields(prev => ({ ...prev, duree: e.target.value }))}
                       placeholder="Ex: 35 heures"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Lieu</label>
-                    <Input
-                      value={customFields.lieu}
-                      onChange={(e) => setCustomFields(prev => ({ ...prev, lieu: e.target.value }))}
-                      placeholder="Ex: Paris"
                     />
                   </div>
 

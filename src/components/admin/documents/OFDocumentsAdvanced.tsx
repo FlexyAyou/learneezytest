@@ -204,9 +204,9 @@ export const OFDocumentsAdvanced: React.FC = () => {
                             <Button size="sm" variant="outline" onClick={() => handleEditTemplate(template)}>
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button size="sm" onClick={() => handleEditTemplate(template)}>
-                              <Sparkles className="h-4 w-4 mr-1" />
-                              Personnaliser
+                            <Button size="sm" onClick={handleSendPhaseDocuments}>
+                              <Send className="h-4 w-4 mr-1" />
+                              Envoyer
                             </Button>
                           </div>
                         </TableCell>
