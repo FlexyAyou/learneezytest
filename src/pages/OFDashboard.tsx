@@ -6,7 +6,7 @@ import { OFSidebar } from '@/components/admin/OFSidebar';
 import { OFDashboard as OFDashboardContent } from '@/components/admin/OFDashboard';
 import { OFUtilisateurs } from '@/components/admin/OFUtilisateurs';
 import { OFCourses } from '@/components/admin/OFCourses';
-import OFDocuments from '@/components/admin/OFDocuments';
+import OFDocumentsAdvanced from '@/components/admin/documents/OFDocumentsAdvanced';
 import { OFLicences } from '@/components/admin/OFLicences';
 import { OFSuiviPedagogique } from '@/components/admin/OFSuiviPedagogique';
 import OFVideoConferences from '@/components/admin/OFVideoConferences';
@@ -46,8 +46,8 @@ const OFDashboard = () => {
                 <Route path="/formations/create" element={<CreateCoursePage />} />
                 <Route path="/formations/:courseId" element={<CourseDetailPage />} />
                 <Route path="/formations/:id/edit" element={<EditCoursePage />} />
-                <Route path="/documents-of" element={<OFDocuments />} />
-                <Route path="/documents" element={<OFDocuments />} />
+              <Route path="/documents-of" element={<OFDocumentsAdvanced />} />
+              <Route path="/documents" element={<OFDocumentsAdvanced />} />
                 <Route path="/licences" element={<OFLicences />} />
                 <Route path="/suivi-pedagogique" element={<OFSuiviPedagogique />} />
                 <Route path="/visio" element={<OFVideoConferences />} />
