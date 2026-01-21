@@ -20,6 +20,7 @@ import {
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { DocumentTemplate, Learner, Formation, OF, DocumentPhase } from './types';
+import { UploadedProgramme } from './ProgrammeLibrary';
 import { DocumentPreviewFullscreen } from './DocumentPreviewFullscreen';
 import { useToast } from '@/hooks/use-toast';
 
@@ -32,6 +33,7 @@ interface PhaseDocumentSenderProps {
   formations: Formation[];
   ofInfo: OF;
   onSend: (documents: any[]) => void;
+  uploadedProgrammes?: UploadedProgramme[];
 }
 
 interface CustomFields {
@@ -49,7 +51,8 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
   learners,
   formations,
   ofInfo,
-  onSend
+  onSend,
+  uploadedProgrammes = []
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedLearnerId, setSelectedLearnerId] = useState<string | null>(null);
@@ -354,6 +357,33 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
                       {/* Upload option for Programme */}
                       {template.type === 'programme' && selectedTemplateIds.includes(template.id) && (
                         <div className="mt-3 pt-3 border-t border-border">
+                          {/* Show available programmes from library */}
+                          {uploadedProgrammes.length > 0 && (
+                            <div className="mb-3">
+                              <p className="text-xs font-medium text-muted-foreground mb-2">Programmes disponibles :</p>
+                              <div className="flex flex-wrap gap-2">
+                                {uploadedProgrammes.map(prog => {
+                                  const isSelected = uploadedProgramme?.name === prog.file.name;
+                                  return (
+                                    <button
+                                      key={prog.id}
+                                      type="button"
+                                      onClick={() => setUploadedProgramme(isSelected ? null : prog.file)}
+                                      className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors ${
+                                        isSelected 
+                                          ? 'bg-primary text-primary-foreground' 
+                                          : 'bg-muted hover:bg-accent border border-border'
+                                      }`}
+                                    >
+                                      <FileText className="h-3.5 w-3.5" />
+                                      {prog.formationName}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                          
                           <div className="flex items-center gap-3">
                             <label 
                               htmlFor="programme-upload"
@@ -361,7 +391,7 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
                             >
                               <Upload className="h-4 w-4 text-muted-foreground" />
                               <span className="text-sm text-muted-foreground">
-                                {uploadedProgramme ? 'Changer le fichier' : 'Uploader un PDF'}
+                                {uploadedProgramme ? 'Changer le fichier' : 'Uploader un nouveau PDF'}
                               </span>
                               <input
                                 id="programme-upload"
@@ -391,8 +421,8 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
                           </div>
                           <p className="text-xs text-muted-foreground mt-2">
                             {uploadedProgramme 
-                              ? 'Le PDF uploadé sera envoyé à la place du modèle HTML' 
-                              : 'Optionnel : uploadez un PDF personnalisé ou utilisez le modèle HTML'}
+                              ? 'Le PDF sélectionné sera envoyé à la place du modèle HTML' 
+                              : 'Sélectionnez un programme ou uploadez un nouveau PDF'}
                           </p>
                         </div>
                       )}
