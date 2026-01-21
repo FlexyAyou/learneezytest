@@ -10,13 +10,16 @@ import { Building, Shield, Bell, Save, Lock, Eye, EyeOff, Info, PenTool } from '
 import { useToast } from '@/hooks/use-toast';
 import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { OFSignatureManager } from './OFSignatureManager';
+import { OFSignatureManager, getStoredOFSignature } from './OFSignatureManager';
 
 export const OFSettings = () => {
   const { toast } = useToast();
   const { user } = useFastAPIAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [ofSignatureUrl, setOfSignatureUrl] = useState<string | undefined>(undefined);
+  const [ofSignatureUrl, setOfSignatureUrl] = useState<string | undefined>(() => {
+    // Load signature from localStorage on mount
+    return getStoredOFSignature() || undefined;
+  });
 
   // Password change state
   const [passwordData, setPasswordData] = useState({
@@ -109,14 +112,13 @@ export const OFSettings = () => {
     }
   };
 
-  const handleSaveSignature = async (signatureData: string) => {
-    // TODO: Upload signature to backend and get URL
-    // For now, we store the base64 data directly (mock)
+  const handleSaveSignature = (signatureData: string) => {
+    // Signature is already stored in localStorage by OFSignatureManager
     setOfSignatureUrl(signatureData);
   };
 
-  const handleDeleteSignature = async () => {
-    // TODO: Delete signature from backend
+  const handleDeleteSignature = () => {
+    // Signature is already removed from localStorage by OFSignatureManager
     setOfSignatureUrl(undefined);
   };
 
