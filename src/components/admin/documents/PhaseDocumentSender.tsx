@@ -15,7 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   Send, Search, FileSignature, CalendarIcon, Check, 
-  ChevronRight, ChevronLeft, Eye, Maximize2, User, Upload, FileText
+  ChevronRight, ChevronLeft, Eye, Maximize2, User, Upload, FileText, FolderOpen, ChevronDown
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -62,6 +62,7 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
   const [showFullscreen, setShowFullscreen] = useState(false);
   const [fullscreenContent, setFullscreenContent] = useState({ title: '', content: '' });
   const [uploadedProgramme, setUploadedProgramme] = useState<File | null>(null);
+  const [showProgrammeList, setShowProgrammeList] = useState(false);
   const [customFields, setCustomFields] = useState<CustomFields>({
     dateDebut: undefined,
     dateFin: undefined,
@@ -357,10 +358,53 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
                       {/* Upload option for Programme */}
                       {template.type === 'programme' && selectedTemplateIds.includes(template.id) && (
                         <div className="mt-3 pt-3 border-t border-border">
-                          {/* Show available programmes from library */}
-                          {uploadedProgrammes.length > 0 && (
-                            <div className="mb-3">
-                              <p className="text-xs font-medium text-muted-foreground mb-2">Programmes disponibles :</p>
+                          <div className="flex flex-wrap items-center gap-3">
+                            {/* Browse programmes button */}
+                            {uploadedProgrammes.length > 0 && (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setShowProgrammeList(!showProgrammeList)}
+                                className="gap-2"
+                              >
+                                <FolderOpen className="h-4 w-4" />
+                                Parcourir les programmes
+                                <ChevronDown className={`h-4 w-4 transition-transform ${showProgrammeList ? 'rotate-180' : ''}`} />
+                              </Button>
+                            )}
+                            
+                            {/* Upload new PDF */}
+                            <label 
+                              htmlFor="programme-upload"
+                              className="flex items-center gap-2 px-3 py-2 rounded-md border border-dashed border-muted-foreground/50 hover:border-primary cursor-pointer transition-colors"
+                            >
+                              <Upload className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm text-muted-foreground">
+                                Uploader un nouveau PDF
+                              </span>
+                              <input
+                                id="programme-upload"
+                                type="file"
+                                accept=".pdf"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    setUploadedProgramme(file);
+                                    setShowProgrammeList(false);
+                                  }
+                                }}
+                              />
+                            </label>
+                          </div>
+
+                          {/* Expandable programme list */}
+                          {showProgrammeList && uploadedProgrammes.length > 0 && (
+                            <div className="mt-3 p-3 rounded-lg bg-muted/50 border border-border">
+                              <p className="text-xs font-medium text-muted-foreground mb-2">
+                                Sélectionnez un programme :
+                              </p>
                               <div className="flex flex-wrap gap-2">
                                 {uploadedProgrammes.map(prog => {
                                   const isSelected = uploadedProgramme?.name === prog.file.name;
@@ -368,11 +412,14 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
                                     <button
                                       key={prog.id}
                                       type="button"
-                                      onClick={() => setUploadedProgramme(isSelected ? null : prog.file)}
+                                      onClick={() => {
+                                        setUploadedProgramme(isSelected ? null : prog.file);
+                                        if (!isSelected) setShowProgrammeList(false);
+                                      }}
                                       className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors ${
                                         isSelected 
                                           ? 'bg-primary text-primary-foreground' 
-                                          : 'bg-muted hover:bg-accent border border-border'
+                                          : 'bg-background hover:bg-accent border border-border'
                                       }`}
                                     >
                                       <FileText className="h-3.5 w-3.5" />
@@ -383,46 +430,29 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
                               </div>
                             </div>
                           )}
+
+                          {/* Selected file display */}
+                          {uploadedProgramme && (
+                            <div className="mt-3 flex items-center gap-2 text-sm p-2 rounded-md bg-primary/10 border border-primary/20">
+                              <FileText className="h-4 w-4 text-primary" />
+                              <span className="font-medium flex-1">{uploadedProgramme.name}</span>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-6 px-2"
+                                onClick={() => setUploadedProgramme(null)}
+                              >
+                                ✕
+                              </Button>
+                            </div>
+                          )}
                           
-                          <div className="flex items-center gap-3">
-                            <label 
-                              htmlFor="programme-upload"
-                              className="flex items-center gap-2 px-3 py-2 rounded-md border border-dashed border-muted-foreground/50 hover:border-primary cursor-pointer transition-colors"
-                            >
-                              <Upload className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-sm text-muted-foreground">
-                                {uploadedProgramme ? 'Changer le fichier' : 'Uploader un nouveau PDF'}
-                              </span>
-                              <input
-                                id="programme-upload"
-                                type="file"
-                                accept=".pdf"
-                                className="hidden"
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0];
-                                  if (file) setUploadedProgramme(file);
-                                }}
-                              />
-                            </label>
-                            {uploadedProgramme && (
-                              <div className="flex items-center gap-2 text-sm">
-                                <FileText className="h-4 w-4 text-primary" />
-                                <span className="font-medium">{uploadedProgramme.name}</span>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  className="h-6 px-2"
-                                  onClick={() => setUploadedProgramme(null)}
-                                >
-                                  ✕
-                                </Button>
-                              </div>
-                            )}
-                          </div>
                           <p className="text-xs text-muted-foreground mt-2">
                             {uploadedProgramme 
                               ? 'Le PDF sélectionné sera envoyé à la place du modèle HTML' 
-                              : 'Sélectionnez un programme ou uploadez un nouveau PDF'}
+                              : uploadedProgrammes.length > 0 
+                                ? 'Parcourez les programmes existants ou uploadez un nouveau PDF'
+                                : 'Uploadez un PDF ou utilisez le modèle HTML par défaut'}
                           </p>
                         </div>
                       )}
