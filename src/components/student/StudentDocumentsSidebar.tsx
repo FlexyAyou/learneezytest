@@ -2,16 +2,16 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { 
-  BookOpen, 
-  FileText, 
-  GraduationCap, 
   UserPlus, 
   School, 
   Award, 
   Clock,
-  FolderOpen
+  FileText,
+  CheckCircle,
+  AlertCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 interface SidebarItem {
   id: string;
@@ -20,101 +20,161 @@ interface SidebarItem {
   description: string;
 }
 
+interface PhaseProgress {
+  total: number;
+  signed: number;
+  pending: number;
+}
+
 interface StudentDocumentsSidebarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
+  phaseProgress?: Record<string, PhaseProgress>;
 }
 
-export const StudentDocumentsSidebar = ({ activeTab, onTabChange }: StudentDocumentsSidebarProps) => {
-  const mainCategories: SidebarItem[] = [
-    {
-      id: 'cours',
-      label: 'Cours',
-      icon: BookOpen,
-      description: 'Documents de cours par formation'
-    },
-    {
-      id: 'exercices',
-      label: 'Exercices',
-      icon: FileText,
-      description: 'Exercices et évaluations'
-    },
-    {
-      id: 'administratifs',
-      label: 'Documents Administratifs',
-      icon: FolderOpen,
-      description: 'Vue globale des 4 phases'
-    }
-  ];
-
+export const StudentDocumentsSidebar = ({ 
+  activeTab, 
+  onTabChange,
+  phaseProgress = {}
+}: StudentDocumentsSidebarProps) => {
   const phases: SidebarItem[] = [
     {
       id: 'phase-inscription',
-      label: 'Phase : Inscription',
+      label: 'Inscription',
       icon: UserPlus,
       description: 'Analyse, test, convention'
     },
     {
       id: 'phase-formation',
-      label: 'Phase : Formation',
+      label: 'Formation',
       icon: School,
       description: 'CGV/RI, programme, convocation, émargement'
     },
     {
       id: 'phase-post-formation',
-      label: 'Phase : Post-formation',
+      label: 'Post-formation',
       icon: Award,
       description: 'Test final, satisfaction, attestation'
     },
     {
       id: 'phase-suivi',
-      label: 'Phase : +3 mois',
+      label: 'Suivi +3 mois',
       icon: Clock,
       description: 'Satisfaction à froid, financeur'
     }
   ];
 
-  const renderSidebarItem = (item: SidebarItem) => (
-    <Button
-      key={item.id}
-      variant={activeTab === item.id ? "default" : "ghost"}
-      className={cn(
-        "w-full justify-start text-left h-auto p-3 mb-2",
-        activeTab === item.id && "bg-pink-50 text-pink-700 border-pink-200"
-      )}
-      onClick={() => onTabChange(item.id)}
-    >
-      <item.icon className="h-4 w-4 mr-3 flex-shrink-0" />
-      <div className="flex-1 min-w-0">
-        <div className="font-medium text-sm">{item.label}</div>
-        <div className="text-xs text-gray-500 mt-1 leading-tight">
-          {item.description}
+  const getProgressInfo = (phaseId: string) => {
+    const progress = phaseProgress[phaseId];
+    if (!progress) return null;
+    
+    const allSigned = progress.pending === 0 && progress.signed > 0;
+    const hasPending = progress.pending > 0;
+    
+    return { ...progress, allSigned, hasPending };
+  };
+
+  const renderSidebarItem = (item: SidebarItem) => {
+    const progressInfo = getProgressInfo(item.id);
+    const isActive = activeTab === item.id;
+    
+    return (
+      <Button
+        key={item.id}
+        variant="ghost"
+        className={cn(
+          "w-full justify-start text-left h-auto p-4 mb-2 rounded-xl transition-all duration-200 border-2",
+          isActive 
+            ? "bg-gradient-to-r from-pink-50 to-rose-50 text-pink-700 border-pink-300 shadow-sm" 
+            : "border-transparent hover:bg-gray-50 hover:border-gray-200"
+        )}
+        onClick={() => onTabChange(item.id)}
+      >
+        <div className="flex items-start gap-3 w-full">
+          <div className={cn(
+            "p-2 rounded-lg",
+            isActive ? "bg-pink-100" : "bg-gray-100"
+          )}>
+            <item.icon className={cn(
+              "h-5 w-5",
+              isActive ? "text-pink-600" : "text-gray-500"
+            )} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between">
+              <span className={cn(
+                "font-semibold text-sm",
+                isActive ? "text-pink-700" : "text-gray-700"
+              )}>
+                {item.label}
+              </span>
+              {progressInfo && (
+                <div className="flex items-center gap-1">
+                  {progressInfo.allSigned ? (
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                  ) : progressInfo.hasPending ? (
+                    <Badge variant="destructive" className="text-xs px-1.5 py-0">
+                      {progressInfo.pending}
+                    </Badge>
+                  ) : null}
+                </div>
+              )}
+            </div>
+            <p className={cn(
+              "text-xs mt-1 leading-tight",
+              isActive ? "text-pink-600/80" : "text-gray-500"
+            )}>
+              {item.description}
+            </p>
+            {progressInfo && progressInfo.total > 0 && (
+              <div className="mt-2">
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <span className="text-gray-500">
+                    {progressInfo.signed}/{progressInfo.total} signés
+                  </span>
+                </div>
+                <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-pink-400 to-pink-500 rounded-full transition-all duration-300"
+                    style={{ width: `${(progressInfo.signed / progressInfo.total) * 100}%` }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-    </Button>
-  );
+      </Button>
+    );
+  };
 
   return (
     <div className="p-4 space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Navigation</h2>
-      </div>
-
-      <div>
-        <h3 className="text-sm font-medium text-gray-700 mb-3 uppercase tracking-wide">
-          Catégories Principales
-        </h3>
-        <div className="space-y-1">
-          {mainCategories.map(renderSidebarItem)}
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <FileText className="h-5 w-5 text-pink-600" />
+          <h2 className="text-lg font-bold text-gray-900">Documents</h2>
         </div>
+        <p className="text-sm text-gray-500">
+          Parcourez vos documents par phase de formation
+        </p>
       </div>
 
-      <div>
-        <h3 className="text-sm font-medium text-gray-700 mb-3 uppercase tracking-wide">
-          Phases de Formation
-        </h3>
-        <div className="space-y-1">
-          {phases.map(renderSidebarItem)}
+      <div className="space-y-1">
+        {phases.map(renderSidebarItem)}
+      </div>
+
+      {/* Légende */}
+      <div className="pt-4 border-t border-gray-100">
+        <p className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">Légende</p>
+        <div className="space-y-2 text-xs text-gray-500">
+          <div className="flex items-center gap-2">
+            <CheckCircle className="h-3.5 w-3.5 text-green-500" />
+            <span>Tous documents signés</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge variant="destructive" className="text-[10px] px-1 py-0">1</Badge>
+            <span>Documents à signer</span>
+          </div>
         </div>
       </div>
     </div>

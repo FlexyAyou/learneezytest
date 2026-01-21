@@ -1,16 +1,13 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useMemo } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BookOpen, FileText, FolderOpen } from 'lucide-react';
 import { StudentDocumentsSidebar } from './StudentDocumentsSidebar';
-import { StudentCoursDocuments } from './documents/StudentCoursDocuments';
-import { StudentExercicesDocuments } from './documents/StudentExercicesDocuments';
-import { StudentDocumentsAdministratifs } from './documents/StudentDocumentsAdministratifs';
 import { StudentPhaseInscription } from './documents/StudentPhaseInscription';
 import { StudentPhaseFormation } from './documents/StudentPhaseFormation';
 import { StudentPhasePostFormation } from './documents/StudentPhasePostFormation';
 import { StudentPhaseSuivi } from './documents/StudentPhaseSuivi';
+import { Badge } from '@/components/ui/badge';
+import { FileText, AlertCircle } from 'lucide-react';
 
 interface Formation {
   id: string;
@@ -20,9 +17,17 @@ interface Formation {
   status: 'active' | 'completed' | 'pending';
 }
 
+// Mock data for document counts per phase
+const mockPhaseProgress = {
+  'phase-inscription': { total: 3, signed: 2, pending: 1 },
+  'phase-formation': { total: 4, signed: 3, pending: 1 },
+  'phase-post-formation': { total: 4, signed: 4, pending: 0 },
+  'phase-suivi': { total: 2, signed: 1, pending: 1 },
+};
+
 export const StudentDocuments = () => {
   const [selectedFormation, setSelectedFormation] = useState<string>('all');
-  const [activeTab, setActiveTab] = useState('cours');
+  const [activeTab, setActiveTab] = useState('phase-inscription');
 
   const formations: Formation[] = [
     { id: '1', name: 'Mathématiques Avancées', category: 'Mathématiques', level: 'Niveau 3', status: 'active' },
@@ -35,27 +40,46 @@ export const StudentDocuments = () => {
     setActiveTab(tab);
   };
 
+  const totalPendingDocuments = useMemo(() => {
+    return Object.values(mockPhaseProgress).reduce((sum, phase) => sum + phase.pending, 0);
+  }, []);
+
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-muted/30">
       {/* Sidebar */}
-      <div className="w-64 bg-white border-r border-gray-200">
-        <StudentDocumentsSidebar activeTab={activeTab} onTabChange={handleTabChange} />
+      <div className="w-72 bg-background border-r shrink-0">
+        <StudentDocumentsSidebar 
+          activeTab={activeTab} 
+          onTabChange={handleTabChange}
+          phaseProgress={mockPhaseProgress}
+        />
       </div>
 
       {/* Main content */}
       <div className="flex-1 p-6">
         <div className="space-y-6">
+          {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Mes Documents</h1>
-              <p className="text-gray-600">Accédez à vos documents de formation par phase</p>
+              <div className="flex items-center gap-3">
+                <h1 className="text-3xl font-bold text-foreground">Mes Documents</h1>
+                {totalPendingDocuments > 0 && (
+                  <Badge variant="destructive" className="gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    {totalPendingDocuments} à signer
+                  </Badge>
+                )}
+              </div>
+              <p className="text-muted-foreground mt-1">
+                Parcourez et signez vos documents de formation
+              </p>
             </div>
             <div className="flex items-center space-x-4">
               <Select value={selectedFormation} onValueChange={setSelectedFormation}>
-                <SelectTrigger className="w-64">
+                <SelectTrigger className="w-64 bg-background">
                   <SelectValue placeholder="Sélectionner une formation" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-background">
                   <SelectItem value="all">Toutes les formations</SelectItem>
                   {formations.map((formation) => (
                     <SelectItem key={formation.id} value={formation.id}>
@@ -68,25 +92,7 @@ export const StudentDocuments = () => {
           </div>
 
           {/* Main content area */}
-          <div className="bg-white rounded-lg shadow-sm">
-            {activeTab === 'cours' && (
-              <StudentCoursDocuments 
-                selectedFormation={selectedFormation}
-                formations={formations}
-              />
-            )}
-            {activeTab === 'exercices' && (
-              <StudentExercicesDocuments 
-                selectedFormation={selectedFormation}
-                formations={formations}
-              />
-            )}
-            {activeTab === 'administratifs' && (
-              <StudentDocumentsAdministratifs 
-                selectedFormation={selectedFormation}
-                formations={formations}
-              />
-            )}
+          <div className="bg-background rounded-xl shadow-sm border">
             {activeTab === 'phase-inscription' && (
               <StudentPhaseInscription 
                 selectedFormation={selectedFormation}
