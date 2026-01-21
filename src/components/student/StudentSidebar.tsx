@@ -26,7 +26,17 @@ interface NavItem {
   href: string;
   icon: React.ComponentType<{ className?: string }>;
   badge?: string;
+  disabled?: boolean;
 }
+
+// Routes à griser (fonctionnalités non disponibles pour le moment)
+const DISABLED_ROUTES = [
+  '/dashboard/apprenant/progress',
+  '/dashboard/apprenant/certificates',
+  '/dashboard/apprenant/boutique',
+  '/dashboard/apprenant/evaluations',
+  '/dashboard/apprenant/subscription',
+];
 
 export function StudentSidebar() {
   const { state } = useSidebar();
@@ -63,8 +73,8 @@ export function StudentSidebar() {
 
     items.push(
       { title: "Mes cours", href: "/dashboard/apprenant/courses", icon: BookOpen },
-      { title: "Mon parcours", href: "/dashboard/apprenant/progress", icon: Award },
-      { title: "Certificats", href: "/dashboard/apprenant/certificates", icon: Award }
+      { title: "Mon parcours", href: "/dashboard/apprenant/progress", icon: Award, disabled: DISABLED_ROUTES.includes('/dashboard/apprenant/progress') },
+      { title: "Certificats", href: "/dashboard/apprenant/certificates", icon: Award, disabled: DISABLED_ROUTES.includes('/dashboard/apprenant/certificates') }
     );
 
     return items;
@@ -74,7 +84,7 @@ export function StudentSidebar() {
   const formationItems: NavItem[] = [
     { title: "Mes inscriptions", href: "/dashboard/apprenant/inscriptions", icon: FileText },
     { title: "Émargement", href: "/dashboard/apprenant/emargements", icon: PenTool },
-    { title: "Évaluations", href: "/dashboard/apprenant/evaluations", icon: TrendingUp },
+    { title: "Évaluations", href: "/dashboard/apprenant/evaluations", icon: TrendingUp, disabled: DISABLED_ROUTES.includes('/dashboard/apprenant/evaluations') },
   ];
 
   // Items outils filtrés selon le type d'apprenant
@@ -83,14 +93,14 @@ export function StudentSidebar() {
 
     // Boutique uniquement pour apprenants Learneezy
     if (hasAccess('boutique')) {
-      items.push({ title: "Boutique", href: "/dashboard/apprenant/boutique", icon: ShoppingBag });
+      items.push({ title: "Boutique", href: "/dashboard/apprenant/boutique", icon: ShoppingBag, disabled: DISABLED_ROUTES.includes('/dashboard/apprenant/boutique') });
     }
 
     items.push({ title: "Mes documents", href: "/dashboard/apprenant/documents", icon: Download });
 
     // Abonnements uniquement pour apprenants Learneezy
     if (hasAccess('subscription')) {
-      items.push({ title: "Abonnements", href: "/dashboard/apprenant/subscription", icon: CreditCard });
+      items.push({ title: "Abonnements", href: "/dashboard/apprenant/subscription", icon: CreditCard, disabled: DISABLED_ROUTES.includes('/dashboard/apprenant/subscription') });
     }
 
     items.push(
@@ -153,11 +163,24 @@ export function StudentSidebar() {
             <SidebarMenu>
               {navigationItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={isActive(item.href)}>
-                    <Link to={item.href}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
+                  <SidebarMenuButton 
+                    asChild={!item.disabled} 
+                    isActive={isActive(item.href)}
+                    disabled={item.disabled}
+                    className={item.disabled ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}
+                  >
+                    {item.disabled ? (
+                      <div className="flex items-center gap-2">
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                        <span className="ml-auto text-[10px] text-muted-foreground">Bientôt</span>
+                      </div>
+                    ) : (
+                      <Link to={item.href}>
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -171,11 +194,24 @@ export function StudentSidebar() {
             <SidebarMenu>
               {formationItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={isActive(item.href)}>
-                    <Link to={item.href}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
+                  <SidebarMenuButton 
+                    asChild={!item.disabled} 
+                    isActive={isActive(item.href)}
+                    disabled={item.disabled}
+                    className={item.disabled ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}
+                  >
+                    {item.disabled ? (
+                      <div className="flex items-center gap-2">
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                        <span className="ml-auto text-[10px] text-muted-foreground">Bientôt</span>
+                      </div>
+                    ) : (
+                      <Link to={item.href}>
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -189,16 +225,29 @@ export function StudentSidebar() {
             <SidebarMenu>
               {toolsItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={isActive(item.href)}>
-                    <Link to={item.href}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                      {item.badge && (
-                        <span className="ml-auto bg-pink-100 text-pink-700 text-xs px-2 py-0.5 rounded-full">
-                          {item.badge}
-                        </span>
-                      )}
-                    </Link>
+                  <SidebarMenuButton 
+                    asChild={!item.disabled} 
+                    isActive={isActive(item.href)}
+                    disabled={item.disabled}
+                    className={item.disabled ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}
+                  >
+                    {item.disabled ? (
+                      <div className="flex items-center gap-2">
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                        <span className="ml-auto text-[10px] text-muted-foreground">Bientôt</span>
+                      </div>
+                    ) : (
+                      <Link to={item.href}>
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                        {item.badge && (
+                          <span className="ml-auto bg-pink-100 text-pink-700 text-xs px-2 py-0.5 rounded-full">
+                            {item.badge}
+                          </span>
+                        )}
+                      </Link>
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
