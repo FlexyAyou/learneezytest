@@ -50,7 +50,8 @@ export const DEFAULT_TEMPLATES: Partial<Record<DocumentType, string>> = {
 
   <div style="margin-top: 40px; display: flex; justify-content: space-between;">
     <div style="width: 45%;">
-      <p style="margin-bottom: 60px;"><strong>Pour l'organisme de formation</strong></p>
+      <p style="margin-bottom: 15px;"><strong>Pour l'organisme de formation</strong></p>
+      <div style="min-height: 60px; margin-bottom: 10px;">{{of.signature}}</div>
       <p>{{of.responsable}}</p>
       <p style="font-size: 12px; color: #666;">Date : {{date.jour}}</p>
     </div>
@@ -216,7 +217,8 @@ export const DEFAULT_TEMPLATES: Partial<Record<DocumentType, string>> = {
   <div style="margin-top: 40px; display: flex; justify-content: space-between;">
     <div style="width: 45%;">
       <p><strong>L'organisme de formation</strong></p>
-      <p style="margin-top: 50px;">{{of.responsable}}<br/>Date : {{date.jour}}</p>
+      <div style="min-height: 60px; margin: 15px 0;">{{of.signature}}</div>
+      <p>{{of.responsable}}<br/>Date : {{date.jour}}</p>
     </div>
     <div style="width: 45%;">
       <p><strong>Le bénéficiaire</strong></p>
@@ -298,10 +300,12 @@ export const DEFAULT_TEMPLATES: Partial<Record<DocumentType, string>> = {
     Fait à {{of.ville}}, le {{date.jour}}
   </p>
   
-  <p style="text-align: right; margin-top: 30px;">
-    <strong>{{of.responsable}}</strong><br/>
-    Responsable pédagogique
-  </p>
+  <div style="text-align: right; margin-top: 20px;">
+    <div style="display: inline-block; text-align: center;">
+      <div style="min-height: 60px;">{{of.signature}}</div>
+      <p><strong>{{of.responsable}}</strong><br/>Responsable pédagogique</p>
+    </div>
+  </div>
 </div>
 `,
 
@@ -332,9 +336,10 @@ export const DEFAULT_TEMPLATES: Partial<Record<DocumentType, string>> = {
     Fait à {{of.ville}}, le {{date.jour}}
   </p>
   
-  <p style="text-align: right; margin-top: 30px;">
-    <strong>Cachet et signature</strong>
-  </p>
+  <div style="text-align: right; margin-top: 20px;">
+    <p style="margin-bottom: 10px;"><strong>Cachet et signature</strong></p>
+    <div style="min-height: 60px;">{{of.signature}}</div>
+  </div>
 </div>
 `,
 

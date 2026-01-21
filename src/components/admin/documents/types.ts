@@ -115,6 +115,7 @@ export interface OF {
   email: string;
   website?: string;
   responsable: string;
+  signatureUrl?: string;  // URL de la signature officielle de l'OF
 }
 
 // Available dynamic fields for document templates
@@ -158,6 +159,7 @@ export const DYNAMIC_FIELDS: DynamicField[] = [
   { key: '{{of.telephone}}', label: 'Téléphone OF', description: 'Téléphone de l\'OF', category: 'of', example: '01 23 45 67 89' },
   { key: '{{of.email}}', label: 'Email OF', description: 'Email de l\'OF', category: 'of', example: 'contact@formapro.fr' },
   { key: '{{of.responsable}}', label: 'Responsable', description: 'Nom du responsable', category: 'of', example: 'Pierre Durant' },
+  { key: '{{of.signature}}', label: 'Signature OF', description: 'Signature officielle de l\'organisme', category: 'of', example: '[Signature]' },
   
   // Evaluation fields
   { key: '{{evaluation.note_positionnement}}', label: 'Note positionnement', description: 'Note du test de positionnement', category: 'evaluation', example: '12/20' },

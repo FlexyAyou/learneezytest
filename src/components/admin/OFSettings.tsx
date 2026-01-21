@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,15 +6,17 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Building, Shield, Bell, Save, Lock, Eye, EyeOff, Info } from 'lucide-react';
+import { Building, Shield, Bell, Save, Lock, Eye, EyeOff, Info, PenTool } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { OFSignatureManager } from './OFSignatureManager';
 
 export const OFSettings = () => {
   const { toast } = useToast();
   const { user } = useFastAPIAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [ofSignatureUrl, setOfSignatureUrl] = useState<string | undefined>(undefined);
 
   // Password change state
   const [passwordData, setPasswordData] = useState({
@@ -108,6 +109,17 @@ export const OFSettings = () => {
     }
   };
 
+  const handleSaveSignature = async (signatureData: string) => {
+    // TODO: Upload signature to backend and get URL
+    // For now, we store the base64 data directly (mock)
+    setOfSignatureUrl(signatureData);
+  };
+
+  const handleDeleteSignature = async () => {
+    // TODO: Delete signature from backend
+    setOfSignatureUrl(undefined);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -118,18 +130,22 @@ export const OFSettings = () => {
       </div>
 
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="general" className="flex items-center gap-2">
             <Building className="h-4 w-4" />
-            Général
+            <span className="hidden sm:inline">Général</span>
+          </TabsTrigger>
+          <TabsTrigger value="signature" className="flex items-center gap-2">
+            <PenTool className="h-4 w-4" />
+            <span className="hidden sm:inline">Signature</span>
           </TabsTrigger>
           <TabsTrigger value="notifications" className="flex items-center gap-2">
             <Bell className="h-4 w-4" />
-            Notifications
+            <span className="hidden sm:inline">Notifications</span>
           </TabsTrigger>
           <TabsTrigger value="security" className="flex items-center gap-2">
             <Shield className="h-4 w-4" />
-            Sécurité
+            <span className="hidden sm:inline">Sécurité</span>
           </TabsTrigger>
         </TabsList>
 
@@ -194,6 +210,14 @@ export const OFSettings = () => {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="signature">
+          <OFSignatureManager 
+            currentSignatureUrl={ofSignatureUrl}
+            onSave={handleSaveSignature}
+            onDelete={handleDeleteSignature}
+          />
         </TabsContent>
 
         <TabsContent value="notifications">
