@@ -253,8 +253,14 @@ export const OFDocumentsAdvanced: React.FC = () => {
 
       {/* Editor Modal */}
       {showEditor && (
-        <div className="fixed inset-0 z-50 bg-background">
-          <div className="p-6">
+        <div className="fixed inset-0 z-50 bg-background overflow-auto">
+          <div className="p-6 min-h-full">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold">Éditeur de modèle</h2>
+              <Button variant="ghost" size="sm" onClick={() => setShowEditor(false)}>
+                Fermer
+              </Button>
+            </div>
             <DocumentTemplateEditor
               template={selectedTemplate || undefined}
               onSave={handleSaveTemplate}

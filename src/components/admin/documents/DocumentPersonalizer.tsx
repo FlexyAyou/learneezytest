@@ -226,10 +226,10 @@ export const DocumentPersonalizer: React.FC<DocumentPersonalizerProps> = ({
             const Icon = step.icon;
 
             return (
-              <React.Fragment key={step.id}>
+              <div key={step.id} className="flex items-center gap-4">
                 <div className={`flex items-center gap-2 ${isActive ? 'text-primary' : isPast ? 'text-green-600' : 'text-muted-foreground'}`}>
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    isActive ? 'bg-primary text-white' : 
+                    isActive ? 'bg-primary text-primary-foreground' : 
                     isPast ? 'bg-green-100 text-green-600' : 
                     'bg-muted'
                   }`}>
@@ -238,7 +238,7 @@ export const DocumentPersonalizer: React.FC<DocumentPersonalizerProps> = ({
                   <span className="font-medium">{step.label}</span>
                 </div>
                 {index < 2 && <ArrowRight className="h-4 w-4 text-muted-foreground" />}
-              </React.Fragment>
+              </div>
             );
           })}
         </div>
@@ -329,11 +329,11 @@ export const DocumentPersonalizer: React.FC<DocumentPersonalizerProps> = ({
 
           {currentStep === 'confirm' && (
             <div className="py-4 space-y-4">
-              <Card className="border-green-200 bg-green-50/50">
+              <Card className="border-primary/20 bg-primary/5">
                 <CardContent className="p-6">
                   <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-                      <Send className="h-6 w-6 text-green-600" />
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                      <Send className="h-6 w-6 text-primary" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-lg">Prêt à envoyer</h3>
@@ -387,9 +387,9 @@ export const DocumentPersonalizer: React.FC<DocumentPersonalizerProps> = ({
               </Card>
 
               {template.requiresSignature && (
-                <Card className="border-amber-200 bg-amber-50/50">
+                <Card className="border-secondary bg-secondary/30">
                   <CardContent className="p-4 flex items-center gap-3">
-                    <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
+                    <AlertCircle className="h-5 w-5 text-muted-foreground shrink-0" />
                     <p className="text-sm">
                       Les apprenants recevront une notification pour signer électroniquement ce document.
                     </p>

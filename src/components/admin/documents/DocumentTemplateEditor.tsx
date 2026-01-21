@@ -204,10 +204,10 @@ export const DocumentTemplateEditor: React.FC<DocumentTemplateEditorProps> = ({
   };
 
   return (
-    <div className="flex gap-6 h-[calc(100vh-200px)]">
+    <div className="flex gap-6 min-h-[600px]" style={{ height: 'calc(100vh - 180px)' }}>
       {/* Main Editor */}
-      <div className="flex-1 flex flex-col">
-        <Card className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Card className="flex-1 flex flex-col overflow-hidden">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
@@ -338,14 +338,14 @@ export const DocumentTemplateEditor: React.FC<DocumentTemplateEditorProps> = ({
             </div>
 
             {/* Editor Content */}
-            <div className="flex-1 border rounded-lg overflow-hidden">
+            <div className="flex-1 border rounded-lg overflow-hidden min-h-0">
               {viewMode === 'edit' && (
                 <div
                   ref={editorRef}
                   contentEditable
                   onInput={handleInput}
                   className="p-6 h-full overflow-y-auto focus:outline-none prose prose-sm max-w-none bg-white"
-                  style={{ minHeight: '400px' }}
+                  style={{ minHeight: '300px', maxHeight: '100%' }}
                 />
               )}
 

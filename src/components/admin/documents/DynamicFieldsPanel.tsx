@@ -130,7 +130,7 @@ export const DynamicFieldsPanel: React.FC<DynamicFieldsPanelProps> = ({ onInsert
                                 <div className="flex items-center gap-2">
                                   <span className="font-medium text-sm">{field.label}</span>
                                   {copiedField === field.key && (
-                                    <CheckCircle className="h-4 w-4 text-green-500" />
+                                    <CheckCircle className="h-4 w-4 text-primary" />
                                   )}
                                 </div>
                                 <code className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded mt-1 inline-block">
