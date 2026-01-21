@@ -11,7 +11,7 @@ import {
   AlertCircle, Mail, FileSignature, Sparkles
 } from 'lucide-react';
 import { DocumentTemplateEditor } from './DocumentTemplateEditor';
-import { DocumentPersonalizer } from './DocumentPersonalizer';
+import { DocumentPersonalizerAdvanced } from './DocumentPersonalizerAdvanced';
 import { 
   DocumentTemplate, DocumentPhase, DocumentType, Learner, Formation, OF,
   PHASES_CONFIG, DOCUMENT_TYPE_LABELS
@@ -56,9 +56,15 @@ export const OFDocumentsAdvanced: React.FC = () => {
   const [showPersonalizer, setShowPersonalizer] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<DocumentTemplate | null>(null);
   const [templates, setTemplates] = useState<DocumentTemplate[]>([
-    { id: '1', type: 'convention', phase: 'inscription', title: 'Convention de formation', description: 'Convention standard', htmlContent: '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-    { id: '2', type: 'convocation', phase: 'formation', title: 'Convocation session', description: 'Convocation standard', htmlContent: '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-    { id: '3', type: 'attestation', phase: 'post-formation', title: 'Attestation de formation', description: 'Attestation standard', htmlContent: '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+    // Phase Inscription - CGV et Programme
+    { id: '1', type: 'cgv', phase: 'inscription', title: 'Conditions Générales de Vente', description: 'CGV à signer par l\'apprenant', htmlContent: '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+    { id: '2', type: 'programme', phase: 'inscription', title: 'Programme de formation', description: 'Programme détaillé de la formation', htmlContent: '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+    // Phase Formation
+    { id: '3', type: 'convention', phase: 'formation', title: 'Convention de formation', description: 'Convention tripartite', htmlContent: '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+    { id: '4', type: 'convocation', phase: 'formation', title: 'Convocation session', description: 'Convocation à la session de formation', htmlContent: '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+    // Phase Post-formation
+    { id: '5', type: 'attestation', phase: 'post-formation', title: 'Attestation de formation', description: 'Attestation de fin de formation', htmlContent: '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+    { id: '6', type: 'certificat', phase: 'post-formation', title: 'Certificat de réalisation', description: 'Certificat de réalisation de la formation', htmlContent: '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
   ]);
   const [sentDocuments, setSentDocuments] = useState<any[]>([]);
   const { toast } = useToast();
@@ -274,7 +280,7 @@ export const OFDocumentsAdvanced: React.FC = () => {
       )}
 
       {/* Personalizer Modal */}
-      <DocumentPersonalizer
+      <DocumentPersonalizerAdvanced
         isOpen={showPersonalizer}
         onClose={() => setShowPersonalizer(false)}
         template={selectedTemplate}

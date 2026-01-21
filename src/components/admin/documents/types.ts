@@ -171,17 +171,17 @@ export const DYNAMIC_FIELDS: DynamicField[] = [
 export const PHASES_CONFIG = {
   inscription: {
     label: 'Phase Inscription',
-    description: 'Documents liés à l\'inscription et au positionnement',
+    description: 'Documents d\'inscription : CGV à signer et Programme de formation',
     color: 'blue',
     icon: 'UserPlus',
-    documents: ['analyse_besoin', 'test_positionnement', 'convention']
+    documents: ['cgv', 'programme']
   },
   formation: {
     label: 'Phase Formation',
     description: 'Documents de la période de formation',
     color: 'green',
     icon: 'BookOpen',
-    documents: ['cgv', 'reglement_interieur', 'programme', 'convocation', 'emargement']
+    documents: ['convention', 'convocation', 'reglement_interieur', 'emargement']
   },
   'post-formation': {
     label: 'Phase Post-formation',
@@ -198,6 +198,22 @@ export const PHASES_CONFIG = {
     documents: ['satisfaction_froid', 'questionnaire_financeur']
   }
 };
+
+// Editable fields configuration (fields that can be manually edited before sending)
+export interface EditableField {
+  key: string;
+  label: string;
+  type: 'text' | 'date' | 'number' | 'textarea';
+  placeholder?: string;
+}
+
+export const EDITABLE_FIELDS: EditableField[] = [
+  { key: 'dates.debut', label: 'Date de début', type: 'date' },
+  { key: 'dates.fin', label: 'Date de fin', type: 'date' },
+  { key: 'formation.duree', label: 'Durée de formation', type: 'text', placeholder: 'Ex: 35 heures' },
+  { key: 'formation.lieu', label: 'Lieu de formation', type: 'text', placeholder: 'Ex: Paris - Centre' },
+  { key: 'formation.prix', label: 'Prix de la formation', type: 'text', placeholder: 'Ex: 2 500 €' },
+];
 
 // Document type labels
 export const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
