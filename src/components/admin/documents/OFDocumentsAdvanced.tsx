@@ -9,10 +9,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { 
   FileText, Plus, Send, Search, Eye, Edit, Download, 
   UserPlus, BookOpen, Award, Clock, CheckCircle, 
-  AlertCircle, Mail, FileSignature, Sparkles
+  AlertCircle, Mail, FileSignature, Sparkles, Users
 } from 'lucide-react';
 import { DocumentTemplateEditor } from './DocumentTemplateEditor';
 import { PhaseDocumentSender } from './PhaseDocumentSender';
+import { EmargementManager } from './EmargementManager';
 import { DEFAULT_TEMPLATES } from './defaultTemplates';
 import { 
   DocumentTemplate, DocumentPhase, DocumentType, Learner, Formation, OF,
@@ -56,6 +57,7 @@ export const OFDocumentsAdvanced: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showEditor, setShowEditor] = useState(false);
   const [showPhaseSender, setShowPhaseSender] = useState(false);
+  const [showEmargementManager, setShowEmargementManager] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<DocumentTemplate | null>(null);
   const [templates, setTemplates] = useState<DocumentTemplate[]>([
     // Phase Inscription - CGV et Programme
@@ -122,7 +124,11 @@ export const OFDocumentsAdvanced: React.FC = () => {
           <h1 className="text-3xl font-bold text-foreground mb-2">Gestion des Documents</h1>
           <p className="text-muted-foreground">Personnalisation et envoi de documents par phase de formation</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <Button variant="outline" onClick={() => setShowEmargementManager(true)}>
+            <Users className="h-4 w-4 mr-2" />
+            Gestion des Émargements
+          </Button>
           <Button variant="outline" asChild>
             <Link to="/dashboard/organisme-formation/programmes">
               <BookOpen className="h-4 w-4 mr-2" />
@@ -302,6 +308,14 @@ export const OFDocumentsAdvanced: React.FC = () => {
         formations={mockFormations}
         ofInfo={mockOF}
         onSend={handleDocumentsSent}
+      />
+
+      {/* Emargement Manager */}
+      <EmargementManager
+        isOpen={showEmargementManager}
+        onClose={() => setShowEmargementManager(false)}
+        learners={mockLearners}
+        sentDocuments={sentDocuments}
       />
     </div>
   );
