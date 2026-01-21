@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { DocumentTemplateEditor } from './DocumentTemplateEditor';
 import { PhaseDocumentSender } from './PhaseDocumentSender';
+import { ProgrammeLibrary, UploadedProgramme } from './ProgrammeLibrary';
 import { DEFAULT_TEMPLATES } from './defaultTemplates';
 import { 
   DocumentTemplate, DocumentPhase, DocumentType, Learner, Formation, OF,
@@ -68,7 +69,16 @@ export const OFDocumentsAdvanced: React.FC = () => {
     { id: '6', type: 'certificat', phase: 'post-formation', title: 'Certificat de réalisation', description: 'Certificat de réalisation de la formation', htmlContent: DEFAULT_TEMPLATES.certificat || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
   ]);
   const [sentDocuments, setSentDocuments] = useState<any[]>([]);
+  const [uploadedProgrammes, setUploadedProgrammes] = useState<UploadedProgramme[]>([]);
   const { toast } = useToast();
+
+  const handleProgrammeUpload = (programme: UploadedProgramme) => {
+    setUploadedProgrammes(prev => [...prev, programme]);
+  };
+
+  const handleProgrammeDelete = (programmeId: string) => {
+    setUploadedProgrammes(prev => prev.filter(p => p.id !== programmeId));
+  };
 
   const handleCreateTemplate = () => {
     setSelectedTemplate(null);
@@ -126,6 +136,14 @@ export const OFDocumentsAdvanced: React.FC = () => {
           Nouveau modèle
         </Button>
       </div>
+
+      {/* Programme Library */}
+      <ProgrammeLibrary
+        formations={mockFormations}
+        uploadedProgrammes={uploadedProgrammes}
+        onUpload={handleProgrammeUpload}
+        onDelete={handleProgrammeDelete}
+      />
 
       {/* Phase Tabs */}
       <Tabs value={activePhase} onValueChange={(v) => setActivePhase(v as DocumentPhase)}>
@@ -293,6 +311,7 @@ export const OFDocumentsAdvanced: React.FC = () => {
         formations={mockFormations}
         ofInfo={mockOF}
         onSend={handleDocumentsSent}
+        uploadedProgrammes={uploadedProgrammes}
       />
     </div>
   );
