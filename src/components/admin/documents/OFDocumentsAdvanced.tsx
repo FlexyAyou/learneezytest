@@ -11,7 +11,8 @@ import {
   AlertCircle, Mail, FileSignature, Sparkles
 } from 'lucide-react';
 import { DocumentTemplateEditor } from './DocumentTemplateEditor';
-import { DocumentPersonalizerAdvanced } from './DocumentPersonalizerAdvanced';
+import { PhaseDocumentSender } from './PhaseDocumentSender';
+import { DEFAULT_TEMPLATES } from './defaultTemplates';
 import { 
   DocumentTemplate, DocumentPhase, DocumentType, Learner, Formation, OF,
   PHASES_CONFIG, DOCUMENT_TYPE_LABELS
@@ -53,18 +54,18 @@ export const OFDocumentsAdvanced: React.FC = () => {
   const [activePhase, setActivePhase] = useState<DocumentPhase>('inscription');
   const [searchTerm, setSearchTerm] = useState('');
   const [showEditor, setShowEditor] = useState(false);
-  const [showPersonalizer, setShowPersonalizer] = useState(false);
+  const [showPhaseSender, setShowPhaseSender] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<DocumentTemplate | null>(null);
   const [templates, setTemplates] = useState<DocumentTemplate[]>([
     // Phase Inscription - CGV et Programme
-    { id: '1', type: 'cgv', phase: 'inscription', title: 'Conditions Générales de Vente', description: 'CGV à signer par l\'apprenant', htmlContent: '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-    { id: '2', type: 'programme', phase: 'inscription', title: 'Programme de formation', description: 'Programme détaillé de la formation', htmlContent: '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+    { id: '1', type: 'cgv', phase: 'inscription', title: 'Conditions Générales de Vente', description: 'CGV à signer par l\'apprenant', htmlContent: DEFAULT_TEMPLATES.cgv || '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+    { id: '2', type: 'programme', phase: 'inscription', title: 'Programme de formation', description: 'Programme détaillé de la formation', htmlContent: DEFAULT_TEMPLATES.programme || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
     // Phase Formation
-    { id: '3', type: 'convention', phase: 'formation', title: 'Convention de formation', description: 'Convention tripartite', htmlContent: '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-    { id: '4', type: 'convocation', phase: 'formation', title: 'Convocation session', description: 'Convocation à la session de formation', htmlContent: '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+    { id: '3', type: 'convention', phase: 'formation', title: 'Convention de formation', description: 'Convention tripartite', htmlContent: DEFAULT_TEMPLATES.convention || '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+    { id: '4', type: 'convocation', phase: 'formation', title: 'Convocation session', description: 'Convocation à la session de formation', htmlContent: DEFAULT_TEMPLATES.convocation || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
     // Phase Post-formation
-    { id: '5', type: 'attestation', phase: 'post-formation', title: 'Attestation de formation', description: 'Attestation de fin de formation', htmlContent: '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-    { id: '6', type: 'certificat', phase: 'post-formation', title: 'Certificat de réalisation', description: 'Certificat de réalisation de la formation', htmlContent: '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+    { id: '5', type: 'attestation', phase: 'post-formation', title: 'Attestation de formation', description: 'Attestation de fin de formation', htmlContent: DEFAULT_TEMPLATES.attestation || '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+    { id: '6', type: 'certificat', phase: 'post-formation', title: 'Certificat de réalisation', description: 'Certificat de réalisation de la formation', htmlContent: DEFAULT_TEMPLATES.certificat || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
   ]);
   const [sentDocuments, setSentDocuments] = useState<any[]>([]);
   const { toast } = useToast();
@@ -88,9 +89,8 @@ export const OFDocumentsAdvanced: React.FC = () => {
     setShowEditor(false);
   };
 
-  const handleSendDocument = (template: DocumentTemplate) => {
-    setSelectedTemplate(template);
-    setShowPersonalizer(true);
+  const handleSendPhaseDocuments = () => {
+    setShowPhaseSender(true);
   };
 
   const handleDocumentsSent = (docs: any[]) => {
@@ -145,12 +145,16 @@ export const OFDocumentsAdvanced: React.FC = () => {
 
         {(Object.keys(PHASES_CONFIG) as DocumentPhase[]).map((phase) => (
           <TabsContent key={phase} value={phase} className="space-y-4 mt-4">
-            {/* Search */}
+            {/* Search + Send Button */}
             <div className="flex gap-3">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input placeholder="Rechercher un modèle..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
               </div>
+              <Button onClick={handleSendPhaseDocuments}>
+                <Send className="h-4 w-4 mr-2" />
+                Envoyer les documents
+              </Button>
             </div>
 
             {/* Templates Table */}
@@ -200,7 +204,7 @@ export const OFDocumentsAdvanced: React.FC = () => {
                             <Button size="sm" variant="outline" onClick={() => handleEditTemplate(template)}>
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button size="sm" onClick={() => handleSendDocument(template)}>
+                            <Button size="sm" onClick={() => handleEditTemplate(template)}>
                               <Sparkles className="h-4 w-4 mr-1" />
                               Personnaliser
                             </Button>
@@ -279,11 +283,12 @@ export const OFDocumentsAdvanced: React.FC = () => {
         </div>
       )}
 
-      {/* Personalizer Modal */}
-      <DocumentPersonalizerAdvanced
-        isOpen={showPersonalizer}
-        onClose={() => setShowPersonalizer(false)}
-        template={selectedTemplate}
+      {/* Phase Document Sender */}
+      <PhaseDocumentSender
+        isOpen={showPhaseSender}
+        onClose={() => setShowPhaseSender(false)}
+        phase={activePhase}
+        templates={phaseTemplates}
         learners={mockLearners}
         formations={mockFormations}
         ofInfo={mockOF}
