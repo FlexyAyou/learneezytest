@@ -40,25 +40,25 @@ export const StudentDocumentsSidebar = ({
   const phases: SidebarItem[] = [
     {
       id: 'phase-inscription',
-      label: 'Inscription',
+      label: 'Phase Inscription',
       icon: UserPlus,
       description: 'Analyse, test, convention'
     },
     {
       id: 'phase-formation',
-      label: 'Formation',
+      label: 'Phase Formation',
       icon: School,
       description: 'CGV/RI, programme, convocation, émargement'
     },
     {
       id: 'phase-post-formation',
-      label: 'Post-formation',
+      label: 'Phase Post-formation',
       icon: Award,
       description: 'Test final, satisfaction, attestation'
     },
     {
       id: 'phase-suivi',
-      label: 'Suivi +3 mois',
+      label: 'Phase +3 mois',
       icon: Clock,
       description: 'Satisfaction à froid, financeur'
     }
