@@ -677,7 +677,117 @@ function getDefaultTemplate(type: DocumentType): string {
     analyse_besoin: '<p>Modèle d\'analyse du besoin à personnaliser...</p>',
     test_positionnement: '<p>Modèle de test de positionnement à personnaliser...</p>',
     reglement_interieur: '<p>Modèle de règlement intérieur à personnaliser...</p>',
-    cgv: '<p>Modèle de CGV à personnaliser...</p>',
+    cgv: `
+      <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 40px; line-height: 1.6;">
+        <div style="text-align: center; margin-bottom: 40px; border-bottom: 3px solid #1e40af; padding-bottom: 20px;">
+          <h1 style="color: #1e40af; font-size: 28px; margin-bottom: 10px;">CONDITIONS GÉNÉRALES DE VENTE</h1>
+          <p style="color: #6b7280; font-size: 14px;">Applicables aux prestations de formation professionnelle continue</p>
+          <p style="color: #1e40af; font-weight: bold;">{{of.nom}}</p>
+        </div>
+
+        <div style="margin-bottom: 30px; padding: 20px; background: #f0f9ff; border-radius: 8px; border-left: 4px solid #1e40af;">
+          <p><strong>Organisme de formation :</strong> {{of.nom}}</p>
+          <p><strong>SIRET :</strong> {{of.siret}}</p>
+          <p><strong>N° de déclaration d'activité :</strong> {{of.nda}}</p>
+          <p><strong>Adresse :</strong> {{of.adresse}}, {{of.code_postal}} {{of.ville}}</p>
+          <p><strong>Téléphone :</strong> {{of.telephone}} | <strong>Email :</strong> {{of.email}}</p>
+        </div>
+
+        <h2 style="color: #1e40af; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; margin-top: 30px;">ARTICLE 1 - OBJET ET CHAMP D'APPLICATION</h2>
+        <p>Les présentes Conditions Générales de Vente (CGV) s'appliquent à toutes les prestations de formation professionnelle continue dispensées par <strong>{{of.nom}}</strong> auprès des personnes physiques (particuliers) ou morales (entreprises, associations, administrations).</p>
+        <p>L'inscription à une formation implique l'acceptation sans réserve des présentes CGV par le client.</p>
+
+        <h2 style="color: #1e40af; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; margin-top: 30px;">ARTICLE 2 - INSCRIPTION ET CONDITIONS D'ACCÈS</h2>
+        <p><strong>2.1 Processus d'inscription :</strong> L'inscription est réputée définitive après signature de la convention de formation et réception des pièces demandées.</p>
+        <p><strong>2.2 Prérequis :</strong> Le cas échéant, les prérequis sont indiqués dans le programme de formation. L'organisme se réserve le droit de refuser une inscription si les prérequis ne sont pas satisfaits.</p>
+        <p><strong>2.3 Délai d'accès :</strong> Les délais d'accès à nos formations varient de 48 heures à 4 semaines selon la formation et les disponibilités.</p>
+
+        <h2 style="color: #1e40af; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; margin-top: 30px;">ARTICLE 3 - TARIFS ET MODALITÉS DE PAIEMENT</h2>
+        <p><strong>3.1 Prix :</strong> Les prix sont indiqués en euros et sont nets de taxes (TVA non applicable, article 261.4.4°a du CGI). Les tarifs sont valables au moment de l'inscription et comprennent la formation, les supports pédagogiques et l'accès aux ressources en ligne le cas échéant.</p>
+        <p><strong>3.2 Formation concernée :</strong></p>
+        <div style="margin: 15px 0; padding: 15px; background: #fef3c7; border-radius: 8px;">
+          <p><strong>{{formation.nom}}</strong></p>
+          <p>Durée : {{formation.duree}} | Prix : {{formation.prix}}</p>
+          <p>Dates : du {{dates.debut}} au {{dates.fin}}</p>
+          <p>Lieu : {{formation.lieu}}</p>
+        </div>
+        <p><strong>3.3 Modalités de paiement :</strong> Le règlement peut s'effectuer par virement bancaire, chèque ou prélèvement. Le paiement est dû à réception de la facture, sauf accord particulier.</p>
+        <p><strong>3.4 Financement OPCO/CPF :</strong> En cas de prise en charge par un organisme financeur, l'accord de financement doit parvenir avant le début de la formation. En cas de refus ou prise en charge partielle, le client reste redevable du solde.</p>
+
+        <h2 style="color: #1e40af; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; margin-top: 30px;">ARTICLE 4 - CONDITIONS D'ANNULATION ET DE REPORT</h2>
+        <p><strong>4.1 Annulation par le client :</strong></p>
+        <ul style="margin-left: 20px;">
+          <li>Plus de 15 jours ouvrés avant le début : remboursement intégral ou report sans frais</li>
+          <li>Entre 10 et 15 jours ouvrés : 50% du montant restant dû</li>
+          <li>Moins de 10 jours ouvrés : 100% du montant restant dû</li>
+        </ul>
+        <p><strong>4.2 Annulation par l'organisme :</strong> {{of.nom}} se réserve le droit d'annuler ou reporter une formation en cas de force majeure ou si le nombre minimal de participants n'est pas atteint. Dans ce cas, les sommes versées seront intégralement remboursées.</p>
+        <p><strong>4.3 Droit de rétractation :</strong> Conformément à l'article L.6353-5 du Code du travail, le stagiaire dispose d'un délai de 10 jours à compter de la signature de la convention pour se rétracter par lettre recommandée avec accusé de réception.</p>
+
+        <h2 style="color: #1e40af; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; margin-top: 30px;">ARTICLE 5 - DÉROULEMENT DE LA FORMATION</h2>
+        <p><strong>5.1 Horaires :</strong> Les horaires de formation sont précisés dans la convocation adressée au stagiaire.</p>
+        <p><strong>5.2 Assiduité :</strong> Le stagiaire s'engage à suivre l'intégralité de la formation et à signer les feuilles d'émargement. En cas d'absence non justifiée, l'organisme se réserve le droit d'interrompre la formation sans remboursement.</p>
+        <p><strong>5.3 Règlement intérieur :</strong> Tout stagiaire s'engage à respecter le règlement intérieur de l'organisme de formation qui lui sera communiqué avant le début de la formation.</p>
+
+        <h2 style="color: #1e40af; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; margin-top: 30px;">ARTICLE 6 - OBLIGATIONS DE L'ORGANISME DE FORMATION</h2>
+        <p>{{of.nom}} s'engage à :</p>
+        <ul style="margin-left: 20px;">
+          <li>Dispenser une formation conforme au programme communiqué</li>
+          <li>Mettre à disposition les moyens pédagogiques et techniques nécessaires</li>
+          <li>Remettre une attestation de fin de formation</li>
+          <li>Répondre aux exigences de qualité (Qualiopi le cas échéant)</li>
+        </ul>
+
+        <h2 style="color: #1e40af; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; margin-top: 30px;">ARTICLE 7 - OBLIGATIONS DU STAGIAIRE</h2>
+        <p>Le stagiaire s'engage à :</p>
+        <ul style="margin-left: 20px;">
+          <li>Être présent et ponctuel à toutes les sessions</li>
+          <li>Participer activement aux activités proposées</li>
+          <li>Réaliser les évaluations et travaux demandés</li>
+          <li>Respecter le matériel mis à disposition</li>
+          <li>Ne pas perturber le bon déroulement de la formation</li>
+        </ul>
+
+        <h2 style="color: #1e40af; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; margin-top: 30px;">ARTICLE 8 - PROPRIÉTÉ INTELLECTUELLE</h2>
+        <p>L'ensemble des supports de formation, documents et outils pédagogiques demeurent la propriété exclusive de {{of.nom}}. Toute reproduction, représentation ou diffusion, totale ou partielle, est interdite sans autorisation écrite préalable.</p>
+
+        <h2 style="color: #1e40af; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; margin-top: 30px;">ARTICLE 9 - PROTECTION DES DONNÉES PERSONNELLES</h2>
+        <p>Conformément au RGPD et à la loi Informatique et Libertés, {{of.nom}} collecte et traite les données personnelles des stagiaires aux seules fins de gestion administrative et pédagogique des formations. Le stagiaire dispose d'un droit d'accès, de rectification, de suppression et de portabilité de ses données en contactant : <strong>{{of.email}}</strong></p>
+
+        <h2 style="color: #1e40af; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; margin-top: 30px;">ARTICLE 10 - RESPONSABILITÉ</h2>
+        <p>La responsabilité de {{of.nom}} ne saurait être engagée en cas de force majeure ou d'événement indépendant de sa volonté. L'organisme ne peut être tenu responsable des dommages indirects résultant de la formation.</p>
+
+        <h2 style="color: #1e40af; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; margin-top: 30px;">ARTICLE 11 - RÉCLAMATIONS</h2>
+        <p>Toute réclamation doit être formulée par écrit dans un délai de 30 jours suivant la fin de la formation à l'adresse : {{of.email}}. Une réponse sera apportée dans les 15 jours ouvrés.</p>
+
+        <h2 style="color: #1e40af; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; margin-top: 30px;">ARTICLE 12 - DROIT APPLICABLE ET LITIGES</h2>
+        <p>Les présentes CGV sont soumises au droit français. En cas de litige, les parties s'engagent à rechercher une solution amiable. À défaut, les tribunaux compétents du ressort du siège social de {{of.nom}} seront seuls compétents.</p>
+
+        <div style="margin-top: 40px; padding: 25px; background: #f9fafb; border-radius: 8px; border: 2px solid #e5e7eb;">
+          <h3 style="color: #1e40af; margin-bottom: 15px;">ACCEPTATION DES CONDITIONS GÉNÉRALES DE VENTE</h3>
+          <p>Je soussigné(e), <strong>{{apprenant.nom_complet}}</strong>,</p>
+          <p>demeurant au {{apprenant.adresse}}, {{apprenant.code_postal}} {{apprenant.ville}},</p>
+          <p style="margin-top: 15px;">déclare avoir pris connaissance des présentes Conditions Générales de Vente et les accepte sans réserve.</p>
+          
+          <div style="margin-top: 30px; display: flex; justify-content: space-between;">
+            <div style="width: 48%;">
+              <p><strong>Fait à :</strong> ________________________</p>
+              <p style="margin-top: 10px;"><strong>Le :</strong> {{dates.aujourdhui}}</p>
+            </div>
+            <div style="width: 48%;">
+              <p><strong>Signature du client</strong></p>
+              <p style="font-size: 12px; color: #6b7280;">(Précédée de la mention "Lu et approuvé")</p>
+              <div style="height: 80px; border: 1px dashed #d1d5db; margin-top: 10px; border-radius: 4px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 30px; text-align: center; color: #6b7280; font-size: 12px;">
+          <p>{{of.nom}} - SIRET {{of.siret}} - N° de déclaration d'activité : {{of.nda}}</p>
+          <p>{{of.adresse}}, {{of.code_postal}} {{of.ville}} - Tél : {{of.telephone}}</p>
+        </div>
+      </div>
+    `,
     test_niveau: '<p>Modèle de test de niveau à personnaliser...</p>',
     satisfaction_chaud: '<p>Modèle de satisfaction à chaud à personnaliser...</p>',
     satisfaction_froid: '<p>Modèle de satisfaction à froid à personnaliser...</p>',
