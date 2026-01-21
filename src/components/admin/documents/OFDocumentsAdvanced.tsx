@@ -56,6 +56,7 @@ export const OFDocumentsAdvanced: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showEditor, setShowEditor] = useState(false);
   const [showPhaseSender, setShowPhaseSender] = useState(false);
+  const [showProgrammeLibrary, setShowProgrammeLibrary] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<DocumentTemplate | null>(null);
   const [templates, setTemplates] = useState<DocumentTemplate[]>([
     // Phase Inscription - CGV et Programme
@@ -126,24 +127,25 @@ export const OFDocumentsAdvanced: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-3xl font-bold text-foreground mb-2">Gestion des Documents</h1>
           <p className="text-muted-foreground">Personnalisation et envoi de documents par phase de formation</p>
         </div>
-        <Button onClick={handleCreateTemplate}>
-          <Plus className="h-4 w-4 mr-2" />
-          Nouveau modèle
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setShowProgrammeLibrary(true)}>
+            <BookOpen className="h-4 w-4 mr-2" />
+            Bibliothèque des Programmes
+            {uploadedProgrammes.length > 0 && (
+              <Badge variant="secondary" className="ml-2">{uploadedProgrammes.length}</Badge>
+            )}
+          </Button>
+          <Button onClick={handleCreateTemplate}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nouveau modèle
+          </Button>
+        </div>
       </div>
-
-      {/* Programme Library */}
-      <ProgrammeLibrary
-        formations={mockFormations}
-        uploadedProgrammes={uploadedProgrammes}
-        onUpload={handleProgrammeUpload}
-        onDelete={handleProgrammeDelete}
-      />
 
       {/* Phase Tabs */}
       <Tabs value={activePhase} onValueChange={(v) => setActivePhase(v as DocumentPhase)}>
@@ -312,6 +314,16 @@ export const OFDocumentsAdvanced: React.FC = () => {
         ofInfo={mockOF}
         onSend={handleDocumentsSent}
         uploadedProgrammes={uploadedProgrammes}
+      />
+
+      {/* Programme Library Modal */}
+      <ProgrammeLibrary
+        isOpen={showProgrammeLibrary}
+        onClose={() => setShowProgrammeLibrary(false)}
+        formations={mockFormations}
+        uploadedProgrammes={uploadedProgrammes}
+        onUpload={handleProgrammeUpload}
+        onDelete={handleProgrammeDelete}
       />
     </div>
   );
