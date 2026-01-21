@@ -121,9 +121,9 @@ export const StudentDocumentsSidebar = ({
               )}
             </div>
             <p className={cn(
-              "text-xs mt-1 leading-tight",
+              "text-xs mt-1 leading-tight truncate",
               isActive ? "text-pink-600/80" : "text-gray-500"
-            )}>
+            )} title={item.description}>
               {item.description}
             </p>
             {progressInfo && progressInfo.total > 0 && (
