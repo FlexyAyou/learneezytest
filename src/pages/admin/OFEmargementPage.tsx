@@ -177,7 +177,7 @@ const OFEmargementPage: React.FC = () => {
           <CardContent className="p-4 flex items-start gap-3">
             <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5" />
             <div>
-              <h3 className="font-medium text-amber-800">Documents de preuve pour audits</h3>
+              <h3 className="font-medium text-amber-800">Preuve d'émargements</h3>
               <p className="text-sm text-amber-700 mt-1">
                 Les documents signés par vos apprenants constituent une preuve légale pour les autorités compétentes. 
                 Assurez-vous que tous les documents requis sont signés avant la fin de chaque formation.
