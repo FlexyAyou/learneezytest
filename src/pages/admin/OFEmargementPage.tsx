@@ -250,7 +250,6 @@ const OFEmargementPage: React.FC = () => {
                 <TableRow>
                   <TableHead>Apprenant</TableHead>
                   <TableHead>Formation</TableHead>
-                  <TableHead>Entreprise</TableHead>
                   <TableHead className="text-center">Documents signés</TableHead>
                   <TableHead className="text-center">En attente</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -280,7 +279,6 @@ const OFEmargementPage: React.FC = () => {
                         </div>
                       </TableCell>
                       <TableCell>{learner.formationName}</TableCell>
-                      <TableCell>{learner.company}</TableCell>
                       <TableCell className="text-center">
                         <Badge variant="default" className="bg-green-600">
                           <CheckCircle2 className="h-3 w-3 mr-1" />
