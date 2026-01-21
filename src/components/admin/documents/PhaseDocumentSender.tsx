@@ -133,6 +133,11 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
   const personalizeContent = (htmlContent: string): string => {
     if (!selectedLearner || !selectedFormation) return htmlContent;
 
+    // Build signature HTML if available
+    const signatureHtml = ofInfo.signatureUrl 
+      ? `<img src="${ofInfo.signatureUrl}" alt="Signature officielle ${ofInfo.name}" style="max-height: 80px; display: inline-block;" />`
+      : '<span style="color: #999; font-style: italic;">[Signature OF non configurée]</span>';
+
     const replacements: Record<string, string> = {
       // OF
       '{{of.nom}}': ofInfo.name,
@@ -144,6 +149,7 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
       '{{of.telephone}}': ofInfo.phone,
       '{{of.email}}': ofInfo.email,
       '{{of.responsable}}': ofInfo.responsable,
+      '{{of.signature}}': signatureHtml,
       // Apprenant
       '{{apprenant.prenom}}': selectedLearner.firstName,
       '{{apprenant.nom}}': selectedLearner.lastName,
