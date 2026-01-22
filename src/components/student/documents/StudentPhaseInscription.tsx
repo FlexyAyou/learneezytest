@@ -1,11 +1,12 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { UserPlus, ClipboardList, BookOpen, FileSignature, AlertCircle, CheckCircle } from 'lucide-react';
+import { UserPlus, ClipboardList, BookOpen, FileSignature, AlertCircle, CheckCircle, ScrollText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DocumentCard } from './DocumentCard';
 import { DocumentSignatureModal } from './DocumentSignatureModal';
+import { StudentDocumentPreviewModal } from './StudentDocumentPreviewModal';
+import { DEFAULT_TEMPLATES } from '@/components/admin/documents/defaultTemplates';
 
 interface Formation {
   id: string;
@@ -19,17 +20,48 @@ interface PhaseDocument {
   id: string;
   name: string;
   formationId: string;
-  type: 'analyse_besoin' | 'test_positionnement' | 'convention';
+  type: 'analyse_besoin' | 'test_positionnement' | 'convention' | 'cgv';
   date: string;
   size: string;
   status: 'available' | 'signed' | 'completed';
   requiresSignature?: boolean;
+  htmlContent?: string;
 }
 
 interface StudentPhaseInscriptionProps {
   selectedFormation: string;
   formations: Formation[];
 }
+
+// Helper pour personnaliser le contenu HTML avec les données réelles
+const personalizeContent = (template: string, formation: Formation): string => {
+  // Récupérer la signature OF depuis localStorage
+  const storedSignature = localStorage.getItem('of_official_signature');
+  const signatureHtml = storedSignature 
+    ? `<img src="${storedSignature}" alt="Signature OF" style="max-height: 60px; max-width: 200px;" />`
+    : '<span style="color: #999; font-style: italic;">[Signature OF]</span>';
+
+  return template
+    .replace(/\{\{of\.nom\}\}/g, 'InfinitiAX Formation')
+    .replace(/\{\{of\.siret\}\}/g, '123 456 789 00012')
+    .replace(/\{\{of\.nda\}\}/g, '11 75 12345 75')
+    .replace(/\{\{of\.adresse\}\}/g, '15 Rue de la Formation')
+    .replace(/\{\{of\.codePostal\}\}/g, '75001')
+    .replace(/\{\{of\.ville\}\}/g, 'Paris')
+    .replace(/\{\{of\.telephone\}\}/g, '01 23 45 67 89')
+    .replace(/\{\{of\.email\}\}/g, 'contact@infinitiax.com')
+    .replace(/\{\{of\.responsable\}\}/g, 'Jean Dupont')
+    .replace(/\{\{of\.signature\}\}/g, signatureHtml)
+    .replace(/\{\{formation\.nom\}\}/g, formation.name)
+    .replace(/\{\{formation\.duree\}\}/g, '35 heures')
+    .replace(/\{\{formation\.lieu\}\}/g, 'Paris - En présentiel')
+    .replace(/\{\{formation\.prix\}\}/g, '1 500,00 €')
+    .replace(/\{\{dates\.debut\}\}/g, '15/01/2024')
+    .replace(/\{\{dates\.fin\}\}/g, '19/01/2024')
+    .replace(/\{\{date\.jour\}\}/g, new Date().toLocaleDateString('fr-FR'))
+    .replace(/\{\{apprenant\.nom\}\}/g, 'Martin')
+    .replace(/\{\{apprenant\.prenom\}\}/g, 'Sophie');
+};
 
 export const StudentPhaseInscription = ({ selectedFormation, formations }: StudentPhaseInscriptionProps) => {
   const { toast } = useToast();
@@ -38,13 +70,17 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
     { id: '1', name: 'Analyse_Besoin_Math.pdf', formationId: '1', type: 'analyse_besoin', date: '2024-01-20', size: '1.2 MB', status: 'completed' },
     { id: '2', name: 'Test_Positionnement_Math.pdf', formationId: '1', type: 'test_positionnement', date: '2024-01-21', size: '0.8 MB', status: 'completed' },
     { id: '3', name: 'Convention_Formation_Math.pdf', formationId: '1', type: 'convention', date: '2024-01-22', size: '1.5 MB', status: 'available', requiresSignature: true },
-    { id: '4', name: 'Analyse_Besoin_Francais.pdf', formationId: '2', type: 'analyse_besoin', date: '2024-01-18', size: '1.1 MB', status: 'completed' },
-    { id: '5', name: 'Test_Positionnement_Francais.pdf', formationId: '2', type: 'test_positionnement', date: '2024-01-19', size: '0.9 MB', status: 'available', requiresSignature: true },
-    { id: '6', name: 'Convention_Formation_Francais.pdf', formationId: '2', type: 'convention', date: '2024-01-20', size: '1.4 MB', status: 'signed' },
+    { id: '4', name: 'CGV_Formation_Math.pdf', formationId: '1', type: 'cgv', date: '2024-01-22', size: '0.5 MB', status: 'signed' },
+    { id: '5', name: 'Analyse_Besoin_Francais.pdf', formationId: '2', type: 'analyse_besoin', date: '2024-01-18', size: '1.1 MB', status: 'completed' },
+    { id: '6', name: 'Test_Positionnement_Francais.pdf', formationId: '2', type: 'test_positionnement', date: '2024-01-19', size: '0.9 MB', status: 'available', requiresSignature: true },
+    { id: '7', name: 'Convention_Formation_Francais.pdf', formationId: '2', type: 'convention', date: '2024-01-20', size: '1.4 MB', status: 'signed' },
+    { id: '8', name: 'CGV_Formation_Francais.pdf', formationId: '2', type: 'cgv', date: '2024-01-20', size: '0.5 MB', status: 'available', requiresSignature: true },
   ]);
 
   const [signatureModalOpen, setSignatureModalOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<PhaseDocument | null>(null);
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [previewDocument, setPreviewDocument] = useState<{ title: string; content: string } | null>(null);
 
   const documentTypes = {
     analyse_besoin: {
@@ -64,6 +100,12 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
       icon: FileSignature,
       description: 'Accord contractuel de formation',
       color: 'text-violet-500'
+    },
+    cgv: {
+      label: 'Conditions Générales de Vente',
+      icon: ScrollText,
+      description: 'Conditions commerciales et légales',
+      color: 'text-amber-500'
     }
   };
 
@@ -97,6 +139,24 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
   };
 
   const handlePreview = (doc: PhaseDocument) => {
+    // Récupérer la formation associée
+    const formation = formations.find(f => f.id === doc.formationId);
+    
+    // Pour les CGV et Convention, afficher le template HTML personnalisé
+    if ((doc.type === 'cgv' || doc.type === 'convention') && formation) {
+      const template = doc.type === 'cgv' ? DEFAULT_TEMPLATES.cgv : DEFAULT_TEMPLATES.convention;
+      if (template) {
+        const personalizedContent = personalizeContent(template, formation);
+        setPreviewDocument({
+          title: documentTypes[doc.type].label,
+          content: personalizedContent
+        });
+        setPreviewModalOpen(true);
+        return;
+      }
+    }
+    
+    // Pour les autres types, afficher un toast
     toast({
       title: "Aperçu",
       description: `Ouverture de ${doc.name}...`,
@@ -283,6 +343,23 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
           size: selectedDocument.size
         } : null}
         onSignatureComplete={handleSignatureComplete}
+      />
+
+      {/* Preview Modal for CGV and other HTML documents */}
+      <StudentDocumentPreviewModal
+        isOpen={previewModalOpen}
+        onClose={() => {
+          setPreviewModalOpen(false);
+          setPreviewDocument(null);
+        }}
+        title={previewDocument?.title || ''}
+        htmlContent={previewDocument?.content || ''}
+        onDownload={() => {
+          toast({
+            title: "Téléchargement",
+            description: "Document téléchargé avec succès",
+          });
+        }}
       />
     </div>
   );
