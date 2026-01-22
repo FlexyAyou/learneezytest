@@ -26,6 +26,8 @@ interface PhaseDocument {
   status: 'available' | 'signed' | 'completed';
   requiresSignature?: boolean;
   htmlContent?: string;
+  learnerSignature?: string; // Signature de l'apprenant
+  signedAt?: string; // Date de signature
 }
 
 interface StudentPhaseInscriptionProps {
@@ -34,12 +36,17 @@ interface StudentPhaseInscriptionProps {
 }
 
 // Helper pour personnaliser le contenu HTML avec les données réelles
-const personalizeContent = (template: string, formation: Formation): string => {
+const personalizeContent = (template: string, formation: Formation, learnerSignature?: string): string => {
   // Récupérer la signature OF depuis localStorage
   const storedSignature = localStorage.getItem('of_official_signature');
   const signatureHtml = storedSignature 
     ? `<img src="${storedSignature}" alt="Signature OF" style="max-height: 60px; max-width: 200px;" />`
     : '<span style="color: #999; font-style: italic;">[Signature OF]</span>';
+
+  // Signature de l'apprenant
+  const learnerSignatureHtml = learnerSignature
+    ? `<div style="margin-top: 10px;"><img src="${learnerSignature}" alt="Signature apprenant" style="max-height: 60px; max-width: 200px;" /><p style="font-size: 12px; color: #666; margin-top: 5px;">Signé électroniquement</p></div>`
+    : '';
 
   return template
     .replace(/\{\{of\.nom\}\}/g, 'InfinitiAX Formation')
@@ -60,7 +67,12 @@ const personalizeContent = (template: string, formation: Formation): string => {
     .replace(/\{\{dates\.fin\}\}/g, '19/01/2024')
     .replace(/\{\{date\.jour\}\}/g, new Date().toLocaleDateString('fr-FR'))
     .replace(/\{\{apprenant\.nom\}\}/g, 'Martin')
-    .replace(/\{\{apprenant\.prenom\}\}/g, 'Sophie');
+    .replace(/\{\{apprenant\.prenom\}\}/g, 'Sophie')
+    // Remplacer le placeholder du stagiaire par la signature si disponible
+    .replace(/<p style="margin-bottom: 60px;"><strong>Le stagiaire<\/strong> \(mention "Lu et approuvé"\)<\/p>/g, 
+      `<p><strong>Le stagiaire</strong> (mention "Lu et approuvé")</p>${learnerSignatureHtml}`)
+    .replace(/<p style="margin-top: 50px;">{{apprenant\.prenom}} {{apprenant\.nom}}<br\/>Date : {{date\.jour}}<\/p>/g,
+      `${learnerSignatureHtml}<p>Sophie Martin<br/>Date : ${new Date().toLocaleDateString('fr-FR')}</p>`);
 };
 
 export const StudentPhaseInscription = ({ selectedFormation, formations }: StudentPhaseInscriptionProps) => {
@@ -124,7 +136,13 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
   const handleSignatureComplete = (documentId: string, signatureData: string) => {
     setDocuments(prev => prev.map(doc => 
       doc.id === documentId 
-        ? { ...doc, status: 'signed' as const, requiresSignature: false }
+        ? { 
+            ...doc, 
+            status: 'signed' as const, 
+            requiresSignature: false,
+            learnerSignature: signatureData,
+            signedAt: new Date().toISOString()
+          }
         : doc
     ));
     setSignatureModalOpen(false);
@@ -146,7 +164,8 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
     if ((doc.type === 'cgv' || doc.type === 'convention') && formation) {
       const template = doc.type === 'cgv' ? DEFAULT_TEMPLATES.cgv : DEFAULT_TEMPLATES.convention;
       if (template) {
-        const personalizedContent = personalizeContent(template, formation);
+        // Passer la signature de l'apprenant si le document est signé
+        const personalizedContent = personalizeContent(template, formation, doc.learnerSignature);
         setPreviewDocument({
           title: documentTypes[doc.type].label,
           content: personalizedContent
