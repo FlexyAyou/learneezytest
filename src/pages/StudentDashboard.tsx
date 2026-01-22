@@ -24,6 +24,24 @@ import StudentCourseCatalog from './student/StudentCourseCatalog';
 import AIChatButton from '@/components/common/AIChatButton';
 import { useStudentContext } from '@/hooks/useStudentContext';
 
+// Routes désactivées - bloquées au niveau routing (pas juste CSS)
+const DISABLED_ROUTES = [
+  '/progress',
+  '/certificates',
+  '/boutique',
+  '/evaluations',
+  '/subscription'
+];
+
+/**
+ * Composant de protection pour les routes désactivées
+ * Redirige vers le dashboard si l'utilisateur tente d'accéder directement
+ */
+const DisabledRoute = ({ children }: { children: React.ReactNode }) => {
+  // Toujours rediriger vers le dashboard pour les routes désactivées
+  return <Navigate to="/dashboard/apprenant" replace />;
+};
+
 /**
  * Composant de protection de route pour les fonctionnalités Learneezy uniquement
  */
@@ -53,33 +71,27 @@ const StudentDashboard = () => {
             <Routes>
               <Route path="/" element={<StudentDashboardHome />} />
               
+              {/* Routes désactivées - redirigent vers le dashboard (protection côté serveur) */}
+              <Route path="/progress" element={<DisabledRoute><StudentProgress /></DisabledRoute>} />
+              <Route path="/certificates" element={<DisabledRoute><StudentCertificates /></DisabledRoute>} />
+              <Route path="/evaluations" element={<DisabledRoute><StudentEvaluations /></DisabledRoute>} />
+              <Route path="/evaluations/:id/results" element={<DisabledRoute><EvaluationDetail /></DisabledRoute>} />
+              <Route path="/evaluations/:id/take" element={<DisabledRoute><TakeEvaluation /></DisabledRoute>} />
+              <Route path="/boutique" element={<DisabledRoute><StudentShop /></DisabledRoute>} />
+              <Route path="/subscription" element={<DisabledRoute><StudentSubscription /></DisabledRoute>} />
+              
               {/* Routes restreintes pour apprenants Learneezy uniquement */}
               <Route path="/catalogue" element={
                 <LearneezyOnlyRoute>
                   <StudentCourseCatalog />
                 </LearneezyOnlyRoute>
               } />
-              <Route path="/boutique" element={
-                <LearneezyOnlyRoute>
-                  <StudentShop />
-                </LearneezyOnlyRoute>
-              } />
-              <Route path="/subscription" element={
-                <LearneezyOnlyRoute>
-                  <StudentSubscription />
-                </LearneezyOnlyRoute>
-              } />
               
               {/* Routes accessibles à tous les apprenants */}
               <Route path="/courses" element={<StudentCourses />} />
               <Route path="/courses/:id" element={<CourseViewer />} />
-              <Route path="/progress" element={<StudentProgress />} />
-              <Route path="/certificates" element={<StudentCertificates />} />
               <Route path="/inscriptions" element={<StudentInscriptions />} />
               <Route path="/emargements" element={<StudentEmargements />} />
-              <Route path="/evaluations" element={<StudentEvaluations />} />
-              <Route path="/evaluations/:id/results" element={<EvaluationDetail />} />
-              <Route path="/evaluations/:id/take" element={<TakeEvaluation />} />
               <Route path="/video" element={<StudentVideoConferences />} />
               <Route path="/documents" element={<StudentDocuments />} />
               <Route path="/messages" element={<StudentMessaging />} />
