@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,11 +11,13 @@ import {
   Users, Search, ChevronRight, FileSignature, CheckCircle2, 
   XCircle, Clock, FileText, ArrowLeft, Shield, Mail,
   Phone, Building2, Calendar, Download, Eye, Printer,
-  AlertTriangle, Filter, SortAsc
+  AlertTriangle, Filter, SortAsc, X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { DEFAULT_TEMPLATES } from '@/components/admin/documents/defaultTemplates';
+import { DocumentType } from '@/components/admin/documents/types';
 
 interface Learner {
   id: string;
@@ -42,6 +44,7 @@ interface SentDocument {
   signatureConsentAcceptedAt?: string;
   signatureData?: string;
   documentUrl?: string;
+  htmlContent?: string;
 }
 
 // Mock data
@@ -51,41 +54,101 @@ const mockLearners: Learner[] = [
   { id: '3', firstName: 'Sophie', lastName: 'Bernard', email: 'sophie.bernard@email.com', phone: '06 55 44 33 22', formationId: '2', formationName: 'Vue.js Débutant', company: 'DigitalAgency' },
 ];
 
-const getMockDocuments = (learnerId: string): SentDocument[] => [
-  { 
-    id: '1', 
-    title: 'Conditions Générales de Vente', 
-    type: 'cgv', 
-    phase: 'inscription', 
-    sentAt: '2024-01-15', 
-    status: 'signed', 
-    signedAt: '2024-01-16T10:30:00', 
-    cgvAccepted: true, 
-    cgvAcceptedAt: '2024-01-16T10:30:00', 
-    signatureConsentAccepted: true, 
-    signatureConsentAcceptedAt: '2024-01-16T10:30:00',
-    signatureData: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
-    documentUrl: '/documents/cgv-signed.pdf'
-  },
-  { id: '2', title: 'Programme de formation', type: 'programme', phase: 'inscription', sentAt: '2024-01-15', status: 'sent' },
-  { 
-    id: '3', 
-    title: 'Convention de formation', 
-    type: 'convention', 
-    phase: 'formation', 
-    sentAt: '2024-01-20', 
-    status: 'signed', 
-    signedAt: '2024-01-21T14:00:00', 
-    cgvAccepted: true, 
-    cgvAcceptedAt: '2024-01-21T14:00:00', 
-    signatureConsentAccepted: true, 
-    signatureConsentAcceptedAt: '2024-01-21T14:00:00',
-    signatureData: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
-    documentUrl: '/documents/convention-signed.pdf'
-  },
-  { id: '4', title: 'Convocation session', type: 'convocation', phase: 'formation', sentAt: '2024-01-22', status: 'read' },
-  { id: '5', title: 'Attestation de formation', type: 'attestation', phase: 'post-formation', sentAt: '2024-02-05', status: 'pending' },
-];
+const getMockDocuments = (learnerId: string, learner: Learner): SentDocument[] => {
+  // Helper to personalize content with learner data
+  const personalizeContent = (template: string) => {
+    const ofSignature = localStorage.getItem('of_official_signature');
+    
+    return template
+      .replace(/\{\{of\.nom\}\}/g, 'Centre de Formation Excellence')
+      .replace(/\{\{of\.siret\}\}/g, '123 456 789 00012')
+      .replace(/\{\{of\.nda\}\}/g, '11 75 12345 75')
+      .replace(/\{\{of\.adresse\}\}/g, '15 rue de la Formation')
+      .replace(/\{\{of\.codePostal\}\}/g, '75001')
+      .replace(/\{\{of\.ville\}\}/g, 'Paris')
+      .replace(/\{\{of\.telephone\}\}/g, '01 23 45 67 89')
+      .replace(/\{\{of\.email\}\}/g, 'contact@formation-excellence.fr')
+      .replace(/\{\{of\.responsable\}\}/g, 'Jean Directeur')
+      .replace(/\{\{of\.signature\}\}/g, ofSignature ? `<img src="${ofSignature}" alt="Signature OF" style="max-height: 60px;" />` : '<em>(Signature électronique)</em>')
+      .replace(/\{\{apprenant\.prenom\}\}/g, learner.firstName)
+      .replace(/\{\{apprenant\.nom\}\}/g, learner.lastName)
+      .replace(/\{\{apprenant\.email\}\}/g, learner.email)
+      .replace(/\{\{apprenant\.entreprise\}\}/g, learner.company)
+      .replace(/\{\{apprenant\.adresse\}\}/g, '10 rue du Stagiaire')
+      .replace(/\{\{apprenant\.codePostal\}\}/g, '75002')
+      .replace(/\{\{apprenant\.ville\}\}/g, 'Paris')
+      .replace(/\{\{formation\.nom\}\}/g, learner.formationName)
+      .replace(/\{\{formation\.duree\}\}/g, '35 heures')
+      .replace(/\{\{formation\.lieu\}\}/g, 'Paris - Centre de formation')
+      .replace(/\{\{formation\.prix\}\}/g, '2 500,00 €')
+      .replace(/\{\{formation\.formateur\}\}/g, 'Marc Formateur')
+      .replace(/\{\{dates\.debut\}\}/g, '15/01/2024')
+      .replace(/\{\{dates\.fin\}\}/g, '19/01/2024')
+      .replace(/\{\{date\.jour\}\}/g, new Date().toLocaleDateString('fr-FR'));
+  };
+
+  return [
+    { 
+      id: '1', 
+      title: 'Conditions Générales de Vente', 
+      type: 'cgv', 
+      phase: 'inscription', 
+      sentAt: '2024-01-15', 
+      status: 'signed', 
+      signedAt: '2024-01-16T10:30:00', 
+      cgvAccepted: true, 
+      cgvAcceptedAt: '2024-01-16T10:30:00', 
+      signatureConsentAccepted: true, 
+      signatureConsentAcceptedAt: '2024-01-16T10:30:00',
+      signatureData: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+      documentUrl: '/documents/cgv-signed.pdf',
+      htmlContent: DEFAULT_TEMPLATES.cgv ? personalizeContent(DEFAULT_TEMPLATES.cgv) : undefined
+    },
+    { 
+      id: '2', 
+      title: 'Programme de formation', 
+      type: 'programme', 
+      phase: 'inscription', 
+      sentAt: '2024-01-15', 
+      status: 'sent',
+      htmlContent: DEFAULT_TEMPLATES.programme ? personalizeContent(DEFAULT_TEMPLATES.programme) : undefined
+    },
+    { 
+      id: '3', 
+      title: 'Convention de formation', 
+      type: 'convention', 
+      phase: 'formation', 
+      sentAt: '2024-01-20', 
+      status: 'signed', 
+      signedAt: '2024-01-21T14:00:00', 
+      cgvAccepted: true, 
+      cgvAcceptedAt: '2024-01-21T14:00:00', 
+      signatureConsentAccepted: true, 
+      signatureConsentAcceptedAt: '2024-01-21T14:00:00',
+      signatureData: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+      documentUrl: '/documents/convention-signed.pdf',
+      htmlContent: DEFAULT_TEMPLATES.convention ? personalizeContent(DEFAULT_TEMPLATES.convention) : undefined
+    },
+    { 
+      id: '4', 
+      title: 'Convocation session', 
+      type: 'convocation', 
+      phase: 'formation', 
+      sentAt: '2024-01-22', 
+      status: 'read',
+      htmlContent: DEFAULT_TEMPLATES.convocation ? personalizeContent(DEFAULT_TEMPLATES.convocation) : undefined
+    },
+    { 
+      id: '5', 
+      title: 'Attestation de formation', 
+      type: 'attestation', 
+      phase: 'post-formation', 
+      sentAt: '2024-02-05', 
+      status: 'pending',
+      htmlContent: DEFAULT_TEMPLATES.attestation ? personalizeContent(DEFAULT_TEMPLATES.attestation) : undefined
+    },
+  ];
+};
 
 const OFEmargementPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -99,8 +162,8 @@ const OFEmargementPage: React.FC = () => {
     l.formationName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const getLearnerStats = (learnerId: string) => {
-    const docs = getMockDocuments(learnerId);
+  const getLearnerStats = (learner: Learner) => {
+    const docs = getMockDocuments(learner.id, learner);
     const signed = docs.filter(d => d.status === 'signed').length;
     const pending = docs.filter(d => d.status === 'pending' || d.status === 'sent').length;
     return { total: docs.length, signed, pending };
@@ -136,12 +199,36 @@ const OFEmargementPage: React.FC = () => {
     link.click();
   };
 
-  const handlePrint = (doc: SentDocument) => {
-    window.print();
+  const handlePrintDocument = (doc: SentDocument) => {
+    if (!doc.htmlContent) {
+      window.print();
+      return;
+    }
+    
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>${doc.title}</title>
+          <style>
+            body { font-family: 'Times New Roman', Times, serif; padding: 20px; }
+            @media print { body { padding: 0; } }
+          </style>
+        </head>
+        <body>
+          ${doc.htmlContent}
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
+    }
   };
 
   const totalStats = mockLearners.reduce((acc, l) => {
-    const stats = getLearnerStats(l.id);
+    const stats = getLearnerStats(l);
     return {
       total: acc.total + stats.total,
       signed: acc.signed + stats.signed,
@@ -257,7 +344,7 @@ const OFEmargementPage: React.FC = () => {
               </TableHeader>
               <TableBody>
                 {filteredLearners.map((learner) => {
-                  const stats = getLearnerStats(learner.id);
+                  const stats = getLearnerStats(learner);
                   const isComplete = stats.pending === 0;
                   return (
                     <TableRow 
@@ -315,7 +402,7 @@ const OFEmargementPage: React.FC = () => {
   }
 
   // Learner detail view
-  const documents = getMockDocuments(selectedLearner.id);
+  const documents = getMockDocuments(selectedLearner.id, selectedLearner);
   const groupedDocs = documents.reduce((acc, doc) => {
     if (!acc[doc.phase]) acc[doc.phase] = [];
     acc[doc.phase].push(doc);
@@ -464,16 +551,16 @@ const OFEmargementPage: React.FC = () => {
                           )}
                         </TableCell>
                         <TableCell className="text-right">
-                          {doc.status === 'signed' && (
-                            <div className="flex justify-end gap-2">
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                onClick={() => setPreviewDocument(doc)}
-                              >
-                                <Eye className="h-4 w-4 mr-1" />
-                                Voir
-                              </Button>
+                          <div className="flex justify-end gap-2">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => setPreviewDocument(doc)}
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              Voir
+                            </Button>
+                            {doc.status === 'signed' && (
                               <Button 
                                 size="sm" 
                                 variant="outline"
@@ -482,13 +569,8 @@ const OFEmargementPage: React.FC = () => {
                                 <Download className="h-4 w-4 mr-1" />
                                 Télécharger
                               </Button>
-                            </div>
-                          )}
-                          {doc.status !== 'signed' && (
-                            <span className="text-sm text-muted-foreground">
-                              En attente de signature
-                            </span>
-                          )}
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
@@ -502,108 +584,135 @@ const OFEmargementPage: React.FC = () => {
 
       {/* Document Preview Dialog */}
       <Dialog open={!!previewDocument} onOpenChange={() => setPreviewDocument(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <FileSignature className="h-5 w-5" />
-              {previewDocument?.title} - Document signé
-            </DialogTitle>
+        <DialogContent className="max-w-5xl max-h-[95vh] overflow-hidden flex flex-col">
+          <DialogHeader className="flex-shrink-0">
+            <div className="flex items-center justify-between">
+              <DialogTitle className="flex items-center gap-2">
+                <FileSignature className="h-5 w-5" />
+                {previewDocument?.title} {previewDocument?.status === 'signed' && '- Document signé'}
+              </DialogTitle>
+              <div className="flex items-center gap-2 mr-8">
+                <Button size="sm" variant="outline" onClick={() => previewDocument && handlePrintDocument(previewDocument)}>
+                  <Printer className="h-4 w-4 mr-1" />
+                  Imprimer
+                </Button>
+                {previewDocument?.status === 'signed' && (
+                  <Button size="sm" variant="outline" onClick={() => previewDocument && handleDownload(previewDocument)}>
+                    <Download className="h-4 w-4 mr-1" />
+                    Télécharger
+                  </Button>
+                )}
+              </div>
+            </div>
           </DialogHeader>
           
           {previewDocument && (
-            <div className="space-y-6">
-              {/* Document metadata */}
-              <Card className="bg-muted/50">
-                <CardContent className="p-4">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div>
-                      <div className="text-muted-foreground">Apprenant</div>
-                      <div className="font-medium">{selectedLearner.firstName} {selectedLearner.lastName}</div>
-                    </div>
-                    <div>
-                      <div className="text-muted-foreground">Document</div>
-                      <div className="font-medium">{previewDocument.title}</div>
-                    </div>
-                    <div>
-                      <div className="text-muted-foreground">Signé le</div>
-                      <div className="font-medium text-green-600">
-                        {previewDocument.signedAt && new Date(previewDocument.signedAt).toLocaleString('fr-FR')}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-muted-foreground">Statut légal</div>
-                      <Badge variant="default" className="bg-green-600 mt-1">
-                        <CheckCircle2 className="h-3 w-3 mr-1" />
-                        Valide
-                      </Badge>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Consent details */}
-              <Card>
-                <CardHeader className="py-3">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <Shield className="h-4 w-4" />
-                    Preuves de consentement (pour audit)
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-green-600" />
-                      <span className="text-sm font-medium">CGV acceptées</span>
-                    </div>
-                    <span className="text-sm text-green-700">
-                      {previewDocument.cgvAcceptedAt && new Date(previewDocument.cgvAcceptedAt).toLocaleString('fr-FR')}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-green-600" />
-                      <span className="text-sm font-medium">Consentement signature électronique</span>
-                    </div>
-                    <span className="text-sm text-green-700">
-                      {previewDocument.signatureConsentAcceptedAt && new Date(previewDocument.signatureConsentAcceptedAt).toLocaleString('fr-FR')}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Signature preview */}
-              {previewDocument.signatureData && (
-                <Card>
-                  <CardHeader className="py-3">
-                    <CardTitle className="text-sm flex items-center gap-2">
-                      <FileSignature className="h-4 w-4" />
-                      Signature électronique de l'apprenant
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="border rounded-lg p-4 bg-white">
-                      <img 
-                        src={previewDocument.signatureData} 
-                        alt="Signature de l'apprenant" 
-                        className="max-h-24 mx-auto"
+            <ScrollArea className="flex-1 overflow-auto">
+              <div className="space-y-6 p-1">
+                {/* Document HTML Content Preview */}
+                {previewDocument.htmlContent && (
+                  <Card>
+                    <CardHeader className="py-3">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <FileText className="h-4 w-4" />
+                        Contenu du document
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div 
+                        className="bg-white border rounded-lg p-6 prose prose-sm max-w-none overflow-auto max-h-[400px]"
+                        style={{ fontFamily: "'Times New Roman', Times, serif" }}
+                        dangerouslySetInnerHTML={{ __html: previewDocument.htmlContent }}
                       />
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+                    </CardContent>
+                  </Card>
+                )}
 
-              {/* Actions */}
-              <div className="flex justify-end gap-3 pt-4 border-t">
-                <Button variant="outline" onClick={() => handlePrint(previewDocument)}>
-                  <Printer className="h-4 w-4 mr-2" />
-                  Imprimer
-                </Button>
-                <Button onClick={() => handleDownload(previewDocument)}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Télécharger le PDF signé
-                </Button>
+                {/* Document metadata - only for signed docs */}
+                {previewDocument.status === 'signed' && (
+                  <>
+                    <Card className="bg-muted/50">
+                      <CardContent className="p-4">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                          <div>
+                            <div className="text-muted-foreground">Apprenant</div>
+                            <div className="font-medium">{selectedLearner.firstName} {selectedLearner.lastName}</div>
+                          </div>
+                          <div>
+                            <div className="text-muted-foreground">Document</div>
+                            <div className="font-medium">{previewDocument.title}</div>
+                          </div>
+                          <div>
+                            <div className="text-muted-foreground">Signé le</div>
+                            <div className="font-medium text-green-600">
+                              {previewDocument.signedAt && new Date(previewDocument.signedAt).toLocaleString('fr-FR')}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-muted-foreground">Statut légal</div>
+                            <Badge variant="default" className="bg-green-600 mt-1">
+                              <CheckCircle2 className="h-3 w-3 mr-1" />
+                              Valide
+                            </Badge>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Consent details */}
+                    <Card>
+                      <CardHeader className="py-3">
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <Shield className="h-4 w-4" />
+                          Preuves de consentement (pour audit)
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-green-600" />
+                            <span className="text-sm font-medium">CGV acceptées</span>
+                          </div>
+                          <span className="text-sm text-green-700">
+                            {previewDocument.cgvAcceptedAt && new Date(previewDocument.cgvAcceptedAt).toLocaleString('fr-FR')}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-green-600" />
+                            <span className="text-sm font-medium">Consentement signature électronique</span>
+                          </div>
+                          <span className="text-sm text-green-700">
+                            {previewDocument.signatureConsentAcceptedAt && new Date(previewDocument.signatureConsentAcceptedAt).toLocaleString('fr-FR')}
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Signature preview */}
+                    {previewDocument.signatureData && (
+                      <Card>
+                        <CardHeader className="py-3">
+                          <CardTitle className="text-sm flex items-center gap-2">
+                            <FileSignature className="h-4 w-4" />
+                            Signature électronique de l'apprenant
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="border rounded-lg p-4 bg-white">
+                            <img 
+                              src={previewDocument.signatureData} 
+                              alt="Signature de l'apprenant" 
+                              className="max-h-24 mx-auto"
+                            />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </>
+                )}
               </div>
-            </div>
+            </ScrollArea>
           )}
         </DialogContent>
       </Dialog>
