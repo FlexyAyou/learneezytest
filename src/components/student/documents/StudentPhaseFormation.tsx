@@ -6,6 +6,8 @@ import { School, FileText, BookOpen, Calendar, CheckSquare, AlertCircle, CheckCi
 import { useToast } from '@/hooks/use-toast';
 import { DocumentCard } from './DocumentCard';
 import { DocumentSignatureModal } from './DocumentSignatureModal';
+import { StudentDocumentPreviewModal } from './StudentDocumentPreviewModal';
+import { personalizeDocumentContent, getTemplateForType } from '@/utils/personalizeDocumentContent';
 
 interface Formation {
   id: string;
@@ -24,6 +26,8 @@ interface PhaseDocument {
   size: string;
   status: 'available' | 'signed' | 'received';
   requiresSignature?: boolean;
+  learnerSignature?: string;
+  signedAt?: string;
 }
 
 interface StudentPhaseFormationProps {
@@ -45,6 +49,8 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
 
   const [signatureModalOpen, setSignatureModalOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<PhaseDocument | null>(null);
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [previewDocument, setPreviewDocument] = useState<{ title: string; content: string } | null>(null);
 
   const documentTypes = {
     cgv_ri: {
@@ -88,7 +94,13 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
   const handleSignatureComplete = (documentId: string, signatureData: string) => {
     setDocuments(prev => prev.map(doc => 
       doc.id === documentId 
-        ? { ...doc, status: 'signed' as const, requiresSignature: false }
+        ? { 
+            ...doc, 
+            status: 'signed' as const, 
+            requiresSignature: false,
+            learnerSignature: signatureData,
+            signedAt: new Date().toISOString()
+          }
         : doc
     ));
     setSignatureModalOpen(false);
@@ -103,6 +115,19 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
   };
 
   const handlePreview = (doc: PhaseDocument) => {
+    const formation = formations.find(f => f.id === doc.formationId);
+    const template = getTemplateForType(doc.type);
+    
+    if (template && formation) {
+      const personalizedContent = personalizeDocumentContent(template, formation, doc.learnerSignature);
+      setPreviewDocument({
+        title: documentTypes[doc.type].label,
+        content: personalizedContent
+      });
+      setPreviewModalOpen(true);
+      return;
+    }
+    
     toast({
       title: "Aperçu",
       description: `Ouverture de ${doc.name}...`,
@@ -288,6 +313,23 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
           size: selectedDocument.size
         } : null}
         onSignatureComplete={handleSignatureComplete}
+      />
+
+      {/* Preview Modal */}
+      <StudentDocumentPreviewModal
+        isOpen={previewModalOpen}
+        onClose={() => {
+          setPreviewModalOpen(false);
+          setPreviewDocument(null);
+        }}
+        title={previewDocument?.title || ''}
+        htmlContent={previewDocument?.content || ''}
+        onDownload={() => {
+          toast({
+            title: "Téléchargement",
+            description: "Document téléchargé avec succès",
+          });
+        }}
       />
     </div>
   );
