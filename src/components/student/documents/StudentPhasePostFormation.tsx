@@ -312,6 +312,11 @@ export const StudentPhasePostFormation = ({ selectedFormation, formations }: Stu
           size: selectedDocument.size
         } : null}
         onSignatureComplete={handleSignatureComplete}
+        htmlContent={selectedDocument ? (() => {
+          const formation = formations.find(f => f.id === selectedDocument.formationId);
+          const template = getTemplateForType(selectedDocument.type);
+          return template && formation ? personalizeDocumentContent(template, formation, selectedDocument.learnerSignature) : undefined;
+        })() : undefined}
       />
 
       {/* Preview Modal */}
