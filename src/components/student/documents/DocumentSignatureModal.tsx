@@ -24,6 +24,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
+import { StudentDocumentPreviewModal } from './StudentDocumentPreviewModal';
 
 interface DocumentToSign {
   id: string;
@@ -40,26 +41,33 @@ interface DocumentSignatureModalProps {
   onClose: () => void;
   document: DocumentToSign | null;
   onSignatureComplete: (documentId: string, signatureData: string) => void;
+  htmlContent?: string;
 }
 
 export const DocumentSignatureModal = ({
   isOpen,
   onClose,
   document,
-  onSignatureComplete
+  onSignatureComplete,
+  htmlContent
 }: DocumentSignatureModalProps) => {
   const { toast } = useToast();
   const [step, setStep] = useState<'preview' | 'sign' | 'success'>('preview');
   const [isLoading, setIsLoading] = useState(false);
   const [hasReadDocument, setHasReadDocument] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const handlePreviewDocument = () => {
+    if (htmlContent) {
+      setPreviewOpen(true);
+      setHasReadDocument(true);
+      return;
+    }
     toast({
       title: "Aperçu du document",
       description: `Ouverture de ${document?.name} en cours...`,
     });
-    // Simulate opening document
     setHasReadDocument(true);
   };
 
@@ -92,6 +100,7 @@ export const DocumentSignatureModal = ({
     setStep('preview');
     setHasReadDocument(false);
     setAcceptTerms(false);
+    setPreviewOpen(false);
     onClose();
   };
 
@@ -304,6 +313,16 @@ export const DocumentSignatureModal = ({
           )}
         </div>
       </DialogContent>
+
+      {/* Document Preview Modal */}
+      {htmlContent && (
+        <StudentDocumentPreviewModal
+          isOpen={previewOpen}
+          onClose={() => setPreviewOpen(false)}
+          title={document?.typeLabel || document?.name || 'Document'}
+          htmlContent={htmlContent}
+        />
+      )}
     </Dialog>
   );
 };
