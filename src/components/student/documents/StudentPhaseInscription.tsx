@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { DocumentCard } from './DocumentCard';
 import { DocumentSignatureModal } from './DocumentSignatureModal';
 import { StudentDocumentPreviewModal } from './StudentDocumentPreviewModal';
-import { DEFAULT_TEMPLATES } from '@/components/admin/documents/defaultTemplates';
+import { personalizeDocumentContent, getTemplateForType } from '@/utils/personalizeDocumentContent';
 
 interface Formation {
   id: string;
@@ -26,54 +26,14 @@ interface PhaseDocument {
   status: 'available' | 'signed' | 'completed';
   requiresSignature?: boolean;
   htmlContent?: string;
-  learnerSignature?: string; // Signature de l'apprenant
-  signedAt?: string; // Date de signature
+  learnerSignature?: string;
+  signedAt?: string;
 }
 
 interface StudentPhaseInscriptionProps {
   selectedFormation: string;
   formations: Formation[];
 }
-
-// Helper pour personnaliser le contenu HTML avec les données réelles
-const personalizeContent = (template: string, formation: Formation, learnerSignature?: string): string => {
-  // Récupérer la signature OF depuis localStorage
-  const storedSignature = localStorage.getItem('of_official_signature');
-  const signatureHtml = storedSignature 
-    ? `<img src="${storedSignature}" alt="Signature OF" style="max-height: 60px; max-width: 200px;" />`
-    : '<span style="color: #999; font-style: italic;">[Signature OF]</span>';
-
-  // Signature de l'apprenant
-  const learnerSignatureHtml = learnerSignature
-    ? `<div style="margin-top: 10px;"><img src="${learnerSignature}" alt="Signature apprenant" style="max-height: 60px; max-width: 200px;" /><p style="font-size: 12px; color: #666; margin-top: 5px;">Signé électroniquement</p></div>`
-    : '';
-
-  return template
-    .replace(/\{\{of\.nom\}\}/g, 'InfinitiAX Formation')
-    .replace(/\{\{of\.siret\}\}/g, '123 456 789 00012')
-    .replace(/\{\{of\.nda\}\}/g, '11 75 12345 75')
-    .replace(/\{\{of\.adresse\}\}/g, '15 Rue de la Formation')
-    .replace(/\{\{of\.codePostal\}\}/g, '75001')
-    .replace(/\{\{of\.ville\}\}/g, 'Paris')
-    .replace(/\{\{of\.telephone\}\}/g, '01 23 45 67 89')
-    .replace(/\{\{of\.email\}\}/g, 'contact@infinitiax.com')
-    .replace(/\{\{of\.responsable\}\}/g, 'Jean Dupont')
-    .replace(/\{\{of\.signature\}\}/g, signatureHtml)
-    .replace(/\{\{formation\.nom\}\}/g, formation.name)
-    .replace(/\{\{formation\.duree\}\}/g, '35 heures')
-    .replace(/\{\{formation\.lieu\}\}/g, 'Paris - En présentiel')
-    .replace(/\{\{formation\.prix\}\}/g, '1 500,00 €')
-    .replace(/\{\{dates\.debut\}\}/g, '15/01/2024')
-    .replace(/\{\{dates\.fin\}\}/g, '19/01/2024')
-    .replace(/\{\{date\.jour\}\}/g, new Date().toLocaleDateString('fr-FR'))
-    .replace(/\{\{apprenant\.nom\}\}/g, 'Martin')
-    .replace(/\{\{apprenant\.prenom\}\}/g, 'Sophie')
-    // Remplacer le placeholder du stagiaire par la signature si disponible
-    .replace(/<p style="margin-bottom: 60px;"><strong>Le stagiaire<\/strong> \(mention "Lu et approuvé"\)<\/p>/g, 
-      `<p><strong>Le stagiaire</strong> (mention "Lu et approuvé")</p>${learnerSignatureHtml}`)
-    .replace(/<p style="margin-top: 50px;">{{apprenant\.prenom}} {{apprenant\.nom}}<br\/>Date : {{date\.jour}}<\/p>/g,
-      `${learnerSignatureHtml}<p>Sophie Martin<br/>Date : ${new Date().toLocaleDateString('fr-FR')}</p>`);
-};
 
 export const StudentPhaseInscription = ({ selectedFormation, formations }: StudentPhaseInscriptionProps) => {
   const { toast } = useToast();
@@ -157,25 +117,19 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
   };
 
   const handlePreview = (doc: PhaseDocument) => {
-    // Récupérer la formation associée
     const formation = formations.find(f => f.id === doc.formationId);
+    const template = getTemplateForType(doc.type);
     
-    // Pour les CGV et Convention, afficher le template HTML personnalisé
-    if ((doc.type === 'cgv' || doc.type === 'convention') && formation) {
-      const template = doc.type === 'cgv' ? DEFAULT_TEMPLATES.cgv : DEFAULT_TEMPLATES.convention;
-      if (template) {
-        // Passer la signature de l'apprenant si le document est signé
-        const personalizedContent = personalizeContent(template, formation, doc.learnerSignature);
-        setPreviewDocument({
-          title: documentTypes[doc.type].label,
-          content: personalizedContent
-        });
-        setPreviewModalOpen(true);
-        return;
-      }
+    if (template && formation) {
+      const personalizedContent = personalizeDocumentContent(template, formation, doc.learnerSignature);
+      setPreviewDocument({
+        title: documentTypes[doc.type].label,
+        content: personalizedContent
+      });
+      setPreviewModalOpen(true);
+      return;
     }
     
-    // Pour les autres types, afficher un toast
     toast({
       title: "Aperçu",
       description: `Ouverture de ${doc.name}...`,
