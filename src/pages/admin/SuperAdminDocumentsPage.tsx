@@ -24,9 +24,10 @@ import { useToast } from '@/hooks/use-toast';
 // --- Mock data ---
 
 const mockOrganismes = [
-  { id: 'of-1', name: 'FormaPro', siret: '123 456 789 00010', nda: '11 75 12345 67', city: 'Paris' },
-  { id: 'of-2', name: 'SkillUp Academy', siret: '987 654 321 00020', nda: '11 69 98765 43', city: 'Lyon' },
-  { id: 'of-3', name: 'DigiForm', siret: '456 789 123 00030', nda: '11 13 45678 90', city: 'Marseille' },
+  { id: 'learneezy', name: 'Learneezy', siret: '900 111 222 00001', nda: '11 75 00001 00', city: 'Paris', isLearneezy: true },
+  { id: 'of-1', name: 'FormaPro', siret: '123 456 789 00010', nda: '11 75 12345 67', city: 'Paris', isLearneezy: false },
+  { id: 'of-2', name: 'SkillUp Academy', siret: '987 654 321 00020', nda: '11 69 98765 43', city: 'Lyon', isLearneezy: false },
+  { id: 'of-3', name: 'DigiForm', siret: '456 789 123 00030', nda: '11 13 45678 90', city: 'Marseille', isLearneezy: false },
 ];
 
 const mockLearners: Learner[] = [
@@ -40,18 +41,38 @@ const mockFormations: Formation[] = [
   { id: '2', name: 'Vue.js Débutant', description: 'Initiation à Vue.js', duration: '21 heures', startDate: '2024-02-10', endDate: '2024-02-12', location: 'Lyon', trainer: 'Sophie Durand', price: 1800 },
 ];
 
-const mockOF: OF = {
-  name: 'FormaPro', siret: '123 456 789 00010', nda: '11 75 12345 67',
-  address: '1 avenue de la Formation', city: 'Paris', postalCode: '75008',
-  phone: '01 23 45 67 89', email: 'contact@formapro.fr', responsable: 'Pierre Durant'
+const learneezyOF: OF = {
+  name: 'Learneezy', siret: '900 111 222 00001', nda: '11 75 00001 00',
+  address: '25 rue de l\'Innovation', city: 'Paris', postalCode: '75009',
+  phone: '01 00 00 00 00', email: 'contact@learneezy.com', website: 'https://learneezy.com', responsable: 'Administrateur Learneezy'
+};
+
+const ofInfoMap: Record<string, OF> = {
+  'learneezy': learneezyOF,
+  'of-1': { name: 'FormaPro', siret: '123 456 789 00010', nda: '11 75 12345 67', address: '1 avenue de la Formation', city: 'Paris', postalCode: '75008', phone: '01 23 45 67 89', email: 'contact@formapro.fr', responsable: 'Pierre Durant' },
+  'of-2': { name: 'SkillUp Academy', siret: '987 654 321 00020', nda: '11 69 98765 43', address: '10 rue de la République', city: 'Lyon', postalCode: '69001', phone: '04 56 78 90 12', email: 'contact@skillup.fr', responsable: 'Claire Moreau' },
+  'of-3': { name: 'DigiForm', siret: '456 789 123 00030', nda: '11 13 45678 90', address: '3 boulevard du Prado', city: 'Marseille', postalCode: '13008', phone: '04 91 00 00 00', email: 'contact@digiform.fr', responsable: 'Marc Lefèvre' },
+};
+
+const getOFForSelection = (selectedOF: string): OF => {
+  if (selectedOF === 'all') return learneezyOF;
+  return ofInfoMap[selectedOF] || learneezyOF;
 };
 
 const mockGlobalDocuments = [
+  // Learneezy documents
+  { id: 'gd-l1', title: 'CGV Learneezy', type: 'cgv' as DocumentType, ofName: 'Learneezy', learnerName: 'Marie Dupont', sentAt: '2024-01-10', status: 'signed', signedAt: '2024-01-11', phase: 'inscription' as DocumentPhase },
+  { id: 'gd-l2', title: 'Programme React Learneezy', type: 'programme' as DocumentType, ofName: 'Learneezy', learnerName: 'Marie Dupont', sentAt: '2024-01-10', status: 'read', phase: 'inscription' as DocumentPhase },
+  { id: 'gd-l3', title: 'Convention Learneezy', type: 'convention' as DocumentType, ofName: 'Learneezy', learnerName: 'Jean Martin', sentAt: '2024-01-12', status: 'signed', signedAt: '2024-01-13', phase: 'formation' as DocumentPhase },
+  { id: 'gd-l4', title: 'Attestation Learneezy', type: 'attestation' as DocumentType, ofName: 'Learneezy', learnerName: 'Sophie Bernard', sentAt: '2024-02-18', status: 'signed', signedAt: '2024-02-19', phase: 'post-formation' as DocumentPhase },
+  // FormaPro documents
   { id: 'gd-1', title: 'CGV FormaPro', type: 'cgv' as DocumentType, ofName: 'FormaPro', learnerName: 'Marie Dupont', sentAt: '2024-01-15', status: 'signed', signedAt: '2024-01-16', phase: 'inscription' as DocumentPhase },
   { id: 'gd-2', title: 'Programme React', type: 'programme' as DocumentType, ofName: 'FormaPro', learnerName: 'Marie Dupont', sentAt: '2024-01-15', status: 'read', phase: 'inscription' as DocumentPhase },
   { id: 'gd-3', title: 'Convention React', type: 'convention' as DocumentType, ofName: 'FormaPro', learnerName: 'Jean Martin', sentAt: '2024-01-20', status: 'signed', signedAt: '2024-01-21', phase: 'formation' as DocumentPhase },
+  // SkillUp documents
   { id: 'gd-4', title: 'CGV SkillUp', type: 'cgv' as DocumentType, ofName: 'SkillUp Academy', learnerName: 'Sophie Bernard', sentAt: '2024-01-18', status: 'sent', phase: 'inscription' as DocumentPhase },
   { id: 'gd-5', title: 'Attestation Vue.js', type: 'attestation' as DocumentType, ofName: 'SkillUp Academy', learnerName: 'Sophie Bernard', sentAt: '2024-02-15', status: 'pending', phase: 'post-formation' as DocumentPhase },
+  // DigiForm documents
   { id: 'gd-6', title: 'Convocation Formation', type: 'convocation' as DocumentType, ofName: 'DigiForm', learnerName: 'Jean Martin', sentAt: '2024-02-01', status: 'read', phase: 'formation' as DocumentPhase },
   { id: 'gd-7', title: 'Certificat Réalisation', type: 'certificat' as DocumentType, ofName: 'FormaPro', learnerName: 'Marie Dupont', sentAt: '2024-02-20', status: 'signed', signedAt: '2024-02-21', phase: 'post-formation' as DocumentPhase },
 ];
@@ -99,7 +120,7 @@ const StatsCards: React.FC<{ documents: typeof mockGlobalDocuments }> = ({ docum
 };
 
 // Phase Management Tab (reuses OF logic)
-const PhaseManagementTab: React.FC = () => {
+const PhaseManagementTab: React.FC<{ ofInfo: OF }> = ({ ofInfo }) => {
   const [activePhase, setActivePhase] = useState<DocumentPhase>('inscription');
   const [searchTerm, setSearchTerm] = useState('');
   const [showEditor, setShowEditor] = useState(false);
@@ -305,7 +326,7 @@ const PhaseManagementTab: React.FC = () => {
         templates={phaseTemplates}
         learners={mockLearners}
         formations={mockFormations}
-        ofInfo={mockOF}
+        ofInfo={ofInfo}
         onSend={handleDocumentsSent}
       />
     </>
@@ -503,8 +524,17 @@ const GlobalTrackingTab: React.FC<{ documents: typeof mockGlobalDocuments; selec
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1.5">
-                      <Building className="h-3.5 w-3.5 text-muted-foreground" />
-                      {doc.ofName}
+                      {doc.ofName === 'Learneezy' ? (
+                        <>
+                          <Sparkles className="h-3.5 w-3.5 text-blue-600" />
+                          <span className="font-medium text-blue-700">{doc.ofName}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Building className="h-3.5 w-3.5 text-muted-foreground" />
+                          {doc.ofName}
+                        </>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell>{doc.learnerName}</TableCell>
@@ -579,11 +609,16 @@ const AuditComplianceTab: React.FC<{ documents: typeof mockGlobalDocuments }> = 
             <CardContent className="p-5">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-muted">
-                    <Building className="h-5 w-5" />
+                  <div className={`p-2 rounded-lg ${of.isLearneezy ? 'bg-blue-100' : 'bg-muted'}`}>
+                    {of.isLearneezy ? <Sparkles className="h-5 w-5 text-blue-600" /> : <Building className="h-5 w-5" />}
                   </div>
                   <div>
-                    <h4 className="font-semibold">{of.name}</h4>
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-semibold">{of.name}</h4>
+                      {of.isLearneezy && (
+                        <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-xs">Plateforme</Badge>
+                      )}
+                    </div>
                     <p className="text-sm text-muted-foreground">{of.city} • SIRET: {of.siret}</p>
                   </div>
                 </div>
@@ -649,7 +684,10 @@ const SuperAdminDocumentsPage: React.FC = () => {
               <SelectItem value="all">Tous les organismes</SelectItem>
               {mockOrganismes.map((of) => (
                 <SelectItem key={of.id} value={of.id}>
-                  {of.name} ({of.city})
+                  <span className="flex items-center gap-2">
+                    {of.isLearneezy ? <Sparkles className="h-3.5 w-3.5 text-blue-600" /> : <Building className="h-3.5 w-3.5" />}
+                    {of.name} ({of.city})
+                  </span>
                 </SelectItem>
               ))}
             </SelectContent>
@@ -682,7 +720,7 @@ const SuperAdminDocumentsPage: React.FC = () => {
         </TabsList>
 
         <TabsContent value="phases" className="mt-6">
-          <PhaseManagementTab />
+          <PhaseManagementTab ofInfo={getOFForSelection(selectedOF)} />
         </TabsContent>
 
         <TabsContent value="templates" className="mt-6">
