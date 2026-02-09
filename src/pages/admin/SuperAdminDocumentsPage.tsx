@@ -167,8 +167,28 @@ const PhaseManagementTab: React.FC<{ ofInfo: OF }> = ({ ofInfo }) => {
     return <Badge variant={c.variant}>{c.label}</Badge>;
   };
 
+  const isLearneezy = ofInfo.name === 'Learneezy';
+
   return (
     <>
+      {/* Bandeau contextuel OF émetteur */}
+      <div className={`flex items-center gap-3 p-3 rounded-lg mb-4 border ${isLearneezy ? 'bg-blue-50 border-blue-200' : 'bg-muted/50 border-border'}`}>
+        <div className={`p-2 rounded-lg ${isLearneezy ? 'bg-blue-100' : 'bg-muted'}`}>
+          {isLearneezy ? <Sparkles className="h-4 w-4 text-blue-600" /> : <Building className="h-4 w-4" />}
+        </div>
+        <div className="flex-1">
+          <p className="text-sm font-medium">
+            Envoi en tant que : <span className={isLearneezy ? 'text-blue-700 font-semibold' : 'font-semibold'}>{ofInfo.name}</span>
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {ofInfo.email} • SIRET: {ofInfo.siret} • NDA: {ofInfo.nda}
+          </p>
+        </div>
+        {isLearneezy && (
+          <Badge className="bg-blue-100 text-blue-700 border-blue-200">Plateforme Learneezy</Badge>
+        )}
+      </div>
+
       <Tabs value={activePhase} onValueChange={(v) => setActivePhase(v as DocumentPhase)}>
         <TabsList className="grid grid-cols-4 w-full">
           {(Object.entries(PHASES_CONFIG) as [DocumentPhase, typeof PHASES_CONFIG.inscription][]).map(([phase, config]) => {
