@@ -49,6 +49,7 @@ const mainNavigationItems = [
 
 const managementItems = [
   { title: "Inscriptions", href: "/dashboard/superadmin/inscriptions", icon: UserCheck },
+  { title: "Documents", href: "/dashboard/superadmin/documents", icon: FileText },
   { title: "Documents OF", href: "/dashboard/superadmin/of-documents", icon: FileText },
   { title: "Conventions", href: "/dashboard/superadmin/conventions", icon: FileSignature },
   { title: "Envois automatiques", href: "/dashboard/superadmin/mailings", icon: Mail },

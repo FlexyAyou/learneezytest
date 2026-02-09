@@ -32,6 +32,7 @@ import AdminDocumentsOF from './admin/AdminDocumentsOF';
 import AdminConventionGenerator from './admin/AdminConventionGenerator';
 import AdminAutomaticMailings from './admin/AdminAutomaticMailings';
 import AdminVideoConferences from './admin/AdminVideoConferences';
+import SuperAdminDocumentsPage from './admin/SuperAdminDocumentsPage';
 import { AdminEmargements } from '@/components/admin/AdminEmargements';
 import { OFLicences } from '@/components/admin/OFLicences';
 import { IdentityVerification } from '@/components/admin/IdentityVerification';
@@ -101,6 +102,7 @@ const AdminDashboard = () => {
               <Route path="courses/:courseId" element={<CourseDetailPage />} />
               <Route path="courses/:id/edit" element={<EditCoursePage />} />
               <Route path="inscriptions" element={<AdminInscriptions />} />
+              <Route path="documents" element={<SuperAdminDocumentsPage />} />
               <Route path="of-documents" element={<AdminDocumentsOF />} />
               <Route path="conventions" element={<AdminConventionGenerator />} />
               <Route path="mailings" element={<AdminAutomaticMailings />} />

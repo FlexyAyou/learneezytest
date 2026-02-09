@@ -1,0 +1,704 @@
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  FileText, Plus, Send, Search, Edit, Download,
+  UserPlus, BookOpen, Award, Clock, CheckCircle,
+  Mail, FileSignature, Building, BarChart3, ShieldCheck,
+  AlertTriangle, TrendingUp, Filter, Eye, Sparkles, Trash2
+} from 'lucide-react';
+import { DocumentTemplateEditor } from '@/components/admin/documents/DocumentTemplateEditor';
+import { PhaseDocumentSender } from '@/components/admin/documents/PhaseDocumentSender';
+import { DEFAULT_TEMPLATES } from '@/components/admin/documents/defaultTemplates';
+import {
+  DocumentTemplate, DocumentPhase, DocumentType, Learner, Formation, OF,
+  PHASES_CONFIG, DOCUMENT_TYPE_LABELS
+} from '@/components/admin/documents/types';
+import { useToast } from '@/hooks/use-toast';
+
+// --- Mock data ---
+
+const mockOrganismes = [
+  { id: 'of-1', name: 'FormaPro', siret: '123 456 789 00010', nda: '11 75 12345 67', city: 'Paris' },
+  { id: 'of-2', name: 'SkillUp Academy', siret: '987 654 321 00020', nda: '11 69 98765 43', city: 'Lyon' },
+  { id: 'of-3', name: 'DigiForm', siret: '456 789 123 00030', nda: '11 13 45678 90', city: 'Marseille' },
+];
+
+const mockLearners: Learner[] = [
+  { id: '1', firstName: 'Marie', lastName: 'Dupont', email: 'marie.dupont@email.com', phone: '06 12 34 56 78', formationId: '1', formationName: 'React Avancé', enrollmentDate: '2024-01-01', company: 'TechCorp', city: 'Paris', postalCode: '75001', address: '12 rue de la Formation' },
+  { id: '2', firstName: 'Jean', lastName: 'Martin', email: 'jean.martin@email.com', phone: '06 98 76 54 32', formationId: '1', formationName: 'React Avancé', enrollmentDate: '2024-01-02', company: 'StartupXYZ', city: 'Lyon', postalCode: '69001', address: '5 place Bellecour' },
+  { id: '3', firstName: 'Sophie', lastName: 'Bernard', email: 'sophie.bernard@email.com', phone: '06 55 44 33 22', formationId: '2', formationName: 'Vue.js Débutant', enrollmentDate: '2024-01-03', company: 'DigitalAgency', city: 'Marseille', postalCode: '13001', address: '8 cours Julien' },
+];
+
+const mockFormations: Formation[] = [
+  { id: '1', name: 'React Avancé', description: 'Formation approfondie React', duration: '35 heures', startDate: '2024-02-01', endDate: '2024-02-05', location: 'Paris', trainer: 'Jean Martin', price: 2500 },
+  { id: '2', name: 'Vue.js Débutant', description: 'Initiation à Vue.js', duration: '21 heures', startDate: '2024-02-10', endDate: '2024-02-12', location: 'Lyon', trainer: 'Sophie Durand', price: 1800 },
+];
+
+const mockOF: OF = {
+  name: 'FormaPro', siret: '123 456 789 00010', nda: '11 75 12345 67',
+  address: '1 avenue de la Formation', city: 'Paris', postalCode: '75008',
+  phone: '01 23 45 67 89', email: 'contact@formapro.fr', responsable: 'Pierre Durant'
+};
+
+const mockGlobalDocuments = [
+  { id: 'gd-1', title: 'CGV FormaPro', type: 'cgv' as DocumentType, ofName: 'FormaPro', learnerName: 'Marie Dupont', sentAt: '2024-01-15', status: 'signed', signedAt: '2024-01-16', phase: 'inscription' as DocumentPhase },
+  { id: 'gd-2', title: 'Programme React', type: 'programme' as DocumentType, ofName: 'FormaPro', learnerName: 'Marie Dupont', sentAt: '2024-01-15', status: 'read', phase: 'inscription' as DocumentPhase },
+  { id: 'gd-3', title: 'Convention React', type: 'convention' as DocumentType, ofName: 'FormaPro', learnerName: 'Jean Martin', sentAt: '2024-01-20', status: 'signed', signedAt: '2024-01-21', phase: 'formation' as DocumentPhase },
+  { id: 'gd-4', title: 'CGV SkillUp', type: 'cgv' as DocumentType, ofName: 'SkillUp Academy', learnerName: 'Sophie Bernard', sentAt: '2024-01-18', status: 'sent', phase: 'inscription' as DocumentPhase },
+  { id: 'gd-5', title: 'Attestation Vue.js', type: 'attestation' as DocumentType, ofName: 'SkillUp Academy', learnerName: 'Sophie Bernard', sentAt: '2024-02-15', status: 'pending', phase: 'post-formation' as DocumentPhase },
+  { id: 'gd-6', title: 'Convocation Formation', type: 'convocation' as DocumentType, ofName: 'DigiForm', learnerName: 'Jean Martin', sentAt: '2024-02-01', status: 'read', phase: 'formation' as DocumentPhase },
+  { id: 'gd-7', title: 'Certificat Réalisation', type: 'certificat' as DocumentType, ofName: 'FormaPro', learnerName: 'Marie Dupont', sentAt: '2024-02-20', status: 'signed', signedAt: '2024-02-21', phase: 'post-formation' as DocumentPhase },
+];
+
+// --- Sub-components ---
+
+const phaseIcons = {
+  inscription: UserPlus,
+  formation: BookOpen,
+  'post-formation': Award,
+  suivi: Clock
+};
+
+// Stats Cards
+const StatsCards: React.FC<{ documents: typeof mockGlobalDocuments }> = ({ documents }) => {
+  const total = documents.length;
+  const signed = documents.filter(d => d.status === 'signed').length;
+  const pending = documents.filter(d => d.status === 'pending' || d.status === 'sent').length;
+  const rate = total > 0 ? Math.round((signed / total) * 100) : 0;
+
+  const stats = [
+    { label: 'Documents envoyés', value: total, icon: Send, color: 'text-blue-600 bg-blue-50' },
+    { label: 'Signés', value: signed, icon: CheckCircle, color: 'text-green-600 bg-green-50' },
+    { label: 'En attente', value: pending, icon: Clock, color: 'text-amber-600 bg-amber-50' },
+    { label: 'Taux de signature', value: `${rate}%`, icon: TrendingUp, color: 'text-purple-600 bg-purple-50' },
+  ];
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {stats.map((s) => (
+        <Card key={s.label}>
+          <CardContent className="p-4 flex items-center gap-4">
+            <div className={`p-3 rounded-lg ${s.color}`}>
+              <s.icon className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{s.value}</p>
+              <p className="text-sm text-muted-foreground">{s.label}</p>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+};
+
+// Phase Management Tab (reuses OF logic)
+const PhaseManagementTab: React.FC = () => {
+  const [activePhase, setActivePhase] = useState<DocumentPhase>('inscription');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showEditor, setShowEditor] = useState(false);
+  const [showPhaseSender, setShowPhaseSender] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<DocumentTemplate | null>(null);
+  const [templates, setTemplates] = useState<DocumentTemplate[]>([
+    { id: '1', type: 'cgv', phase: 'inscription', title: 'Conditions Générales de Vente', description: 'CGV à signer par l\'apprenant', htmlContent: DEFAULT_TEMPLATES.cgv || '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+    { id: '2', type: 'programme', phase: 'inscription', title: 'Programme de formation', description: 'Programme détaillé de la formation', htmlContent: DEFAULT_TEMPLATES.programme || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+    { id: '3', type: 'convention', phase: 'formation', title: 'Convention de formation', description: 'Convention tripartite', htmlContent: DEFAULT_TEMPLATES.convention || '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+    { id: '4', type: 'convocation', phase: 'formation', title: 'Convocation session', description: 'Convocation à la session de formation', htmlContent: DEFAULT_TEMPLATES.convocation || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+    { id: '5', type: 'attestation', phase: 'post-formation', title: 'Attestation de formation', description: 'Attestation de fin de formation', htmlContent: DEFAULT_TEMPLATES.attestation || '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+    { id: '6', type: 'certificat', phase: 'post-formation', title: 'Certificat de réalisation', description: 'Certificat de réalisation de la formation', htmlContent: DEFAULT_TEMPLATES.certificat || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+  ]);
+  const [sentDocuments, setSentDocuments] = useState<any[]>([]);
+  const { toast } = useToast();
+
+  const handleSaveTemplate = (template: any) => {
+    if (template.id) {
+      setTemplates(prev => prev.map(t => t.id === template.id ? { ...t, ...template } : t));
+    } else {
+      setTemplates(prev => [...prev, { ...template, id: `t-${Date.now()}`, createdAt: new Date().toISOString() }]);
+    }
+    setShowEditor(false);
+    toast({ title: 'Modèle sauvegardé' });
+  };
+
+  const handleDocumentsSent = (docs: any[]) => {
+    setSentDocuments(prev => [...prev, ...docs]);
+  };
+
+  const phaseTemplates = templates.filter(t => t.phase === activePhase);
+  const filteredTemplates = phaseTemplates.filter(t =>
+    t.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const getStatusBadge = (status: string) => {
+    const config: Record<string, { variant: 'default' | 'secondary' | 'outline'; label: string }> = {
+      sent: { variant: 'default', label: 'Envoyé' },
+      signed: { variant: 'default', label: 'Signé' },
+      read: { variant: 'secondary', label: 'Lu' },
+      pending: { variant: 'outline', label: 'En attente' }
+    };
+    const c = config[status] || config.pending;
+    return <Badge variant={c.variant}>{c.label}</Badge>;
+  };
+
+  return (
+    <>
+      <Tabs value={activePhase} onValueChange={(v) => setActivePhase(v as DocumentPhase)}>
+        <TabsList className="grid grid-cols-4 w-full">
+          {(Object.entries(PHASES_CONFIG) as [DocumentPhase, typeof PHASES_CONFIG.inscription][]).map(([phase, config]) => {
+            const Icon = phaseIcons[phase];
+            const count = templates.filter(t => t.phase === phase).length;
+            return (
+              <TabsTrigger key={phase} value={phase} className="flex items-center gap-2">
+                <Icon className="h-4 w-4" />
+                <span className="hidden sm:inline">{config.label}</span>
+                <Badge variant="secondary" className="ml-1">{count}</Badge>
+              </TabsTrigger>
+            );
+          })}
+        </TabsList>
+
+        {(Object.keys(PHASES_CONFIG) as DocumentPhase[]).map((phase) => (
+          <TabsContent key={phase} value={phase} className="space-y-4 mt-4">
+            <div className="flex gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input placeholder="Rechercher un modèle..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
+              </div>
+              <Button variant="outline" onClick={() => { setSelectedTemplate(null); setShowEditor(true); }}>
+                <Plus className="h-4 w-4 mr-2" />
+                Nouveau modèle
+              </Button>
+              <Button onClick={() => setShowPhaseSender(true)}>
+                <Send className="h-4 w-4 mr-2" />
+                Envoyer les documents
+              </Button>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Modèles de documents
+                </CardTitle>
+                <CardDescription>{PHASES_CONFIG[phase].description}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Document</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Signature</TableHead>
+                      <TableHead>Statut</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredTemplates.map((template) => (
+                      <TableRow key={template.id}>
+                        <TableCell>
+                          <div className="font-medium">{template.title}</div>
+                          <div className="text-sm text-muted-foreground">{template.description}</div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{DOCUMENT_TYPE_LABELS[template.type]}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          {template.requiresSignature ? (
+                            <Badge variant="secondary"><FileSignature className="h-3 w-3 mr-1" />Requise</Badge>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={template.isActive ? 'default' : 'outline'}>
+                            {template.isActive ? 'Actif' : 'Inactif'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button size="sm" variant="outline" onClick={() => { setSelectedTemplate(template); setShowEditor(true); }}>
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button size="sm" onClick={() => setShowPhaseSender(true)}>
+                              <Send className="h-4 w-4 mr-1" />
+                              Envoyer
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {filteredTemplates.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                          Aucun modèle pour cette phase
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+
+            {sentDocuments.filter(d => d.phase === phase).length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Mail className="h-5 w-5" />
+                    Documents envoyés
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Document</TableHead>
+                        <TableHead>Apprenant</TableHead>
+                        <TableHead>Envoyé le</TableHead>
+                        <TableHead>Statut</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {sentDocuments.filter(d => d.phase === phase).map((doc) => (
+                        <TableRow key={doc.id || doc.uniqueCode}>
+                          <TableCell className="font-medium">{doc.title}</TableCell>
+                          <TableCell>{doc.learnerName}</TableCell>
+                          <TableCell>{new Date(doc.sentAt).toLocaleDateString('fr-FR')}</TableCell>
+                          <TableCell>{getStatusBadge(doc.status)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+        ))}
+      </Tabs>
+
+      {showEditor && (
+        <div className="fixed inset-0 z-50 bg-background" style={{ overflow: 'auto', WebkitOverflowScrolling: 'touch' }}>
+          <div className="p-6" style={{ minHeight: '100vh' }}>
+            <div className="flex items-center justify-between mb-4 sticky top-0 bg-background py-2 z-10">
+              <h2 className="text-xl font-semibold">Éditeur de modèle</h2>
+              <Button variant="ghost" size="sm" onClick={() => setShowEditor(false)}>Fermer</Button>
+            </div>
+            <DocumentTemplateEditor
+              template={selectedTemplate || undefined}
+              onSave={handleSaveTemplate}
+              onCancel={() => setShowEditor(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      <PhaseDocumentSender
+        isOpen={showPhaseSender}
+        onClose={() => setShowPhaseSender(false)}
+        phase={activePhase}
+        templates={phaseTemplates}
+        learners={mockLearners}
+        formations={mockFormations}
+        ofInfo={mockOF}
+        onSend={handleDocumentsSent}
+      />
+    </>
+  );
+};
+
+// Global Templates Tab
+const GlobalTemplatesTab: React.FC = () => {
+  const [showEditor, setShowEditor] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<any | null>(null);
+  const { toast } = useToast();
+
+  const [globalTemplates, setGlobalTemplates] = useState([
+    { id: 'gt-1', title: 'CGV Plateforme Learneezy', type: 'cgv' as DocumentType, description: 'Template CGV standard pour tous les OF', htmlContent: DEFAULT_TEMPLATES.cgv || '', isLearneezy: true, createdAt: '2024-01-01' },
+    { id: 'gt-2', title: 'Convention Standard Learneezy', type: 'convention' as DocumentType, description: 'Convention type conforme Qualiopi', htmlContent: DEFAULT_TEMPLATES.convention || '', isLearneezy: true, createdAt: '2024-01-01' },
+    { id: 'gt-3', title: 'Attestation Standard Learneezy', type: 'attestation' as DocumentType, description: 'Attestation de formation officielle', htmlContent: DEFAULT_TEMPLATES.attestation || '', isLearneezy: true, createdAt: '2024-01-01' },
+  ]);
+
+  const handleSave = (template: any) => {
+    if (template.id) {
+      setGlobalTemplates(prev => prev.map(t => t.id === template.id ? { ...t, ...template } : t));
+    } else {
+      setGlobalTemplates(prev => [...prev, { ...template, id: `gt-${Date.now()}`, isLearneezy: true, createdAt: new Date().toISOString() }]);
+    }
+    setShowEditor(false);
+    toast({ title: 'Template global sauvegardé', description: 'Ce template est maintenant disponible pour tous les OF.' });
+  };
+
+  const handleDelete = (id: string) => {
+    setGlobalTemplates(prev => prev.filter(t => t.id !== id));
+    toast({ title: 'Template supprimé' });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold">Templates Learneezy</h3>
+          <p className="text-sm text-muted-foreground">Templates globaux disponibles pour tous les organismes de formation</p>
+        </div>
+        <Button onClick={() => { setSelectedTemplate(null); setShowEditor(true); }}>
+          <Plus className="h-4 w-4 mr-2" />
+          Créer un template global
+        </Button>
+      </div>
+
+      <div className="grid gap-4">
+        {globalTemplates.map((template) => (
+          <Card key={template.id}>
+            <CardContent className="p-4 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-medium">{template.title}</h4>
+                    <Badge variant="secondary" className="text-xs">Learneezy</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{template.description}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Type : {DOCUMENT_TYPE_LABELS[template.type]} • Créé le {new Date(template.createdAt).toLocaleDateString('fr-FR')}</p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" onClick={() => { setSelectedTemplate(template); setShowEditor(true); }}>
+                  <Edit className="h-4 w-4" />
+                </Button>
+                <Button size="sm" variant="outline" className="text-destructive hover:text-destructive" onClick={() => handleDelete(template.id)}>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {showEditor && (
+        <div className="fixed inset-0 z-50 bg-background" style={{ overflow: 'auto', WebkitOverflowScrolling: 'touch' }}>
+          <div className="p-6" style={{ minHeight: '100vh' }}>
+            <div className="flex items-center justify-between mb-4 sticky top-0 bg-background py-2 z-10">
+              <h2 className="text-xl font-semibold">Éditeur de template global</h2>
+              <Button variant="ghost" size="sm" onClick={() => setShowEditor(false)}>Fermer</Button>
+            </div>
+            <DocumentTemplateEditor
+              template={selectedTemplate || undefined}
+              onSave={handleSave}
+              onCancel={() => setShowEditor(false)}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Global Tracking Tab
+const GlobalTrackingTab: React.FC<{ documents: typeof mockGlobalDocuments; selectedOF: string }> = ({ documents, selectedOF }) => {
+  const [filterType, setFilterType] = useState<string>('all');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filtered = documents.filter(d => {
+    if (selectedOF !== 'all' && d.ofName !== mockOrganismes.find(o => o.id === selectedOF)?.name) return false;
+    if (filterType !== 'all' && d.type !== filterType) return false;
+    if (filterStatus !== 'all' && d.status !== filterStatus) return false;
+    if (searchTerm && !d.learnerName.toLowerCase().includes(searchTerm.toLowerCase()) && !d.title.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+    return true;
+  });
+
+  const getStatusBadge = (status: string) => {
+    const map: Record<string, { variant: 'default' | 'secondary' | 'outline' | 'destructive'; label: string }> = {
+      signed: { variant: 'default', label: 'Signé' },
+      sent: { variant: 'secondary', label: 'Envoyé' },
+      read: { variant: 'secondary', label: 'Lu' },
+      pending: { variant: 'outline', label: 'En attente' },
+    };
+    const c = map[status] || map.pending;
+    return <Badge variant={c.variant}>{c.label}</Badge>;
+  };
+
+  const handleExportCSV = () => {
+    const headers = ['Document', 'Type', 'Organisme', 'Apprenant', 'Phase', 'Envoyé le', 'Statut', 'Signé le'];
+    const rows = filtered.map(d => [
+      d.title, DOCUMENT_TYPE_LABELS[d.type], d.ofName, d.learnerName,
+      PHASES_CONFIG[d.phase].label,
+      new Date(d.sentAt).toLocaleDateString('fr-FR'),
+      d.status,
+      d.signedAt ? new Date(d.signedAt).toLocaleDateString('fr-FR') : ''
+    ]);
+    const csvContent = [headers, ...rows].map(r => r.join(';')).join('\n');
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `documents_export_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap gap-3 items-center">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input placeholder="Rechercher par apprenant ou document..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
+        </div>
+        <Select value={filterType} onValueChange={setFilterType}>
+          <SelectTrigger className="w-[180px]">
+            <Filter className="h-4 w-4 mr-2" />
+            <SelectValue placeholder="Type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous les types</SelectItem>
+            {Object.entries(DOCUMENT_TYPE_LABELS).map(([key, label]) => (
+              <SelectItem key={key} value={key}>{label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={filterStatus} onValueChange={setFilterStatus}>
+          <SelectTrigger className="w-[160px]">
+            <SelectValue placeholder="Statut" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous statuts</SelectItem>
+            <SelectItem value="signed">Signé</SelectItem>
+            <SelectItem value="sent">Envoyé</SelectItem>
+            <SelectItem value="read">Lu</SelectItem>
+            <SelectItem value="pending">En attente</SelectItem>
+          </SelectContent>
+        </Select>
+        <Button variant="outline" onClick={handleExportCSV}>
+          <Download className="h-4 w-4 mr-2" />
+          Export CSV
+        </Button>
+      </div>
+
+      <Card>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Document</TableHead>
+                <TableHead>Organisme</TableHead>
+                <TableHead>Apprenant</TableHead>
+                <TableHead>Phase</TableHead>
+                <TableHead>Envoyé le</TableHead>
+                <TableHead>Statut</TableHead>
+                <TableHead>Signé le</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.map((doc) => (
+                <TableRow key={doc.id}>
+                  <TableCell>
+                    <div className="font-medium">{doc.title}</div>
+                    <div className="text-xs text-muted-foreground">{DOCUMENT_TYPE_LABELS[doc.type]}</div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1.5">
+                      <Building className="h-3.5 w-3.5 text-muted-foreground" />
+                      {doc.ofName}
+                    </div>
+                  </TableCell>
+                  <TableCell>{doc.learnerName}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="text-xs">{PHASES_CONFIG[doc.phase].label}</Badge>
+                  </TableCell>
+                  <TableCell>{new Date(doc.sentAt).toLocaleDateString('fr-FR')}</TableCell>
+                  <TableCell>{getStatusBadge(doc.status)}</TableCell>
+                  <TableCell>{doc.signedAt ? new Date(doc.signedAt).toLocaleDateString('fr-FR') : '—'}</TableCell>
+                </TableRow>
+              ))}
+              {filtered.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    Aucun document trouvé
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+      <p className="text-xs text-muted-foreground text-right">{filtered.length} document(s) trouvé(s)</p>
+    </div>
+  );
+};
+
+// Audit & Compliance Tab
+const AuditComplianceTab: React.FC<{ documents: typeof mockGlobalDocuments }> = ({ documents }) => {
+  const ofStats = mockOrganismes.map(of => {
+    const ofDocs = documents.filter(d => d.ofName === of.name);
+    const total = ofDocs.length;
+    const signed = ofDocs.filter(d => d.status === 'signed').length;
+    const pending = ofDocs.filter(d => d.status === 'pending' || d.status === 'sent').length;
+    const rate = total > 0 ? Math.round((signed / total) * 100) : 0;
+    const hasMissingDocs = total < 3; // simplified check
+    return { ...of, total, signed, pending, rate, hasMissingDocs };
+  });
+
+  const handleExportAudit = () => {
+    const headers = ['Organisme', 'Ville', 'Total docs', 'Signés', 'En attente', 'Taux signature', 'Alerte'];
+    const rows = ofStats.map(o => [
+      o.name, o.city, o.total, o.signed, o.pending, `${o.rate}%`, o.hasMissingDocs ? 'Oui' : 'Non'
+    ]);
+    const csvContent = [headers, ...rows].map(r => r.join(';')).join('\n');
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `audit_conformite_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            <ShieldCheck className="h-5 w-5" />
+            Conformité par organisme
+          </h3>
+          <p className="text-sm text-muted-foreground">Vue consolidée de la conformité documentaire de chaque OF</p>
+        </div>
+        <Button variant="outline" onClick={handleExportAudit}>
+          <Download className="h-4 w-4 mr-2" />
+          Export rapport
+        </Button>
+      </div>
+
+      <div className="grid gap-4">
+        {ofStats.map((of) => (
+          <Card key={of.id} className={of.hasMissingDocs ? 'border-amber-300' : ''}>
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-muted">
+                    <Building className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold">{of.name}</h4>
+                    <p className="text-sm text-muted-foreground">{of.city} • SIRET: {of.siret}</p>
+                  </div>
+                </div>
+                {of.hasMissingDocs && (
+                  <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50">
+                    <AlertTriangle className="h-3 w-3 mr-1" />
+                    Documents manquants
+                  </Badge>
+                )}
+              </div>
+
+              <div className="grid grid-cols-4 gap-4">
+                <div className="text-center p-3 bg-muted/50 rounded-lg">
+                  <p className="text-xl font-bold">{of.total}</p>
+                  <p className="text-xs text-muted-foreground">Total envoyés</p>
+                </div>
+                <div className="text-center p-3 bg-green-50 rounded-lg">
+                  <p className="text-xl font-bold text-green-700">{of.signed}</p>
+                  <p className="text-xs text-muted-foreground">Signés</p>
+                </div>
+                <div className="text-center p-3 bg-amber-50 rounded-lg">
+                  <p className="text-xl font-bold text-amber-700">{of.pending}</p>
+                  <p className="text-xs text-muted-foreground">En attente</p>
+                </div>
+                <div className="text-center p-3 bg-purple-50 rounded-lg">
+                  <p className="text-xl font-bold text-purple-700">{of.rate}%</p>
+                  <p className="text-xs text-muted-foreground">Taux signature</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// --- Main Page Component ---
+
+const SuperAdminDocumentsPage: React.FC = () => {
+  const [selectedOF, setSelectedOF] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState('phases');
+
+  const filteredDocuments = selectedOF === 'all'
+    ? mockGlobalDocuments
+    : mockGlobalDocuments.filter(d => d.ofName === mockOrganismes.find(o => o.id === selectedOF)?.name);
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Documents - Super Administration</h1>
+          <p className="text-muted-foreground">Gestion centralisée des documents de tous les organismes de formation</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Select value={selectedOF} onValueChange={setSelectedOF}>
+            <SelectTrigger className="w-[250px]">
+              <Building className="h-4 w-4 mr-2" />
+              <SelectValue placeholder="Filtrer par organisme" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les organismes</SelectItem>
+              {mockOrganismes.map((of) => (
+                <SelectItem key={of.id} value={of.id}>
+                  {of.name} ({of.city})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <StatsCards documents={filteredDocuments} />
+
+      {/* Main Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid grid-cols-4 w-full max-w-2xl">
+          <TabsTrigger value="phases" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            <span className="hidden sm:inline">Gestion phases</span>
+          </TabsTrigger>
+          <TabsTrigger value="templates" className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4" />
+            <span className="hidden sm:inline">Templates globaux</span>
+          </TabsTrigger>
+          <TabsTrigger value="tracking" className="flex items-center gap-2">
+            <Eye className="h-4 w-4" />
+            <span className="hidden sm:inline">Suivi global</span>
+          </TabsTrigger>
+          <TabsTrigger value="audit" className="flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4" />
+            <span className="hidden sm:inline">Audit</span>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="phases" className="mt-6">
+          <PhaseManagementTab />
+        </TabsContent>
+
+        <TabsContent value="templates" className="mt-6">
+          <GlobalTemplatesTab />
+        </TabsContent>
+
+        <TabsContent value="tracking" className="mt-6">
+          <GlobalTrackingTab documents={filteredDocuments} selectedOF={selectedOF} />
+        </TabsContent>
+
+        <TabsContent value="audit" className="mt-6">
+          <AuditComplianceTab documents={filteredDocuments} />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};
+
+export default SuperAdminDocumentsPage;
