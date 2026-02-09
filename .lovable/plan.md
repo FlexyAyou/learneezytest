@@ -1,104 +1,81 @@
 
 
-## Nouvelle page "Documents" pour le Super Admin
+## Integrer Learneezy comme Organisme de Formation dans la gestion des documents
 
-### Objectif
-Creer une page complete de gestion des documents sur `/dashboard/superadmin/documents` qui reprend toute la logique existante de `/dashboard/organisme-formation/documents` (phases, editeur de templates, envoi) et y ajoute des fonctionnalites specifiques au role de Super Admin.
+### Contexte du probleme
 
----
+Actuellement, le systeme de documents traite Learneezy uniquement comme la "plateforme" qui supervise les OF, mais **pas comme un OF a part entiere** qui peut envoyer des documents a ses propres apprenants. Concretement :
 
-### Ce qui sera repris de l'OF
+- La page SuperAdmin Documents (`/dashboard/superadmin/documents`) liste uniquement des OF externes (FormaPro, SkillUp, DigiForm) dans le filtre et les mock data
+- L'onglet "Gestion par phases" utilise un `mockOF` pointe sur "FormaPro" au lieu de Learneezy
+- La personnalisation des documents (`personalizeDocumentContent.ts`) est codee en dur avec "InfinitiAX Formation" au lieu d'utiliser dynamiquement les infos de l'OF emetteur
+- Aucun document dans les mock data globaux n'est emis par Learneezy
 
-- Navigation par phases (Inscription, Formation, Post-formation, +3 mois)
-- Editeur de templates HTML avec champs dynamiques (`DocumentTemplateEditor`)
-- Systeme d'envoi de documents par phase (`PhaseDocumentSender`)
-- Tous les templates par defaut existants (CGV, Programme, Convention, Convocation, Attestation, Certificat, Emargement)
-- Previsualisation des documents avec personnalisation
+### Ce qui va changer
 
 ---
 
-### Fonctionnalites supplementaires pour le Super Admin
+#### 1. Ajouter Learneezy dans la liste des organismes (SuperAdminDocumentsPage.tsx)
 
-1. **Vue multi-organismes** : filtre par organisme de formation pour voir/gerer les documents de chaque OF
-2. **Statistiques globales** : nombre total de documents envoyes, signes, en attente, taux de signature - pour tous les OF de la plateforme
-3. **Onglet "Audit & Conformite"** : vue consolidee de tous les documents avec statut, dates, preuves de signature - utile pour le suivi reglementaire
-4. **Onglet "Templates globaux"** : possibilite de creer des templates "plateforme" que tous les OF peuvent utiliser (templates Learneezy)
-5. **Historique des envois global** : vue de tous les envois de documents de tous les OF avec filtrage avance (par OF, par apprenant, par type, par statut)
-6. **Export en masse** : bouton pour exporter un rapport CSV/Excel de tous les documents et leur statut
-
----
-
-### Plan technique
-
-#### 1. Nouveau composant `SuperAdminDocumentsPage.tsx`
-- Fichier : `src/pages/admin/SuperAdminDocumentsPage.tsx`
-- Structure en onglets principaux :
-  - **Gestion par phases** : reutilise exactement la meme logique que `OFDocumentsAdvanced` (phases, templates, envoi)
-  - **Templates globaux** : templates crees par le super admin, disponibles pour tous les OF
-  - **Suivi global** : tableau de tous les documents envoyes par tous les OF avec filtres avances
-  - **Audit & Conformite** : statistiques, taux de signature, alertes de conformite
-- Filtre par organisme en haut de la page (dropdown avec liste des OF)
-- Cartes de statistiques globales (documents envoyes, signes, en attente, taux de signature)
-
-#### 2. Mise a jour du routing (`AdminDashboard.tsx`)
-- Ajout d'une route `documents` pointant vers `SuperAdminDocumentsPage`
-- Import du nouveau composant
-
-#### 3. Mise a jour de la sidebar (`SuperAdminSidebar.tsx`)
-- Ajout d'un item "Documents" dans la section "Gestion" avec l'icone `FileText`
-- Placement apres "Inscriptions" pour une navigation logique
-
-#### 4. Reutilisation des composants existants
-- `DocumentTemplateEditor` : editeur de templates HTML (reutilise tel quel)
-- `PhaseDocumentSender` : envoi de documents par phase (reutilise tel quel)
-- `DEFAULT_TEMPLATES` : templates par defaut (reutilises tels quels)
-- `types.ts` : types et configuration des phases (reutilises tels quels)
-
----
-
-### Structure de l'interface
+Ajouter une entree "Learneezy" dans `mockOrganismes` avec un identifiant special (ex: `'learneezy'`), et creer un objet `learneezyOF` de type `OF` avec les informations de Learneezy (nom, SIRET, NDA, adresse, etc.).
 
 ```text
-+---------------------------------------------------+
-| Documents - Super Administration                   |
-| [Filtre par organisme: Tous les OF v]              |
-+---------------------------------------------------+
-| Stats: Envoyes | Signes | En attente | Taux sign. |
-+---------------------------------------------------+
-| [Gestion phases] [Templates] [Suivi] [Audit]       |
-+---------------------------------------------------+
-|                                                     |
-|  Onglet "Gestion par phases" :                     |
-|  - Meme interface que l'OF                         |
-|  - 4 phases avec templates et envoi                |
-|                                                     |
-|  Onglet "Templates globaux" :                      |
-|  - Templates crees par le Super Admin              |
-|  - Marquage "Template Learneezy"                   |
-|  - Bouton creer / modifier / supprimer             |
-|                                                     |
-|  Onglet "Suivi global" :                           |
-|  - Tableau de tous les envois de tous les OF       |
-|  - Filtres: OF, type, statut, date, apprenant      |
-|                                                     |
-|  Onglet "Audit & Conformite" :                     |
-|  - Alertes de documents manquants                  |
-|  - Taux de conformite par OF                       |
-|  - Export rapport                                  |
-+---------------------------------------------------+
+mockOrganismes :
+  - { id: 'learneezy', name: 'Learneezy', ... }  <-- NOUVEAU
+  - { id: 'of-1', name: 'FormaPro', ... }
+  - { id: 'of-2', name: 'SkillUp Academy', ... }
+  - { id: 'of-3', name: 'DigiForm', ... }
 ```
+
+#### 2. Differencier visuellement Learneezy des autres OF
+
+Dans le filtre par organisme et dans les tableaux de suivi/audit, Learneezy aura un badge distinctif (bleu, avec icone Sparkles) pour le differencier des OF externes. Cela reprend la convention de couleurs existante (bleu = Learneezy, jaune/violet = OF).
+
+#### 3. Adapter l'onglet "Gestion par phases" au contexte
+
+Actuellement l'onglet "Gestion par phases" utilise toujours `mockOF` (FormaPro). La modification fera en sorte que :
+- Si le filtre est sur "Learneezy", les infos OF injectees dans le `PhaseDocumentSender` seront celles de Learneezy
+- Si le filtre est sur un OF specifique, ce seront les infos de cet OF
+- Si le filtre est sur "Tous", Learneezy sera utilise par defaut (le superadmin envoie en tant que Learneezy)
+
+#### 4. Ajouter des documents Learneezy dans les mock data globaux
+
+Ajouter des exemples de documents emis par Learneezy dans `mockGlobalDocuments` pour que les onglets "Suivi global" et "Audit & Conformite" refletent cette realite.
+
+#### 5. Mettre a jour l'audit de conformite
+
+L'onglet Audit inclura Learneezy dans la liste des organismes audites, avec ses propres statistiques de documents envoyes/signes.
 
 ---
 
-### Fichiers modifies
+### Details techniques
 
-| Fichier | Action |
-|---------|--------|
-| `src/pages/admin/SuperAdminDocumentsPage.tsx` | Creation |
-| `src/pages/AdminDashboard.tsx` | Ajout route `/documents` |
-| `src/components/admin/SuperAdminSidebar.tsx` | Ajout item "Documents" |
+#### Fichiers modifies
 
-### Fichiers non modifies
+| Fichier | Modification |
+|---------|-------------|
+| `src/pages/admin/SuperAdminDocumentsPage.tsx` | Ajout de Learneezy dans `mockOrganismes`, creation de `learneezyOF` (type `OF`), ajout de documents Learneezy dans `mockGlobalDocuments`, passage dynamique de l'OF dans `PhaseManagementTab`, badge Learneezy dans les tableaux |
 
-Tous les composants existants (`OFDocumentsAdvanced`, `DocumentTemplateEditor`, `PhaseDocumentSender`, `defaultTemplates.ts`, `types.ts`) restent intacts - ils sont uniquement reutilises/importes.
+#### Donnees Learneezy (mock)
+
+- **Nom** : Learneezy
+- **SIRET** : A definir (valeur placeholder pour le mock)
+- **NDA** : A definir (valeur placeholder pour le mock)
+- **Adresse** : Paris
+- **Email** : contact@learneezy.com
+- **Responsable** : Administrateur Learneezy
+
+#### Modifications dans PhaseManagementTab
+
+Le composant `PhaseManagementTab` recevra une nouvelle prop `ofInfo` au lieu d'utiliser un `mockOF` en dur. Le composant parent determinera quel OF utiliser en fonction du filtre selectionne :
+
+```text
+selectedOF === 'learneezy' --> learneezyOF
+selectedOF === 'of-1'      --> infos de FormaPro
+selectedOF === 'all'        --> learneezyOF (contexte par defaut du superadmin)
+```
+
+#### Aucune modification sur les composants partages
+
+Les composants `PhaseDocumentSender`, `DocumentTemplateEditor`, `OFDocumentsAdvanced`, et `personalizeDocumentContent.ts` ne sont pas modifies. Ils fonctionnent deja de maniere generique avec un objet `OF` en parametre.
 
