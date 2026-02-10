@@ -246,6 +246,14 @@ const LoginOF = () => {
             </Button>
           </form>
 
+          {/* Notice compte OF */}
+          <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+            <p className="text-sm text-blue-800">
+              Votre compte est créé par votre organisme de formation.{" "}
+              <strong>Contactez-le</strong> si vous n'avez pas encore vos identifiants.
+            </p>
+          </div>
+
           {/* Footer */}
           <div className="mt-8 text-center">
             <p className="text-xs text-gray-500">

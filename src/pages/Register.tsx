@@ -223,6 +223,18 @@ const Register = () => {
                     </SelectContent>
                   </Select>
                   {errors.userType && <p className="mt-1 text-sm text-red-600">{errors.userType.message}</p>}
+
+                  {/* Alerte informative pour les apprenants OF */}
+                  {userType === "student" && (
+                    <Alert className="border-amber-200 bg-amber-50 mt-3">
+                      <AlertCircle className="h-4 w-4 text-amber-600" />
+                      <AlertDescription className="text-amber-800 text-sm">
+                        <strong>Ce compte est pour les apprenants indépendants Learneezy.</strong>
+                        <br />
+                        Si vous êtes rattaché à un organisme de formation, c'est votre OF qui créera votre compte. Contactez votre organisme.
+                      </AlertDescription>
+                    </Alert>
+                  )}
                 </div>
 
                 {/* Champ spécifique pour les étudiants : statut d'âge */}
