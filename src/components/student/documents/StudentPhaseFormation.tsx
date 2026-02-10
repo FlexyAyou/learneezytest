@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { School, FileText, BookOpen, Calendar, CheckSquare, AlertCircle, CheckCircle } from 'lucide-react';
+import { School, FileText, BookOpen, Calendar, ScrollText, Shield, AlertCircle, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DocumentCard } from './DocumentCard';
 import { DocumentSignatureModal } from './DocumentSignatureModal';
@@ -21,7 +21,7 @@ interface PhaseDocument {
   id: string;
   name: string;
   formationId: string;
-  type: 'cgv_ri' | 'programme' | 'convocation' | 'emargement';
+  type: 'convocation' | 'programme' | 'cgv' | 'reglement_interieur' | 'attestation_honneur';
   date: string;
   size: string;
   status: 'available' | 'signed' | 'received';
@@ -39,12 +39,13 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
   const { toast } = useToast();
   
   const [documents, setDocuments] = useState<PhaseDocument[]>([
-    { id: '1', name: 'CGV_RI_Math.pdf', formationId: '1', type: 'cgv_ri', date: '2024-01-23', size: '2.1 MB', status: 'available', requiresSignature: true },
+    { id: '1', name: 'Convocation_Math.pdf', formationId: '1', type: 'convocation', date: '2024-01-23', size: '0.8 MB', status: 'received' },
     { id: '2', name: 'Programme_Formation_Math.pdf', formationId: '1', type: 'programme', date: '2024-01-24', size: '3.2 MB', status: 'received' },
-    { id: '3', name: 'Convocation_Math.pdf', formationId: '1', type: 'convocation', date: '2024-01-25', size: '0.8 MB', status: 'received' },
-    { id: '4', name: 'Emargement_Math.pdf', formationId: '1', type: 'emargement', date: '2024-01-26', size: '1.1 MB', status: 'signed' },
-    { id: '5', name: 'Programme_Formation_Francais.pdf', formationId: '2', type: 'programme', date: '2024-01-20', size: '2.9 MB', status: 'received' },
-    { id: '6', name: 'CGV_RI_Francais.pdf', formationId: '2', type: 'cgv_ri', date: '2024-01-21', size: '2.0 MB', status: 'available', requiresSignature: true },
+    { id: '3', name: 'CGV_Math.pdf', formationId: '1', type: 'cgv', date: '2024-01-25', size: '2.1 MB', status: 'available', requiresSignature: true },
+    { id: '4', name: 'Reglement_Interieur_Math.pdf', formationId: '1', type: 'reglement_interieur', date: '2024-01-26', size: '1.1 MB', status: 'signed' },
+    { id: '5', name: 'Attestation_Honneur_Math.pdf', formationId: '1', type: 'attestation_honneur', date: '2024-01-27', size: '0.6 MB', status: 'available', requiresSignature: true },
+    { id: '6', name: 'Programme_Formation_Francais.pdf', formationId: '2', type: 'programme', date: '2024-01-20', size: '2.9 MB', status: 'received' },
+    { id: '7', name: 'CGV_Francais.pdf', formationId: '2', type: 'cgv', date: '2024-01-21', size: '2.0 MB', status: 'available', requiresSignature: true },
   ]);
 
   const [signatureModalOpen, setSignatureModalOpen] = useState(false);
@@ -53,11 +54,11 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
   const [previewDocument, setPreviewDocument] = useState<{ title: string; content: string } | null>(null);
 
   const documentTypes = {
-    cgv_ri: {
-      label: 'CGV / Règlement Intérieur',
-      icon: FileText,
-      description: 'Conditions générales et règles de fonctionnement',
-      color: 'text-blue-500'
+    convocation: {
+      label: 'Convocation',
+      icon: Calendar,
+      description: 'Invitation à la formation',
+      color: 'text-orange-500'
     },
     programme: {
       label: 'Programme de formation',
@@ -65,17 +66,23 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
       description: 'Détails du programme pédagogique',
       color: 'text-emerald-500'
     },
-    convocation: {
-      label: 'Convocation',
-      icon: Calendar,
-      description: 'Invitation à la formation',
-      color: 'text-orange-500'
+    cgv: {
+      label: 'Conditions Générales de Vente',
+      icon: FileText,
+      description: 'Conditions commerciales et légales',
+      color: 'text-blue-500'
     },
-    emargement: {
-      label: 'Feuille d\'émargement',
-      icon: CheckSquare,
-      description: 'Feuille de présence à signer',
+    reglement_interieur: {
+      label: 'Règlement intérieur',
+      icon: ScrollText,
+      description: 'Règles de fonctionnement de la formation',
       color: 'text-violet-500'
+    },
+    attestation_honneur: {
+      label: 'Attestation sur l\'honneur (CPF)',
+      icon: Shield,
+      description: 'Déclaration pour financement CPF',
+      color: 'text-amber-500'
     }
   };
 
@@ -157,7 +164,7 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
           </div>
           <div>
             <h2 className="text-2xl font-bold text-foreground">Phase : Formation</h2>
-            <p className="text-muted-foreground">CGV/RI, programme, convocation et émargement</p>
+            <p className="text-muted-foreground">Convocation, programme, CGV, règlement intérieur et attestation sur l'honneur</p>
           </div>
         </div>
         
@@ -176,7 +183,7 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
       </div>
 
       {/* Types de documents */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {Object.entries(documentTypes).map(([type, info]) => {
           const Icon = info.icon;
           const count = filteredDocuments.filter(doc => doc.type === type).length;

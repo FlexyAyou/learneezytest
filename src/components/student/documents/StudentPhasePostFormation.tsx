@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Award, FileCheck, MessageSquare, CheckCircle, AlertCircle } from 'lucide-react';
+import { Award, FileCheck, MessageSquare, CheckCircle, CheckSquare, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DocumentCard } from './DocumentCard';
 import { DocumentSignatureModal } from './DocumentSignatureModal';
@@ -21,7 +21,7 @@ interface PhaseDocument {
   id: string;
   name: string;
   formationId: string;
-  type: 'test_final' | 'satisfaction_chaud' | 'attestation' | 'certificat';
+  type: 'test_sortie' | 'satisfaction_chaud' | 'certificat' | 'emargement';
   date: string;
   size: string;
   status: 'available' | 'completed' | 'received';
@@ -39,11 +39,11 @@ export const StudentPhasePostFormation = ({ selectedFormation, formations }: Stu
   const { toast } = useToast();
   
   const [documents, setDocuments] = useState<PhaseDocument[]>([
-    { id: '1', name: 'Test_Final_Math.pdf', formationId: '1', type: 'test_final', date: '2024-02-01', size: '1.8 MB', status: 'completed' },
+    { id: '1', name: 'Test_Sortie_Math.pdf', formationId: '1', type: 'test_sortie', date: '2024-02-01', size: '1.8 MB', status: 'completed' },
     { id: '2', name: 'Satisfaction_Chaud_Math.pdf', formationId: '1', type: 'satisfaction_chaud', date: '2024-02-02', size: '0.5 MB', status: 'available', requiresSignature: true },
-    { id: '3', name: 'Attestation_Math.pdf', formationId: '1', type: 'attestation', date: '2024-02-03', size: '1.2 MB', status: 'received' },
-    { id: '4', name: 'Certificat_Math.pdf', formationId: '1', type: 'certificat', date: '2024-02-04', size: '1.5 MB', status: 'received' },
-    { id: '5', name: 'Test_Final_Francais.pdf', formationId: '2', type: 'test_final', date: '2024-01-30', size: '1.9 MB', status: 'available', requiresSignature: true },
+    { id: '3', name: 'Certificat_Math.pdf', formationId: '1', type: 'certificat', date: '2024-02-03', size: '1.5 MB', status: 'received' },
+    { id: '4', name: 'Emargement_Math.pdf', formationId: '1', type: 'emargement', date: '2024-02-04', size: '1.2 MB', status: 'received' },
+    { id: '5', name: 'Test_Sortie_Francais.pdf', formationId: '2', type: 'test_sortie', date: '2024-01-30', size: '1.9 MB', status: 'available', requiresSignature: true },
   ]);
 
   const [signatureModalOpen, setSignatureModalOpen] = useState(false);
@@ -52,29 +52,29 @@ export const StudentPhasePostFormation = ({ selectedFormation, formations }: Stu
   const [previewDocument, setPreviewDocument] = useState<{ title: string; content: string } | null>(null);
 
   const documentTypes = {
-    test_final: {
-      label: 'Test de fin de formation',
+    test_sortie: {
+      label: 'Test de sortie',
       icon: FileCheck,
-      description: 'Évaluation finale des acquis',
+      description: 'Évaluation des acquis en fin de formation',
       color: 'text-blue-500'
     },
     satisfaction_chaud: {
-      label: 'Questionnaire satisfaction (à chaud)',
+      label: 'Questionnaire satisfaction à chaud',
       icon: MessageSquare,
       description: 'Évaluation immédiate de la formation',
       color: 'text-emerald-500'
     },
-    attestation: {
-      label: 'Attestation de fin de formation',
-      icon: Award,
-      description: 'Certification de participation',
-      color: 'text-orange-500'
-    },
     certificat: {
       label: 'Certificat de réalisation',
       icon: CheckCircle,
-      description: 'Certification de réalisation',
+      description: 'Certification de réalisation de la formation',
       color: 'text-violet-500'
+    },
+    emargement: {
+      label: 'Attestation de réalisation (émargements)',
+      icon: CheckSquare,
+      description: 'Feuille de présence attestant la réalisation',
+      color: 'text-orange-500'
     }
   };
 
@@ -156,7 +156,7 @@ export const StudentPhasePostFormation = ({ selectedFormation, formations }: Stu
           </div>
           <div>
             <h2 className="text-2xl font-bold text-foreground">Phase : Post-formation</h2>
-            <p className="text-muted-foreground">Test final, satisfaction à chaud, attestation et certificat</p>
+            <p className="text-muted-foreground">Test de sortie, satisfaction à chaud, certificat et émargements</p>
           </div>
         </div>
         

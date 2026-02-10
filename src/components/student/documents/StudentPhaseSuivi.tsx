@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, MessageSquare, Building, Info, AlertCircle, CheckCircle } from 'lucide-react';
+import { Clock, MessageSquare, Info, AlertCircle, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DocumentCard } from './DocumentCard';
 import { DocumentSignatureModal } from './DocumentSignatureModal';
@@ -19,11 +19,10 @@ interface PhaseDocument {
   id: string;
   name: string;
   formationId: string;
-  type: 'satisfaction_froid' | 'satisfaction_financeur';
+  type: 'satisfaction_froid';
   date: string;
   size: string;
   status: 'available' | 'completed' | 'pending';
-  financeur?: string;
   requiresSignature?: boolean;
 }
 
@@ -37,10 +36,8 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
   
   const [documents, setDocuments] = useState<PhaseDocument[]>([
     { id: '1', name: 'Satisfaction_Froid_Math.pdf', formationId: '1', type: 'satisfaction_froid', date: '2024-05-01', size: '0.8 MB', status: 'completed' },
-    { id: '2', name: 'Satisfaction_OPCO_Math.pdf', formationId: '1', type: 'satisfaction_financeur', date: '2024-05-02', size: '1.1 MB', status: 'completed', financeur: 'OPCO' },
-    { id: '3', name: 'Satisfaction_France_Travail_Francais.pdf', formationId: '2', type: 'satisfaction_financeur', date: '2024-04-28', size: '1.0 MB', status: 'available', financeur: 'France Travail', requiresSignature: true },
-    { id: '4', name: 'Satisfaction_Froid_Histoire.pdf', formationId: '3', type: 'satisfaction_froid', date: '2024-04-25', size: '0.9 MB', status: 'completed' },
-    { id: '5', name: 'Satisfaction_FAF_Sciences.pdf', formationId: '4', type: 'satisfaction_financeur', date: '2024-04-30', size: '1.2 MB', status: 'pending', financeur: 'FAF' },
+    { id: '2', name: 'Satisfaction_Froid_Francais.pdf', formationId: '2', type: 'satisfaction_froid', date: '2024-04-28', size: '0.9 MB', status: 'available', requiresSignature: true },
+    { id: '3', name: 'Satisfaction_Froid_Histoire.pdf', formationId: '3', type: 'satisfaction_froid', date: '2024-04-25', size: '0.9 MB', status: 'completed' },
   ]);
 
   const [signatureModalOpen, setSignatureModalOpen] = useState(false);
@@ -48,16 +45,10 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
 
   const documentTypes = {
     satisfaction_froid: {
-      label: 'Questionnaire satisfaction (à froid)',
+      label: 'Questionnaire à froid',
       icon: MessageSquare,
       description: 'Évaluation 3 mois après la formation',
       color: 'text-blue-500'
-    },
-    satisfaction_financeur: {
-      label: 'Questionnaire satisfaction financeur',
-      icon: Building,
-      description: 'OPCO / France Travail / FAF',
-      color: 'text-violet-500'
     }
   };
 
@@ -137,7 +128,7 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
           </div>
           <div>
             <h2 className="text-2xl font-bold text-foreground">Phase : +3 mois</h2>
-            <p className="text-muted-foreground">Questionnaires de satisfaction à froid et financeur</p>
+            <p className="text-muted-foreground">Questionnaire à froid</p>
           </div>
         </div>
         
@@ -194,8 +185,7 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
           <div className="flex items-center space-x-2">
             <Info className="h-4 w-4 text-amber-600 shrink-0" />
             <p className="text-sm text-amber-800">
-              <strong>Information :</strong> Les questionnaires de satisfaction à froid sont envoyés automatiquement 3 mois après la fin de votre formation.
-              Les questionnaires financeurs dépendent du type de financement de votre formation (OPCO, France Travail, FAF).
+              <strong>Information :</strong> Le questionnaire de satisfaction à froid est envoyé automatiquement 3 mois après la fin de votre formation.
             </p>
           </div>
         </CardContent>
@@ -231,16 +221,8 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
                     const typeInfo = documentTypes[doc.type];
                     
                     return (
-                      <div key={doc.id} className="relative">
-                        {doc.financeur && (
-                          <Badge 
-                            variant="secondary" 
-                            className="absolute -top-2 right-2 text-[10px] z-10"
-                          >
-                            {doc.financeur}
-                          </Badge>
-                        )}
                         <DocumentCard
+                          key={doc.id}
                           id={doc.id}
                           name={doc.name}
                           type={doc.type}
@@ -255,7 +237,6 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
                           onDownload={() => handleDownload(doc)}
                           onPreview={() => handlePreview(doc)}
                         />
-                      </div>
                     );
                   })}
                 </CardContent>
@@ -276,16 +257,8 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
               const typeInfo = documentTypes[doc.type];
               
               return (
-                <div key={doc.id} className="relative">
-                  {doc.financeur && (
-                    <Badge 
-                      variant="secondary" 
-                      className="absolute -top-2 right-2 text-[10px] z-10"
-                    >
-                      {doc.financeur}
-                    </Badge>
-                  )}
                   <DocumentCard
+                    key={doc.id}
                     id={doc.id}
                     name={doc.name}
                     type={doc.type}
@@ -300,7 +273,6 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
                     onDownload={() => handleDownload(doc)}
                     onPreview={() => handlePreview(doc)}
                   />
-                </div>
               );
             })}
           </CardContent>
