@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,9 +8,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   FileText, Plus, Send, Search, Edit, Download, Upload,
-  UserPlus, BookOpen, Award, Clock, CheckCircle,
+  UserPlus, BookOpen, Award, Clock, CheckCircle, ChevronRight,
   Mail, FileSignature, Building, BarChart3, ShieldCheck,
-  AlertTriangle, TrendingUp, Filter, Eye, Sparkles, Trash2, File
+  AlertTriangle, TrendingUp, Filter, Eye, Sparkles, Trash2, File,
+  Users, ArrowLeft
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { DocumentTemplateEditor } from '@/components/admin/documents/DocumentTemplateEditor';
@@ -601,19 +602,36 @@ const GlobalTemplatesTab: React.FC = () => {
   );
 };
 
-// Global Tracking Tab
+// Global Tracking Tab - Learner-centric view like emargement page
 const GlobalTrackingTab: React.FC<{ documents: typeof mockGlobalDocuments; selectedOF: string }> = ({ documents, selectedOF }) => {
-  const [filterType, setFilterType] = useState<string>('all');
-  const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedLearnerName, setSelectedLearnerName] = useState<string | null>(null);
 
+  // Filter documents by selected OF
   const filtered = documents.filter(d => {
     if (selectedOF !== 'all' && d.ofName !== mockOrganismes.find(o => o.id === selectedOF)?.name) return false;
-    if (filterType !== 'all' && d.type !== filterType) return false;
-    if (filterStatus !== 'all' && d.status !== filterStatus) return false;
-    if (searchTerm && !d.learnerName.toLowerCase().includes(searchTerm.toLowerCase()) && !d.title.toLowerCase().includes(searchTerm.toLowerCase())) return false;
     return true;
   });
+
+  // Group documents by learner
+  const learnerMap = useMemo(() => {
+    const map = new Map<string, { name: string; docs: typeof mockGlobalDocuments; ofs: Set<string> }>();
+    filtered.forEach(d => {
+      if (!map.has(d.learnerName)) {
+        map.set(d.learnerName, { name: d.learnerName, docs: [], ofs: new Set() });
+      }
+      const entry = map.get(d.learnerName)!;
+      entry.docs.push(d);
+      entry.ofs.add(d.ofName);
+    });
+    return map;
+  }, [filtered]);
+
+  const learners = useMemo(() => {
+    return Array.from(learnerMap.values()).filter(l =>
+      l.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [learnerMap, searchTerm]);
 
   const getStatusBadge = (status: string) => {
     const map: Record<string, { variant: 'default' | 'secondary' | 'outline' | 'destructive'; label: string }> = {
@@ -643,37 +661,127 @@ const GlobalTrackingTab: React.FC<{ documents: typeof mockGlobalDocuments; selec
     link.click();
   };
 
+  // Detail view for a selected learner
+  if (selectedLearnerName) {
+    const learnerData = learnerMap.get(selectedLearnerName);
+    if (!learnerData) return null;
+
+    const docsByPhase = learnerData.docs.reduce((acc, doc) => {
+      if (!acc[doc.phase]) acc[doc.phase] = [];
+      acc[doc.phase].push(doc);
+      return acc;
+    }, {} as Record<string, typeof mockGlobalDocuments>);
+
+    const signed = learnerData.docs.filter(d => d.status === 'signed').length;
+    const pending = learnerData.docs.filter(d => d.status === 'pending' || d.status === 'sent').length;
+
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-4">
+          <Button variant="outline" onClick={() => setSelectedLearnerName(null)}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Retour à la liste
+          </Button>
+          <div>
+            <h3 className="text-lg font-semibold">Documents de {selectedLearnerName}</h3>
+            <p className="text-sm text-muted-foreground">
+              {learnerData.docs.length} document(s) • {signed} signé(s) • {pending} en attente
+            </p>
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-4">
+          <Card>
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold">{learnerData.docs.length}</div>
+              <div className="text-sm text-muted-foreground">Total documents</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-green-50 border-green-200">
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold text-green-600">{signed}</div>
+              <div className="text-sm text-green-700">Signés</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-amber-50 border-amber-200">
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold text-amber-600">{pending}</div>
+              <div className="text-sm text-amber-700">En attente</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Documents grouped by phase */}
+        {(Object.entries(PHASES_CONFIG) as [DocumentPhase, typeof PHASES_CONFIG.inscription][]).map(([phase, config]) => {
+          const phaseDocs = docsByPhase[phase];
+          if (!phaseDocs || phaseDocs.length === 0) return null;
+          const PhaseIcon = phaseIcons[phase];
+          return (
+            <Card key={phase}>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <PhaseIcon className="h-4 w-4" />
+                  {config.label}
+                  <Badge variant="secondary" className="ml-auto">{phaseDocs.length}</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Document</TableHead>
+                      <TableHead>Organisme</TableHead>
+                      <TableHead>Envoyé le</TableHead>
+                      <TableHead>Statut</TableHead>
+                      <TableHead>Signé le</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {phaseDocs.map(doc => (
+                      <TableRow key={doc.id}>
+                        <TableCell>
+                          <div className="font-medium">{doc.title}</div>
+                          <div className="text-xs text-muted-foreground">{DOCUMENT_TYPE_LABELS[doc.type]}</div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1.5">
+                            {doc.ofName === 'Learneezy' ? (
+                              <>
+                                <Sparkles className="h-3.5 w-3.5 text-blue-600" />
+                                <span className="font-medium text-blue-700">{doc.ofName}</span>
+                              </>
+                            ) : (
+                              <>
+                                <Building className="h-3.5 w-3.5 text-muted-foreground" />
+                                {doc.ofName}
+                              </>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>{new Date(doc.sentAt).toLocaleDateString('fr-FR')}</TableCell>
+                        <TableCell>{getStatusBadge(doc.status)}</TableCell>
+                        <TableCell>{doc.signedAt ? new Date(doc.signedAt).toLocaleDateString('fr-FR') : '—'}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+    );
+  }
+
+  // Learner list view
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-3 items-center">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input placeholder="Rechercher par apprenant ou document..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
+          <Input placeholder="Rechercher un apprenant..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
         </div>
-        <Select value={filterType} onValueChange={setFilterType}>
-          <SelectTrigger className="w-[180px]">
-            <Filter className="h-4 w-4 mr-2" />
-            <SelectValue placeholder="Type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tous les types</SelectItem>
-            {Object.entries(DOCUMENT_TYPE_LABELS).map(([key, label]) => (
-              <SelectItem key={key} value={key}>{label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder="Statut" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tous statuts</SelectItem>
-            <SelectItem value="signed">Signé</SelectItem>
-            <SelectItem value="sent">Envoyé</SelectItem>
-            <SelectItem value="read">Lu</SelectItem>
-            <SelectItem value="pending">En attente</SelectItem>
-          </SelectContent>
-        </Select>
         <Button variant="outline" onClick={handleExportCSV}>
           <Download className="h-4 w-4 mr-2" />
           Export CSV
@@ -681,54 +789,82 @@ const GlobalTrackingTab: React.FC<{ documents: typeof mockGlobalDocuments; selec
       </div>
 
       <Card>
-        <CardContent className="p-0">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Apprenants
+          </CardTitle>
+          <CardDescription>Cliquez sur un apprenant pour voir l'ensemble de ses documents</CardDescription>
+        </CardHeader>
+        <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Document</TableHead>
-                <TableHead>Organisme</TableHead>
                 <TableHead>Apprenant</TableHead>
-                <TableHead>Phase</TableHead>
-                <TableHead>Envoyé le</TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead>Signé le</TableHead>
+                <TableHead>Organisme(s)</TableHead>
+                <TableHead className="text-center">Documents</TableHead>
+                <TableHead className="text-center">Signés</TableHead>
+                <TableHead className="text-center">En attente</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((doc) => (
-                <TableRow key={doc.id}>
-                  <TableCell>
-                    <div className="font-medium">{doc.title}</div>
-                    <div className="text-xs text-muted-foreground">{DOCUMENT_TYPE_LABELS[doc.type]}</div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1.5">
-                      {doc.ofName === 'Learneezy' ? (
-                        <>
-                          <Sparkles className="h-3.5 w-3.5 text-blue-600" />
-                          <span className="font-medium text-blue-700">{doc.ofName}</span>
-                        </>
+              {learners.map((learner) => {
+                const signed = learner.docs.filter(d => d.status === 'signed').length;
+                const pending = learner.docs.filter(d => d.status === 'pending' || d.status === 'sent').length;
+                const ofNames = Array.from(learner.ofs);
+                return (
+                  <TableRow
+                    key={learner.name}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => setSelectedLearnerName(learner.name)}
+                  >
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+                          <span className="text-sm font-semibold text-primary">
+                            {learner.name.split(' ').map(n => n[0]).join('')}
+                          </span>
+                        </div>
+                        <span className="font-medium text-primary hover:underline">{learner.name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {ofNames.map(name => (
+                          <Badge key={name} variant="outline" className="text-xs">
+                            {name === 'Learneezy' ? <Sparkles className="h-3 w-3 mr-1 text-blue-600" /> : <Building className="h-3 w-3 mr-1" />}
+                            {name}
+                          </Badge>
+                        ))}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center font-medium">{learner.docs.length}</TableCell>
+                    <TableCell className="text-center">
+                      <Badge variant="default" className="bg-green-600">{signed}</Badge>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {pending > 0 ? (
+                        <Badge variant="outline" className="border-amber-400 text-amber-600">{pending}</Badge>
                       ) : (
-                        <>
-                          <Building className="h-3.5 w-3.5 text-muted-foreground" />
-                          {doc.ofName}
-                        </>
+                        <Badge variant="outline" className="border-green-400 text-green-600">
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          OK
+                        </Badge>
                       )}
-                    </div>
-                  </TableCell>
-                  <TableCell>{doc.learnerName}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="text-xs">{PHASES_CONFIG[doc.phase].label}</Badge>
-                  </TableCell>
-                  <TableCell>{new Date(doc.sentAt).toLocaleDateString('fr-FR')}</TableCell>
-                  <TableCell>{getStatusBadge(doc.status)}</TableCell>
-                  <TableCell>{doc.signedAt ? new Date(doc.signedAt).toLocaleDateString('fr-FR') : '—'}</TableCell>
-                </TableRow>
-              ))}
-              {filtered.length === 0 && (
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button size="sm" variant="ghost">
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+              {learners.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                    Aucun document trouvé
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    Aucun apprenant trouvé
                   </TableCell>
                 </TableRow>
               )}
@@ -736,7 +872,7 @@ const GlobalTrackingTab: React.FC<{ documents: typeof mockGlobalDocuments; selec
           </Table>
         </CardContent>
       </Card>
-      <p className="text-xs text-muted-foreground text-right">{filtered.length} document(s) trouvé(s)</p>
+      <p className="text-xs text-muted-foreground text-right">{learners.length} apprenant(s) • {filtered.length} document(s)</p>
     </div>
   );
 };
