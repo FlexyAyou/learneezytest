@@ -8,9 +8,42 @@ Ce document decrit l'ensemble des endpoints, modeles de donnees, et logiques met
 
 ---
 
-## 1. Modeles de donnees (SQLAlchemy / Pydantic)
+## 1. Repartition des documents par phase
 
-### 1.1 Table `document_templates`
+### Phase 1 — Inscription (Entrée en formation)
+| Document | Type ENUM | Signature requise |
+|----------|-----------|-------------------|
+| Analyse du besoin | `analyse_besoin` | Non |
+| Test de positionnement | `test_positionnement` | Non |
+| Convention de formation | `convention` | Oui |
+
+### Phase 2 — Formation (En formation)
+| Document | Type ENUM | Signature requise |
+|----------|-----------|-------------------|
+| Convocation | `convocation` | Non |
+| Programme de formation | `programme` | Non |
+| Conditions Générales de Vente | `cgv` | Oui |
+| Règlement intérieur | `reglement_interieur` | Oui |
+| Attestation sur l'honneur (CPF) | `attestation_honneur` | Oui |
+
+### Phase 3 — Post-formation (Fin de formation)
+| Document | Type ENUM | Signature requise |
+|----------|-----------|-------------------|
+| Test de sortie | `test_sortie` | Non |
+| Questionnaire de satisfaction à chaud | `satisfaction_chaud` | Non |
+| Certificat de réalisation | `certificat` | Non |
+| Attestation de réalisation (émargements) | `emargement` | Oui |
+
+### Phase 4 — Suivi (+3 mois)
+| Document | Type ENUM | Signature requise |
+|----------|-----------|-------------------|
+| Questionnaire à froid | `satisfaction_froid` | Non |
+
+---
+
+## 2. Modeles de donnees (SQLAlchemy / Pydantic)
+
+### 2.1 Table `document_templates`
 
 Stocke les modeles HTML reutilisables crees par un OF ou par Learneezy (SuperAdmin).
 
@@ -32,9 +65,9 @@ Stocke les modeles HTML reutilisables crees par un OF ou par Learneezy (SuperAdm
 **Valeurs ENUM pour `type`** :
 ```text
 analyse_besoin, test_positionnement, convention, programme,
-reglement_interieur, cgv, convocation, emargement, test_niveau,
-satisfaction_chaud, attestation, certificat, satisfaction_froid,
-questionnaire_financeur
+reglement_interieur, cgv, convocation, emargement,
+attestation_honneur, test_sortie,
+satisfaction_chaud, certificat, satisfaction_froid
 ```
 
 **Valeurs ENUM pour `phase`** :
@@ -44,7 +77,7 @@ inscription, formation, post-formation, suivi
 
 ---
 
-### 1.2 Table `documents`
+### 2.2 Table `documents`
 
 Stocke les documents personnalises, generes et envoyes a un apprenant specifique.
 
@@ -52,13 +85,14 @@ Stocke les documents personnalises, generes et envoyes a un apprenant specifique
 |---------|------|-------------|-------------|
 | `id` | UUID | PK | Identifiant unique |
 | `template_id` | FK -> document_templates.id | NULL si upload | Modele source |
+| `uploaded_document_id` | FK -> uploaded_documents.id | NULL si template | Document uploadé source |
 | `organization_id` | FK -> organizations.id | NOT NULL | OF emetteur (ou Learneezy id) |
 | `learner_id` | FK -> users.id | NOT NULL | Apprenant destinataire |
 | `formation_id` | FK -> courses.id | NULL | Formation associee |
 | `type` | VARCHAR(50) | NOT NULL | Type de document |
 | `phase` | VARCHAR(30) | NOT NULL | Phase |
 | `title` | VARCHAR(255) | NOT NULL | Titre personnalise |
-| `html_content` | TEXT | | Contenu HTML personnalise (placeholders remplaces) |
+| `html_content` | TEXT | | Contenu HTML personnalise (placeholders remplaces) — NULL si document uploadé |
 | `file_url` | VARCHAR(500) | | URL du fichier uploade (PDF, etc.) sur le stockage blob |
 | `status` | VARCHAR(20) | NOT NULL, DEFAULT 'draft' | Statut du document |
 | `requires_signature` | BOOLEAN | DEFAULT false | |
@@ -77,7 +111,7 @@ draft, sent, delivered, read, signed, completed, expired
 
 ---
 
-### 1.3 Table `of_signatures`
+### 2.3 Table `of_signatures`
 
 Stocke la signature officielle d'un OF (actuellement en localStorage cote frontend).
 
@@ -92,7 +126,7 @@ Stocke la signature officielle d'un OF (actuellement en localStorage cote fronte
 
 ---
 
-### 1.4 Table `uploaded_documents`
+### 2.4 Table `uploaded_documents`
 
 Stocke les fichiers (PDF, DOCX) uploades manuellement et associes a une phase.
 
@@ -111,9 +145,9 @@ Stocke les fichiers (PDF, DOCX) uploades manuellement et associes a une phase.
 
 ---
 
-## 2. Schemas Pydantic (Request / Response)
+## 3. Schemas Pydantic (Request / Response)
 
-### 2.1 Templates
+### 3.1 Templates
 
 ```python
 # Request
@@ -129,7 +163,7 @@ class DocumentTemplateCreate(BaseModel):
 class DocumentTemplateUpdate(BaseModel):
     title: str | None = None
     description: str | None = None
-    html_content: str | None = None
+    html_content: str | None = None   # Permet l'édition du code source HTML
     requires_signature: bool | None = None
     is_active: bool | None = None
 
@@ -149,15 +183,20 @@ class DocumentTemplateResponse(BaseModel):
     updated_at: datetime
 ```
 
-### 2.2 Documents (envois personnalises)
+### 3.2 Documents (envois personnalises)
 
 ```python
-# Request - Envoi groupé
+# Request - Envoi groupé (templates avec personnalisation)
 class DocumentSendRequest(BaseModel):
     learner_id: str
     formation_id: str | None = None
     template_ids: list[str]          # IDs des templates a envoyer
     custom_fields: dict | None = None # {"dates.debut": "15/01/2024", "formation.prix": "2500 €", ...}
+
+# Request - Envoi de documents uploadés (sans personnalisation)
+class UploadedDocumentSendRequest(BaseModel):
+    learner_ids: list[str]           # IDs des apprenants destinataires
+    uploaded_document_id: str        # ID du document uploadé
 
 # Request - Signature apprenant
 class DocumentSignRequest(BaseModel):
@@ -169,6 +208,7 @@ class DocumentSignRequest(BaseModel):
 class DocumentResponse(BaseModel):
     id: str
     template_id: str | None
+    uploaded_document_id: str | None
     organization_id: str
     organization_name: str
     learner_id: str
@@ -204,16 +244,16 @@ class DocumentListResponse(BaseModel):
 
 ---
 
-## 3. Endpoints API
+## 4. Endpoints API
 
-### 3.1 Dashboard OF -- Templates (`/api/organizations/{of_id}/document-templates`)
+### 4.1 Dashboard OF — Templates (`/api/organizations/{of_id}/document-templates`)
 
 | Methode | Route | Roles | Description |
 |---------|-------|-------|-------------|
 | `GET` | `/api/organizations/{of_id}/document-templates` | of_admin | Liste les templates de l'OF (+ templates globaux Learneezy) |
-| `GET` | `/api/organizations/{of_id}/document-templates/{id}` | of_admin | Detail d'un template |
+| `GET` | `/api/organizations/{of_id}/document-templates/{id}` | of_admin | Detail d'un template (inclut `html_content` pour édition) |
 | `POST` | `/api/organizations/{of_id}/document-templates` | of_admin | Creer un template |
-| `PATCH` | `/api/organizations/{of_id}/document-templates/{id}` | of_admin | Modifier un template |
+| `PATCH` | `/api/organizations/{of_id}/document-templates/{id}` | of_admin | Modifier un template (titre, description, **code source HTML**, signature, statut) |
 | `DELETE` | `/api/organizations/{of_id}/document-templates/{id}` | of_admin | Supprimer un template |
 
 **Query params GET liste** :
@@ -221,15 +261,19 @@ class DocumentListResponse(BaseModel):
 - `type` (optional) : filtrer par type de document
 - `include_global` (optional, default true) : inclure les templates Learneezy
 
+**Fonctionnalité d'édition du code source** :
+L'OF peut modifier le contenu HTML (`html_content`) de ses propres templates via `PATCH`. Les templates globaux Learneezy (`is_global = true`) ne peuvent pas être modifiés par un OF, mais celui-ci peut créer une copie locale via `POST` pour la personnaliser.
+
 ---
 
-### 3.2 Dashboard OF -- Documents envoyes (`/api/organizations/{of_id}/documents`)
+### 4.2 Dashboard OF — Documents envoyes (`/api/organizations/{of_id}/documents`)
 
 | Methode | Route | Roles | Description |
 |---------|-------|-------|-------------|
 | `GET` | `/api/organizations/{of_id}/documents` | of_admin | Liste des documents envoyes par cet OF |
-| `POST` | `/api/organizations/{of_id}/documents/send` | of_admin | Envoyer un lot de documents a un apprenant |
-| `GET` | `/api/organizations/{of_id}/documents/{id}` | of_admin | Detail d'un document envoye (avec HTML personnalise) |
+| `POST` | `/api/organizations/{of_id}/documents/send` | of_admin | Envoyer un lot de documents templates a un apprenant (avec personnalisation) |
+| `POST` | `/api/organizations/{of_id}/documents/send-uploaded` | of_admin | Envoyer un document uploadé à des apprenants (sans personnalisation) |
+| `GET` | `/api/organizations/{of_id}/documents/{id}` | of_admin | Detail d'un document envoye (avec HTML personnalise ou file_url) |
 
 **Query params GET liste** :
 - `phase` (optional)
@@ -249,14 +293,32 @@ class DocumentListResponse(BaseModel):
 7. (Optionnel) Envoyer un email de notification a l'apprenant
 8. Retourner la liste des documents crees
 
+**Body POST `/send-uploaded`** : `UploadedDocumentSendRequest`
+
+**Logique backend du `POST /send-uploaded`** :
+1. Recuperer le document uploadé (`uploaded_documents`)
+2. Pour chaque `learner_id`, creer un enregistrement `documents` avec :
+   - `uploaded_document_id` renseigné
+   - `file_url` copié depuis le document uploadé
+   - `html_content = NULL`
+   - `status = 'sent'`, `sent_at = now()`
+   - `phase` héritée du document uploadé
+3. Generer un `unique_code` par document
+4. (Optionnel) Notification email
+5. Retourner la liste des documents crees
+
+**NOTE** : Tous les documents envoyés (templates et uploadés) sont consultables dans la section **Gestion des émargements** et non dans la page de gestion des documents.
+
 ---
 
-### 3.3 Dashboard OF -- Emargements (`/api/organizations/{of_id}/emargements`)
+### 4.3 Dashboard OF — Emargements (`/api/organizations/{of_id}/emargements`)
 
 | Methode | Route | Roles | Description |
 |---------|-------|-------|-------------|
 | `GET` | `/api/organizations/{of_id}/emargements` | of_admin | Liste des apprenants avec stats de signature |
 | `GET` | `/api/organizations/{of_id}/emargements/{learner_id}` | of_admin | Documents d'un apprenant specifique groupes par phase |
+
+La page émargements centralise **tous** les documents envoyés (templates personnalisés ET documents uploadés). Elle sert de registre légal pour les audits Qualiopi.
 
 **Response GET liste** :
 ```python
@@ -282,7 +344,7 @@ class EmargementLearnerDetail(BaseModel):
 
 ---
 
-### 3.4 Dashboard OF -- Signature OF (`/api/organizations/{of_id}/signature`)
+### 4.4 Dashboard OF — Signature OF (`/api/organizations/{of_id}/signature`)
 
 | Methode | Route | Roles | Description |
 |---------|-------|-------|-------------|
@@ -295,24 +357,26 @@ Le backend upload l'image vers le stockage blob et stocke l'URL.
 
 ---
 
-### 3.5 Dashboard OF -- Upload documents (`/api/organizations/{of_id}/uploaded-documents`)
+### 4.5 Dashboard OF — Upload documents (`/api/organizations/{of_id}/uploaded-documents`)
 
 | Methode | Route | Roles | Description |
 |---------|-------|-------|-------------|
 | `GET` | `/api/organizations/{of_id}/uploaded-documents` | of_admin | Liste des fichiers uploades |
 | `POST` | `/api/organizations/{of_id}/uploaded-documents` | of_admin | Uploader un fichier (multipart) |
 | `DELETE` | `/api/organizations/{of_id}/uploaded-documents/{id}` | of_admin | Supprimer un fichier uploade |
+| `POST` | `/api/organizations/{of_id}/uploaded-documents/{id}/send` | of_admin | Envoyer un document uploadé à des apprenants |
 
-**POST body** : `multipart/form-data` avec champs `file`, `title`, `phase`
+**POST body upload** : `multipart/form-data` avec champs `file`, `title`, `phase`
+**POST body send** : `{ "learner_ids": ["id1", "id2"] }`
 
 ---
 
-### 3.6 Dashboard Apprenant (`/api/learner/documents`)
+### 4.6 Dashboard Apprenant (`/api/learner/documents`)
 
 | Methode | Route | Roles | Description |
 |---------|-------|-------|-------------|
 | `GET` | `/api/learner/documents` | student, apprenant | Liste de tous les documents recus par l'apprenant connecte |
-| `GET` | `/api/learner/documents/{id}` | student, apprenant | Detail d'un document (HTML personnalise inclus) |
+| `GET` | `/api/learner/documents/{id}` | student, apprenant | Detail d'un document (HTML personnalise ou file_url inclus) |
 | `POST` | `/api/learner/documents/{id}/read` | student, apprenant | Marquer comme lu (met a jour `read_at` et `status`) |
 | `POST` | `/api/learner/documents/{id}/sign` | student, apprenant | Signer un document |
 
@@ -341,9 +405,9 @@ class LearnerDocumentListResponse(BaseModel):
     requires_signature: bool
     organization_name: str
     formation_name: str | None
+    file_url: str | None        # URL si document uploadé
     sent_at: datetime | None
     signed_at: datetime | None
-    # Stats par phase (pour la sidebar)
 
 class LearnerDocumentsGrouped(BaseModel):
     phase_stats: dict[str, PhaseStats]
@@ -357,7 +421,7 @@ class PhaseStats(BaseModel):
 
 ---
 
-### 3.7 Dashboard SuperAdmin (`/api/admin/documents`)
+### 4.7 Dashboard SuperAdmin (`/api/admin/documents`)
 
 | Methode | Route | Roles | Description |
 |---------|-------|-------|-------------|
@@ -410,31 +474,35 @@ class LearnerDocumentSummary(BaseModel):
 
 ---
 
-### 3.8 SuperAdmin -- Templates globaux (`/api/admin/document-templates`)
+### 4.8 SuperAdmin — Templates globaux (`/api/admin/document-templates`)
 
 | Methode | Route | Roles | Description |
 |---------|-------|-------|-------------|
 | `GET` | `/api/admin/document-templates` | superadmin | Liste des templates globaux Learneezy |
 | `POST` | `/api/admin/document-templates` | superadmin | Creer un template global |
-| `PATCH` | `/api/admin/document-templates/{id}` | superadmin | Modifier un template global |
+| `PATCH` | `/api/admin/document-templates/{id}` | superadmin | Modifier un template global (inclut **édition du code source HTML**) |
 | `DELETE` | `/api/admin/document-templates/{id}` | superadmin | Supprimer un template global |
 
 Ces templates ont `is_global = true` et `organization_id = NULL` (ou l'id de Learneezy).
 Ils sont automatiquement disponibles pour tous les OF via le param `include_global` de la route OF.
 
+**Fonctionnalité d'édition du code source** :
+Le SuperAdmin peut modifier le `html_content` de n'importe quel template global. Cela permet d'ajuster les placeholders, la mise en page et le contenu des modèles standards Learneezy.
+
 ---
 
-## 4. Mapping Frontend -> Backend
+## 5. Mapping Frontend -> Backend
 
-### 4.1 Dashboard OF (`OFDocumentsAdvanced.tsx`)
+### 5.1 Dashboard OF (`OFDocumentsAdvanced.tsx`)
 
 | Action frontend | Endpoint backend |
 |-----------------|------------------|
 | Charger les templates par phase | `GET /api/organizations/{of_id}/document-templates?phase={phase}` |
 | Creer un modele | `POST /api/organizations/{of_id}/document-templates` |
-| Modifier un modele | `PATCH /api/organizations/{of_id}/document-templates/{id}` |
-| Envoyer des documents (PhaseDocumentSender) | `POST /api/organizations/{of_id}/documents/send` |
-| Voir les documents envoyes | `GET /api/organizations/{of_id}/documents?phase={phase}` |
+| Modifier un modele (titre, description) | `PATCH /api/organizations/{of_id}/document-templates/{id}` |
+| **Éditer le code source HTML** d'un template | `PATCH /api/organizations/{of_id}/document-templates/{id}` avec `html_content` |
+| Envoyer des documents templates (PhaseDocumentSender) | `POST /api/organizations/{of_id}/documents/send` |
+| Envoyer un document uploadé (sans personnalisation) | `POST /api/organizations/{of_id}/uploaded-documents/{id}/send` |
 | Uploader la signature OF | `POST /api/organizations/{of_id}/signature` (multipart) |
 | Charger la signature OF | `GET /api/organizations/{of_id}/signature` |
 | Uploader un fichier PDF | `POST /api/organizations/{of_id}/uploaded-documents` (multipart) |
@@ -442,7 +510,7 @@ Ils sont automatiquement disponibles pour tous les OF via le param `include_glob
 | Detail emargement d'un apprenant | `GET /api/organizations/{of_id}/emargements/{learner_id}` |
 | Previsualiser un document HTML | `GET /api/organizations/{of_id}/documents/{id}` (champ `html_content`) |
 
-### 4.2 Dashboard Apprenant (`StudentDocuments.tsx`)
+### 5.2 Dashboard Apprenant (`StudentDocuments.tsx`)
 
 | Action frontend | Endpoint backend |
 |-----------------|------------------|
@@ -450,18 +518,23 @@ Ils sont automatiquement disponibles pour tous les OF via le param `include_glob
 | Filtrer par phase | `GET /api/learner/documents?phase=inscription` |
 | Filtrer par formation | `GET /api/learner/documents?formation_id={id}` |
 | Voir un document HTML | `GET /api/learner/documents/{id}` |
+| Voir un document uploadé (PDF) | `GET /api/learner/documents/{id}` → `file_url` |
 | Marquer comme lu | `POST /api/learner/documents/{id}/read` |
 | Signer un document | `POST /api/learner/documents/{id}/sign` |
 | Stats par phase (sidebar) | Inclus dans la reponse `GET /api/learner/documents` via `phase_stats` |
 
-### 4.3 Dashboard SuperAdmin (`SuperAdminDocumentsPage.tsx`)
+### 5.3 Dashboard SuperAdmin (`SuperAdminDocumentsPage.tsx`)
 
 | Action frontend | Endpoint backend |
 |-----------------|------------------|
 | Stats globales (cards en haut) | `GET /api/admin/documents/stats?organization_id={of_id}` |
 | Onglet Gestion phases : charger templates | `GET /api/organizations/{of_id}/document-templates` (l'of_id depend du filtre) |
 | Onglet Gestion phases : envoyer documents | `POST /api/organizations/{of_id}/documents/send` |
-| Onglet Templates globaux | `GET/POST/PATCH/DELETE /api/admin/document-templates` |
+| Onglet Gestion phases : envoyer doc uploadé | `POST /api/organizations/{of_id}/uploaded-documents/{id}/send` |
+| Onglet Templates globaux : lister | `GET /api/admin/document-templates` |
+| Onglet Templates globaux : créer | `POST /api/admin/document-templates` |
+| **Onglet Templates globaux : éditer code source HTML** | `PATCH /api/admin/document-templates/{id}` avec `html_content` |
+| Onglet Templates globaux : supprimer | `DELETE /api/admin/document-templates/{id}` |
 | Onglet Suivi global : liste apprenants | `GET /api/admin/documents/learners?organization_id={of_id}` |
 | Onglet Suivi global : detail apprenant | `GET /api/admin/documents/learners/{learner_id}` |
 | Onglet Audit | `GET /api/admin/documents/audit` |
@@ -470,7 +543,7 @@ Ils sont automatiquement disponibles pour tous les OF via le param `include_glob
 
 ---
 
-## 5. Logique de personnalisation (backend)
+## 6. Logique de personnalisation (backend)
 
 Le backend doit implementer un moteur de remplacement de placeholders. Voici la liste exhaustive des placeholders utilises dans les templates HTML :
 
@@ -525,9 +598,41 @@ Le backend doit implementer un moteur de remplacement de placeholders. Voici la 
 
 Les `custom_fields` fournis dans le `DocumentSendRequest` sont prioritaires sur les valeurs par defaut de la base.
 
+**Note** : La personnalisation ne s'applique qu'aux documents issus de templates (`template_id` non null). Les documents uploadés sont envoyés tels quels.
+
 ---
 
-## 6. Stockage fichiers
+## 7. Édition du code source des templates
+
+### 7.1 Fonctionnalité
+
+Les administrateurs OF et SuperAdmin peuvent **éditer directement le code source HTML** des templates via l'interface `DocumentTemplateEditor`. Cela permet de :
+- Modifier la mise en page et le design des documents
+- Ajouter/supprimer des placeholders `{{...}}`
+- Personnaliser le contenu textuel
+- Ajuster les styles CSS inline
+
+### 7.2 Règles d'édition
+
+| Rôle | Templates éditables | Restrictions |
+|------|---------------------|-------------|
+| OF Admin | Ses propres templates (`organization_id` = son OF) | Ne peut pas modifier les templates globaux Learneezy |
+| OF Admin | Copie locale d'un template global | Peut créer une copie via POST puis la modifier |
+| SuperAdmin | Tous les templates globaux (`is_global = true`) | Accès complet |
+| SuperAdmin | Templates de n'importe quel OF | Accès complet (supervision) |
+
+### 7.3 Endpoint
+
+L'édition utilise le même endpoint `PATCH` que la modification standard :
+```
+PATCH /api/organizations/{of_id}/document-templates/{id}
+PATCH /api/admin/document-templates/{id}
+```
+Avec le champ `html_content` dans le body pour mettre à jour le code source.
+
+---
+
+## 8. Stockage fichiers
 
 **IMPORTANT** : Aucun fichier binaire (signature, PDF uploade) ne doit etre stocke en base de donnees. Utiliser un service de stockage blob (S3, MinIO, etc.) et stocker uniquement l'URL en base.
 
@@ -538,20 +643,21 @@ Fichiers concernes :
 
 ---
 
-## 7. Securite et controle d'acces
+## 9. Securite et controle d'acces
 
 | Regle | Implementation |
 |-------|---------------|
 | Un OF ne peut acceder qu'a ses propres templates et documents | Filtrer par `organization_id` du user connecte |
+| Un OF ne peut modifier que ses propres templates (pas les globaux) | Verifier `organization_id` et `is_global = false` |
 | Un apprenant ne voit que les documents qui lui sont destines | Filtrer par `learner_id` = user connecte |
-| Seul le SuperAdmin peut creer des templates globaux | Verifier `role == 'superadmin'` |
+| Seul le SuperAdmin peut creer/modifier des templates globaux | Verifier `role == 'superadmin'` |
 | Un apprenant ne peut signer qu'un document qui le concerne et requiert signature | Verifier `learner_id`, `requires_signature`, et `status != 'signed'` |
 | Le SuperAdmin peut voir et gerer les documents de tous les OF | Pas de filtre `organization_id` obligatoire |
 | Le SuperAdmin envoie en tant que Learneezy quand filtre = "all" ou "learneezy" | L'`organization_id` dans le `POST /send` determine l'emetteur |
 
 ---
 
-## 8. Notifications (optionnel, P1)
+## 10. Notifications (optionnel, P1)
 
 | Evenement | Notification |
 |-----------|-------------|
@@ -561,16 +667,15 @@ Fichiers concernes :
 
 ---
 
-## 9. Priorites d'implementation
+## 11. Priorites d'implementation
 
 | Priorite | Endpoints | Raison |
 |----------|-----------|--------|
-| P0 | `POST /send`, `GET /learner/documents`, `POST /sign` | Flux principal : envoi et signature |
-| P0 | `CRUD /document-templates` | Gestion des modeles |
+| P0 | `POST /send`, `POST /send-uploaded`, `GET /learner/documents`, `POST /sign` | Flux principal : envoi (templates + uploads) et signature |
+| P0 | `CRUD /document-templates` (avec édition HTML) | Gestion et personnalisation des modeles |
 | P0 | `POST /signature` (OF) | Prerequis pour les documents officiels |
-| P1 | `GET /emargements` | Suivi des signatures |
+| P1 | `GET /emargements` | Suivi des signatures (centralise tous les envois) |
 | P1 | `GET /admin/documents/*` | Supervision SuperAdmin |
-| P1 | `CRUD /uploaded-documents` | Upload de fichiers manuels |
+| P1 | `CRUD /uploaded-documents` + envoi | Upload et envoi de fichiers manuels |
 | P2 | `GET /admin/documents/audit` | Audit de conformite |
 | P2 | Notifications email | Alertes et rappels |
-
