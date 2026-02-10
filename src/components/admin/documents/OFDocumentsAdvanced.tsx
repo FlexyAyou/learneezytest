@@ -83,7 +83,6 @@ export const OFDocumentsAdvanced: React.FC = () => {
     // Phase +3 mois
     { id: '13', type: 'satisfaction_froid', phase: 'suivi', title: 'Questionnaire à froid', description: 'Évaluation de l\'impact à +3 mois', htmlContent: DEFAULT_TEMPLATES.satisfaction_froid || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
   ]);
-  const [sentDocuments, setSentDocuments] = useState<any[]>([]);
   const [showUploadSendDialog, setShowUploadSendDialog] = useState(false);
   const [uploadDocToSend, setUploadDocToSend] = useState<string | null>(null);
   const [selectedLearnersForUpload, setSelectedLearnersForUpload] = useState<string[]>([]);
@@ -113,7 +112,7 @@ export const OFDocumentsAdvanced: React.FC = () => {
   };
 
   const handleDocumentsSent = (docs: any[]) => {
-    setSentDocuments(prev => [...prev, ...docs]);
+    toast({ title: 'Documents envoyés', description: `${docs.length} document(s) envoyé(s). Consultez la gestion des émargements.` });
   };
 
   const openUploadDialog = () => {
@@ -154,19 +153,7 @@ export const OFDocumentsAdvanced: React.FC = () => {
   const handleSendUploadedDocument = () => {
     const doc = uploadedDocuments.find(d => d.id === uploadDocToSend);
     if (!doc || selectedLearnersForUpload.length === 0) return;
-    const newSent = selectedLearnersForUpload.map(learnerId => {
-      const learner = mockLearners.find(l => l.id === learnerId);
-      return {
-        id: `sent-${Date.now()}-${learnerId}`,
-        title: doc.title,
-        phase: doc.phase,
-        learnerName: learner ? `${learner.firstName} ${learner.lastName}` : '',
-        sentAt: new Date().toISOString(),
-        status: 'sent',
-      };
-    });
-    setSentDocuments(prev => [...prev, ...newSent]);
-    toast({ title: 'Document envoyé', description: `"${doc.title}" envoyé à ${selectedLearnersForUpload.length} apprenant(s)` });
+    toast({ title: 'Document envoyé', description: `"${doc.title}" envoyé à ${selectedLearnersForUpload.length} apprenant(s). Consultez la gestion des émargements.` });
     setShowUploadSendDialog(false);
     setUploadDocToSend(null);
     setSelectedLearnersForUpload([]);
@@ -378,39 +365,6 @@ export const OFDocumentsAdvanced: React.FC = () => {
               </Card>
             )}
 
-            {/* Sent Documents */}
-            {sentDocuments.filter(d => d.phase === phase).length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Mail className="h-5 w-5" />
-                    Documents envoyés
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Document</TableHead>
-                        <TableHead>Apprenant</TableHead>
-                        <TableHead>Envoyé le</TableHead>
-                        <TableHead>Statut</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {sentDocuments.filter(d => d.phase === phase).map((doc) => (
-                        <TableRow key={doc.id || doc.uniqueCode}>
-                          <TableCell className="font-medium">{doc.title}</TableCell>
-                          <TableCell>{doc.learnerName}</TableCell>
-                          <TableCell>{new Date(doc.sentAt).toLocaleDateString('fr-FR')}</TableCell>
-                          <TableCell>{getStatusBadge(doc.status)}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            )}
           </TabsContent>
         ))}
       </Tabs>
