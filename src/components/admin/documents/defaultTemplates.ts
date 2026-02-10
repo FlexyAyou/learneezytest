@@ -373,4 +373,329 @@ export const DEFAULT_TEMPLATES: Partial<Record<DocumentType, string>> = {
   <p style="margin-top: 30px; font-size: 12px; color: #666;">Signature du formateur : _______________________</p>
 </div>
 `
+,
+
+  analyse_besoin: `
+<div style="font-family: 'Times New Roman', Times, serif; max-width: 800px; margin: 0 auto; padding: 20px;">
+  <div style="text-align: center; margin-bottom: 30px;">
+    <h1 style="font-size: 24px; margin-bottom: 10px;">ANALYSE DU BESOIN DE FORMATION</h1>
+    <p style="font-size: 14px; color: #666;">Formulaire d'évaluation préalable</p>
+  </div>
+
+  <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; background: #f9f9f9;">
+    <p style="margin: 0;"><strong>Organisme de Formation :</strong> {{of.nom}}</p>
+    <p style="margin: 5px 0 0 0;"><strong>N° DA :</strong> {{of.nda}}</p>
+  </div>
+
+  <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd;">
+    <p><strong>Apprenant :</strong> {{apprenant.prenom}} {{apprenant.nom}}</p>
+    <p><strong>Entreprise :</strong> {{apprenant.entreprise}}</p>
+    <p><strong>Poste :</strong> {{apprenant.poste}}</p>
+  </div>
+
+  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px;">1. Contexte professionnel</h2>
+  <p>Décrivez brièvement votre contexte professionnel actuel :</p>
+  <div style="border: 1px solid #ccc; min-height: 80px; padding: 10px; margin-bottom: 20px;"></div>
+
+  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px;">2. Objectifs de la formation</h2>
+  <p>Quels sont vos objectifs pour la formation <strong>{{formation.nom}}</strong> ?</p>
+  <div style="border: 1px solid #ccc; min-height: 80px; padding: 10px; margin-bottom: 20px;"></div>
+
+  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px;">3. Compétences actuelles</h2>
+  <p>Évaluez votre niveau actuel dans le domaine concerné :</p>
+  <ul>
+    <li>☐ Débutant</li>
+    <li>☐ Intermédiaire</li>
+    <li>☐ Avancé</li>
+  </ul>
+
+  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px;">4. Attentes spécifiques</h2>
+  <p>Avez-vous des attentes particulières ou des besoins spécifiques (accessibilité, aménagements, etc.) ?</p>
+  <div style="border: 1px solid #ccc; min-height: 80px; padding: 10px; margin-bottom: 20px;"></div>
+
+  <div style="margin-top: 30px;">
+    <p><strong>Date :</strong> {{date.jour}}</p>
+    <p><strong>Signature de l'apprenant :</strong></p>
+    <div style="min-height: 60px; margin-top: 10px;"></div>
+  </div>
+</div>
+`,
+
+  test_positionnement: `
+<div style="font-family: 'Times New Roman', Times, serif; max-width: 800px; margin: 0 auto; padding: 20px;">
+  <div style="text-align: center; margin-bottom: 30px;">
+    <h1 style="font-size: 24px; margin-bottom: 10px;">TEST DE POSITIONNEMENT</h1>
+    <h2 style="font-size: 18px; color: #444;">{{formation.nom}}</h2>
+  </div>
+
+  <div style="display: flex; justify-content: space-between; margin-bottom: 20px; padding: 15px; background: #f5f5f5;">
+    <div>
+      <p style="margin: 0;"><strong>Apprenant :</strong> {{apprenant.prenom}} {{apprenant.nom}}</p>
+      <p style="margin: 5px 0 0 0;"><strong>Date :</strong> {{date.jour}}</p>
+    </div>
+    <div style="text-align: right;">
+      <p style="margin: 0;"><strong>Organisme :</strong> {{of.nom}}</p>
+      <p style="margin: 5px 0 0 0;"><strong>Formateur :</strong> {{formation.formateur}}</p>
+    </div>
+  </div>
+
+  <div style="padding: 15px; border: 1px solid #ddd; margin-bottom: 20px; background: #fffde7;">
+    <p style="margin: 0;"><strong>Instructions :</strong> Ce test permet d'évaluer votre niveau initial avant la formation. Répondez aux questions ci-dessous au mieux de vos connaissances. Il n'y a pas de mauvaise réponse, l'objectif est d'adapter la formation à votre profil.</p>
+  </div>
+
+  <h2 style="font-size: 16px; background: #333; color: white; padding: 8px 15px;">Question 1</h2>
+  <div style="padding: 15px; border: 1px solid #ddd; margin-bottom: 15px;">
+    <p>[Question à personnaliser selon la formation]</p>
+    <div style="border: 1px solid #ccc; min-height: 60px; padding: 10px;"></div>
+  </div>
+
+  <h2 style="font-size: 16px; background: #333; color: white; padding: 8px 15px;">Question 2</h2>
+  <div style="padding: 15px; border: 1px solid #ddd; margin-bottom: 15px;">
+    <p>[Question à personnaliser selon la formation]</p>
+    <div style="border: 1px solid #ccc; min-height: 60px; padding: 10px;"></div>
+  </div>
+
+  <h2 style="font-size: 16px; background: #333; color: white; padding: 8px 15px;">Question 3</h2>
+  <div style="padding: 15px; border: 1px solid #ddd; margin-bottom: 15px;">
+    <p>[Question à personnaliser selon la formation]</p>
+    <div style="border: 1px solid #ccc; min-height: 60px; padding: 10px;"></div>
+  </div>
+
+  <div style="margin-top: 30px; padding: 15px; background: #f9f9f9;">
+    <p><strong>Résultat du positionnement :</strong> {{evaluation.note_positionnement}}</p>
+    <p><strong>Niveau identifié :</strong> {{evaluation.niveau_acquis}}</p>
+    <p><strong>Commentaire du formateur :</strong> {{evaluation.commentaire}}</p>
+  </div>
+</div>
+`,
+
+  reglement_interieur: `
+<div style="font-family: 'Times New Roman', Times, serif; max-width: 800px; margin: 0 auto; padding: 20px;">
+  <div style="text-align: center; margin-bottom: 30px;">
+    <h1 style="font-size: 24px; margin-bottom: 10px;">RÈGLEMENT INTÉRIEUR</h1>
+    <h2 style="font-size: 16px; color: #666;">Applicable aux stagiaires de la formation professionnelle</h2>
+  </div>
+
+  <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; background: #f9f9f9;">
+    <p style="margin: 0;"><strong>Organisme de Formation :</strong> {{of.nom}}</p>
+    <p style="margin: 5px 0 0 0;"><strong>SIRET :</strong> {{of.siret}} | <strong>N° DA :</strong> {{of.nda}}</p>
+    <p style="margin: 5px 0 0 0;"><strong>Adresse :</strong> {{of.adresse}}, {{of.codePostal}} {{of.ville}}</p>
+  </div>
+
+  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px;">Article 1 - Objet et champ d'application</h2>
+  <p style="text-align: justify;">Le présent règlement intérieur s'applique à tous les stagiaires inscrits à une action de formation dispensée par {{of.nom}}, et ce pour la durée de la formation suivie.</p>
+
+  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px;">Article 2 - Assiduité et ponctualité</h2>
+  <p style="text-align: justify;">Les stagiaires sont tenus de suivre les cours, séances de formation et stages avec assiduité. Toute absence doit être justifiée. En cas d'absence prévisible, le stagiaire doit en informer le responsable de la formation.</p>
+
+  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px;">Article 3 - Discipline générale</h2>
+  <p style="text-align: justify;">Il est interdit aux stagiaires :</p>
+  <ul>
+    <li>D'introduire des boissons alcoolisées ou des substances illicites dans les locaux</li>
+    <li>De se présenter en état d'ébriété ou sous l'emprise de substances</li>
+    <li>D'utiliser leur téléphone portable pendant les sessions de formation</li>
+    <li>De fumer dans les locaux</li>
+  </ul>
+
+  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px;">Article 4 - Hygiène et sécurité</h2>
+  <p style="text-align: justify;">La prévention des risques d'accidents et de maladies est impérative. Chaque stagiaire doit respecter les consignes de sécurité affichées dans les locaux et signaler immédiatement tout dysfonctionnement.</p>
+
+  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px;">Article 5 - Sanctions disciplinaires</h2>
+  <p style="text-align: justify;">Tout manquement du stagiaire à l'une des prescriptions du présent règlement pourra faire l'objet d'une sanction prononcée par le responsable de l'organisme de formation. Les sanctions applicables sont : avertissement écrit, exclusion temporaire, exclusion définitive.</p>
+
+  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px;">Article 6 - Représentation des stagiaires</h2>
+  <p style="text-align: justify;">Pour les formations d'une durée supérieure à 500 heures, un délégué des stagiaires est élu conformément aux dispositions légales.</p>
+
+  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px;">Article 7 - Protection des données</h2>
+  <p style="text-align: justify;">Conformément au RGPD, les données collectées sont utilisées exclusivement pour la gestion de la formation. Contact : {{of.email}}</p>
+
+  <div style="margin-top: 40px; display: flex; justify-content: space-between;">
+    <div style="width: 45%;">
+      <p><strong>Pour l'organisme de formation</strong></p>
+      <div style="min-height: 60px; margin-bottom: 10px;">{{of.signature}}</div>
+      <p>{{of.responsable}}</p>
+      <p style="font-size: 12px; color: #666;">Date : {{date.jour}}</p>
+    </div>
+    <div style="width: 45%;">
+      <p style="margin-bottom: 60px;"><strong>Le stagiaire</strong> (mention "Lu et approuvé")</p>
+      <p>{{apprenant.prenom}} {{apprenant.nom}}</p>
+      <p style="font-size: 12px; color: #666;">Date : {{date.jour}}</p>
+    </div>
+  </div>
+</div>
+`,
+
+  attestation_honneur: `
+<div style="font-family: 'Times New Roman', Times, serif; max-width: 800px; margin: 0 auto; padding: 20px;">
+  <div style="text-align: center; margin-bottom: 30px;">
+    <h1 style="font-size: 24px; margin-bottom: 10px;">ATTESTATION SUR L'HONNEUR</h1>
+    <h2 style="font-size: 16px; color: #666;">Formation éligible au Compte Personnel de Formation (CPF)</h2>
+  </div>
+
+  <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; background: #f9f9f9;">
+    <p style="margin: 0;"><strong>Organisme de Formation :</strong> {{of.nom}}</p>
+    <p style="margin: 5px 0 0 0;"><strong>SIRET :</strong> {{of.siret}} | <strong>N° DA :</strong> {{of.nda}}</p>
+  </div>
+
+  <p style="text-align: justify; margin-top: 30px;">Je soussigné(e), <strong>{{apprenant.prenom}} {{apprenant.nom}}</strong>,</p>
+  <p style="text-align: justify;">demeurant au {{apprenant.adresse}}, {{apprenant.codePostal}} {{apprenant.ville}},</p>
+
+  <p style="text-align: justify; margin-top: 20px;">atteste sur l'honneur :</p>
+
+  <ul style="margin: 20px 0; line-height: 2;">
+    <li>Être inscrit(e) à la formation <strong>{{formation.nom}}</strong> dispensée par <strong>{{of.nom}}</strong></li>
+    <li>Que cette formation est financée dans le cadre de mon Compte Personnel de Formation (CPF)</li>
+    <li>Que les informations fournies sont exactes et complètes</li>
+    <li>M'engager à suivre la formation avec assiduité du {{dates.debut}} au {{dates.fin}}</li>
+    <li>Avoir pris connaissance que toute fausse déclaration est passible de poursuites</li>
+  </ul>
+
+  <p style="text-align: justify; margin-top: 20px;">Je reconnais avoir été informé(e) que toute déclaration frauduleuse pourrait entraîner le remboursement des sommes engagées par la Caisse des Dépôts et Consignations au titre du CPF.</p>
+
+  <div style="margin-top: 40px;">
+    <p><strong>Fait à :</strong> {{of.ville}}</p>
+    <p><strong>Le :</strong> {{date.jour}}</p>
+    <p style="margin-top: 20px;"><strong>Signature de l'apprenant</strong> (précédée de la mention "Lu et approuvé") :</p>
+    <div style="min-height: 80px; margin-top: 10px; border: 1px dashed #ccc;"></div>
+    <p style="margin-top: 10px;">{{apprenant.prenom}} {{apprenant.nom}}</p>
+  </div>
+</div>
+`,
+
+  test_sortie: `
+<div style="font-family: 'Times New Roman', Times, serif; max-width: 800px; margin: 0 auto; padding: 20px;">
+  <div style="text-align: center; margin-bottom: 30px;">
+    <h1 style="font-size: 24px; margin-bottom: 10px;">TEST DE SORTIE</h1>
+    <h2 style="font-size: 18px; color: #444;">{{formation.nom}}</h2>
+    <p style="font-size: 14px; color: #666;">Évaluation des acquis de fin de formation</p>
+  </div>
+
+  <div style="display: flex; justify-content: space-between; margin-bottom: 20px; padding: 15px; background: #f5f5f5;">
+    <div>
+      <p style="margin: 0;"><strong>Apprenant :</strong> {{apprenant.prenom}} {{apprenant.nom}}</p>
+      <p style="margin: 5px 0 0 0;"><strong>Date :</strong> {{date.jour}}</p>
+    </div>
+    <div style="text-align: right;">
+      <p style="margin: 0;"><strong>Organisme :</strong> {{of.nom}}</p>
+      <p style="margin: 5px 0 0 0;"><strong>Formateur :</strong> {{formation.formateur}}</p>
+    </div>
+  </div>
+
+  <div style="padding: 15px; border: 1px solid #ddd; margin-bottom: 20px; background: #e8f5e9;">
+    <p style="margin: 0;"><strong>Instructions :</strong> Ce test évalue les compétences acquises à l'issue de la formation. Les résultats seront comparés au test de positionnement initial pour mesurer votre progression.</p>
+  </div>
+
+  <h2 style="font-size: 16px; background: #333; color: white; padding: 8px 15px;">Question 1</h2>
+  <div style="padding: 15px; border: 1px solid #ddd; margin-bottom: 15px;">
+    <p>[Question à personnaliser selon la formation]</p>
+    <div style="border: 1px solid #ccc; min-height: 60px; padding: 10px;"></div>
+  </div>
+
+  <h2 style="font-size: 16px; background: #333; color: white; padding: 8px 15px;">Question 2</h2>
+  <div style="padding: 15px; border: 1px solid #ddd; margin-bottom: 15px;">
+    <p>[Question à personnaliser selon la formation]</p>
+    <div style="border: 1px solid #ccc; min-height: 60px; padding: 10px;"></div>
+  </div>
+
+  <h2 style="font-size: 16px; background: #333; color: white; padding: 8px 15px;">Question 3</h2>
+  <div style="padding: 15px; border: 1px solid #ddd; margin-bottom: 15px;">
+    <p>[Question à personnaliser selon la formation]</p>
+    <div style="border: 1px solid #ccc; min-height: 60px; padding: 10px;"></div>
+  </div>
+
+  <div style="margin-top: 30px; padding: 15px; background: #f9f9f9; border: 2px solid #333;">
+    <h3 style="margin-top: 0;">Résultats</h3>
+    <p><strong>Note de positionnement (avant) :</strong> {{evaluation.note_positionnement}}</p>
+    <p><strong>Note finale (après) :</strong> {{evaluation.note_finale}}</p>
+    <p><strong>Progression :</strong> {{evaluation.progression}}</p>
+    <p><strong>Niveau acquis :</strong> {{evaluation.niveau_acquis}}</p>
+    <p><strong>Commentaire :</strong> {{evaluation.commentaire}}</p>
+  </div>
+</div>
+`,
+
+  satisfaction_chaud: `
+<div style="font-family: 'Times New Roman', Times, serif; max-width: 800px; margin: 0 auto; padding: 20px;">
+  <div style="text-align: center; margin-bottom: 30px;">
+    <h1 style="font-size: 24px; margin-bottom: 10px;">QUESTIONNAIRE DE SATISFACTION À CHAUD</h1>
+    <h2 style="font-size: 18px; color: #444;">{{formation.nom}}</h2>
+  </div>
+
+  <div style="margin-bottom: 20px; padding: 15px; background: #f5f5f5;">
+    <p><strong>Apprenant :</strong> {{apprenant.prenom}} {{apprenant.nom}}</p>
+    <p><strong>Formation :</strong> {{formation.nom}} | <strong>Dates :</strong> du {{dates.debut}} au {{dates.fin}}</p>
+    <p><strong>Formateur :</strong> {{formation.formateur}}</p>
+  </div>
+
+  <p style="margin-bottom: 20px;"><em>Merci de prendre quelques minutes pour évaluer cette formation. Vos retours nous permettent d'améliorer nos prestations.</em></p>
+
+  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px;">1. Organisation générale</h2>
+  <p>Les conditions matérielles étaient-elles satisfaisantes ? ☐ Très bien ☐ Bien ☐ Moyen ☐ Insuffisant</p>
+  <p>Les horaires ont-ils été respectés ? ☐ Oui ☐ Partiellement ☐ Non</p>
+
+  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px;">2. Contenu pédagogique</h2>
+  <p>Le contenu correspondait-il à vos attentes ? ☐ Tout à fait ☐ En grande partie ☐ Partiellement ☐ Pas du tout</p>
+  <p>Le niveau était-il adapté ? ☐ Trop simple ☐ Adapté ☐ Trop complexe</p>
+
+  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px;">3. Le formateur</h2>
+  <p>Maîtrise du sujet : ☐ Excellent ☐ Bon ☐ Moyen ☐ Insuffisant</p>
+  <p>Qualité des explications : ☐ Excellent ☐ Bon ☐ Moyen ☐ Insuffisant</p>
+  <p>Disponibilité et écoute : ☐ Excellent ☐ Bon ☐ Moyen ☐ Insuffisant</p>
+
+  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px;">4. Appréciation globale</h2>
+  <p>Note globale de la formation : ☐ 1 ☐ 2 ☐ 3 ☐ 4 ☐ 5</p>
+  <p>Recommanderiez-vous cette formation ? ☐ Oui ☐ Non</p>
+
+  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px;">5. Commentaires libres</h2>
+  <div style="border: 1px solid #ccc; min-height: 100px; padding: 10px; margin-bottom: 20px;"></div>
+
+  <div style="margin-top: 30px;">
+    <p><strong>Date :</strong> {{date.jour}}</p>
+    <p><strong>Signature :</strong></p>
+    <div style="min-height: 60px;"></div>
+  </div>
+</div>
+`,
+
+  satisfaction_froid: `
+<div style="font-family: 'Times New Roman', Times, serif; max-width: 800px; margin: 0 auto; padding: 20px;">
+  <div style="text-align: center; margin-bottom: 30px;">
+    <h1 style="font-size: 24px; margin-bottom: 10px;">QUESTIONNAIRE À FROID</h1>
+    <h2 style="font-size: 18px; color: #444;">Évaluation à +3 mois</h2>
+    <p style="font-size: 14px; color: #666;">{{formation.nom}}</p>
+  </div>
+
+  <div style="margin-bottom: 20px; padding: 15px; background: #f5f5f5;">
+    <p><strong>Apprenant :</strong> {{apprenant.prenom}} {{apprenant.nom}}</p>
+    <p><strong>Formation suivie :</strong> {{formation.nom}} | du {{dates.debut}} au {{dates.fin}}</p>
+    <p><strong>Date du questionnaire :</strong> {{date.jour}}</p>
+  </div>
+
+  <p style="margin-bottom: 20px;"><em>Ce questionnaire vise à évaluer l'impact de la formation sur votre pratique professionnelle, 3 mois après son achèvement.</em></p>
+
+  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px;">1. Application des acquis</h2>
+  <p>Avez-vous pu mettre en pratique les compétences acquises ? ☐ Oui, régulièrement ☐ Oui, ponctuellement ☐ Non</p>
+  <p>Si non, quels freins avez-vous rencontrés ?</p>
+  <div style="border: 1px solid #ccc; min-height: 60px; padding: 10px; margin-bottom: 15px;"></div>
+
+  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px;">2. Impact professionnel</h2>
+  <p>La formation a-t-elle eu un impact positif sur votre activité ? ☐ Très positif ☐ Positif ☐ Neutre ☐ Négatif</p>
+  <p>Précisez les améliorations constatées :</p>
+  <div style="border: 1px solid #ccc; min-height: 60px; padding: 10px; margin-bottom: 15px;"></div>
+
+  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px;">3. Besoins complémentaires</h2>
+  <p>Identifiez-vous des besoins de formation complémentaires ? ☐ Oui ☐ Non</p>
+  <p>Si oui, lesquels ?</p>
+  <div style="border: 1px solid #ccc; min-height: 60px; padding: 10px; margin-bottom: 15px;"></div>
+
+  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px;">4. Appréciation rétrospective</h2>
+  <p>Avec le recul, comment évaluez-vous cette formation ? ☐ 1 ☐ 2 ☐ 3 ☐ 4 ☐ 5</p>
+
+  <div style="margin-top: 30px;">
+    <p><strong>Date :</strong> {{date.jour}}</p>
+    <p><strong>Signature :</strong></p>
+    <div style="min-height: 60px;"></div>
+  </div>
+</div>
+`
 };

@@ -789,9 +789,11 @@ function getDefaultTemplate(type: DocumentType): string {
       </div>
     `,
     test_niveau: '<p>Modèle de test de niveau à personnaliser...</p>',
-    satisfaction_chaud: '<p>Modèle de satisfaction à chaud à personnaliser...</p>',
-    satisfaction_froid: '<p>Modèle de satisfaction à froid à personnaliser...</p>',
-    questionnaire_financeur: '<p>Modèle de questionnaire financeur à personnaliser...</p>'
+    satisfaction_chaud: '<p>Modèle de questionnaire de satisfaction à chaud à personnaliser...</p>',
+    satisfaction_froid: '<p>Modèle de questionnaire à froid à personnaliser...</p>',
+    questionnaire_financeur: '<p>Modèle de questionnaire financeur à personnaliser...</p>',
+    attestation_honneur: '<p>Modèle d\'attestation sur l\'honneur (CPF) à personnaliser...</p>',
+    test_sortie: '<p>Modèle de test de sortie à personnaliser...</p>'
   };
 
   return templates[type] || '<p>Contenu du document...</p>';
