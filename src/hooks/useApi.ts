@@ -872,6 +872,29 @@ export const useOFUsers = (ofId: number | string | undefined) => {
   });
 };
 
+/**
+ * Hook mutation pour créer un utilisateur dans un OF
+ * POST /api/organizations/{of_id}/users
+ */
+export const useCreateOFUser = (ofId: number | string | undefined) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (userData: {
+      email: string;
+      first_name: string;
+      last_name: string;
+      role: string;
+      phone?: string;
+    }) => {
+      if (!ofId) throw new Error('OF ID is required');
+      return fastAPIClient.createOFUser(ofId, userData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['of-users', ofId] });
+    },
+  });
+};
+
 // ============= ORGANIZATIONS HOOKS =============
 
 /**

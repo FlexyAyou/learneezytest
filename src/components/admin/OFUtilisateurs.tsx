@@ -8,8 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { Users, Search, Filter, Plus, Eye, Edit, MoreHorizontal, UserPlus, AlertCircle, Loader2 } from 'lucide-react';
 import { AddApprenantModal } from './AddApprenantModal';
 import { OFAddUtilisateur } from './OFAddUtilisateur';
-import { useOFUsers } from '@/hooks/useApi';
+import { useOFUsers, useCreateOFUser } from '@/hooks/useApi';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useToast } from '@/hooks/use-toast';
 
 // Type pour les utilisateurs de l'OF (à adapter selon la réponse API finale)
 interface OFUser {
@@ -39,6 +40,8 @@ export const OFUtilisateurs = () => {
 
   // Hook pour récupérer les utilisateurs de l'OF depuis l'API
   const { data: apiUsers, isLoading, isError, error } = useOFUsers(ofId);
+  const createOFUser = useCreateOFUser(ofId);
+  const { toast } = useToast();
 
   // Données locales temporaires (utilisées quand l'API n'est pas disponible)
   const [localUsers, setLocalUsers] = useState<OFUser[]>([]);
@@ -115,19 +118,57 @@ export const OFUtilisateurs = () => {
     navigate(`/dashboard/organisme-formation/utilisateurs/${userType}/${userSlug}`);
   };
 
-  const handleAddUser = (newUser: any) => {
-    // Ajouter l'utilisateur localement en attendant le refresh de l'API
-    setLocalUsers(prev => [...prev, {
-      id: newUser.id || Date.now().toString(),
-      nom: newUser.nom || newUser.last_name || '',
-      prenom: newUser.prenom || newUser.first_name || '',
+  const handleAddUser = async (newUser: any) => {
+    // Mapper les données du formulaire vers le format API
+    const apiPayload = {
       email: newUser.email,
-      role: mapRoleToFrench(newUser.role),
-      status: newUser.status || 'pending',
-      phone: newUser.phone || '',
-      joinDate: new Date().toLocaleDateString('fr-FR'),
-      lastLogin: 'N/A',
-    }]);
+      first_name: newUser.prenom || newUser.first_name || '',
+      last_name: newUser.nom || newUser.last_name || '',
+      role: mapRoleToBackend(newUser.role),
+      phone: newUser.phone || newUser.telephone || undefined,
+    };
+
+    try {
+      await createOFUser.mutateAsync(apiPayload);
+      toast({
+        title: "Utilisateur créé",
+        description: `${apiPayload.first_name} ${apiPayload.last_name} a été créé. Un email avec ses identifiants lui sera envoyé.`,
+      });
+    } catch (err: any) {
+      console.error('Erreur création utilisateur OF:', err);
+      // Fallback local si l'API n'est pas disponible
+      setLocalUsers(prev => [...prev, {
+        id: newUser.id || Date.now().toString(),
+        nom: apiPayload.last_name,
+        prenom: apiPayload.first_name,
+        email: apiPayload.email,
+        role: mapRoleToFrench(apiPayload.role),
+        status: 'pending',
+        phone: apiPayload.phone || '',
+        joinDate: new Date().toLocaleDateString('fr-FR'),
+        lastLogin: 'N/A',
+      }]);
+      toast({
+        title: "Ajouté localement",
+        description: `L'API n'est pas disponible. ${apiPayload.first_name} a été ajouté localement.`,
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Mapper les rôles français du formulaire vers les rôles backend
+  const mapRoleToBackend = (role: string): string => {
+    const roleMap: Record<string, string> = {
+      'Apprenant': 'apprenant',
+      'Formateur': 'formateur_interne',
+      'Gestionnaire': 'gestionnaire',
+      'Administrateur': 'of_admin',
+      'apprenant': 'apprenant',
+      'animateur': 'formateur_interne',
+      'administrateur': 'of_admin',
+      'referent': 'gestionnaire',
+    };
+    return roleMap[role] || role;
   };
 
   const filteredUsers = users.filter(user => {
