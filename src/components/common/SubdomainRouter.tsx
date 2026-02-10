@@ -16,6 +16,12 @@ const OF_PUBLIC_ROUTES = [
   '/reinitialiser-mot-de-passe',
 ];
 
+// Routes explicitement bloquées sur un sous-domaine OF (redirigées vers /connexion-of)
+const OF_BLOCKED_ROUTES = [
+  '/inscription',
+  '/connexion',
+];
+
 // Routes de dashboard (protégées)
 const DASHBOARD_ROUTES = [
   '/dashboard/apprenant',
@@ -48,6 +54,11 @@ const SubdomainRouter: React.FC<SubdomainRouterProps> = ({ children }) => {
     return OF_PUBLIC_ROUTES.some(route => location.pathname.startsWith(route));
   }, [location.pathname]);
 
+  // Vérifier si la route actuelle est explicitement bloquée en contexte OF
+  const isBlockedOFRoute = useMemo(() => {
+    return OF_BLOCKED_ROUTES.some(route => location.pathname.startsWith(route));
+  }, [location.pathname]);
+
   // Vérifier si la route actuelle est une route de dashboard
   const isDashboardRoute = useMemo(() => {
     return DASHBOARD_ROUTES.some(route => location.pathname.startsWith(route));
@@ -63,6 +74,14 @@ const SubdomainRouter: React.FC<SubdomainRouterProps> = ({ children }) => {
 
     // Si on est sur un sous-domaine OF
     if (isOFContext && orgExists) {
+      // Bloquer les routes interdites (inscription, connexion publique) même si authentifié
+      if (isBlockedOFRoute) {
+        console.log('[SubdomainRouter] 🚫 Blocked route on OF subdomain, redirecting to /connexion-of');
+        setHasRedirected(true);
+        navigate('/connexion-of', { replace: true });
+        return;
+      }
+
       // Si pas authentifié et pas sur une route publique OF
       if (!isAuthenticated && !isPublicOFRoute) {
         console.log('[SubdomainRouter] 🔄 Redirecting to /connexion-of (not authenticated on OF subdomain)');
@@ -71,7 +90,7 @@ const SubdomainRouter: React.FC<SubdomainRouterProps> = ({ children }) => {
         return;
       }
     }
-  }, [isOFContext, orgExists, isAuthenticated, isPublicOFRoute, orgLoading, authLoading, navigate, hasRedirected]);
+  }, [isOFContext, orgExists, isAuthenticated, isPublicOFRoute, isBlockedOFRoute, orgLoading, authLoading, navigate, hasRedirected]);
 
   // Reset hasRedirected quand on change de route manuellement
   useEffect(() => {
