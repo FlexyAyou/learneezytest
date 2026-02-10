@@ -160,7 +160,15 @@ const PhaseManagementTab: React.FC<{ ofInfo: OF }> = ({ ofInfo }) => {
     if (template.id) {
       setTemplates(prev => prev.map(t => t.id === template.id ? { ...t, ...template } : t));
     } else {
-      setTemplates(prev => [...prev, { ...template, id: `t-${Date.now()}`, createdAt: new Date().toISOString() }]);
+      const newTemplate: DocumentTemplate = {
+        ...template,
+        id: `t-${Date.now()}`,
+        description: template.description || template.title,
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      setTemplates(prev => [...prev, newTemplate]);
     }
     setShowEditor(false);
     toast({ title: 'Modèle sauvegardé' });
@@ -263,7 +271,21 @@ const PhaseManagementTab: React.FC<{ ofInfo: OF }> = ({ ofInfo }) => {
                 <Upload className="h-4 w-4 mr-2" />
                 Uploader un document
               </Button>
-              <Button variant="outline" onClick={() => { setSelectedTemplate(null); setShowEditor(true); }}>
+              <Button variant="outline" onClick={() => {
+                setSelectedTemplate({
+                  id: '',
+                  type: (PHASES_CONFIG[activePhase].documents[0] as DocumentType) || 'convention',
+                  phase: activePhase,
+                  title: '',
+                  description: '',
+                  htmlContent: '',
+                  requiresSignature: false,
+                  isActive: true,
+                  createdAt: '',
+                  updatedAt: '',
+                } as DocumentTemplate);
+                setShowEditor(true);
+              }}>
                 <Plus className="h-4 w-4 mr-2" />
                 Nouveau modèle
               </Button>
@@ -541,7 +563,13 @@ const GlobalTemplatesTab: React.FC = () => {
     if (template.id) {
       setGlobalTemplates(prev => prev.map(t => t.id === template.id ? { ...t, ...template } : t));
     } else {
-      setGlobalTemplates(prev => [...prev, { ...template, id: `gt-${Date.now()}`, isLearneezy: true, createdAt: new Date().toISOString() }]);
+      setGlobalTemplates(prev => [...prev, {
+        ...template,
+        id: `gt-${Date.now()}`,
+        description: template.description || template.title,
+        isLearneezy: true,
+        createdAt: new Date().toISOString()
+      }]);
     }
     setShowEditor(false);
     toast({ title: 'Template global sauvegardé', description: 'Ce template est maintenant disponible pour tous les OF.' });
@@ -559,7 +587,21 @@ const GlobalTemplatesTab: React.FC = () => {
           <h3 className="text-lg font-semibold">Templates Learneezy</h3>
           <p className="text-sm text-muted-foreground">Templates globaux disponibles pour tous les organismes de formation</p>
         </div>
-        <Button onClick={() => { setSelectedTemplate(null); setShowEditor(true); }}>
+        <Button onClick={() => {
+          setSelectedTemplate({
+            id: '',
+            type: 'convention' as DocumentType,
+            phase: 'inscription' as DocumentPhase,
+            title: '',
+            description: '',
+            htmlContent: '',
+            requiresSignature: false,
+            isActive: true,
+            createdAt: '',
+            updatedAt: '',
+          });
+          setShowEditor(true);
+        }}>
           <Plus className="h-4 w-4 mr-2" />
           Créer un template global
         </Button>
