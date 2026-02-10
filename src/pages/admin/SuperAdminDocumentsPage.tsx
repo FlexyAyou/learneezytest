@@ -63,20 +63,21 @@ const getOFForSelection = (selectedOF: string): OF => {
 
 const mockGlobalDocuments = [
   // Learneezy documents
-  { id: 'gd-l1', title: 'CGV Learneezy', type: 'cgv' as DocumentType, ofName: 'Learneezy', learnerName: 'Marie Dupont', sentAt: '2024-01-10', status: 'signed', signedAt: '2024-01-11', phase: 'inscription' as DocumentPhase },
-  { id: 'gd-l2', title: 'Programme React Learneezy', type: 'programme' as DocumentType, ofName: 'Learneezy', learnerName: 'Marie Dupont', sentAt: '2024-01-10', status: 'read', phase: 'inscription' as DocumentPhase },
-  { id: 'gd-l3', title: 'Convention Learneezy', type: 'convention' as DocumentType, ofName: 'Learneezy', learnerName: 'Jean Martin', sentAt: '2024-01-12', status: 'signed', signedAt: '2024-01-13', phase: 'formation' as DocumentPhase },
-  { id: 'gd-l4', title: 'Attestation Learneezy', type: 'attestation' as DocumentType, ofName: 'Learneezy', learnerName: 'Sophie Bernard', sentAt: '2024-02-18', status: 'signed', signedAt: '2024-02-19', phase: 'post-formation' as DocumentPhase },
+  { id: 'gd-l1', title: 'Analyse besoin Learneezy', type: 'analyse_besoin' as DocumentType, ofName: 'Learneezy', learnerName: 'Marie Dupont', sentAt: '2024-01-10', status: 'signed', signedAt: '2024-01-11', phase: 'inscription' as DocumentPhase },
+  { id: 'gd-l2', title: 'Convention Learneezy', type: 'convention' as DocumentType, ofName: 'Learneezy', learnerName: 'Marie Dupont', sentAt: '2024-01-10', status: 'read', phase: 'inscription' as DocumentPhase },
+  { id: 'gd-l3', title: 'CGV Learneezy', type: 'cgv' as DocumentType, ofName: 'Learneezy', learnerName: 'Jean Martin', sentAt: '2024-01-12', status: 'signed', signedAt: '2024-01-13', phase: 'formation' as DocumentPhase },
+  { id: 'gd-l4', title: 'Certificat Learneezy', type: 'certificat' as DocumentType, ofName: 'Learneezy', learnerName: 'Sophie Bernard', sentAt: '2024-02-18', status: 'signed', signedAt: '2024-02-19', phase: 'post-formation' as DocumentPhase },
   // FormaPro documents
-  { id: 'gd-1', title: 'CGV FormaPro', type: 'cgv' as DocumentType, ofName: 'FormaPro', learnerName: 'Marie Dupont', sentAt: '2024-01-15', status: 'signed', signedAt: '2024-01-16', phase: 'inscription' as DocumentPhase },
-  { id: 'gd-2', title: 'Programme React', type: 'programme' as DocumentType, ofName: 'FormaPro', learnerName: 'Marie Dupont', sentAt: '2024-01-15', status: 'read', phase: 'inscription' as DocumentPhase },
-  { id: 'gd-3', title: 'Convention React', type: 'convention' as DocumentType, ofName: 'FormaPro', learnerName: 'Jean Martin', sentAt: '2024-01-20', status: 'signed', signedAt: '2024-01-21', phase: 'formation' as DocumentPhase },
+  { id: 'gd-1', title: 'Test positionnement FormaPro', type: 'test_positionnement' as DocumentType, ofName: 'FormaPro', learnerName: 'Marie Dupont', sentAt: '2024-01-15', status: 'signed', signedAt: '2024-01-16', phase: 'inscription' as DocumentPhase },
+  { id: 'gd-2', title: 'Programme React', type: 'programme' as DocumentType, ofName: 'FormaPro', learnerName: 'Marie Dupont', sentAt: '2024-01-15', status: 'read', phase: 'formation' as DocumentPhase },
+  { id: 'gd-3', title: 'Convention React', type: 'convention' as DocumentType, ofName: 'FormaPro', learnerName: 'Jean Martin', sentAt: '2024-01-20', status: 'signed', signedAt: '2024-01-21', phase: 'inscription' as DocumentPhase },
   // SkillUp documents
-  { id: 'gd-4', title: 'CGV SkillUp', type: 'cgv' as DocumentType, ofName: 'SkillUp Academy', learnerName: 'Sophie Bernard', sentAt: '2024-01-18', status: 'sent', phase: 'inscription' as DocumentPhase },
-  { id: 'gd-5', title: 'Attestation Vue.js', type: 'attestation' as DocumentType, ofName: 'SkillUp Academy', learnerName: 'Sophie Bernard', sentAt: '2024-02-15', status: 'pending', phase: 'post-formation' as DocumentPhase },
+  { id: 'gd-4', title: 'Convocation SkillUp', type: 'convocation' as DocumentType, ofName: 'SkillUp Academy', learnerName: 'Sophie Bernard', sentAt: '2024-01-18', status: 'sent', phase: 'formation' as DocumentPhase },
+  { id: 'gd-5', title: 'Test de sortie Vue.js', type: 'test_sortie' as DocumentType, ofName: 'SkillUp Academy', learnerName: 'Sophie Bernard', sentAt: '2024-02-15', status: 'pending', phase: 'post-formation' as DocumentPhase },
   // DigiForm documents
-  { id: 'gd-6', title: 'Convocation Formation', type: 'convocation' as DocumentType, ofName: 'DigiForm', learnerName: 'Jean Martin', sentAt: '2024-02-01', status: 'read', phase: 'formation' as DocumentPhase },
+  { id: 'gd-6', title: 'Règlement intérieur', type: 'reglement_interieur' as DocumentType, ofName: 'DigiForm', learnerName: 'Jean Martin', sentAt: '2024-02-01', status: 'read', phase: 'formation' as DocumentPhase },
   { id: 'gd-7', title: 'Certificat Réalisation', type: 'certificat' as DocumentType, ofName: 'FormaPro', learnerName: 'Marie Dupont', sentAt: '2024-02-20', status: 'signed', signedAt: '2024-02-21', phase: 'post-formation' as DocumentPhase },
+  { id: 'gd-8', title: 'Questionnaire à froid', type: 'satisfaction_froid' as DocumentType, ofName: 'FormaPro', learnerName: 'Marie Dupont', sentAt: '2024-05-20', status: 'pending', phase: 'suivi' as DocumentPhase },
 ];
 
 // --- Sub-components ---
@@ -134,12 +135,23 @@ const PhaseManagementTab: React.FC<{ ofInfo: OF }> = ({ ofInfo }) => {
   const [uploadPhase, setUploadPhase] = useState<DocumentPhase>('inscription');
   const [uploadedDocuments, setUploadedDocuments] = useState<Array<{ id: string; title: string; phase: DocumentPhase; fileName: string; uploadedAt: string; fileSize: string }>>([]);
   const [templates, setTemplates] = useState<DocumentTemplate[]>([
-    { id: '1', type: 'cgv', phase: 'inscription', title: 'Conditions Générales de Vente', description: 'CGV à signer par l\'apprenant', htmlContent: DEFAULT_TEMPLATES.cgv || '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-    { id: '2', type: 'programme', phase: 'inscription', title: 'Programme de formation', description: 'Programme détaillé de la formation', htmlContent: DEFAULT_TEMPLATES.programme || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-    { id: '3', type: 'convention', phase: 'formation', title: 'Convention de formation', description: 'Convention tripartite', htmlContent: DEFAULT_TEMPLATES.convention || '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-    { id: '4', type: 'convocation', phase: 'formation', title: 'Convocation session', description: 'Convocation à la session de formation', htmlContent: DEFAULT_TEMPLATES.convocation || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-    { id: '5', type: 'attestation', phase: 'post-formation', title: 'Attestation de formation', description: 'Attestation de fin de formation', htmlContent: DEFAULT_TEMPLATES.attestation || '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-    { id: '6', type: 'certificat', phase: 'post-formation', title: 'Certificat de réalisation', description: 'Certificat de réalisation de la formation', htmlContent: DEFAULT_TEMPLATES.certificat || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+    // Phase Inscription
+    { id: '1', type: 'analyse_besoin', phase: 'inscription', title: 'Analyse du besoin', description: 'Formulaire d\'évaluation préalable', htmlContent: DEFAULT_TEMPLATES.analyse_besoin || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+    { id: '2', type: 'test_positionnement', phase: 'inscription', title: 'Test de positionnement', description: 'Évaluation du niveau initial', htmlContent: DEFAULT_TEMPLATES.test_positionnement || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+    { id: '3', type: 'convention', phase: 'inscription', title: 'Convention de formation', description: 'Convention tripartite de formation', htmlContent: DEFAULT_TEMPLATES.convention || '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+    // Phase Formation
+    { id: '4', type: 'convocation', phase: 'formation', title: 'Convocation', description: 'Convocation à la session de formation', htmlContent: DEFAULT_TEMPLATES.convocation || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+    { id: '5', type: 'programme', phase: 'formation', title: 'Programme de formation', description: 'Programme détaillé de la formation', htmlContent: DEFAULT_TEMPLATES.programme || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+    { id: '6', type: 'cgv', phase: 'formation', title: 'Conditions Générales de Vente', description: 'CGV à signer par l\'apprenant', htmlContent: DEFAULT_TEMPLATES.cgv || '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+    { id: '7', type: 'reglement_interieur', phase: 'formation', title: 'Règlement intérieur', description: 'Règlement intérieur applicable aux stagiaires', htmlContent: DEFAULT_TEMPLATES.reglement_interieur || '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+    { id: '8', type: 'attestation_honneur', phase: 'formation', title: 'Attestation sur l\'honneur (CPF)', description: 'Attestation pour formations CPF', htmlContent: DEFAULT_TEMPLATES.attestation_honneur || '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+    // Phase Post-formation
+    { id: '9', type: 'test_sortie', phase: 'post-formation', title: 'Test de sortie', description: 'Évaluation des acquis en fin de formation', htmlContent: DEFAULT_TEMPLATES.test_sortie || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+    { id: '10', type: 'satisfaction_chaud', phase: 'post-formation', title: 'Questionnaire de satisfaction à chaud', description: 'Évaluation immédiate', htmlContent: DEFAULT_TEMPLATES.satisfaction_chaud || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+    { id: '11', type: 'certificat', phase: 'post-formation', title: 'Certificat de réalisation', description: 'Certificat attestant la réalisation', htmlContent: DEFAULT_TEMPLATES.certificat || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+    { id: '12', type: 'emargement', phase: 'post-formation', title: 'Attestation de réalisation (émargements)', description: 'Feuille d\'émargement', htmlContent: DEFAULT_TEMPLATES.emargement || '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+    // Phase +3 mois
+    { id: '13', type: 'satisfaction_froid', phase: 'suivi', title: 'Questionnaire à froid', description: 'Évaluation de l\'impact à +3 mois', htmlContent: DEFAULT_TEMPLATES.satisfaction_froid || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
   ]);
   const [sentDocuments, setSentDocuments] = useState<any[]>([]);
   const { toast } = useToast();
