@@ -271,6 +271,7 @@ export interface JWTPayload {
   role: UserRole;
   email: string;
   of_id?: number | null;
+  must_change_password?: boolean;
   exp: number;
   sub: string;
 }

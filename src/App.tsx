@@ -24,6 +24,7 @@ import LoginOF from "./pages/LoginOF";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import ForceChangePassword from "./pages/ForceChangePassword";
 import { Toaster } from "@/components/ui/toaster";
 import { AdminUsers } from "./components/admin/AdminUsers";
 import UserDetailPage from "./components/admin/UserDetailPage";
@@ -63,6 +64,7 @@ function App() {
           <Route path="/mot-de-passe-oublié" element={<ForgotPassword />} />
           <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
           <Route path="/reinitialiser-mot-de-passe" element={<ResetPassword />} />
+          <Route path="/changer-mot-de-passe" element={<ForceChangePassword />} />
 
           {/* Protected Routes - Student */}
           <Route

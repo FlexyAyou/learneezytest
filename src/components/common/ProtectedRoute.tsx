@@ -30,6 +30,11 @@ const ProtectedRoute = ({
     return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }
 
+  // Forcer le changement de mot de passe si requis
+  if (localStorage.getItem('must_change_password') === 'true') {
+    return <Navigate to="/changer-mot-de-passe" replace />;
+  }
+
   if (requiredRole && user.role !== requiredRole) {
     return <Navigate to="/dashboard/apprenant" replace />;
   }
