@@ -59,6 +59,7 @@ export const DocumentTemplateEditor: React.FC<DocumentTemplateEditorProps> = ({
   const [viewMode, setViewMode] = useState<'edit' | 'preview' | 'code'>('edit');
   
   const editorRef = useRef<HTMLDivElement>(null);
+  const lastSelectionRef = useRef<Range | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -66,6 +67,16 @@ export const DocumentTemplateEditor: React.FC<DocumentTemplateEditorProps> = ({
       editorRef.current.innerHTML = htmlContent;
     }
   }, [viewMode]);
+
+  const saveSelection = () => {
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      if (editorRef.current?.contains(range.commonAncestorContainer)) {
+        lastSelectionRef.current = range.cloneRange();
+      }
+    }
+  };
 
   const handleInput = () => {
     if (editorRef.current) {
@@ -81,21 +92,37 @@ export const DocumentTemplateEditor: React.FC<DocumentTemplateEditorProps> = ({
 
   const insertField = (field: string) => {
     if (viewMode === 'edit' && editorRef.current) {
+      editorRef.current.focus();
+
+      let range: Range;
       const selection = window.getSelection();
-      if (selection && selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0);
-        const span = document.createElement('span');
-        span.className = 'dynamic-field';
-        span.contentEditable = 'false';
-        span.textContent = field;
-        span.style.cssText = 'background-color: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.875rem;';
-        range.deleteContents();
-        range.insertNode(span);
-        range.setStartAfter(span);
-        range.collapse(true);
+
+      // Restore saved selection or fall back to end of editor
+      if (lastSelectionRef.current && editorRef.current.contains(lastSelectionRef.current.commonAncestorContainer)) {
+        range = lastSelectionRef.current;
+      } else if (selection && selection.rangeCount > 0 && editorRef.current.contains(selection.getRangeAt(0).commonAncestorContainer)) {
+        range = selection.getRangeAt(0);
+      } else {
+        range = document.createRange();
+        range.selectNodeContents(editorRef.current);
+        range.collapse(false);
+      }
+
+      const span = document.createElement('span');
+      span.className = 'dynamic-field';
+      span.contentEditable = 'false';
+      span.textContent = field;
+      span.style.cssText = 'background-color: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.875rem;';
+      range.deleteContents();
+      range.insertNode(span);
+      range.setStartAfter(span);
+      range.collapse(true);
+
+      if (selection) {
         selection.removeAllRanges();
         selection.addRange(range);
       }
+      lastSelectionRef.current = range.cloneRange();
       handleInput();
     } else if (viewMode === 'code') {
       setHtmlContent(prev => prev + field);
@@ -345,6 +372,8 @@ export const DocumentTemplateEditor: React.FC<DocumentTemplateEditorProps> = ({
                   ref={editorRef}
                   contentEditable
                   onInput={handleInput}
+                  onMouseUp={saveSelection}
+                  onKeyUp={saveSelection}
                   className="p-6 focus:outline-none prose prose-sm max-w-none bg-white"
                   style={{ minHeight: '400px' }}
                 />
