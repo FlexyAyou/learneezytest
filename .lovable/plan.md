@@ -498,7 +498,7 @@ Le SuperAdmin peut modifier le `html_content` de n'importe quel template global.
 | Action frontend | Endpoint backend |
 |-----------------|------------------|
 | Charger les templates par phase | `GET /api/organizations/{of_id}/document-templates?phase={phase}` |
-| Creer un modele | `POST /api/organizations/{of_id}/document-templates` |
+| **Créer un nouveau modèle** (bouton "Nouveau modèle") | `POST /api/organizations/{of_id}/document-templates` — ouvre l'éditeur avec phase pré-sélectionnée, type, titre, HTML et signature configurables |
 | Modifier un modele (titre, description) | `PATCH /api/organizations/{of_id}/document-templates/{id}` |
 | **Éditer le code source HTML** d'un template | `PATCH /api/organizations/{of_id}/document-templates/{id}` avec `html_content` |
 | Envoyer des documents templates (PhaseDocumentSender) | `POST /api/organizations/{of_id}/documents/send` |
