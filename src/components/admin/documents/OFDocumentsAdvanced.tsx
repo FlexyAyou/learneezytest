@@ -89,7 +89,19 @@ export const OFDocumentsAdvanced: React.FC = () => {
   const { toast } = useToast();
 
   const handleCreateTemplate = () => {
-    setSelectedTemplate(null);
+    // Pre-set phase to active phase for new template
+    setSelectedTemplate({
+      id: '',
+      type: PHASES_CONFIG[activePhase].documents[0] as DocumentType || 'convention',
+      phase: activePhase,
+      title: '',
+      description: '',
+      htmlContent: '',
+      requiresSignature: false,
+      isActive: true,
+      createdAt: '',
+      updatedAt: '',
+    } as DocumentTemplate);
     setShowEditor(true);
   };
 
@@ -102,7 +114,15 @@ export const OFDocumentsAdvanced: React.FC = () => {
     if (template.id) {
       setTemplates(prev => prev.map(t => t.id === template.id ? { ...t, ...template } : t));
     } else {
-      setTemplates(prev => [...prev, { ...template, id: `t-${Date.now()}`, createdAt: new Date().toISOString() }]);
+      const newTemplate: DocumentTemplate = {
+        ...template,
+        id: `t-${Date.now()}`,
+        description: template.description || template.title,
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      setTemplates(prev => [...prev, newTemplate]);
     }
     setShowEditor(false);
   };

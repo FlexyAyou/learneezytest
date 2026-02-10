@@ -135,10 +135,11 @@ export const DocumentTemplateEditor: React.FC<DocumentTemplateEditorProps> = ({
     }
 
     onSave({
-      id: template?.id,
+      id: template?.id || undefined,
       type,
       phase,
       title,
+      description: title,
       htmlContent,
       requiresSignature,
       isActive: true,
