@@ -84,6 +84,9 @@ export const OFDocumentsAdvanced: React.FC = () => {
     { id: '13', type: 'satisfaction_froid', phase: 'suivi', title: 'Questionnaire à froid', description: 'Évaluation de l\'impact à +3 mois', htmlContent: DEFAULT_TEMPLATES.satisfaction_froid || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
   ]);
   const [sentDocuments, setSentDocuments] = useState<any[]>([]);
+  const [showUploadSendDialog, setShowUploadSendDialog] = useState(false);
+  const [uploadDocToSend, setUploadDocToSend] = useState<string | null>(null);
+  const [selectedLearnersForUpload, setSelectedLearnersForUpload] = useState<string[]>([]);
   const { toast } = useToast();
 
   const handleCreateTemplate = () => {
@@ -140,6 +143,39 @@ export const OFDocumentsAdvanced: React.FC = () => {
     setUploadFile(null);
     setUploadTitle('');
     setShowUploadDialog(false);
+  };
+
+  const handleOpenUploadSend = (docId: string) => {
+    setUploadDocToSend(docId);
+    setSelectedLearnersForUpload([]);
+    setShowUploadSendDialog(true);
+  };
+
+  const handleSendUploadedDocument = () => {
+    const doc = uploadedDocuments.find(d => d.id === uploadDocToSend);
+    if (!doc || selectedLearnersForUpload.length === 0) return;
+    const newSent = selectedLearnersForUpload.map(learnerId => {
+      const learner = mockLearners.find(l => l.id === learnerId);
+      return {
+        id: `sent-${Date.now()}-${learnerId}`,
+        title: doc.title,
+        phase: doc.phase,
+        learnerName: learner ? `${learner.firstName} ${learner.lastName}` : '',
+        sentAt: new Date().toISOString(),
+        status: 'sent',
+      };
+    });
+    setSentDocuments(prev => [...prev, ...newSent]);
+    toast({ title: 'Document envoyé', description: `"${doc.title}" envoyé à ${selectedLearnersForUpload.length} apprenant(s)` });
+    setShowUploadSendDialog(false);
+    setUploadDocToSend(null);
+    setSelectedLearnersForUpload([]);
+  };
+
+  const toggleLearnerForUpload = (learnerId: string) => {
+    setSelectedLearnersForUpload(prev =>
+      prev.includes(learnerId) ? prev.filter(id => id !== learnerId) : [...prev, learnerId]
+    );
   };
 
   const phaseTemplates = templates.filter(t => t.phase === activePhase);
@@ -321,7 +357,7 @@ export const OFDocumentsAdvanced: React.FC = () => {
                           <TableCell>{new Date(doc.uploadedAt).toLocaleDateString('fr-FR')}</TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
-                              <Button size="sm" onClick={handleSendPhaseDocuments}>
+                              <Button size="sm" onClick={() => handleOpenUploadSend(doc.id)}>
                                 <Send className="h-4 w-4 mr-1" />
                                 Envoyer
                               </Button>
@@ -479,6 +515,59 @@ export const OFDocumentsAdvanced: React.FC = () => {
             <Button onClick={handleUploadDocument} disabled={!uploadFile || !uploadTitle.trim()}>
               <Upload className="h-4 w-4 mr-2" />
               Uploader
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* Upload Send Dialog */}
+      <Dialog open={showUploadSendDialog} onOpenChange={setShowUploadSendDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Send className="h-5 w-5" />
+              Envoyer le document
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            {uploadDocToSend && (
+              <div className="p-3 bg-muted rounded-lg">
+                <div className="flex items-center gap-2">
+                  <File className="h-4 w-4 text-primary" />
+                  <span className="font-medium text-sm">
+                    {uploadedDocuments.find(d => d.id === uploadDocToSend)?.title}
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {uploadedDocuments.find(d => d.id === uploadDocToSend)?.fileName}
+                </p>
+              </div>
+            )}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Sélectionner les apprenants</label>
+              <div className="border rounded-lg divide-y max-h-60 overflow-auto">
+                {mockLearners.map(learner => (
+                  <label key={learner.id} className="flex items-center gap-3 p-3 hover:bg-muted/50 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedLearnersForUpload.includes(learner.id)}
+                      onChange={() => toggleLearnerForUpload(learner.id)}
+                      className="rounded border-input"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm">{learner.firstName} {learner.lastName}</div>
+                      <div className="text-xs text-muted-foreground">{learner.email}</div>
+                    </div>
+                    <Badge variant="outline" className="text-xs">{learner.formationName}</Badge>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowUploadSendDialog(false)}>Annuler</Button>
+            <Button onClick={handleSendUploadedDocument} disabled={selectedLearnersForUpload.length === 0}>
+              <Send className="h-4 w-4 mr-2" />
+              Envoyer à {selectedLearnersForUpload.length} apprenant(s)
             </Button>
           </DialogFooter>
         </DialogContent>
