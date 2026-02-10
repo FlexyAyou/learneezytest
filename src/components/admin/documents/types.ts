@@ -16,7 +16,9 @@ export type DocumentType =
   | 'attestation' 
   | 'certificat' 
   | 'satisfaction_froid' 
-  | 'questionnaire_financeur';
+  | 'questionnaire_financeur'
+  | 'attestation_honneur'
+  | 'test_sortie';
 
 export type DocumentStatus = 
   | 'template' 
@@ -173,31 +175,31 @@ export const DYNAMIC_FIELDS: DynamicField[] = [
 export const PHASES_CONFIG = {
   inscription: {
     label: 'Phase Inscription',
-    description: 'Documents d\'inscription : CGV à signer et Programme de formation',
+    description: 'Documents d\'inscription : analyse du besoin, test de positionnement et convention',
     color: 'blue',
     icon: 'UserPlus',
-    documents: ['cgv', 'programme']
+    documents: ['analyse_besoin', 'test_positionnement', 'convention']
   },
   formation: {
     label: 'Phase Formation',
-    description: 'Documents de la période de formation',
+    description: 'Documents de la période de formation : convocation, programme, CGV, règlement intérieur',
     color: 'green',
     icon: 'BookOpen',
-    documents: ['convention', 'convocation', 'reglement_interieur', 'emargement']
+    documents: ['convocation', 'programme', 'cgv', 'reglement_interieur', 'attestation_honneur']
   },
   'post-formation': {
     label: 'Phase Post-formation',
-    description: 'Documents de fin de formation',
+    description: 'Documents de fin de formation : test de sortie, satisfaction, certificat, émargements',
     color: 'orange',
     icon: 'Award',
-    documents: ['test_niveau', 'satisfaction_chaud', 'attestation', 'certificat']
+    documents: ['test_sortie', 'satisfaction_chaud', 'certificat', 'emargement']
   },
   suivi: {
     label: 'Phase +3 mois',
-    description: 'Suivi post-formation',
+    description: 'Suivi post-formation : questionnaire à froid',
     color: 'purple',
     icon: 'Clock',
-    documents: ['satisfaction_froid', 'questionnaire_financeur']
+    documents: ['satisfaction_froid']
   }
 };
 
@@ -226,11 +228,13 @@ export const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
   reglement_interieur: 'Règlement intérieur',
   cgv: 'CGV / Conditions générales',
   convocation: 'Convocation',
-  emargement: 'Feuille d\'émargement',
+  emargement: 'Attestation de réalisation (émargements)',
   test_niveau: 'Test final',
-  satisfaction_chaud: 'Satisfaction à chaud',
+  satisfaction_chaud: 'Questionnaire de satisfaction à chaud',
   attestation: 'Attestation de formation',
   certificat: 'Certificat de réalisation',
-  satisfaction_froid: 'Satisfaction à froid',
-  questionnaire_financeur: 'Questionnaire financeur'
+  satisfaction_froid: 'Questionnaire à froid',
+  questionnaire_financeur: 'Questionnaire financeur',
+  attestation_honneur: 'Attestation sur l\'honneur (CPF)',
+  test_sortie: 'Test de sortie',
 };

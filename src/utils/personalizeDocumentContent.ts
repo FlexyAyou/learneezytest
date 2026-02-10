@@ -70,6 +70,13 @@ const TEMPLATE_TYPE_MAP: Record<string, keyof typeof DEFAULT_TEMPLATES> = {
   attestation: 'attestation',
   certificat: 'certificat',
   cgv_ri: 'cgv',
+  analyse_besoin: 'analyse_besoin',
+  test_positionnement: 'test_positionnement',
+  reglement_interieur: 'reglement_interieur',
+  attestation_honneur: 'attestation_honneur',
+  test_sortie: 'test_sortie',
+  satisfaction_chaud: 'satisfaction_chaud',
+  satisfaction_froid: 'satisfaction_froid',
 };
 
 /**
