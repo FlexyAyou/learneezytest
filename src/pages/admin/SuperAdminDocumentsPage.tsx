@@ -606,6 +606,7 @@ const GlobalTemplatesTab: React.FC = () => {
 const GlobalTrackingTab: React.FC<{ documents: typeof mockGlobalDocuments; selectedOF: string }> = ({ documents, selectedOF }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLearnerName, setSelectedLearnerName] = useState<string | null>(null);
+  const [previewDoc, setPreviewDoc] = useState<typeof mockGlobalDocuments[0] | null>(null);
 
   // Filter documents by selected OF
   const filtered = documents.filter(d => {
@@ -735,6 +736,7 @@ const GlobalTrackingTab: React.FC<{ documents: typeof mockGlobalDocuments; selec
                       <TableHead>Envoyé le</TableHead>
                       <TableHead>Statut</TableHead>
                       <TableHead>Signé le</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -762,6 +764,12 @@ const GlobalTrackingTab: React.FC<{ documents: typeof mockGlobalDocuments; selec
                         <TableCell>{new Date(doc.sentAt).toLocaleDateString('fr-FR')}</TableCell>
                         <TableCell>{getStatusBadge(doc.status)}</TableCell>
                         <TableCell>{doc.signedAt ? new Date(doc.signedAt).toLocaleDateString('fr-FR') : '—'}</TableCell>
+                        <TableCell className="text-right">
+                          <Button size="sm" variant="outline" onClick={() => setPreviewDoc(doc)}>
+                            <Eye className="h-4 w-4 mr-1" />
+                            Prévisualiser
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -770,6 +778,34 @@ const GlobalTrackingTab: React.FC<{ documents: typeof mockGlobalDocuments; selec
             </Card>
           );
         })}
+
+        {/* Document Preview Dialog */}
+        <Dialog open={!!previewDoc} onOpenChange={(open) => !open && setPreviewDoc(null)}>
+          <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Eye className="h-5 w-5" />
+                {previewDoc?.title}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="flex-1 overflow-auto border rounded-lg bg-white p-6">
+              {previewDoc && DEFAULT_TEMPLATES[previewDoc.type as keyof typeof DEFAULT_TEMPLATES] ? (
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: DEFAULT_TEMPLATES[previewDoc.type as keyof typeof DEFAULT_TEMPLATES] || ''
+                  }}
+                  className="prose max-w-none"
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                  <FileText className="h-12 w-12 mb-3" />
+                  <p className="text-sm">Aucun aperçu HTML disponible pour ce document</p>
+                  <p className="text-xs mt-1">Type : {previewDoc ? DOCUMENT_TYPE_LABELS[previewDoc.type] : ''}</p>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
