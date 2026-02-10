@@ -18,6 +18,23 @@ export const useAuthForm = () => {
     try {
       const tokenData = await login.mutateAsync({ email, password });
       
+      // Vérifier le flag must_change_password dans le JWT
+      const token = localStorage.getItem('access_token');
+      if (token) {
+        const { fastAPIClient } = await import('@/services/fastapi-client');
+        const decoded = fastAPIClient.decodeToken(token);
+        
+        if (decoded?.must_change_password) {
+          localStorage.setItem('must_change_password', 'true');
+          toast({
+            title: "Changement de mot de passe requis",
+            description: "Veuillez définir un nouveau mot de passe pour sécuriser votre compte.",
+          });
+          navigate('/changer-mot-de-passe');
+          return;
+        }
+      }
+
       toast({
         title: "Connexion réussie",
         description: "Redirection vers votre espace...",
