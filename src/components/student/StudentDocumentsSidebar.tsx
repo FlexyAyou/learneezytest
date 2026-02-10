@@ -42,25 +42,25 @@ export const StudentDocumentsSidebar = ({
       id: 'phase-inscription',
       label: 'Phase Inscription',
       icon: UserPlus,
-      description: 'Analyse, test, convention'
+      description: 'Analyse du besoin, test de positionnement, convention'
     },
     {
       id: 'phase-formation',
       label: 'Phase Formation',
       icon: School,
-      description: 'CGV/RI, programme, convocation, émargement'
+      description: 'Convocation, programme, CGV, règlement intérieur'
     },
     {
       id: 'phase-post-formation',
       label: 'Phase Post-formation',
       icon: Award,
-      description: 'Test final, satisfaction, attestation'
+      description: 'Test de sortie, satisfaction à chaud, certificat, émargements'
     },
     {
       id: 'phase-suivi',
       label: 'Phase +3 mois',
       icon: Clock,
-      description: 'Satisfaction à froid, financeur'
+      description: 'Questionnaire à froid'
     }
   ];
 

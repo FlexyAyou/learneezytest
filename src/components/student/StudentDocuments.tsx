@@ -20,9 +20,9 @@ interface Formation {
 // Mock data for document counts per phase
 const mockPhaseProgress = {
   'phase-inscription': { total: 3, signed: 2, pending: 1 },
-  'phase-formation': { total: 4, signed: 3, pending: 1 },
-  'phase-post-formation': { total: 4, signed: 4, pending: 0 },
-  'phase-suivi': { total: 2, signed: 1, pending: 1 },
+  'phase-formation': { total: 5, signed: 3, pending: 2 },
+  'phase-post-formation': { total: 4, signed: 3, pending: 1 },
+  'phase-suivi': { total: 1, signed: 0, pending: 1 },
 };
 
 export const StudentDocuments = () => {

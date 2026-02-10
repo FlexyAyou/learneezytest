@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { UserPlus, ClipboardList, BookOpen, FileSignature, AlertCircle, CheckCircle, ScrollText } from 'lucide-react';
+import { UserPlus, ClipboardList, BookOpen, FileSignature, AlertCircle, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DocumentCard } from './DocumentCard';
 import { DocumentSignatureModal } from './DocumentSignatureModal';
@@ -20,7 +20,7 @@ interface PhaseDocument {
   id: string;
   name: string;
   formationId: string;
-  type: 'analyse_besoin' | 'test_positionnement' | 'convention' | 'cgv';
+  type: 'analyse_besoin' | 'test_positionnement' | 'convention';
   date: string;
   size: string;
   status: 'available' | 'signed' | 'completed';
@@ -42,11 +42,9 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
     { id: '1', name: 'Analyse_Besoin_Math.pdf', formationId: '1', type: 'analyse_besoin', date: '2024-01-20', size: '1.2 MB', status: 'completed' },
     { id: '2', name: 'Test_Positionnement_Math.pdf', formationId: '1', type: 'test_positionnement', date: '2024-01-21', size: '0.8 MB', status: 'completed' },
     { id: '3', name: 'Convention_Formation_Math.pdf', formationId: '1', type: 'convention', date: '2024-01-22', size: '1.5 MB', status: 'available', requiresSignature: true },
-    { id: '4', name: 'CGV_Formation_Math.pdf', formationId: '1', type: 'cgv', date: '2024-01-22', size: '0.5 MB', status: 'signed' },
     { id: '5', name: 'Analyse_Besoin_Francais.pdf', formationId: '2', type: 'analyse_besoin', date: '2024-01-18', size: '1.1 MB', status: 'completed' },
     { id: '6', name: 'Test_Positionnement_Francais.pdf', formationId: '2', type: 'test_positionnement', date: '2024-01-19', size: '0.9 MB', status: 'available', requiresSignature: true },
     { id: '7', name: 'Convention_Formation_Francais.pdf', formationId: '2', type: 'convention', date: '2024-01-20', size: '1.4 MB', status: 'signed' },
-    { id: '8', name: 'CGV_Formation_Francais.pdf', formationId: '2', type: 'cgv', date: '2024-01-20', size: '0.5 MB', status: 'available', requiresSignature: true },
   ]);
 
   const [signatureModalOpen, setSignatureModalOpen] = useState(false);
@@ -72,12 +70,6 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
       icon: FileSignature,
       description: 'Accord contractuel de formation',
       color: 'text-violet-500'
-    },
-    cgv: {
-      label: 'Conditions Générales de Vente',
-      icon: ScrollText,
-      description: 'Conditions commerciales et légales',
-      color: 'text-amber-500'
     }
   };
 
