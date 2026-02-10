@@ -1327,6 +1327,44 @@ class FastAPIClient {
     );
     return response.data;
   }
+
+  // ============= OF USER MANAGEMENT =============
+
+  /**
+   * Créer un utilisateur pour un OF
+   * POST /api/organizations/{of_id}/users
+   */
+  async createOFUser(ofId: number | string, userData: {
+    email: string;
+    first_name: string;
+    last_name: string;
+    role: string;
+    phone?: string;
+  }): Promise<any> {
+    const response = await this.axiosInstance.post(
+      `/api/organizations/${ofId}/users`,
+      userData
+    );
+    return response.data;
+  }
+
+  /**
+   * Lister les utilisateurs d'un OF
+   * GET /api/organizations/{of_id}/users
+   */
+  async listOFUsers(ofId: number | string, params?: {
+    role?: string;
+    search?: string;
+    status?: string;
+    page?: number;
+    per_page?: number;
+  }): Promise<any[]> {
+    const response = await this.axiosInstance.get(
+      `/api/organizations/${ofId}/users`,
+      { params }
+    );
+    return response.data;
+  }
 }
 
 // Instance singleton
