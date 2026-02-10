@@ -7,11 +7,12 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
-  FileText, Plus, Send, Search, Edit, Download,
+  FileText, Plus, Send, Search, Edit, Download, Upload,
   UserPlus, BookOpen, Award, Clock, CheckCircle,
   Mail, FileSignature, Building, BarChart3, ShieldCheck,
-  AlertTriangle, TrendingUp, Filter, Eye, Sparkles, Trash2
+  AlertTriangle, TrendingUp, Filter, Eye, Sparkles, Trash2, File
 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { DocumentTemplateEditor } from '@/components/admin/documents/DocumentTemplateEditor';
 import { PhaseDocumentSender } from '@/components/admin/documents/PhaseDocumentSender';
 import { DEFAULT_TEMPLATES } from '@/components/admin/documents/defaultTemplates';
@@ -126,6 +127,11 @@ const PhaseManagementTab: React.FC<{ ofInfo: OF }> = ({ ofInfo }) => {
   const [showEditor, setShowEditor] = useState(false);
   const [showPhaseSender, setShowPhaseSender] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<DocumentTemplate | null>(null);
+  const [showUploadDialog, setShowUploadDialog] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadTitle, setUploadTitle] = useState('');
+  const [uploadPhase, setUploadPhase] = useState<DocumentPhase>('inscription');
+  const [uploadedDocuments, setUploadedDocuments] = useState<Array<{ id: string; title: string; phase: DocumentPhase; fileName: string; uploadedAt: string; fileSize: string }>>([]);
   const [templates, setTemplates] = useState<DocumentTemplate[]>([
     { id: '1', type: 'cgv', phase: 'inscription', title: 'Conditions Générales de Vente', description: 'CGV à signer par l\'apprenant', htmlContent: DEFAULT_TEMPLATES.cgv || '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
     { id: '2', type: 'programme', phase: 'inscription', title: 'Programme de formation', description: 'Programme détaillé de la formation', htmlContent: DEFAULT_TEMPLATES.programme || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
@@ -149,6 +155,35 @@ const PhaseManagementTab: React.FC<{ ofInfo: OF }> = ({ ofInfo }) => {
 
   const handleDocumentsSent = (docs: any[]) => {
     setSentDocuments(prev => [...prev, ...docs]);
+  };
+
+  const handleUploadDocument = () => {
+    if (!uploadFile || !uploadTitle.trim()) {
+      toast({ title: 'Champs requis', description: 'Veuillez saisir un titre et sélectionner un fichier.', variant: 'destructive' });
+      return;
+    }
+    const sizeStr = uploadFile.size > 1024 * 1024
+      ? `${(uploadFile.size / (1024 * 1024)).toFixed(1)} Mo`
+      : `${(uploadFile.size / 1024).toFixed(0)} Ko`;
+    setUploadedDocuments(prev => [...prev, {
+      id: `up-${Date.now()}`,
+      title: uploadTitle.trim(),
+      phase: uploadPhase,
+      fileName: uploadFile.name,
+      uploadedAt: new Date().toISOString(),
+      fileSize: sizeStr,
+    }]);
+    toast({ title: 'Document uploadé', description: `"${uploadTitle}" ajouté à la phase ${PHASES_CONFIG[uploadPhase].label}` });
+    setUploadFile(null);
+    setUploadTitle('');
+    setShowUploadDialog(false);
+  };
+
+  const openUploadDialog = () => {
+    setUploadPhase(activePhase);
+    setUploadTitle('');
+    setUploadFile(null);
+    setShowUploadDialog(true);
   };
 
   const phaseTemplates = templates.filter(t => t.phase === activePhase);
@@ -206,11 +241,15 @@ const PhaseManagementTab: React.FC<{ ofInfo: OF }> = ({ ofInfo }) => {
 
         {(Object.keys(PHASES_CONFIG) as DocumentPhase[]).map((phase) => (
           <TabsContent key={phase} value={phase} className="space-y-4 mt-4">
-            <div className="flex gap-3">
-              <div className="relative flex-1">
+            <div className="flex gap-3 flex-wrap">
+              <div className="relative flex-1 min-w-[200px]">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input placeholder="Rechercher un modèle..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
               </div>
+              <Button variant="outline" onClick={openUploadDialog}>
+                <Upload className="h-4 w-4 mr-2" />
+                Uploader un document
+              </Button>
               <Button variant="outline" onClick={() => { setSelectedTemplate(null); setShowEditor(true); }}>
                 <Plus className="h-4 w-4 mr-2" />
                 Nouveau modèle
@@ -287,6 +326,55 @@ const PhaseManagementTab: React.FC<{ ofInfo: OF }> = ({ ofInfo }) => {
               </CardContent>
             </Card>
 
+            {/* Uploaded documents for this phase */}
+            {uploadedDocuments.filter(d => d.phase === phase).length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Upload className="h-5 w-5" />
+                    Documents uploadés
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Titre</TableHead>
+                        <TableHead>Fichier</TableHead>
+                        <TableHead>Taille</TableHead>
+                        <TableHead>Uploadé le</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {uploadedDocuments.filter(d => d.phase === phase).map((doc) => (
+                        <TableRow key={doc.id}>
+                          <TableCell className="font-medium">{doc.title}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1.5">
+                              <File className="h-3.5 w-3.5 text-muted-foreground" />
+                              <span className="text-sm">{doc.fileName}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">{doc.fileSize}</TableCell>
+                          <TableCell>{new Date(doc.uploadedAt).toLocaleDateString('fr-FR')}</TableCell>
+                          <TableCell className="text-right">
+                            <Button size="sm" variant="outline" className="text-destructive hover:text-destructive"
+                              onClick={() => {
+                                setUploadedDocuments(prev => prev.filter(d => d.id !== doc.id));
+                                toast({ title: 'Document supprimé' });
+                              }}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            )}
+
             {sentDocuments.filter(d => d.phase === phase).length > 0 && (
               <Card>
                 <CardHeader>
@@ -349,6 +437,77 @@ const PhaseManagementTab: React.FC<{ ofInfo: OF }> = ({ ofInfo }) => {
         ofInfo={ofInfo}
         onSend={handleDocumentsSent}
       />
+
+      {/* Upload Dialog */}
+      <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Upload className="h-5 w-5" />
+              Uploader un document
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Titre du document</label>
+              <Input
+                placeholder="Ex: Programme React Avancé"
+                value={uploadTitle}
+                onChange={(e) => setUploadTitle(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Phase associée</label>
+              <Select value={uploadPhase} onValueChange={(v) => setUploadPhase(v as DocumentPhase)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(Object.entries(PHASES_CONFIG) as [DocumentPhase, typeof PHASES_CONFIG.inscription][]).map(([phase, config]) => (
+                    <SelectItem key={phase} value={phase}>{config.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Fichier (PDF, Word, Image)</label>
+              <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary/50 transition-colors cursor-pointer"
+                onClick={() => document.getElementById('upload-doc-input')?.click()}
+              >
+                {uploadFile ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <File className="h-5 w-5 text-primary" />
+                    <span className="text-sm font-medium">{uploadFile.name}</span>
+                    <span className="text-xs text-muted-foreground">
+                      ({(uploadFile.size / 1024).toFixed(0)} Ko)
+                    </span>
+                  </div>
+                ) : (
+                  <>
+                    <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                    <p className="text-sm text-muted-foreground">Cliquez pour sélectionner un fichier</p>
+                    <p className="text-xs text-muted-foreground mt-1">PDF, DOCX, PNG, JPG — max 20 Mo</p>
+                  </>
+                )}
+              </div>
+              <input
+                id="upload-doc-input"
+                type="file"
+                className="hidden"
+                accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowUploadDialog(false)}>Annuler</Button>
+            <Button onClick={handleUploadDocument} disabled={!uploadFile || !uploadTitle.trim()}>
+              <Upload className="h-4 w-4 mr-2" />
+              Uploader
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
