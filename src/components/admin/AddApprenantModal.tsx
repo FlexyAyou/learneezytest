@@ -25,9 +25,10 @@ interface AddApprenantModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAdd: (apprenant: any) => void;
+  organizationName?: string;
 }
 
-export const AddApprenantModal = ({ isOpen, onClose, onAdd }: AddApprenantModalProps) => {
+export const AddApprenantModal = ({ isOpen, onClose, onAdd, organizationName }: AddApprenantModalProps) => {
   const { toast } = useToast();
   
   const [formData, setFormData] = useState({
@@ -307,7 +308,7 @@ export const AddApprenantModal = ({ isOpen, onClose, onAdd }: AddApprenantModalP
                 <Label htmlFor="organisme">Organisme de formation</Label>
                 <Input
                   id="organisme"
-                  value="Learneezy"
+                  value={organizationName || 'Learneezy'}
                   disabled
                   className="bg-muted"
                 />

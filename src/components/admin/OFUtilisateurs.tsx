@@ -11,6 +11,7 @@ import { OFAddUtilisateur } from './OFAddUtilisateur';
 import { useOFUsers, useCreateOFUser } from '@/hooks/useApi';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
+import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 
 // Type pour les utilisateurs de l'OF (à adapter selon la réponse API finale)
 interface OFUser {
@@ -28,6 +29,7 @@ interface OFUser {
 }
 
 export const OFUtilisateurs = () => {
+  const { user } = useFastAPIAuth();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('all');
@@ -417,6 +419,7 @@ export const OFUtilisateurs = () => {
         isOpen={isAddApprenantOpen}
         onClose={() => setIsAddApprenantOpen(false)}
         onAdd={handleAddUser}
+        organizationName={(user as any)?.organization_name || localStorage.getItem('organization_name') || undefined}
       />
 
       <OFAddUtilisateur
