@@ -13,6 +13,8 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
+import { useQuery } from '@tanstack/react-query';
+import { fastAPIClient } from '@/services/fastapi-client';
 
 // Type pour les utilisateurs de l'OF (à adapter selon la réponse API finale)
 interface OFUser {
@@ -41,8 +43,15 @@ export const OFUtilisateurs = () => {
   // Récupérer l'ID de l'OF depuis le user connecté
   const ofId = user?.of_id?.toString() || undefined;
   
-  // Nom de l'organisation depuis le contexte ou le user
-  const organizationName = organization?.organizationName || (user as any)?.organization_name || undefined;
+  // Récupérer les détails de l'organisation pour avoir le nom
+  const { data: orgDetails } = useQuery({
+    queryKey: ['organization-details', user?.of_id],
+    queryFn: () => fastAPIClient.getOrganization(user!.of_id!),
+    enabled: !!user?.of_id,
+  });
+  
+  // Nom de l'organisation : priorité contexte subdomain > API org > fallback
+  const organizationName = organization?.organizationName || orgDetails?.name || undefined;
 
   // Hook pour récupérer les utilisateurs de l'OF depuis l'API
   const { data: apiUsers, isLoading, isError, error } = useOFUsers(ofId);
