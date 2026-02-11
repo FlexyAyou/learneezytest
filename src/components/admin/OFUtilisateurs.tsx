@@ -11,6 +11,7 @@ import { OFAddUtilisateur } from './OFAddUtilisateur';
 import { useOFUsers, useCreateOFUser } from '@/hooks/useApi';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
+import { useOrganization } from '@/contexts/OrganizationContext';
 import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 
 // Type pour les utilisateurs de l'OF (à adapter selon la réponse API finale)
@@ -30,15 +31,18 @@ interface OFUser {
 
 export const OFUtilisateurs = () => {
   const { user } = useFastAPIAuth();
+  const { organization } = useOrganization();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('all');
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [isAddApprenantOpen, setIsAddApprenantOpen] = useState(false);
 
-  // TODO: Récupérer l'ID de l'OF depuis le contexte utilisateur connecté
-  // Pour l'instant, on utilise un ID placeholder
-  const ofId = localStorage.getItem('organization_id') || undefined;
+  // Récupérer l'ID de l'OF depuis le user connecté
+  const ofId = user?.of_id?.toString() || undefined;
+  
+  // Nom de l'organisation depuis le contexte ou le user
+  const organizationName = organization?.organizationName || (user as any)?.organization_name || undefined;
 
   // Hook pour récupérer les utilisateurs de l'OF depuis l'API
   const { data: apiUsers, isLoading, isError, error } = useOFUsers(ofId);
@@ -419,7 +423,7 @@ export const OFUtilisateurs = () => {
         isOpen={isAddApprenantOpen}
         onClose={() => setIsAddApprenantOpen(false)}
         onAdd={handleAddUser}
-        organizationName={(user as any)?.organization_name || localStorage.getItem('organization_name') || undefined}
+        organizationName={organizationName}
       />
 
       <OFAddUtilisateur
