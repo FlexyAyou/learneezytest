@@ -975,11 +975,20 @@ class FastAPIClient {
 
   /**
    * Lister les organismes de formation avec pagination
+   * L'API peut retourner soit un tableau directement, soit un objet paginé { items: [...] }
    */
   async listOrganizations(page: number = 1, perPage: number = 10): Promise<OrganizationResponse[]> {
-    return this.get<OrganizationResponse[]>('/api/organizations/', {
+    const response = await this.get<OrganizationResponse[] | { items: OrganizationResponse[] }>('/api/organizations/', {
       params: { page, per_page: perPage }
     });
+    // Gérer les deux formats de réponse possibles
+    if (Array.isArray(response)) {
+      return response;
+    }
+    if (response && typeof response === 'object' && 'items' in response) {
+      return response.items;
+    }
+    return [];
   }
 
   /**
