@@ -31,6 +31,33 @@ interface OFUser {
   last_login?: string;
 }
 
+// Mapper les rôles anglais vers français
+const mapRoleToFrench = (role: string): string => {
+  const roleMap: Record<string, string> = {
+    'learner': 'Apprenant',
+    'trainer': 'Formateur',
+    'manager': 'Gestionnaire',
+    'of_admin': 'Administrateur',
+    'admin': 'Administrateur',
+  };
+  return roleMap[role?.toLowerCase()] || role || 'Apprenant';
+};
+
+// Mapper les rôles français du formulaire vers les rôles backend
+const mapRoleToBackend = (role: string): string => {
+  const roleMap: Record<string, string> = {
+    'Apprenant': 'apprenant',
+    'Formateur': 'formateur_interne',
+    'Gestionnaire': 'gestionnaire',
+    'Administrateur': 'of_admin',
+    'apprenant': 'apprenant',
+    'animateur': 'formateur_interne',
+    'administrateur': 'of_admin',
+    'referent': 'gestionnaire',
+  };
+  return roleMap[role] || role;
+};
+
 export const OFUtilisateurs = () => {
   const { user } = useFastAPIAuth();
   const { organization } = useOrganization();
@@ -80,17 +107,7 @@ export const OFUtilisateurs = () => {
     return localUsers;
   }, [apiUsers, localUsers]);
 
-  // Mapper les rôles anglais vers français
-  const mapRoleToFrench = (role: string): string => {
-    const roleMap: Record<string, string> = {
-      'learner': 'Apprenant',
-      'trainer': 'Formateur',
-      'manager': 'Gestionnaire',
-      'of_admin': 'Administrateur',
-      'admin': 'Administrateur',
-    };
-    return roleMap[role?.toLowerCase()] || role || 'Apprenant';
-  };
+
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -170,21 +187,6 @@ export const OFUtilisateurs = () => {
         variant: "destructive",
       });
     }
-  };
-
-  // Mapper les rôles français du formulaire vers les rôles backend
-  const mapRoleToBackend = (role: string): string => {
-    const roleMap: Record<string, string> = {
-      'Apprenant': 'apprenant',
-      'Formateur': 'formateur_interne',
-      'Gestionnaire': 'gestionnaire',
-      'Administrateur': 'of_admin',
-      'apprenant': 'apprenant',
-      'animateur': 'formateur_interne',
-      'administrateur': 'of_admin',
-      'referent': 'gestionnaire',
-    };
-    return roleMap[role] || role;
   };
 
   const filteredUsers = users.filter(user => {
