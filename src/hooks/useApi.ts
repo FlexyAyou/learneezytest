@@ -1,11 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fastAPIClient } from '@/services/fastapi-client';
-import { 
-  UserLogin, 
-  UserCreate, 
-  UserResponse, 
-  UserRole, 
-  SuperAdminUserCreate, 
+import {
+  UserLogin,
+  UserCreate,
+  UserResponse,
+  UserRole,
+  SuperAdminUserCreate,
   ListAllUsersResponse,
   Course,
   CourseUpdate,
@@ -99,7 +99,7 @@ export const useCourse = (courseId: string) => {
 
 export const useCreateCourse = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (courseData: Course) => fastAPIClient.createCourse(courseData),
     onSuccess: () => {
@@ -121,7 +121,7 @@ export const useCreateCourse = () => {
 
 export const useUpdateCourse = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ courseId, updates }: { courseId: string; updates: CourseUpdate }) =>
       fastAPIClient.updateCourse(courseId, updates),
@@ -145,7 +145,7 @@ export const useUpdateCourse = () => {
 
 export const useDeleteCourse = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (courseId: string) => fastAPIClient.deleteCourse(courseId),
     onSuccess: () => {
@@ -168,7 +168,7 @@ export const useDeleteCourse = () => {
 
 export const useUpdateCourseStatus = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ courseId, status }: { courseId: string; status: CourseStatus }) =>
       fastAPIClient.updateCourseStatus(courseId, status),
@@ -192,7 +192,7 @@ export const useUpdateCourseStatus = () => {
 
 export const useCreateModule = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ courseId, moduleData }: { courseId: string; moduleData: ModuleCreate }) =>
       fastAPIClient.createModule(courseId, moduleData),
@@ -215,7 +215,7 @@ export const useCreateModule = () => {
 
 export const useCreateLesson = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ courseId, moduleId, lessonData }: { courseId: string; moduleId: string; lessonData: LessonCreate }) =>
       fastAPIClient.createLesson(courseId, moduleId, lessonData),
@@ -241,7 +241,7 @@ export const useCreateLesson = () => {
  */
 export const useUpdateLesson = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ courseId, moduleId, lessonId, lessonData }: {
       courseId: string;
@@ -271,7 +271,7 @@ export const useUpdateLesson = () => {
  */
 export const useDeleteLesson = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ courseId, moduleId, lessonId, forceMediaDelete = false }: {
       courseId: string;
@@ -302,7 +302,7 @@ export const useDeleteLesson = () => {
  */
 export const useReorderLessons = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ courseId, moduleId, lessonIds }: {
       courseId: string;
@@ -331,7 +331,7 @@ export const useReorderLessons = () => {
  */
 export const useAttachLessonMedia = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ courseId, moduleId, lessonId, mediaData }: {
       courseId: string;
@@ -360,12 +360,12 @@ export const useAttachLessonMedia = () => {
 
 export const useCreateModuleQuiz = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ courseId, moduleId, quizData }: { 
-      courseId: string; 
-      moduleId: string; 
-      quizData: QuizCreate 
+    mutationFn: ({ courseId, moduleId, quizData }: {
+      courseId: string;
+      moduleId: string;
+      quizData: QuizCreate
     }) => fastAPIClient.createModuleQuiz(courseId, moduleId, quizData),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['course', variables.courseId] });
@@ -386,13 +386,13 @@ export const useCreateModuleQuiz = () => {
 
 export const useUpdateModuleQuiz = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ courseId, moduleId, quizId, quizData }: { 
-      courseId: string; 
-      moduleId: string; 
+    mutationFn: ({ courseId, moduleId, quizId, quizData }: {
+      courseId: string;
+      moduleId: string;
       quizId: string;
-      quizData: QuizUpdate 
+      quizData: QuizUpdate
     }) => fastAPIClient.updateModuleQuiz(courseId, moduleId, quizId, quizData),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['course', variables.courseId] });
@@ -413,12 +413,12 @@ export const useUpdateModuleQuiz = () => {
 
 export const useDeleteModuleQuiz = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ courseId, moduleId, quizId }: { 
-      courseId: string; 
-      moduleId: string; 
-      quizId: string 
+    mutationFn: ({ courseId, moduleId, quizId }: {
+      courseId: string;
+      moduleId: string;
+      quizId: string
     }) => fastAPIClient.deleteModuleQuiz(courseId, moduleId, quizId),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['course', variables.courseId] });
@@ -440,7 +440,7 @@ export const useDeleteModuleQuiz = () => {
 
 export const useReorderModuleContent = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ courseId, moduleId, items }: {
       courseId: string;
@@ -471,13 +471,13 @@ export const useReorderModuleContent = () => {
  */
 export const useCreateLessonQuiz = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ courseId, moduleId, lessonId, quizData }: { 
-      courseId: string; 
-      moduleId: string; 
-      lessonId: string; 
-      quizData: QuizCreate 
+    mutationFn: ({ courseId, moduleId, lessonId, quizData }: {
+      courseId: string;
+      moduleId: string;
+      lessonId: string;
+      quizData: QuizCreate
     }) => fastAPIClient.createLessonQuiz(courseId, moduleId, lessonId, quizData),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['course', variables.courseId] });
@@ -501,13 +501,13 @@ export const useCreateLessonQuiz = () => {
  */
 export const useUpdateLessonQuiz = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ courseId, moduleId, lessonId, quizData }: { 
-      courseId: string; 
-      moduleId: string; 
-      lessonId: string; 
-      quizData: QuizUpdate 
+    mutationFn: ({ courseId, moduleId, lessonId, quizData }: {
+      courseId: string;
+      moduleId: string;
+      lessonId: string;
+      quizData: QuizUpdate
     }) => fastAPIClient.updateLessonQuiz(courseId, moduleId, lessonId, quizData),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['course', variables.courseId] });
@@ -531,12 +531,12 @@ export const useUpdateLessonQuiz = () => {
  */
 export const useDeleteLessonQuiz = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ courseId, moduleId, lessonId }: { 
-      courseId: string; 
-      moduleId: string; 
-      lessonId: string 
+    mutationFn: ({ courseId, moduleId, lessonId }: {
+      courseId: string;
+      moduleId: string;
+      lessonId: string
     }) => fastAPIClient.deleteLessonQuiz(courseId, moduleId, lessonId),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['course', variables.courseId] });
@@ -560,12 +560,12 @@ export const useDeleteLessonQuiz = () => {
 
 export const useCreateAssignment = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ courseId, moduleId, assignmentData }: { 
-      courseId: string; 
-      moduleId: string; 
-      assignmentData: AssignmentCreate 
+    mutationFn: ({ courseId, moduleId, assignmentData }: {
+      courseId: string;
+      moduleId: string;
+      assignmentData: AssignmentCreate
     }) => fastAPIClient.createAssignment(courseId, moduleId, assignmentData),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['course', variables.courseId] });
@@ -586,12 +586,12 @@ export const useCreateAssignment = () => {
 
 export const useUpdateAssignment = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ courseId, moduleId, assignmentData }: { 
-      courseId: string; 
-      moduleId: string; 
-      assignmentData: AssignmentUpdate 
+    mutationFn: ({ courseId, moduleId, assignmentData }: {
+      courseId: string;
+      moduleId: string;
+      assignmentData: AssignmentUpdate
     }) => fastAPIClient.updateAssignment(courseId, moduleId, assignmentData),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['course', variables.courseId] });
@@ -612,11 +612,11 @@ export const useUpdateAssignment = () => {
 
 export const useDeleteAssignment = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ courseId, moduleId }: { 
-      courseId: string; 
-      moduleId: string 
+    mutationFn: ({ courseId, moduleId }: {
+      courseId: string;
+      moduleId: string
     }) => fastAPIClient.deleteAssignment(courseId, moduleId),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['course', variables.courseId] });
@@ -643,7 +643,7 @@ export const useDeleteAssignment = () => {
  */
 export const useCreateQuiz = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ courseId, moduleId, lessonId, quizData }: { courseId: string; moduleId: number; lessonId: number; quizData: QuizCreate }) =>
       fastAPIClient.createQuiz(courseId, moduleId, lessonId, quizData),
@@ -688,7 +688,7 @@ export const useCourseStats = (courseId: string) => {
 
 export const useEnrollCourse = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (courseId: string | number) => fastAPIClient.enrollCourse(String(courseId)),
     onSuccess: (data, courseId) => {
@@ -698,7 +698,7 @@ export const useEnrollCourse = () => {
       queryClient.invalidateQueries({ queryKey: ['courses'] });
       queryClient.invalidateQueries({ queryKey: ['enrolledCourses'] });
       queryClient.invalidateQueries({ queryKey: ['course', String(courseId)] });
-      
+
       toast({
         title: '🎉 Inscription réussie !',
         description: data.message || 'Vous êtes maintenant inscrit au cours.',
@@ -743,7 +743,7 @@ export const useAdminStats = () => {
 // Hook pour la création d'utilisateurs par le superadmin (sans mot de passe)
 export const useSuperadminRegister = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (userData: SuperAdminUserCreate) =>
       fastAPIClient.post<UserResponse>('/api/auth/superadmin/register', userData),
@@ -785,7 +785,7 @@ export const useValidateTrainer = () => {
       queryClient.invalidateQueries({ queryKey: ['superadmin-users'] });
       queryClient.invalidateQueries({ queryKey: ['userBySlug'] });
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      
+
       const action = variables.request.status === 'validated' ? 'validé' : 'rejeté';
       toast({
         title: `Formateur ${action}`,
@@ -859,7 +859,7 @@ export const useOFUsers = (ofId: number | string | undefined) => {
     queryKey: ['of-users', ofId],
     queryFn: async () => {
       if (!ofId) throw new Error('OF ID is required');
-      
+
       // Appel à l'endpoint GET /api/organizations/{of_id}/users
       // qui sera implémenté côté backend
       const response = await fastAPIClient.get<ListAllUsersResponse[]>(
@@ -881,10 +881,15 @@ export const useCreateOFUser = (ofId: number | string | undefined) => {
   return useMutation({
     mutationFn: (userData: {
       email: string;
+      password?: string;
       first_name: string;
       last_name: string;
       role: string;
+      is_major?: boolean;
+      accept_terms?: boolean;
       phone?: string;
+      address?: string;
+      accessible_catalogues?: string[];
     }) => {
       if (!ofId) throw new Error('OF ID is required');
       return fastAPIClient.createOFUser(ofId, userData);
@@ -962,17 +967,17 @@ export const useUserBySlug = (userSlug?: string) => {
       // Extraire l'ID du début du slug (format: "21-ndeye-fatou-ndiaye")
       const slugParts = userSlug.split('-');
       const userId = parseInt(slugParts[0], 10);
-      
+
       if (isNaN(userId)) {
         console.error('ID invalide dans le slug:', userSlug);
         throw new Error(`Le slug "${userSlug}" ne contient pas d'ID valide`);
       }
-      
+
       console.log('ID recherché:', userId);
       console.log('Slug complet:', userSlug);
-      
+
       const user = apiUsers.find(u => u.id === userId);
-      
+
       if (!user) {
         throw new Error(`Le slug "${userSlug}" ne correspond à aucun utilisateur`);
       }
@@ -1013,7 +1018,7 @@ export const useUpdateUserStatus = () => {
       queryClient.invalidateQueries({ queryKey: ['superadmin-users'] });
       queryClient.invalidateQueries({ queryKey: ['users'] });
       queryClient.invalidateQueries({ queryKey: ['user', variables.userId] });
-      
+
       // Invalider aussi les queries par slug
       queryClient.invalidateQueries({ queryKey: ['userBySlug'] });
 

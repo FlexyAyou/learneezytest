@@ -157,6 +157,9 @@ export const OFUtilisateurs = () => {
       first_name: newUser.prenom || newUser.first_name || '',
       last_name: newUser.nom || newUser.last_name || '',
       role: mapRoleToBackend(newUser.role),
+      password: "generated-password", // Requis par le schéma UserCreate mais ignoré car généré par le backend
+      is_major: newUser.is_major !== undefined ? newUser.is_major : true, // Obligatoire pour le rôle apprenant
+      accept_terms: true, // Supposé accepté par l'admin créateur
       phone: newUser.phone || newUser.telephone || undefined,
       address: newUser.adresse || newUser.address || undefined,
     };
@@ -169,7 +172,13 @@ export const OFUtilisateurs = () => {
       });
     } catch (err: any) {
       console.error('Erreur création utilisateur OF:', err);
-      // Fallback local si l'API n'est pas disponible
+
+      const detail = err.response?.data?.detail;
+      const errorMsg = Array.isArray(detail)
+        ? detail.map((d: any) => `${d.loc.join('.')}: ${d.msg}`).join(', ')
+        : typeof detail === 'string' ? detail : err.message;
+
+      // Fallback local si l'API n'est pas disponible ou erreur
       setLocalUsers(prev => [...prev, {
         id: newUser.id || Date.now().toString(),
         nom: apiPayload.last_name,
@@ -181,9 +190,10 @@ export const OFUtilisateurs = () => {
         joinDate: new Date().toLocaleDateString('fr-FR'),
         lastLogin: 'N/A',
       }]);
+
       toast({
-        title: "Ajouté localement",
-        description: `L'API n'est pas disponible. ${apiPayload.first_name} a été ajouté localement.`,
+        title: "Erreur de création",
+        description: `L'utilisateur a été ajouté localement seulement. Raison: ${errorMsg}`,
         variant: "destructive",
       });
     }
