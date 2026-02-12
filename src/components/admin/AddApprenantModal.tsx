@@ -190,6 +190,7 @@ export const AddApprenantModal = ({ isOpen, onClose, onAdd, organizationName }: 
       status: 'pending',
       progression: 0,
       createdAt: new Date().toISOString(),
+      role: 'Apprenant',
       documentsToSign: getRequiredDocumentsForSelectedBadges()
     };
 

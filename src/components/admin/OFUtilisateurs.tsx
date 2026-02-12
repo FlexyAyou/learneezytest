@@ -42,14 +42,14 @@ export const OFUtilisateurs = () => {
 
   // Récupérer l'ID de l'OF depuis le user connecté
   const ofId = user?.of_id?.toString() || undefined;
-  
+
   // Récupérer les détails de l'organisation pour avoir le nom
   const { data: orgDetails } = useQuery({
     queryKey: ['organization-details', user?.of_id],
     queryFn: () => fastAPIClient.getOrganization(user!.of_id!),
     enabled: !!user?.of_id,
   });
-  
+
   // Nom de l'organisation : priorité contexte subdomain > API org > fallback
   const organizationName = organization?.organizationName || orgDetails?.name || undefined;
 
@@ -98,7 +98,7 @@ export const OFUtilisateurs = () => {
       pending: { variant: 'outline' as const, label: 'En attente' },
       inactive: { variant: 'secondary' as const, label: 'Inactif' },
     };
-    
+
     const config = statusConfig[status as keyof typeof statusConfig] || { variant: 'outline' as const, label: status };
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
@@ -116,7 +116,7 @@ export const OFUtilisateurs = () => {
   const handleViewUser = (user: OFUser) => {
     console.log('Viewing user:', user);
     let userType;
-    switch(user.role) {
+    switch (user.role) {
       case 'Apprenant':
         userType = 'apprenant';
         break;
@@ -141,6 +141,7 @@ export const OFUtilisateurs = () => {
       last_name: newUser.nom || newUser.last_name || '',
       role: mapRoleToBackend(newUser.role),
       phone: newUser.phone || newUser.telephone || undefined,
+      address: newUser.adresse || newUser.address || undefined,
     };
 
     try {
@@ -188,8 +189,8 @@ export const OFUtilisateurs = () => {
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.prenom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
+      user.prenom.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = selectedRole === 'all' || user.role.toLowerCase() === selectedRole;
     return matchesSearch && matchesRole;
   });
@@ -205,7 +206,7 @@ export const OFUtilisateurs = () => {
   // Affichage du message d'attente backend
   const renderBackendNotice = () => {
     if (isError) {
-      const errorMessage = (error as any)?.response?.status === 404 
+      const errorMessage = (error as any)?.response?.status === 404
         ? "L'endpoint GET /api/organizations/{of_id}/users n'est pas encore implémenté côté backend."
         : (error as Error)?.message || "Erreur lors du chargement des utilisateurs";
 
@@ -321,7 +322,7 @@ export const OFUtilisateurs = () => {
                 />
               </div>
             </div>
-            <select 
+            <select
               className="px-3 py-2 border border-gray-300 rounded-md"
               value={selectedRole}
               onChange={(e) => setSelectedRole(e.target.value)}
@@ -358,7 +359,7 @@ export const OFUtilisateurs = () => {
               <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p className="text-lg font-medium">Aucun utilisateur trouvé</p>
               <p className="text-sm mt-1">
-                {users.length === 0 
+                {users.length === 0
                   ? "Commencez par ajouter des utilisateurs à votre organisation."
                   : "Aucun résultat ne correspond à vos critères de recherche."}
               </p>
@@ -405,8 +406,8 @@ export const OFUtilisateurs = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
-                        <Button 
-                          size="sm" 
+                        <Button
+                          size="sm"
                           variant="outline"
                           onClick={() => handleViewUser(user)}
                         >
