@@ -33,10 +33,10 @@ export const StudentDocuments = () => {
   // Dynamic progress calculation
   const phaseProgress = useMemo(() => {
     const baseProgress: Record<string, { total: number; signed: number; pending: number }> = {
-      'phase-inscription': { total: 3, signed: 0, pending: 1 }, // Keeps mock for static docs
-      'phase-formation': { total: 5, signed: 0, pending: 2 },
-      'phase-post-formation': { total: 4, signed: 0, pending: 1 },
-      'phase-suivi': { total: 1, signed: 0, pending: 1 },
+      'phase-inscription': { total: 0, signed: 0, pending: 0 },
+      'phase-formation': { total: 0, signed: 0, pending: 0 },
+      'phase-post-formation': { total: 0, signed: 0, pending: 0 },
+      'phase-suivi': { total: 0, signed: 0, pending: 0 },
       'phase-assigned': { total: 0, signed: 0, pending: 0 }
     };
 

@@ -35,11 +35,7 @@ interface StudentPhaseSuiviProps {
 export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhaseSuiviProps) => {
   const { toast } = useToast();
 
-  const [documents, setDocuments] = useState<PhaseDocument[]>([
-    { id: '1', name: 'Satisfaction_Froid_Math.pdf', formationId: '1', type: 'satisfaction_froid', date: '2024-05-01', size: '0.8 MB', status: 'completed' },
-    { id: '2', name: 'Satisfaction_Froid_Francais.pdf', formationId: '2', type: 'satisfaction_froid', date: '2024-04-28', size: '0.9 MB', status: 'available', requiresSignature: true },
-    { id: '3', name: 'Satisfaction_Froid_Histoire.pdf', formationId: '3', type: 'satisfaction_froid', date: '2024-04-25', size: '0.9 MB', status: 'completed' },
-  ]);
+  const [documents, setDocuments] = useState<PhaseDocument[]>([]);
 
   const [signatureModalOpen, setSignatureModalOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<PhaseDocument | null>(null);

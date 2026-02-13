@@ -39,13 +39,7 @@ interface StudentPhasePostFormationProps {
 export const StudentPhasePostFormation = ({ selectedFormation, formations }: StudentPhasePostFormationProps) => {
   const { toast } = useToast();
 
-  const [documents, setDocuments] = useState<PhaseDocument[]>([
-    { id: '1', name: 'Test_Sortie_Math.pdf', formationId: '1', type: 'test_sortie', date: '2024-02-01', size: '1.8 MB', status: 'completed' },
-    { id: '2', name: 'Satisfaction_Chaud_Math.pdf', formationId: '1', type: 'satisfaction_chaud', date: '2024-02-02', size: '0.5 MB', status: 'available', requiresSignature: true },
-    { id: '3', name: 'Certificat_Math.pdf', formationId: '1', type: 'certificat', date: '2024-02-03', size: '1.5 MB', status: 'received' },
-    { id: '4', name: 'Emargement_Math.pdf', formationId: '1', type: 'emargement', date: '2024-02-04', size: '1.2 MB', status: 'received' },
-    { id: '5', name: 'Test_Sortie_Francais.pdf', formationId: '2', type: 'test_sortie', date: '2024-01-30', size: '1.9 MB', status: 'available', requiresSignature: true },
-  ]);
+  const [documents, setDocuments] = useState<PhaseDocument[]>([]);
 
   const [signatureModalOpen, setSignatureModalOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<PhaseDocument | null>(null);

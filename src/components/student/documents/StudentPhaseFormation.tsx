@@ -39,15 +39,7 @@ interface StudentPhaseFormationProps {
 export const StudentPhaseFormation = ({ selectedFormation, formations }: StudentPhaseFormationProps) => {
   const { toast } = useToast();
 
-  const [documents, setDocuments] = useState<PhaseDocument[]>([
-    { id: '1', name: 'Convocation_Math.pdf', formationId: '1', type: 'convocation', date: '2024-01-23', size: '0.8 MB', status: 'received' },
-    { id: '2', name: 'Programme_Formation_Math.pdf', formationId: '1', type: 'programme', date: '2024-01-24', size: '3.2 MB', status: 'received' },
-    { id: '3', name: 'CGV_Math.pdf', formationId: '1', type: 'cgv', date: '2024-01-25', size: '2.1 MB', status: 'available', requiresSignature: true },
-    { id: '4', name: 'Reglement_Interieur_Math.pdf', formationId: '1', type: 'reglement_interieur', date: '2024-01-26', size: '1.1 MB', status: 'signed' },
-    { id: '5', name: 'Attestation_Honneur_Math.pdf', formationId: '1', type: 'attestation_honneur', date: '2024-01-27', size: '0.6 MB', status: 'available', requiresSignature: true },
-    { id: '6', name: 'Programme_Formation_Francais.pdf', formationId: '2', type: 'programme', date: '2024-01-20', size: '2.9 MB', status: 'received' },
-    { id: '7', name: 'CGV_Francais.pdf', formationId: '2', type: 'cgv', date: '2024-01-21', size: '2.0 MB', status: 'available', requiresSignature: true },
-  ]);
+  const [documents, setDocuments] = useState<PhaseDocument[]>([]);
 
   const [signatureModalOpen, setSignatureModalOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<PhaseDocument | null>(null);
