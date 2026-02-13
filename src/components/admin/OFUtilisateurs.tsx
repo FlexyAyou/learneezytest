@@ -178,7 +178,17 @@ export const OFUtilisateurs = () => {
         ? detail.map((d: any) => `${d.loc.join('.')}: ${d.msg}`).join(', ')
         : typeof detail === 'string' ? detail : err.message;
 
-      // Fallback local si l'API n'est pas disponible ou erreur
+      // Si l'utilisateur existe déjà, on n'ajoute pas en local
+      if (errorMsg.toLowerCase().includes('email already registered')) {
+        toast({
+          title: "Utilisateur déjà existant",
+          description: "Un utilisateur avec cet email existe déjà dans le système.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Fallback local si l'API n'est pas disponible ou erreur autre
       setLocalUsers(prev => [...prev, {
         id: newUser.id || Date.now().toString(),
         nom: apiPayload.last_name,

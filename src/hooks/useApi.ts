@@ -849,23 +849,14 @@ export const useUserDetail = (userId: string | number) => {
 
 /**
  * Hook pour récupérer les utilisateurs d'un organisme de formation (OF)
- * Prêt pour l'API GET /api/organizations/{of_id}/users
- * 
- * NOTE: L'endpoint backend n'existe pas encore. Ce hook est prêt à l'emploi
- * une fois que l'API sera implémentée.
+ * GET /api/organizations/{of_id}/users
  */
-export const useOFUsers = (ofId: number | string | undefined) => {
+export const useOFUsers = (ofId: number | string | undefined, params?: any) => {
   return useQuery({
-    queryKey: ['of-users', ofId],
+    queryKey: ['of-users', ofId, params],
     queryFn: async () => {
       if (!ofId) throw new Error('OF ID is required');
-
-      // Appel à l'endpoint GET /api/organizations/{of_id}/users
-      // qui sera implémenté côté backend
-      const response = await fastAPIClient.get<ListAllUsersResponse[]>(
-        `/api/organizations/${ofId}/users`
-      );
-      return response;
+      return fastAPIClient.listOFUsers(ofId, params);
     },
     enabled: !!ofId,
     retry: 1,
@@ -1241,3 +1232,68 @@ export const useBuyTokens = () => {
   });
 };
 
+/**
+ * Hook pour assigner un média à un utilisateur
+ */
+export const useAssignMedia = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { user_id: number; media_asset_id: number; message?: string }) =>
+      fastAPIClient.assignMediaToUser(data),
+    onSuccess: () => {
+      toast({
+        title: "Document envoyé",
+        description: "Le document a été assigné à l'apprenant.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erreur",
+        description: error.response?.data?.detail || "Impossible d'envoyer le document.",
+        variant: "destructive",
+      });
+    }
+  });
+};
+
+/**
+ * Hook pour récupérer les documents assignés à l'utilisateur actuel
+ */
+export const useMyDocuments = () => {
+  return useQuery({
+    queryKey: ['my-documents'],
+    queryFn: () => fastAPIClient.getMyDocuments(),
+  });
+};
+/**
+ * Hook pour lister les media assets
+ */
+export const useMediaAssets = (params: { page?: number; per_page?: number; status?: string; search?: string } = {}) => {
+  return useQuery({
+    queryKey: ['media-assets', params],
+    queryFn: () => fastAPIClient.listAssets(params.page, params.per_page, params.status),
+  });
+};
+
+/**
+ * Hook pour préparer un upload
+ */
+export const usePrepareUpload = () => {
+  return useMutation({
+    mutationFn: (data: { filename: string; content_type: string; size: number; kind: 'video' | 'image' | 'resource' }) =>
+      fastAPIClient.prepareUpload(data.filename, data.content_type, data.size, data.kind),
+  });
+};
+
+/**
+ * Hook pour finaliser un upload
+ */
+export const useCompleteUpload = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: any) => fastAPIClient.completeUpload(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['media-assets'] });
+    },
+  });
+};

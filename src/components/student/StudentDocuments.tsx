@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { StudentDocumentsSidebar } from './StudentDocumentsSidebar';
@@ -6,6 +5,7 @@ import { StudentPhaseInscription } from './documents/StudentPhaseInscription';
 import { StudentPhaseFormation } from './documents/StudentPhaseFormation';
 import { StudentPhasePostFormation } from './documents/StudentPhasePostFormation';
 import { StudentPhaseSuivi } from './documents/StudentPhaseSuivi';
+import { StudentAssignedDocuments } from './documents/StudentAssignedDocuments';
 import { Badge } from '@/components/ui/badge';
 import { FileText, AlertCircle } from 'lucide-react';
 
@@ -48,8 +48,8 @@ export const StudentDocuments = () => {
     <div className="flex min-h-screen bg-muted/30">
       {/* Sidebar */}
       <div className="w-72 bg-background border-r shrink-0">
-        <StudentDocumentsSidebar 
-          activeTab={activeTab} 
+        <StudentDocumentsSidebar
+          activeTab={activeTab}
           onTabChange={handleTabChange}
           phaseProgress={mockPhaseProgress}
         />
@@ -94,28 +94,31 @@ export const StudentDocuments = () => {
           {/* Main content area */}
           <div className="bg-background rounded-xl shadow-sm border">
             {activeTab === 'phase-inscription' && (
-              <StudentPhaseInscription 
+              <StudentPhaseInscription
                 selectedFormation={selectedFormation}
                 formations={formations}
               />
             )}
             {activeTab === 'phase-formation' && (
-              <StudentPhaseFormation 
+              <StudentPhaseFormation
                 selectedFormation={selectedFormation}
                 formations={formations}
               />
             )}
             {activeTab === 'phase-post-formation' && (
-              <StudentPhasePostFormation 
+              <StudentPhasePostFormation
                 selectedFormation={selectedFormation}
                 formations={formations}
               />
             )}
             {activeTab === 'phase-suivi' && (
-              <StudentPhaseSuivi 
+              <StudentPhaseSuivi
                 selectedFormation={selectedFormation}
                 formations={formations}
               />
+            )}
+            {activeTab === 'phase-assigned' && (
+              <StudentAssignedDocuments />
             )}
           </div>
         </div>

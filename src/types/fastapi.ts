@@ -853,3 +853,27 @@ export interface TokenConfigUpdate {
   bonus_tiers?: BonusTier[];
   tutor_bonus_tiers?: BonusTier[];
 }
+// ============= MEDIA ASSIGNMENTS =============
+
+export interface MediaAssetResponse {
+  id: number;
+  of_id: number | null;
+  kind: 'video' | 'image' | 'resource';
+  filename: string;
+  original_filename: string;
+  url: string;
+  size: number;
+  status: string;
+  created_at: string;
+}
+
+export interface UserMediaAssignmentResponse {
+  id: number;
+  user_id: number;
+  media_asset_id: number;
+  media_asset: MediaAssetResponse;
+  assigned_by_of_id: number | null;
+  assigned_at: string;
+  is_viewed: boolean;
+  message: string | null;
+}

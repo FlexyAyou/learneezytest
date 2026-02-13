@@ -1,10 +1,10 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { 
-  UserPlus, 
-  School, 
-  Award, 
+import {
+  UserPlus,
+  School,
+  Award,
   Clock,
   FileText,
   CheckCircle,
@@ -32,8 +32,8 @@ interface StudentDocumentsSidebarProps {
   phaseProgress?: Record<string, PhaseProgress>;
 }
 
-export const StudentDocumentsSidebar = ({ 
-  activeTab, 
+export const StudentDocumentsSidebar = ({
+  activeTab,
   onTabChange,
   phaseProgress = {}
 }: StudentDocumentsSidebarProps) => {
@@ -61,31 +61,37 @@ export const StudentDocumentsSidebar = ({
       label: 'Phase +3 mois',
       icon: Clock,
       description: 'Questionnaire à froid'
+    },
+    {
+      id: 'phase-assigned',
+      label: 'Documents Spécifiques',
+      icon: FileText,
+      description: 'Documents personnels envoyés par votre organisme'
     }
   ];
 
   const getProgressInfo = (phaseId: string) => {
     const progress = phaseProgress[phaseId];
     if (!progress) return null;
-    
+
     const allSigned = progress.pending === 0 && progress.signed > 0;
     const hasPending = progress.pending > 0;
-    
+
     return { ...progress, allSigned, hasPending };
   };
 
   const renderSidebarItem = (item: SidebarItem) => {
     const progressInfo = getProgressInfo(item.id);
     const isActive = activeTab === item.id;
-    
+
     return (
       <Button
         key={item.id}
         variant="ghost"
         className={cn(
           "w-full justify-start text-left h-auto p-4 mb-2 rounded-xl transition-all duration-200 border-2",
-          isActive 
-            ? "bg-gradient-to-r from-pink-50 to-rose-50 text-pink-700 border-pink-300 shadow-sm" 
+          isActive
+            ? "bg-gradient-to-r from-pink-50 to-rose-50 text-pink-700 border-pink-300 shadow-sm"
             : "border-transparent hover:bg-gray-50 hover:border-gray-200"
         )}
         onClick={() => onTabChange(item.id)}
@@ -134,7 +140,7 @@ export const StudentDocumentsSidebar = ({
                   </span>
                 </div>
                 <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                  <div 
+                  <div
                     className="h-full bg-gradient-to-r from-pink-400 to-pink-500 rounded-full transition-all duration-300"
                     style={{ width: `${(progressInfo.signed / progressInfo.total) * 100}%` }}
                   />

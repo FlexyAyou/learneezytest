@@ -1374,6 +1374,24 @@ class FastAPIClient {
     );
     return response.data;
   }
+
+  /**
+   * Assigner un média à un utilisateur
+   */
+  async assignMediaToUser(assignmentData: {
+    user_id: number;
+    media_asset_id: number;
+    message?: string;
+  }): Promise<any> {
+    return this.post('/api/storage/assign', assignmentData);
+  }
+
+  /**
+   * Récupérer mes documents assignés
+   */
+  async getMyDocuments(): Promise<any[]> {
+    return this.get('/api/storage/my-documents');
+  }
 }
 
 // Instance singleton
