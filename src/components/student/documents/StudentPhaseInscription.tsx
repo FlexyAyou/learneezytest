@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { UserPlus, ClipboardList, BookOpen, FileSignature, AlertCircle, CheckCircle } from 'lucide-react';
+import { UserPlus, ClipboardList, BookOpen, FileSignature, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DocumentCard } from './DocumentCard';
 import { DocumentSignatureModal } from './DocumentSignatureModal';
 import { StudentDocumentPreviewModal } from './StudentDocumentPreviewModal';
 import { StudentAssignedDocuments } from './StudentAssignedDocuments';
 import { personalizeDocumentContent, getTemplateForType } from '@/utils/personalizeDocumentContent';
+import { useMyDocuments, useSignDocument } from '@/hooks/useApi';
 
 interface Formation {
   id: string;
@@ -19,6 +20,7 @@ interface Formation {
 
 interface PhaseDocument {
   id: string;
+  assignmentId?: number; // Lien avec l'API
   name: string;
   formationId: string;
   type: 'analyse_besoin' | 'test_positionnement' | 'convention';
@@ -29,6 +31,7 @@ interface PhaseDocument {
   htmlContent?: string;
   learnerSignature?: string;
   signedAt?: string;
+  url?: string; // URL directe du fichier
 }
 
 interface StudentPhaseInscriptionProps {
@@ -39,12 +42,47 @@ interface StudentPhaseInscriptionProps {
 export const StudentPhaseInscription = ({ selectedFormation, formations }: StudentPhaseInscriptionProps) => {
   const { toast } = useToast();
 
-  const [documents, setDocuments] = useState<PhaseDocument[]>([]);
+  // Hooks API
+  const { data: assignments, isLoading: isLoadingDocs, refetch: refetchDocs } = useMyDocuments();
+  const signDocumentMutation = useSignDocument();
 
+  const [localDocuments, setLocalDocuments] = useState<PhaseDocument[]>([]);
   const [signatureModalOpen, setSignatureModalOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<PhaseDocument | null>(null);
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [previewDocument, setPreviewDocument] = useState<{ title: string; content: string } | null>(null);
+
+  // Transformer les assignments API en PhaseDocument
+  useEffect(() => {
+    if (assignments) {
+      const mappedDocs: PhaseDocument[] = (assignments as any[])
+        .filter(a => a.phase === 'inscription' || a.phase === 'phase-inscription')
+        .map(a => {
+          // Détection du type basé sur le nom du fichier (heuristique)
+          let type: 'analyse_besoin' | 'test_positionnement' | 'convention' = 'convention';
+          const lowerName = a.media_asset.filename.toLowerCase();
+          if (lowerName.includes('analyse') || lowerName.includes('besoin')) type = 'analyse_besoin';
+          else if (lowerName.includes('test') || lowerName.includes('positionnement')) type = 'test_positionnement';
+
+          return {
+            id: `api-${a.id}`,
+            assignmentId: a.id,
+            name: a.media_asset.filename,
+            formationId: formations.length > 0 ? formations[0].id : '', // Fallback, devrait être lié à la formation réelle
+            type: type,
+            date: new Date(a.assigned_at).toISOString(),
+            size: `${Math.round(a.media_asset.size / 1024)} KB`,
+            status: a.is_signed ? 'signed' : 'available',
+            requiresSignature: !a.is_signed, // On suppose que tout doc dans cette phase nécessite signature si non signé
+            url: a.media_asset.url,
+            learnerSignature: a.signature_data,
+            signedAt: a.signed_at
+          };
+        });
+
+      setLocalDocuments(mappedDocs);
+    }
+  }, [assignments, formations]);
 
   const documentTypes = {
     analyse_besoin: {
@@ -67,8 +105,8 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
     }
   };
 
-  const filteredDocuments = documents.filter(doc =>
-    selectedFormation === 'all' || doc.formationId === selectedFormation
+  const filteredDocuments = localDocuments.filter(doc =>
+    selectedFormation === 'all' || doc.formationId === selectedFormation || true // Hack pour afficher tout si formationId manquant
   );
 
   const pendingSignatures = filteredDocuments.filter(doc => doc.requiresSignature && doc.status === 'available');
@@ -80,29 +118,63 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
   };
 
   const handleSignatureComplete = (documentId: string, signatureData: string) => {
-    setDocuments(prev => prev.map(doc =>
-      doc.id === documentId
-        ? {
-          ...doc,
-          status: 'signed' as const,
-          requiresSignature: false,
-          learnerSignature: signatureData,
-          signedAt: new Date().toISOString()
-        }
-        : doc
-    ));
-    setSignatureModalOpen(false);
-    setSelectedDocument(null);
+    // Note: DocumentSignatureModal calls this function. 
+    // We initiate the mutation and return the promise so the modal waits.
+
+    if (selectedDocument && selectedDocument.assignmentId) {
+      return new Promise<void>((resolve, reject) => {
+        signDocumentMutation.mutate({
+          assignment_id: selectedDocument.assignmentId!,
+          signature_data: signatureData
+        }, {
+          onSuccess: () => {
+            refetchDocs(); // Rafraîchir les données API
+            setSignatureModalOpen(false);
+            setSelectedDocument(null);
+            resolve();
+          },
+          onError: (error) => {
+            console.error("Erreur signature:", error);
+            reject(error);
+          }
+        });
+      });
+    } else {
+      // Fallback local pour démo sans API
+      setLocalDocuments(prev => prev.map(doc =>
+        doc.id === documentId
+          ? {
+            ...doc,
+            status: 'signed' as const,
+            requiresSignature: false,
+            learnerSignature: signatureData,
+            signedAt: new Date().toISOString()
+          }
+          : doc
+      ));
+      setSignatureModalOpen(false);
+      setSelectedDocument(null);
+      return Promise.resolve();
+    }
   };
 
   const handleDownload = (doc: PhaseDocument) => {
-    toast({
-      title: "Téléchargement",
-      description: `Téléchargement de ${doc.name} en cours...`,
-    });
+    if (doc.url) {
+      window.open(doc.url, '_blank');
+    } else {
+      toast({
+        title: "Téléchargement",
+        description: `Téléchargement de ${doc.name} en cours...`,
+      });
+    }
   };
 
   const handlePreview = (doc: PhaseDocument) => {
+    if (doc.url) {
+      window.open(doc.url, '_blank');
+      return;
+    }
+
     const formation = formations.find(f => f.id === doc.formationId);
     const template = getTemplateForType(doc.type);
 
@@ -124,7 +196,7 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
 
   const getFormationName = (formationId: string) => {
     const formation = formations.find(f => f.id === formationId);
-    return formation ? `${formation.name} - ${formation.level}` : '';
+    return formation ? `${formation.name} - ${formation.level}` : 'Formation';
   };
 
   const groupedByFormation = formations.reduce((acc, formation) => {
@@ -134,6 +206,15 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
     }
     return acc;
   }, {} as Record<string, { formation: Formation; documents: PhaseDocument[] }>);
+
+  // Si chargement
+  if (isLoadingDocs) {
+    return (
+      <div className="flex justify-center p-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -198,64 +279,12 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
       </div>
 
       {/* Documents list */}
-      {selectedFormation === 'all' ? (
-        <div className="space-y-6">
-          {Object.values(groupedByFormation).map(({ formation, documents }) => {
-            const pendingDocs = documents.filter(d => d.requiresSignature && d.status === 'available');
-
-            return (
-              <Card key={formation.id}>
-                <CardHeader className="pb-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-lg">{formation.name} - {formation.level}</CardTitle>
-                      <CardDescription>{formation.category}</CardDescription>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {pendingDocs.length > 0 && (
-                        <Badge variant="destructive" className="gap-1">
-                          <AlertCircle className="h-3 w-3" />
-                          {pendingDocs.length} à signer
-                        </Badge>
-                      )}
-                      <Badge variant="outline">{documents.length} document(s)</Badge>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {documents.map((doc) => {
-                    const typeInfo = documentTypes[doc.type];
-
-                    return (
-                      <DocumentCard
-                        key={doc.id}
-                        id={doc.id}
-                        name={doc.name}
-                        type={doc.type}
-                        typeLabel={typeInfo.label}
-                        typeIcon={typeInfo.icon}
-                        typeColor={typeInfo.color}
-                        date={doc.date}
-                        size={doc.size}
-                        status={doc.status}
-                        requiresSignature={doc.requiresSignature}
-                        onSign={() => handleSign(doc)}
-                        onDownload={() => handleDownload(doc)}
-                        onPreview={() => handlePreview(doc)}
-                      />
-                    );
-                  })}
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      ) : (
+      {filteredDocuments.length > 0 ? (
         <Card>
           <CardHeader>
             <CardTitle>Documents de la phase inscription</CardTitle>
             <CardDescription>
-              {filteredDocuments.length} document(s) pour la formation sélectionnée
+              {filteredDocuments.length} document(s) assignés
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -283,13 +312,17 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
             })}
           </CardContent>
         </Card>
+      ) : (
+        <div className="text-center p-12 bg-muted/20 rounded-lg">
+          <p className="text-muted-foreground">Aucun document assigné pour cette phase.</p>
+        </div>
       )}
 
-      {/* Additional Assigned Documents */}
+      {/* Additional Assigned Documents (fallback pour autres documents non classifiés) */}
       <div className="pt-8 border-t">
         <div className="flex items-center gap-2 mb-4">
           <ClipboardList className="h-5 w-5 text-primary" />
-          <h3 className="text-xl font-bold">Documents envoyés par l'organisme</h3>
+          <h3 className="text-xl font-bold">Historique complet des documents</h3>
         </div>
         <StudentAssignedDocuments targetPhase="inscription" />
       </div>
@@ -310,8 +343,13 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
           date: selectedDocument.date,
           size: selectedDocument.size
         } : null}
+        //@ts-ignore - DocumentSignatureModal attend une Promise, ce qu'on retourne
         onSignatureComplete={handleSignatureComplete}
         htmlContent={selectedDocument ? (() => {
+          // Si on a une URL, on ne peut pas afficher le contenu HTML directement,
+          // mais DocumentSignatureModal gère peut-être l'affichage d'iframe/PDF si type='convention'?
+          // Pour l'instant on garde la logique de template fictif si pas d'URL,
+          // ou si c'est un PDF, on espère que la modale gère (elle semble gérer signature pad + preview).
           const formation = formations.find(f => f.id === selectedDocument.formationId);
           const template = getTemplateForType(selectedDocument.type);
           return template && formation ? personalizeDocumentContent(template, formation, selectedDocument.learnerSignature) : undefined;

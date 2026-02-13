@@ -713,6 +713,7 @@ export interface CompleteUploadParams {
 export interface CompleteUploadResponse {
   status: string;
   key: string;
+  id?: number;
   etag?: string;
 }
 

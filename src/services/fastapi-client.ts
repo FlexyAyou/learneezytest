@@ -412,6 +412,8 @@ class FastAPIClient {
     return this.get<CourseResponse>(`/api/courses/${courseId}`);
   }
 
+
+
   /**
    * Fiche publique allégée d'un cours (pas de JWT requis)
    */
@@ -1407,6 +1409,20 @@ class FastAPIClient {
   async signDocument(assignmentId: number, signatureData: string): Promise<any> {
     return this.post(`/api/storage/assignments/${assignmentId}/sign`, { signature_data: signatureData });
   }
+
+
+  /**
+   * Lister les assets média
+   */
+  async listAssets(page = 1, per_page = 20, status?: string): Promise<any> {
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    params.append('per_page', per_page.toString());
+    if (status) params.append('status', status);
+
+    return this.get<any>(`/api/storage/assets?${params.toString()}`);
+  }
+
 }
 
 // Instance singleton

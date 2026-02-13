@@ -10,10 +10,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ElectronicSignature } from '@/components/common/ElectronicSignature';
-import { 
-  FileText, 
-  Download, 
-  CheckCircle, 
+import {
+  FileText,
+  Download,
+  CheckCircle,
   Eye,
   Loader2,
   FileSignature,
@@ -78,22 +78,29 @@ export const DocumentSignatureModal = ({
     });
   };
 
-  const handleSignatureComplete = (signatureData: string) => {
+  const handleSignatureComplete = async (signatureData: string) => {
     if (!document) return;
-    
+
     setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      onSignatureComplete(document.id, signatureData);
+
+    try {
+      await onSignatureComplete(document.id, signatureData);
       setStep('success');
-      setIsLoading(false);
-      
+
       toast({
         title: "✅ Document signé !",
         description: `${document.name} a été signé avec succès.`,
       });
-    }, 1500);
+    } catch (error) {
+      console.error("Erreur lors de la signature:", error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de l'enregistrement de la signature.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleClose = () => {
@@ -146,8 +153,8 @@ export const DocumentSignatureModal = ({
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         size="sm"
                         onClick={handlePreviewDocument}
                         className="gap-2"
@@ -155,8 +162,8 @@ export const DocumentSignatureModal = ({
                         <Eye className="h-4 w-4" />
                         Visualiser
                       </Button>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         size="sm"
                         onClick={handleDownload}
                         className="gap-2"
@@ -187,29 +194,29 @@ export const DocumentSignatureModal = ({
                 {/* Checkboxes */}
                 <div className="space-y-4">
                   <div className="flex items-start gap-3 p-3 rounded-lg border border-gray-200 hover:border-pink-200 hover:bg-pink-50/30 transition-colors">
-                    <Checkbox 
+                    <Checkbox
                       id="read"
                       checked={hasReadDocument}
                       onCheckedChange={(checked) => setHasReadDocument(checked as boolean)}
                       className="mt-0.5"
                     />
-                    <label 
-                      htmlFor="read" 
+                    <label
+                      htmlFor="read"
                       className="text-sm text-gray-700 cursor-pointer leading-relaxed"
                     >
                       J'ai lu et compris l'intégralité du document
                     </label>
                   </div>
-                  
+
                   <div className="flex items-start gap-3 p-3 rounded-lg border border-gray-200 hover:border-pink-200 hover:bg-pink-50/30 transition-colors">
-                    <Checkbox 
+                    <Checkbox
                       id="accept"
                       checked={acceptTerms}
                       onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
                       className="mt-0.5"
                     />
-                    <label 
-                      htmlFor="accept" 
+                    <label
+                      htmlFor="accept"
                       className="text-sm text-gray-700 cursor-pointer leading-relaxed"
                     >
                       J'accepte les conditions et je souhaite procéder à la signature électronique
@@ -230,7 +237,7 @@ export const DocumentSignatureModal = ({
                   </p>
                 </div>
 
-                <ElectronicSignature 
+                <ElectronicSignature
                   onSignatureComplete={handleSignatureComplete}
                   disabled={isLoading}
                 />
@@ -278,7 +285,7 @@ export const DocumentSignatureModal = ({
               <Button variant="ghost" onClick={handleClose}>
                 Annuler
               </Button>
-              <Button 
+              <Button
                 onClick={() => setStep('sign')}
                 disabled={!hasReadDocument || !acceptTerms}
                 className="bg-pink-600 hover:bg-pink-700 gap-2"
@@ -288,7 +295,7 @@ export const DocumentSignatureModal = ({
               </Button>
             </>
           )}
-          
+
           {step === 'sign' && (
             <>
               <Button variant="ghost" onClick={() => setStep('preview')} disabled={isLoading}>
@@ -299,11 +306,11 @@ export const DocumentSignatureModal = ({
               </div>
             </>
           )}
-          
+
           {step === 'success' && (
             <>
               <div />
-              <Button 
+              <Button
                 onClick={handleClose}
                 className="bg-green-600 hover:bg-green-700"
               >

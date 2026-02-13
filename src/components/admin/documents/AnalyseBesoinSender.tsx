@@ -19,8 +19,8 @@ import { useOrganization } from '@/contexts/OrganizationContext';
 import { useAuth } from '@/hooks/useApi';
 import { DEFAULT_TEMPLATES } from './defaultTemplates';
 
-interface AnalyseB esoinSenderProps {
-    ofId ?: number;
+interface AnalyseBesoinSenderProps {
+    ofId?: number;
 }
 
 export const AnalyseBesoinSender: React.FC<AnalyseBesoinSenderProps> = ({ ofId: propOfId }) => {
@@ -129,15 +129,17 @@ export const AnalyseBesoinSender: React.FC<AnalyseBesoinSenderProps> = ({ ofId: 
 
             // Complete upload
             const completeResponse = await complete.mutateAsync({
-                asset_id: prepareResponse.asset_id,
-                upload_id: prepareResponse.upload_id,
+                strategy: 'single',
+                key: prepareResponse.key,
+                content_type: file.type,
+                size: file.size,
             });
 
             // Assign to learners
             const promises = selectedLearners.map(userId =>
                 assign.mutateAsync({
                     user_id: userId,
-                    media_asset_id: completeResponse.asset_id,
+                    media_asset_id: completeResponse.id!,
                     message: message || 'Veuillez compléter votre analyse de besoin',
                     phase: 'inscription',
                 })
