@@ -186,12 +186,23 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
     };
 
     const handleSignatureComplete = async (signatureData: string) => {
+        if (!assignmentId) {
+            toast({
+                title: "Erreur interne",
+                description: "ID d'assignation manquant. Impossible d'envoyer.",
+                variant: "destructive"
+            });
+            return;
+        }
+
         setIsSaving(true);
         try {
+            console.log("Starting Needs Analysis submission for assignment:", assignmentId);
+
             // 1. Extract filled content
             const completedHtml = extractFormResults();
 
-            // 2. Wrap in basic HTML structure if needed
+            // 2. Wrap in basic HTML structure
             const finalHtml = `
         <!DOCTYPE html>
         <html>
@@ -202,6 +213,7 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
             .content { max-width: 800px; margin: 0 auto; padding: 40px; }
             .signature-block { margin-top: 50px; border-top: 1px solid #eee; padding-top: 20px; }
             .signature-img { max-width: 200px; height: auto; }
+            .filled-value { text-decoration: underline; font-weight: bold; color: #1d4ed8; }
           </style>
         </head>
         <body>
@@ -217,10 +229,10 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
       `;
 
             // 3. Upload the completed document
-            const fileName = `Analyse_Besoin_Complete_${Date.now()}.html`;
+            const fileName = `Analyse_Besoin_Apprenant_${assignmentId}_${Date.now()}.html`;
             const blob = new Blob([finalHtml], { type: 'text/html' });
-            const file = new File([blob], fileName, { type: 'text/html' });
 
+            console.log("Preparing upload for:", fileName);
             const prepareData = await prepareUpload.mutateAsync({
                 filename: fileName,
                 content_type: 'text/html',
@@ -228,36 +240,44 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
                 kind: 'resource'
             });
 
-            // Upload to S3 (presigned URL)
-            await axios.put(prepareData.upload_url, blob, {
-                headers: { 'Content-Type': 'text/html' }
-            });
+            console.log("Uploading to S3...");
+            try {
+                await axios.put(prepareData.upload_url, blob, {
+                    headers: { 'Content-Type': 'text/html' }
+                });
+            } catch (uploadErr: any) {
+                console.error("S3 Upload failed:", uploadErr);
+                throw new Error(`Échec du transfert vers le serveur de stockage: ${uploadErr.message}`);
+            }
 
-            // Complete upload to get media_asset_id
-            const asset = await completeUpload.mutateAsync({
+            console.log("Completing upload...");
+            await completeUpload.mutateAsync({
                 upload_id: prepareData.upload_id,
                 key: prepareData.key
             });
 
             // 4. Update the assignment status by signing it
+            console.log("Signing document...");
             await signDocument.mutateAsync({
                 assignment_id: assignmentId,
                 signature_data: signatureData
             });
 
+            console.log("Submission successful!");
             setStep('success');
             toast({
                 title: "Document envoyé !",
-                description: "Votre analyse de besoin a été complétée, signée et renvoyée à l'OF.",
+                description: "Votre analyse de besoin a été complétée, signée et renvoyée avec succès.",
                 variant: "default"
             });
 
             if (onSuccess) onSuccess();
-        } catch (error) {
-            console.error("Error saving completed document:", error);
+        } catch (error: any) {
+            console.error("Full submission process error:", error);
+            const detail = error.response?.data?.detail || error.message || "Erreur inconnue";
             toast({
-                title: "Erreur",
-                description: "Une erreur est survenue lors de l'envoi du document.",
+                title: "Échec de l'envoi",
+                description: `Détail: ${detail}`,
                 variant: "destructive"
             });
         } finally {
@@ -303,7 +323,7 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
                     </div>
                 </DialogHeader>
 
-                <div className="flex-1 overflow-hidden relative">
+                <div className="flex-1 overflow-hidden relative flex flex-col min-h-0">
                     {isLoading ? (
                         <div className="flex flex-col items-center justify-center h-full gap-4">
                             <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
@@ -326,7 +346,7 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
                             </Button>
                         </div>
                     ) : step === 'sign' ? (
-                        <div className="p-12 flex flex-col items-center max-w-2xl mx-auto space-y-8">
+                        <div className="flex-1 flex flex-col items-center justify-start p-8 space-y-8 overflow-y-auto min-h-0">
                             <div className="text-center">
                                 <h3 className="text-xl font-bold">Signature électronique</h3>
                                 <p className="text-muted-foreground text-sm mt-2">
@@ -334,7 +354,7 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
                                 </p>
                             </div>
 
-                            <div className="w-full bg-white p-4 rounded-xl border-2 border-dashed border-gray-200">
+                            <div className="w-full max-w-xl bg-white p-4 rounded-xl border-2 border-dashed border-gray-200">
                                 <ElectronicSignature
                                     onSignatureComplete={handleSignatureComplete}
                                     disabled={isSaving}
@@ -342,7 +362,7 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
                             </div>
 
                             {isSaving && (
-                                <div className="flex items-center gap-2 text-blue-600 font-medium">
+                                <div className="flex items-center gap-2 text-blue-600 font-medium bg-blue-50 px-4 py-2 rounded-full border border-blue-100">
                                     <Loader2 className="h-4 w-4 animate-spin" />
                                     Envoi du document en cours...
                                 </div>
@@ -353,35 +373,51 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
                             </Button>
                         </div>
                     ) : (
-                        <ScrollArea className="h-full w-full bg-slate-100/50">
-                            <div className="py-8 flex flex-col items-center min-h-full">
+                        <div className="flex-1 w-full bg-slate-100/50 overflow-y-auto custom-scrollbar min-h-0">
+                            <div className="py-8 flex flex-col items-center min-h-full w-full">
                                 <style dangerouslySetInnerHTML={{
                                     __html: `
+                                    .custom-scrollbar::-webkit-scrollbar {
+                                        width: 8px;
+                                    }
+                                    .custom-scrollbar::-webkit-scrollbar-track {
+                                        background: #f1f1f1;
+                                    }
+                                    .custom-scrollbar::-webkit-scrollbar-thumb {
+                                        background: #cbd5e1;
+                                        border-radius: 4px;
+                                    }
+                                    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                                        background: #94a3b8;
+                                    }
                                     .interactive-document-container {
                                         background-color: #fff;
-                                        padding: 3rem !important;
-                                        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                                        padding: 4rem !important;
+                                        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
                                         border-radius: 8px;
-                                        width: 100%;
-                                        max-width: 800px;
+                                        width: 90%;
+                                        max-width: 850px;
+                                        margin-bottom: 3rem;
                                     }
                                     .interactive-document-container input[type="checkbox"] {
-                                        width: 18px;
-                                        height: 18px;
+                                        width: 22px;
+                                        height: 22px;
                                         cursor: pointer;
                                     }
                                     .interactive-document-container textarea.interactive-field {
-                                        background-color: #f8fafc;
+                                        background-color: #f8fafc !important;
                                         border: 2px solid #e2e8f0 !important;
                                         border-radius: 8px !important;
                                         padding: 12px !important;
                                         width: 100% !important;
-                                        margin-top: 8px !important;
-                                        margin-bottom: 20px !important;
+                                        margin-top: 10px !important;
+                                        margin-bottom: 24px !important;
                                         transition: all 0.2s !important;
-                                        font-size: 14px !important;
+                                        font-size: 15px !important;
+                                        line-height: 1.6 !important;
                                         color: #1e293b !important;
                                         display: block !important;
+                                        min-height: 120px !important;
                                     }
                                     .interactive-document-container textarea.interactive-field:focus {
                                         border-color: #3b82f6 !important;
@@ -396,13 +432,6 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
                                         background-color: #eff6ff;
                                         border-radius: 4px;
                                     }
-                                    .interactive-document-container li label {
-                                        display: flex;
-                                        align-items: center;
-                                        gap: 10px;
-                                        cursor: pointer;
-                                        padding: 4px 0;
-                                    }
                                 `}} />
                                 <div
                                     ref={containerRef}
@@ -410,7 +439,7 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
                                     dangerouslySetInnerHTML={{ __html: htmlContent }}
                                 />
                             </div>
-                        </ScrollArea>
+                        </div>
                     )}
                 </div>
             </DialogContent>
