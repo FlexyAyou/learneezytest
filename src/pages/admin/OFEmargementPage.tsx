@@ -11,7 +11,7 @@ import {
   Users, Search, ChevronRight, FileSignature, CheckCircle2,
   XCircle, Clock, FileText, ArrowLeft, Shield, Mail,
   Phone, Building2, Calendar, Download, Eye, Printer,
-  AlertTriangle, Filter, SortAsc, X
+  AlertTriangle, Filter, SortAsc, X, Loader2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -19,6 +19,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 import { useOFUsers, useAssignments } from '@/hooks/useApi';
 import { Skeleton } from '@/components/ui/skeleton';
+import axios from 'axios';
 
 interface Learner {
   id: string;
@@ -56,6 +57,9 @@ const OFEmargementPage: React.FC = () => {
   const [selectedLearnerId, setSelectedLearnerId] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [previewDocument, setPreviewDocument] = useState<SentDocument | null>(null);
+  const [previewContent, setPreviewContent] = useState<string | null>(null);
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
 
   // Fetch real data
   const { data: rawUsers, isLoading: usersLoading } = useOFUsers(ofId, { role: 'apprenant' });
@@ -171,6 +175,33 @@ const OFEmargementPage: React.FC = () => {
   const handlePrintDocument = (doc: SentDocument) => {
     if (!doc.documentUrl) return;
     window.open(doc.documentUrl, '_blank')?.print();
+  };
+
+  const handleOpenPreview = async (doc: SentDocument) => {
+    setPreviewDocument(doc);
+    setPreviewContent(null);
+    setPreviewError(null);
+    setIsPreviewLoading(true);
+
+    if (doc.documentUrl) {
+      try {
+        // Try to fetch content to see if it exists and check for 404
+        const response = await axios.get(doc.documentUrl, { responseType: 'text' });
+        setPreviewContent(response.data);
+      } catch (err: any) {
+        console.error("Preview fetch error:", err);
+        if (err.response?.status === 404) {
+          setPreviewError("Le document est introuvable sur le serveur (Erreur 404).");
+        } else {
+          setPreviewError("Impossible de charger le document.");
+        }
+      } finally {
+        setIsPreviewLoading(false);
+      }
+    } else {
+      setPreviewError("Aucune URL de document disponible.");
+      setIsPreviewLoading(false);
+    }
   };
 
   const totalStats = useMemo(() => {
@@ -514,7 +545,7 @@ const OFEmargementPage: React.FC = () => {
                                   <Button
                                     size="sm"
                                     variant="outline"
-                                    onClick={() => setPreviewDocument(doc)}
+                                    onClick={() => handleOpenPreview(doc)}
                                   >
                                     <Eye className="h-4 w-4 mr-1" />
                                     Voir
@@ -574,13 +605,37 @@ const OFEmargementPage: React.FC = () => {
             <ScrollArea className="flex-1 overflow-auto">
               <div className="space-y-6 p-1">
                 {/* Document Preview (In real app, might be iframe of PDF or signed HTML) */}
-                <Card>
-                  <CardContent className="p-0">
-                    <iframe
-                      src={previewDocument.documentUrl}
-                      className="w-full h-[600px] border-none"
-                      title="Prévisualisation du document"
-                    />
+                <Card className="min-h-[400px] flex flex-col">
+                  <CardContent className="p-0 flex-1 flex flex-col">
+                    {isPreviewLoading ? (
+                      <div className="flex flex-col items-center justify-center h-[400px] gap-4">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        <p className="text-muted-foreground">Chargement du document...</p>
+                      </div>
+                    ) : previewError ? (
+                      <div className="flex flex-col items-center justify-center h-[400px] p-8 text-center gap-4">
+                        <div className="p-4 bg-amber-50 rounded-full">
+                          <AlertTriangle className="h-10 w-10 text-amber-500" />
+                        </div>
+                        <div className="space-y-2">
+                          <h3 className="font-bold text-lg">Indisponible</h3>
+                          <p className="text-muted-foreground">{previewError}</p>
+                        </div>
+                        {previewDocument?.status === 'pending' && (
+                          <p className="text-sm text-amber-600 bg-amber-50 p-2 rounded border border-amber-100 max-w-md">
+                            C'est normal si le document n'a pas encore été rempli par l'apprenant.
+                            Le lien sera valide une fois le document signé.
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <iframe
+                        srcDoc={previewContent || undefined}
+                        src={!previewContent ? previewDocument.documentUrl : undefined}
+                        className="w-full h-[600px] border-none"
+                        title="Prévisualisation du document"
+                      />
+                    )}
                   </CardContent>
                 </Card>
 

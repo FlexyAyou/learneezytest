@@ -90,8 +90,7 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
                     const response = await axios.get(url, { responseType: 'text' });
                     rawHtml = response.data;
                 } catch (fetchErr) {
-                    console.error("Failed to fetch from URL, trying fallback:", fetchErr);
-                    // If fetch fails, we continue and try fallback
+                    console.info("Document non encore généré (404), utilisation du template local.");
                 }
             }
 
