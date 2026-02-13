@@ -187,6 +187,8 @@ export interface OrganizationResponse {
   website?: string;
   legal_representative?: string;
   address?: string;
+  postal_code?: string;
+  city?: string;
   phone?: string;
   email?: string;
   siret?: string;
@@ -198,7 +200,19 @@ export interface OrganizationResponse {
 }
 
 export interface OrganizationUpdate {
+  name?: string;
+  description?: string;
+  legal_representative?: string;
+  contact_email?: string;
+  address?: string;
+  postal_code?: string;
+  city?: string;
+  phone?: string;
+  siret?: string;
+  numero_declaration?: string;
   subscription_type?: SubscriptionType;
+  logo_url?: string;
+  max_users?: number;
 }
 
 // ============= CATALOGUES =============

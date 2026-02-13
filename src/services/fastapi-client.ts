@@ -1423,6 +1423,20 @@ class FastAPIClient {
     return this.get<any>(`/api/storage/assets?${params.toString()}`);
   }
 
+  /**
+   * Récupérer les détails d'une organisation
+   */
+  async getOrganization(organizationId: number): Promise<OrganizationResponse> {
+    return this.get<OrganizationResponse>(`/api/organizations/${organizationId}`);
+  }
+
+  /**
+   * Mettre à jour une organisation
+   */
+  async updateOrganization(organizationId: number, data: Partial<OrganizationUpdate>): Promise<OrganizationResponse> {
+    return this.put<OrganizationResponse>(`/api/organizations/${organizationId}`, data);
+  }
+
 }
 
 // Instance singleton
