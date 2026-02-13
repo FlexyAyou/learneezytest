@@ -310,9 +310,12 @@ export const OFDocumentsAdvanced: React.FC = () => {
                             <span className="text-muted-foreground">—</span>
                           )}
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-right flex justify-end gap-2">
                           <Button size="sm" variant="outline" onClick={() => handleEditTemplate(template)}>
                             <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => toast({ title: "Bientôt disponible", description: "L'envoi direct de modèles personnalisés sera disponible prochainement." })}>
+                            <Send className="h-4 w-4" />
                           </Button>
                         </TableCell>
                       </TableRow>
