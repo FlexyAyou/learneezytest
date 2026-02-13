@@ -345,7 +345,7 @@ export const OFDocumentsAdvanced: React.FC = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {(assets || []).filter((a: any) => a.kind === 'resource' || a.kind === 'image').map((asset: any) => (
+                      {(assets?.items || []).filter((a: any) => a.kind === 'resource' || a.kind === 'image').map((asset: any) => (
                         <TableRow key={asset.id}>
                           <TableCell className="font-medium">{asset.filename}</TableCell>
                           <TableCell><Badge variant="outline">{asset.kind}</Badge></TableCell>
@@ -358,7 +358,7 @@ export const OFDocumentsAdvanced: React.FC = () => {
                           </TableCell>
                         </TableRow>
                       ))}
-                      {(assets || []).length === 0 && (
+                      {(assets?.items || []).length === 0 && (
                         <TableRow>
                           <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">Aucun document dans le storage</TableCell>
                         </TableRow>
