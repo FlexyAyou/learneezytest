@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -274,6 +275,9 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
               <Send className="h-5 w-5" />
               Envoyer les documents - Phase {phaseLabels[phase]}
             </DialogTitle>
+            <DialogDescription>
+              Suivez les étapes pour sélectionner l'apprenant, choisir les documents et les envoyer.
+            </DialogDescription>
           </DialogHeader>
 
           {/* Progress Steps */}

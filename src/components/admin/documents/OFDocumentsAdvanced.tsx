@@ -12,8 +12,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import {
   FileText, Plus, Send, Search, Eye, Edit, Download, Upload,
   UserPlus, BookOpen, Award, Clock, CheckCircle,
-  AlertCircle, Mail, FileSignature, Sparkles, Users, File, Trash2, Loader2
+  AlertCircle, Mail, FileSignature, Sparkles, Users, File as FileIcon, Trash2, Loader2
 } from 'lucide-react';
+import { DialogDescription } from '@/components/ui/dialog';
 import { DocumentTemplateEditor } from './DocumentTemplateEditor';
 import { PhaseDocumentSender } from './PhaseDocumentSender';
 import { AnalyseBesoinSender } from './AnalyseBesoinSender';
@@ -505,6 +506,9 @@ export const OFDocumentsAdvanced: React.FC = () => {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2"><Upload className="h-5 w-5" /> Uploader un document</DialogTitle>
+            <DialogDescription>
+              Importez un document local (votre règlement intérieur, CGV ou programme PDF personnalisé) pour pouvoir l'envoyer à vos apprenants.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
@@ -529,7 +533,12 @@ export const OFDocumentsAdvanced: React.FC = () => {
       {/* Send Dialog */}
       <Dialog open={showUploadSendDialog} onOpenChange={setShowUploadSendDialog}>
         <DialogContent className="sm:max-w-md">
-          <DialogHeader><DialogTitle>Envoyer le document</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>Envoyer le document</DialogTitle>
+            <DialogDescription>
+              Sélectionnez la phase de formation et les apprenants auxquels vous souhaitez envoyer ce document.
+            </DialogDescription>
+          </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -587,6 +596,9 @@ export const OFDocumentsAdvanced: React.FC = () => {
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Analyse du Besoin de Formation</DialogTitle>
+            <DialogDescription>
+              Personnalisez les champs de l'analyse de besoin et sélectionnez les apprenants.
+            </DialogDescription>
           </DialogHeader>
           <AnalyseBesoinSender
             ofId={ofId}
