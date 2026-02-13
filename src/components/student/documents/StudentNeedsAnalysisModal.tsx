@@ -353,10 +353,18 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
                             </Button>
                         </div>
                     ) : (
-                        <ScrollArea className="h-full">
-                            <div className="p-12 bg-white flex justify-center">
+                        <ScrollArea className="flex-1 overflow-y-auto bg-slate-100/50">
+                            <div className="py-12 flex justify-center min-h-full">
                                 <style dangerouslySetInnerHTML={{
                                     __html: `
+                                    .interactive-document-container {
+                                        background-color: #fff;
+                                        padding: 3rem !important;
+                                        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                                        border-radius: 8px;
+                                        width: 100%;
+                                        max-width: 800px;
+                                    }
                                     .interactive-document-container input[type="checkbox"] {
                                         width: 18px;
                                         height: 18px;
@@ -368,10 +376,12 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
                                         border-radius: 8px !important;
                                         padding: 12px !important;
                                         width: 100% !important;
+                                        margin-top: 8px !important;
                                         margin-bottom: 20px !important;
                                         transition: all 0.2s !important;
                                         font-size: 14px !important;
                                         color: #1e293b !important;
+                                        display: block !important;
                                     }
                                     .interactive-document-container textarea.interactive-field:focus {
                                         border-color: #3b82f6 !important;
@@ -386,16 +396,17 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
                                         background-color: #eff6ff;
                                         border-radius: 4px;
                                     }
+                                    .interactive-document-container li label {
+                                        display: flex;
+                                        align-items: center;
+                                        gap: 10px;
+                                        cursor: pointer;
+                                        padding: 4px 0;
+                                    }
                                 `}} />
                                 <div
                                     ref={containerRef}
-                                    className="interactive-document-container prose prose-sm max-w-none w-full max-w-[800px]"
-                                    style={{
-                                        backgroundColor: '#fff',
-                                        padding: '2rem',
-                                        boxShadow: '0 0 50px rgba(0,0,0,0.05)',
-                                        borderRadius: '8px'
-                                    }}
+                                    className="interactive-document-container prose prose-sm max-w-none"
                                     dangerouslySetInnerHTML={{ __html: htmlContent }}
                                 />
                             </div>
