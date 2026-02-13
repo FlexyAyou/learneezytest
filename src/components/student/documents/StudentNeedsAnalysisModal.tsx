@@ -353,8 +353,8 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
                             </Button>
                         </div>
                     ) : (
-                        <ScrollArea className="flex-1 overflow-y-auto bg-slate-100/50">
-                            <div className="py-12 flex justify-center min-h-full">
+                        <ScrollArea className="h-full w-full bg-slate-100/50">
+                            <div className="py-8 flex flex-col items-center min-h-full">
                                 <style dangerouslySetInnerHTML={{
                                     __html: `
                                     .interactive-document-container {
