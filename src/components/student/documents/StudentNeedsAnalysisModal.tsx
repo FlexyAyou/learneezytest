@@ -242,7 +242,13 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
 
             console.log("Uploading to S3...");
             try {
-                await axios.put(prepareData.upload_url, blob, {
+                // Use .url from PrepareUploadResponse (not .upload_url)
+                const uploadUrl = (prepareData as any).url || (prepareData as any).upload_url;
+                if (!uploadUrl) {
+                    throw new Error("URL d'upload non reçue du serveur.");
+                }
+
+                await axios.put(uploadUrl, blob, {
                     headers: { 'Content-Type': 'text/html' }
                 });
             } catch (uploadErr: any) {
@@ -252,8 +258,11 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
 
             console.log("Completing upload...");
             await completeUpload.mutateAsync({
-                upload_id: prepareData.upload_id,
-                key: prepareData.key
+                strategy: (prepareData as any).strategy || 'single',
+                key: prepareData.key,
+                upload_id: (prepareData as any).upload_id,
+                content_type: 'text/html',
+                size: blob.size
             });
 
             // 4. Update the assignment status by signing it
