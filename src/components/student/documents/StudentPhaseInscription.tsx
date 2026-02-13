@@ -334,15 +334,6 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
         </div>
       )}
 
-      {/* Additional Assigned Documents (fallback pour autres documents non classifiés) */}
-      <div className="pt-8 border-t">
-        <div className="flex items-center gap-2 mb-4">
-          <ClipboardList className="h-5 w-5 text-primary" />
-          <h3 className="text-xl font-bold">Historique complet des documents</h3>
-        </div>
-        <StudentAssignedDocuments targetPhase="inscription" />
-      </div>
-
       {/* Signature Modal */}
       <DocumentSignatureModal
         isOpen={signatureModalOpen}

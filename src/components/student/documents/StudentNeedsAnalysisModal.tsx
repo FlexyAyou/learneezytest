@@ -72,7 +72,19 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
         setIsLoading(true);
         try {
             const response = await axios.get(url!, { responseType: 'text' });
-            setHtmlContent(response.data);
+            let rawHtml = response.data;
+
+            // Pre-process: transform empty boxes into interactive inputs
+            // This pattern matches the default template boxes: <div style="border: 1px solid #ccc; min-height: 80px; ..."></div>
+            const processedHtml = rawHtml.replace(
+                /<div style="border: 1px solid #ccc; min-height: 80px; padding: 10px; margin-bottom: 20px;"><\/div>/g,
+                '<textarea class="interactive-field" placeholder="Saisissez votre réponse ici..." style="width: 100%; border: 1px solid #ccc; min-height: 80px; padding: 10px; margin-bottom: 20px; font-family: inherit; resize: vertical;"></textarea>'
+            ).replace(
+                /<li>☐ (.*?)<\/li>/g,
+                '<li><label style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" name="competence" class="interactive-checkbox" /> $1</label></li>'
+            );
+
+            setHtmlContent(processedHtml);
         } catch (error) {
             console.error("Error fetching document content:", error);
             toast({
@@ -84,6 +96,44 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
             setIsLoading(false);
         }
     };
+
+    const handleSaveDraft = () => {
+        if (!containerRef.current) return;
+
+        const values: Record<string, string | boolean> = {};
+        const inputs = containerRef.current.querySelectorAll('input, textarea');
+        inputs.forEach((input: any, index: number) => {
+            const key = `field_${index}`;
+            values[key] = input.type === 'checkbox' ? input.checked : input.value;
+        });
+
+        localStorage.setItem(`draft_analysis_${assignmentId}`, JSON.stringify(values));
+        toast({
+            title: "Brouillon enregistré",
+            description: "Vos réponses ont été sauvegardées localement.",
+        });
+    };
+
+    useEffect(() => {
+        // Apply draft values when component is ready
+        if (!isLoading && step === 'edit' && containerRef.current) {
+            const draftKey = `draft_analysis_${assignmentId}`;
+            const savedDraft = localStorage.getItem(draftKey);
+            if (savedDraft) {
+                try {
+                    const values = JSON.parse(savedDraft);
+                    const inputs = containerRef.current.querySelectorAll('input, textarea');
+                    inputs.forEach((input: any, index: number) => {
+                        const key = `field_${index}`;
+                        if (values[key] !== undefined) {
+                            if (input.type === 'checkbox') input.checked = values[key];
+                            else input.value = values[key];
+                        }
+                    });
+                } catch (e) { console.error("Error loading draft", e); }
+            }
+        }
+    }, [isLoading, step, assignmentId]);
 
     const handlePrint = () => {
         const printWindow = window.open('', '_blank');
@@ -233,6 +283,10 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
                     <div className="flex items-center gap-2">
                         {step === 'edit' && (
                             <>
+                                <Button variant="outline" size="sm" onClick={handleSaveDraft} className="gap-2">
+                                    <Save className="h-4 w-4" />
+                                    Enregistrer
+                                </Button>
                                 <Button variant="outline" size="sm" onClick={handlePrint} className="gap-2">
                                     <Printer className="h-4 w-4" />
                                     Imprimer
@@ -301,29 +355,38 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
                     ) : (
                         <ScrollArea className="h-full">
                             <div className="p-12 bg-white flex justify-center">
-                                <style>{`
-                                    .interactive-document-container input, 
-                                    .interactive-document-container textarea, 
-                                    .interactive-document-container select {
-                                        background-color: #f3f4f6;
-                                        border: 1px solid #d1d5db;
-                                        border-radius: 4px;
-                                        padding: 4px 8px;
-                                        width: 100%;
-                                        margin-bottom: 8px;
-                                        transition: border-color 0.2s;
+                                <style dangerouslySetInnerHTML={{
+                                    __html: `
+                                    .interactive-document-container input[type="checkbox"] {
+                                        width: 18px;
+                                        height: 18px;
+                                        cursor: pointer;
                                     }
-                                    .interactive-document-container input:focus, 
-                                    .interactive-document-container textarea:focus {
-                                        border-color: #3b82f6;
-                                        outline: none;
-                                        background-color: #fff;
+                                    .interactive-document-container textarea.interactive-field {
+                                        background-color: #f8fafc;
+                                        border: 2px solid #e2e8f0 !important;
+                                        border-radius: 8px !important;
+                                        padding: 12px !important;
+                                        width: 100% !important;
+                                        margin-bottom: 20px !important;
+                                        transition: all 0.2s !important;
+                                        font-size: 14px !important;
+                                        color: #1e293b !important;
+                                    }
+                                    .interactive-document-container textarea.interactive-field:focus {
+                                        border-color: #3b82f6 !important;
+                                        background-color: #fff !important;
+                                        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1) !important;
+                                        outline: none !important;
                                     }
                                     .interactive-document-container .filled-value {
                                         color: #1d4ed8;
                                         font-weight: 600;
+                                        padding: 2px 4px;
+                                        background-color: #eff6ff;
+                                        border-radius: 4px;
                                     }
-                                `}</style>
+                                `}} />
                                 <div
                                     ref={containerRef}
                                     className="interactive-document-container prose prose-sm max-w-none w-full max-w-[800px]"
