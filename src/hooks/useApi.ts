@@ -1297,3 +1297,28 @@ export const useCompleteUpload = () => {
     },
   });
 };
+
+/**
+ * Hook pour supprimer un asset média
+ */
+export const useDeleteMedia = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { asset_id: number; force?: boolean }) =>
+      fastAPIClient.deleteAsset(data.asset_id, data.force),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['media-assets'] });
+      toast({
+        title: "Document supprimé",
+        description: "Le document a été retiré de votre bibliothèque.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erreur",
+        description: error.response?.data?.detail || "Impossible de supprimer le document.",
+        variant: "destructive",
+      });
+    }
+  });
+};

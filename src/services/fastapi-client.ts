@@ -1393,6 +1393,13 @@ class FastAPIClient {
   async getMyDocuments(): Promise<any[]> {
     return this.get('/api/storage/my-documents');
   }
+
+  /**
+   * Supprimer un asset média
+   */
+  async deleteAsset(assetId: number, force: boolean = false): Promise<any> {
+    return this.delete(`/api/storage/assets/${assetId}?force=${force}`);
+  }
 }
 
 // Instance singleton

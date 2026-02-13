@@ -26,6 +26,7 @@ import {
   useMediaAssets,
   usePrepareUpload,
   useCompleteUpload,
+  useDeleteMedia,
   useOFUsers,
   useAssignMedia
 } from '@/hooks/useApi';
@@ -70,8 +71,15 @@ export const OFDocumentsAdvanced: React.FC = () => {
   const { data: learnersRaw, isLoading: learnersLoading } = useOFUsers(ofId);
   const prepare = usePrepareUpload();
   const complete = useCompleteUpload();
+  const deleteMedia = useDeleteMedia();
   const assign = useAssignMedia();
   const { toast } = useToast();
+
+  const handleDeleteAsset = async (assetId: number) => {
+    if (window.confirm("Êtes-vous sûr de vouloir supprimer ce document ?")) {
+      await deleteMedia.mutateAsync({ asset_id: assetId, force: true });
+    }
+  };
 
   // Convert API users to Learner type
   const learners: Learner[] = (learnersRaw || [])
@@ -363,10 +371,18 @@ export const OFDocumentsAdvanced: React.FC = () => {
                           <TableCell className="font-medium">{asset.filename}</TableCell>
                           <TableCell><Badge variant="outline">{asset.kind}</Badge></TableCell>
                           <TableCell>{new Date(asset.created_at).toLocaleDateString('fr-FR')}</TableCell>
-                          <TableCell className="text-right">
+                          <TableCell className="text-right flex justify-end gap-2 text-right">
                             <Button size="sm" onClick={() => handleOpenUploadSend(asset.id)}>
                               <Send className="h-4 w-4 mr-2" />
                               Envoyer
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleDeleteAsset(asset.id)}
+                              disabled={deleteMedia.isPending}
+                            >
+                              {deleteMedia.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                             </Button>
                           </TableCell>
                         </TableRow>
