@@ -7,6 +7,7 @@ import { DocumentCard } from './DocumentCard';
 import { DocumentSignatureModal } from './DocumentSignatureModal';
 import { StudentDocumentPreviewModal } from './StudentDocumentPreviewModal';
 import { StudentAssignedDocuments } from './StudentAssignedDocuments';
+import { StudentNeedsAnalysisModal } from './StudentNeedsAnalysisModal';
 import { personalizeDocumentContent, getTemplateForType } from '@/utils/personalizeDocumentContent';
 import { useMyDocuments, useSignDocument } from '@/hooks/useApi';
 
@@ -51,6 +52,10 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
   const [selectedDocument, setSelectedDocument] = useState<PhaseDocument | null>(null);
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [previewDocument, setPreviewDocument] = useState<{ title: string; content: string } | null>(null);
+
+  // States for interactive Needs Analysis
+  const [needsAnalysisOpen, setNeedsAnalysisOpen] = useState(false);
+  const [activeAnalysis, setActiveAnalysis] = useState<PhaseDocument | null>(null);
 
   useEffect(() => {
     console.log('StudentPhaseInscription: Recieved assignments', assignments);
@@ -113,8 +118,13 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
   const signedCount = filteredDocuments.filter(doc => doc.status === 'signed' || doc.status === 'completed').length;
 
   const handleSign = (doc: PhaseDocument) => {
-    setSelectedDocument(doc);
-    setSignatureModalOpen(true);
+    if (doc.type === 'analyse_besoin') {
+      setActiveAnalysis(doc);
+      setNeedsAnalysisOpen(true);
+    } else {
+      setSelectedDocument(doc);
+      setSignatureModalOpen(true);
+    }
   };
 
   const handleSignatureComplete = (documentId: string, signatureData: string) => {
@@ -170,6 +180,12 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
   };
 
   const handlePreview = (doc: PhaseDocument) => {
+    if (doc.type === 'analyse_besoin') {
+      setActiveAnalysis(doc);
+      setNeedsAnalysisOpen(true);
+      return;
+    }
+
     if (doc.url) {
       window.open(doc.url, '_blank');
       return;
@@ -372,6 +388,23 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
           });
         }}
       />
+
+      {/* Interactive Needs Analysis Modal */}
+      {activeAnalysis && (
+        <StudentNeedsAnalysisModal
+          isOpen={needsAnalysisOpen}
+          onClose={() => {
+            setNeedsAnalysisOpen(false);
+            setActiveAnalysis(null);
+          }}
+          assignmentId={activeAnalysis.assignmentId!}
+          title={documentTypes[activeAnalysis.type].label}
+          url={activeAnalysis.url}
+          onSuccess={() => {
+            refetchDocs();
+          }}
+        />
+      )}
     </div>
   );
 };
