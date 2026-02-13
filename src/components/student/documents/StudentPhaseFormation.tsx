@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { DocumentCard } from './DocumentCard';
 import { DocumentSignatureModal } from './DocumentSignatureModal';
 import { StudentDocumentPreviewModal } from './StudentDocumentPreviewModal';
+import { StudentAssignedDocuments } from './StudentAssignedDocuments';
 import { personalizeDocumentContent, getTemplateForType } from '@/utils/personalizeDocumentContent';
 
 interface Formation {
@@ -37,7 +38,7 @@ interface StudentPhaseFormationProps {
 
 export const StudentPhaseFormation = ({ selectedFormation, formations }: StudentPhaseFormationProps) => {
   const { toast } = useToast();
-  
+
   const [documents, setDocuments] = useState<PhaseDocument[]>([
     { id: '1', name: 'Convocation_Math.pdf', formationId: '1', type: 'convocation', date: '2024-01-23', size: '0.8 MB', status: 'received' },
     { id: '2', name: 'Programme_Formation_Math.pdf', formationId: '1', type: 'programme', date: '2024-01-24', size: '3.2 MB', status: 'received' },
@@ -86,7 +87,7 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
     }
   };
 
-  const filteredDocuments = documents.filter(doc => 
+  const filteredDocuments = documents.filter(doc =>
     selectedFormation === 'all' || doc.formationId === selectedFormation
   );
 
@@ -99,15 +100,15 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
   };
 
   const handleSignatureComplete = (documentId: string, signatureData: string) => {
-    setDocuments(prev => prev.map(doc => 
-      doc.id === documentId 
-        ? { 
-            ...doc, 
-            status: 'signed' as const, 
-            requiresSignature: false,
-            learnerSignature: signatureData,
-            signedAt: new Date().toISOString()
-          }
+    setDocuments(prev => prev.map(doc =>
+      doc.id === documentId
+        ? {
+          ...doc,
+          status: 'signed' as const,
+          requiresSignature: false,
+          learnerSignature: signatureData,
+          signedAt: new Date().toISOString()
+        }
         : doc
     ));
     setSignatureModalOpen(false);
@@ -124,7 +125,7 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
   const handlePreview = (doc: PhaseDocument) => {
     const formation = formations.find(f => f.id === doc.formationId);
     const template = getTemplateForType(doc.type);
-    
+
     if (template && formation) {
       const personalizedContent = personalizeDocumentContent(template, formation, doc.learnerSignature);
       setPreviewDocument({
@@ -134,7 +135,7 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
       setPreviewModalOpen(true);
       return;
     }
-    
+
     toast({
       title: "Aperçu",
       description: `Ouverture de ${doc.name}...`,
@@ -167,7 +168,7 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
             <p className="text-muted-foreground">Convocation, programme, CGV, règlement intérieur et attestation sur l'honneur</p>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-4">
           {pendingSignatures.length > 0 && (
             <Badge variant="destructive" className="gap-1.5 py-1.5 px-3">
@@ -188,7 +189,7 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
           const Icon = info.icon;
           const count = filteredDocuments.filter(doc => doc.type === type).length;
           const pending = filteredDocuments.filter(doc => doc.type === type && doc.status === 'available' && doc.requiresSignature).length;
-          
+
           return (
             <Card key={type} className="border-l-4 border-l-primary/50">
               <CardContent className="p-4">
@@ -220,7 +221,7 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
         <div className="space-y-6">
           {Object.values(groupedByFormation).map(({ formation, documents }) => {
             const pendingDocs = documents.filter(d => d.requiresSignature && d.status === 'available');
-            
+
             return (
               <Card key={formation.id}>
                 <CardHeader className="pb-4">
@@ -243,7 +244,7 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
                 <CardContent className="space-y-3">
                   {documents.map((doc) => {
                     const typeInfo = documentTypes[doc.type];
-                    
+
                     return (
                       <DocumentCard
                         key={doc.id}
@@ -279,7 +280,7 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
           <CardContent className="space-y-3">
             {filteredDocuments.map((doc) => {
               const typeInfo = documentTypes[doc.type];
-              
+
               return (
                 <DocumentCard
                   key={doc.id}
@@ -302,6 +303,15 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
           </CardContent>
         </Card>
       )}
+
+      {/* Additional Assigned Documents */}
+      <div className="pt-8 border-t">
+        <div className="flex items-center gap-2 mb-4">
+          <School className="h-5 w-5 text-primary" />
+          <h3 className="text-xl font-bold">Documents envoyés par l'organisme</h3>
+        </div>
+        <StudentAssignedDocuments targetPhase="formation" />
+      </div>
 
       {/* Signature Modal */}
       <DocumentSignatureModal

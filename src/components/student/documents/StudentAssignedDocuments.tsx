@@ -13,8 +13,36 @@ import {
 import { FileText, Download, Eye, Clock, CheckCircle, Loader2 } from 'lucide-react';
 import { useMyDocuments } from '@/hooks/useApi';
 
-export const StudentAssignedDocuments: React.FC = () => {
-    const { data: assignments, isLoading, error } = useMyDocuments();
+interface MediaAsset {
+    id: number;
+    filename: string;
+    kind: string;
+    size: number;
+    url?: string;
+    created_at: string;
+}
+
+interface UserMediaAssignment {
+    id: number;
+    media_asset: MediaAsset;
+    is_viewed: boolean;
+    assigned_at: string;
+    message?: string;
+    phase?: string;
+}
+
+interface StudentAssignedDocumentsProps {
+    targetPhase?: string;
+}
+
+export const StudentAssignedDocuments: React.FC<StudentAssignedDocumentsProps> = ({ targetPhase }) => {
+    const { data: allAssignments, isLoading, error } = useMyDocuments();
+
+    const assignments = React.useMemo(() => {
+        if (!allAssignments) return [];
+        if (!targetPhase) return allAssignments as UserMediaAssignment[];
+        return (allAssignments as UserMediaAssignment[]).filter((a) => a.phase === targetPhase);
+    }, [allAssignments, targetPhase]);
 
     if (isLoading) {
         return (
@@ -48,7 +76,7 @@ export const StudentAssignedDocuments: React.FC = () => {
     return (
         <div className="p-6 space-y-6">
             <div className="grid gap-4">
-                {assignments.map((assignment: any) => (
+                {assignments.map((assignment: UserMediaAssignment) => (
                     <Card key={assignment.id} className="overflow-hidden">
                         <div className="flex flex-col md:flex-row">
                             <div className="p-6 flex-1">
@@ -64,13 +92,20 @@ export const StudentAssignedDocuments: React.FC = () => {
                                             </p>
                                         </div>
                                     </div>
-                                    <Badge variant={assignment.is_viewed ? "outline" : "default"} className="flex gap-1">
-                                        {assignment.is_viewed ? (
-                                            <><CheckCircle className="h-3 w-3" />Consulté</>
-                                        ) : (
-                                            <><Clock className="h-3 w-3" />Nouveau</>
+                                    <div className="flex gap-2">
+                                        {assignment.phase && (
+                                            <Badge variant="secondary" className="capitalize">
+                                                {assignment.phase.replace('phase-', '').replace('-', ' ')}
+                                            </Badge>
                                         )}
-                                    </Badge>
+                                        <Badge variant={assignment.is_viewed ? "outline" : "default"} className="flex gap-1">
+                                            {assignment.is_viewed ? (
+                                                <><CheckCircle className="h-3 w-3" />Consulté</>
+                                            ) : (
+                                                <><Clock className="h-3 w-3" />Nouveau</>
+                                            )}
+                                        </Badge>
+                                    </div>
                                 </div>
 
                                 {assignment.message && (

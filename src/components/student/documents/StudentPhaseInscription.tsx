@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { DocumentCard } from './DocumentCard';
 import { DocumentSignatureModal } from './DocumentSignatureModal';
 import { StudentDocumentPreviewModal } from './StudentDocumentPreviewModal';
+import { StudentAssignedDocuments } from './StudentAssignedDocuments';
 import { personalizeDocumentContent, getTemplateForType } from '@/utils/personalizeDocumentContent';
 
 interface Formation {
@@ -37,7 +38,7 @@ interface StudentPhaseInscriptionProps {
 
 export const StudentPhaseInscription = ({ selectedFormation, formations }: StudentPhaseInscriptionProps) => {
   const { toast } = useToast();
-  
+
   const [documents, setDocuments] = useState<PhaseDocument[]>([
     { id: '1', name: 'Analyse_Besoin_Math.pdf', formationId: '1', type: 'analyse_besoin', date: '2024-01-20', size: '1.2 MB', status: 'completed' },
     { id: '2', name: 'Test_Positionnement_Math.pdf', formationId: '1', type: 'test_positionnement', date: '2024-01-21', size: '0.8 MB', status: 'completed' },
@@ -73,7 +74,7 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
     }
   };
 
-  const filteredDocuments = documents.filter(doc => 
+  const filteredDocuments = documents.filter(doc =>
     selectedFormation === 'all' || doc.formationId === selectedFormation
   );
 
@@ -86,15 +87,15 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
   };
 
   const handleSignatureComplete = (documentId: string, signatureData: string) => {
-    setDocuments(prev => prev.map(doc => 
-      doc.id === documentId 
-        ? { 
-            ...doc, 
-            status: 'signed' as const, 
-            requiresSignature: false,
-            learnerSignature: signatureData,
-            signedAt: new Date().toISOString()
-          }
+    setDocuments(prev => prev.map(doc =>
+      doc.id === documentId
+        ? {
+          ...doc,
+          status: 'signed' as const,
+          requiresSignature: false,
+          learnerSignature: signatureData,
+          signedAt: new Date().toISOString()
+        }
         : doc
     ));
     setSignatureModalOpen(false);
@@ -111,7 +112,7 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
   const handlePreview = (doc: PhaseDocument) => {
     const formation = formations.find(f => f.id === doc.formationId);
     const template = getTemplateForType(doc.type);
-    
+
     if (template && formation) {
       const personalizedContent = personalizeDocumentContent(template, formation, doc.learnerSignature);
       setPreviewDocument({
@@ -121,7 +122,7 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
       setPreviewModalOpen(true);
       return;
     }
-    
+
     toast({
       title: "Aperçu",
       description: `Ouverture de ${doc.name}...`,
@@ -154,7 +155,7 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
             <p className="text-muted-foreground">Analyse du besoin, test de positionnement et convention</p>
           </div>
         </div>
-        
+
         {/* Stats */}
         <div className="flex items-center gap-4">
           {pendingSignatures.length > 0 && (
@@ -176,7 +177,7 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
           const Icon = info.icon;
           const count = filteredDocuments.filter(doc => doc.type === type).length;
           const pending = filteredDocuments.filter(doc => doc.type === type && doc.status === 'available' && doc.requiresSignature).length;
-          
+
           return (
             <Card key={type} className="border-l-4 border-l-primary/50">
               <CardContent className="p-4">
@@ -208,7 +209,7 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
         <div className="space-y-6">
           {Object.values(groupedByFormation).map(({ formation, documents }) => {
             const pendingDocs = documents.filter(d => d.requiresSignature && d.status === 'available');
-            
+
             return (
               <Card key={formation.id}>
                 <CardHeader className="pb-4">
@@ -231,7 +232,7 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
                 <CardContent className="space-y-3">
                   {documents.map((doc) => {
                     const typeInfo = documentTypes[doc.type];
-                    
+
                     return (
                       <DocumentCard
                         key={doc.id}
@@ -267,7 +268,7 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
           <CardContent className="space-y-3">
             {filteredDocuments.map((doc) => {
               const typeInfo = documentTypes[doc.type];
-              
+
               return (
                 <DocumentCard
                   key={doc.id}
@@ -290,6 +291,15 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
           </CardContent>
         </Card>
       )}
+
+      {/* Additional Assigned Documents */}
+      <div className="pt-8 border-t">
+        <div className="flex items-center gap-2 mb-4">
+          <ClipboardList className="h-5 w-5 text-primary" />
+          <h3 className="text-xl font-bold">Documents envoyés par l'organisme</h3>
+        </div>
+        <StudentAssignedDocuments targetPhase="inscription" />
+      </div>
 
       {/* Signature Modal */}
       <DocumentSignatureModal

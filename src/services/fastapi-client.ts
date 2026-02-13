@@ -1382,6 +1382,7 @@ class FastAPIClient {
     user_id: number;
     media_asset_id: number;
     message?: string;
+    phase?: string;
   }): Promise<any> {
     return this.post('/api/storage/assign', assignmentData);
   }

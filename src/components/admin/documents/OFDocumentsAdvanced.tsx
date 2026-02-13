@@ -202,7 +202,8 @@ export const OFDocumentsAdvanced: React.FC = () => {
         assign.mutateAsync({
           user_id: userId,
           media_asset_id: selectedAssetId,
-          message: sendMessage
+          message: sendMessage,
+          phase: activePhase
         })
       );
 

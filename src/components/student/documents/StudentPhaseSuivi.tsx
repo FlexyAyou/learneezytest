@@ -6,6 +6,7 @@ import { Clock, MessageSquare, Info, AlertCircle, CheckCircle } from 'lucide-rea
 import { useToast } from '@/hooks/use-toast';
 import { DocumentCard } from './DocumentCard';
 import { DocumentSignatureModal } from './DocumentSignatureModal';
+import { StudentAssignedDocuments } from './StudentAssignedDocuments';
 
 interface Formation {
   id: string;
@@ -33,7 +34,7 @@ interface StudentPhaseSuiviProps {
 
 export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhaseSuiviProps) => {
   const { toast } = useToast();
-  
+
   const [documents, setDocuments] = useState<PhaseDocument[]>([
     { id: '1', name: 'Satisfaction_Froid_Math.pdf', formationId: '1', type: 'satisfaction_froid', date: '2024-05-01', size: '0.8 MB', status: 'completed' },
     { id: '2', name: 'Satisfaction_Froid_Francais.pdf', formationId: '2', type: 'satisfaction_froid', date: '2024-04-28', size: '0.9 MB', status: 'available', requiresSignature: true },
@@ -52,7 +53,7 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
     }
   };
 
-  const filteredDocuments = documents.filter(doc => 
+  const filteredDocuments = documents.filter(doc =>
     selectedFormation === 'all' || doc.formationId === selectedFormation
   );
 
@@ -65,8 +66,8 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
   };
 
   const handleSignatureComplete = (documentId: string, signatureData: string) => {
-    setDocuments(prev => prev.map(doc => 
-      doc.id === documentId 
+    setDocuments(prev => prev.map(doc =>
+      doc.id === documentId
         ? { ...doc, status: 'completed' as const, requiresSignature: false }
         : doc
     ));
@@ -83,7 +84,7 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
       });
       return;
     }
-    
+
     toast({
       title: "Questionnaire",
       description: `Accès au questionnaire ${doc.name}`,
@@ -131,7 +132,7 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
             <p className="text-muted-foreground">Questionnaire à froid</p>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-4">
           {pendingSignatures.length > 0 && (
             <Badge variant="destructive" className="gap-1.5 py-1.5 px-3">
@@ -152,7 +153,7 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
           const Icon = info.icon;
           const count = filteredDocuments.filter(doc => doc.type === type).length;
           const pending = filteredDocuments.filter(doc => doc.type === type && doc.status === 'available' && doc.requiresSignature).length;
-          
+
           return (
             <Card key={type} className="border-l-4 border-l-primary/50">
               <CardContent className="p-4">
@@ -196,7 +197,7 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
         <div className="space-y-6">
           {Object.values(groupedByFormation).map(({ formation, documents }) => {
             const pendingDocs = documents.filter(d => d.requiresSignature && d.status === 'available');
-            
+
             return (
               <Card key={formation.id}>
                 <CardHeader className="pb-4">
@@ -219,24 +220,24 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
                 <CardContent className="space-y-3">
                   {documents.map((doc) => {
                     const typeInfo = documentTypes[doc.type];
-                    
+
                     return (
-                        <DocumentCard
-                          key={doc.id}
-                          id={doc.id}
-                          name={doc.name}
-                          type={doc.type}
-                          typeLabel={typeInfo.label}
-                          typeIcon={typeInfo.icon}
-                          typeColor={typeInfo.color}
-                          date={doc.date}
-                          size={doc.size}
-                          status={doc.status}
-                          requiresSignature={doc.requiresSignature}
-                          onSign={() => handleSign(doc)}
-                          onDownload={() => handleDownload(doc)}
-                          onPreview={() => handlePreview(doc)}
-                        />
+                      <DocumentCard
+                        key={doc.id}
+                        id={doc.id}
+                        name={doc.name}
+                        type={doc.type}
+                        typeLabel={typeInfo.label}
+                        typeIcon={typeInfo.icon}
+                        typeColor={typeInfo.color}
+                        date={doc.date}
+                        size={doc.size}
+                        status={doc.status}
+                        requiresSignature={doc.requiresSignature}
+                        onSign={() => handleSign(doc)}
+                        onDownload={() => handleDownload(doc)}
+                        onPreview={() => handlePreview(doc)}
+                      />
                     );
                   })}
                 </CardContent>
@@ -255,29 +256,38 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
           <CardContent className="space-y-3">
             {filteredDocuments.map((doc) => {
               const typeInfo = documentTypes[doc.type];
-              
+
               return (
-                  <DocumentCard
-                    key={doc.id}
-                    id={doc.id}
-                    name={doc.name}
-                    type={doc.type}
-                    typeLabel={typeInfo.label}
-                    typeIcon={typeInfo.icon}
-                    typeColor={typeInfo.color}
-                    date={doc.date}
-                    size={doc.size}
-                    status={doc.status}
-                    requiresSignature={doc.requiresSignature}
-                    onSign={() => handleSign(doc)}
-                    onDownload={() => handleDownload(doc)}
-                    onPreview={() => handlePreview(doc)}
-                  />
+                <DocumentCard
+                  key={doc.id}
+                  id={doc.id}
+                  name={doc.name}
+                  type={doc.type}
+                  typeLabel={typeInfo.label}
+                  typeIcon={typeInfo.icon}
+                  typeColor={typeInfo.color}
+                  date={doc.date}
+                  size={doc.size}
+                  status={doc.status}
+                  requiresSignature={doc.requiresSignature}
+                  onSign={() => handleSign(doc)}
+                  onDownload={() => handleDownload(doc)}
+                  onPreview={() => handlePreview(doc)}
+                />
               );
             })}
           </CardContent>
         </Card>
       )}
+
+      {/* Additional Assigned Documents */}
+      <div className="pt-8 border-t">
+        <div className="flex items-center gap-2 mb-4">
+          <Clock className="h-5 w-5 text-primary" />
+          <h3 className="text-xl font-bold">Documents envoyés par l'organisme</h3>
+        </div>
+        <StudentAssignedDocuments targetPhase="suivi" />
+      </div>
 
       {/* Signature Modal */}
       <DocumentSignatureModal
