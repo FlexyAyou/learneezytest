@@ -64,17 +64,23 @@ const OFEmargementPage: React.FC = () => {
   // Map API data to component interfaces
   const learners: Learner[] = useMemo(() => {
     if (!rawUsers) return [];
-    return rawUsers.map((u: any) => ({
-      id: u.id.toString(),
-      firstName: u.first_name || '',
-      lastName: u.last_name || '',
-      email: u.email,
-      phone: u.phone || '-',
-      company: 'Learneezy Apprenant',
-      formationId: '-',
-      formationName: 'Formation'
-    }));
-  }, [rawUsers]);
+    return rawUsers.map((u: any) => {
+      // Find the first assignment for this learner to get formation info if possible
+      const learnerDocs = (rawAssignments || []).filter((a: any) => a.user_id === u.id);
+      const formationName = learnerDocs.length > 0 ? (learnerDocs[0].course?.title || 'Formation') : 'Formation';
+
+      return {
+        id: u.id.toString(),
+        firstName: u.first_name || '',
+        lastName: u.last_name || '',
+        email: u.email,
+        phone: u.phone || '-',
+        company: u.organization?.name || 'Apprenant',
+        formationId: learnerDocs[0]?.course_id?.toString() || '-',
+        formationName: formationName
+      };
+    });
+  }, [rawUsers, rawAssignments]);
 
   const assignmentsMap = useMemo(() => {
     const map: Record<string, SentDocument[]> = {};
@@ -90,7 +96,7 @@ const OFEmargementPage: React.FC = () => {
         type: a.type || 'document',
         phase: a.phase || 'inscription',
         sentAt: a.created_at,
-        status: a.status === 'signed' ? 'signed' : 'pending',
+        status: a.is_signed ? 'signed' : 'pending',
         signedAt: a.signed_at,
         signatureData: a.signature_data,
         documentUrl: a.signed_url || a.media_asset?.url,
@@ -129,13 +135,13 @@ const OFEmargementPage: React.FC = () => {
     const docs = assignmentsMap[learnerId] || [];
     const signed = docs.filter(d => d.status === 'signed').length;
     const pending = docs.filter(d => d.status === 'pending').length;
-    return { total: docs.length, signed, pending };
+    return { total: docs.length, signed, pending, docs };
   };
 
   const getStatusConfig = (status: string) => {
     const configs: Record<string, { icon: React.ElementType; label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' }> = {
       signed: { icon: CheckCircle2, label: 'Signé', variant: 'default' },
-      pending: { icon: Clock, label: 'En attente', variant: 'outline' },
+      pending: { icon: Clock, label: 'À signer', variant: 'outline' },
       sent: { icon: Mail, label: 'Envoyé', variant: 'secondary' },
       read: { icon: Eye, label: 'Lu', variant: 'secondary' },
     };
@@ -145,6 +151,7 @@ const OFEmargementPage: React.FC = () => {
   const getPhaseLabel = (phase: string) => {
     const labels: Record<string, string> = {
       'inscription': 'Phase Inscription',
+      'phase-inscription': 'Phase Inscription',
       'formation': 'Phase Formation',
       'post-formation': 'Phase Post-formation',
       'suivi': 'Phase +3 mois'
@@ -282,8 +289,8 @@ const OFEmargementPage: React.FC = () => {
                   <TableRow>
                     <TableHead>Apprenant</TableHead>
                     <TableHead>Formation</TableHead>
-                    <TableHead className="text-center">Documents signés</TableHead>
-                    <TableHead className="text-center">En attente</TableHead>
+                    <TableHead>Documents envoyés</TableHead>
+                    <TableHead className="text-center">Statut global</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -317,23 +324,36 @@ const OFEmargementPage: React.FC = () => {
                             </div>
                           </TableCell>
                           <TableCell>{learner.formationName}</TableCell>
-                          <TableCell className="text-center">
-                            <Badge variant="default" className="bg-green-600">
-                              <CheckCircle2 className="h-3 w-3 mr-1" />
-                              {stats.signed}
-                            </Badge>
+                          <TableCell>
+                            <div className="flex flex-wrap gap-1 max-w-[300px]">
+                              {stats.docs.map((doc: any) => (
+                                <Badge
+                                  key={doc.id}
+                                  variant={doc.status === 'signed' ? 'default' : 'outline'}
+                                  className={cn(
+                                    "text-[10px] py-0 px-1.5",
+                                    doc.status === 'signed' ? "bg-green-600/10 text-green-700 border-green-200" : "bg-amber-50 text-amber-700 border-amber-200"
+                                  )}
+                                >
+                                  {doc.title}
+                                </Badge>
+                              ))}
+                              {stats.total === 0 && <span className="text-xs text-muted-foreground italic">Aucun document</span>}
+                            </div>
                           </TableCell>
                           <TableCell className="text-center">
-                            {stats.pending > 0 ? (
+                            {stats.total > 0 && stats.pending === 0 ? (
+                              <Badge variant="default" className="bg-green-600">
+                                <CheckCircle2 className="h-3 w-3 mr-1" />
+                                Complet ({stats.signed}/{stats.total})
+                              </Badge>
+                            ) : stats.total > 0 ? (
                               <Badge variant="outline" className="border-amber-400 text-amber-600">
                                 <Clock className="h-3 w-3 mr-1" />
-                                {stats.pending}
+                                {stats.pending} à signer
                               </Badge>
                             ) : (
-                              <Badge variant="outline" className="border-green-400 text-green-600">
-                                <CheckCircle2 className="h-3 w-3 mr-1" />
-                                Complet
-                              </Badge>
+                              <span className="text-muted-foreground">—</span>
                             )}
                           </TableCell>
                           <TableCell className="text-right">

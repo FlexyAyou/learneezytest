@@ -10,6 +10,7 @@ import { StudentAssignedDocuments } from './StudentAssignedDocuments';
 import { StudentNeedsAnalysisModal } from './StudentNeedsAnalysisModal';
 import { personalizeDocumentContent, getTemplateForType } from '@/utils/personalizeDocumentContent';
 import { useMyDocuments, useSignDocument } from '@/hooks/useApi';
+import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 
 interface Formation {
   id: string;
@@ -42,6 +43,7 @@ interface StudentPhaseInscriptionProps {
 
 export const StudentPhaseInscription = ({ selectedFormation, formations }: StudentPhaseInscriptionProps) => {
   const { toast } = useToast();
+  const { user: currentUser } = useFastAPIAuth();
 
   // Hooks API
   const { data: assignments, isLoading: isLoadingDocs, refetch: refetchDocs } = useMyDocuments();
@@ -391,6 +393,12 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
           assignmentId={activeAnalysis.assignmentId!}
           title={documentTypes[activeAnalysis.type].label}
           url={activeAnalysis.url}
+          docType={activeAnalysis.type}
+          learnerData={currentUser ? {
+            firstName: currentUser.first_name || '',
+            lastName: currentUser.last_name || ''
+          } : undefined}
+          formationData={formations.find(f => f.id === activeAnalysis.formationId) || (formations.length > 0 ? formations[0] : undefined)}
           onSuccess={() => {
             refetchDocs();
           }}

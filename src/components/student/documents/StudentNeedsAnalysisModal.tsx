@@ -25,6 +25,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ElectronicSignature } from '@/components/common/ElectronicSignature';
 import { usePrepareUpload, useCompleteUpload, useSignDocument } from '@/hooks/useApi';
 import axios from 'axios';
+import { getTemplateForType, personalizeDocumentContent } from '@/utils/personalizeDocumentContent';
 
 interface StudentNeedsAnalysisModalProps {
     isOpen: boolean;
@@ -32,6 +33,14 @@ interface StudentNeedsAnalysisModalProps {
     assignmentId: number;
     title: string;
     url?: string;
+    docType?: string;
+    learnerData?: {
+        firstName: string;
+        lastName: string;
+    };
+    formationData?: {
+        name: string;
+    };
     initialHtmlContent?: string;
     onSuccess?: () => void;
 }
@@ -42,6 +51,9 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
     assignmentId,
     title,
     url,
+    docType = 'analyse_besoin',
+    learnerData,
+    formationData,
     initialHtmlContent,
     onSuccess
 }) => {
@@ -71,11 +83,38 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
     const fetchContent = async () => {
         setIsLoading(true);
         try {
-            const response = await axios.get(url!, { responseType: 'text' });
-            let rawHtml = response.data;
+            let rawHtml = '';
+
+            if (url) {
+                try {
+                    const response = await axios.get(url, { responseType: 'text' });
+                    rawHtml = response.data;
+                } catch (fetchErr) {
+                    console.error("Failed to fetch from URL, trying fallback:", fetchErr);
+                    // If fetch fails, we continue and try fallback
+                }
+            }
+
+            if (!rawHtml) {
+                const template = getTemplateForType(docType);
+                if (template) {
+                    rawHtml = personalizeDocumentContent(
+                        template,
+                        { id: '0', name: formationData?.name || 'Ma Formation' }
+                    );
+
+                    // Specific personalization for the modal if needed
+                    if (learnerData) {
+                        rawHtml = rawHtml
+                            .replace(/\{\{apprenant\.prenom\}\}/g, learnerData.firstName)
+                            .replace(/\{\{apprenant\.nom\}\}/g, learnerData.lastName);
+                    }
+                } else {
+                    throw new Error("Aucun contenu ni template trouvé.");
+                }
+            }
 
             // Pre-process: transform empty boxes into interactive inputs
-            // This pattern matches the default template boxes: <div style="border: 1px solid #ccc; min-height: 80px; ..."></div>
             const processedHtml = rawHtml.replace(
                 /<div style="border: 1px solid #ccc; min-height: 80px; padding: 10px; margin-bottom: 20px;"><\/div>/g,
                 '<textarea class="interactive-field" placeholder="Saisissez votre réponse ici..." style="width: 100%; border: 1px solid #ccc; min-height: 80px; padding: 10px; margin-bottom: 20px; font-family: inherit; resize: vertical;"></textarea>'
@@ -88,8 +127,8 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
         } catch (error) {
             console.error("Error fetching document content:", error);
             toast({
-                title: "Erreur",
-                description: "Impossible de charger le contenu du document.",
+                title: "Erreur de chargement",
+                description: "Le document est manquant sur le serveur. Utilisation du template par défaut.",
                 variant: "destructive"
             });
         } finally {
