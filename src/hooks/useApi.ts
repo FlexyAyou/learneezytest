@@ -1322,3 +1322,28 @@ export const useDeleteMedia = () => {
     }
   });
 };
+
+/**
+ * Hook pour signer un document électroniquement
+ */
+export const useSignDocument = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { assignment_id: number; signature_data: string }) =>
+      fastAPIClient.signDocument(data.assignment_id, data.signature_data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-documents'] });
+      toast({
+        title: "Document signé",
+        description: "Votre signature a été enregistrée avec succès.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erreur",
+        description: error.response?.data?.detail || "Impossible de signer le document.",
+        variant: "destructive",
+      });
+    }
+  });
+};

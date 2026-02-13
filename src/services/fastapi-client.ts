@@ -1400,6 +1400,13 @@ class FastAPIClient {
   async deleteAsset(assetId: number, force: boolean = false): Promise<any> {
     return this.delete(`/api/storage/assets/${assetId}?force=${force}`);
   }
+
+  /**
+   * Signer un document électroniquement
+   */
+  async signDocument(assignmentId: number, signatureData: string): Promise<any> {
+    return this.post(`/api/storage/assignments/${assignmentId}/sign`, { signature_data: signatureData });
+  }
 }
 
 // Instance singleton
