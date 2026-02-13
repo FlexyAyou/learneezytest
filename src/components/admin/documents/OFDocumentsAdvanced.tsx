@@ -58,6 +58,7 @@ export const OFDocumentsAdvanced: React.FC = () => {
   const [selectedAssetId, setSelectedAssetId] = useState<number | null>(null);
   const [selectedLearnersForUpload, setSelectedLearnersForUpload] = useState<number[]>([]);
   const [sendMessage, setSendMessage] = useState("");
+  const [sendPhase, setSendPhase] = useState<DocumentPhase>('inscription');
 
   const { organization } = useOrganization();
   const { user: authUser } = useAuth();
@@ -197,6 +198,7 @@ export const OFDocumentsAdvanced: React.FC = () => {
     setSelectedAssetId(assetId);
     setSelectedLearnersForUpload([]);
     setSendMessage("");
+    setSendPhase(activePhase); // Par défaut la phase de l'onglet actuel
     setShowUploadSendDialog(true);
   };
 
@@ -210,7 +212,7 @@ export const OFDocumentsAdvanced: React.FC = () => {
           user_id: userId,
           media_asset_id: selectedAssetId,
           message: sendMessage,
-          phase: activePhase
+          phase: sendPhase
         })
       );
 
@@ -414,9 +416,24 @@ export const OFDocumentsAdvanced: React.FC = () => {
         <DialogContent className="sm:max-w-md">
           <DialogHeader><DialogTitle>Envoyer le document</DialogTitle></DialogHeader>
           <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Message (optionnel)</label>
-              <Input placeholder="Votre message..." value={sendMessage} onChange={(e) => setSendMessage(e.target.value)} />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Phase cible</label>
+                <Select value={sendPhase} onValueChange={(val: DocumentPhase) => setSendPhase(val)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choisir une phase" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(PHASES_CONFIG).map(([id, config]) => (
+                      <SelectItem key={id} value={id}>{config.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Message (optionnel)</label>
+                <Input placeholder="Votre message..." value={sendMessage} onChange={(e) => setSendMessage(e.target.value)} />
+              </div>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Apprenants</label>

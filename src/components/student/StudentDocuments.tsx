@@ -8,6 +8,7 @@ import { StudentPhaseSuivi } from './documents/StudentPhaseSuivi';
 import { StudentAssignedDocuments } from './documents/StudentAssignedDocuments';
 import { Badge } from '@/components/ui/badge';
 import { FileText, AlertCircle } from 'lucide-react';
+import { useMyDocuments } from '@/hooks/useApi';
 
 interface Formation {
   id: string;
@@ -17,17 +18,10 @@ interface Formation {
   status: 'active' | 'completed' | 'pending';
 }
 
-// Mock data for document counts per phase
-const mockPhaseProgress = {
-  'phase-inscription': { total: 3, signed: 2, pending: 1 },
-  'phase-formation': { total: 5, signed: 3, pending: 2 },
-  'phase-post-formation': { total: 4, signed: 3, pending: 1 },
-  'phase-suivi': { total: 1, signed: 0, pending: 1 },
-};
-
 export const StudentDocuments = () => {
   const [selectedFormation, setSelectedFormation] = useState<string>('all');
   const [activeTab, setActiveTab] = useState('phase-inscription');
+  const { data: assignments = [] } = useMyDocuments();
 
   const formations: Formation[] = [
     { id: '1', name: 'Mathématiques Avancées', category: 'Mathématiques', level: 'Niveau 3', status: 'active' },
@@ -36,13 +30,42 @@ export const StudentDocuments = () => {
     { id: '4', name: 'Sciences Physiques', category: 'Sciences', level: 'Niveau 2', status: 'pending' },
   ];
 
+  // Dynamic progress calculation
+  const phaseProgress = useMemo(() => {
+    const baseProgress: Record<string, { total: number; signed: number; pending: number }> = {
+      'phase-inscription': { total: 3, signed: 0, pending: 1 }, // Keeps mock for static docs
+      'phase-formation': { total: 5, signed: 0, pending: 2 },
+      'phase-post-formation': { total: 4, signed: 0, pending: 1 },
+      'phase-suivi': { total: 1, signed: 0, pending: 1 },
+      'phase-assigned': { total: 0, signed: 0, pending: 0 }
+    };
+
+    assignments.forEach((a: any) => {
+      const phaseKey = `phase-${a.phase}`;
+      if (baseProgress[phaseKey]) {
+        baseProgress[phaseKey].total++;
+        if (a.is_viewed) {
+          baseProgress[phaseKey].signed++;
+        } else {
+          baseProgress[phaseKey].pending++;
+        }
+      }
+      // Also count in assigned tab
+      baseProgress['phase-assigned'].total++;
+      if (a.is_viewed) baseProgress['phase-assigned'].signed++;
+      else baseProgress['phase-assigned'].pending++;
+    });
+
+    return baseProgress;
+  }, [assignments]);
+
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
   };
 
   const totalPendingDocuments = useMemo(() => {
-    return Object.values(mockPhaseProgress).reduce((sum, phase) => sum + phase.pending, 0);
-  }, []);
+    return Object.values(phaseProgress).reduce((sum, phase) => sum + phase.pending, 0);
+  }, [phaseProgress]);
 
   return (
     <div className="flex min-h-screen bg-muted/30">
@@ -51,7 +74,7 @@ export const StudentDocuments = () => {
         <StudentDocumentsSidebar
           activeTab={activeTab}
           onTabChange={handleTabChange}
-          phaseProgress={mockPhaseProgress}
+          phaseProgress={phaseProgress}
         />
       </div>
 
