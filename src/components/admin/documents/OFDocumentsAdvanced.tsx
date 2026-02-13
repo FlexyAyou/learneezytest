@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { DocumentTemplateEditor } from './DocumentTemplateEditor';
 import { PhaseDocumentSender } from './PhaseDocumentSender';
+import { AnalyseBesoinSender } from './AnalyseBesoinSender';
 import { DEFAULT_TEMPLATES } from './defaultTemplates';
 import {
   DocumentTemplate, DocumentPhase, DocumentType, Learner, Formation, OF,
@@ -45,6 +46,7 @@ export const OFDocumentsAdvanced: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showEditor, setShowEditor] = useState(false);
   const [showPhaseSender, setShowPhaseSender] = useState(false);
+  const [showAnalyseBesoin, setShowAnalyseBesoin] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<DocumentTemplate | null>(null);
 
   // Upload State
@@ -259,6 +261,10 @@ export const OFDocumentsAdvanced: React.FC = () => {
               <Users className="h-4 w-4 mr-2" />
               Gestion des Émargements
             </Link>
+          </Button>
+          <Button variant="default" onClick={() => setShowAnalyseBesoin(true)}>
+            <FileText className="h-4 w-4 mr-2" />
+            Analyse de Besoin
           </Button>
           <Button onClick={handleCreateTemplate}>
             <Plus className="h-4 w-4 mr-2" />
@@ -480,6 +486,16 @@ export const OFDocumentsAdvanced: React.FC = () => {
               Envoyer à {selectedLearnersForUpload.length} apprenants
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Analyse de Besoin Dialog */}
+      <Dialog open={showAnalyseBesoin} onOpenChange={setShowAnalyseBesoin}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Analyse du Besoin de Formation</DialogTitle>
+          </DialogHeader>
+          <AnalyseBesoinSender ofId={ofId} />
         </DialogContent>
       </Dialog>
 
