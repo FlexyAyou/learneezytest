@@ -279,13 +279,13 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
           {/* Progress Steps */}
           <div className="flex items-center justify-center gap-2 py-4 border-b">
             {steps.map((step, idx) => (
-              <React.Fragment key={step.num}>
+              <div key={step.num} style={{ display: 'contents' }}>
                 <div
                   className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-colors ${currentStep === step.num
-                      ? 'bg-primary text-primary-foreground'
-                      : currentStep > step.num
-                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                        : 'bg-muted text-muted-foreground'
+                    ? 'bg-primary text-primary-foreground'
+                    : currentStep > step.num
+                      ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                      : 'bg-muted text-muted-foreground'
                     }`}
                 >
                   {currentStep > step.num ? (
@@ -298,7 +298,7 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
                 {idx < steps.length - 1 && (
                   <ChevronRight className="h-4 w-4 text-muted-foreground" />
                 )}
-              </React.Fragment>
+              </div>
             ))}
           </div>
 
@@ -321,8 +321,8 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
                       key={learner.id}
                       onClick={() => setSelectedLearnerId(learner.id)}
                       className={`p-4 rounded-lg border cursor-pointer transition-all ${selectedLearnerId === learner.id
-                          ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
-                          : 'border-border hover:border-primary/50 hover:bg-accent/50'
+                        ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
+                        : 'border-border hover:border-primary/50 hover:bg-accent/50'
                         }`}
                     >
                       <div className="flex items-center gap-3">
@@ -353,8 +353,8 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
                     <div
                       key={template.id}
                       className={`p-4 rounded-lg border transition-all ${selectedTemplateIds.includes(template.id)
-                          ? 'border-primary bg-primary/5'
-                          : 'border-border hover:border-primary/50'
+                        ? 'border-primary bg-primary/5'
+                        : 'border-border hover:border-primary/50'
                         }`}
                     >
                       <div className="flex items-center gap-3">
@@ -439,8 +439,8 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
                                         if (!isSelected) setShowProgrammeList(false);
                                       }}
                                       className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors ${isSelected
-                                          ? 'bg-primary text-primary-foreground'
-                                          : 'bg-background hover:bg-accent border border-border'
+                                        ? 'bg-primary text-primary-foreground'
+                                        : 'bg-background hover:bg-accent border border-border'
                                         }`}
                                     >
                                       <FileText className="h-3.5 w-3.5" />

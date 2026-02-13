@@ -891,4 +891,5 @@ export interface UserMediaAssignmentResponse {
   assigned_at: string;
   is_viewed: boolean;
   message: string | null;
+  phase?: string;
 }

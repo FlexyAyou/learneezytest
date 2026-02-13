@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import axios from 'axios';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -116,59 +117,52 @@ export const AnalyseBesoinSender: React.FC<AnalyseBesoinSenderProps> = ({ ofId: 
 
         setIsUploading(true);
         try {
-            // Replaces OF fields once for the batch
-            const basePersonalizedHtml = replaceDynamicFields(htmlContent);
+            // Send to each learner with individual personalization
+            for (const userId of selectedLearners) {
+                const learner = learners.find(l => l.id === userId);
+                if (!learner) continue;
 
-            console.log('handleSendDocument: Creating blob...');
-            // Create HTML blob
-            const blob = new Blob([basePersonalizedHtml], { type: 'text/html' });
-            const file = new File([blob], 'analyse_besoin.html', { type: 'text/html' });
+                console.log(`Sending customized document to: ${learner.firstName} ${learner.lastName}`);
 
-            // Prepare upload
-            console.log('handleSendDocument: Preparing upload...', { size: file.size, type: file.type });
-            const prepareResponse = await prepare.mutateAsync({
-                filename: file.name,
-                content_type: file.type,
-                size: file.size,
-                kind: 'resource',
-            });
+                // 1. Personalize HTML for this specific learner
+                const personalizedHtml = replaceDynamicFields(htmlContent, learner);
+                const blob = new Blob([personalizedHtml], { type: 'text/html' });
+                const fileName = `Analyse_Besoin_${learner.lastName.replace(/\s+/g, '_')}_${learner.firstName.replace(/\s+/g, '_')}.html`;
+                const file = new File([blob], fileName, { type: 'text/html' });
 
-            // Upload file
-            console.log('handleSendDocument: Uploading to S3...');
-            const uploadResponse = await fetch(prepareResponse.upload_url, {
-                method: 'PUT',
-                body: file,
-                headers: {
-                    'Content-Type': file.type,
-                },
-            });
+                // 2. Prepare upload
+                const prepareResponse = await prepare.mutateAsync({
+                    filename: file.name,
+                    content_type: file.type,
+                    size: file.size,
+                    kind: 'resource',
+                });
 
-            if (!uploadResponse.ok) {
-                throw new Error('Upload failed');
-            }
+                // 3. Upload to S3
+                // Important: useaxios.put with prepareResponse.url
+                await axios.put(prepareResponse.url!, file, {
+                    headers: { 'Content-Type': file.type },
+                });
 
-            // Complete upload
-            const completeResponse = await complete.mutateAsync({
-                strategy: 'single',
-                key: prepareResponse.key,
-                content_type: file.type,
-                size: file.size,
-            });
+                // 4. Complete upload
+                const completeResponse = await complete.mutateAsync({
+                    strategy: 'single',
+                    key: prepareResponse.key,
+                    content_type: file.type,
+                    size: file.size,
+                });
 
-            // Assign to learners
-            const promises = selectedLearners.map(userId =>
-                assign.mutateAsync({
+                // 5. Assign to learner
+                await assign.mutateAsync({
                     user_id: userId,
                     media_asset_id: completeResponse.id!,
                     message: message || 'Veuillez compléter votre analyse de besoin',
                     phase: 'inscription',
-                })
-            );
-
-            await Promise.all(promises);
+                });
+            }
 
             toast({
-                title: 'Document envoyé',
+                title: 'Documents envoyés',
                 description: `L'analyse de besoin a été envoyée à ${selectedLearners.length} apprenant(s).`,
             });
 
@@ -178,10 +172,10 @@ export const AnalyseBesoinSender: React.FC<AnalyseBesoinSenderProps> = ({ ofId: 
             setActiveStep('edit');
             if (onClose) onClose();
         } catch (error) {
-            console.error('Error sending document:', error);
+            console.error('Error sending documents:', error);
             toast({
                 title: 'Erreur',
-                description: 'Impossible d\'envoyer le document.',
+                description: 'Impossible d\'envoyer les documents.',
                 variant: 'destructive',
             });
         } finally {

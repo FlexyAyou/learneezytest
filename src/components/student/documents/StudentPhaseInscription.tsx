@@ -52,11 +52,11 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [previewDocument, setPreviewDocument] = useState<{ title: string; content: string } | null>(null);
 
-  // Transformer les assignments API en PhaseDocument
   useEffect(() => {
+    console.log('StudentPhaseInscription: Recieved assignments', assignments);
     if (assignments) {
       const mappedDocs: PhaseDocument[] = (assignments as any[])
-        .filter(a => a.phase === 'inscription' || a.phase === 'phase-inscription')
+        .filter(a => !a.phase || a.phase === 'inscription' || a.phase === 'phase-inscription')
         .map(a => {
           // Détection du type basé sur le nom du fichier (heuristique)
           let type: 'analyse_besoin' | 'test_positionnement' | 'convention' = 'convention';
