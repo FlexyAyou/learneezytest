@@ -1265,6 +1265,24 @@ export const useMyDocuments = () => {
     queryFn: () => fastAPIClient.getMyDocuments(),
   });
 };
+
+/**
+ * Hook pour lister les documents assignés (OF/Admin)
+ */
+export const useAssignments = (params: {
+  of_id?: number | string;
+  user_id?: number | string;
+  status?: string | string[];
+  kind?: string;
+  page?: number;
+  per_page?: number;
+}) => {
+  return useQuery({
+    queryKey: ['assignments', params],
+    queryFn: () => fastAPIClient.listAssignments(params),
+    enabled: !!(params.of_id || params.user_id),
+  });
+};
 /**
  * Hook pour lister les media assets
  */

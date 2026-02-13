@@ -1410,32 +1410,30 @@ class FastAPIClient {
     return this.post(`/api/storage/assignments/${assignmentId}/sign`, { signature_data: signatureData });
   }
 
-
   /**
-   * Lister les assets média
+   * Lister tous les documents assignés (pour OF/Admin)
    */
-  async listAssets(page = 1, per_page = 20, status?: string): Promise<any> {
-    const params = new URLSearchParams();
-    params.append('page', page.toString());
-    params.append('per_page', per_page.toString());
-    if (status) params.append('status', status);
-
-    return this.get<any>(`/api/storage/assets?${params.toString()}`);
+  async listAssignments(params: {
+    of_id?: number | string;
+    user_id?: number | string;
+    status?: string | string[];
+    kind?: string;
+    page?: number;
+    per_page?: number;
+  }): Promise<any> {
+    const searchParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) {
+        if (Array.isArray(value)) {
+          value.forEach(v => searchParams.append(key, v));
+        } else {
+          searchParams.append(key, value.toString());
+        }
+      }
+    });
+    return this.get(`/api/storage/assignments?${searchParams.toString()}`);
   }
 
-  /**
-   * Récupérer les détails d'une organisation
-   */
-  async getOrganization(organizationId: number): Promise<OrganizationResponse> {
-    return this.get<OrganizationResponse>(`/api/organizations/${organizationId}`);
-  }
-
-  /**
-   * Mettre à jour une organisation
-   */
-  async updateOrganization(organizationId: number, data: Partial<OrganizationUpdate>): Promise<OrganizationResponse> {
-    return this.put<OrganizationResponse>(`/api/organizations/${organizationId}`, data);
-  }
 
 }
 
