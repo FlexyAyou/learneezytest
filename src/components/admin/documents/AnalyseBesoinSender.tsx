@@ -63,18 +63,19 @@ export const AnalyseBesoinSender: React.FC<AnalyseBesoinSenderProps> = ({ ofId: 
     // Dynamic fields replacement for preview
     const replaceDynamicFields = (html: string, learner?: any) => {
         const now = new Date();
+        const org = organization as any;
         const mockData = {
-            'of.nom': organization?.name || 'Votre Organisme de Formation',
-            'of.nda': organization?.nda || 'XX XXXX XXXXX XX',
-            'of.siret': organization?.siret || 'XXX XXX XXX XXXXX',
-            'of.adresse': organization?.address || '123 Rue Example',
-            'of.codePostal': organization?.postalCode || '75000',
-            'of.ville': organization?.city || 'Paris',
-            'of.telephone': organization?.phone || '01 XX XX XX XX',
-            'of.email': organization?.email || 'contact@example.com',
-            'of.responsable': organization?.responsable || 'Responsable Formation',
-            'apprenant.prenom': learner?.firstName || 'Prénom',
+            'of.nom': org?.name || 'Nom OF',
+            'of.nda': org?.nda || '',
+            'of.siret': org?.siret || '',
+            'of.adresse': org?.address || '',
+            'of.cp': org?.postalCode || '',
+            'of.ville': org?.city || '',
+            'of.telephone': org?.phone || '',
+            'of.email': org?.email || '',
+            'of.responsable': org?.responsable || '',
             'apprenant.nom': learner?.lastName || 'Nom',
+            'apprenant.prenom': learner?.firstName || 'Prénom',
             'apprenant.entreprise': learner?.company || 'Entreprise',
             'apprenant.poste': learner?.position || 'Poste',
             'formation.nom': 'Formation Exemple',
@@ -91,6 +92,8 @@ export const AnalyseBesoinSender: React.FC<AnalyseBesoinSenderProps> = ({ ofId: 
 
     // Handle HTML upload and send
     const handleSendDocument = async () => {
+        console.log('handleSendDocument: Start', { learnersCount: selectedLearners.length });
+
         if (selectedLearners.length === 0) {
             toast({
                 title: 'Erreur',
@@ -102,19 +105,23 @@ export const AnalyseBesoinSender: React.FC<AnalyseBesoinSenderProps> = ({ ofId: 
 
         setIsUploading(true);
         try {
+            console.log('handleSendDocument: Creating blob...');
             // Create HTML blob
             const blob = new Blob([htmlContent], { type: 'text/html' });
             const file = new File([blob], 'analyse_besoin.html', { type: 'text/html' });
 
             // Prepare upload
+            console.log('handleSendDocument: Preparing upload...', { size: file.size, type: file.type });
             const prepareResponse = await prepare.mutateAsync({
                 filename: file.name,
                 content_type: file.type,
                 size: file.size,
                 kind: 'resource',
             });
+            console.log('handleSendDocument: Prepare response', prepareResponse);
 
             // Upload file
+            console.log('handleSendDocument: Uploading to S3...');
             const uploadResponse = await fetch(prepareResponse.upload_url, {
                 method: 'PUT',
                 body: file,
@@ -124,18 +131,23 @@ export const AnalyseBesoinSender: React.FC<AnalyseBesoinSenderProps> = ({ ofId: 
             });
 
             if (!uploadResponse.ok) {
+                console.error('handleSendDocument: Upload failed', uploadResponse.statusText);
                 throw new Error('Upload failed');
             }
+            console.log('handleSendDocument: Upload success');
 
             // Complete upload
+            console.log('handleSendDocument: Completing upload...');
             const completeResponse = await complete.mutateAsync({
                 strategy: 'single',
                 key: prepareResponse.key,
                 content_type: file.type,
                 size: file.size,
             });
+            console.log('handleSendDocument: Complete response', completeResponse);
 
             // Assign to learners
+            console.log('handleSendDocument: Assigning to learners...');
             const promises = selectedLearners.map(userId =>
                 assign.mutateAsync({
                     user_id: userId,
@@ -146,6 +158,7 @@ export const AnalyseBesoinSender: React.FC<AnalyseBesoinSenderProps> = ({ ofId: 
             );
 
             await Promise.all(promises);
+            console.log('handleSendDocument: Assignment done');
 
             toast({
                 title: 'Document envoyé',
