@@ -30,6 +30,7 @@ import {
   useAssignMedia
 } from '@/hooks/useApi';
 import { useOrganization } from '@/contexts/OrganizationContext';
+import { useAuth } from '@/hooks/useApi';
 
 const phaseIcons = {
   inscription: UserPlus,
@@ -59,7 +60,9 @@ export const OFDocumentsAdvanced: React.FC = () => {
   const [sendMessage, setSendMessage] = useState("");
 
   const { organization } = useOrganization();
-  const ofId = organization?.organizationId;
+  const { user: authUser } = useAuth();
+  // Support both camelCase and snake_case from API response
+  const ofId = organization?.organizationId || (organization as any)?.organization_id || authUser?.of_id;
 
   // Hooks
   const { data: assets, isLoading: assetsLoading, refetch: refetchAssets } = useMediaAssets({ status: 'ready' });
@@ -71,7 +74,11 @@ export const OFDocumentsAdvanced: React.FC = () => {
 
   // Convert API users to Learner type
   const learners: Learner[] = (learnersRaw || [])
-    .filter(u => u.role === 'student' || u.role === 'apprenant')
+    .filter(u => {
+      const role = u.role?.toLowerCase();
+      // Inclure différents labels possibles pour les apprenants
+      return role === 'student' || role === 'apprenant' || role === 'stagiaire' || role === 'eleve';
+    })
     .map(u => ({
       id: u.id?.toString() || '',
       firstName: u.first_name || '',
@@ -414,16 +421,23 @@ export const OFDocumentsAdvanced: React.FC = () => {
             <div className="space-y-2">
               <label className="text-sm font-medium">Apprenants</label>
               <div className="border rounded-lg max-h-60 overflow-auto divide-y">
-                {learnersLoading ? <div className="p-4 text-center">Chargement...</div> :
-                  learners.map(l => (
-                    <label key={l.id} className="flex items-center p-3 gap-3 cursor-pointer hover:bg-muted/50">
-                      <input type="checkbox" checked={selectedLearnersForUpload.includes(Number(l.id))} onChange={() => toggleLearnerForUpload(Number(l.id))} />
-                      <div className="flex-1">
-                        <div className="text-sm font-medium">{l.firstName} {l.lastName}</div>
-                        <div className="text-xs text-muted-foreground">{l.email}</div>
-                      </div>
-                    </label>
-                  ))}
+                {learnersLoading ? <div className="p-4 text-center text-sm text-muted-foreground">Chargement...</div> :
+                  learners.length === 0 ? (
+                    <div className="p-8 text-center bg-muted/20 rounded-lg">
+                      <Users className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
+                      <p className="text-sm text-muted-foreground">Aucun apprenant trouvé pour cet organisme.</p>
+                      <p className="text-xs text-muted-foreground mt-1">Vérifiez que vos utilisateurs ont bien le rôle 'apprenant'.</p>
+                    </div>
+                  ) :
+                    learners.map(l => (
+                      <label key={l.id} className="flex items-center p-3 gap-3 cursor-pointer hover:bg-muted/50 transition-colors">
+                        <input type="checkbox" className="h-4 w-4 rounded border-primary" checked={selectedLearnersForUpload.includes(Number(l.id))} onChange={() => toggleLearnerForUpload(Number(l.id))} />
+                        <div className="flex-1">
+                          <div className="text-sm font-medium">{l.firstName} {l.lastName}</div>
+                          <div className="text-xs text-muted-foreground">{l.email}</div>
+                        </div>
+                      </label>
+                    ))}
               </div>
             </div>
           </div>
