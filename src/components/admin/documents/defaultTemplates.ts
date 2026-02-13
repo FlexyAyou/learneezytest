@@ -12,7 +12,7 @@ export const DEFAULT_TEMPLATES: Partial<Record<DocumentType, string>> = {
   <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; background: #f9f9f9;">
     <p style="margin: 0;"><strong>Organisme de Formation :</strong> {{of.nom}}</p>
     <p style="margin: 5px 0 0 0;"><strong>SIRET :</strong> {{of.siret}} | <strong>N° DA :</strong> {{of.nda}}</p>
-    <p style="margin: 5px 0 0 0;"><strong>Adresse :</strong> {{of.adresse}}, {{of.codePostal}} {{of.ville}}</p>
+    <p style="margin: 5px 0 0 0;"><strong>Adresse :</strong> {{of.adresse}}, {{of.code_postal}} {{of.ville}}</p>
     <p style="margin: 5px 0 0 0;"><strong>Contact :</strong> {{of.telephone}} | {{of.email}}</p>
   </div>
 
@@ -176,7 +176,7 @@ export const DEFAULT_TEMPLATES: Partial<Record<DocumentType, string>> = {
 
   <div style="margin-top: 30px; padding: 15px; background: #f9f9f9; border-left: 4px solid #333;">
     <p style="margin: 0; font-size: 14px;"><strong>Contact :</strong> {{of.nom}}</p>
-    <p style="margin: 5px 0 0 0; font-size: 14px;">{{of.adresse}}, {{of.codePostal}} {{of.ville}}</p>
+    <p style="margin: 5px 0 0 0; font-size: 14px;">{{of.adresse}}, {{of.code_postal}} {{of.ville}}</p>
     <p style="margin: 5px 0 0 0; font-size: 14px;">Tél : {{of.telephone}} | Email : {{of.email}}</p>
   </div>
 </div>
@@ -237,7 +237,7 @@ export const DEFAULT_TEMPLATES: Partial<Record<DocumentType, string>> = {
   <div style="margin-bottom: 30px;">
     <p><strong>{{of.nom}}</strong></p>
     <p>{{of.adresse}}</p>
-    <p>{{of.codePostal}} {{of.ville}}</p>
+    <p>{{of.code_postal}} {{of.ville}}</p>
   </div>
   
   <div style="margin-bottom: 30px;">
@@ -373,7 +373,7 @@ export const DEFAULT_TEMPLATES: Partial<Record<DocumentType, string>> = {
   <p style="margin-top: 30px; font-size: 12px; color: #666;">Signature du formateur : _______________________</p>
 </div>
 `
-,
+  ,
 
   analyse_besoin: `
 <div style="font-family: 'Times New Roman', Times, serif; max-width: 800px; margin: 0 auto; padding: 20px;">
@@ -479,7 +479,7 @@ export const DEFAULT_TEMPLATES: Partial<Record<DocumentType, string>> = {
   <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; background: #f9f9f9;">
     <p style="margin: 0;"><strong>Organisme de Formation :</strong> {{of.nom}}</p>
     <p style="margin: 5px 0 0 0;"><strong>SIRET :</strong> {{of.siret}} | <strong>N° DA :</strong> {{of.nda}}</p>
-    <p style="margin: 5px 0 0 0;"><strong>Adresse :</strong> {{of.adresse}}, {{of.codePostal}} {{of.ville}}</p>
+    <p style="margin: 5px 0 0 0;"><strong>Adresse :</strong> {{of.adresse}}, {{of.code_postal}} {{of.ville}}</p>
   </div>
 
   <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px;">Article 1 - Objet et champ d'application</h2>

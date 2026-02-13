@@ -12,13 +12,13 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { 
-  FileSignature, 
-  Send, 
-  Eye, 
-  User, 
-  Users, 
-  CheckCircle2, 
+import {
+  FileSignature,
+  Send,
+  Eye,
+  User,
+  Users,
+  CheckCircle2,
   AlertCircle,
   Loader2,
   ArrowRight,
@@ -28,10 +28,10 @@ import {
   FileText
 } from 'lucide-react';
 import { LearnerSelector } from './LearnerSelector';
-import { 
-  DocumentTemplate, 
-  Learner, 
-  Formation, 
+import {
+  DocumentTemplate,
+  Learner,
+  Formation,
   OF,
   DOCUMENT_TYPE_LABELS,
   PHASES_CONFIG,
@@ -87,7 +87,7 @@ export const DocumentPersonalizerAdvanced: React.FC<DocumentPersonalizerAdvanced
     selectedLearners.forEach(learnerId => {
       const learner = learners.find(l => l.id === learnerId);
       const formation = formations.find(f => f.id === learner?.formationId);
-      
+
       if (!learnerOverrides[learnerId]) {
         newOverrides[learnerId] = {
           'dates.debut': formation?.startDate || '',
@@ -106,7 +106,7 @@ export const DocumentPersonalizerAdvanced: React.FC<DocumentPersonalizerAdvanced
   // Personalize document content with learner data and overrides
   const personalizeContent = (htmlContent: string, learner: Learner, overrides: Record<string, string> = {}): string => {
     const formation = formations.find(f => f.id === learner.formationId);
-    
+
     const formatDate = (dateStr: string | undefined) => {
       if (!dateStr) return '';
       try {
@@ -129,7 +129,7 @@ export const DocumentPersonalizerAdvanced: React.FC<DocumentPersonalizerAdvanced
       '{{apprenant.code_postal}}': learner.postalCode || '',
       '{{apprenant.entreprise}}': learner.company || '',
       '{{apprenant.poste}}': learner.position || '',
-      
+
       // Formation (with overrides)
       '{{formation.nom}}': formation?.name || '',
       '{{formation.description}}': formation?.description || '',
@@ -138,14 +138,14 @@ export const DocumentPersonalizerAdvanced: React.FC<DocumentPersonalizerAdvanced
       '{{formation.formateur}}': formation?.trainer || '',
       '{{formation.prix}}': overrides['formation.prix'] || (formation?.price ? `${formation.price.toLocaleString('fr-FR')} €` : ''),
       '{{formation.certification}}': formation?.certification || '',
-      
+
       // Dates (with overrides)
       '{{dates.inscription}}': formatDate(learner.enrollmentDate),
       '{{dates.debut}}': overrides['dates.debut'] ? formatDate(overrides['dates.debut']) : formatDate(formation?.startDate),
       '{{dates.fin}}': overrides['dates.fin'] ? formatDate(overrides['dates.fin']) : formatDate(formation?.endDate),
       '{{dates.aujourdhui}}': new Date().toLocaleDateString('fr-FR'),
       '{{dates.signature}}': new Date().toLocaleDateString('fr-FR'),
-      
+
       // OF
       '{{of.nom}}': ofInfo.name,
       '{{of.siret}}': ofInfo.siret,
@@ -156,6 +156,7 @@ export const DocumentPersonalizerAdvanced: React.FC<DocumentPersonalizerAdvanced
       '{{of.telephone}}': ofInfo.phone,
       '{{of.email}}': ofInfo.email,
       '{{of.responsable}}': ofInfo.responsable,
+      '{{of.signature}}': ofInfo.signatureUrl ? `<img src="${ofInfo.signatureUrl}" alt="Signature" style="max-height: 80px;" />` : '—',
     };
 
     let personalizedContent = htmlContent;
@@ -178,8 +179,8 @@ export const DocumentPersonalizerAdvanced: React.FC<DocumentPersonalizerAdvanced
   const previewContent = useMemo(() => {
     if (!template || !previewLearner) return '';
     return personalizeContent(
-      template.htmlContent, 
-      previewLearner, 
+      template.htmlContent,
+      previewLearner,
       learnerOverrides[previewLearner.id] || {}
     );
   }, [template, previewLearner, learnerOverrides]);
@@ -225,9 +226,9 @@ export const DocumentPersonalizerAdvanced: React.FC<DocumentPersonalizerAdvanced
 
   const handleSend = async () => {
     if (!template) return;
-    
+
     setIsSending(true);
-    
+
     try {
       const personalizedDocs = selectedLearnersDetails.map(learner => ({
         templateId: template.id,
@@ -311,11 +312,10 @@ export const DocumentPersonalizerAdvanced: React.FC<DocumentPersonalizerAdvanced
             return (
               <React.Fragment key={step.id}>
                 <div className={`flex items-center gap-2 ${isActive ? 'text-primary' : isPast ? 'text-green-600' : 'text-muted-foreground'}`}>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-                    isActive ? 'bg-primary text-primary-foreground' : 
-                    isPast ? 'bg-green-100 text-green-600' : 
-                    'bg-muted'
-                  }`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${isActive ? 'bg-primary text-primary-foreground' :
+                      isPast ? 'bg-green-100 text-green-600' :
+                        'bg-muted'
+                    }`}>
                     {isPast ? <CheckCircle2 className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
                   </div>
                   <span className="font-medium text-sm hidden sm:inline">{step.label}</span>
@@ -385,7 +385,7 @@ export const DocumentPersonalizerAdvanced: React.FC<DocumentPersonalizerAdvanced
                                     )}
                                   >
                                     <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {overrides['dates.debut'] 
+                                    {overrides['dates.debut']
                                       ? format(new Date(overrides['dates.debut']), 'PPP', { locale: fr })
                                       : 'Sélectionner une date'
                                     }
@@ -416,7 +416,7 @@ export const DocumentPersonalizerAdvanced: React.FC<DocumentPersonalizerAdvanced
                                     )}
                                   >
                                     <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {overrides['dates.fin'] 
+                                    {overrides['dates.fin']
                                       ? format(new Date(overrides['dates.fin']), 'PPP', { locale: fr })
                                       : 'Sélectionner une date'
                                     }
@@ -488,11 +488,10 @@ export const DocumentPersonalizerAdvanced: React.FC<DocumentPersonalizerAdvanced
                         <button
                           key={learner.id}
                           onClick={() => setPreviewLearnerId(learner.id)}
-                          className={`w-full text-left p-3 rounded-lg mb-1 transition-colors ${
-                            previewLearnerId === learner.id 
-                              ? 'bg-primary/10 border border-primary/20' 
+                          className={`w-full text-left p-3 rounded-lg mb-1 transition-colors ${previewLearnerId === learner.id
+                              ? 'bg-primary/10 border border-primary/20'
                               : 'hover:bg-muted'
-                          }`}
+                            }`}
                         >
                           <div className="flex items-center gap-2">
                             <User className="h-4 w-4 text-muted-foreground" />
@@ -530,7 +529,7 @@ export const DocumentPersonalizerAdvanced: React.FC<DocumentPersonalizerAdvanced
                   <CardContent className="flex-1 overflow-hidden p-0">
                     <ScrollArea className="h-[400px]">
                       <div className="p-4">
-                        <div 
+                        <div
                           className="prose prose-sm max-w-none bg-white rounded-lg shadow-sm border p-6"
                           dangerouslySetInnerHTML={{ __html: previewContent }}
                         />
@@ -628,7 +627,7 @@ export const DocumentPersonalizerAdvanced: React.FC<DocumentPersonalizerAdvanced
                 {selectedLearners.length} apprenant(s) sélectionné(s)
               </span>
             )}
-            
+
             {currentStep === 'confirm' ? (
               <Button onClick={handleSend} disabled={isSending}>
                 {isSending ? (

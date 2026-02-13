@@ -18,6 +18,7 @@ import { DocumentTemplateEditor } from './DocumentTemplateEditor';
 import { PhaseDocumentSender } from './PhaseDocumentSender';
 import { AnalyseBesoinSender } from './AnalyseBesoinSender';
 import { DEFAULT_TEMPLATES } from './defaultTemplates';
+import { fastAPIClient } from '@/services/fastapi-client';
 import {
   DocumentTemplate, DocumentPhase, DocumentType, Learner, Formation, OF,
   PHASES_CONFIG, DOCUMENT_TYPE_LABELS
@@ -62,6 +63,7 @@ export const OFDocumentsAdvanced: React.FC = () => {
   const [selectedLearnersForUpload, setSelectedLearnersForUpload] = useState<number[]>([]);
   const [sendMessage, setSendMessage] = useState("");
   const [sendPhase, setSendPhase] = useState<DocumentPhase>('inscription');
+  const [ofInfo, setOfInfo] = useState<OF | null>(null);
 
   const { organization } = useOrganization();
   const { user: authUser } = useAuth();
@@ -76,6 +78,32 @@ export const OFDocumentsAdvanced: React.FC = () => {
   const deleteMedia = useDeleteMedia();
   const assign = useAssignMedia();
   const { toast } = useToast();
+
+  // Fetch full organization info for document personalization
+  useEffect(() => {
+    const fetchOFInfo = async () => {
+      if (!ofId) return;
+      try {
+        const org = await fastAPIClient.getOrganization(ofId);
+        setOfInfo({
+          name: org.name,
+          siret: org.siret || '',
+          nda: org.numero_declaration || '',
+          address: org.address || '',
+          city: org.city || '',
+          postalCode: org.postal_code || '',
+          phone: org.phone || '',
+          email: org.contact_email || org.email || '',
+          website: org.website || '',
+          responsable: org.legal_representative || '',
+          signatureUrl: (org as any).signature_url || ''
+        });
+      } catch (error) {
+        console.error('Error fetching organization info:', error);
+      }
+    };
+    fetchOFInfo();
+  }, [ofId]);
 
   const handleDeleteAsset = async (assetId: number) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce document ?")) {
@@ -243,6 +271,66 @@ export const OFDocumentsAdvanced: React.FC = () => {
     );
   };
 
+  const handleSendPhaseDocuments = async (docs: any[]) => {
+    console.log('handleSendPhaseDocuments: Start', { docCount: docs.length });
+    setIsUploading(true);
+    try {
+      for (const doc of docs) {
+        // 1. Create file from HTML
+        const blob = new Blob([doc.htmlContent], { type: 'text/html' });
+        const fileName = `${doc.type}_${doc.learnerName.replace(/\s+/g, '_')}.html`;
+        const file = new File([blob], fileName, { type: 'text/html' });
+
+        // 2. Prepare upload
+        const prepareResponse = await prepare.mutateAsync({
+          filename: file.name,
+          content_type: file.type,
+          size: file.size,
+          kind: 'resource',
+        });
+
+        // 3. Upload to S3
+        await axios.put(prepareResponse.url!, file, {
+          headers: {
+            'Content-Type': file.type,
+          },
+        });
+
+        // 4. Complete upload
+        const completeResponse = await complete.mutateAsync({
+          strategy: 'single',
+          key: prepareResponse.key,
+          content_type: file.type,
+          size: file.size,
+        });
+
+        // 5. Assign to learner
+        await assign.mutateAsync({
+          user_id: Number(doc.learnerId),
+          media_asset_id: completeResponse.id!,
+          message: `Nouveau document : ${doc.title}`,
+          phase: doc.phase,
+        });
+      }
+
+      toast({
+        title: "Documents envoyés",
+        description: `${docs.length} document(s) ont été envoyés avec succès.`
+      });
+      setShowPhaseSender(false);
+      refetchAssets();
+    } catch (error: any) {
+      console.error('Error sending phase documents:', error);
+      toast({
+        title: "Erreur d'envoi",
+        description: error.message || "Une erreur est survenue lors de l'envoi des documents.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const phaseTemplates = templates.filter(t => t.phase === activePhase);
   const filteredTemplates = phaseTemplates.filter(t =>
     t.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -338,8 +426,13 @@ export const OFDocumentsAdvanced: React.FC = () => {
                           <Button size="sm" variant="outline" onClick={() => handleEditTemplate(template)}>
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" variant="outline" onClick={() => toast({ title: "Bientôt disponible", description: "L'envoi direct de modèles personnalisés sera disponible prochainement." })}>
-                            <Send className="h-4 w-4" />
+                          <Button
+                            size="sm"
+                            variant="default"
+                            onClick={() => setShowPhaseSender(true)}
+                          >
+                            <Send className="h-4 w-4 mr-2" />
+                            Personnaliser & Envoyer
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -495,9 +588,29 @@ export const OFDocumentsAdvanced: React.FC = () => {
           <DialogHeader>
             <DialogTitle>Analyse du Besoin de Formation</DialogTitle>
           </DialogHeader>
-          <AnalyseBesoinSender ofId={ofId} />
+          <AnalyseBesoinSender
+            ofId={ofId}
+            ofInfo={ofInfo}
+            isOpen={showAnalyseBesoin}
+            onClose={() => setShowAnalyseBesoin(false)}
+            template={selectedTemplate}
+          />
         </DialogContent>
       </Dialog>
+
+      {/* Phase Document Sender Modal */}
+      {ofInfo && (
+        <PhaseDocumentSender
+          isOpen={showPhaseSender}
+          onClose={() => setShowPhaseSender(false)}
+          phase={activePhase}
+          templates={templates.filter(t => t.phase === activePhase)}
+          learners={learners}
+          formations={mockFormations}
+          ofInfo={ofInfo}
+          onSend={handleSendPhaseDocuments}
+        />
+      )}
 
       {/* Editor Modal */}
       {showEditor && (

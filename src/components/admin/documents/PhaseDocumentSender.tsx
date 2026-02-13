@@ -13,8 +13,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { 
-  Send, Search, FileSignature, CalendarIcon, Check, 
+import {
+  Send, Search, FileSignature, CalendarIcon, Check,
   ChevronRight, ChevronLeft, Eye, Maximize2, User, Upload, FileText, FolderOpen, ChevronDown,
   AlertTriangle
 } from 'lucide-react';
@@ -109,8 +109,8 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
     }
   }, [selectedLearnerId, learners, formations]);
 
-  const selectedLearner = useMemo(() => 
-    learners.find(l => l.id === selectedLearnerId), 
+  const selectedLearner = useMemo(() =>
+    learners.find(l => l.id === selectedLearnerId),
     [learners, selectedLearnerId]
   );
 
@@ -119,8 +119,8 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
     return formations.find(f => f.id === selectedLearner.formationId);
   }, [selectedLearner, formations]);
 
-  const filteredLearners = useMemo(() => 
-    learners.filter(l => 
+  const filteredLearners = useMemo(() =>
+    learners.filter(l =>
       `${l.firstName} ${l.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
       l.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       l.formationName?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -128,7 +128,7 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
     [learners, searchTerm]
   );
 
-  const selectedTemplates = useMemo(() => 
+  const selectedTemplates = useMemo(() =>
     templates.filter(t => selectedTemplateIds.includes(t.id)),
     [templates, selectedTemplateIds]
   );
@@ -142,7 +142,7 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
   const effectiveSignatureUrl = ofInfo.signatureUrl || storedSignature;
 
   // Check if selected templates include official documents
-  const hasOfficialDocuments = useMemo(() => 
+  const hasOfficialDocuments = useMemo(() =>
     selectedTemplates.some(t => OFFICIAL_DOCUMENT_TYPES.includes(t.type)),
     [selectedTemplates]
   );
@@ -154,7 +154,7 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
     if (!selectedLearner || !selectedFormation) return htmlContent;
 
     // Build signature HTML if available
-    const signatureHtml = effectiveSignatureUrl 
+    const signatureHtml = effectiveSignatureUrl
       ? `<img src="${effectiveSignatureUrl}" alt="Signature officielle ${ofInfo.name}" style="max-height: 80px; display: inline-block;" />`
       : '<span style="color: #999; font-style: italic;">[Signature OF non configurée]</span>';
 
@@ -165,7 +165,7 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
       '{{of.nda}}': ofInfo.nda,
       '{{of.adresse}}': ofInfo.address,
       '{{of.ville}}': ofInfo.city,
-      '{{of.codePostal}}': ofInfo.postalCode,
+      '{{of.code_postal}}': ofInfo.postalCode,
       '{{of.telephone}}': ofInfo.phone,
       '{{of.email}}': ofInfo.email,
       '{{of.responsable}}': ofInfo.responsable,
@@ -200,8 +200,8 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
   };
 
   const handleTemplateToggle = (templateId: string) => {
-    setSelectedTemplateIds(prev => 
-      prev.includes(templateId) 
+    setSelectedTemplateIds(prev =>
+      prev.includes(templateId)
         ? prev.filter(id => id !== templateId)
         : [...prev, templateId]
     );
@@ -280,14 +280,13 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
           <div className="flex items-center justify-center gap-2 py-4 border-b">
             {steps.map((step, idx) => (
               <React.Fragment key={step.num}>
-                <div 
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-colors ${
-                    currentStep === step.num 
-                      ? 'bg-primary text-primary-foreground' 
-                      : currentStep > step.num 
+                <div
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-colors ${currentStep === step.num
+                      ? 'bg-primary text-primary-foreground'
+                      : currentStep > step.num
                         ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                         : 'bg-muted text-muted-foreground'
-                  }`}
+                    }`}
                 >
                   {currentStep > step.num ? (
                     <Check className="h-4 w-4" />
@@ -321,16 +320,14 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
                     <div
                       key={learner.id}
                       onClick={() => setSelectedLearnerId(learner.id)}
-                      className={`p-4 rounded-lg border cursor-pointer transition-all ${
-                        selectedLearnerId === learner.id
+                      className={`p-4 rounded-lg border cursor-pointer transition-all ${selectedLearnerId === learner.id
                           ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
                           : 'border-border hover:border-primary/50 hover:bg-accent/50'
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                          selectedLearnerId === learner.id ? 'bg-primary text-primary-foreground' : 'bg-muted'
-                        }`}>
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${selectedLearnerId === learner.id ? 'bg-primary text-primary-foreground' : 'bg-muted'
+                          }`}>
                           <User className="h-5 w-5" />
                         </div>
                         <div className="flex-1">
@@ -355,19 +352,18 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
                   {templates.map(template => (
                     <div
                       key={template.id}
-                      className={`p-4 rounded-lg border transition-all ${
-                        selectedTemplateIds.includes(template.id)
+                      className={`p-4 rounded-lg border transition-all ${selectedTemplateIds.includes(template.id)
                           ? 'border-primary bg-primary/5'
                           : 'border-border hover:border-primary/50'
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center gap-3">
                         <Checkbox
                           checked={selectedTemplateIds.includes(template.id)}
                           onCheckedChange={() => handleTemplateToggle(template.id)}
                         />
-                        <div 
-                          className="flex-1 cursor-pointer" 
+                        <div
+                          className="flex-1 cursor-pointer"
                           onClick={() => handleTemplateToggle(template.id)}
                         >
                           <div className="font-medium">{template.title}</div>
@@ -380,7 +376,7 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
                           </Badge>
                         )}
                       </div>
-                      
+
                       {/* Upload option for Programme */}
                       {template.type === 'programme' && selectedTemplateIds.includes(template.id) && (
                         <div className="mt-3 pt-3 border-t border-border">
@@ -399,9 +395,9 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
                                 <ChevronDown className={`h-4 w-4 transition-transform ${showProgrammeList ? 'rotate-180' : ''}`} />
                               </Button>
                             )}
-                            
+
                             {/* Upload new PDF */}
-                            <label 
+                            <label
                               htmlFor="programme-upload"
                               className="flex items-center gap-2 px-3 py-2 rounded-md border border-dashed border-muted-foreground/50 hover:border-primary cursor-pointer transition-colors"
                             >
@@ -442,11 +438,10 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
                                         setUploadedProgramme(isSelected ? null : prog.file);
                                         if (!isSelected) setShowProgrammeList(false);
                                       }}
-                                      className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors ${
-                                        isSelected 
-                                          ? 'bg-primary text-primary-foreground' 
+                                      className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors ${isSelected
+                                          ? 'bg-primary text-primary-foreground'
                                           : 'bg-background hover:bg-accent border border-border'
-                                      }`}
+                                        }`}
                                     >
                                       <FileText className="h-3.5 w-3.5" />
                                       {prog.formationName}
@@ -462,9 +457,9 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
                             <div className="mt-3 flex items-center gap-2 text-sm p-2 rounded-md bg-primary/10 border border-primary/20">
                               <FileText className="h-4 w-4 text-primary" />
                               <span className="font-medium flex-1">{uploadedProgramme.name}</span>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
+                              <Button
+                                variant="ghost"
+                                size="sm"
                                 className="h-6 px-2"
                                 onClick={() => setUploadedProgramme(null)}
                               >
@@ -472,11 +467,11 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
                               </Button>
                             </div>
                           )}
-                          
+
                           <p className="text-xs text-muted-foreground mt-2">
-                            {uploadedProgramme 
-                              ? 'Le PDF sélectionné sera envoyé à la place du modèle HTML' 
-                              : uploadedProgrammes.length > 0 
+                            {uploadedProgramme
+                              ? 'Le PDF sélectionné sera envoyé à la place du modèle HTML'
+                              : uploadedProgrammes.length > 0
                                 ? 'Parcourez les programmes existants ou uploadez un nouveau PDF'
                                 : 'Uploadez un PDF ou utilisez le modèle HTML par défaut'}
                           </p>
@@ -493,8 +488,8 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
               <div className="space-y-4 py-4">
                 <div className="bg-accent/50 p-4 rounded-lg">
                   <p className="text-sm">
-                    <strong>Apprenant :</strong> {selectedLearner?.firstName} {selectedLearner?.lastName}<br/>
-                    <strong>Formation :</strong> {selectedFormation?.name}<br/>
+                    <strong>Apprenant :</strong> {selectedLearner?.firstName} {selectedLearner?.lastName}<br />
+                    <strong>Formation :</strong> {selectedFormation?.name}<br />
                     <strong>Documents :</strong> {selectedTemplates.map(t => t.title).join(', ')}
                   </p>
                 </div>
@@ -506,7 +501,7 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
                       <PopoverTrigger asChild>
                         <Button variant="outline" className="w-full justify-start text-left">
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {customFields.dateDebut 
+                          {customFields.dateDebut
                             ? format(customFields.dateDebut, 'dd/MM/yyyy', { locale: fr })
                             : 'Sélectionner...'}
                         </Button>
@@ -528,7 +523,7 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
                       <PopoverTrigger asChild>
                         <Button variant="outline" className="w-full justify-start text-left">
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {customFields.dateFin 
+                          {customFields.dateFin
                             ? format(customFields.dateFin, 'dd/MM/yyyy', { locale: fr })
                             : 'Sélectionner...'}
                         </Button>
@@ -573,7 +568,7 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
                   <Alert variant="destructive" className="border-amber-500 bg-amber-50 dark:bg-amber-950/20">
                     <AlertTriangle className="h-4 w-4 text-amber-600" />
                     <AlertDescription className="text-amber-800 dark:text-amber-200">
-                      <strong>Attention :</strong> Votre signature officielle n'est pas configurée. 
+                      <strong>Attention :</strong> Votre signature officielle n'est pas configurée.
                       Les documents officiels (convention, attestation, certificat, CGV) seront envoyés sans votre signature.
                       <br />
                       <span className="text-sm">
@@ -609,10 +604,10 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
                             Plein écran
                           </Button>
                         </div>
-                        <div 
+                        <div
                           className="p-6 bg-background max-h-[400px] overflow-auto content-html"
-                          dangerouslySetInnerHTML={{ 
-                            __html: personalizeContent(template.htmlContent) 
+                          dangerouslySetInnerHTML={{
+                            __html: personalizeContent(template.htmlContent)
                           }}
                         />
                       </div>

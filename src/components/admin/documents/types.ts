@@ -2,32 +2,32 @@
 
 export type DocumentPhase = 'inscription' | 'formation' | 'post-formation' | 'suivi';
 
-export type DocumentType = 
-  | 'analyse_besoin' 
-  | 'test_positionnement' 
-  | 'convention' 
-  | 'programme' 
-  | 'reglement_interieur' 
-  | 'cgv' 
-  | 'convocation' 
-  | 'emargement' 
-  | 'test_niveau' 
-  | 'satisfaction_chaud' 
-  | 'attestation' 
-  | 'certificat' 
-  | 'satisfaction_froid' 
+export type DocumentType =
+  | 'analyse_besoin'
+  | 'test_positionnement'
+  | 'convention'
+  | 'programme'
+  | 'reglement_interieur'
+  | 'cgv'
+  | 'convocation'
+  | 'emargement'
+  | 'test_niveau'
+  | 'satisfaction_chaud'
+  | 'attestation'
+  | 'certificat'
+  | 'satisfaction_froid'
   | 'questionnaire_financeur'
   | 'attestation_honneur'
   | 'test_sortie';
 
-export type DocumentStatus = 
-  | 'template' 
-  | 'draft' 
-  | 'sent' 
-  | 'delivered' 
-  | 'read' 
-  | 'signed' 
-  | 'completed' 
+export type DocumentStatus =
+  | 'template'
+  | 'draft'
+  | 'sent'
+  | 'delivered'
+  | 'read'
+  | 'signed'
+  | 'completed'
   | 'expired';
 
 export interface DynamicField {
@@ -134,7 +134,7 @@ export const DYNAMIC_FIELDS: DynamicField[] = [
   { key: '{{apprenant.code_postal}}', label: 'Code postal', description: 'Code postal', category: 'apprenant', example: '75001' },
   { key: '{{apprenant.entreprise}}', label: 'Entreprise', description: 'Nom de l\'entreprise', category: 'apprenant', example: 'TechCorp' },
   { key: '{{apprenant.poste}}', label: 'Poste', description: 'Poste occupé', category: 'apprenant', example: 'Développeur' },
-  
+
   // Formation fields
   { key: '{{formation.nom}}', label: 'Nom de la formation', description: 'Intitulé de la formation', category: 'formation', example: 'React Avancé' },
   { key: '{{formation.description}}', label: 'Description', description: 'Description de la formation', category: 'formation', example: 'Formation approfondie React...' },
@@ -143,14 +143,14 @@ export const DYNAMIC_FIELDS: DynamicField[] = [
   { key: '{{formation.formateur}}', label: 'Formateur', description: 'Nom du formateur', category: 'formation', example: 'Jean Martin' },
   { key: '{{formation.prix}}', label: 'Prix', description: 'Prix de la formation', category: 'formation', example: '2 500 €' },
   { key: '{{formation.certification}}', label: 'Certification', description: 'Certification associée', category: 'formation', example: 'RNCP 12345' },
-  
+
   // Dates fields
   { key: '{{dates.inscription}}', label: 'Date d\'inscription', description: 'Date d\'inscription à la formation', category: 'dates', example: '01/01/2024' },
   { key: '{{dates.debut}}', label: 'Date de début', description: 'Date de début de la formation', category: 'dates', example: '15/01/2024' },
   { key: '{{dates.fin}}', label: 'Date de fin', description: 'Date de fin de la formation', category: 'dates', example: '20/01/2024' },
   { key: '{{dates.aujourdhui}}', label: 'Date du jour', description: 'Date actuelle', category: 'dates', example: '10/01/2024' },
   { key: '{{dates.signature}}', label: 'Date de signature', description: 'Date de signature du document', category: 'dates', example: '10/01/2024' },
-  
+
   // OF fields
   { key: '{{of.nom}}', label: 'Nom de l\'OF', description: 'Nom de l\'organisme de formation', category: 'of', example: 'FormaPro' },
   { key: '{{of.siret}}', label: 'SIRET', description: 'Numéro SIRET', category: 'of', example: '123 456 789 00010' },
@@ -162,7 +162,7 @@ export const DYNAMIC_FIELDS: DynamicField[] = [
   { key: '{{of.email}}', label: 'Email OF', description: 'Email de l\'OF', category: 'of', example: 'contact@formapro.fr' },
   { key: '{{of.responsable}}', label: 'Responsable', description: 'Nom du responsable', category: 'of', example: 'Pierre Durant' },
   { key: '{{of.signature}}', label: 'Signature OF', description: 'Signature officielle de l\'organisme', category: 'of', example: '[Signature]' },
-  
+
   // Evaluation fields
   { key: '{{evaluation.note_positionnement}}', label: 'Note positionnement', description: 'Note du test de positionnement', category: 'evaluation', example: '12/20' },
   { key: '{{evaluation.note_finale}}', label: 'Note finale', description: 'Note de l\'évaluation finale', category: 'evaluation', example: '16/20' },

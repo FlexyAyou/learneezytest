@@ -21,9 +21,13 @@ import { DEFAULT_TEMPLATES } from './defaultTemplates';
 
 interface AnalyseBesoinSenderProps {
     ofId?: number;
+    ofInfo?: any;
+    isOpen?: boolean;
+    onClose?: () => void;
+    template?: any;
 }
 
-export const AnalyseBesoinSender: React.FC<AnalyseBesoinSenderProps> = ({ ofId: propOfId }) => {
+export const AnalyseBesoinSender: React.FC<AnalyseBesoinSenderProps> = ({ ofId: propOfId, ofInfo: propOfInfo, isOpen, onClose, template }) => {
     const { toast } = useToast();
     const { organization } = useOrganization();
     const { user: authUser } = useAuth();
@@ -33,10 +37,17 @@ export const AnalyseBesoinSender: React.FC<AnalyseBesoinSenderProps> = ({ ofId: 
 
     // State
     const [activeStep, setActiveStep] = useState<'edit' | 'preview' | 'send'>('edit');
-    const [htmlContent, setHtmlContent] = useState(DEFAULT_TEMPLATES.analyse_besoin || '');
+    const [htmlContent, setHtmlContent] = useState(template?.htmlContent || DEFAULT_TEMPLATES.analyse_besoin || '');
     const [selectedLearners, setSelectedLearners] = useState<number[]>([]);
     const [message, setMessage] = useState('');
     const [isUploading, setIsUploading] = useState(false);
+
+    // Update htmlContent if template changes
+    React.useEffect(() => {
+        if (template?.htmlContent) {
+            setHtmlContent(template.htmlContent);
+        }
+    }, [template]);
 
     // Hooks
     const { data: learnersRaw, isLoading: learnersLoading } = useOFUsers(ofId);
@@ -63,17 +74,17 @@ export const AnalyseBesoinSender: React.FC<AnalyseBesoinSenderProps> = ({ ofId: 
     // Dynamic fields replacement for preview
     const replaceDynamicFields = (html: string, learner?: any) => {
         const now = new Date();
-        const org = organization as any;
+        const org = propOfInfo || organization || {};
         const mockData = {
-            'of.nom': org?.name || 'Nom OF',
-            'of.nda': org?.nda || '',
-            'of.siret': org?.siret || '',
-            'of.adresse': org?.address || '',
-            'of.cp': org?.postalCode || '',
-            'of.ville': org?.city || '',
-            'of.telephone': org?.phone || '',
-            'of.email': org?.email || '',
-            'of.responsable': org?.responsable || '',
+            'of.nom': org.name || org.nom || 'Nom OF',
+            'of.nda': org.numero_declaration || org.nda || '',
+            'of.siret': org.siret || '',
+            'of.adresse': org.address || org.adresse || '',
+            'of.code_postal': org.postal_code || org.postalCode || org.code_postal || '',
+            'of.ville': org.city || org.ville || '',
+            'of.telephone': org.phone || org.telephone || '',
+            'of.email': org.contact_email || org.email || '',
+            'of.responsable': org.legal_representative || org.responsable || '',
             'apprenant.nom': learner?.lastName || 'Nom',
             'apprenant.prenom': learner?.firstName || 'Prénom',
             'apprenant.entreprise': learner?.company || 'Entreprise',
@@ -85,7 +96,7 @@ export const AnalyseBesoinSender: React.FC<AnalyseBesoinSenderProps> = ({ ofId: 
         let result = html;
         Object.entries(mockData).forEach(([key, value]) => {
             const regex = new RegExp(`{{\\s*${key}\\s*}}`, 'g');
-            result = result.replace(regex, value);
+            result = result.replace(regex, value || '');
         });
         return result;
     };
@@ -105,9 +116,12 @@ export const AnalyseBesoinSender: React.FC<AnalyseBesoinSenderProps> = ({ ofId: 
 
         setIsUploading(true);
         try {
+            // Replaces OF fields once for the batch
+            const basePersonalizedHtml = replaceDynamicFields(htmlContent);
+
             console.log('handleSendDocument: Creating blob...');
             // Create HTML blob
-            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const blob = new Blob([basePersonalizedHtml], { type: 'text/html' });
             const file = new File([blob], 'analyse_besoin.html', { type: 'text/html' });
 
             // Prepare upload
@@ -118,7 +132,6 @@ export const AnalyseBesoinSender: React.FC<AnalyseBesoinSenderProps> = ({ ofId: 
                 size: file.size,
                 kind: 'resource',
             });
-            console.log('handleSendDocument: Prepare response', prepareResponse);
 
             // Upload file
             console.log('handleSendDocument: Uploading to S3...');
@@ -131,23 +144,18 @@ export const AnalyseBesoinSender: React.FC<AnalyseBesoinSenderProps> = ({ ofId: 
             });
 
             if (!uploadResponse.ok) {
-                console.error('handleSendDocument: Upload failed', uploadResponse.statusText);
                 throw new Error('Upload failed');
             }
-            console.log('handleSendDocument: Upload success');
 
             // Complete upload
-            console.log('handleSendDocument: Completing upload...');
             const completeResponse = await complete.mutateAsync({
                 strategy: 'single',
                 key: prepareResponse.key,
                 content_type: file.type,
                 size: file.size,
             });
-            console.log('handleSendDocument: Complete response', completeResponse);
 
             // Assign to learners
-            console.log('handleSendDocument: Assigning to learners...');
             const promises = selectedLearners.map(userId =>
                 assign.mutateAsync({
                     user_id: userId,
@@ -158,7 +166,6 @@ export const AnalyseBesoinSender: React.FC<AnalyseBesoinSenderProps> = ({ ofId: 
             );
 
             await Promise.all(promises);
-            console.log('handleSendDocument: Assignment done');
 
             toast({
                 title: 'Document envoyé',
@@ -169,6 +176,7 @@ export const AnalyseBesoinSender: React.FC<AnalyseBesoinSenderProps> = ({ ofId: 
             setSelectedLearners([]);
             setMessage('');
             setActiveStep('edit');
+            if (onClose) onClose();
         } catch (error) {
             console.error('Error sending document:', error);
             toast({

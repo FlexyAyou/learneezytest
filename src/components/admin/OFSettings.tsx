@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { OFSignatureManager, getStoredOFSignature } from './OFSignatureManager';
+import { fastAPIClient } from '@/services/fastapi-client';
 
 export const OFSettings = () => {
   const { toast } = useToast();
@@ -31,6 +32,21 @@ export const OFSettings = () => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // Organization state
+  const [orgData, setOrgData] = useState({
+    name: '',
+    description: '',
+    legal_representative: '',
+    contact_email: '',
+    address: '',
+    postal_code: '',
+    city: '',
+    phone: '',
+    siret: '',
+    numero_declaration: '',
+  });
+  const [initialOrgData, setInitialOrgData] = useState<any>(null);
+
   // État des paramètres de notification
   const [notificationSettings, setNotificationSettings] = useState({
     emailNewStudent: true,
@@ -40,6 +56,69 @@ export const OFSettings = () => {
     weeklyReports: true,
     monthlyReports: true
   });
+
+  // Load organization data
+  React.useEffect(() => {
+    const loadOrg = async () => {
+      if (user?.of_id) {
+        try {
+          const org = await fastAPIClient.getOrganization(user.of_id);
+          const data = {
+            name: org.name || '',
+            description: org.description || '',
+            legal_representative: org.legal_representative || '',
+            contact_email: org.contact_email || '',
+            address: org.address || '',
+            postal_code: org.postal_code || '',
+            city: org.city || '',
+            phone: org.phone || '',
+            siret: org.siret || '',
+            numero_declaration: org.numero_declaration || '',
+          };
+          setOrgData({ ...data });
+          setInitialOrgData({ ...data });
+        } catch (error) {
+          console.error("Error loading organization details", error);
+        }
+      }
+    };
+    loadOrg();
+  }, [user?.of_id]);
+
+  const hasOrgChanges = initialOrgData ? JSON.stringify(orgData) !== JSON.stringify(initialOrgData) : false;
+
+  const handleSaveOrganization = async () => {
+    if (!user?.of_id) return;
+    setIsLoading(true);
+    try {
+      const updated = await fastAPIClient.updateOrganization(user.of_id, orgData);
+      setOrgData({
+        name: updated.name || '',
+        description: updated.description || '',
+        legal_representative: updated.legal_representative || '',
+        contact_email: updated.contact_email || '',
+        address: updated.address || '',
+        postal_code: updated.postal_code || '',
+        city: updated.city || '',
+        phone: updated.phone || '',
+        siret: updated.siret || '',
+        numero_declaration: updated.numero_declaration || '',
+      });
+      setInitialOrgData(orgData);
+      toast({
+        title: "Organisation mise à jour",
+        description: "Les informations de votre organisme ont été enregistrées.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: error.response?.data?.detail || "Impossible de mettre à jour l'organisation.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSaveNotifications = async () => {
     setIsLoading(true);
@@ -156,66 +235,112 @@ export const OFSettings = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Building className="h-5 w-5" />
-                Informations de votre compte
+                Informations de votre organisme
               </CardTitle>
               <CardDescription>
-                Ces informations sont gérées par l'administrateur Learneezy. Contactez le support pour toute modification.
+                Gérez les informations légales et de contact de votre organisme de formation.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <Alert>
-                <Info className="h-4 w-4" />
-                <AlertDescription>
-                  Les informations ci-dessous sont en lecture seule. Pour les modifier, veuillez contacter l'équipe Learneezy.
-                </AlertDescription>
-              </Alert>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label className="text-muted-foreground">Prénom</Label>
-                  <div className="p-3 bg-muted rounded-md text-foreground">
-                    {user?.first_name || '-'}
-                  </div>
+                  <Label htmlFor="orgName">Nom de l'organisme</Label>
+                  <Input
+                    id="orgName"
+                    value={orgData.name}
+                    onChange={(e) => setOrgData({ ...orgData, name: e.target.value })}
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-muted-foreground">Nom</Label>
-                  <div className="p-3 bg-muted rounded-md text-foreground">
-                    {user?.last_name || '-'}
-                  </div>
+                  <Label htmlFor="legalRep">Responsable / Représentant Légal</Label>
+                  <Input
+                    id="legalRep"
+                    value={orgData.legal_representative}
+                    onChange={(e) => setOrgData({ ...orgData, legal_representative: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="orgDesc">Description</Label>
+                  <textarea
+                    id="orgDesc"
+                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    value={orgData.description}
+                    onChange={(e) => setOrgData({ ...orgData, description: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="orgAddress">Adresse</Label>
+                  <Input
+                    id="orgAddress"
+                    value={orgData.address}
+                    onChange={(e) => setOrgData({ ...orgData, address: e.target.value })}
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-muted-foreground">Email</Label>
-                  <div className="p-3 bg-muted rounded-md text-foreground">
-                    {user?.email || '-'}
-                  </div>
+                  <Label htmlFor="orgCP">Code Postal</Label>
+                  <Input
+                    id="orgCP"
+                    value={orgData.postal_code}
+                    onChange={(e) => setOrgData({ ...orgData, postal_code: e.target.value })}
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-muted-foreground">Rôle</Label>
-                  <div className="p-3 bg-muted rounded-md">
-                    <Badge variant="secondary">{user?.role || '-'}</Badge>
-                  </div>
+                  <Label htmlFor="orgCity">Ville</Label>
+                  <Input
+                    id="orgCity"
+                    value={orgData.city}
+                    onChange={(e) => setOrgData({ ...orgData, city: e.target.value })}
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-muted-foreground">Organisme</Label>
-                  <div className="p-3 bg-muted rounded-md text-foreground">
-                    {(user as any)?.organization_name || '-'}
-                  </div>
+                  <Label htmlFor="orgPhone">Téléphone</Label>
+                  <Input
+                    id="orgPhone"
+                    value={orgData.phone}
+                    onChange={(e) => setOrgData({ ...orgData, phone: e.target.value })}
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-muted-foreground">Statut</Label>
-                  <div className="p-3 bg-muted rounded-md">
-                    <Badge className="bg-green-100 text-green-800">
-                      Actif
-                    </Badge>
-                  </div>
+                  <Label htmlFor="orgEmail">Email de contact</Label>
+                  <Input
+                    id="orgEmail"
+                    value={orgData.contact_email}
+                    onChange={(e) => setOrgData({ ...orgData, contact_email: e.target.value })}
+                  />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="orgSiret">SIRET</Label>
+                  <Input
+                    id="orgSiret"
+                    value={orgData.siret}
+                    onChange={(e) => setOrgData({ ...orgData, siret: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="orgNDA">Numéro Déclaration d'Activité (NDA)</Label>
+                  <Input
+                    id="orgNDA"
+                    value={orgData.numero_declaration}
+                    onChange={(e) => setOrgData({ ...orgData, numero_declaration: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end pt-4">
+                <Button
+                  onClick={handleSaveOrganization}
+                  disabled={isLoading || !hasOrgChanges}
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  {isLoading ? "Enregistrement..." : "Sauvegarder les informations"}
+                </Button>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="signature">
-          <OFSignatureManager 
+          <OFSignatureManager
             currentSignatureUrl={ofSignatureUrl}
             onSave={handleSaveSignature}
             onDelete={handleDeleteSignature}
@@ -401,8 +526,8 @@ export const OFSettings = () => {
                   </div>
                 </div>
 
-                <Button 
-                  onClick={handlePasswordChange} 
+                <Button
+                  onClick={handlePasswordChange}
                   disabled={isLoading || !passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword}
                   className="w-full"
                 >
