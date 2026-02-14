@@ -1238,7 +1238,7 @@ export const useBuyTokens = () => {
 export const useAssignMedia = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { user_id: number; media_asset_id: number; message?: string }) =>
+    mutationFn: (data: { user_id: number; media_asset_id: number; message?: string; phase?: string }) =>
       fastAPIClient.assignMediaToUser(data),
     onSuccess: () => {
       toast({

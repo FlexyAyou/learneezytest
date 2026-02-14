@@ -17,7 +17,7 @@ import {
 import { DialogDescription } from '@/components/ui/dialog';
 import { DocumentTemplateEditor } from './DocumentTemplateEditor';
 import { PhaseDocumentSender } from './PhaseDocumentSender';
-import { AnalyseBesoinSender } from './AnalyseBesoinSender';
+
 import { DEFAULT_TEMPLATES } from './defaultTemplates';
 import { fastAPIClient } from '@/services/fastapi-client';
 import {
@@ -48,7 +48,11 @@ export const OFDocumentsAdvanced: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showEditor, setShowEditor] = useState(false);
   const [showPhaseSender, setShowPhaseSender] = useState(false);
-  const [showAnalyseBesoin, setShowAnalyseBesoin] = useState(false);
+  const [showUploadSender, setShowUploadSender] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadTitle, setUploadTitle] = useState('');
+  const [selectedLearnerId, setSelectedLearnerId] = useState<string>('');
+  const [uploadPhase, setUploadPhase] = useState<DocumentPhase>('inscription');
   const [selectedTemplate, setSelectedTemplate] = useState<DocumentTemplate | null>(null);
 
   // Upload State (keep minimal needed if reused, else clean)
@@ -113,7 +117,9 @@ export const OFDocumentsAdvanced: React.FC = () => {
       lastName: u.last_name || '',
       email: u.email,
       phone: u.phone || '',
-      formationName: 'Apprenant' // Simplifié
+      formationName: 'Apprenant', // Simplifié
+      formationId: '',
+      enrollmentDate: ''
     }));
 
   const mockFormations: Formation[] = [
@@ -242,6 +248,57 @@ export const OFDocumentsAdvanced: React.FC = () => {
     }
   };
 
+  const handleSendUploadedDocument = async () => {
+    if (!uploadFile || !selectedLearnerId || !uploadTitle) {
+      toast({ title: "Erreur", description: "Veuillez remplir tous les champs obligatoires", variant: "destructive" });
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      // 1. Prepare
+      const prepareRes = await prepare.mutateAsync({
+        filename: uploadFile.name,
+        content_type: uploadFile.type,
+        size: uploadFile.size,
+        kind: 'resource'
+      });
+
+      // 2. Upload
+      await axios.put(prepareRes.url!, uploadFile, {
+        headers: { 'Content-Type': uploadFile.type }
+      });
+
+      // 3. Complete
+      const completeRes = await complete.mutateAsync({
+        strategy: 'single',
+        key: prepareRes.key,
+        content_type: uploadFile.type,
+        size: uploadFile.size
+      });
+
+      // 4. Assign
+      await assign.mutateAsync({
+        user_id: parseInt(selectedLearnerId),
+        media_asset_id: completeRes.id!,
+        message: `Document envoyé par l'OF : ${uploadTitle}`,
+        phase: uploadPhase
+      });
+
+      toast({ title: "Document envoyé", description: "Le document a été envoyé à l'apprenant avec succès." });
+      setShowUploadSender(false);
+      setUploadFile(null);
+      setUploadTitle('');
+      setSelectedLearnerId('');
+      // Refetch assets/assignments if needed (but currently we are on advanced doc page, assignments are on another page)
+    } catch (error: any) {
+      console.error(error);
+      toast({ title: "Erreur", description: "Impossible d'envoyer le document.", variant: "destructive" });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const phaseTemplates = templates.filter(t => t.phase === activePhase);
   const filteredTemplates = phaseTemplates.filter(t =>
     t.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -261,9 +318,9 @@ export const OFDocumentsAdvanced: React.FC = () => {
               Gestion des Émargements
             </Link>
           </Button>
-          <Button variant="default" onClick={() => setShowAnalyseBesoin(true)}>
-            <FileText className="h-4 w-4 mr-2" />
-            Analyse de Besoin
+          <Button variant="default" onClick={() => setShowUploadSender(true)}>
+            <Upload className="h-4 w-4 mr-2" />
+            Envoyer un document
           </Button>
           <Button onClick={handleCreateTemplate}>
             <Plus className="h-4 w-4 mr-2" />
@@ -362,21 +419,75 @@ export const OFDocumentsAdvanced: React.FC = () => {
 
 
       {/* Analyse de Besoin Dialog */}
-      <Dialog open={showAnalyseBesoin} onOpenChange={setShowAnalyseBesoin}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+      {/* Upload & Send Dialog */}
+      <Dialog open={showUploadSender} onOpenChange={setShowUploadSender}>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Analyse du Besoin de Formation</DialogTitle>
+            <DialogTitle>Envoyer un document</DialogTitle>
             <DialogDescription>
-              Personnalisez les champs de l'analyse de besoin et sélectionnez les apprenants.
+              Sélectionnez un fichier, un apprenant et la phase associée pour l'ajouter au dossier de l'apprenant.
             </DialogDescription>
           </DialogHeader>
-          <AnalyseBesoinSender
-            ofId={ofId}
-            ofInfo={ofInfo}
-            isOpen={showAnalyseBesoin}
-            onClose={() => setShowAnalyseBesoin(false)}
-            template={selectedTemplate}
-          />
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Document (PDF, Image...)</label>
+              <Input
+                type="file"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setUploadFile(file);
+                    if (!uploadTitle) setUploadTitle(file.name.split('.')[0]);
+                  }
+                }}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Titre du document</label>
+              <Input
+                value={uploadTitle}
+                onChange={(e) => setUploadTitle(e.target.value)}
+                placeholder="Ex: Attestation de présence"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Phase</label>
+              <Select value={uploadPhase} onValueChange={(v) => setUploadPhase(v as DocumentPhase)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(Object.entries(PHASES_CONFIG) as [DocumentPhase, typeof PHASES_CONFIG.inscription][]).map(([phase, config]) => (
+                    <SelectItem key={phase} value={phase}>{config.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Apprenant</label>
+              <Select value={selectedLearnerId} onValueChange={setSelectedLearnerId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner un apprenant" />
+                </SelectTrigger>
+                <SelectContent>
+                  {learners.map(l => (
+                    <SelectItem key={l.id} value={l.id}>{l.firstName} {l.lastName}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowUploadSender(false)}>Annuler</Button>
+            <Button onClick={handleSendUploadedDocument} disabled={isUploading || !uploadFile || !selectedLearnerId}>
+              {isUploading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Envoi...</> : <><Send className="mr-2 h-4 w-4" /> Envoyer</>}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
