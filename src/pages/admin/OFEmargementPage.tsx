@@ -67,12 +67,20 @@ const OFEmargementPage: React.FC = () => {
   const { data: rawUsers, isLoading: usersLoading } = useOFUsers(ofId, { role: 'apprenant' });
   const { data: rawAssignments, isLoading: assignmentsLoading } = useAssignments({ of_id: ofId });
 
+  // Secure assignments list extraction
+  const assignmentsList = useMemo(() => {
+    if (!rawAssignments) return [];
+    if (Array.isArray(rawAssignments)) return rawAssignments as any[];
+    if ((rawAssignments as any).items && Array.isArray((rawAssignments as any).items)) return (rawAssignments as any).items as any[];
+    return [];
+  }, [rawAssignments]);
+
   // Map API data to component interfaces
   const learners: Learner[] = useMemo(() => {
     if (!rawUsers) return [];
     return rawUsers.map((u: any) => {
       // Find the first assignment for this learner to get formation info if possible
-      const learnerDocs = (rawAssignments || []).filter((a: any) => a.user_id === u.id);
+      const learnerDocs = assignmentsList.filter((a: any) => a.user_id === u.id);
       const formationName = learnerDocs.length > 0 ? (learnerDocs[0].course?.title || 'Formation') : 'Formation';
 
       return {
@@ -86,13 +94,12 @@ const OFEmargementPage: React.FC = () => {
         formationName: formationName
       };
     });
-  }, [rawUsers, rawAssignments]);
+  }, [rawUsers, assignmentsList]);
 
   const assignmentsMap = useMemo(() => {
     const map: Record<string, SentDocument[]> = {};
-    if (!rawAssignments) return map;
 
-    rawAssignments.forEach((a: any) => {
+    assignmentsList.forEach((a: any) => {
       const learnerId = a.user_id.toString();
       if (!map[learnerId]) map[learnerId] = [];
 
@@ -110,7 +117,7 @@ const OFEmargementPage: React.FC = () => {
       });
     });
     return map;
-  }, [rawAssignments]);
+  }, [assignmentsList]);
 
   const selectedLearner = useMemo(() =>
     learners.find(l => l.id === selectedLearnerId),
