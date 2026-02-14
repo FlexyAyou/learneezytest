@@ -19,6 +19,7 @@ import { useOFUsers, useAssignMedia, usePrepareUpload, useCompleteUpload } from 
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useAuth } from '@/hooks/useApi';
 import { DEFAULT_TEMPLATES } from './defaultTemplates';
+import { personalizeDocumentContent } from '@/utils/personalizeDocumentContent';
 
 interface AnalyseBesoinSenderProps {
     ofId?: number;
@@ -72,34 +73,48 @@ export const AnalyseBesoinSender: React.FC<AnalyseBesoinSenderProps> = ({ ofId: 
             }));
     }, [learnersRaw]);
 
-    // Dynamic fields replacement for preview
+    // Dynamic fields replacement for preview using centralized utility
     const replaceDynamicFields = (html: string, learner?: any) => {
-        const now = new Date();
         const org = propOfInfo || organization || {};
-        const mockData = {
-            'of.nom': org.name || org.nom || 'Nom OF',
-            'of.nda': org.numero_declaration || org.nda || '',
-            'of.siret': org.siret || '',
-            'of.adresse': org.address || org.adresse || '',
-            'of.code_postal': org.postal_code || org.postalCode || org.code_postal || '',
-            'of.ville': org.city || org.ville || '',
-            'of.telephone': org.phone || org.telephone || '',
-            'of.email': org.contact_email || org.email || '',
-            'of.responsable': org.legal_representative || org.responsable || '',
-            'apprenant.nom': learner?.lastName || 'Nom',
-            'apprenant.prenom': learner?.firstName || 'Prénom',
-            'apprenant.entreprise': learner?.company || 'Entreprise',
-            'apprenant.poste': learner?.position || 'Poste',
-            'formation.nom': 'Formation Exemple',
-            'date.jour': now.toLocaleDateString('fr-FR'),
+
+        const mappedOFData = {
+            na: org.name || org.nom,
+            siret: org.siret,
+            nda: org.numero_declaration || org.nda,
+            address: org.address || org.adresse,
+            postalCode: org.postal_code || org.postalCode || org.code_postal,
+            city: org.city || org.ville,
+            phone: org.phone || org.telephone,
+            email: org.contact_email || org.email,
+            managerName: org.legal_representative || org.responsable
         };
 
-        let result = html;
-        Object.entries(mockData).forEach(([key, value]) => {
-            const regex = new RegExp(`{{\\s*${key}\\s*}}`, 'g');
-            result = result.replace(regex, value || '');
-        });
-        return result;
+        const mappedLearnerData = learner ? {
+            firstName: learner.firstName,
+            lastName: learner.lastName,
+            email: learner.email,
+            phone: learner.phone,
+            company: learner.company || learner.entreprise,
+            // Add other fields if available
+        } : undefined;
+
+        // Formation data is currently mocked/generic (not yet fully managed)
+        const formationData = {
+            id: '0',
+            name: learner?.formationName || 'Formation à définir'
+        };
+
+        let content = personalizeDocumentContent(
+            html,
+            formationData,
+            mappedOFData,
+            mappedLearnerData
+        );
+
+        // Add specific fields not handled by utility if any
+        content = content.replace(/{{date\.jour}}/g, new Date().toLocaleDateString('fr-FR'));
+
+        return content;
     };
 
     // Handle HTML upload and send

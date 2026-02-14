@@ -27,6 +27,7 @@ import { DocumentPreviewFullscreen } from './DocumentPreviewFullscreen';
 import { useToast } from '@/hooks/use-toast';
 import { getStoredOFSignature } from '@/components/admin/OFSignatureManager';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { personalizeDocumentContent } from '@/utils/personalizeDocumentContent';
 
 interface PhaseDocumentSenderProps {
   isOpen: boolean;
@@ -80,7 +81,7 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
     if (isOpen) {
       setCurrentStep(1);
       setSelectedLearnerId(null);
-      setSelectedTemplateIds(templates.map(t => t.id));
+      setSelectedTemplateIds([]); // Ne pas tout cocher par défaut
       setSearchTerm('');
       setActivePreviewTab(templates[0]?.id || '');
       setCustomFields({
@@ -152,51 +153,61 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
   const showSignatureWarning = hasOfficialDocuments && !hasOFSignature;
 
   const personalizeContent = (htmlContent: string): string => {
-    if (!selectedLearner || !selectedFormation) return htmlContent;
+    if (!selectedLearner) return htmlContent;
 
-    // Build signature HTML if available
+    const formationSafe = selectedFormation || { id: '0', name: 'Formation non définie', description: '', trainer: '' };
+
+
+    // Map data for shared utility
+    const mappedOFData = {
+      na: ofInfo.name,
+      siret: ofInfo.siret,
+      nda: ofInfo.nda,
+      address: ofInfo.address,
+      postalCode: ofInfo.postalCode,
+      city: ofInfo.city,
+      phone: ofInfo.phone,
+      email: ofInfo.email,
+      managerName: ofInfo.responsable
+    };
+
+    const mappedLearnerData = {
+      firstName: selectedLearner.firstName,
+      lastName: selectedLearner.lastName,
+      email: selectedLearner.email,
+      phone: selectedLearner.phone || '',
+      address: selectedLearner.address || '',
+      // Add other fields if needed by LearnerDetails interface
+    };
+
+    // 1. Use centralized personalization
+    let result = personalizeDocumentContent(
+      htmlContent,
+      { id: formationSafe.id || '0', name: formationSafe.name || 'Formation non définie' },
+      mappedOFData,
+      mappedLearnerData
+    );
+
+    // 2. Apply local specific replacements (Signature, Dates, Price)
     const signatureHtml = effectiveSignatureUrl
       ? `<img src="${effectiveSignatureUrl}" alt="Signature officielle ${ofInfo.name}" style="max-height: 80px; display: inline-block;" />`
       : '<span style="color: #999; font-style: italic;">[Signature OF non configurée]</span>';
 
-    const replacements: Record<string, string> = {
-      // OF
-      '{{of.nom}}': ofInfo.name,
-      '{{of.siret}}': ofInfo.siret,
-      '{{of.nda}}': ofInfo.nda,
-      '{{of.adresse}}': ofInfo.address,
-      '{{of.ville}}': ofInfo.city,
-      '{{of.code_postal}}': ofInfo.postalCode,
-      '{{of.telephone}}': ofInfo.phone,
-      '{{of.email}}': ofInfo.email,
-      '{{of.responsable}}': ofInfo.responsable,
+    const additionalReplacements: Record<string, string> = {
       '{{of.signature}}': signatureHtml,
-      // Apprenant
-      '{{apprenant.prenom}}': selectedLearner.firstName,
-      '{{apprenant.nom}}': selectedLearner.lastName,
-      '{{apprenant.email}}': selectedLearner.email,
-      '{{apprenant.telephone}}': selectedLearner.phone || '',
-      '{{apprenant.adresse}}': selectedLearner.address || '',
-      '{{apprenant.ville}}': selectedLearner.city || '',
-      '{{apprenant.codePostal}}': selectedLearner.postalCode || '',
-      '{{apprenant.entreprise}}': selectedLearner.company || '',
-      // Formation
-      '{{formation.nom}}': selectedFormation.name,
-      '{{formation.description}}': selectedFormation.description || '',
-      '{{formation.formateur}}': selectedFormation.trainer || '',
-      // Custom fields (manual)
       '{{dates.debut}}': customFields.dateDebut ? format(customFields.dateDebut, 'dd/MM/yyyy', { locale: fr }) : '',
       '{{dates.fin}}': customFields.dateFin ? format(customFields.dateFin, 'dd/MM/yyyy', { locale: fr }) : '',
       '{{formation.duree}}': customFields.duree,
       '{{formation.prix}}': customFields.prix,
-      // Date du jour
       '{{date.jour}}': format(new Date(), 'dd/MM/yyyy', { locale: fr }),
+      '{{formation.description}}': formationSafe.description || '',
+      '{{formation.formateur}}': formationSafe.trainer || '',
     };
 
-    let result = htmlContent;
-    Object.entries(replacements).forEach(([key, value]) => {
+    Object.entries(additionalReplacements).forEach(([key, value]) => {
       result = result.replace(new RegExp(key.replace(/[{}]/g, '\\$&'), 'g'), value || '');
     });
+
     return result;
   };
 

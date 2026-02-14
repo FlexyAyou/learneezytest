@@ -9,12 +9,42 @@ interface FormationBasic {
  * Personnalise le contenu HTML d'un template de document avec les données réelles.
  * Utilisé côté apprenant pour la prévisualisation des documents envoyés par l'OF.
  */
+interface OFDetails {
+  na?: string;
+  siret?: string;
+  nda?: string; // Numéro de déclaration d'activité
+  address?: string;
+  postalCode?: string;
+  city?: string;
+  phone?: string;
+  email?: string;
+  managerName?: string;
+  logo?: string;
+}
+
+interface LearnerDetails {
+  firstName: string;
+  lastName: string;
+  company?: string;
+  address?: string;
+  postalCode?: string;
+  city?: string;
+  phone?: string;
+  email?: string;
+}
+
+/**
+ * Personnalise le contenu HTML d'un template de document avec les données réelles.
+ * Utilisé côté apprenant pour la prévisualisation des documents envoyés par l'OF.
+ */
 export const personalizeDocumentContent = (
   template: string,
   formation: FormationBasic,
+  ofData?: OFDetails,
+  learnerData?: LearnerDetails,
   learnerSignature?: string
 ): string => {
-  // Récupérer la signature OF depuis localStorage
+  // Récupérer la signature OF depuis localStorage ou utiliser celle fournie
   const storedSignature = localStorage.getItem('of_official_signature');
   const signatureHtml = storedSignature
     ? `<img src="${storedSignature}" alt="Signature OF" style="max-height: 60px; max-width: 200px;" />`
@@ -25,36 +55,57 @@ export const personalizeDocumentContent = (
     ? `<div style="margin-top: 10px;"><img src="${learnerSignature}" alt="Signature apprenant" style="max-height: 60px; max-width: 200px;" /><p style="font-size: 12px; color: #666; margin-top: 5px;">Signé électroniquement</p></div>`
     : '';
 
-  return template
-    .replace(/\{\{of\.nom\}\}/g, 'InfinitiAX Formation')
-    .replace(/\{\{of\.siret\}\}/g, '123 456 789 00012')
-    .replace(/\{\{of\.nda\}\}/g, '11 75 12345 75')
-    .replace(/\{\{of\.adresse\}\}/g, '15 Rue de la Formation')
-    .replace(/\{\{of\.codePostal\}\}/g, '75001')
-    .replace(/\{\{of\.ville\}\}/g, 'Paris')
-    .replace(/\{\{of\.telephone\}\}/g, '01 23 45 67 89')
-    .replace(/\{\{of\.email\}\}/g, 'contact@infinitiax.com')
-    .replace(/\{\{of\.responsable\}\}/g, 'Jean Dupont')
-    .replace(/\{\{of\.signature\}\}/g, signatureHtml)
-    .replace(/\{\{formation\.nom\}\}/g, formation.name)
-    .replace(/\{\{formation\.duree\}\}/g, '35 heures')
-    .replace(/\{\{formation\.lieu\}\}/g, 'Paris - En présentiel')
-    .replace(/\{\{formation\.prix\}\}/g, '1 500,00 €')
-    .replace(/\{\{formation\.formateur\}\}/g, 'Jean Dupont')
-    .replace(/\{\{dates\.debut\}\}/g, '15/01/2024')
-    .replace(/\{\{dates\.fin\}\}/g, '19/01/2024')
-    .replace(/\{\{date\.jour\}\}/g, new Date().toLocaleDateString('fr-FR'))
-    .replace(/\{\{apprenant\.nom\}\}/g, 'Martin')
-    .replace(/\{\{apprenant\.prenom\}\}/g, 'Sophie')
-    .replace(/\{\{apprenant\.entreprise\}\}/g, 'Entreprise ABC')
-    .replace(/\{\{apprenant\.adresse\}\}/g, '10 Rue Exemple')
-    .replace(/\{\{apprenant\.codePostal\}\}/g, '75002')
-    .replace(/\{\{apprenant\.ville\}\}/g, 'Paris')
-    // Remplacer le placeholder du stagiaire par la signature si disponible
-    .replace(/<p style="margin-bottom: 60px;"><strong>Le stagiaire<\/strong> \(mention "Lu et approuvé"\)<\/p>/g,
-      `<p><strong>Le stagiaire</strong> (mention "Lu et approuvé")</p>${learnerSignatureHtml}`)
-    .replace(/<p style="margin-top: 50px;">{{apprenant\.prenom}} {{apprenant\.nom}}<br\/>Date : {{date\.jour}}<\/p>/g,
-      `${learnerSignatureHtml}<p>Sophie Martin<br/>Date : ${new Date().toLocaleDateString('fr-FR')}</p>`);
+  let content = template;
+
+  // Remplacement des données de l'OF
+  content = content
+    .replace(/\{\{of\.nom\}\}/g, ofData?.na || 'Nom de l\'OF')
+    .replace(/\{\{of\.siret\}\}/g, ofData?.siret || 'SIRET non renseigné')
+    .replace(/\{\{of\.nda\}\}/g, ofData?.nda || 'NDA non renseigné')
+    .replace(/\{\{of\.adresse\}\}/g, ofData?.address || '')
+    .replace(/\{\{of\.codePostal\}\}/g, ofData?.postalCode || '')
+    .replace(/\{\{of\.ville\}\}/g, ofData?.city || '')
+    .replace(/\{\{of\.telephone\}\}/g, ofData?.phone || '')
+    .replace(/\{\{of\.email\}\}/g, ofData?.email || '')
+    .replace(/\{\{of\.responsable\}\}/g, ofData?.managerName || 'Responsable de formation')
+    .replace(/\{\{of\.signature\}\}/g, signatureHtml);
+
+  // Remplacement des données de la formation
+  content = content
+    .replace(/\{\{formation\.nom\}\}/g, formation.name || 'Formation')
+    .replace(/\{\{formation\.duree\}\}/g, 'Variable') // À dynamiser si dispo
+    .replace(/\{\{formation\.lieu\}\}/g, 'À distance / E-learning')
+    .replace(/\{\{formation\.prix\}\}/g, '-') // À dynamiser si dispo
+    .replace(/\{\{formation\.formateur\}\}/g, '-') // À dynamiser si dispo
+    .replace(/\{\{dates\.debut\}\}/g, new Date().toLocaleDateString('fr-FR')) // À dynamiser
+    .replace(/\{\{dates\.fin\}\}/g, '-') // À dynamiser
+    .replace(/\{\{date\.jour\}\}/g, new Date().toLocaleDateString('fr-FR'));
+
+  // Remplacement des données de l'apprenant
+  if (learnerData) {
+    content = content
+      .replace(/\{\{apprenant\.nom\}\}/g, learnerData.lastName || '')
+      .replace(/\{\{apprenant\.prenom\}\}/g, learnerData.firstName || '')
+      .replace(/\{\{apprenant\.entreprise\}\}/g, learnerData.company || '')
+      .replace(/\{\{apprenant\.adresse\}\}/g, learnerData.address || '')
+      .replace(/\{\{apprenant\.codePostal\}\}/g, learnerData.postalCode || '')
+      .replace(/\{\{apprenant\.ville\}\}/g, learnerData.city || '')
+      .replace(/\{\{apprenant\.telephone\}\}/g, learnerData.phone || '')
+      .replace(/\{\{apprenant\.email\}\}/g, learnerData.email || '');
+
+    // Remplacement zone de signature
+    content = content
+      .replace(/<p style="margin-bottom: 60px;"><strong>Le stagiaire<\/strong> \(mention "Lu et approuvé"\)<\/p>/g,
+        `<p><strong>Le stagiaire</strong> (mention "Lu et approuvé")</p>${learnerSignatureHtml}`)
+      .replace(/<p style="margin-top: 50px;">{{apprenant\.prenom}} {{apprenant\.nom}}<br\/>Date : {{date\.jour}}<\/p>/g,
+        `${learnerSignatureHtml}<p>${learnerData.firstName} ${learnerData.lastName}<br/>Date : ${new Date().toLocaleDateString('fr-FR')}</p>`);
+  } else {
+    // Nettoyage des placeholders si pas de données apprenant
+    content = content
+      .replace(/\{\{apprenant\..*?\}\}/g, '....................');
+  }
+
+  return content;
 };
 
 /**

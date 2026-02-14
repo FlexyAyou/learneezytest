@@ -23,7 +23,8 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ElectronicSignature } from '@/components/common/ElectronicSignature';
-import { usePrepareUpload, useCompleteUpload, useSignDocument } from '@/hooks/useApi';
+import { usePrepareUpload, useCompleteUpload, useSignDocument, useOrganization } from '@/hooks/useApi';
+import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 import axios from 'axios';
 import { getTemplateForType, personalizeDocumentContent } from '@/utils/personalizeDocumentContent';
 
@@ -69,16 +70,73 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
     const completeUpload = useCompleteUpload();
     const signDocument = useSignDocument();
 
+    // Get current user and OF details for dynamic population
+    const { user: currentUser } = useFastAPIAuth();
+    const { data: ofData } = useOrganization(currentUser?.of_id || '');
+
     useEffect(() => {
         if (isOpen) {
             if (initialHtmlContent) {
                 setHtmlContent(initialHtmlContent);
             } else if (url) {
                 fetchContent();
+            } else {
+                // If no URL and no initial content, generate from template immediately
+                // This handles cases where document is not yet generated/assigned as a file
+                generateFromTemplate();
             }
             setStep('edit');
         }
-    }, [isOpen, url, initialHtmlContent]);
+    }, [isOpen, url, initialHtmlContent, ofData, currentUser]); // Add dependencies to regenerate if data loads
+
+    const generateFromTemplate = () => {
+        const template = getTemplateForType(docType);
+        if (template) {
+            // Map Organization Data
+            const mappedOFData = ofData ? {
+                na: ofData.name,
+                siret: ofData.siret,
+                nda: ofData.numero_declaration,
+                address: ofData.address,
+                postalCode: ofData.postal_code,
+                city: ofData.city,
+                phone: ofData.phone,
+                email: ofData.contact_email || ofData.email,
+                managerName: ofData.legal_representative
+            } : undefined;
+
+            // Map Learner Data (merge props with current user data if available)
+            const mappedLearnerData = {
+                firstName: learnerData?.firstName || currentUser?.first_name || '',
+                lastName: learnerData?.lastName || currentUser?.last_name || '',
+                email: currentUser?.email || '',
+                phone: currentUser?.phone || '',
+                address: currentUser?.address || '',
+                // Add other fields if available in user object
+            };
+
+            const generatedHtml = personalizeDocumentContent(
+                template,
+                { id: '0', name: formationData?.name || 'Ma Formation' },
+                mappedOFData,
+                mappedLearnerData
+            );
+
+            // Pre-process interactive fields
+            const processedHtml = processInteractiveFields(generatedHtml);
+            setHtmlContent(processedHtml);
+        }
+    };
+
+    const processInteractiveFields = (html: string) => {
+        return html.replace(
+            /<div style="border: 1px solid #ccc; min-height: 80px; padding: 10px; margin-bottom: 20px;"><\/div>/g,
+            '<textarea class="interactive-field" placeholder="Saisissez votre réponse ici..." style="width: 100%; border: 1px solid #ccc; min-height: 80px; padding: 10px; margin-bottom: 20px; font-family: inherit; resize: vertical;"></textarea>'
+        ).replace(
+            /<li>☐ (.*?)<\/li>/g,
+            '<li><label style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" name="competence" class="interactive-checkbox" /> $1</label></li>'
+        );
+    };
 
     const fetchContent = async () => {
         setIsLoading(true);
@@ -89,40 +147,16 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
                 try {
                     const response = await axios.get(url, { responseType: 'text' });
                     rawHtml = response.data;
+                    // If successfully fetched, process it
+                    setHtmlContent(processInteractiveFields(rawHtml));
                 } catch (fetchErr) {
                     console.info("Document non encore généré (404), utilisation du template local.");
+                    // Fallback to template generation
+                    generateFromTemplate();
                 }
+            } else {
+                generateFromTemplate();
             }
-
-            if (!rawHtml) {
-                const template = getTemplateForType(docType);
-                if (template) {
-                    rawHtml = personalizeDocumentContent(
-                        template,
-                        { id: '0', name: formationData?.name || 'Ma Formation' }
-                    );
-
-                    // Specific personalization for the modal if needed
-                    if (learnerData) {
-                        rawHtml = rawHtml
-                            .replace(/\{\{apprenant\.prenom\}\}/g, learnerData.firstName)
-                            .replace(/\{\{apprenant\.nom\}\}/g, learnerData.lastName);
-                    }
-                } else {
-                    throw new Error("Aucun contenu ni template trouvé.");
-                }
-            }
-
-            // Pre-process: transform empty boxes into interactive inputs
-            const processedHtml = rawHtml.replace(
-                /<div style="border: 1px solid #ccc; min-height: 80px; padding: 10px; margin-bottom: 20px;"><\/div>/g,
-                '<textarea class="interactive-field" placeholder="Saisissez votre réponse ici..." style="width: 100%; border: 1px solid #ccc; min-height: 80px; padding: 10px; margin-bottom: 20px; font-family: inherit; resize: vertical;"></textarea>'
-            ).replace(
-                /<li>☐ (.*?)<\/li>/g,
-                '<li><label style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" name="competence" class="interactive-checkbox" /> $1</label></li>'
-            );
-
-            setHtmlContent(processedHtml);
         } catch (error) {
             console.error("Error fetching document content:", error);
             toast({
@@ -130,6 +164,7 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
                 description: "Le document est manquant sur le serveur. Utilisation du template par défaut.",
                 variant: "destructive"
             });
+            generateFromTemplate();
         } finally {
             setIsLoading(false);
         }

@@ -17,9 +17,10 @@ import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
-import { useOFUsers, useAssignments } from '@/hooks/useApi';
+import { useOFUsers, useAssignments, useOrganization } from '@/hooks/useApi';
 import { Skeleton } from '@/components/ui/skeleton';
 import axios from 'axios';
+import { getTemplateForType, personalizeDocumentContent } from '@/utils/personalizeDocumentContent';
 
 interface Learner {
   id: string;
@@ -52,6 +53,7 @@ interface SentDocument {
 const OFEmargementPage: React.FC = () => {
   const { user: currentUser } = useFastAPIAuth();
   const ofId = currentUser?.of_id;
+  const { data: ofData } = useOrganization(ofId || '');
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLearnerId, setSelectedLearnerId] = useState<string | null>(null);
@@ -183,6 +185,57 @@ const OFEmargementPage: React.FC = () => {
     setPreviewError(null);
     setIsPreviewLoading(true);
 
+    const generateDynamicContent = () => {
+      // Try to match doc type to template
+      // Try to infer type from title if type is generic 'document'
+      let docType = doc.type;
+      if (docType === 'document' || !getTemplateForType(docType)) {
+        if (doc.title.toLowerCase().includes('analyse')) docType = 'analyse_besoin';
+        else if (doc.title.toLowerCase().includes('cgv')) docType = 'cgv';
+        else if (doc.title.toLowerCase().includes('règlement') || doc.title.toLowerCase().includes('reglement')) docType = 'reglement_interieur';
+        else if (doc.title.toLowerCase().includes('convention')) docType = 'convention';
+      }
+
+      const template = getTemplateForType(docType);
+
+      if (template && selectedLearner) {
+        // Map OF Data
+        const mappedOFData = ofData ? {
+          na: ofData.name,
+          siret: ofData.siret,
+          nda: ofData.numero_declaration,
+          address: ofData.address,
+          postalCode: ofData.postal_code,
+          city: ofData.city,
+          phone: ofData.phone,
+          email: ofData.contact_email || ofData.email,
+          managerName: ofData.legal_representative
+        } : undefined;
+
+        // Map Learner Data
+        const mappedLearnerData = {
+          firstName: selectedLearner.firstName,
+          lastName: selectedLearner.lastName,
+          email: selectedLearner.email,
+          phone: selectedLearner.phone,
+          company: selectedLearner.company,
+          // Address not in Learner interface currently, leaving incomplete if needed
+        };
+
+        const generatedHtml = personalizeDocumentContent(
+          template,
+          { id: selectedLearner.formationId, name: selectedLearner.formationName },
+          mappedOFData,
+          mappedLearnerData
+        );
+
+        setPreviewContent(generatedHtml);
+        setPreviewError(null);
+        return true;
+      }
+      return false;
+    };
+
     if (doc.documentUrl) {
       try {
         // Try to fetch content to see if it exists and check for 404
@@ -190,8 +243,12 @@ const OFEmargementPage: React.FC = () => {
         setPreviewContent(response.data);
       } catch (err: any) {
         console.error("Preview fetch error:", err);
+        // If 404, try to generate dynamic content as fallback
         if (err.response?.status === 404) {
-          setPreviewError("Le document est introuvable sur le serveur (Erreur 404).");
+          const success = generateDynamicContent();
+          if (!success) {
+            setPreviewError("Le document n'est pas encore généré et aucun modèle correspondant n'a été trouvé.");
+          }
         } else {
           setPreviewError("Impossible de charger le document.");
         }
@@ -199,7 +256,11 @@ const OFEmargementPage: React.FC = () => {
         setIsPreviewLoading(false);
       }
     } else {
-      setPreviewError("Aucune URL de document disponible.");
+      // No URL, try to generate directly
+      const success = generateDynamicContent();
+      if (!success) {
+        setPreviewError("Le document est en attente de génération et aucun modèle n'est disponible.");
+      }
       setIsPreviewLoading(false);
     }
   };
@@ -356,17 +417,20 @@ const OFEmargementPage: React.FC = () => {
                           </TableCell>
                           <TableCell>{learner.formationName}</TableCell>
                           <TableCell>
-                            <div className="flex flex-wrap gap-1 max-w-[300px]">
+                            <div className="flex flex-wrap gap-1.5 max-w-[400px]">
                               {stats.docs.map((doc: any) => (
                                 <Badge
                                   key={doc.id}
                                   variant={doc.status === 'signed' ? 'default' : 'outline'}
                                   className={cn(
-                                    "text-[10px] py-0 px-1.5",
-                                    doc.status === 'signed' ? "bg-green-600/10 text-green-700 border-green-200" : "bg-amber-50 text-amber-700 border-amber-200"
+                                    "text-xs py-1 px-2.5 font-medium",
+                                    doc.status === 'signed'
+                                      ? "bg-green-100 text-green-800 border-green-300 hover:bg-green-200"
+                                      : "bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-200"
                                   )}
+                                  title={`${doc.title} - ${doc.status === 'signed' ? 'Signé le ' + new Date(doc.signedAt).toLocaleDateString('fr-FR') : 'En attente de signature'}`}
                                 >
-                                  {doc.title}
+                                  {doc.status === 'signed' ? '✓' : '⏳'} {doc.title}
                                 </Badge>
                               ))}
                               {stats.total === 0 && <span className="text-xs text-muted-foreground italic">Aucun document</span>}
@@ -496,46 +560,94 @@ const OFEmargementPage: React.FC = () => {
               <CardContent className="p-0">
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead>Document</TableHead>
-                      <TableHead>Envoyé le</TableHead>
-                      <TableHead>Statut</TableHead>
-                      <TableHead>Signé le</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                    <TableRow className="bg-muted/50">
+                      <TableHead className="font-semibold">Document</TableHead>
+                      <TableHead className="font-semibold">Envoyé le</TableHead>
+                      <TableHead className="font-semibold">Statut</TableHead>
+                      <TableHead className="font-semibold">Signé le</TableHead>
+                      <TableHead className="text-right font-semibold">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {docs.map((doc) => {
                       const statusConfig = getStatusConfig(doc.status);
                       const StatusIcon = statusConfig.icon;
+                      const isSigned = doc.status === 'signed';
                       return (
-                        <TableRow key={doc.id}>
+                        <TableRow
+                          key={doc.id}
+                          className={cn(
+                            "transition-colors hover:bg-muted/30",
+                            isSigned && "bg-green-50/30"
+                          )}
+                        >
                           <TableCell>
-                            <div className="font-medium">{doc.title}</div>
-                            <div className="text-xs text-muted-foreground capitalize">{doc.type}</div>
+                            <div className="flex items-start gap-3">
+                              <div className={cn(
+                                "w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0",
+                                isSigned ? "bg-green-100" : "bg-amber-100"
+                              )}>
+                                <FileText className={cn(
+                                  "h-5 w-5",
+                                  isSigned ? "text-green-600" : "text-amber-600"
+                                )} />
+                              </div>
+                              <div>
+                                <div className="font-medium text-sm">{doc.title}</div>
+                                <div className="text-xs text-muted-foreground capitalize mt-0.5">
+                                  {doc.type.replace(/_/g, ' ')}
+                                </div>
+                              </div>
+                            </div>
                           </TableCell>
                           <TableCell>
-                            {new Date(doc.sentAt).toLocaleDateString('fr-FR')}
+                            <div className="text-sm">
+                              {new Date(doc.sentAt).toLocaleDateString('fr-FR', {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric'
+                              })}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {new Date(doc.sentAt).toLocaleTimeString('fr-FR', {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </div>
                           </TableCell>
                           <TableCell>
-                            <Badge variant={statusConfig.variant} className="gap-1">
-                              <StatusIcon className="h-3 w-3" />
+                            <Badge
+                              variant={statusConfig.variant}
+                              className={cn(
+                                "gap-1.5 px-3 py-1",
+                                isSigned
+                                  ? "bg-green-100 text-green-800 border-green-300 hover:bg-green-200"
+                                  : "bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-200"
+                              )}
+                            >
+                              <StatusIcon className="h-3.5 w-3.5" />
                               {statusConfig.label}
                             </Badge>
                           </TableCell>
                           <TableCell>
                             {doc.signedAt ? (
-                              <span className="text-green-600 font-medium">
-                                {new Date(doc.signedAt).toLocaleDateString('fr-FR', {
-                                  day: 'numeric',
-                                  month: 'short',
-                                  year: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                })}
-                              </span>
+                              <div>
+                                <div className="text-sm font-medium text-green-700">
+                                  {new Date(doc.signedAt).toLocaleDateString('fr-FR', {
+                                    day: '2-digit',
+                                    month: 'short',
+                                    year: 'numeric'
+                                  })}
+                                </div>
+                                <div className="text-xs text-green-600">
+                                  {new Date(doc.signedAt).toLocaleTimeString('fr-FR', {
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </div>
+                              </div>
                             ) : (
-                              <span className="text-muted-foreground">—</span>
+                              <span className="text-sm text-muted-foreground">—</span>
                             )}
                           </TableCell>
                           <TableCell className="text-right">
@@ -546,23 +658,25 @@ const OFEmargementPage: React.FC = () => {
                                     size="sm"
                                     variant="outline"
                                     onClick={() => handleOpenPreview(doc)}
+                                    className="gap-1.5"
                                   >
-                                    <Eye className="h-4 w-4 mr-1" />
+                                    <Eye className="h-4 w-4" />
                                     Voir
                                   </Button>
-                                  {doc.status === 'signed' && (
+                                  {isSigned && (
                                     <Button
                                       size="sm"
                                       variant="outline"
                                       onClick={() => handleDownload(doc)}
+                                      className="gap-1.5 text-green-700 border-green-300 hover:bg-green-50"
                                     >
-                                      <Download className="h-4 w-4 mr-1" />
+                                      <Download className="h-4 w-4" />
                                       Télécharger
                                     </Button>
                                   )}
                                 </>
                               ) : (
-                                <span className="text-xs text-muted-foreground">Document indisponible</span>
+                                <span className="text-xs text-muted-foreground italic">Document indisponible</span>
                               )}
                             </div>
                           </TableCell>
@@ -629,12 +743,19 @@ const OFEmargementPage: React.FC = () => {
                         )}
                       </div>
                     ) : (
-                      <iframe
-                        srcDoc={previewContent || undefined}
-                        src={!previewContent ? previewDocument.documentUrl : undefined}
-                        className="w-full h-[600px] border-none"
-                        title="Prévisualisation du document"
-                      />
+                      previewContent ? (
+                        <iframe
+                          srcDoc={previewContent}
+                          className="w-full h-[600px] border-none"
+                          title="Prévisualisation du document"
+                        />
+                      ) : (
+                        <iframe
+                          src={previewDocument.documentUrl}
+                          className="w-full h-[600px] border-none"
+                          title="Prévisualisation du document"
+                        />
+                      )
                     )}
                   </CardContent>
                 </Card>
