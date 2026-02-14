@@ -51,19 +51,11 @@ export const OFDocumentsAdvanced: React.FC = () => {
   const [showAnalyseBesoin, setShowAnalyseBesoin] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<DocumentTemplate | null>(null);
 
-  // Upload State
-  const [showUploadDialog, setShowUploadDialog] = useState(false);
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [uploadTitle, setUploadTitle] = useState('');
-  const [uploadPhase, setUploadPhase] = useState<DocumentPhase>('inscription');
-  const [isUploading, setIsUploading] = useState(false);
+  // Upload State (keep minimal needed if reused, else clean)
+  // const [showUploadDialog, setShowUploadDialog] = useState(false); // Removed
+  const [isUploading, setIsUploading] = useState(false); // Used in PhaseSender
 
-  // Send state
-  const [showUploadSendDialog, setShowUploadSendDialog] = useState(false);
-  const [selectedAssetId, setSelectedAssetId] = useState<number | null>(null);
-  const [selectedLearnersForUpload, setSelectedLearnersForUpload] = useState<number[]>([]);
-  const [sendMessage, setSendMessage] = useState("");
-  const [sendPhase, setSendPhase] = useState<DocumentPhase>('inscription');
+  // Send state removed (managed in Emargements or specific senders)
   const [ofInfo, setOfInfo] = useState<OF | null>(null);
 
   const { organization } = useOrganization();
@@ -72,11 +64,11 @@ export const OFDocumentsAdvanced: React.FC = () => {
   const ofId = organization?.organizationId || (organization as any)?.organization_id || authUser?.of_id;
 
   // Hooks
-  const { data: assets, isLoading: assetsLoading, refetch: refetchAssets } = useMediaAssets({ status: 'ready' });
+  const { refetch: refetchAssets } = useMediaAssets({ status: 'ready' });
   const { data: learnersRaw, isLoading: learnersLoading } = useOFUsers(ofId);
   const prepare = usePrepareUpload();
   const complete = useCompleteUpload();
-  const deleteMedia = useDeleteMedia();
+  // const deleteMedia = useDeleteMedia(); // Removed
   const assign = useAssignMedia();
   const { toast } = useToast();
 
@@ -106,11 +98,7 @@ export const OFDocumentsAdvanced: React.FC = () => {
     fetchOFInfo();
   }, [ofId]);
 
-  const handleDeleteAsset = async (assetId: number) => {
-    if (window.confirm("Êtes-vous sûr de vouloir supprimer ce document ?")) {
-      await deleteMedia.mutateAsync({ asset_id: assetId, force: true });
-    }
-  };
+
 
   // Convert API users to Learner type
   const learners: Learner[] = (learnersRaw || [])
@@ -190,87 +178,9 @@ export const OFDocumentsAdvanced: React.FC = () => {
     setShowEditor(false);
   };
 
-  const handleUploadDocument = async () => {
-    if (!uploadFile || !uploadTitle.trim()) {
-      toast({ title: 'Champs requis', description: 'Veuillez saisir un titre et sélectionner un fichier.', variant: 'destructive' });
-      return;
-    }
 
-    try {
-      setIsUploading(true);
 
-      // 1. Prepare upload
-      const prep = await prepare.mutateAsync({
-        filename: uploadFile.name,
-        content_type: uploadFile.type || 'application/octet-stream',
-        size: uploadFile.size,
-        kind: 'resource' // On considère tout comme resource PDF/Doc
-      });
 
-      // 2. Direct upload to S3 (presigned URL)
-      await axios.put(prep.url!, uploadFile, {
-        headers: { 'Content-Type': uploadFile.type || 'application/octet-stream' }
-      });
-
-      // 3. Complete upload
-      await complete.mutateAsync({
-        strategy: prep.strategy,
-        key: prep.key,
-        content_type: uploadFile.type || 'application/octet-stream',
-        size: uploadFile.size
-      });
-
-      toast({ title: 'Document uploadé', description: `"${uploadTitle}" a été uploadé avec succès.` });
-      refetchAssets();
-      setShowUploadDialog(false);
-      setUploadFile(null);
-      setUploadTitle('');
-    } catch (err: any) {
-      console.error('Upload error:', err);
-      toast({ title: 'Erreur d\'upload', description: err.message || 'Une erreur est survenue.', variant: 'destructive' });
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const handleOpenUploadSend = (assetId: number) => {
-    setSelectedAssetId(assetId);
-    setSelectedLearnersForUpload([]);
-    setSendMessage("");
-    setSendPhase(activePhase); // Par défaut la phase de l'onglet actuel
-    setShowUploadSendDialog(true);
-  };
-
-  const handleSendUploadedDocument = async () => {
-    if (!selectedAssetId || selectedLearnersForUpload.length === 0) return;
-
-    try {
-      // Pour chaque apprenant sélectionné
-      const promises = selectedLearnersForUpload.map(userId =>
-        assign.mutateAsync({
-          user_id: userId,
-          media_asset_id: selectedAssetId,
-          message: sendMessage,
-          phase: sendPhase
-        })
-      );
-
-      await Promise.all(promises);
-
-      toast({ title: 'Documents envoyés', description: `Le document a été envoyé à ${selectedLearnersForUpload.length} apprenant(s).` });
-      setShowUploadSendDialog(false);
-      setSelectedAssetId(null);
-      setSelectedLearnersForUpload([]);
-    } catch (err: any) {
-      toast({ title: 'Erreur', description: 'Impossible d\'envoyer le document.', variant: 'destructive' });
-    }
-  };
-
-  const toggleLearnerForUpload = (learnerId: number) => {
-    setSelectedLearnersForUpload(prev =>
-      prev.includes(learnerId) ? prev.filter(id => id !== learnerId) : [...prev, learnerId]
-    );
-  };
 
   const handleSendPhaseDocuments = async (docs: any[]) => {
     console.log('handleSendPhaseDocuments: Start', { docCount: docs.length });
@@ -382,10 +292,7 @@ export const OFDocumentsAdvanced: React.FC = () => {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input placeholder="Rechercher un modèle..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
               </div>
-              <Button variant="outline" onClick={() => setShowUploadDialog(true)}>
-                <Upload className="h-4 w-4 mr-2" />
-                Uploader un document
-              </Button>
+
             </div>
 
             {/* Templates Table */}
@@ -443,153 +350,16 @@ export const OFDocumentsAdvanced: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* Real Library of Assets */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BookOpen className="h-5 w-5" />
-                  Bibliothèque de documents (Storage)
-                </CardTitle>
-                <CardDescription>Tous vos documents importés disponibles pour envoi</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {assetsLoading ? (
-                  <div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>
-                ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Fichier</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {(assets?.items || []).filter((a: any) => a.kind === 'resource' || a.kind === 'image').map((asset: any) => (
-                        <TableRow key={asset.id}>
-                          <TableCell className="font-medium">{asset.filename}</TableCell>
-                          <TableCell><Badge variant="outline">{asset.kind}</Badge></TableCell>
-                          <TableCell>{new Date(asset.created_at).toLocaleDateString('fr-FR')}</TableCell>
-                          <TableCell className="text-right flex justify-end gap-2 text-right">
-                            <Button size="sm" onClick={() => handleOpenUploadSend(asset.id)}>
-                              <Send className="h-4 w-4 mr-2" />
-                              Envoyer
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => handleDeleteAsset(asset.id)}
-                              disabled={deleteMedia.isPending}
-                            >
-                              {deleteMedia.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      {(assets?.items || []).length === 0 && (
-                        <TableRow>
-                          <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">Aucun document dans le storage</TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                )}
-              </CardContent>
-            </Card>
+
           </TabsContent>
         ))}
       </Tabs>
 
       {/* Upload Dialog */}
-      <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><Upload className="h-5 w-5" /> Uploader un document</DialogTitle>
-            <DialogDescription>
-              Importez un document local (votre règlement intérieur, CGV ou programme PDF personnalisé) pour pouvoir l'envoyer à vos apprenants.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Titre du document</label>
-              <Input placeholder="Titre interne..." value={uploadTitle} onChange={(e) => setUploadTitle(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Fichier</label>
-              <Input type="file" onChange={(e) => setUploadFile(e.target.files?.[0] || null)} />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowUploadDialog(false)}>Annuler</Button>
-            <Button onClick={handleUploadDocument} disabled={!uploadFile || isUploading}>
-              {isUploading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
-              Uploader
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
 
       {/* Send Dialog */}
-      <Dialog open={showUploadSendDialog} onOpenChange={setShowUploadSendDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Envoyer le document</DialogTitle>
-            <DialogDescription>
-              Sélectionnez la phase de formation et les apprenants auxquels vous souhaitez envoyer ce document.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Phase cible</label>
-                <Select value={sendPhase} onValueChange={(val: DocumentPhase) => setSendPhase(val)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choisir une phase" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(PHASES_CONFIG).map(([id, config]) => (
-                      <SelectItem key={id} value={id}>{config.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Message (optionnel)</label>
-                <Input placeholder="Votre message..." value={sendMessage} onChange={(e) => setSendMessage(e.target.value)} />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Apprenants</label>
-              <div className="border rounded-lg max-h-60 overflow-auto divide-y">
-                {learnersLoading ? <div className="p-4 text-center text-sm text-muted-foreground">Chargement...</div> :
-                  learners.length === 0 ? (
-                    <div className="p-8 text-center bg-muted/20 rounded-lg">
-                      <Users className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
-                      <p className="text-sm text-muted-foreground">Aucun apprenant trouvé pour cet organisme.</p>
-                      <p className="text-xs text-muted-foreground mt-1">Vérifiez que vos utilisateurs ont bien le rôle 'apprenant'.</p>
-                    </div>
-                  ) :
-                    learners.map(l => (
-                      <label key={l.id} className="flex items-center p-3 gap-3 cursor-pointer hover:bg-muted/50 transition-colors">
-                        <input type="checkbox" className="h-4 w-4 rounded border-primary" checked={selectedLearnersForUpload.includes(Number(l.id))} onChange={() => toggleLearnerForUpload(Number(l.id))} />
-                        <div className="flex-1">
-                          <div className="text-sm font-medium">{l.firstName} {l.lastName}</div>
-                          <div className="text-xs text-muted-foreground">{l.email}</div>
-                        </div>
-                      </label>
-                    ))}
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button onClick={handleSendUploadedDocument} disabled={selectedLearnersForUpload.length === 0 || assign.isPending}>
-              {assign.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-              Envoyer à {selectedLearnersForUpload.length} apprenants
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
 
       {/* Analyse de Besoin Dialog */}
       <Dialog open={showAnalyseBesoin} onOpenChange={setShowAnalyseBesoin}>
