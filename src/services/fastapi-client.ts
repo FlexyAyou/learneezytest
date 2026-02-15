@@ -1033,7 +1033,16 @@ class FastAPIClient {
     login_url?: string;
     detail?: string;
   }> {
-    return this.get('/api/organizations/verify-subdomain', { params: { host } });
+    const data = await this.get<any>('/api/organizations/verify-subdomain', { params: { host } });
+    return {
+      exists: data.exists,
+      slug: data.slug,
+      organizationId: data.organization_id, // Map snake_case to camelCase
+      organizationName: data.organization_name, // Map snake_case to camelCase
+      logoUrl: data.logoUrl,
+      login_url: data.login_url,
+      detail: data.detail
+    };
   }
 
   /**

@@ -15,7 +15,7 @@ export const useSubdomain = () => {
     const detectSubdomain = async () => {
       try {
         const hostname = window.location.hostname;
-        
+
         // Détection locale (développement)
         if (hostname === 'localhost' || hostname === '127.0.0.1') {
           setIsLoading(false);
@@ -24,7 +24,7 @@ export const useSubdomain = () => {
 
         // Extraire le sous-domaine (ex: ekr de ekr.learneezy.com)
         const parts = hostname.split('.');
-        
+
         // Si c'est juste learneezy.com (domaine principal), pas de sous-domaine
         if (parts.length <= 2) {
           setIsLoading(false);
@@ -33,7 +33,7 @@ export const useSubdomain = () => {
 
         // Le sous-domaine est la première partie
         const detectedSubdomain = parts[0];
-        
+
         // Ignorer les sous-domaines systèmes
         if (['www', 'api', 'admin'].includes(detectedSubdomain)) {
           setIsLoading(false);
@@ -44,10 +44,9 @@ export const useSubdomain = () => {
 
         // Vérifier auprès du backend si ce sous-domaine existe
         const result = await fastAPIClient.verifySubdomain(hostname);
-        
-        if (result.exists) {
-          setVerification(result);
-        } else {
+
+        setVerification(result);
+        if (!result.exists) {
           setError('Organisation introuvable');
         }
       } catch (err) {

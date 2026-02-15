@@ -18,16 +18,9 @@ const OrganizationContext = createContext<OrganizationContextData>(defaultContex
 
 export const OrganizationProvider: React.FC<OrganizationProviderProps> = ({ children }) => {
   const { verification, isLoading, error, isOFSubdomain } = useSubdomain();
-  const [currentOrganization, setCurrentOrganization] = useState<SubdomainVerification | null>(null);
-
-  useEffect(() => {
-    if (verification && verification.exists) {
-      setCurrentOrganization(verification);
-    }
-  }, [verification]);
 
   const value: OrganizationContextData = {
-    organization: currentOrganization,
+    organization: verification,
     isOFContext: isOFSubdomain,
     isLoading,
     error,

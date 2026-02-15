@@ -55,7 +55,9 @@ export const personalizeDocumentContent = (
     ? `<div style="margin-top: 10px;"><img src="${learnerSignature}" alt="Signature apprenant" style="max-height: 60px; max-width: 200px;" /><p style="font-size: 12px; color: #666; margin-top: 5px;">Signé électroniquement</p></div>`
     : '';
 
-  let content = template;
+  let content = template || '';
+
+  if (!content) return '';
 
   // Remplacement des données de l'OF
   content = content
