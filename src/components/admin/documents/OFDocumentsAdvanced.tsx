@@ -66,7 +66,8 @@ export const OFDocumentsAdvanced: React.FC = () => {
   const { organization } = useOrganization();
   const { user: authUser } = useAuth();
   // Support both camelCase and snake_case from API response
-  const ofId = organization?.organizationId || (organization as any)?.organization_id || authUser?.of_id;
+  const rawOfId = organization?.organizationId || (organization as any)?.organization_id || authUser?.of_id;
+  const ofId = rawOfId ? Number(rawOfId) : null;
 
   // Hooks
   const { refetch: refetchAssets } = useMediaAssets({ status: 'ready' });
@@ -131,9 +132,9 @@ export const OFDocumentsAdvanced: React.FC = () => {
   const { data: templates = [], refetch: refetchTemplates } = useQuery({
     queryKey: ['documentTemplates', ofId],
     queryFn: async () => {
-      if (!ofId) return [];
+      if (!ofId || isNaN(ofId)) return [];
       try {
-        const res = await fastAPIClient.listDocumentTemplates(Number(ofId));
+        const res = await fastAPIClient.listDocumentTemplates(ofId);
         return res;
       } catch (e) {
         console.error("Failed to fetch templates", e);
@@ -144,6 +145,10 @@ export const OFDocumentsAdvanced: React.FC = () => {
   });
 
   const handleInitDefaults = async () => {
+    if (!ofId || isNaN(ofId)) {
+      toast({ title: "Erreur", description: "ID de l'organisation introuvable. Veuillez vous reconnecter.", variant: "destructive" });
+      return;
+    }
     setIsUploading(true);
     try {
       const seeds = [
@@ -164,7 +169,7 @@ export const OFDocumentsAdvanced: React.FC = () => {
 
       for (const seed of seeds) {
         // @ts-ignore
-        await fastAPIClient.createDocumentTemplate(Number(ofId), {
+        await fastAPIClient.createDocumentTemplate(ofId, {
           ...seed,
           isActive: true
         });
@@ -202,11 +207,13 @@ export const OFDocumentsAdvanced: React.FC = () => {
 
   const handleSaveTemplate = async (template: any) => {
     try {
+      if (!ofId || isNaN(ofId)) throw new Error("ID de l'organisation introuvable");
+
       if (template.id && template.id.length > 5 && !template.id.startsWith('t-')) {
-        await fastAPIClient.updateDocumentTemplate(Number(ofId), template.id, template);
+        await fastAPIClient.updateDocumentTemplate(ofId, template.id, template);
       } else {
         const { id, ...rest } = template; // Remove temp ID
-        await fastAPIClient.createDocumentTemplate(Number(ofId), rest);
+        await fastAPIClient.createDocumentTemplate(ofId, rest);
       }
       refetchTemplates();
       setShowEditor(false);
@@ -231,8 +238,10 @@ export const OFDocumentsAdvanced: React.FC = () => {
 
       const templateIds = docs.map(d => d.templateId).filter(Boolean);
 
+      if (!ofId || isNaN(ofId)) throw new Error("ID de l'organisation introuvable");
+
       // Call Send API
-      await fastAPIClient.sendDocuments(Number(ofId), {
+      await fastAPIClient.sendDocuments(ofId, {
         learner_id: Number(learnerId),
         phase: activePhase,
         template_ids: templateIds,
