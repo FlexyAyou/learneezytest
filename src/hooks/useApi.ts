@@ -1262,7 +1262,59 @@ export const useAssignMedia = () => {
 export const useMyDocuments = () => {
   return useQuery({
     queryKey: ['my-documents'],
-    queryFn: () => fastAPIClient.getMyDocuments(),
+    queryFn: async () => {
+      try {
+        // Get current user to extract learner_id and of_id
+        const user = await fastAPIClient.getCurrentUser();
+        const learnerId = user.id;
+        const ofId = user.of_id;
+
+        if (!learnerId || !ofId) {
+          console.warn('useMyDocuments: Missing learner_id or of_id');
+          return [];
+        }
+
+        // Fetch both sources in parallel
+        const [legacyDocs, newDocs] = await Promise.all([
+          fastAPIClient.getMyDocuments().catch(e => { console.error('Legacy docs error:', e); return []; }),
+          fastAPIClient.getLearnerDocuments(ofId, learnerId).catch(e => { console.error('New docs error:', e); return []; })
+        ]);
+
+        // Map new docs to legacy format for compatibility
+        const mappedNewDocs = (newDocs || []).map((doc: any) => ({
+          id: `new-${doc.id}`, // Prefix to avoid ID collision
+          media_asset: {
+            id: 0,
+            filename: doc.title || 'Document',
+            kind: 'document',
+            size: doc.html_content ? doc.html_content.length : 0,
+            url: null, // HTML content, not URL
+            content_type: 'text/html',
+            created_at: doc.sent_at
+          },
+          is_viewed: doc.status !== 'sent',
+          is_signed: doc.status === 'signed',
+          assigned_at: doc.sent_at,
+          signed_at: doc.signed_at,
+          message: `Document ${doc.type || 'administratif'}`,
+          phase: doc.phase,
+          signature_data: doc.signature_data,
+          // Add custom fields for new system
+          _isNewSystem: true,
+          _docId: doc.id,
+          _htmlContent: doc.html_content,
+          _requiresSignature: doc.requires_signature,
+          _uniqueCode: doc.unique_code
+        }));
+
+        // Merge and return
+        return [...(legacyDocs || []), ...mappedNewDocs];
+      } catch (error) {
+        console.error('useMyDocuments error:', error);
+        // Fallback to legacy only
+        return fastAPIClient.getMyDocuments().catch(() => []);
+      }
+    },
   });
 };
 

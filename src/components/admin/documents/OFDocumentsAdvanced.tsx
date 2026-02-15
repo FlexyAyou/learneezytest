@@ -19,6 +19,7 @@ import { DocumentTemplateEditor } from './DocumentTemplateEditor';
 import { PhaseDocumentSender } from './PhaseDocumentSender';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { DEFAULT_TEMPLATES } from './defaultTemplates';
 import { fastAPIClient } from '@/services/fastapi-client';
 import {
   DocumentTemplate, DocumentPhase, DocumentType, Learner, Formation, OF,
@@ -141,6 +142,42 @@ export const OFDocumentsAdvanced: React.FC = () => {
     },
     enabled: !!ofId
   });
+
+  const handleInitDefaults = async () => {
+    setIsUploading(true);
+    try {
+      const seeds = [
+        { type: 'analyse_besoin', phase: 'inscription', title: 'Analyse du besoin', description: 'Formulaire d\'évaluation préalable du besoin de formation', htmlContent: DEFAULT_TEMPLATES.analyse_besoin, requiresSignature: false },
+        { type: 'test_positionnement', phase: 'inscription', title: 'Test de positionnement', description: 'Évaluation du niveau initial de l\'apprenant', htmlContent: DEFAULT_TEMPLATES.test_positionnement, requiresSignature: false },
+        { type: 'convention', phase: 'inscription', title: 'Convention de formation', description: 'Convention tripartite', htmlContent: DEFAULT_TEMPLATES.convention, requiresSignature: true },
+        { type: 'convocation', phase: 'formation', title: 'Convocation', htmlContent: DEFAULT_TEMPLATES.convocation, description: 'Convocation à la formation', requiresSignature: false },
+        { type: 'programme', phase: 'formation', title: 'Programme de formation', htmlContent: DEFAULT_TEMPLATES.programme, description: 'Programme détaillé', requiresSignature: false },
+        { type: 'cgv', phase: 'formation', title: 'Conditions Générales de Vente', htmlContent: DEFAULT_TEMPLATES.cgv, description: 'CGV', requiresSignature: true },
+        { type: 'reglement_interieur', phase: 'formation', title: 'Règlement Intérieur', htmlContent: DEFAULT_TEMPLATES.reglement_interieur, description: 'Règlement intérieur', requiresSignature: true },
+        { type: 'attestation_honneur', phase: 'formation', title: 'Attestation sur l\'honneur', htmlContent: DEFAULT_TEMPLATES.attestation_honneur, description: 'Attestation sur l\'honneur (CPF)', requiresSignature: true },
+        { type: 'emargement', phase: 'post-formation', title: 'Attestation de réalisation', htmlContent: DEFAULT_TEMPLATES.emargement, description: 'Feuille d\'émargement', requiresSignature: true },
+        { type: 'certificat', phase: 'post-formation', title: 'Certificat de réalisation', htmlContent: DEFAULT_TEMPLATES.certificat, description: 'Certificat de fin de formation', requiresSignature: false },
+        { type: 'satisfaction_chaud', phase: 'post-formation', title: 'Questionnaire de satisfaction', htmlContent: DEFAULT_TEMPLATES.satisfaction_chaud, description: 'Évaluation à chaud', requiresSignature: false },
+        { type: 'satisfaction_froid', phase: 'suivi', title: 'Questionnaire à froid', htmlContent: DEFAULT_TEMPLATES.satisfaction_froid, description: 'Évaluation à froid (+3 mois)', requiresSignature: false },
+        { type: 'test_sortie', phase: 'post-formation', title: 'Test de sortie', htmlContent: DEFAULT_TEMPLATES.test_sortie, description: 'Évaluation des acquis', requiresSignature: false },
+      ];
+
+      for (const seed of seeds) {
+        // @ts-ignore
+        await fastAPIClient.createDocumentTemplate(Number(ofId), {
+          ...seed,
+          isActive: true
+        });
+      }
+      toast({ title: "Modèles initialisés", description: "Les modèles par défaut ont été créés." });
+      refetchTemplates();
+    } catch (e) {
+      console.error(e);
+      toast({ title: "Erreur", description: "Erreur lors de l'initialisation", variant: "destructive" });
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const handleCreateTemplate = () => {
     setSelectedTemplate({
@@ -345,7 +382,20 @@ export const OFDocumentsAdvanced: React.FC = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredTemplates.map((template) => (
+                    {filteredTemplates.length === 0 && templates.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center py-8">
+                          <div className="flex flex-col items-center justify-center space-y-3">
+                            <p className="text-muted-foreground">Aucun modèle de document trouvé.</p>
+                            <Button onClick={handleInitDefaults} disabled={isUploading}>
+                              {isUploading ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                              Initialiser les modèles par défaut
+                            </Button>
+                            <p className="text-xs text-muted-foreground">Crée tous les modèles standards (Convention, Émargement, etc.)</p>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : filteredTemplates.map((template) => (
                       <TableRow key={template.id}>
                         <TableCell>
                           <div className="font-medium">{template.title}</div>

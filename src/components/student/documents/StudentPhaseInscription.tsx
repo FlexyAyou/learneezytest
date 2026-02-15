@@ -11,6 +11,7 @@ import { StudentNeedsAnalysisModal } from './StudentNeedsAnalysisModal';
 import { personalizeDocumentContent, getTemplateForType } from '@/utils/personalizeDocumentContent';
 import { useMyDocuments, useSignDocument } from '@/hooks/useApi';
 import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
+import { fastAPIClient } from '@/services/fastapi-client';
 
 interface Formation {
   id: string;
@@ -65,7 +66,30 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
       const mappedDocs: PhaseDocument[] = (assignments as any[])
         .filter(a => !a.phase || a.phase === 'inscription' || a.phase === 'phase-inscription')
         .map(a => {
-          // Détection du type basé sur le nom du fichier (heuristique)
+          // Check if new system document
+          if (a._isNewSystem) {
+            return {
+              id: a._docId,
+              assignmentId: undefined, // No assignment ID for new system
+              name: a.media_asset.filename,
+              formationId: formations.length > 0 ? formations[0].id : '',
+              type: a.message?.includes('convention') ? 'convention' :
+                a.message?.includes('analyse') ? 'analyse_besoin' :
+                  a.message?.includes('test') ? 'test_positionnement' : 'convention',
+              date: new Date(a.assigned_at).toISOString(),
+              size: `${Math.round(a.media_asset.size / 1024)} KB`,
+              status: a.is_signed ? 'signed' : 'available',
+              requiresSignature: a._requiresSignature && !a.is_signed,
+              htmlContent: a._htmlContent,
+              learnerSignature: a.signature_data,
+              signedAt: a.signed_at,
+              url: undefined, // New system uses HTML content
+              _isNewSystem: true,
+              _uniqueCode: a._uniqueCode
+            };
+          }
+
+          // Legacy system
           let type: 'analyse_besoin' | 'test_positionnement' | 'convention' = 'convention';
           const lowerName = a.media_asset.filename.toLowerCase();
           if (lowerName.includes('analyse') || lowerName.includes('besoin')) type = 'analyse_besoin';
@@ -75,12 +99,12 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
             id: `api-${a.id}`,
             assignmentId: a.id,
             name: a.media_asset.filename,
-            formationId: formations.length > 0 ? formations[0].id : '', // Fallback, devrait être lié à la formation réelle
+            formationId: formations.length > 0 ? formations[0].id : '',
             type: type,
             date: new Date(a.assigned_at).toISOString(),
             size: `${Math.round(a.media_asset.size / 1024)} KB`,
             status: a.is_signed ? 'signed' : 'available',
-            requiresSignature: !a.is_signed, // On suppose que tout doc dans cette phase nécessite signature si non signé
+            requiresSignature: !a.is_signed,
             url: a.media_asset.url,
             learnerSignature: a.signature_data,
             signedAt: a.signed_at
@@ -130,9 +154,28 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
   };
 
   const handleSignatureComplete = (documentId: string, signatureData: string) => {
-    // Note: DocumentSignatureModal calls this function. 
-    // We initiate the mutation and return the promise so the modal waits.
+    const doc = localDocuments.find(d => d.id === documentId);
 
+    // New system document
+    if (doc && (doc as any)._isNewSystem) {
+      return new Promise<void>(async (resolve, reject) => {
+        try {
+          const user = await fastAPIClient.getCurrentUser();
+          await fastAPIClient.signLearnerDocument(user.of_id, user.id, documentId, signatureData);
+          refetchDocs();
+          setSignatureModalOpen(false);
+          setSelectedDocument(null);
+          toast({ title: "Document signé", description: "Votre signature a été enregistrée." });
+          resolve();
+        } catch (error) {
+          console.error("Erreur signature (new system):", error);
+          toast({ title: "Erreur", description: "Impossible de signer le document.", variant: "destructive" });
+          reject(error);
+        }
+      });
+    }
+
+    // Legacy system
     if (selectedDocument && selectedDocument.assignmentId) {
       return new Promise<void>((resolve, reject) => {
         signDocumentMutation.mutate({
@@ -140,7 +183,7 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
           signature_data: signatureData
         }, {
           onSuccess: () => {
-            refetchDocs(); // Rafraîchir les données API
+            refetchDocs();
             setSignatureModalOpen(false);
             setSelectedDocument(null);
             resolve();
@@ -152,7 +195,7 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
         });
       });
     } else {
-      // Fallback local pour démo sans API
+      // Fallback local
       setLocalDocuments(prev => prev.map(doc =>
         doc.id === documentId
           ? {
@@ -188,11 +231,23 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
       return;
     }
 
+    // New system: show HTML content
+    if (doc.htmlContent) {
+      setPreviewDocument({
+        title: documentTypes[doc.type].label,
+        content: doc.htmlContent
+      });
+      setPreviewModalOpen(true);
+      return;
+    }
+
+    // Legacy: open URL
     if (doc.url) {
       window.open(doc.url, '_blank');
       return;
     }
 
+    // Fallback: generate from template
     const formation = formations.find(f => f.id === doc.formationId);
     const template = getTemplateForType(doc.type);
 

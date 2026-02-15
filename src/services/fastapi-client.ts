@@ -1475,6 +1475,17 @@ class FastAPIClient {
     }
     return this.get<any>(`/api/organizations/${ofId}/emargements${query}`);
   }
+
+  // --- LEARNER DOCUMENTS ---
+  async getLearnerDocuments(ofId: number, learnerId: number) {
+    return this.get<any[]>(`/api/organizations/${ofId}/learners/${learnerId}/documents`);
+  }
+
+  async signLearnerDocument(ofId: number, learnerId: number, docId: string, signatureData: string) {
+    return this.post<any>(`/api/organizations/${ofId}/learners/${learnerId}/documents/${docId}/sign`, {
+      signature_data: signatureData
+    });
+  }
 }
 
 // Instance singleton
