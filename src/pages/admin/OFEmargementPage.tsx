@@ -50,6 +50,7 @@ interface SentDocument {
   signatureData?: string;
   documentUrl?: string;
   htmlContent?: string;
+  requiresSignature?: boolean;
 }
 
 const OFEmargementPage: React.FC = () => {
@@ -66,8 +67,13 @@ const OFEmargementPage: React.FC = () => {
   const [previewError, setPreviewError] = useState<string | null>(null);
 
   // Fetch real data
+  // Fetch learners and their documents via the dedicated emargements endpoint
   const { data: rawUsers, isLoading: usersLoading } = useOFUsers(ofId, { role: 'apprenant' });
-  const { data: rawAssignments, isLoading: assignmentsLoading } = useAssignments({ of_id: ofId });
+  const { data: emargementData, isLoading: emargementLoading, refetch: refetchEmargements } = useQuery({
+    queryKey: ['emargements', ofId],
+    queryFn: () => fastAPIClient.getEmargements(Number(ofId)),
+    enabled: !!ofId
+  });
 
   // Fetch templates to use user-edited versions for preview fallback
   const { data: templates = [] } = useQuery({
@@ -90,10 +96,11 @@ const OFEmargementPage: React.FC = () => {
   // Map API data to component interfaces
   const learners: Learner[] = useMemo(() => {
     if (!rawUsers) return [];
+
     return rawUsers.map((u: any) => {
-      // Find the first assignment for this learner to get formation info if possible
-      const learnerDocs = assignmentsList.filter((a: any) => a.user_id === u.id);
-      const formationName = learnerDocs.length > 0 ? (learnerDocs[0].course?.title || 'Formation') : 'Formation';
+      // Find learner in emargement data to get their formation info
+      const emargementLearner = emargementData?.learners?.find((l: any) => l.learner_id === u.id);
+      const formationName = emargementLearner?.documents?.[0]?.formation_name || 'Formation';
 
       return {
         id: u.id.toString(),
@@ -102,34 +109,36 @@ const OFEmargementPage: React.FC = () => {
         email: u.email,
         phone: u.phone || '-',
         company: u.organization?.name || 'Apprenant',
-        formationId: learnerDocs[0]?.course_id?.toString() || '-',
+        formationId: emargementLearner?.documents?.[0]?.formation_id?.toString() || '-',
         formationName: formationName
       };
     });
-  }, [rawUsers, assignmentsList]);
+  }, [rawUsers, emargementData]);
 
   const assignmentsMap = useMemo(() => {
     const map: Record<string, SentDocument[]> = {};
 
-    assignmentsList.forEach((a: any) => {
-      const learnerId = a.user_id.toString();
-      if (!map[learnerId]) map[learnerId] = [];
-
-      map[learnerId].push({
-        id: a.id.toString(),
-        title: a.title || (a.media_asset?.filename) || 'Document sans titre',
-        type: a.type || 'document',
-        phase: a.phase || 'inscription',
-        sentAt: a.created_at,
-        status: a.is_signed ? 'signed' : 'pending',
-        signedAt: a.signed_at,
-        signatureData: a.signature_data,
-        documentUrl: a.signed_url || a.media_asset?.url,
-        htmlContent: undefined,
+    if (emargementData?.learners) {
+      emargementData.learners.forEach((l: any) => {
+        const learnerId = l.learner_id.toString();
+        map[learnerId] = l.documents.map((d: any) => ({
+          id: d.id,
+          title: d.title,
+          type: d.type || 'document',
+          phase: d.phase,
+          sentAt: d.sent_at,
+          status: d.status, // already mapped to 'sent' | 'signed' | etc by backend
+          requiresSignature: d.requires_signature,
+          signedAt: d.signed_at,
+          signatureData: d.signature_data,
+          documentUrl: d.document_url,
+          htmlContent: d.html_content,
+        }));
       });
-    });
+    }
+
     return map;
-  }, [assignmentsList]);
+  }, [emargementData]);
 
   const selectedLearner = useMemo(() =>
     learners.find(l => l.id === selectedLearnerId),
@@ -342,19 +351,19 @@ const OFEmargementPage: React.FC = () => {
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
-              {assignmentsLoading ? <Skeleton className="h-8 w-16 mx-auto mb-2" /> : <div className="text-3xl font-bold text-foreground">{totalStats.total}</div>}
+              {emargementLoading ? <Skeleton className="h-8 w-16 mx-auto mb-2" /> : <div className="text-3xl font-bold text-foreground">{totalStats.total}</div>}
               <div className="text-sm text-muted-foreground">Documents envoyés</div>
             </CardContent>
           </Card>
           <Card className="bg-green-50 border-green-200">
             <CardContent className="p-4 text-center">
-              {assignmentsLoading ? <Skeleton className="h-8 w-16 mx-auto mb-2" /> : <div className="text-3xl font-bold text-green-600">{totalStats.signed}</div>}
+              {emargementLoading ? <Skeleton className="h-8 w-16 mx-auto mb-2" /> : <div className="text-3xl font-bold text-green-600">{totalStats.signed}</div>}
               <div className="text-sm text-green-700">Documents signés</div>
             </CardContent>
           </Card>
           <Card className="bg-amber-50 border-amber-200">
             <CardContent className="p-4 text-center">
-              {assignmentsLoading ? <Skeleton className="h-8 w-16 mx-auto mb-2" /> : <div className="text-3xl font-bold text-amber-600">{totalStats.pending}</div>}
+              {emargementLoading ? <Skeleton className="h-8 w-16 mx-auto mb-2" /> : <div className="text-3xl font-bold text-amber-600">{totalStats.pending}</div>}
               <div className="text-sm text-amber-700">En attente de signature</div>
             </CardContent>
           </Card>
@@ -391,7 +400,7 @@ const OFEmargementPage: React.FC = () => {
             <CardDescription>Cliquez sur un apprenant pour voir ses documents</CardDescription>
           </CardHeader>
           <CardContent>
-            {usersLoading || assignmentsLoading ? (
+            {usersLoading || emargementLoading ? (
               <div className="space-y-4">
                 {[1, 2, 3].map(i => <Skeleton key={i} className="h-16 w-full" />)}
               </div>
@@ -590,9 +599,19 @@ const OFEmargementPage: React.FC = () => {
                   </TableHeader>
                   <TableBody>
                     {docs.map((doc) => {
-                      const statusConfig = getStatusConfig(doc.status);
-                      const StatusIcon = statusConfig.icon;
                       const isSigned = doc.status === 'signed';
+                      const needsSignature = doc.requiresSignature !== false && !isSigned;
+
+                      // If signature not required and not signed, show as 'sent'
+                      const effectiveStatus = (doc.status === 'pending' && !doc.requiresSignature) ? 'sent' : doc.status;
+                      const statusConfig = getStatusConfig(effectiveStatus);
+
+                      // Custom labels for non-signature docs
+                      if (!doc.requiresSignature && doc.status === 'pending') {
+                        statusConfig.label = 'Disponible';
+                      }
+
+                      const StatusIcon = statusConfig.icon;
                       return (
                         <TableRow
                           key={doc.id}
@@ -605,35 +624,41 @@ const OFEmargementPage: React.FC = () => {
                             <div className="flex items-start gap-3">
                               <div className={cn(
                                 "w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0",
-                                isSigned ? "bg-green-100" : "bg-amber-100"
+                                isSigned ? "bg-green-100" : (needsSignature ? "bg-amber-100" : "bg-blue-100")
                               )}>
                                 <FileText className={cn(
                                   "h-5 w-5",
-                                  isSigned ? "text-green-600" : "text-amber-600"
+                                  isSigned ? "text-green-600" : (needsSignature ? "text-amber-600" : "text-blue-600")
                                 )} />
                               </div>
                               <div>
                                 <div className="font-medium text-sm">{doc.title}</div>
                                 <div className="text-xs text-muted-foreground capitalize mt-0.5">
-                                  {doc.type.replace(/_/g, ' ')}
+                                  {doc.type ? doc.type.replace(/_/g, ' ') : 'Ressource'}
                                 </div>
                               </div>
                             </div>
                           </TableCell>
                           <TableCell>
-                            <div className="text-sm">
-                              {new Date(doc.sentAt).toLocaleDateString('fr-FR', {
-                                day: '2-digit',
-                                month: 'short',
-                                year: 'numeric'
-                              })}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              {new Date(doc.sentAt).toLocaleTimeString('fr-FR', {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </div>
+                            {doc.sentAt ? (
+                              <>
+                                <div className="text-sm">
+                                  {new Date(doc.sentAt).toLocaleDateString('fr-FR', {
+                                    day: '2-digit',
+                                    month: 'short',
+                                    year: 'numeric'
+                                  })}
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  {new Date(doc.sentAt).toLocaleTimeString('fr-FR', {
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </div>
+                              </>
+                            ) : (
+                              <span className="text-sm text-muted-foreground">—</span>
+                            )}
                           </TableCell>
                           <TableCell>
                             <Badge
@@ -642,7 +667,9 @@ const OFEmargementPage: React.FC = () => {
                                 "gap-1.5 px-3 py-1",
                                 isSigned
                                   ? "bg-green-100 text-green-800 border-green-300 hover:bg-green-200"
-                                  : "bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-200"
+                                  : (needsSignature
+                                    ? "bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-200"
+                                    : "bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200")
                               )}
                             >
                               <StatusIcon className="h-3.5 w-3.5" />
