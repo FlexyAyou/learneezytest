@@ -25,6 +25,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ElectronicSignature } from '@/components/common/ElectronicSignature';
 import { usePrepareUpload, useCompleteUpload, useSignDocument, useOrganization } from '@/hooks/useApi';
 import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
+import { fastAPIClient } from '@/services/fastapi-client';
 import axios from 'axios';
 import { getTemplateForType, personalizeDocumentContent } from '@/utils/personalizeDocumentContent';
 
