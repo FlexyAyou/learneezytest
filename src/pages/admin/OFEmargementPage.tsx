@@ -85,13 +85,7 @@ const OFEmargementPage: React.FC = () => {
     enabled: !!ofId
   });
 
-  // Secure assignments list extraction
-  const assignmentsList = useMemo(() => {
-    if (!rawAssignments) return [];
-    if (Array.isArray(rawAssignments)) return rawAssignments as any[];
-    if ((rawAssignments as any).items && Array.isArray((rawAssignments as any).items)) return (rawAssignments as any).items as any[];
-    return [];
-  }, [rawAssignments]);
+
 
   // Map API data to component interfaces
   const learners: Learner[] = useMemo(() => {
