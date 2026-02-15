@@ -1,4 +1,6 @@
 import React, { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { fastAPIClient } from '@/services/fastapi-client';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -66,6 +68,16 @@ const OFEmargementPage: React.FC = () => {
   // Fetch real data
   const { data: rawUsers, isLoading: usersLoading } = useOFUsers(ofId, { role: 'apprenant' });
   const { data: rawAssignments, isLoading: assignmentsLoading } = useAssignments({ of_id: ofId });
+
+  // Fetch templates to use user-edited versions for preview fallback
+  const { data: templates = [] } = useQuery({
+    queryKey: ['documentTemplates', ofId],
+    queryFn: async () => {
+      if (!ofId) return [];
+      return fastAPIClient.listDocumentTemplates(Number(ofId));
+    },
+    enabled: !!ofId
+  });
 
   // Secure assignments list extraction
   const assignmentsList = useMemo(() => {
@@ -193,19 +205,20 @@ const OFEmargementPage: React.FC = () => {
     setIsPreviewLoading(true);
 
     const generateDynamicContent = () => {
-      // Try to match doc type to template
-      // Try to infer type from title if type is generic 'document'
+      // Try to match doc type to template from database first, then fallback to defaults
       let docType = doc.type;
-      if (docType === 'document' || !getTemplateForType(docType)) {
+      if (docType === 'document') {
         if (doc.title.toLowerCase().includes('analyse')) docType = 'analyse_besoin';
         else if (doc.title.toLowerCase().includes('cgv')) docType = 'cgv';
         else if (doc.title.toLowerCase().includes('règlement') || doc.title.toLowerCase().includes('reglement')) docType = 'reglement_interieur';
         else if (doc.title.toLowerCase().includes('convention')) docType = 'convention';
       }
 
-      const template = getTemplateForType(docType);
+      // 1. Try to find in database templates
+      const dbTemplate = templates.find(t => t.type === docType);
+      const templateHtml = dbTemplate?.htmlContent || getTemplateForType(docType);
 
-      if (template && selectedLearner) {
+      if (templateHtml && selectedLearner) {
         // Map OF Data
         const mappedOFData = ofData ? {
           na: ofData.name,
