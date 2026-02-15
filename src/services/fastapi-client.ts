@@ -1447,15 +1447,39 @@ class FastAPIClient {
   // --- DOCUMENTS ---
   async listDocumentTemplates(ofId: number, phase?: string) {
     const query = phase ? `?phase=${phase}` : '';
-    return this.get<any[]>(`/api/organizations/${ofId}/document-templates${query}`);
+    const res = await this.get<any[]>(`/api/organizations/${ofId}/document-templates${query}`);
+    return res.map(t => ({
+      id: t.id,
+      type: t.type,
+      phase: t.phase,
+      title: t.title,
+      description: t.description,
+      htmlContent: t.html_content || t.htmlContent,
+      requiresSignature: t.requires_signature !== undefined ? t.requires_signature : t.requiresSignature,
+      isActive: t.is_active !== undefined ? t.is_active : t.isActive,
+      createdAt: t.created_at || t.createdAt,
+      updatedAt: t.updated_at || t.updatedAt,
+    }));
   }
 
   async createDocumentTemplate(ofId: number, data: any) {
-    return this.post<any>(`/api/organizations/${ofId}/document-templates`, data);
+    const payload = {
+      ...data,
+      html_content: data.htmlContent,
+      requires_signature: data.requiresSignature,
+      is_active: data.isActive
+    };
+    return this.post<any>(`/api/organizations/${ofId}/document-templates`, payload);
   }
 
   async updateDocumentTemplate(ofId: number, templateId: string, data: any) {
-    return this.put<any>(`/api/organizations/${ofId}/document-templates/${templateId}`, data);
+    const payload = {
+      ...data,
+      html_content: data.htmlContent,
+      requires_signature: data.requiresSignature,
+      is_active: data.isActive
+    };
+    return this.put<any>(`/api/organizations/${ofId}/document-templates/${templateId}`, payload);
   }
 
   async deleteDocumentTemplate(ofId: number, templateId: string) {
