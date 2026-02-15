@@ -205,6 +205,19 @@ export const OFDocumentsAdvanced: React.FC = () => {
     setShowEditor(true);
   };
 
+  const handleDeleteTemplate = async (templateId: string) => {
+    if (!window.confirm("Êtes-vous sûr de vouloir supprimer ce modèle ? Cette action est irréversible.")) return;
+    try {
+      if (!ofId || isNaN(ofId)) throw new Error("ID de l'organisation introuvable");
+      await fastAPIClient.deleteDocumentTemplate(ofId, templateId);
+      refetchTemplates();
+      toast({ title: "Modèle supprimé" });
+    } catch (e) {
+      console.error(e);
+      toast({ title: "Erreur", description: "Impossible de supprimer le modèle", variant: "destructive" });
+    }
+  };
+
   const handleSaveTemplate = async (template: any) => {
     try {
       if (!ofId || isNaN(ofId)) throw new Error("ID de l'organisation introuvable");
@@ -430,6 +443,14 @@ export const OFDocumentsAdvanced: React.FC = () => {
                           >
                             <Send className="h-4 w-4 mr-2" />
                             Personnaliser & Envoyer
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => handleDeleteTemplate(template.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </TableCell>
                       </TableRow>
