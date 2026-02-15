@@ -1486,6 +1486,13 @@ class FastAPIClient {
       signature_data: signatureData
     });
   }
+
+  // --- ADMIN/LEARNER CLEANUP ---
+  async cleanupDocuments(ofId: number, learnerId?: number) {
+    let url = `/api/organizations/${ofId}/documents/cleanup`;
+    if (learnerId) url += `?learner_id=${learnerId}`;
+    return this.delete<any>(url);
+  }
 }
 
 // Instance singleton
