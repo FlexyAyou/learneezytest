@@ -1435,6 +1435,46 @@ class FastAPIClient {
   }
 
 
+  // --- DOCUMENTS ---
+  async listDocumentTemplates(ofId: number, phase?: string) {
+    const query = phase ? `?phase=${phase}` : '';
+    return this.get<any[]>(`/api/organizations/${ofId}/document-templates${query}`);
+  }
+
+  async createDocumentTemplate(ofId: number, data: any) {
+    return this.post<any>(`/api/organizations/${ofId}/document-templates`, data);
+  }
+
+  async updateDocumentTemplate(ofId: number, templateId: string, data: any) {
+    return this.put<any>(`/api/organizations/${ofId}/document-templates/${templateId}`, data);
+  }
+
+  async deleteDocumentTemplate(ofId: number, templateId: string) {
+    return this.delete<any>(`/api/organizations/${ofId}/document-templates/${templateId}`);
+  }
+
+  async getOFSignature(ofId: number) {
+    return this.get<any>(`/api/organizations/${ofId}/signature`);
+  }
+
+  async updateOFSignature(ofId: number, data: { signature_data: string }) {
+    return this.put<any>(`/api/organizations/${ofId}/signature`, data);
+  }
+
+  async sendDocuments(ofId: number, data: any) {
+    return this.post<any>(`/api/organizations/${ofId}/documents/send`, data);
+  }
+
+  async getEmargements(ofId: number, params?: { phase?: string; learner_id?: number }) {
+    let query = '';
+    if (params) {
+      const sp = new URLSearchParams();
+      if (params.phase) sp.append('phase', params.phase);
+      if (params.learner_id) sp.append('learner_id', params.learner_id.toString());
+      query = '?' + sp.toString();
+    }
+    return this.get<any>(`/api/organizations/${ofId}/emargements${query}`);
+  }
 }
 
 // Instance singleton

@@ -18,7 +18,7 @@ import { DialogDescription } from '@/components/ui/dialog';
 import { DocumentTemplateEditor } from './DocumentTemplateEditor';
 import { PhaseDocumentSender } from './PhaseDocumentSender';
 
-import { DEFAULT_TEMPLATES } from './defaultTemplates';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fastAPIClient } from '@/services/fastapi-client';
 import {
   DocumentTemplate, DocumentPhase, DocumentType, Learner, Formation, OF,
@@ -126,25 +126,21 @@ export const OFDocumentsAdvanced: React.FC = () => {
     { id: '1', name: 'Formation Standard', description: 'Formation', duration: '35h', startDate: '', endDate: '', location: '', trainer: '', price: 0 }
   ];
 
-  const [templates, setTemplates] = useState<DocumentTemplate[]>([
-    // Phase Inscription
-    { id: '1', type: 'analyse_besoin', phase: 'inscription', title: 'Analyse du besoin', description: 'Formulaire d\'évaluation préalable du besoin de formation', htmlContent: DEFAULT_TEMPLATES.analyse_besoin || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-    { id: '2', type: 'test_positionnement', phase: 'inscription', title: 'Test de positionnement', description: 'Évaluation du niveau initial de l\'apprenant', htmlContent: DEFAULT_TEMPLATES.test_positionnement || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-    { id: '3', type: 'convention', phase: 'inscription', title: 'Convention de formation', description: 'Convention tripartite de formation professionnelle', htmlContent: DEFAULT_TEMPLATES.convention || '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-    // Phase Formation
-    { id: '4', type: 'convocation', phase: 'formation', title: 'Convocation', description: 'Convocation à la session de formation', htmlContent: DEFAULT_TEMPLATES.convocation || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-    { id: '5', type: 'programme', phase: 'formation', title: 'Programme de formation', description: 'Programme détaillé de la formation', htmlContent: DEFAULT_TEMPLATES.programme || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-    { id: '6', type: 'cgv', phase: 'formation', title: 'Conditions Générales de Vente', description: 'CGV à signer par l\'apprenant', htmlContent: DEFAULT_TEMPLATES.cgv || '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-    { id: '7', type: 'reglement_interieur', phase: 'formation', title: 'Règlement intérieur', description: 'Règlement intérieur applicable aux stagiaires', htmlContent: DEFAULT_TEMPLATES.reglement_interieur || '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-    { id: '8', type: 'attestation_honneur', phase: 'formation', title: 'Attestation sur l\'honneur (CPF)', description: 'Attestation sur l\'honneur pour les formations financées par le CPF', htmlContent: DEFAULT_TEMPLATES.attestation_honneur || '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-    // Phase Post-formation
-    { id: '9', type: 'test_sortie', phase: 'post-formation', title: 'Test de sortie', description: 'Évaluation des acquis en fin de formation', htmlContent: DEFAULT_TEMPLATES.test_sortie || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-    { id: '10', type: 'satisfaction_chaud', phase: 'post-formation', title: 'Questionnaire de satisfaction à chaud', description: 'Évaluation de la satisfaction immédiate', htmlContent: DEFAULT_TEMPLATES.satisfaction_chaud || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-    { id: '11', type: 'certificat', phase: 'post-formation', title: 'Certificat de réalisation', description: 'Certificat attestant la réalisation de la formation', htmlContent: DEFAULT_TEMPLATES.certificat || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-    { id: '12', type: 'emargement', phase: 'post-formation', title: 'Attestation de réalisation (émargements)', description: 'Feuille d\'émargement attestant la présence', htmlContent: DEFAULT_TEMPLATES.emargement || '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-    // Phase +3 mois
-    { id: '13', type: 'satisfaction_froid', phase: 'suivi', title: 'Questionnaire à froid', description: 'Évaluation de l\'impact à +3 mois', htmlContent: DEFAULT_TEMPLATES.satisfaction_froid || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-  ]);
+  // Fetch templates from API
+  const { data: templates = [], refetch: refetchTemplates } = useQuery({
+    queryKey: ['documentTemplates', ofId],
+    queryFn: async () => {
+      if (!ofId) return [];
+      try {
+        const res = await fastAPIClient.listDocumentTemplates(Number(ofId));
+        return res;
+      } catch (e) {
+        console.error("Failed to fetch templates", e);
+        return [];
+      }
+    },
+    enabled: !!ofId
+  });
 
   const handleCreateTemplate = () => {
     setSelectedTemplate({
@@ -167,72 +163,49 @@ export const OFDocumentsAdvanced: React.FC = () => {
     setShowEditor(true);
   };
 
-  const handleSaveTemplate = (template: any) => {
-    if (template.id) {
-      setTemplates(prev => prev.map(t => t.id === template.id ? { ...t, ...template } : t));
-    } else {
-      const newTemplate: DocumentTemplate = {
-        ...template,
-        id: `t-${Date.now()}`,
-        description: template.description || template.title,
-        isActive: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      setTemplates(prev => [...prev, newTemplate]);
+  const handleSaveTemplate = async (template: any) => {
+    try {
+      if (template.id && template.id.length > 5 && !template.id.startsWith('t-')) {
+        await fastAPIClient.updateDocumentTemplate(Number(ofId), template.id, template);
+      } else {
+        const { id, ...rest } = template; // Remove temp ID
+        await fastAPIClient.createDocumentTemplate(Number(ofId), rest);
+      }
+      refetchTemplates();
+      setShowEditor(false);
+      toast({ title: "Modèle enregistré avec succès" });
+    } catch (e) {
+      console.error(e);
+      toast({ title: "Erreur", description: "Impossible d'enregistrer le modèle", variant: "destructive" });
     }
-    setShowEditor(false);
   };
 
 
 
 
 
-  const handleSendPhaseDocuments = async (docs: any[]) => {
-    console.log('handleSendPhaseDocuments: Start', { docCount: docs.length });
+  const handleSendPhaseDocuments = async (docs: any[], customFields?: any) => {
+    console.log('handleSendPhaseDocuments: Call Backend API', { count: docs.length });
     setIsUploading(true);
     try {
-      for (const doc of docs) {
-        // 1. Create file from HTML
-        const blob = new Blob([doc.htmlContent], { type: 'text/html' });
-        const fileName = `${doc.type}_${doc.learnerName.replace(/\s+/g, '_')}.html`;
-        const file = new File([blob], fileName, { type: 'text/html' });
+      // Extract learnerId from first doc
+      const learnerId = docs[0]?.learnerId;
+      if (!learnerId) throw new Error("Aucun apprenant identifié");
 
-        // 2. Prepare upload
-        const prepareResponse = await prepare.mutateAsync({
-          filename: file.name,
-          content_type: file.type,
-          size: file.size,
-          kind: 'resource',
-        });
+      const templateIds = docs.map(d => d.templateId).filter(Boolean);
 
-        // 3. Upload to S3
-        await axios.put(prepareResponse.url!, file, {
-          headers: {
-            'Content-Type': file.type,
-          },
-        });
-
-        // 4. Complete upload
-        const completeResponse = await complete.mutateAsync({
-          strategy: 'single',
-          key: prepareResponse.key,
-          content_type: file.type,
-          size: file.size,
-        });
-
-        // 5. Assign to learner
-        await assign.mutateAsync({
-          user_id: Number(doc.learnerId),
-          media_asset_id: completeResponse.id!,
-          message: `Nouveau document : ${doc.title}`,
-          phase: doc.phase,
-        });
-      }
+      // Call Send API
+      await fastAPIClient.sendDocuments(Number(ofId), {
+        learner_id: Number(learnerId),
+        phase: activePhase,
+        template_ids: templateIds,
+        custom_fields: customFields,
+        include_of_signature: true
+      });
 
       toast({
         title: "Documents envoyés",
-        description: `${docs.length} document(s) ont été envoyés avec succès.`
+        description: `${docs.length} document(s) ont été traités par le serveur.`
       });
       setShowPhaseSender(false);
       refetchAssets();
@@ -240,7 +213,7 @@ export const OFDocumentsAdvanced: React.FC = () => {
       console.error('Error sending phase documents:', error);
       toast({
         title: "Erreur d'envoi",
-        description: error.message || "Une erreur est survenue lors de l'envoi des documents.",
+        description: error.message || "Une erreur est survenue lors de l'envoi vers le serveur.",
         variant: "destructive"
       });
     } finally {

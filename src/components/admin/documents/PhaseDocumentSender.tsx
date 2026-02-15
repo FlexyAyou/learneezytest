@@ -37,7 +37,7 @@ interface PhaseDocumentSenderProps {
   learners: Learner[];
   formations: Formation[];
   ofInfo: OF;
-  onSend: (documents: any[]) => void;
+  onSend: (documents: any[], customFields?: CustomFields) => void;
   uploadedProgrammes?: UploadedProgramme[];
 }
 
@@ -245,7 +245,7 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
       uniqueCode: `${template.type.toUpperCase()}-${Date.now()}`
     }));
 
-    onSend(documents);
+    onSend(documents, customFields);
     toast({
       title: "Documents envoyés",
       description: `${documents.length} document(s) envoyé(s) à ${selectedLearner?.firstName} ${selectedLearner?.lastName}`
