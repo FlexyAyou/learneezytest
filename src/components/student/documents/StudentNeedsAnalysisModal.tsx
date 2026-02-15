@@ -31,7 +31,7 @@ import { getTemplateForType, personalizeDocumentContent } from '@/utils/personal
 interface StudentNeedsAnalysisModalProps {
     isOpen: boolean;
     onClose: () => void;
-    assignmentId: number;
+    assignmentId: string | number;
     title: string;
     url?: string;
     docType?: string;
@@ -259,10 +259,10 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
     };
 
     const handleSignatureComplete = async (signatureData: string) => {
-        if (!assignmentId) {
+        if (assignmentId === undefined || assignmentId === null || assignmentId === '') {
             toast({
                 title: "Erreur interne",
-                description: "ID d'assignation manquant. Impossible d'envoyer.",
+                description: "Identifiant du document manquant. Impossible d'envoyer.",
                 variant: "destructive"
             });
             return;
@@ -340,10 +340,23 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
 
             // 4. Update the assignment status by signing it
             console.log("Signing document...");
-            await signDocument.mutateAsync({
-                assignment_id: assignmentId,
-                signature_data: signatureData
-            });
+            if (typeof assignmentId === 'number') {
+                // Legacy system: uses integer assignmentId and S3 file
+                await signDocument.mutateAsync({
+                    assignment_id: assignmentId,
+                    signature_data: signatureData
+                });
+            } else {
+                // New system: uses string UUID for SentDocument and stores HTML in DB
+                const user = await fastAPIClient.getCurrentUser();
+                await fastAPIClient.signLearnerDocument(
+                    user.of_id,
+                    user.id,
+                    assignmentId,
+                    signatureData,
+                    finalHtml // Send updated HTML to be stored in DB
+                );
+            }
 
             console.log("Submission successful!");
             setStep('success');

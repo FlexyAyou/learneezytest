@@ -445,7 +445,7 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
             setNeedsAnalysisOpen(false);
             setActiveAnalysis(null);
           }}
-          assignmentId={activeAnalysis.assignmentId!}
+          assignmentId={activeAnalysis.assignmentId || activeAnalysis.id}
           title={documentTypes[activeAnalysis.type].label}
           url={activeAnalysis.url}
           docType={activeAnalysis.type}
