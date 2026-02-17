@@ -63,7 +63,7 @@ export const StudentDocumentsPage: React.FC = () => {
         if (documentContainerRef.current) {
             const container = documentContainerRef.current;
 
-            // 1. Inputs text / email / number / date
+            // 1. Inputs text / email / number / date / checkbox / radio
             const inputs = container.querySelectorAll('input');
             inputs.forEach(input => {
                 if (input.type === 'checkbox' || input.type === 'radio') {
@@ -75,6 +75,8 @@ export const StudentDocumentsPage: React.FC = () => {
                 } else {
                     input.setAttribute('value', input.value);
                 }
+                // Désactiver les inputs pour figer le document après signature
+                input.setAttribute('disabled', 'disabled');
             });
 
             // 2. Textareas
@@ -82,6 +84,8 @@ export const StudentDocumentsPage: React.FC = () => {
             textareas.forEach(textarea => {
                 textarea.textContent = textarea.value;
                 textarea.innerHTML = textarea.value; // Fallback
+                // Désactiver
+                textarea.setAttribute('disabled', 'disabled');
             });
 
             // 3. Selects
@@ -95,7 +99,27 @@ export const StudentDocumentsPage: React.FC = () => {
                         option.removeAttribute('selected');
                     }
                 });
+                // Désactiver
+                select.setAttribute('disabled', 'disabled');
             });
+
+            // 4. INJECTION DE LA SIGNATURE
+            // Chercher un placeholder spécifique ou ajouter à la fin
+            const signatureZone = container.querySelector('#signature-zone') || container.querySelector('.signature-zone');
+
+            const signatureHtml = `
+                <div style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 10px;">
+                    <p><strong>Signé le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}</strong></p>
+                    <img src="${signatureData}" alt="Signature Apprenant" style="max-height: 100px; border: 1px solid #eee; padding: 5px; background: white;" />
+                </div>
+             `;
+
+            if (signatureZone) {
+                signatureZone.innerHTML = signatureHtml;
+            } else {
+                // Ajouter à la fin du document si pas de zone spécifique
+                container.insertAdjacentHTML('beforeend', signatureHtml);
+            }
 
             finalHtmlContent = container.innerHTML;
         }
