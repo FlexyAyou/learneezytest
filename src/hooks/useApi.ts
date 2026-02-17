@@ -1399,8 +1399,32 @@ export const useDeleteMedia = () => {
 export const useSignDocument = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { assignment_id: number; signature_data: string }) =>
-      fastAPIClient.signDocument(data.assignment_id, data.signature_data),
+    mutationFn: async (data: { assignment_id: number | string; signature_data: string; html_content?: string }) => {
+      // Check if it's a new system document (UUID string) or legacy (number)
+      // The frontend might pass a string "new-uuid" or just "uuid" depending on how it was mapped
+      const idStr = String(data.assignment_id);
+
+      if (idStr.length > 20 || idStr.includes('-')) {
+        // It's likely a UUID (new system)
+        // We need user context (of_id, learner_id)
+        const user = await fastAPIClient.getCurrentUser();
+        if (!user.of_id) throw new Error("Impossible de trouver l'organisation de l'utilisateur");
+
+        // Remove "new-" prefix if present (added in useMyDocuments mapping)
+        const realDocId = idStr.replace(/^new-/, '');
+
+        return fastAPIClient.signLearnerDocument(
+          user.of_id,
+          user.id,
+          realDocId,
+          data.signature_data,
+          data.html_content
+        );
+      } else {
+        // Legacy system (integer ID)
+        return fastAPIClient.signDocument(Number(data.assignment_id), data.signature_data);
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-documents'] });
       toast({
@@ -1409,6 +1433,7 @@ export const useSignDocument = () => {
       });
     },
     onError: (error: any) => {
+      console.error("Sign Error:", error);
       toast({
         title: "Erreur",
         description: error.response?.data?.detail || "Impossible de signer le document.",

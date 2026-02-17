@@ -18,26 +18,97 @@ export const StudentDocumentsPage: React.FC = () => {
     const [showSignatureDialog, setShowSignatureDialog] = useState(false);
     const [showDocumentDialog, setShowDocumentDialog] = useState(false);
 
-    const handleViewDocument = (doc: any) => {
+    const [htmlContent, setHtmlContent] = useState<string | null>(null);
+    const documentContainerRef = React.useRef<HTMLDivElement>(null);
+
+    const handleViewDocument = async (doc: any) => {
         setSelectedDocument(doc);
+        if (doc.media_asset && doc.media_asset.content_type === 'text/html') {
+            try {
+                const response = await fetch(doc.media_asset.download_url);
+                const text = await response.text();
+                setHtmlContent(text);
+            } catch (error) {
+                console.error("Erreur chargement document HTML", error);
+                setHtmlContent(null);
+            }
+        } else {
+            setHtmlContent(null);
+        }
         setShowDocumentDialog(true);
     };
 
-    const handleSignDocument = (doc: any) => {
+    const handleSignDocument = async (doc: any) => {
         setSelectedDocument(doc);
+        // Pré-charger le HTML pour qu'il soit affiché en signature
+        if (doc.media_asset && doc.media_asset.content_type === 'text/html') {
+            try {
+                const response = await fetch(doc.media_asset.download_url);
+                const text = await response.text();
+                setHtmlContent(text);
+            } catch (error) {
+                console.error("Erreur chargement document HTML", error);
+            }
+        }
         setShowSignatureDialog(true);
     };
 
     const handleSaveSignature = async (signatureData: string) => {
         if (!selectedDocument) return;
 
+        // CAPTURE DU HTML REMPLI
+        let finalHtmlContent = htmlContent;
+
+        // Si on a un conteneur actif où l'utilisateur a pu remplir des champs
+        if (documentContainerRef.current) {
+            const container = documentContainerRef.current;
+
+            // 1. Inputs text / email / number / date
+            const inputs = container.querySelectorAll('input');
+            inputs.forEach(input => {
+                if (input.type === 'checkbox' || input.type === 'radio') {
+                    if (input.checked) {
+                        input.setAttribute('checked', 'checked');
+                    } else {
+                        input.removeAttribute('checked');
+                    }
+                } else {
+                    input.setAttribute('value', input.value);
+                }
+            });
+
+            // 2. Textareas
+            const textareas = container.querySelectorAll('textarea');
+            textareas.forEach(textarea => {
+                textarea.textContent = textarea.value;
+                textarea.innerHTML = textarea.value; // Fallback
+            });
+
+            // 3. Selects
+            const selects = container.querySelectorAll('select');
+            selects.forEach(select => {
+                const options = select.querySelectorAll('option');
+                options.forEach(option => {
+                    if (option.selected) {
+                        option.setAttribute('selected', 'selected');
+                    } else {
+                        option.removeAttribute('selected');
+                    }
+                });
+            });
+
+            finalHtmlContent = container.innerHTML;
+        }
+
         await signDocument.mutateAsync({
             assignment_id: selectedDocument.id,
             signature_data: signatureData,
+            html_content: finalHtmlContent || undefined // On envoie le HTML rempli
         });
 
         setShowSignatureDialog(false);
         setSelectedDocument(null);
+        setHtmlContent(null);
     };
 
     const getStatusBadge = (doc: any) => {
@@ -250,6 +321,18 @@ export const StudentDocumentsPage: React.FC = () => {
                         onSave={handleSaveSignature}
                         onCancel={() => setShowSignatureDialog(false)}
                     />
+
+                    {/* Affichage du document EN DESSOUS de la zone de signature pour permettre la validation visuelle et le remplissage */}
+                    {selectedDocument && htmlContent && (
+                        <div className="mt-6 border-t pt-4">
+                            <h3 className="font-semibold mb-2">Vérifiez et remplissez le document avant de signer :</h3>
+                            <div
+                                ref={documentContainerRef}
+                                className="w-full h-[400px] border rounded p-4 bg-white overflow-auto text-sm"
+                                dangerouslySetInnerHTML={{ __html: htmlContent }}
+                            />
+                        </div>
+                    )}
                 </DialogContent>
             </Dialog>
 
@@ -261,23 +344,31 @@ export const StudentDocumentsPage: React.FC = () => {
                     </DialogHeader>
                     {selectedDocument && selectedDocument.media_asset && (
                         <div className="space-y-4">
-                            {selectedDocument.media_asset.content_type === 'text/html' ? (
-                                <iframe
-                                    src={selectedDocument.media_asset.download_url}
-                                    className="w-full h-[600px] border rounded"
-                                    title="Document"
+                            {selectedDocument.media_asset.content_type === 'text/html' && htmlContent ? (
+                                <div
+                                    ref={documentContainerRef}
+                                    className="w-full min-h-[600px] border rounded p-8 bg-white shadow-sm overflow-auto"
+                                    dangerouslySetInnerHTML={{ __html: htmlContent }}
                                 />
                             ) : (
-                                <div className="text-center p-8">
-                                    <FileText className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-                                    <p className="mb-4">Prévisualisation non disponible pour ce type de fichier</p>
-                                    <Button asChild>
-                                        <a href={selectedDocument.media_asset.download_url} download>
-                                            <Download className="h-4 w-4 mr-2" />
-                                            Télécharger
-                                        </a>
-                                    </Button>
-                                </div>
+                                selectedDocument.media_asset.content_type === 'application/pdf' ? (
+                                    <iframe
+                                        src={selectedDocument.media_asset.download_url}
+                                        className="w-full h-[600px] border rounded"
+                                        title="Document"
+                                    />
+                                ) : (
+                                    <div className="text-center p-8">
+                                        <FileText className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                                        <p className="mb-4">Prévisualisation non disponible pour ce type de fichier</p>
+                                        <Button asChild>
+                                            <a href={selectedDocument.media_asset.download_url} download>
+                                                <Download className="h-4 w-4 mr-2" />
+                                                Télécharger
+                                            </a>
+                                        </Button>
+                                    </div>
+                                )
                             )}
 
                             {selectedDocument.is_signed && selectedDocument.signature_data && (
