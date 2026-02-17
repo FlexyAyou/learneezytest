@@ -188,12 +188,32 @@ const OFEmargementPage: React.FC = () => {
   };
 
   const handleDownload = (doc: SentDocument) => {
-    if (!doc.documentUrl) return;
-    const link = document.createElement('a');
-    link.href = doc.documentUrl;
-    link.target = '_blank';
-    link.download = `${doc.title.replace(/\s+/g, '_')}_signe.html`;
-    link.click();
+    // 1. Si on a une URL, on l'utilise
+    if (doc.documentUrl) {
+      const link = document.createElement('a');
+      link.href = doc.documentUrl;
+      link.target = '_blank';
+      link.download = `${doc.title.replace(/\s+/g, '_')}_signe.html`;
+      link.click();
+      return;
+    }
+
+    // 2. Si on a du contenu HTML, on génère un Blob
+    if (doc.htmlContent) {
+      const blob = new Blob([doc.htmlContent], { type: 'text/html' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${doc.title.replace(/\s+/g, '_')}.html`;
+      link.click();
+      window.URL.revokeObjectURL(url);
+      return;
+    }
+
+    // 3. Sinon, on essaie de générer le contenu (si possible, c'est mieux que rien)
+    // Mais attention, cela demande d'avoir accès au template et aux données contextuelles.
+    // Pour l'instant on se contente des cas 1 et 2 qui couvrent 99% des besoins réels.
+    alert("Impossible de télécharger ce document : le contenu n'est pas disponible.");
   };
 
   const handlePrintDocument = (doc: SentDocument) => {
@@ -206,6 +226,13 @@ const OFEmargementPage: React.FC = () => {
     setPreviewContent(null);
     setPreviewError(null);
     setIsPreviewLoading(true);
+
+    // 1. Si le contenu HTML est déjà disponible (envoyé par le backend), on l'utilise directement.
+    if (doc.htmlContent) {
+      setPreviewContent(doc.htmlContent);
+      setIsPreviewLoading(false);
+      return;
+    }
 
     const generateDynamicContent = () => {
       // Try to match doc type to template from database first, then fallback to defaults
@@ -246,7 +273,7 @@ const OFEmargementPage: React.FC = () => {
         };
 
         const generatedHtml = personalizeDocumentContent(
-          template,
+          templateHtml,
           { id: selectedLearner.formationId, name: selectedLearner.formationName },
           mappedOFData,
           mappedLearnerData
