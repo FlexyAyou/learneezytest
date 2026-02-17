@@ -25,7 +25,10 @@ export const StudentDocumentsPage: React.FC = () => {
 
     const handleViewDocument = async (doc: any) => {
         setSelectedDocument(doc);
-        if (doc.media_asset && doc.media_asset.content_type === 'text/html') {
+        // Priorité : Contenu HTML stocké en base de données (avec les réponses de l'apprenant)
+        if (doc.html_content) {
+            setHtmlContent(doc.html_content);
+        } else if (doc.media_asset && doc.media_asset.content_type === 'text/html') {
             try {
                 const response = await fetch(doc.media_asset.download_url);
                 const text = await response.text();
@@ -42,8 +45,10 @@ export const StudentDocumentsPage: React.FC = () => {
 
     const handleSignDocument = async (doc: any) => {
         setSelectedDocument(doc);
-        // Pré-charger le HTML pour qu'il soit affiché en signature
-        if (doc.media_asset && doc.media_asset.content_type === 'text/html') {
+        // Priorité : Contenu HTML stocké en base de données (avec les réponses de l'apprenant)
+        if (doc.html_content) {
+            setHtmlContent(doc.html_content);
+        } else if (doc.media_asset && doc.media_asset.content_type === 'text/html') {
             try {
                 const response = await fetch(doc.media_asset.download_url);
                 const text = await response.text();
@@ -56,47 +61,64 @@ export const StudentDocumentsPage: React.FC = () => {
     };
 
     const captureHtmlContent = (): string | null => {
-        if (!documentContainerRef.current) return htmlContent;
-
         const container = documentContainerRef.current;
-        console.log("Capturing HTML content from container:", container);
+        console.log("Capture du contenu HTML. Container trouvé ?", !!container);
 
-        // 1. Inputs text / email / number / date / checkbox / radio
-        const inputs = container.querySelectorAll('input');
-        inputs.forEach(input => {
-            if (input.type === 'checkbox' || input.type === 'radio') {
-                if (input.checked) {
-                    input.setAttribute('checked', 'checked');
+        if (!container) {
+            console.warn("Conteneur non trouvé, utilisation du htmlContent initial");
+            return htmlContent;
+        }
+
+        // Créer un clone pour ne pas polluer l'affichage live trop violemment
+        const clone = container.cloneNode(true) as HTMLElement;
+
+        // 1. Inputs (text, date, number, etc.)
+        const sourceInputs = container.querySelectorAll('input');
+        const cloneInputs = clone.querySelectorAll('input');
+
+        sourceInputs.forEach((source, i) => {
+            const dest = cloneInputs[i];
+            if (!dest) return;
+
+            if (source.type === 'checkbox' || source.type === 'radio') {
+                if (source.checked) {
+                    dest.setAttribute('checked', 'checked');
                 } else {
-                    input.removeAttribute('checked');
+                    dest.removeAttribute('checked');
                 }
             } else {
-                input.setAttribute('value', input.value);
+                dest.setAttribute('value', source.value);
             }
-            // Note: pas de disabled ici car on veut pouvoir continuer à éditer si c'est une sauvegarde
         });
 
         // 2. Textareas
-        const textareas = container.querySelectorAll('textarea');
-        textareas.forEach(textarea => {
-            textarea.textContent = textarea.value;
-            textarea.innerHTML = textarea.value; // Fallback
+        const sourceTextareas = container.querySelectorAll('textarea');
+        const cloneTextareas = clone.querySelectorAll('textarea');
+        sourceTextareas.forEach((source, i) => {
+            const dest = cloneTextareas[i];
+            if (!dest) return;
+            dest.textContent = source.value;
+            dest.innerHTML = source.value;
         });
 
         // 3. Selects
-        const selects = container.querySelectorAll('select');
-        selects.forEach(select => {
-            const options = select.querySelectorAll('option');
-            options.forEach(option => {
-                if (option.selected) {
-                    option.setAttribute('selected', 'selected');
+        const sourceSelects = container.querySelectorAll('select');
+        const cloneSelects = clone.querySelectorAll('select');
+        sourceSelects.forEach((source, i) => {
+            const dest = cloneSelects[i];
+            if (!dest) return;
+            const sourceOptions = source.querySelectorAll('option');
+            const destOptions = dest.querySelectorAll('option');
+            sourceOptions.forEach((opt, j) => {
+                if (opt.selected) {
+                    destOptions[j]?.setAttribute('selected', 'selected');
                 } else {
-                    option.removeAttribute('selected');
+                    destOptions[j]?.removeAttribute('selected');
                 }
             });
         });
 
-        return container.innerHTML;
+        return clone.innerHTML;
     };
 
     const handleSaveDraft = async () => {
@@ -113,7 +135,8 @@ export const StudentDocumentsPage: React.FC = () => {
                 assignment_id: selectedDocument.id,
                 html_content: capturedHtml
             });
-            // Update local state is handled by query invalidation
+            // Mettre à jour l'état local immédiatement pour que l'aperçu soit à jour
+            setHtmlContent(capturedHtml);
         } catch (error) {
             console.error("Failed to save draft", error);
         }
@@ -148,8 +171,14 @@ export const StudentDocumentsPage: React.FC = () => {
 
             if (signatureZone) {
                 signatureZone.innerHTML = signatureHtml;
+                signatureZone.classList.add('signature-added');
             } else {
-                tempDiv.insertAdjacentHTML('beforeend', signatureHtml);
+                // Si pas de zone précise, on ajoute un bloc de signature propre à la fin du document (mais dans le flux)
+                tempDiv.insertAdjacentHTML('beforeend', `
+                    <div class="final-signature-block" style="margin-top: 40px; padding: 20px; border: 2px solid #333; text-align: center; background: #fff;">
+                        ${signatureHtml}
+                    </div>
+                `);
             }
 
             finalHtmlContent = tempDiv.innerHTML;
@@ -463,6 +492,11 @@ export const StudentDocumentsPage: React.FC = () => {
                                 )}
                             </Button>
                             <Button onClick={() => {
+                                // CAPTURE DES RÉPONSES AVANT DE FERMER
+                                const updatedHtml = captureHtmlContent();
+                                if (updatedHtml) {
+                                    setHtmlContent(updatedHtml);
+                                }
                                 setShowDocumentDialog(false);
                                 setShowSignatureDialog(true);
                             }}>
