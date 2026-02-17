@@ -702,19 +702,17 @@ const OFEmargementPage: React.FC = () => {
                                     className="gap-1.5"
                                   >
                                     <Eye className="h-4 w-4" />
-                                    Voir
+                                    Visualiser
                                   </Button>
-                                  {isSigned && (
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => handleDownload(doc)}
-                                      className="gap-1.5 text-green-700 border-green-300 hover:bg-green-50"
-                                    >
-                                      <Download className="h-4 w-4" />
-                                      Télécharger
-                                    </Button>
-                                  )}
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleDownload(doc)}
+                                    className="gap-1.5 text-blue-700 border-blue-300 hover:bg-blue-50"
+                                  >
+                                    <Download className="h-4 w-4" />
+                                    Télécharger
+                                  </Button>
                                 </>
                               ) : (
                                 <span className="text-xs text-muted-foreground italic">Document indisponible</span>
@@ -746,12 +744,10 @@ const OFEmargementPage: React.FC = () => {
                   <Printer className="h-4 w-4 mr-1" />
                   Imprimer
                 </Button>
-                {previewDocument?.status === 'signed' && (
-                  <Button size="sm" variant="outline" onClick={() => previewDocument && handleDownload(previewDocument)}>
-                    <Download className="h-4 w-4 mr-1" />
-                    Télécharger
-                  </Button>
-                )}
+                <Button size="sm" variant="outline" onClick={() => previewDocument && handleDownload(previewDocument)}>
+                  <Download className="h-4 w-4 mr-1" />
+                  Télécharger
+                </Button>
               </div>
             </div>
           </DialogHeader>
