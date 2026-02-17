@@ -5,13 +5,15 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { FileText, CheckCircle, Clock, Eye, PenTool, Download } from 'lucide-react';
-import { useMyDocuments, useSignDocument, useSaveDocument } from '@/hooks/useApi';
+import { useMyDocuments, useSignDocument, useSaveDocument, useOrganization } from '@/hooks/useApi';
 import { SignatureCanvas } from '@/components/signature/SignatureCanvas';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Loader2, Save } from 'lucide-react';
+import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 
 export const StudentDocumentsPage: React.FC = () => {
+    const { user } = useFastAPIAuth();
     const { data: documents, isLoading } = useMyDocuments();
     const signDocument = useSignDocument();
     const saveDocument = useSaveDocument();
@@ -23,16 +25,40 @@ export const StudentDocumentsPage: React.FC = () => {
     const [htmlContent, setHtmlContent] = useState<string | null>(null);
     const documentContainerRef = React.useRef<HTMLDivElement>(null);
 
+    const replacePlaceholders = (html: string) => {
+        if (!html || !user) return html;
+        let result = html;
+        const data: any = {
+            apprenant: {
+                nom: user.last_name || '',
+                prenom: user.first_name || '',
+                email: user.email || '',
+                nom_complet: `${user.first_name} ${user.last_name}`,
+            },
+            date: {
+                jour: new Date().toLocaleDateString('fr-FR'),
+                Heure: new Date().toLocaleTimeString('fr-FR'),
+            }
+        };
+
+        for (const cat in data) {
+            for (const field in data[cat]) {
+                const placeholder = `{{${cat}.${field}}}`;
+                result = result.split(placeholder).join(data[cat][field]);
+            }
+        }
+        return result;
+    };
+
     const handleViewDocument = async (doc: any) => {
         setSelectedDocument(doc);
-        // Priorité : Contenu HTML stocké en base de données (avec les réponses de l'apprenant)
         if (doc.html_content) {
-            setHtmlContent(doc.html_content);
+            setHtmlContent(replacePlaceholders(doc.html_content));
         } else if (doc.media_asset && doc.media_asset.content_type === 'text/html') {
             try {
                 const response = await fetch(doc.media_asset.download_url);
                 const text = await response.text();
-                setHtmlContent(text);
+                setHtmlContent(replacePlaceholders(text));
             } catch (error) {
                 console.error("Erreur chargement document HTML", error);
                 setHtmlContent(null);
@@ -45,14 +71,13 @@ export const StudentDocumentsPage: React.FC = () => {
 
     const handleSignDocument = async (doc: any) => {
         setSelectedDocument(doc);
-        // Priorité : Contenu HTML stocké en base de données (avec les réponses de l'apprenant)
         if (doc.html_content) {
-            setHtmlContent(doc.html_content);
+            setHtmlContent(replacePlaceholders(doc.html_content));
         } else if (doc.media_asset && doc.media_asset.content_type === 'text/html') {
             try {
                 const response = await fetch(doc.media_asset.download_url);
                 const text = await response.text();
-                setHtmlContent(text);
+                setHtmlContent(replacePlaceholders(text));
             } catch (error) {
                 console.error("Erreur chargement document HTML", error);
             }
@@ -60,62 +85,55 @@ export const StudentDocumentsPage: React.FC = () => {
         setShowSignatureDialog(true);
     };
 
-    const captureHtmlContent = (): string | null => {
+    const captureHtmlContent = (freeze: boolean = false): string | null => {
         const container = documentContainerRef.current;
-        console.log("Capture du contenu HTML. Container trouvé ?", !!container);
+        if (!container) return htmlContent;
 
-        if (!container) {
-            console.warn("Conteneur non trouvé, utilisation du htmlContent initial");
-            return htmlContent;
-        }
-
-        // Créer un clone pour ne pas polluer l'affichage live trop violemment
         const clone = container.cloneNode(true) as HTMLElement;
+        const sourceInputs = container.querySelectorAll('input, textarea, select');
+        const cloneInputs = clone.querySelectorAll('input, textarea, select');
 
-        // 1. Inputs (text, date, number, etc.)
-        const sourceInputs = container.querySelectorAll('input');
-        const cloneInputs = clone.querySelectorAll('input');
-
-        sourceInputs.forEach((source, i) => {
-            const dest = cloneInputs[i];
+        sourceInputs.forEach((source: any, i) => {
+            const dest = cloneInputs[i] as any;
             if (!dest) return;
 
-            if (source.type === 'checkbox' || source.type === 'radio') {
-                if (source.checked) {
-                    dest.setAttribute('checked', 'checked');
+            const val = source.value;
+
+            if (freeze) {
+                // Remplacer l'élément par un span statique pour "figer" le document
+                const span = document.createElement('span');
+                span.style.padding = '2px 5px';
+                span.style.backgroundColor = '#f0f4f8';
+                span.style.borderBottom = '1px solid #cbd5e1';
+                span.style.borderRadius = '3px';
+                span.style.display = 'inline-block';
+                span.style.minWidth = '50px';
+
+                if (source.type === 'checkbox' || source.type === 'radio') {
+                    span.textContent = source.checked ? ' [X] ' : ' [ ] ';
                 } else {
-                    dest.removeAttribute('checked');
+                    span.textContent = val || '...';
+                    if (source.tagName.toLowerCase() === 'textarea') {
+                        span.style.display = 'block';
+                        span.style.width = '100%';
+                        span.style.minHeight = '60px';
+                        span.style.whiteSpace = 'pre-wrap';
+                    }
                 }
+                dest.parentNode.replaceChild(span, dest);
             } else {
-                dest.setAttribute('value', source.value);
-            }
-        });
-
-        // 2. Textareas
-        const sourceTextareas = container.querySelectorAll('textarea');
-        const cloneTextareas = clone.querySelectorAll('textarea');
-        sourceTextareas.forEach((source, i) => {
-            const dest = cloneTextareas[i];
-            if (!dest) return;
-            dest.textContent = source.value;
-            dest.innerHTML = source.value;
-        });
-
-        // 3. Selects
-        const sourceSelects = container.querySelectorAll('select');
-        const cloneSelects = clone.querySelectorAll('select');
-        sourceSelects.forEach((source, i) => {
-            const dest = cloneSelects[i];
-            if (!dest) return;
-            const sourceOptions = source.querySelectorAll('option');
-            const destOptions = dest.querySelectorAll('option');
-            sourceOptions.forEach((opt, j) => {
-                if (opt.selected) {
-                    destOptions[j]?.setAttribute('selected', 'selected');
+                // Juste mettre à jour les attributs
+                if (source.type === 'checkbox' || source.type === 'radio') {
+                    if (source.checked) dest.setAttribute('checked', 'checked');
+                    else dest.removeAttribute('checked');
                 } else {
-                    destOptions[j]?.removeAttribute('selected');
+                    dest.setAttribute('value', val);
+                    if (source.tagName.toLowerCase() === 'textarea') {
+                        dest.textContent = val;
+                        dest.innerHTML = val;
+                    }
                 }
-            });
+            }
         });
 
         return clone.innerHTML;
@@ -124,18 +142,14 @@ export const StudentDocumentsPage: React.FC = () => {
     const handleSaveDraft = async () => {
         if (!selectedDocument) return;
 
-        const capturedHtml = captureHtmlContent();
-        if (!capturedHtml) {
-            console.warn("No HTML content to save");
-            return;
-        }
+        const capturedHtml = captureHtmlContent(false);
+        if (!capturedHtml) return;
 
         try {
             await saveDocument.mutateAsync({
                 assignment_id: selectedDocument.id,
                 html_content: capturedHtml
             });
-            // Mettre à jour l'état local immédiatement pour que l'aperçu soit à jour
             setHtmlContent(capturedHtml);
         } catch (error) {
             console.error("Failed to save draft", error);
@@ -145,51 +159,56 @@ export const StudentDocumentsPage: React.FC = () => {
     const handleSaveSignature = async (signatureData: string) => {
         if (!selectedDocument) return;
 
-        // CAPTURE DU HTML REMPLI
-        let finalHtmlContent = captureHtmlContent();
+        // On fige les réponses dans le HTML final (conversion inputs -> spans)
+        const frozenHtml = captureHtmlContent(true);
+        if (!frozenHtml) return;
 
-        // Si on a un conteneur actif, on désactive les champs et on ajoute la signature
-        if (finalHtmlContent && documentContainerRef.current) {
-            // On recrée un élément temporaire pour manipuler le HTML final sans toucher à l'affichage live
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = finalHtmlContent;
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = frozenHtml;
 
-            // Désactiver tous les inputs
-            tempDiv.querySelectorAll('input, textarea, select').forEach(el => {
-                el.setAttribute('disabled', 'disabled');
-            });
+        const cleanSignatureData = signatureData.replace(/\s/g, '');
+        const signatureHtml = `
+            <div style="margin-top: 15px; text-align: center; font-family: sans-serif; border: 1px solid #eee; padding: 15px; background: #fff; max-width: 400px; margin-left: auto; margin-right: auto;">
+                <p style="margin-bottom: 8px; font-size: 14px; color: #1a1a1a;">
+                    <strong>Document signé électroniquement le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}</strong>
+                </p>
+                <img src="${cleanSignatureData}" alt="Signature" style="max-height: 100px; display: inline-block;" />
+                <p style="font-size: 10px; color: #666; margin-top: 8px;">ID Validation: ${selectedDocument.id}</p>
+            </div>
+        `;
 
-            // 4. INJECTION DE LA SIGNATURE
-            const signatureZone = tempDiv.querySelector('#signature-zone') || tempDiv.querySelector('.signature-zone');
+        // Recherche de la zone de signature (très robuste)
+        let signatureZone = tempDiv.querySelector('#signature-zone') || tempDiv.querySelector('.signature-zone');
 
-            const cleanSignatureData = signatureData.replace(/\s/g, '');
-
-            const signatureHtml = `
-                <div style="margin-top: 10px; text-align: center; width: 100%;">
-                    <p style="margin-bottom: 5px;"><strong>Signé le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}</strong></p>
-                    <img src="${cleanSignatureData}" alt="Signature Apprenant" style="max-height: 120px; border: 1px solid #eee; padding: 5px; background: white; display: inline-block;" />
-                </div>
-             `;
-
-            if (signatureZone) {
-                signatureZone.innerHTML = signatureHtml;
-                signatureZone.classList.add('signature-added');
-            } else {
-                // Si pas de zone précise, on ajoute un bloc de signature propre à la fin du document (mais dans le flux)
-                tempDiv.insertAdjacentHTML('beforeend', `
-                    <div class="final-signature-block" style="margin-top: 40px; padding: 20px; border: 2px solid #333; text-align: center; background: #fff;">
-                        ${signatureHtml}
-                    </div>
-                `);
-            }
-
-            finalHtmlContent = tempDiv.innerHTML;
+        // Alternative : chercher l'élément qui contient le texte "La signature sera apposée ici"
+        if (!signatureZone) {
+            const potentialElements = Array.from(tempDiv.querySelectorAll('div, p, td, span'));
+            signatureZone = potentialElements.find(el => el.textContent?.includes('La signature sera apposée ici')) as HTMLElement;
         }
+
+        if (signatureZone) {
+            const sz = signatureZone as HTMLElement;
+            sz.innerHTML = signatureHtml;
+            // Nettoyage des styles de placeholder du template
+            sz.style.background = 'transparent';
+            sz.style.border = 'none';
+            sz.style.minHeight = 'auto';
+            sz.style.color = 'inherit';
+        } else {
+            // Append à la fin si vraiment rien trouvé
+            tempDiv.insertAdjacentHTML('beforeend', `
+                <div style="margin-top: 50px; border-top: 2px solid #333; padding-top: 20px;">
+                    ${signatureHtml}
+                </div>
+            `);
+        }
+
+        const finalHtmlContent = tempDiv.innerHTML;
 
         await signDocument.mutateAsync({
             assignment_id: selectedDocument.id,
             signature_data: signatureData,
-            html_content: finalHtmlContent || undefined // On envoie le HTML rempli
+            html_content: finalHtmlContent
         });
 
         setShowSignatureDialog(false);
