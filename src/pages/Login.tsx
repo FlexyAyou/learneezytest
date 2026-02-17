@@ -38,7 +38,7 @@ const Login = () => {
   // Vérification de l'email au montage si token présent
   useEffect(() => {
     const token = searchParams.get("token");
-    
+
     if (token) {
       setIsVerifying(true);
       fastAPIClient
@@ -129,8 +129,8 @@ const Login = () => {
             <Link to="/">
               <img
                 src={
-                  isOFContext && organization?.logoUrl 
-                    ? organization.logoUrl 
+                  isOFContext && organization?.logoUrl
+                    ? organization.logoUrl
                     : "/lovable-uploads/52aaa383-7635-46d0-ac37-eb3ee6b878d1.png"
                 }
                 alt={isOFContext && organization?.organizationName ? organization.organizationName : "Learneezy"}
@@ -142,9 +142,9 @@ const Login = () => {
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              {isOFContext && organization?.organizationName 
-                ? `Bienvenue chez ${organization.organizationName}` 
-                : "Bienvenue ! Connectez-vous à votre compte"
+              {isOFContext && organization?.organizationName
+                ? `Connexion - Espace ${organization.organizationName}`
+                : "Connexion - Votre compte Learneezy"
               }
             </h1>
             <p className="text-gray-600">Entrez vos informations pour accéder à votre espace d'apprentissage</p>
@@ -158,7 +158,7 @@ const Login = () => {
                 Vérification de votre email en cours...
               </div>
             )}
-            
+
             {verificationSuccess && (
               <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5" />
@@ -168,7 +168,7 @@ const Login = () => {
                 </div>
               </div>
             )}
-            
+
             {loginError && (
               <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
                 {loginError}
