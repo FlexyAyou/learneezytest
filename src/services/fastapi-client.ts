@@ -1521,6 +1521,12 @@ class FastAPIClient {
     });
   }
 
+  async saveLearnerDocument(ofId: number, learnerId: number, docId: string, htmlContent: string) {
+    return this.post<any>(`/api/organizations/${ofId}/learners/${learnerId}/documents/${docId}/save`, {
+      html_content: htmlContent
+    });
+  }
+
   // --- ADMIN/LEARNER CLEANUP ---
   async cleanupDocuments(ofId: number, learnerId?: number) {
     let url = `/api/organizations/${ofId}/documents/cleanup`;

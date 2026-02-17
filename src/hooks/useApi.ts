@@ -1441,4 +1441,49 @@ export const useSignDocument = () => {
       });
     }
   });
+
+};
+
+/**
+ * Hook pour sauvegarder un document (texte/html) sans le signer
+ */
+export const useSaveDocument = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { assignment_id: number | string; html_content: string }) => {
+      const idStr = String(data.assignment_id);
+
+      if (idStr.length > 20 || idStr.includes('-')) {
+        const user = await fastAPIClient.getCurrentUser();
+        if (!user.of_id) throw new Error("Impossible de trouver l'organisation de l'utilisateur");
+
+        const realDocId = idStr.replace(/^new-/, '');
+
+        return fastAPIClient.saveLearnerDocument(
+          user.of_id,
+          user.id,
+          realDocId,
+          data.html_content
+        );
+      } else {
+        throw new Error("La sauvegarde n'est pas supportée pour les anciens types de documents.");
+      }
+    },
+    onSuccess: () => {
+      // Invalidate queries to refresh content
+      queryClient.invalidateQueries({ queryKey: ['my-documents'] });
+      toast({
+        title: "Brouillon enregistré",
+        description: "Vos modifications ont été sauvegardées.",
+      });
+    },
+    onError: (error: any) => {
+      console.error("Save Error:", error);
+      toast({
+        title: "Erreur de sauvegarde",
+        description: error.response?.data?.detail || "Impossible de sauvegarder le document.",
+        variant: "destructive",
+      });
+    }
+  });
 };

@@ -5,14 +5,16 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { FileText, CheckCircle, Clock, Eye, PenTool, Download } from 'lucide-react';
-import { useMyDocuments, useSignDocument } from '@/hooks/useApi';
+import { useMyDocuments, useSignDocument, useSaveDocument } from '@/hooks/useApi';
 import { SignatureCanvas } from '@/components/signature/SignatureCanvas';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { Loader2, Save } from 'lucide-react';
 
 export const StudentDocumentsPage: React.FC = () => {
     const { data: documents, isLoading } = useMyDocuments();
     const signDocument = useSignDocument();
+    const saveDocument = useSaveDocument();
 
     const [selectedDocument, setSelectedDocument] = useState<any | null>(null);
     const [showSignatureDialog, setShowSignatureDialog] = useState(false);
@@ -53,59 +55,89 @@ export const StudentDocumentsPage: React.FC = () => {
         setShowSignatureDialog(true);
     };
 
+    const captureHtmlContent = (): string | null => {
+        if (!documentContainerRef.current) return htmlContent;
+
+        const container = documentContainerRef.current;
+        console.log("Capturing HTML content from container:", container);
+
+        // 1. Inputs text / email / number / date / checkbox / radio
+        const inputs = container.querySelectorAll('input');
+        inputs.forEach(input => {
+            if (input.type === 'checkbox' || input.type === 'radio') {
+                if (input.checked) {
+                    input.setAttribute('checked', 'checked');
+                } else {
+                    input.removeAttribute('checked');
+                }
+            } else {
+                input.setAttribute('value', input.value);
+            }
+            // Note: pas de disabled ici car on veut pouvoir continuer à éditer si c'est une sauvegarde
+        });
+
+        // 2. Textareas
+        const textareas = container.querySelectorAll('textarea');
+        textareas.forEach(textarea => {
+            textarea.textContent = textarea.value;
+            textarea.innerHTML = textarea.value; // Fallback
+        });
+
+        // 3. Selects
+        const selects = container.querySelectorAll('select');
+        selects.forEach(select => {
+            const options = select.querySelectorAll('option');
+            options.forEach(option => {
+                if (option.selected) {
+                    option.setAttribute('selected', 'selected');
+                } else {
+                    option.removeAttribute('selected');
+                }
+            });
+        });
+
+        return container.innerHTML;
+    };
+
+    const handleSaveDraft = async () => {
+        if (!selectedDocument) return;
+
+        const capturedHtml = captureHtmlContent();
+        if (!capturedHtml) {
+            console.warn("No HTML content to save");
+            return;
+        }
+
+        try {
+            await saveDocument.mutateAsync({
+                assignment_id: selectedDocument.id,
+                html_content: capturedHtml
+            });
+            // Update local state is handled by query invalidation
+        } catch (error) {
+            console.error("Failed to save draft", error);
+        }
+    };
+
     const handleSaveSignature = async (signatureData: string) => {
         if (!selectedDocument) return;
 
         // CAPTURE DU HTML REMPLI
-        let finalHtmlContent = htmlContent;
+        let finalHtmlContent = captureHtmlContent();
 
-        // Si on a un conteneur actif où l'utilisateur a pu remplir des champs
-        if (documentContainerRef.current) {
-            const container = documentContainerRef.current;
+        // Si on a un conteneur actif, on désactive les champs et on ajoute la signature
+        if (finalHtmlContent && documentContainerRef.current) {
+            // On recrée un élément temporaire pour manipuler le HTML final sans toucher à l'affichage live
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = finalHtmlContent;
 
-            // 1. Inputs text / email / number / date / checkbox / radio
-            const inputs = container.querySelectorAll('input');
-            inputs.forEach(input => {
-                if (input.type === 'checkbox' || input.type === 'radio') {
-                    if (input.checked) {
-                        input.setAttribute('checked', 'checked');
-                    } else {
-                        input.removeAttribute('checked');
-                    }
-                } else {
-                    input.setAttribute('value', input.value);
-                }
-                // Désactiver les inputs pour figer le document après signature
-                input.setAttribute('disabled', 'disabled');
-            });
-
-            // 2. Textareas
-            const textareas = container.querySelectorAll('textarea');
-            textareas.forEach(textarea => {
-                textarea.textContent = textarea.value;
-                textarea.innerHTML = textarea.value; // Fallback
-                // Désactiver
-                textarea.setAttribute('disabled', 'disabled');
-            });
-
-            // 3. Selects
-            const selects = container.querySelectorAll('select');
-            selects.forEach(select => {
-                const options = select.querySelectorAll('option');
-                options.forEach(option => {
-                    if (option.selected) {
-                        option.setAttribute('selected', 'selected');
-                    } else {
-                        option.removeAttribute('selected');
-                    }
-                });
-                // Désactiver
-                select.setAttribute('disabled', 'disabled');
+            // Désactiver tous les inputs
+            tempDiv.querySelectorAll('input, textarea, select').forEach(el => {
+                el.setAttribute('disabled', 'disabled');
             });
 
             // 4. INJECTION DE LA SIGNATURE
-            // Chercher un placeholder spécifique ou ajouter à la fin
-            const signatureZone = container.querySelector('#signature-zone') || container.querySelector('.signature-zone');
+            const signatureZone = tempDiv.querySelector('#signature-zone') || tempDiv.querySelector('.signature-zone');
 
             const signatureHtml = `
                 <div style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 10px;">
@@ -117,11 +149,10 @@ export const StudentDocumentsPage: React.FC = () => {
             if (signatureZone) {
                 signatureZone.innerHTML = signatureHtml;
             } else {
-                // Ajouter à la fin du document si pas de zone spécifique
-                container.insertAdjacentHTML('beforeend', signatureHtml);
+                tempDiv.insertAdjacentHTML('beforeend', signatureHtml);
             }
 
-            finalHtmlContent = container.innerHTML;
+            finalHtmlContent = tempDiv.innerHTML;
         }
 
         await signDocument.mutateAsync({
@@ -408,6 +439,36 @@ export const StudentDocumentsPage: React.FC = () => {
                                     </p>
                                 </div>
                             )}
+                        </div>
+                    )}
+
+                    {/* Actions dans le footer du dialogue */}
+                    {selectedDocument && !selectedDocument.is_signed && selectedDocument.media_asset?.content_type === 'text/html' && (
+                        <div className="flex justify-end gap-2 mt-4 pt-4 border-t sticky bottom-0 bg-white">
+                            <Button
+                                variant="outline"
+                                onClick={handleSaveDraft}
+                                disabled={saveDocument.isPending}
+                            >
+                                {saveDocument.isPending ? (
+                                    <>
+                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                        Enregistrement...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Save className="h-4 w-4 mr-2" />
+                                        Enregistrer le brouillon
+                                    </>
+                                )}
+                            </Button>
+                            <Button onClick={() => {
+                                setShowDocumentDialog(false);
+                                setShowSignatureDialog(true);
+                            }}>
+                                <PenTool className="h-4 w-4 mr-2" />
+                                Signer le document
+                            </Button>
                         </div>
                     )}
                 </DialogContent>
