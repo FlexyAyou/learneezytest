@@ -79,54 +79,56 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
     useEffect(() => {
         if (isOpen) {
             if (initialHtmlContent) {
-                setHtmlContent(initialHtmlContent);
+                // Toujours tenter de personnaliser au cas où il s'agit d'un template brut
+                setHtmlContent(getPersonalizedContent(initialHtmlContent));
             } else if (url) {
                 fetchContent();
             } else {
-                // If no URL and no initial content, generate from template immediately
-                // This handles cases where document is not yet generated/assigned as a file
                 generateFromTemplate();
             }
             setStep('edit');
         }
-    }, [isOpen, url, initialHtmlContent, ofData, currentUser]); // Add dependencies to regenerate if data loads
+    }, [isOpen, url, initialHtmlContent, ofData, currentUser]);
+
+    const getPersonalizedContent = (rawHtml: string) => {
+        if (!rawHtml) return '';
+
+        // Map Organization Data
+        const mappedOFData = ofData ? {
+            na: ofData.name,
+            siret: ofData.siret,
+            nda: ofData.numero_declaration,
+            address: ofData.address,
+            postalCode: ofData.postal_code,
+            city: ofData.city,
+            phone: ofData.phone,
+            email: ofData.contact_email || ofData.email,
+            managerName: ofData.legal_representative
+        } : undefined;
+
+        // Map Learner Data
+        const mappedLearnerData = {
+            firstName: learnerData?.firstName || currentUser?.first_name || '',
+            lastName: learnerData?.lastName || currentUser?.last_name || '',
+            email: currentUser?.email || '',
+            phone: currentUser?.phone || '',
+            address: currentUser?.address || '',
+        };
+
+        const personalized = personalizeDocumentContent(
+            rawHtml,
+            { id: '0', name: formationData?.name || 'Ma Formation' },
+            mappedOFData,
+            mappedLearnerData
+        );
+
+        return processInteractiveFields(personalized);
+    };
 
     const generateFromTemplate = () => {
         const template = getTemplateForType(docType);
         if (template) {
-            // Map Organization Data
-            const mappedOFData = ofData ? {
-                na: ofData.name,
-                siret: ofData.siret,
-                nda: ofData.numero_declaration,
-                address: ofData.address,
-                postalCode: ofData.postal_code,
-                city: ofData.city,
-                phone: ofData.phone,
-                email: ofData.contact_email || ofData.email,
-                managerName: ofData.legal_representative
-            } : undefined;
-
-            // Map Learner Data (merge props with current user data if available)
-            const mappedLearnerData = {
-                firstName: learnerData?.firstName || currentUser?.first_name || '',
-                lastName: learnerData?.lastName || currentUser?.last_name || '',
-                email: currentUser?.email || '',
-                phone: currentUser?.phone || '',
-                address: currentUser?.address || '',
-                // Add other fields if available in user object
-            };
-
-            const generatedHtml = personalizeDocumentContent(
-                template,
-                { id: '0', name: formationData?.name || 'Ma Formation' },
-                mappedOFData,
-                mappedLearnerData
-            );
-
-            // Pre-process interactive fields
-            const processedHtml = processInteractiveFields(generatedHtml);
-            setHtmlContent(processedHtml);
+            setHtmlContent(getPersonalizedContent(template));
         }
     };
 
@@ -153,12 +155,9 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
             if (url) {
                 try {
                     const response = await axios.get(url, { responseType: 'text' });
-                    rawHtml = response.data;
-                    // If successfully fetched, process it
-                    setHtmlContent(processInteractiveFields(rawHtml));
+                    setHtmlContent(getPersonalizedContent(response.data));
                 } catch (fetchErr) {
                     console.info("Document non encore généré (404), utilisation du template local.");
-                    // Fallback to template generation
                     generateFromTemplate();
                 }
             } else {
@@ -320,10 +319,40 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
         try {
             console.log("Starting Needs Analysis submission for assignment:", assignmentId);
 
-            // 1. Extract filled content
+            // 1. Extract filled content and "freeze" it
             const completedHtml = extractFormResults();
 
-            // 2. Wrap in basic HTML structure
+            // 2. Wrap and inject signature
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = completedHtml;
+
+            const signatureHtml = `
+                <div class="signature-block" style="margin-top: 20px; text-align: center; border: 1px solid #eee; padding: 15px; background: #fff;">
+                    <p style="margin-bottom: 8px; font-size: 14px;"><strong>Signé électroniquement le :</strong> ${new Date().toLocaleDateString('fr-FR')}</p>
+                    <img src="${signatureData}" alt="Signature" style="max-height: 100px; display: inline-block;" />
+                    <p style="font-size: 10px; color: #666; margin-top: 8px;">ID Validation: ${assignmentId}</p>
+                </div>
+            `;
+
+            // Recherche de la zone de signature
+            let signatureZone = tempDiv.querySelector('#signature-zone') || tempDiv.querySelector('.signature-zone');
+            if (!signatureZone) {
+                const potentialElements = Array.from(tempDiv.querySelectorAll('div, p, td, span'));
+                signatureZone = potentialElements.find(el => el.textContent?.includes('La signature sera apposée ici')) as HTMLElement;
+            }
+
+            if (signatureZone) {
+                const sz = signatureZone as HTMLElement;
+                sz.innerHTML = signatureHtml;
+                sz.style.background = 'transparent';
+                sz.style.border = 'none';
+                sz.style.minHeight = 'auto';
+            } else {
+                tempDiv.insertAdjacentHTML('beforeend', signatureHtml);
+            }
+
+            const finalHtmlContent = tempDiv.innerHTML;
+
             const finalHtml = `
         <!DOCTYPE html>
         <html>
@@ -331,19 +360,16 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
           <meta charset="UTF-8">
           <style>
             body { font-family: sans-serif; line-height: 1.5; color: #333; }
-            .content { max-width: 800px; margin: 0 auto; padding: 40px; }
-            .signature-block { margin-top: 50px; border-top: 1px solid #eee; padding-top: 20px; }
-            .signature-img { max-width: 200px; height: auto; }
-            .filled-value { text-decoration: underline; font-weight: bold; color: #1d4ed8; }
+            .content { max-width: 850px; margin: 0 auto; padding: 40px; background: white; }
+            .signature-block { margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; text-align: center; }
+            .signature-img { max-width: 250px; height: auto; }
+            .filled-value { text-decoration: underline; font-weight: bold; color: #1d4ed8; padding: 0 4px; }
+            @page { size: A4; margin: 0; }
           </style>
         </head>
         <body>
           <div class="content">
-            ${completedHtml}
-            <div class="signature-block">
-              <p><strong>Signé électroniquement le :</strong> ${new Date().toLocaleDateString('fr-FR')}</p>
-              <img src="${signatureData}" alt="Signature" class="signature-img" />
-            </div>
+            ${finalHtmlContent}
           </div>
         </body>
         </html>

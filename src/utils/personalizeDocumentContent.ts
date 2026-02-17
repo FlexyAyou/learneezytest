@@ -61,50 +61,50 @@ export const personalizeDocumentContent = (
 
   // Remplacement des données de l'OF
   content = content
-    .replace(/\{\{of\.nom\}\}/g, ofData?.na || 'Nom de l\'OF')
-    .replace(/\{\{of\.siret\}\}/g, ofData?.siret || 'SIRET non renseigné')
-    .replace(/\{\{of\.nda\}\}/g, ofData?.nda || 'NDA non renseigné')
-    .replace(/\{\{of\.adresse\}\}/g, ofData?.address || '')
-    .replace(/\{\{of\.codePostal\}\}/g, ofData?.postalCode || '')
-    .replace(/\{\{of\.ville\}\}/g, ofData?.city || '')
-    .replace(/\{\{of\.telephone\}\}/g, ofData?.phone || '')
-    .replace(/\{\{of\.email\}\}/g, ofData?.email || '')
-    .replace(/\{\{of\.responsable\}\}/g, ofData?.managerName || 'Responsable de formation')
-    .replace(/\{\{of\.signature\}\}/g, signatureHtml);
+    .replace(/\{\{\s*of\.nom\s*\}\}/g, ofData?.na || 'Nom de l\'OF')
+    .replace(/\{\{\s*of\.siret\s*\}\}/g, ofData?.siret || 'SIRET non renseigné')
+    .replace(/\{\{\s*of\.nda\s*\}\}/g, ofData?.nda || 'NDA non renseigné')
+    .replace(/\{\{\s*of\.adresse\s*\}\}/g, ofData?.address || '')
+    .replace(/\{\{\s*of\.codePostal\s*\}\}/g, ofData?.postalCode || '')
+    .replace(/\{\{\s*of\.ville\s*\}\}/g, ofData?.city || '')
+    .replace(/\{\{\s*of\.telephone\s*\}\}/g, ofData?.phone || '')
+    .replace(/\{\{\s*of\.email\s*\}\}/g, ofData?.email || '')
+    .replace(/\{\{\s*of\.responsable\s*\}\}/g, ofData?.managerName || 'Responsable de formation')
+    .replace(/\{\{\s*of\.signature\s*\}\}/g, signatureHtml);
 
   // Remplacement des données de la formation
   content = content
-    .replace(/\{\{formation\.nom\}\}/g, formation.name || 'Formation')
-    .replace(/\{\{formation\.duree\}\}/g, 'Variable') // À dynamiser si dispo
-    .replace(/\{\{formation\.lieu\}\}/g, 'À distance / E-learning')
-    .replace(/\{\{formation\.prix\}\}/g, '-') // À dynamiser si dispo
-    .replace(/\{\{formation\.formateur\}\}/g, '-') // À dynamiser si dispo
-    .replace(/\{\{dates\.debut\}\}/g, new Date().toLocaleDateString('fr-FR')) // À dynamiser
-    .replace(/\{\{dates\.fin\}\}/g, '-') // À dynamiser
-    .replace(/\{\{date\.jour\}\}/g, new Date().toLocaleDateString('fr-FR'));
+    .replace(/\{\{\s*formation\.nom\s*\}\}/g, formation.name || 'Formation')
+    .replace(/\{\{\s*formation\.duree\s*\}\}/g, 'Variable')
+    .replace(/\{\{\s*formation\.lieu\s*\}\}/g, 'À distance / E-learning')
+    .replace(/\{\{\s*formation\.prix\s*\}\}/g, '-')
+    .replace(/\{\{\s*formation\.formateur\s*\}\}/g, '-')
+    .replace(/\{\{\s*dates\.debut\s*\}\}/g, new Date().toLocaleDateString('fr-FR'))
+    .replace(/\{\{\s*dates\.fin\s*\}\}/g, '-')
+    .replace(/\{\{\s*date\.jour\s*\}\}/g, new Date().toLocaleDateString('fr-FR'));
 
   // Remplacement des données de l'apprenant
   if (learnerData) {
     content = content
-      .replace(/\{\{apprenant\.nom\}\}/g, learnerData.lastName || '')
-      .replace(/\{\{apprenant\.prenom\}\}/g, learnerData.firstName || '')
-      .replace(/\{\{apprenant\.entreprise\}\}/g, learnerData.company || '')
-      .replace(/\{\{apprenant\.adresse\}\}/g, learnerData.address || '')
-      .replace(/\{\{apprenant\.codePostal\}\}/g, learnerData.postalCode || '')
-      .replace(/\{\{apprenant\.ville\}\}/g, learnerData.city || '')
-      .replace(/\{\{apprenant\.telephone\}\}/g, learnerData.phone || '')
-      .replace(/\{\{apprenant\.email\}\}/g, learnerData.email || '');
+      .replace(/\{\{\s*apprenant\.nom\s*\}\}/g, learnerData.lastName || '')
+      .replace(/\{\{\s*apprenant\.prenom\s*\}\}/g, learnerData.firstName || '')
+      .replace(/\{\{\s*apprenant\.entreprise\s*\}\}/g, learnerData.company || '')
+      .replace(/\{\{\s*apprenant\.adresse\s*\}\}/g, learnerData.address || '')
+      .replace(/\{\{\s*apprenant\.codePostal\s*\}\}/g, learnerData.postalCode || '')
+      .replace(/\{\{\s*apprenant\.ville\s*\}\}/g, learnerData.city || '')
+      .replace(/\{\{\s*apprenant\.telephone\s*\}\}/g, learnerData.phone || '')
+      .replace(/\{\{\s*apprenant\.email\s*\}\}/g, learnerData.email || '');
 
     // Remplacement zone de signature
     content = content
       .replace(/<p style="margin-bottom: 60px;"><strong>Le stagiaire<\/strong> \(mention "Lu et approuvé"\)<\/p>/g,
         `<p><strong>Le stagiaire</strong> (mention "Lu et approuvé")</p>${learnerSignatureHtml}`)
-      .replace(/<p style="margin-top: 50px;">{{apprenant\.prenom}} {{apprenant\.nom}}<br\/>Date : {{date\.jour}}<\/p>/g,
+      .replace(/<p style="margin-top: 50px;">\{\{\s*apprenant\.prenom\s*\}\} \{\{\s*apprenant\.nom\s*\}\}<br\/>Date : \{\{\s*date\.jour\s*\}\}<\/p>/g,
         `${learnerSignatureHtml}<p>${learnerData.firstName} ${learnerData.lastName}<br/>Date : ${new Date().toLocaleDateString('fr-FR')}</p>`);
   } else {
     // Nettoyage des placeholders si pas de données apprenant
     content = content
-      .replace(/\{\{apprenant\..*?\}\}/g, '....................');
+      .replace(/\{\{\s*apprenant\..*?\s*\}\}/g, '....................');
   }
 
   return content;

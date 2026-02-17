@@ -11,9 +11,9 @@ interface ElectronicSignatureProps {
   disabled?: boolean;
 }
 
-export const ElectronicSignature: React.FC<ElectronicSignatureProps> = ({ 
-  onSignatureComplete, 
-  disabled = false 
+export const ElectronicSignature: React.FC<ElectronicSignatureProps> = ({
+  onSignatureComplete,
+  disabled = false
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -78,13 +78,14 @@ export const ElectronicSignature: React.FC<ElectronicSignatureProps> = ({
 
   const handleSaveSignature = () => {
     if (activeTab === "draw" && fabricCanvas && isSigned) {
-      // En mode preview, on génère juste des données mockées
-      const mockSignatureData = `signature_${Date.now()}_mock_drawn`;
-      onSignatureComplete(mockSignatureData);
+      // Pour Fabric.js v6, toDataURL renvoie le base64 de l'image du canvas
+      const signatureData = fabricCanvas.toDataURL({
+        format: 'png',
+        quality: 1
+      });
+      onSignatureComplete(signatureData);
     } else if (activeTab === "upload" && uploadedSignature) {
-      // En mode preview, on génère juste des données mockées
-      const mockSignatureData = `signature_${Date.now()}_mock_uploaded`;
-      onSignatureComplete(mockSignatureData);
+      onSignatureComplete(uploadedSignature);
     }
   };
 
@@ -128,13 +129,13 @@ export const ElectronicSignature: React.FC<ElectronicSignatureProps> = ({
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50">
             {uploadedSignature ? (
               <div className="space-y-4">
-                <img 
-                  src={uploadedSignature} 
-                  alt="Signature uploadée" 
+                <img
+                  src={uploadedSignature}
+                  alt="Signature uploadée"
                   className="max-h-32 mx-auto border rounded"
                 />
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => setUploadedSignature(null)}
                   size="sm"
                 >
@@ -179,7 +180,7 @@ export const ElectronicSignature: React.FC<ElectronicSignatureProps> = ({
           <RotateCcw className="w-4 h-4 mr-2" />
           {activeTab === "draw" ? "Effacer" : "Supprimer"}
         </Button>
-        
+
         <Button
           type="button"
           onClick={handleSaveSignature}
