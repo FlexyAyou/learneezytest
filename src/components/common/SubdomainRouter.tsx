@@ -68,9 +68,10 @@ const SubdomainRouter: React.FC<SubdomainRouterProps> = ({ children }) => {
   useEffect(() => {
     // Attendre que le chargement soit terminé
     if (orgLoading || authLoading) return;
-    
-    // Éviter les redirections multiples
-    if (hasRedirected) return;
+
+    // Éviter les redirections multiples SEULEMENT pour les redirections pré-login
+    // On ne bloque PAS les redirections post-login vers le dashboard
+    if (hasRedirected && !isAuthenticated) return;
 
     // Si on est sur un sous-domaine OF
     if (isOFContext && orgExists) {
@@ -92,10 +93,7 @@ const SubdomainRouter: React.FC<SubdomainRouterProps> = ({ children }) => {
     }
   }, [isOFContext, orgExists, isAuthenticated, isPublicOFRoute, isBlockedOFRoute, orgLoading, authLoading, navigate, hasRedirected]);
 
-  // Reset hasRedirected quand on change de route manuellement
-  useEffect(() => {
-    setHasRedirected(false);
-  }, [location.pathname]);
+
 
   // Effet pour détecter le changement d'authentification (connexion réussie)
   useEffect(() => {
@@ -117,11 +115,13 @@ const SubdomainRouter: React.FC<SubdomainRouterProps> = ({ children }) => {
     }
 
     if (!wasAuthenticated && isAuthenticated && user && !orgLoading && !authLoading) {
-      // L'utilisateur vient de se connecter
-      const userBelongsToOF = userRole === 'superadmin' || 
-        (userOfId !== null && userOfId !== undefined && 
-         orgId !== null && orgId !== undefined &&
-         Number(userOfId) === Number(orgId));
+      // L'utilisateur vient de se connecter - réinitialiser hasRedirected pour permettre la redirection
+      setHasRedirected(false);
+
+      const userBelongsToOF = userRole === 'superadmin' ||
+        (userOfId !== null && userOfId !== undefined &&
+          orgId !== null && orgId !== undefined &&
+          Number(userOfId) === Number(orgId));
 
       if (!location.pathname.startsWith('/dashboard/superadmin')) {
         console.log('[SubdomainRouter - Belongs Check]', {
@@ -142,7 +142,7 @@ const SubdomainRouter: React.FC<SubdomainRouterProps> = ({ children }) => {
           student: '/dashboard/apprenant',
         };
         const dashboardPath = roleRedirects[userRole || ''] || '/dashboard/apprenant';
-        
+
         console.log('[SubdomainRouter] 🚀 REDIRECTING TO:', dashboardPath);
         navigate(dashboardPath, { replace: true });
       } else if (!location.pathname.startsWith('/dashboard/superadmin')) {
@@ -153,7 +153,7 @@ const SubdomainRouter: React.FC<SubdomainRouterProps> = ({ children }) => {
         });
       }
     }
-    
+
     setWasAuthenticated(isAuthenticated);
   }, [isAuthenticated, userRole, userOfId, orgId, orgExists, isOFContext, orgLoading, authLoading, navigate, wasAuthenticated, location.pathname, user]);
 
