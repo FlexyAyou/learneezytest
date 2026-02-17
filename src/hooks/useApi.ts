@@ -1288,7 +1288,8 @@ export const useMyDocuments = () => {
             filename: doc.title || 'Document',
             kind: 'document',
             size: doc.html_content ? doc.html_content.length : 0,
-            url: null, // HTML content, not URL
+            url: null,
+            download_url: `/api/organizations/${ofId}/documents/${doc.id}/view`,
             content_type: 'text/html',
             created_at: doc.sent_at
           },
@@ -1299,6 +1300,8 @@ export const useMyDocuments = () => {
           message: `Document ${doc.type || 'administratif'}`,
           phase: doc.phase,
           signature_data: doc.signature_data,
+          html_content: doc.html_content,
+          requires_signature: doc.requires_signature,
           // Add custom fields for new system
           _isNewSystem: true,
           _docId: doc.id,
