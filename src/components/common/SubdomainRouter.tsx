@@ -56,12 +56,12 @@ const SubdomainRouter: React.FC<SubdomainRouterProps> = ({ children }) => {
 
   // Vérifier si la route actuelle est une route publique OF
   const isPublicOFRoute = useMemo(() => {
-    return OF_PUBLIC_ROUTES.some(route => location.pathname.startsWith(route));
+    return OF_PUBLIC_ROUTES.some(route => location.pathname === route || location.pathname.startsWith(route + '/'));
   }, [location.pathname]);
 
   // Vérifier si la route actuelle est explicitement bloquée en contexte OF
   const isBlockedOFRoute = useMemo(() => {
-    return OF_BLOCKED_ROUTES.some(route => location.pathname.startsWith(route));
+    return OF_BLOCKED_ROUTES.some(route => location.pathname === route || location.pathname.startsWith(route + '/'));
   }, [location.pathname]);
 
   // Vérifier si la route actuelle est une route de dashboard
