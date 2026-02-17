@@ -252,7 +252,7 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
     const template = getTemplateForType(doc.type);
 
     if (template && formation) {
-      const personalizedContent = personalizeDocumentContent(template, formation, doc.learnerSignature);
+      const personalizedContent = personalizeDocumentContent(template, formation, undefined, undefined, doc.learnerSignature);
       setPreviewDocument({
         title: documentTypes[doc.type].label,
         content: personalizedContent
@@ -416,7 +416,7 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
           // ou si c'est un PDF, on espère que la modale gère (elle semble gérer signature pad + preview).
           const formation = formations.find(f => f.id === selectedDocument.formationId);
           const template = getTemplateForType(selectedDocument.type);
-          return template && formation ? personalizeDocumentContent(template, formation, selectedDocument.learnerSignature) : undefined;
+          return template && formation ? personalizeDocumentContent(template, formation, undefined, undefined, selectedDocument.learnerSignature) : undefined;
         })() : undefined}
       />
 
@@ -454,6 +454,7 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
             lastName: currentUser.last_name || ''
           } : undefined}
           formationData={formations.find(f => f.id === activeAnalysis.formationId) || (formations.length > 0 ? formations[0] : undefined)}
+          initialHtmlContent={activeAnalysis.htmlContent}
           onSuccess={() => {
             refetchDocs();
           }}

@@ -23,11 +23,11 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ElectronicSignature } from '@/components/common/ElectronicSignature';
-import { usePrepareUpload, useCompleteUpload, useSignDocument, useOrganization } from '@/hooks/useApi';
+import { getTemplateForType, personalizeDocumentContent } from '@/utils/personalizeDocumentContent';
+import { usePrepareUpload, useCompleteUpload, useSignDocument, useSaveDocument, useOrganization } from '@/hooks/useApi';
 import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 import { fastAPIClient } from '@/services/fastapi-client';
 import axios from 'axios';
-import { getTemplateForType, personalizeDocumentContent } from '@/utils/personalizeDocumentContent';
 
 interface StudentNeedsAnalysisModalProps {
     isOpen: boolean;
@@ -70,6 +70,7 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
     const prepareUpload = usePrepareUpload();
     const completeUpload = useCompleteUpload();
     const signDocument = useSignDocument();
+    const saveDocument = useSaveDocument();
 
     // Get current user and OF details for dynamic population
     const { user: currentUser } = useFastAPIAuth();
@@ -129,14 +130,19 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
         }
     };
 
-    const processInteractiveFields = (html: string) => {
-        return html.replace(
+    const processInteractiveFields = (htmlContent: string) => {
+        // Remplacement des zones vides par des zones de texte éditables
+        let processed = htmlContent.replace(
             /<div style="border: 1px solid #ccc; min-height: 80px; padding: 10px; margin-bottom: 20px;"><\/div>/g,
             '<textarea class="interactive-field" placeholder="Saisissez votre réponse ici..." style="width: 100%; border: 1px solid #ccc; min-height: 80px; padding: 10px; margin-bottom: 20px; font-family: inherit; resize: vertical;"></textarea>'
         ).replace(
             /<li>☐ (.*?)<\/li>/g,
             '<li><label style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" name="competence" class="interactive-checkbox" /> $1</label></li>'
         );
+
+        // Si le document contenait déjà des valeurs (provenant d'une sauvegarde précédente), 
+        // elles sont dans les attributs value ou checked. On les laisse telles quelles.
+        return processed;
     };
 
     const fetchContent = async () => {
@@ -171,21 +177,62 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
         }
     };
 
-    const handleSaveDraft = () => {
-        if (!containerRef.current) return;
+    const captureCurrentHtml = (): string | null => {
+        if (!containerRef.current) return null;
 
-        const values: Record<string, string | boolean> = {};
-        const inputs = containerRef.current.querySelectorAll('input, textarea');
-        inputs.forEach((input: any, index: number) => {
-            const key = `field_${index}`;
-            values[key] = input.type === 'checkbox' ? input.checked : input.value;
+        // Créer un clone pour manipuler le HTML
+        const clone = containerRef.current.cloneNode(true) as HTMLElement;
+        const sourceInputs = containerRef.current.querySelectorAll('input, textarea, select');
+        const cloneInputs = clone.querySelectorAll('input, textarea, select');
+
+        sourceInputs.forEach((source: any, i) => {
+            const dest = cloneInputs[i] as any;
+            if (!dest) return;
+
+            if (source.type === 'checkbox' || source.type === 'radio') {
+                if (source.checked) dest.setAttribute('checked', 'checked');
+                else dest.removeAttribute('checked');
+            } else {
+                dest.setAttribute('value', source.value);
+                if (source.tagName.toLowerCase() === 'textarea') {
+                    dest.textContent = source.value;
+                }
+            }
         });
 
-        localStorage.setItem(`draft_analysis_${assignmentId}`, JSON.stringify(values));
-        toast({
-            title: "Brouillon enregistré",
-            description: "Vos réponses ont été sauvegardées localement.",
-        });
+        return clone.innerHTML;
+    };
+
+    const handleSaveDraft = async () => {
+        const currentHtml = captureCurrentHtml();
+        if (!currentHtml) return;
+
+        setIsSaving(true);
+        try {
+            await saveDocument.mutateAsync({
+                assignment_id: assignmentId,
+                html_content: currentHtml
+            });
+            // Update local state to reflect current state
+            setHtmlContent(currentHtml);
+        } catch (error) {
+            console.error("Error saving draft to server:", error);
+            // Fallback to local storage if server fails
+            const values: Record<string, string | boolean> = {};
+            const inputs = containerRef.current?.querySelectorAll('input, textarea') || [];
+            inputs.forEach((input: any, index: number) => {
+                const key = `field_${index}`;
+                values[key] = input.type === 'checkbox' ? input.checked : input.value;
+            });
+            localStorage.setItem(`draft_analysis_${assignmentId}`, JSON.stringify(values));
+            toast({
+                title: "Sauvegarde locale",
+                description: "Le serveur n'a pas pu être joint. Vos réponses sont sauvées sur ce navigateur.",
+                variant: "destructive"
+            });
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     useEffect(() => {
@@ -399,8 +446,14 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
                     <div className="flex items-center gap-2">
                         {step === 'edit' && (
                             <>
-                                <Button variant="outline" size="sm" onClick={handleSaveDraft} className="gap-2">
-                                    <Save className="h-4 w-4" />
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleSaveDraft}
+                                    className="gap-2"
+                                    disabled={isSaving}
+                                >
+                                    {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                                     Enregistrer
                                 </Button>
                                 <Button variant="outline" size="sm" onClick={handlePrint} className="gap-2">
