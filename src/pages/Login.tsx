@@ -143,8 +143,8 @@ const Login = () => {
           <div className="text-center mb-8">
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
               {isOFContext && organization?.organizationName
-                ? `Connexion - Espace ${organization.organizationName}`
-                : "Connexion - Votre compte Learneezy"
+                ? `Bienvenue chez ${organization.organizationName}`
+                : "Bienvenue ! Connectez-vous à votre compte"
               }
             </h1>
             <p className="text-gray-600">Entrez vos informations pour accéder à votre espace d'apprentissage</p>

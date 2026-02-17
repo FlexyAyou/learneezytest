@@ -40,11 +40,6 @@ const SubdomainRouter: React.FC<SubdomainRouterProps> = ({ children }) => {
   const { isAuthenticated: apiAuthenticated, user, isLoading: authLoading } = useFastAPIAuth();
   const navigate = useNavigate();
   const location = useLocation();
-
-  // LOG DE VERSION POUR TEST SYNCHRO
-  useEffect(() => {
-    console.log('[SubdomainRouter] Version 1.1 - Route Unifiée ACTIVE');
-  }, []);
   const [wasAuthenticated, setWasAuthenticated] = React.useState(false);
   const [hasRedirected, setHasRedirected] = React.useState(false);
 
