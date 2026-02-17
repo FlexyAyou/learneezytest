@@ -162,10 +162,12 @@ export const StudentDocumentsPage: React.FC = () => {
             // 4. INJECTION DE LA SIGNATURE
             const signatureZone = tempDiv.querySelector('#signature-zone') || tempDiv.querySelector('.signature-zone');
 
+            const cleanSignatureData = signatureData.replace(/\s/g, '');
+
             const signatureHtml = `
-                <div style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 10px;">
-                    <p><strong>Signé le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}</strong></p>
-                    <img src="${signatureData}" alt="Signature Apprenant" style="max-height: 100px; border: 1px solid #eee; padding: 5px; background: white;" />
+                <div style="margin-top: 10px; text-align: center; width: 100%;">
+                    <p style="margin-bottom: 5px;"><strong>Signé le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}</strong></p>
+                    <img src="${cleanSignatureData}" alt="Signature Apprenant" style="max-height: 120px; border: 1px solid #eee; padding: 5px; background: white; display: inline-block;" />
                 </div>
              `;
 
