@@ -1,47 +1,37 @@
-import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { fastAPIClient } from '@/services/fastapi-client';
 import { UserResponse, UserRole } from '@/types/fastapi';
 
 /**
  * Hook d'authentification FastAPI
- * Gère le cycle de vie des tokens JWT et l'état utilisateur
+ * Gère le cycle de vie des tokens JWT et l'état utilisateur de manière réactive
  */
 export const useFastAPIAuth = () => {
-  const [user, setUser] = useState<UserResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  /**
-   * Charge l'utilisateur au montage si token présent
-   */
-  useEffect(() => {
-    const loadUser = async () => {
+  // Utiliser useQuery pour charger et mettre en cache l'utilisateur
+  // Cela rend l'état global et réactif à travers tous les composants
+  const { data: user, isLoading, isError, refetch } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: async () => {
       const token = localStorage.getItem('access_token');
-      
-      if (!token) {
-        setIsLoading(false);
-        return;
-      }
-
+      if (!token) return null;
       try {
-        const userData = await fastAPIClient.getCurrentUser();
-        setUser(userData);
-        setIsAuthenticated(true);
+        return await fastAPIClient.getCurrentUser();
       } catch (error) {
-        // Token invalide, nettoyage
+        // En cas d'erreur (token expiré), on nettoie
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
-        setUser(null);
-        setIsAuthenticated(false);
-      } finally {
-        setIsLoading(false);
+        throw error;
       }
-    };
+    },
+    retry: false,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
 
-    loadUser();
-  }, []);
+  const isAuthenticated = !!user;
 
   /**
    * Redirection automatique basée sur le rôle
@@ -79,8 +69,8 @@ export const useFastAPIAuth = () => {
       // Forcer le nettoyage local
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
-      setUser(null);
-      setIsAuthenticated(false);
+      queryClient.setQueryData(['currentUser'], null);
+      queryClient.clear();
       navigate('/connexion', { replace: true });
     }
   };
@@ -100,7 +90,9 @@ export const useFastAPIAuth = () => {
    * Mettre à jour l'utilisateur localement (sans appel API)
    */
   const updateUser = (updatedData: Partial<UserResponse>) => {
-    setUser(prev => prev ? { ...prev, ...updatedData } : null);
+    queryClient.setQueryData(['currentUser'], (old: UserResponse | null) =>
+      old ? { ...old, ...updatedData } : null
+    );
   };
 
   return {
@@ -111,5 +103,6 @@ export const useFastAPIAuth = () => {
     redirectByRole,
     getUserRole,
     updateUser,
+    refetch,
   };
 };
