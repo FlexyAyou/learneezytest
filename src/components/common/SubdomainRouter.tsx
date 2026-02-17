@@ -10,16 +10,16 @@ interface SubdomainRouterProps {
 
 // Routes publiques autorisées sur un sous-domaine OF
 const OF_PUBLIC_ROUTES = [
+  '/connexion',
   '/connexion-of',
   '/mot-de-passe-oublie',
   '/mot-de-passe-oublié',
   '/reinitialiser-mot-de-passe',
 ];
 
-// Routes explicitement bloquées sur un sous-domaine OF (redirigées vers /connexion-of)
+// Routes explicitement bloquées sur un sous-domaine OF
 const OF_BLOCKED_ROUTES = [
   '/inscription',
-  '/connexion',
 ];
 
 // Routes de dashboard (protégées)
@@ -103,9 +103,9 @@ const SubdomainRouter: React.FC<SubdomainRouterProps> = ({ children }) => {
       else {
         // Bloquer les routes interdites ou rediriger si pas sur une route publique
         if (isBlockedOFRoute || (!isPublicOFRoute && location.pathname !== '/')) {
-          console.log('[SubdomainRouter] 🔄 Non authentifié, redirection vers /connexion-of');
+          console.log('[SubdomainRouter] 🔄 Non authentifié, redirection vers /connexion');
           setHasRedirected(true);
-          navigate('/connexion-of', { replace: true });
+          navigate('/connexion', { replace: true });
         }
       }
     }
