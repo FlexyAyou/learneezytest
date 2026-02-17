@@ -376,47 +376,50 @@ export const DEFAULT_TEMPLATES: Partial<Record<DocumentType, string>> = {
   ,
 
   analyse_besoin: `
-<div style="font-family: 'Times New Roman', Times, serif; max-width: 800px; margin: 0 auto; padding: 20px;">
-  <div style="text-align: center; margin-bottom: 30px;">
+<div style="font-family: 'Times New Roman', Times, serif; max-width: 800px; margin: 0 auto; padding: 20px; background: white; color: #333; line-height: 1.6;">
+  <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 15px;">
     <h1 style="font-size: 24px; margin-bottom: 10px;">ANALYSE DU BESOIN DE FORMATION</h1>
-    <p style="font-size: 14px; color: #666;">Formulaire d'évaluation préalable</p>
+    <p style="font-size: 14px; color: #666; font-style: italic;">Formulaire d'évaluation préalable à l'entrée en formation</p>
   </div>
 
-  <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; background: #f9f9f9;">
-    <p style="margin: 0;"><strong>Organisme de Formation :</strong> {{of.nom}}</p>
-    <p style="margin: 5px 0 0 0;"><strong>N° DA :</strong> {{of.nda}}</p>
+  <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; background: #f9f9f9; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+    <div>
+      <p style="margin: 0;"><strong>Organisme de Formation :</strong> {{of.nom}}</p>
+      <p style="margin: 5px 0 0 0;"><strong>N° DA :</strong> {{of.nda}}</p>
+    </div>
+    <div>
+       <p style="margin: 0;"><strong>Apprenant :</strong> {{apprenant.prenom}} {{apprenant.nom}}</p>
+       <p style="margin: 5px 0 0 0;"><strong>Formation :</strong> {{formation.nom}}</p>
+    </div>
   </div>
 
-  <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd;">
-    <p><strong>Apprenant :</strong> {{apprenant.prenom}} {{apprenant.nom}}</p>
-    <p><strong>Entreprise :</strong> {{apprenant.entreprise}}</p>
-    <p><strong>Poste :</strong> {{apprenant.poste}}</p>
+  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px; color: #1a1a1a;">1. Contexte professionnel</h2>
+  <p style="margin-bottom: 8px;">Décrivez brièvement votre contexte professionnel actuel et vos missions :</p>
+  <textarea name="contexte" style="width: 100%; min-height: 100px; padding: 10px; border: 1px solid #ccc; margin-bottom: 20px; font-family: inherit;"></textarea>
+
+  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px; color: #1a1a1a;">2. Objectifs de la formation</h2>
+  <p style="margin-bottom: 8px;">Quels sont vos objectifs pour cette formation ?</p>
+  <textarea name="objectifs" style="width: 100%; min-height: 100px; padding: 10px; border: 1px solid #ccc; margin-bottom: 20px; font-family: inherit;"></textarea>
+
+  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px; color: #1a1a1a;">3. Compétences actuelles</h2>
+  <p style="margin-bottom: 8px;">Comment évaluez-vous votre niveau actuel dans le domaine concerné ?</p>
+  <div style="margin-bottom: 20px;">
+    <label style="margin-right: 15px;"><input type="radio" name="niveau" value="debutant"> Débutant</label>
+    <label style="margin-right: 15px;"><input type="radio" name="niveau" value="intermediaire"> Intermédiaire</label>
+    <label><input type="radio" name="niveau" value="avance"> Avancé</label>
   </div>
 
-  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px;">1. Contexte professionnel</h2>
-  <p>Décrivez brièvement votre contexte professionnel actuel :</p>
-  <div style="border: 1px solid #ccc; min-height: 80px; padding: 10px; margin-bottom: 20px;"></div>
+  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px; color: #1a1a1a;">4. Attentes spécifiques</h2>
+  <p style="margin-bottom: 8px;">Avez-vous des besoins spécifiques (accessibilité, handicaps, aménagements) ?</p>
+  <textarea name="attentes" style="width: 100%; min-height: 80px; padding: 10px; border: 1px solid #ccc; margin-bottom: 30px; font-family: inherit;"></textarea>
 
-  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px;">2. Objectifs de la formation</h2>
-  <p>Quels sont vos objectifs pour la formation <strong>{{formation.nom}}</strong> ?</p>
-  <div style="border: 1px solid #ccc; min-height: 80px; padding: 10px; margin-bottom: 20px;"></div>
-
-  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px;">3. Compétences actuelles</h2>
-  <p>Évaluez votre niveau actuel dans le domaine concerné :</p>
-  <ul>
-    <li>☐ Débutant</li>
-    <li>☐ Intermédiaire</li>
-    <li>☐ Avancé</li>
-  </ul>
-
-  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px;">4. Attentes spécifiques</h2>
-  <p>Avez-vous des attentes particulières ou des besoins spécifiques (accessibilité, aménagements, etc.) ?</p>
-  <div style="border: 1px solid #ccc; min-height: 80px; padding: 10px; margin-bottom: 20px;"></div>
-
-  <div style="margin-top: 30px;">
-    <p><strong>Date :</strong> {{date.jour}}</p>
+  <div style="margin-top: 30px; border: 1px dashed #666; padding: 20px; text-align: center;">
     <p><strong>Signature de l'apprenant :</strong></p>
-    <div style="min-height: 60px; margin-top: 10px;"></div>
+    <div id="signature-zone" style="min-height: 100px; border: 1px solid #eee; background: #fafafa; margin: 10px auto; max-width: 300px; display: flex; align-items: center; justify-content: center; color: #aaa;">
+      La signature sera apposée ici
+    </div>
+    <p><strong>{{apprenant.prenom}} {{apprenant.nom}}</strong></p>
+    <p style="font-size: 12px;">Fait le {{date.jour}}</p>
   </div>
 </div>
 `,
