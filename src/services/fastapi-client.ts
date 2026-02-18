@@ -1539,6 +1539,10 @@ class FastAPIClient {
     return this.get('/api/messaging/conversations');
   }
 
+  async getContacts(): Promise<any[]> {
+    return this.get('/api/messaging/contacts');
+  }
+
   async getMessages(otherUserId: number): Promise<any[]> {
     return this.get(`/api/messaging/messages/${otherUserId}`);
   }

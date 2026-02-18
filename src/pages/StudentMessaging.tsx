@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Send, Search, Phone, Video, MoreVertical, Paperclip, Smile, Building2, User, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,18 +35,23 @@ const StudentMessaging = () => {
   const { toast } = useToast();
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [contacts, setContacts] = useState<Conversation[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const loadConversations = async () => {
+  const loadData = async () => {
     try {
-      const data = await fastAPIClient.getConversations();
-      setConversations(data);
+      const [convs, conts] = await Promise.all([
+        fastAPIClient.getConversations(),
+        fastAPIClient.getContacts()
+      ]);
+      setConversations(convs);
+      setContacts(conts);
     } catch (error) {
-      console.error("Error loading conversations:", error);
+      console.error("Error loading messaging data:", error);
     }
   };
 
@@ -54,15 +59,15 @@ const StudentMessaging = () => {
     try {
       const data = await fastAPIClient.getMessages(otherUserId);
       setMessages(data);
-      loadConversations();
+      loadData();
     } catch (error) {
       console.error("Error loading messages:", error);
     }
   };
 
   useEffect(() => {
-    loadConversations();
-    const interval = setInterval(loadConversations, 10000);
+    loadData();
+    const interval = setInterval(loadData, 10000);
     return () => clearInterval(interval);
   }, []);
 
@@ -100,8 +105,19 @@ const StudentMessaging = () => {
     }
   };
 
-  const selectedUser = conversations.find(conv => conv.user_id === selectedUserId);
-  const filteredConversations = conversations.filter(c =>
+  const selectedUser = conversations.find(conv => conv.user_id === selectedUserId) || contacts.find(c => c.user_id === selectedUserId);
+
+  const displayConversations = useMemo(() => {
+    const merged = new Map<number, Conversation>();
+    contacts.forEach(c => merged.set(c.user_id, c));
+    conversations.forEach(c => merged.set(c.user_id, c));
+
+    return Array.from(merged.values()).sort((a, b) =>
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+  }, [conversations, contacts]);
+
+  const filteredConversations = displayConversations.filter(c =>
     c.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -221,8 +237,8 @@ const StudentMessaging = () => {
                       className={`flex ${msg.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}
                     >
                       <div className={`max-w-[70%] px-4 py-2 rounded-2xl shadow-sm ${msg.sender_id === user?.id
-                          ? 'bg-pink-600 text-white rounded-br-none'
-                          : 'bg-white text-gray-900 rounded-bl-none border border-gray-100'
+                        ? 'bg-pink-600 text-white rounded-br-none'
+                        : 'bg-white text-gray-900 rounded-bl-none border border-gray-100'
                         }`}>
                         <p className="text-sm leading-relaxed">{msg.content}</p>
                         <p className={`text-[10px] mt-1 text-right ${msg.sender_id === user?.id ? 'text-pink-100' : 'text-gray-400'

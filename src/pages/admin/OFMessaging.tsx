@@ -34,18 +34,23 @@ const OFMessaging = () => {
     const { toast } = useToast();
     const location = useLocation();
     const [conversations, setConversations] = useState<Conversation[]>([]);
+    const [contacts, setContacts] = useState<Conversation[]>([]);
     const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState('');
     const [loading, setLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
-    const loadConversations = async () => {
+    const loadData = async () => {
         try {
-            const data = await fastAPIClient.getConversations();
-            setConversations(data);
+            const [convs, conts] = await Promise.all([
+                fastAPIClient.getConversations(),
+                fastAPIClient.getContacts()
+            ]);
+            setConversations(convs);
+            setContacts(conts);
         } catch (error) {
-            console.error("Error loading conversations:", error);
+            console.error("Error loading messaging data:", error);
         }
     };
 
@@ -54,8 +59,8 @@ const OFMessaging = () => {
         try {
             const data = await fastAPIClient.getMessages(otherUserId);
             setMessages(data);
-            // Refresh conversations to update unread count
-            loadConversations();
+            // Refresh to update unread count
+            loadData();
         } catch (error) {
             console.error("Error loading messages:", error);
         } finally {
@@ -64,9 +69,9 @@ const OFMessaging = () => {
     };
 
     useEffect(() => {
-        loadConversations();
-        // Poll for new messages every 10 seconds
-        const interval = setInterval(loadConversations, 10000);
+        loadData();
+        // Poll for updates
+        const interval = setInterval(loadData, 10000);
         return () => clearInterval(interval);
     }, []);
 
@@ -103,9 +108,21 @@ const OFMessaging = () => {
         }
     };
 
-    const selectedUser = conversations.find(c => c.user_id === selectedUserId);
+    const selectedUser = conversations.find(c => c.user_id === selectedUserId) || contacts.find(c => c.user_id === selectedUserId);
 
-    const filteredConversations = conversations.filter(c =>
+    const displayConversations = useMemo(() => {
+        const merged = new Map<number, Conversation>();
+        // Add contacts first (empty state)
+        contacts.forEach(c => merged.set(c.user_id, c));
+        // Overwrite with actual conversations (history takes precedence)
+        conversations.forEach(c => merged.set(c.user_id, c));
+
+        return Array.from(merged.values()).sort((a, b) =>
+            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        );
+    }, [conversations, contacts]);
+
+    const filteredConversations = displayConversations.filter(c =>
         c.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
