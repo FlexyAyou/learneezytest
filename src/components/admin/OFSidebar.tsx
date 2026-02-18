@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { 
+import {
   Building,
   Users,
   BookOpen,
@@ -14,7 +14,8 @@ import {
   Home,
   CreditCard,
   LogOut,
-  Tag
+  Tag,
+  MessageSquare
 } from 'lucide-react';
 import {
   Sidebar,
@@ -41,6 +42,7 @@ const sidebarItems = [
   // { title: "Licences", href: "/dashboard/organisme-formation/licences", icon: Key },
   { title: "Suivi pédagogique", href: "/dashboard/organisme-formation/suivi-pedagogique", icon: BarChart3 },
   { title: "Visioconférence", href: "/dashboard/organisme-formation/visio", icon: Video },
+  { title: "Messages", href: "/dashboard/organisme-formation/messages", icon: MessageSquare },
   { title: "Envois", href: "/dashboard/organisme-formation/envois", icon: Mail },
   { title: "Offres", href: "/dashboard/organisme-formation/offres", icon: Tag },
   // { title: "Intégrations", href: "/dashboard/organisme-formation/integrations", icon: Puzzle },
@@ -69,9 +71,9 @@ export function OFSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-border p-4">
         <Link to="/" className="flex items-center justify-center mb-2">
-          <img 
-            src="/lovable-uploads/52aaa383-7635-46d0-ac37-eb3ee6b878d1.png" 
-            alt="Learneezy" 
+          <img
+            src="/lovable-uploads/52aaa383-7635-46d0-ac37-eb3ee6b878d1.png"
+            alt="Learneezy"
             className={isCollapsed ? "h-8 w-auto" : "h-16 w-auto"}
           />
         </Link>
@@ -87,9 +89,9 @@ export function OFSidebar() {
         <div className="border-b border-border p-4">
           <div className="flex items-center space-x-3 mb-3">
             {avatar ? (
-              <img 
-                src={avatar} 
-                alt="Profile" 
+              <img
+                src={avatar}
+                alt="Profile"
                 className="w-10 h-10 rounded-full object-cover flex-shrink-0"
               />
             ) : (

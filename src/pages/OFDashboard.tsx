@@ -23,6 +23,7 @@ import OFManagerDetailPage from '@/pages/admin/OFManagerDetailPage';
 import CreateCoursePage from '@/pages/admin/CreateCoursePage';
 import EditCoursePage from '@/pages/admin/EditCoursePage';
 import CourseDetailPage from '@/pages/admin/CourseDetailPage';
+import OFMessaging from '@/pages/admin/OFMessaging';
 
 
 const OFDashboard = () => {
@@ -30,37 +31,38 @@ const OFDashboard = () => {
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
         <OFSidebar />
-        
+
         <SidebarInset className="flex-1">
           <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4">
             <SidebarTrigger />
             <div className="flex-1" />
           </header>
-          
+
           <main className="flex-1 p-6">
             <Routes>
-                <Route path="/" element={<Navigate to="/dashboard/organisme-formation/tableau-de-bord" replace />} />
-                <Route path="/tableau-de-bord" element={<OFDashboardContent />} />
-                <Route path="/utilisateurs" element={<OFUtilisateurs />} />
-                <Route path="/utilisateurs/apprenant/:userSlug" element={<OFStudentDetailPage />} />
-                <Route path="/utilisateurs/formateur/:userSlug" element={<OFTrainerDetailPage />} />
-                <Route path="/utilisateurs/gestionnaire/:userSlug" element={<OFManagerDetailPage />} />
-                <Route path="/formations" element={<OFCourses />} />
-                <Route path="/formations/create" element={<CreateCoursePage />} />
-                <Route path="/formations/:courseId" element={<CourseDetailPage />} />
-                <Route path="/formations/:id/edit" element={<EditCoursePage />} />
+              <Route path="/" element={<Navigate to="/dashboard/organisme-formation/tableau-de-bord" replace />} />
+              <Route path="/tableau-de-bord" element={<OFDashboardContent />} />
+              <Route path="/utilisateurs" element={<OFUtilisateurs />} />
+              <Route path="/utilisateurs/apprenant/:userSlug" element={<OFStudentDetailPage />} />
+              <Route path="/utilisateurs/formateur/:userSlug" element={<OFTrainerDetailPage />} />
+              <Route path="/utilisateurs/gestionnaire/:userSlug" element={<OFManagerDetailPage />} />
+              <Route path="/formations" element={<OFCourses />} />
+              <Route path="/formations/create" element={<CreateCoursePage />} />
+              <Route path="/formations/:courseId" element={<CourseDetailPage />} />
+              <Route path="/formations/:id/edit" element={<EditCoursePage />} />
               <Route path="/documents-of" element={<OFDocumentsAdvanced />} />
               <Route path="/documents" element={<OFDocumentsAdvanced />} />
               <Route path="/programmes" element={<OFProgrammeLibraryPage />} />
               <Route path="/emargements" element={<OFEmargementPage />} />
-                <Route path="/licences" element={<OFLicences />} />
-                <Route path="/suivi-pedagogique" element={<OFSuiviPedagogique />} />
-                <Route path="/visio" element={<OFVideoConferences />} />
-                <Route path="/envois" element={<OFEnvois />} />
-                <Route path="/offres" element={<OFOffres />} />
-                <Route path="/integrations" element={<OFIntegrations />} />
-                <Route path="/logs" element={<OFLogs />} />
-                <Route path="/parametres" element={<OFSettings />} />
+              <Route path="/licences" element={<OFLicences />} />
+              <Route path="/suivi-pedagogique" element={<OFSuiviPedagogique />} />
+              <Route path="/visio" element={<OFVideoConferences />} />
+              <Route path="/messages" element={<OFMessaging />} />
+              <Route path="/envois" element={<OFEnvois />} />
+              <Route path="/offres" element={<OFOffres />} />
+              <Route path="/integrations" element={<OFIntegrations />} />
+              <Route path="/logs" element={<OFLogs />} />
+              <Route path="/parametres" element={<OFSettings />} />
             </Routes>
           </main>
         </SidebarInset>

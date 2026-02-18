@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Users, Search, Filter, Plus, Eye, Edit, MoreHorizontal, UserPlus, AlertCircle, Loader2 } from 'lucide-react';
+import { Users, Search, Filter, Plus, Eye, Edit, MoreHorizontal, UserPlus, AlertCircle, Loader2, MessageSquare } from 'lucide-react';
 import { AddApprenantModal } from './AddApprenantModal';
 import { OFAddUtilisateur } from './OFAddUtilisateur';
 import { useOFUsers, useCreateOFUser } from '@/hooks/useApi';
@@ -428,6 +428,14 @@ export const OFUtilisateurs = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => navigate('/dashboard/organisme-formation/messages', { state: { selectedUserId: user.id } })}
+                          title="Envoyer un message"
+                        >
+                          <MessageSquare className="h-4 w-4" />
+                        </Button>
                         <Button
                           size="sm"
                           variant="outline"

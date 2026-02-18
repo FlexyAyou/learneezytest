@@ -1534,6 +1534,19 @@ class FastAPIClient {
     });
   }
 
+  // --- MESSAGING ---
+  async getConversations(): Promise<any[]> {
+    return this.get('/api/messaging/conversations');
+  }
+
+  async getMessages(otherUserId: number): Promise<any[]> {
+    return this.get(`/api/messaging/messages/${otherUserId}`);
+  }
+
+  async sendMessage(data: { receiver_id: number, content: string }): Promise<any> {
+    return this.post('/api/messaging/', data);
+  }
+
   // --- ADMIN/LEARNER CLEANUP ---
   async cleanupDocuments(ofId: number, learnerId?: number) {
     let url = `/api/organizations/${ofId}/documents/cleanup`;
