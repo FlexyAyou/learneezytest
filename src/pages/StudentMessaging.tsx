@@ -153,11 +153,11 @@ const StudentMessaging = () => {
                   <div className="flex items-center space-x-3">
                     <div className="relative">
                       <Avatar>
-                        <AvatarFallback className={conversation.role === "organisme_formation"
+                        <AvatarFallback className={["of_admin", "admin", "manager"].includes(conversation.role)
                           ? "bg-blue-100 text-blue-600"
                           : "bg-pink-100 text-pink-600"
                         }>
-                          {conversation.role === "organisme_formation"
+                          {["of_admin", "admin", "manager"].includes(conversation.role)
                             ? <Building2 className="h-4 w-4" />
                             : conversation.name.split(' ').map(n => n[0]).join('')
                           }
@@ -172,7 +172,12 @@ const StudentMessaging = () => {
                       <div className="flex justify-between items-start">
                         <div>
                           <h3 className="font-medium text-gray-900 truncate">{conversation.name}</h3>
-                          <p className="text-xs text-gray-500 uppercase">{conversation.role}</p>
+                          <p className="text-xs text-gray-500 uppercase">
+                            {conversation.role === 'of_admin' || conversation.role === 'admin' ? 'Administrateur' :
+                              conversation.role === 'manager' ? 'Gestionnaire' :
+                                conversation.role === 'trainer' ? 'Formateur' :
+                                  conversation.role}
+                          </p>
                         </div>
                         <div className="flex flex-col items-end">
                           <span className="text-[10px] text-gray-500">
@@ -202,11 +207,11 @@ const StudentMessaging = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <Avatar>
-                        <AvatarFallback className={selectedUser.role === "organisme_formation"
+                        <AvatarFallback className={["of_admin", "admin", "manager"].includes(selectedUser.role)
                           ? "bg-blue-100 text-blue-600"
                           : "bg-pink-100 text-pink-600"
                         }>
-                          {selectedUser.role === "organisme_formation"
+                          {["of_admin", "admin", "manager"].includes(selectedUser.role)
                             ? <Building2 className="h-4 w-4" />
                             : selectedUser.name.split(' ').map(n => n[0]).join('')
                           }
@@ -215,7 +220,10 @@ const StudentMessaging = () => {
                       <div>
                         <h3 className="font-medium text-gray-900">{selectedUser.name}</h3>
                         <p className="text-xs text-gray-500 uppercase">
-                          {selectedUser.role}
+                          {selectedUser.role === 'of_admin' || selectedUser.role === 'admin' ? 'Administrateur' :
+                            selectedUser.role === 'manager' ? 'Gestionnaire' :
+                              selectedUser.role === 'trainer' ? 'Formateur' :
+                                selectedUser.role}
                           {selectedUser.online && <span className="text-green-500 ml-2">• En ligne</span>}
                         </p>
                       </div>

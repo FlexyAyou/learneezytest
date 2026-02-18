@@ -205,8 +205,12 @@ const OFMessaging = () => {
                                 </Avatar>
                                 <div>
                                     <h3 className="font-medium text-gray-900">{selectedUser?.name}</h3>
-                                    <p className="text-xs text-gray-500">
-                                        {selectedUser?.role === 'apprenant' ? 'Apprenant' : selectedUser?.role}
+                                    <p className="text-xs text-gray-500 uppercase">
+                                        {selectedUser?.role === 'learner' ? 'Apprenant' :
+                                            selectedUser?.role === 'trainer' ? 'Formateur' :
+                                                selectedUser?.role === 'manager' ? 'Gestionnaire' :
+                                                    selectedUser?.role === 'of_admin' || selectedUser?.role === 'admin' ? 'Administrateur' :
+                                                        selectedUser?.role}
                                         {selectedUser?.online && <span className="text-green-500 ml-2">• En ligne</span>}
                                     </p>
                                 </div>
