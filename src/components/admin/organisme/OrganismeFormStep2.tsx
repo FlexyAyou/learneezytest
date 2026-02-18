@@ -27,7 +27,7 @@ export const OrganismeFormStep2: React.FC<OrganismeFormStep2Props> = ({
           value={formData.address}
           onChange={(e) => updateFormData({ address: e.target.value })}
           placeholder="123 Rue de la Formation, 75001 Paris"
-          rows={3}
+          rows={1}
           required
         />
       </div>

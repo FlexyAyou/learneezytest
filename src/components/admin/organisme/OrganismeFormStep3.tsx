@@ -34,7 +34,7 @@ export const OrganismeFormStep3: React.FC<OrganismeFormStep3Props> = ({
     }
 
     const newAgrement = customAgrementValue.trim();
-    
+
     // Vérifier si l'agrément existe déjà
     if (customAgrements.includes(newAgrement) || ['Qualiopi', 'OPCO', 'Datadock', 'ISQ'].includes(newAgrement)) {
       toast({
@@ -48,12 +48,12 @@ export const OrganismeFormStep3: React.FC<OrganismeFormStep3Props> = ({
     setCustomAgrements([...customAgrements, newAgrement]);
     const currentAgrements = formData.agrement || [];
     updateFormData({ agrement: [...currentAgrements, newAgrement] });
-    
+
     toast({
       title: "Agrément ajouté",
       description: `L'agrément "${newAgrement}" a été ajouté avec succès`
     });
-    
+
     setCustomAgrementValue('');
     setIsCustomAgrementDialogOpen(false);
   };
@@ -66,30 +66,45 @@ export const OrganismeFormStep3: React.FC<OrganismeFormStep3Props> = ({
         <div className="space-y-2">
           <Label htmlFor="siret" className="flex items-center">
             <Hash className="w-4 h-4 mr-2" />
-            Numéro SIRET *
+            Numéro SIRET * <span className="text-xs font-normal text-gray-500 ml-1">(14 chiffres)</span>
           </Label>
           <Input
             id="siret"
             value={formData.siret}
-            onChange={(e) => updateFormData({ siret: e.target.value })}
+            onChange={(e) => {
+              const val = e.target.value.replace(/\D/g, '').substring(0, 14);
+              updateFormData({ siret: val });
+            }}
             placeholder="12345678901234"
             maxLength={14}
             required
+            className={formData.siret && formData.siret.length !== 14 ? "border-orange-500 focus-visible:ring-orange-500" : ""}
           />
+          {formData.siret && formData.siret.length !== 14 && (
+            <p className="text-[10px] text-orange-600">Le SIRET doit comporter exactement 14 chiffres</p>
+          )}
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="numeroDeclaration" className="flex items-center">
             <FileText className="w-4 h-4 mr-2" />
-            Numéro de déclaration d'activité *
+            Numéro de déclaration d'activité * <span className="text-xs font-normal text-gray-500 ml-1">(11 chiffres)</span>
           </Label>
           <Input
             id="numeroDeclaration"
             value={formData.numeroDeclaration}
-            onChange={(e) => updateFormData({ numeroDeclaration: e.target.value })}
-            placeholder="11-75-12345-75"
+            onChange={(e) => {
+              // On accepte la saisie mais on nettoie pour le calcul de longueur
+              updateFormData({ numeroDeclaration: e.target.value });
+            }}
+            placeholder="12345678901"
+            maxLength={15} // Un peu plus pour les tirets éventuels
             required
+            className={formData.numeroDeclaration && formData.numeroDeclaration.replace(/[-\s]/g, '').length !== 11 ? "border-orange-500 focus-visible:ring-orange-500" : ""}
           />
+          {formData.numeroDeclaration && formData.numeroDeclaration.replace(/[-\s]/g, '').length !== 11 && (
+            <p className="text-[10px] text-orange-600">Le NDA doit comporter exactement 11 chiffres</p>
+          )}
         </div>
       </div>
 
@@ -121,8 +136,8 @@ export const OrganismeFormStep3: React.FC<OrganismeFormStep3Props> = ({
                   if (checked) {
                     updateFormData({ agrement: [...currentAgrements, agrement] });
                   } else {
-                    updateFormData({ 
-                      agrement: currentAgrements.filter(a => a !== agrement) 
+                    updateFormData({
+                      agrement: currentAgrements.filter(a => a !== agrement)
                     });
                   }
                 }}
