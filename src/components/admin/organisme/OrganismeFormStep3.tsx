@@ -12,11 +12,17 @@ import { useToast } from '@/hooks/use-toast';
 interface OrganismeFormStep3Props {
   formData: OrganismeFormData;
   updateFormData: (updates: Partial<OrganismeFormData>) => void;
+  isValidating?: boolean;
+  availability?: { subdomain: boolean; email: boolean; siret: boolean };
+  checkFieldAvailability?: (type: 'subdomain' | 'email' | 'siret', value: string) => Promise<void>;
 }
 
 export const OrganismeFormStep3: React.FC<OrganismeFormStep3Props> = ({
   formData,
-  updateFormData
+  updateFormData,
+  isValidating,
+  availability,
+  checkFieldAvailability
 }) => {
   const { toast } = useToast();
   const [isCustomAgrementDialogOpen, setIsCustomAgrementDialogOpen] = useState(false);
@@ -75,13 +81,25 @@ export const OrganismeFormStep3: React.FC<OrganismeFormStep3Props> = ({
               const val = e.target.value.replace(/\D/g, '').substring(0, 14);
               updateFormData({ siret: val });
             }}
+            onBlur={(e) => {
+              if (checkFieldAvailability && e.target.value.length === 14) {
+                checkFieldAvailability('siret', e.target.value);
+              }
+            }}
             placeholder="12345678901234"
             maxLength={14}
             required
-            className={formData.siret && formData.siret.length !== 14 ? "border-orange-500 focus-visible:ring-orange-500" : ""}
+            className={
+              (formData.siret && formData.siret.length !== 14) || availability?.siret === false
+                ? "border-orange-500 focus-visible:ring-orange-500"
+                : ""
+            }
           />
           {formData.siret && formData.siret.length !== 14 && (
             <p className="text-[10px] text-orange-600">Le SIRET doit comporter exactement 14 chiffres</p>
+          )}
+          {availability?.siret === false && (
+            <p className="text-[10px] text-red-600">Ce SIRET est déjà enregistré pour un autre organisme.</p>
           )}
         </div>
 

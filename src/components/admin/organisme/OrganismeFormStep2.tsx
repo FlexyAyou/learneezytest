@@ -9,11 +9,17 @@ import { MapPin, Phone, Mail } from 'lucide-react';
 interface OrganismeFormStep2Props {
   formData: OrganismeFormData;
   updateFormData: (updates: Partial<OrganismeFormData>) => void;
+  isValidating?: boolean;
+  availability?: { subdomain: boolean; email: boolean; siret: boolean };
+  checkFieldAvailability?: (type: 'subdomain' | 'email' | 'siret', value: string) => Promise<void>;
 }
 
 export const OrganismeFormStep2: React.FC<OrganismeFormStep2Props> = ({
   formData,
-  updateFormData
+  updateFormData,
+  isValidating,
+  availability,
+  checkFieldAvailability
 }) => {
   return (
     <div className="space-y-6">
@@ -58,9 +64,18 @@ export const OrganismeFormStep2: React.FC<OrganismeFormStep2Props> = ({
             type="email"
             value={formData.email}
             onChange={(e) => updateFormData({ email: e.target.value })}
+            onBlur={(e) => {
+              if (checkFieldAvailability && e.target.value) {
+                checkFieldAvailability('email', e.target.value);
+              }
+            }}
             placeholder="contact@organisme.fr"
+            className={`${availability?.email === false ? "border-red-500 focus-visible:ring-red-500" : ""}`}
             required
           />
+          {availability?.email === false && (
+            <p className="text-xs text-red-600 mt-1">Cet email est déjà utilisé.</p>
+          )}
         </div>
       </div>
 

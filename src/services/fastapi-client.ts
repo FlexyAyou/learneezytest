@@ -994,6 +994,13 @@ class FastAPIClient {
   }
 
   /**
+   * Vérifier la disponibilité d'un sous-domaine, email ou SIRET
+   */
+  async checkAvailability(params: { subdomain?: string; email?: string; siret?: string }): Promise<{ subdomain?: boolean; email?: boolean; siret?: boolean }> {
+    return this.get('/api/organizations/check-availability', { params });
+  }
+
+  /**
    * Récupérer un organisme de formation par son ID
    */
   async getOrganization(orgId: number): Promise<OrganizationResponse> {

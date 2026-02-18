@@ -9,11 +9,17 @@ import { Building, User, Globe } from 'lucide-react';
 interface OrganismeFormStep1Props {
   formData: OrganismeFormData;
   updateFormData: (updates: Partial<OrganismeFormData>) => void;
+  isValidating?: boolean;
+  availability?: { subdomain: boolean; email: boolean; siret: boolean };
+  checkFieldAvailability?: (type: 'subdomain' | 'email' | 'siret', value: string) => Promise<void>;
 }
 
 export const OrganismeFormStep1: React.FC<OrganismeFormStep1Props> = ({
   formData,
-  updateFormData
+  updateFormData,
+  isValidating,
+  availability,
+  checkFieldAvailability
 }) => {
   return (
     <div className="space-y-6">
@@ -61,8 +67,13 @@ export const OrganismeFormStep1: React.FC<OrganismeFormStep1Props> = ({
               const slug = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
               updateFormData({ website: slug + '.learneezy.com' });
             }}
+            onBlur={(e) => {
+              if (checkFieldAvailability && e.target.value) {
+                checkFieldAvailability('subdomain', e.target.value);
+              }
+            }}
             placeholder="mon-organisme"
-            className="flex-1"
+            className={`flex-1 ${availability?.subdomain === false ? "border-red-500 focus-visible:ring-red-500" : ""}`}
             required
           />
           <Input
@@ -72,6 +83,9 @@ export const OrganismeFormStep1: React.FC<OrganismeFormStep1Props> = ({
             className="w-40 bg-muted cursor-not-allowed"
           />
         </div>
+        {availability?.subdomain === false && (
+          <p className="text-xs text-red-600 mt-1">Ce slug (sous-domaine) n'est pas disponible.</p>
+        )}
       </div>
 
       <div className="space-y-2">
