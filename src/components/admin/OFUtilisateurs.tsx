@@ -37,10 +37,15 @@ interface OFUser {
 const mapRoleToFrench = (role: string): string => {
   const roleMap: Record<string, string> = {
     'learner': 'Apprenant',
+    'student': 'Apprenant',
+    'apprenant': 'Apprenant',
     'trainer': 'Formateur',
+    'formateur_interne': 'Formateur',
     'manager': 'Gestionnaire',
+    'gestionnaire': 'Gestionnaire',
     'of_admin': 'Administrateur',
     'admin': 'Administrateur',
+    'superadmin': 'Super Administrateur',
   };
   return roleMap[role?.toLowerCase()] || role || 'Apprenant';
 };
