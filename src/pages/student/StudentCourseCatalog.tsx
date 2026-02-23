@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { 
-  Search, 
-  Filter, 
-  BookOpen, 
+import {
+  Search,
+  Filter,
+  BookOpen,
   Sparkles,
   SlidersHorizontal,
   X
@@ -19,11 +19,12 @@ import {
 } from '@/components/ui/select';
 import { fastAPIClient } from '@/services/fastapi-client';
 import { CourseResponse } from '@/types/fastapi';
-import { useTokenBalance, useEnrollCourse } from '@/hooks/useApi';
+import { useTokenBalance, useEnrollCourse, useUserEnrollments } from '@/hooks/useApi';
 import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 import { CourseCatalogCard } from '@/components/student/catalog/CourseCatalogCard';
 import { CoursePurchaseDialog } from '@/components/student/catalog/CoursePurchaseDialog';
-import { TokenBalanceWidget } from '@/components/student/catalog/TokenBalanceWidget';
+// TokenBalanceWidget is only for Learneezy learners (tokens). OF learners use enrollments only.
+
 
 const StudentCourseCatalog = () => {
   const [courses, setCourses] = useState<CourseResponse[]>([]);
@@ -37,12 +38,15 @@ const StudentCourseCatalog = () => {
   const [showPurchaseDialog, setShowPurchaseDialog] = useState(false);
   const [passwordError, setPasswordError] = useState<string | undefined>(undefined);
   const [isVerifyingPassword, setIsVerifyingPassword] = useState(false);
-  
+
   // API hooks
   const { data: balanceData, isLoading: isLoadingBalance } = useTokenBalance();
   const enrollMutation = useEnrollCourse();
   const { user } = useFastAPIAuth();
-  
+
+  // Fetch user's enrollments
+  const { data: enrollmentsData, isLoading: isLoadingEnrollments } = useUserEnrollments(user?.id);
+
   const userBalance = balanceData?.balance ?? 0;
 
   useEffect(() => {
@@ -71,7 +75,7 @@ const StudentCourseCatalog = () => {
   const { categories, levels } = useMemo(() => {
     const catSet = new Set<string>();
     const levelSet = new Set<string>();
-    
+
     courses.forEach(course => {
       if (course.category_names) {
         course.category_names.forEach(cat => catSet.add(cat));
@@ -82,7 +86,7 @@ const StudentCourseCatalog = () => {
         levelSet.add(course.level);
       }
     });
-    
+
     return {
       categories: Array.from(catSet).sort(),
       levels: Array.from(levelSet).sort()
@@ -147,15 +151,15 @@ const StudentCourseCatalog = () => {
 
   const handleConfirmPurchase = async (password: string) => {
     if (!selectedCourse) return;
-    
+
     setIsVerifyingPassword(true);
     setPasswordError(undefined);
-    
+
     try {
       // Vérifier le mot de passe via l'API de login
       const userEmail = user?.email || '';
       await fastAPIClient.login({ email: userEmail, password });
-      
+
       // Mot de passe correct, procéder à l'inscription
       await enrollMutation.mutateAsync(selectedCourse.id);
       setShowPurchaseDialog(false);
@@ -219,7 +223,7 @@ const StudentCourseCatalog = () => {
               className="pl-10"
             />
           </div>
-          
+
           {/* Filters */}
           <div className="flex gap-2 flex-wrap">
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
@@ -233,7 +237,7 @@ const StudentCourseCatalog = () => {
                 ))}
               </SelectContent>
             </Select>
-            
+
             <Select value={levelFilter} onValueChange={setLevelFilter}>
               <SelectTrigger className="w-[140px]">
                 <SelectValue placeholder="Niveau" />
@@ -245,7 +249,7 @@ const StudentCourseCatalog = () => {
                 ))}
               </SelectContent>
             </Select>
-            
+
             <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger className="w-[140px]">
                 <SlidersHorizontal className="h-4 w-4 mr-2" />
@@ -337,7 +341,7 @@ const StudentCourseCatalog = () => {
                 Aucun cours trouvé
               </h3>
               <p className="text-muted-foreground mb-4">
-                {hasActiveFilters 
+                {hasActiveFilters
                   ? "Aucun cours ne correspond à vos critères de recherche."
                   : "Aucun cours n'est disponible pour le moment."}
               </p>
@@ -356,6 +360,7 @@ const StudentCourseCatalog = () => {
                   onPurchase={handlePurchaseClick}
                   userTokenBalance={userBalance}
                   isLoading={enrollMutation.isPending && selectedCourse?.id === course.id}
+                  isEnrolled={enrollmentsData?.some((en) => en.course_id === course.id) ?? false}
                 />
               ))}
             </div>

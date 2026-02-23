@@ -10,7 +10,6 @@ import { OrganismeFormStep1 } from '@/components/admin/organisme/OrganismeFormSt
 import { OrganismeFormStep2 } from '@/components/admin/organisme/OrganismeFormStep2';
 import { OrganismeFormStep3 } from '@/components/admin/organisme/OrganismeFormStep3';
 import { OrganismeFormStep4 } from '@/components/admin/organisme/OrganismeFormStep4';
-import { OrganismeFormStep5 } from '@/components/admin/organisme/OrganismeFormStep5';
 
 const CreateOrganisme = () => {
   const navigate = useNavigate();
@@ -33,8 +32,7 @@ const CreateOrganisme = () => {
     { number: 1, title: 'Informations générales', completed: currentStep > 1 },
     { number: 2, title: 'Contact', completed: currentStep > 2 },
     { number: 3, title: 'Informations légales', completed: currentStep > 3 },
-    { number: 4, title: 'Configuration', completed: currentStep > 4 },
-    { number: 5, title: 'Abonnement', completed: currentStep > 5 }
+    { number: 4, title: 'Configuration', completed: currentStep > 4 }
   ];
 
   const handleNext = async () => {
@@ -67,8 +65,6 @@ const CreateOrganisme = () => {
         return <OrganismeFormStep3 {...commonProps} />;
       case 4:
         return <OrganismeFormStep4 formData={formData} updateFormData={updateFormData} />;
-      case 5:
-        return <OrganismeFormStep5 formData={formData} updateFormData={updateFormData} />;
       default:
         return null;
     }
@@ -165,7 +161,7 @@ const CreateOrganisme = () => {
         </Button>
 
         <div className="space-x-2">
-          {currentStep < 5 ? (
+          {currentStep < 4 ? (
             <Button
               onClick={handleNext}
               disabled={!validateStep(currentStep) || isValidating}

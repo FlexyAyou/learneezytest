@@ -10,7 +10,7 @@ import OFDocumentsAdvanced from '@/components/admin/documents/OFDocumentsAdvance
 import OFProgrammeLibraryPage from '@/pages/admin/OFProgrammeLibraryPage';
 import OFEmargementPage from '@/pages/admin/OFEmargementPage';
 import { OFLicences } from '@/components/admin/OFLicences';
-import { OFSuiviPedagogique } from '@/components/admin/OFSuiviPedagogique';
+import { OFSuiviPedagogiqueEnhanced as OFSuiviPedagogique } from '@/components/admin/OFSuiviPedagogiqueEnhanced';
 import OFVideoConferences from '@/components/admin/OFVideoConferences';
 import { OFEnvois } from '@/components/admin/OFEnvois';
 import { OFIntegrations } from '@/components/admin/OFIntegrations';

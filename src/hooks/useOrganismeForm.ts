@@ -74,7 +74,7 @@ export const useOrganismeForm = () => {
   };
 
   const nextStep = async () => {
-    if (currentStep < 5) {
+    if (currentStep < 4) {
       // Check availability before going to next step if on step 1, 2 or 3
       let isAvailable = true;
       setIsValidating(true);
@@ -132,8 +132,6 @@ export const useOrganismeForm = () => {
         return isSiretValid && isNDAValid && availability.siret;
       case 4:
         return true; // Configuration optionnelle
-      case 5:
-        return true; // Abonnement sélectionné par défaut
       default:
         return false;
     }
@@ -172,7 +170,7 @@ export const useOrganismeForm = () => {
     const backendData: any = {
       name: formData.name,
       subdomain: subdomain || formData.name.toLowerCase().replace(/\s+/g, '-'),
-      subscription_type: subscriptionTypeMap[formData.subscriptionType] || 'starter',
+      subscription_type: 'starter', // Valeur par défaut, l'OF choisira son offre plus tard
       contact_email: formData.email,
       description: formData.description,
       website: formData.website,
@@ -182,7 +180,8 @@ export const useOrganismeForm = () => {
       email: formData.email,
       siret: formData.siret,
       numero_declaration: formData.numeroDeclaration,
-      tokens_total: formData.tokensTotal
+      tokens_total: 0,
+      subscription_duration: 0
     };
 
     // Ajouter agrement seulement s'il y a des valeurs

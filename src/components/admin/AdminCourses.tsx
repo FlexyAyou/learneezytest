@@ -182,14 +182,25 @@ const AdminCourses = () => {
 
   const handleSaveVisibility = async (courseId: string, settings: any) => {
     try {
-      // TODO: Appeler l'API pour sauvegarder les paramètres de visibilité
-      console.log('Saving visibility settings for course:', courseId, settings);
+      // Maper les paramètres frontend camelCase vers les champs backend snake_case
+      const updates = {
+        is_visible: settings.isVisible,
+        is_open_source: settings.isOpenSource,
+        token_price: settings.tokenPrice,
+        minors_allowed: settings.minorsAllowed,
+        organisation_access: settings.organisationAccess,
+        subscription_restrictions: settings.subscriptionRestrictions,
+        specific_organisations: settings.specificOrganisations
+      };
+
+      await fastAPIClient.updateCourse(courseId, updates);
 
       toast({
         title: "Paramètres sauvegardés",
         description: "Les paramètres de visibilité ont été mis à jour avec succès.",
       });
 
+      setShowVisibilityModal(false);
       // Recharger avec les filtres actuels
       const filters = {
         page: currentPage,
@@ -540,6 +551,7 @@ const AdminCourses = () => {
                     <TableHead>Catégorie</TableHead>
                     <TableHead>Apprenants</TableHead>
                     <TableHead>Statut</TableHead>
+                    <TableHead>Visibilité</TableHead>
                     <TableHead>Cycle</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
@@ -587,6 +599,15 @@ const AdminCourses = () => {
                       </TableCell>
                       <TableCell>
                         {getStatusBadge(course.status || 'draft')}
+                      </TableCell>
+                      <TableCell>
+                        {course.is_open_source ? (
+                          <Badge className="bg-blue-500/10 text-blue-700 border-blue-500/20">Open Source</Badge>
+                        ) : course.is_visible ? (
+                          <Badge className="bg-green-500/10 text-green-700 border-green-500/20">Visible</Badge>
+                        ) : (
+                          <Badge className="bg-red-500/10 text-red-700 border-red-500/20">Masqué</Badge>
+                        )}
                       </TableCell>
                       <TableCell>
                         {getCycleBadge(course.learning_cycle)}

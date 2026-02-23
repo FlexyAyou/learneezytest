@@ -5,16 +5,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
+import { usePayments, usePaymentStats } from '@/hooks/useApi';
+import { fastAPIClient } from '@/services/fastapi-client';
+import { Loader2, Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 const AdminPayments = () => {
   const { toast } = useToast();
 
-  const recentPayments = [
-    { id: 1, user: "Marie Dubois", course: "Python pour Data Science", amount: "€49.99", date: "2024-01-15", status: "Payé" },
-    { id: 2, user: "Pierre Martin", course: "Design Thinking", amount: "€79.99", date: "2024-01-14", status: "Payé" },
-    { id: 3, user: "Sophie Durand", course: "Machine Learning", amount: "€99.99", date: "2024-01-13", status: "En attente" },
-    { id: 4, user: "Jean Michel", course: "Mathématiques", amount: "€59.99", date: "2024-01-12", status: "Échoué" }
-  ];
+  const [searchTerm, setSearchTerm] = React.useState("");
+  const { data: stats, isLoading: statsLoading } = usePaymentStats();
+  const { data: paymentsData, isLoading: paymentsLoading } = usePayments({ search: searchTerm });
 
   const handleExportPayments = () => {
     toast({
@@ -23,12 +24,23 @@ const AdminPayments = () => {
     });
   };
 
-  const handleViewDetails = (paymentId: number) => {
-    toast({
-      title: "Détails du paiement",
-      description: `Ouverture des détails pour le paiement ${paymentId}`,
-    });
+  const handleDownloadInvoice = async (paymentId: number | string) => {
+    try {
+      await fastAPIClient.downloadPaymentInvoice(paymentId);
+      toast({
+        title: "Téléchargement lancé",
+        description: "Votre facture est en cours de téléchargement.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de télécharger la facture.",
+        variant: "destructive",
+      });
+    }
   };
+
+  const recentPayments = paymentsData?.items || [];
 
   return (
     <div className="space-y-6">
@@ -40,41 +52,57 @@ const AdminPayments = () => {
             <Euro className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">€234,567</div>
-            <p className="text-xs text-muted-foreground">+12.5% vs mois dernier</p>
+            {statsLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : (
+              <>
+                <div className="text-2xl font-bold">€{stats?.total_revenue?.toLocaleString() || '0'}</div>
+                <p className="text-xs text-muted-foreground">{stats?.revenue_change || "+0%"} vs mois dernier</p>
+              </>
+            )}
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Paiements ce mois</CardTitle>
             <CreditCard className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,247</div>
-            <p className="text-xs text-muted-foreground">+23 cette semaine</p>
+            {statsLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : (
+              <>
+                <div className="text-2xl font-bold">{stats?.monthly_count || '0'}</div>
+                <p className="text-xs text-muted-foreground">+{stats?.weekly_count || '0'} cette semaine</p>
+              </>
+            )}
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Taux de réussite</CardTitle>
             <TrendingUp className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">98.2%</div>
-            <p className="text-xs text-muted-foreground">+0.5% vs mois dernier</p>
+            {statsLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : (
+              <>
+                <div className="text-2xl font-bold">{stats?.success_rate || '0'}%</div>
+                <p className="text-xs text-muted-foreground">{stats?.success_change || "+0%"} vs mois dernier</p>
+              </>
+            )}
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Paiements échoués</CardTitle>
             <AlertCircle className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">23</div>
-            <p className="text-xs text-muted-foreground">-12% vs mois dernier</p>
+            {statsLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : (
+              <>
+                <div className="text-2xl font-bold">{stats?.failed_count || '0'}</div>
+                <p className="text-xs text-muted-foreground">{stats?.failed_change || "-0%"} vs mois dernier</p>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -82,11 +110,20 @@ const AdminPayments = () => {
       {/* Recent Payments */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <div>
+          <div className="flex-1">
             <CardTitle>Paiements récents</CardTitle>
             <CardDescription>Historique des dernières transactions</CardDescription>
+            <div className="mt-4 relative max-w-sm">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Rechercher un utilisateur ou un cours..."
+                className="pl-8"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
           </div>
-          <Button onClick={handleExportPayments} className="bg-pink-600 hover:bg-pink-700">
+          <Button onClick={handleExportPayments} className="bg-pink-600 hover:bg-pink-700 ml-4">
             <Download className="h-4 w-4 mr-2" />
             Exporter
           </Button>
@@ -104,34 +141,57 @@ const AdminPayments = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {recentPayments.map((payment) => (
-                <TableRow key={payment.id}>
-                  <TableCell className="font-medium">{payment.user}</TableCell>
-                  <TableCell>{payment.course}</TableCell>
-                  <TableCell>{payment.amount}</TableCell>
-                  <TableCell>{payment.date}</TableCell>
-                  <TableCell>
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      payment.status === 'Payé' 
-                        ? 'bg-green-100 text-green-800' 
-                        : payment.status === 'En attente'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {payment.status}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleViewDetails(payment.id)}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
+              {paymentsLoading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-10">
+                    <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+                    <p className="mt-2 text-muted-foreground">Chargement des transactions...</p>
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : recentPayments.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                    Aucun paiement trouvé
+                  </TableCell>
+                </TableRow>
+              ) : (
+                recentPayments.map((payment: any) => (
+                  <TableRow key={payment.id}>
+                    <TableCell className="font-medium">{payment.user || payment.user_name}</TableCell>
+                    <TableCell>{payment.course || payment.course_title}</TableCell>
+                    <TableCell>{payment.amount ? `€${payment.amount}` : payment.amount_formatted}</TableCell>
+                    <TableCell>{new Date(payment.date || payment.created_at).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      <span className={`px-2 py-1 text-xs rounded-full ${payment.status === 'Payé' || payment.status === 'succeeded'
+                          ? 'bg-green-100 text-green-800'
+                          : payment.status === 'En attente' || payment.status === 'pending'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                        {payment.status === 'succeeded' ? 'Payé' : payment.status === 'pending' ? 'En attente' : 'Échoué'}
+                      </span>
+                    </TableCell>
+                    <TableCell className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        title="Détails"
+                        onClick={() => toast({ title: "Infos", description: "Détails de la transaction Stripe." })}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        title="Facture"
+                        onClick={() => handleDownloadInvoice(payment.id)}
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>

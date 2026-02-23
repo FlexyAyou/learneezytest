@@ -32,6 +32,7 @@ import {
   AssignmentUpdate,
   UploadResponse,
   EnrollResponse,
+  EnrollmentResponse,
   CourseStatsResponse,
   CourseSummaryPage,
   OrganizationCreate,
@@ -55,6 +56,11 @@ import {
   TokenBuyResponse,
   TokenConfigResponse,
   TokenConfigUpdate,
+  SubscriptionPlanCreate,
+  SubscriptionPlanUpdate,
+  SubscriptionPlanResponse,
+  SubscriptionCreate,
+  SubscriptionResponse,
 } from '@/types/fastapi';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.plateforme-test-infinitiax.com';
@@ -399,10 +405,29 @@ class FastAPIClient {
       params.append('has_intro_video', filters.has_intro_video.toString());
     }
 
+    // Inclusion open-source global
+    if (filters.include_global_open_source) {
+      params.append('include_global_open_source', 'true');
+    }
+
     // Facettes
     if (filters.facets) params.append('facets', 'true');
 
     return this.get<CourseSummaryPage>(`/api/courses/?${params.toString()}`);
+  }
+
+  /**
+   * Récupérer le catalogue global (cours open-source Learneezy)
+   */
+  async getGlobalCatalogue(page: number = 1, per_page: number = 10): Promise<any[]> {
+    return this.get<any[]>(`/api/catalogue/learneezy?page=${page}&per_page=${per_page}`);
+  }
+
+  /**
+   * Acheter un cours Learneezy via des tokens
+   */
+  async purchaseLearneezyCourse(courseId: string): Promise<any> {
+    return this.post<any>(`/api/catalogue/learneezy/purchase`, { course_id: courseId });
   }
 
   /**
@@ -953,17 +978,21 @@ class FastAPIClient {
   }
 
   /**
-   * S'inscrire à un cours (enrollment)
+   * S'inscrire à un cours (enrollment) - ou inscrire un apprenant (admin)
    */
-  async enrollCourse(courseId: string): Promise<EnrollResponse> {
-    return this.post<EnrollResponse>('/api/courses/enroll', { course_id: courseId });
+  async enrollCourse(courseId: string, userId?: number): Promise<EnrollResponse> {
+    const body: any = { course_id: courseId };
+    if (userId !== undefined) {
+      body.user_id = userId;
+    }
+    return this.post<EnrollResponse>('/api/courses/enroll', body);
   }
 
   /**
    * Récupérer mes inscriptions (enrollments)
    */
-  async getMyEnrollments(): Promise<any[]> {
-    return this.get<any[]>('/api/enrollments/my');
+  async getMyEnrollments(): Promise<EnrollmentResponse[]> {
+    return this.get<EnrollmentResponse[]>('/api/courses/enrollments/my');
   }
 
   // ============= ORGANIZATIONS =============
@@ -1007,6 +1036,17 @@ class FastAPIClient {
     return this.get<OrganizationResponse>(`/api/organizations/${orgId}`);
   }
 
+  async getOrganizationStats(orgId: number | string): Promise<any> {
+    return this.get<any>(`/api/organizations/${orgId}/stats`);
+  }
+
+  /**
+   * Récupérer le suivi pédagogique complet des apprenants d'un organisme
+   */
+  async getLearnerProgress(orgId: number | string, params?: any): Promise<any> {
+    return this.get<any>(`/api/organizations/${orgId}/learner-progress`, { params });
+  }
+
   /**
    * Mettre à jour un organisme de formation
    */
@@ -1046,7 +1086,7 @@ class FastAPIClient {
       slug: data.slug,
       organizationId: data.organization_id, // Map snake_case to camelCase
       organizationName: data.organization_name, // Map snake_case to camelCase
-      logoUrl: data.logoUrl,
+      logoUrl: data.logoUrl || data.logo_url,
       login_url: data.login_url,
       detail: data.detail
     };
@@ -1505,6 +1545,31 @@ class FastAPIClient {
     return this.post<any>(`/api/organizations/${ofId}/documents/send`, data);
   }
 
+  /**
+   * Lister l'historique des communications d'un OF
+   */
+  async listCommunications(ofId: number | string, params?: {
+    type?: string;
+    status?: string;
+    page?: number;
+    per_page?: number;
+  }): Promise<any> {
+    return this.get(`/api/organizations/${ofId}/communications/history`, { params });
+  }
+
+  /**
+   * Envoyer une communication (email/relance)
+   */
+  async sendCommunication(ofId: number | string, data: {
+    type: string;
+    learner_ids: number[];
+    template_id?: string;
+    subject?: string;
+    content?: string;
+  }): Promise<any> {
+    return this.post(`/api/organizations/${ofId}/communications/send`, data);
+  }
+
   async getEmargements(ofId: number, params?: { phase?: string; learner_id?: number }) {
     let query = '';
     if (params) {
@@ -1556,6 +1621,75 @@ class FastAPIClient {
     let url = `/api/organizations/${ofId}/documents/cleanup`;
     if (learnerId) url += `?learner_id=${learnerId}`;
     return this.delete<any>(url);
+  }
+
+  // --- SUBSCRIPTIONS & PLANS ---
+  async getSubscriptionPlans(): Promise<SubscriptionPlanResponse[]> {
+    return this.get<SubscriptionPlanResponse[]>('/api/subscriptions-and-catalogues/plans');
+  }
+
+  async createSubscriptionPlan(plan: SubscriptionPlanCreate): Promise<SubscriptionPlanResponse> {
+    return this.post<SubscriptionPlanResponse>('/api/subscriptions-and-catalogues/plans', plan);
+  }
+
+  async updateSubscriptionPlan(planId: number, updates: SubscriptionPlanUpdate): Promise<SubscriptionPlanResponse> {
+    return this.put<SubscriptionPlanResponse>(`/api/subscriptions-and-catalogues/plans/${planId}`, updates);
+  }
+
+  async deleteSubscriptionPlan(planId: number): Promise<void> {
+    return this.delete<void>(`/api/subscriptions-and-catalogues/plans/${planId}`);
+  }
+
+  async subscribeToPlan(planId: number): Promise<SubscriptionResponse> {
+    return this.post<SubscriptionResponse>('/api/subscriptions-and-catalogues/subscriptions', { plan_id: planId });
+  }
+
+  async getCurrentSubscription(): Promise<SubscriptionResponse> {
+    return this.get<SubscriptionResponse>('/api/subscriptions-and-catalogues/subscriptions/current');
+  }
+
+  async getOrganizationMetrics(): Promise<any> {
+    return this.get<any>('/api/subscriptions-and-catalogues/organizations/metrics');
+  }
+
+  // ============= PAYMENTS (Superadmin) =============
+
+  /**
+   * Lister les paiements avec pagination et filtres
+   */
+  async listPayments(params?: {
+    page?: number;
+    per_page?: number;
+    status?: string;
+    search?: string;
+  }): Promise<any> {
+    return this.get('/api/payments', { params });
+  }
+
+  /**
+   * Récupérer les statistiques de paiement global
+   */
+  async getPaymentStats(): Promise<any> {
+    return this.get('/api/payments/stats');
+  }
+
+  /**
+   * Télécharger la facture d'un paiement
+   */
+  async downloadPaymentInvoice(paymentId: number | string): Promise<void> {
+    const response = await this.axiosInstance.get(
+      `/api/payments/${paymentId}/invoice`,
+      { responseType: 'blob' }
+    );
+
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `facture-${paymentId}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
   }
 }
 

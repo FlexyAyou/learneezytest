@@ -33,6 +33,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 import { useFastAPIAuth } from "@/hooks/useFastAPIAuth";
+import { useOrganization } from "@/contexts/OrganizationContext";
 
 const sidebarItems = [
   { title: "Tableau de bord", href: "/dashboard/organisme-formation/tableau-de-bord", icon: Home },
@@ -60,6 +61,7 @@ export function OFSidebar() {
   const location = useLocation();
   const currentPath = location.pathname;
   const { user, logout } = useFastAPIAuth();
+  const { organization } = useOrganization();
 
   const isActive = (path: string) => currentPath === path;
   const isCollapsed = state === "collapsed";
@@ -70,13 +72,23 @@ export function OFSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-border p-4">
-        <Link to="/" className="flex items-center justify-center mb-2">
-          <img
-            src="/lovable-uploads/52aaa383-7635-46d0-ac37-eb3ee6b878d1.png"
-            alt="Learneezy"
-            className={isCollapsed ? "h-8 w-auto" : "h-16 w-auto"}
-          />
-        </Link>
+        {organization?.exists ? (
+          <div className="flex items-center justify-center mb-2">
+            <img
+              src={organization?.logoUrl || "/lovable-uploads/52aaa383-7635-46d0-ac37-eb3ee6b878d1.png"}
+              alt={organization?.organizationName || "Learneezy"}
+              className={isCollapsed ? "h-8 w-auto object-contain" : "h-16 w-auto object-contain"}
+            />
+          </div>
+        ) : (
+          <Link to="/" className="flex items-center justify-center mb-2">
+            <img
+              src={organization?.logoUrl || "/lovable-uploads/52aaa383-7635-46d0-ac37-eb3ee6b878d1.png"}
+              alt={organization?.organizationName || "Learneezy"}
+              className={isCollapsed ? "h-8 w-auto object-contain" : "h-16 w-auto object-contain"}
+            />
+          </Link>
+        )}
         {!isCollapsed && (
           <div className="text-center">
             <h2 className="text-lg font-semibold">Organisme de Formation</h2>

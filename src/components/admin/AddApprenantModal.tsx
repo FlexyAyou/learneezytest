@@ -7,10 +7,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, X, User, CreditCard, FileText, AlertCircle } from 'lucide-react';
+import { Plus, X, User, CreditCard, FileText, AlertCircle, Loader2, CheckCircle, BookOpen, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useSuperadminRegister, useCreateOFUser, useCourses, useAdminEnrollCourse } from '@/hooks/useApi';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface FinancementBadge {
   id: string;
@@ -26,11 +27,20 @@ interface AddApprenantModalProps {
   onClose: () => void;
   onAdd: (apprenant: any) => void;
   organizationName?: string;
+  ofId?: string | number;
 }
 
-export const AddApprenantModal = ({ isOpen, onClose, onAdd, organizationName }: AddApprenantModalProps) => {
+export const AddApprenantModal = ({ isOpen, onClose, onAdd, organizationName, ofId }: AddApprenantModalProps) => {
   const { toast } = useToast();
-  
+  const queryClient = useQueryClient();
+  const superadminRegister = useSuperadminRegister();
+  const createOFUser = useCreateOFUser(ofId?.toString());
+  const adminEnroll = useAdminEnrollCourse();
+
+  // Récupérer les cours publiés pour l'assignation optionnelle
+  const { data: coursesResponse } = useCourses({ status: 'published' });
+  const courses = coursesResponse?.items || [];
+
   const [formData, setFormData] = useState({
     prenom: '',
     nom: '',
@@ -38,12 +48,13 @@ export const AddApprenantModal = ({ isOpen, onClose, onAdd, organizationName }: 
     telephone: '',
     adresse: '',
     dateNaissance: '',
-    formation: '',
-    organismeId: 'learneezy',
     financementBadges: [] as string[],
     customFields: {} as Record<string, string>,
-    documentsToSign: [] as string[]
+    documentsToSign: [] as string[],
+    selectedCourses: [] as string[]
   });
+
+  const [courseSearch, setCourseSearch] = useState('');
 
   const [showCustomBadgeForm, setShowCustomBadgeForm] = useState(false);
   const [customBadge, setCustomBadge] = useState({
@@ -98,25 +109,11 @@ export const AddApprenantModal = ({ isOpen, onClose, onAdd, organizationName }: 
 
   const [badges, setBadges] = useState<FinancementBadge[]>(defaultBadges);
 
-  const organismes = [
-    { id: '1', name: 'Centre de Formation Digital' },
-    { id: '2', name: 'Institut TechnoPlus' },
-    { id: '3', name: 'Formation Pro Marseille' }
-  ];
-
-  const formations = [
-    'Développement Web',
-    'Marketing Digital',
-    'Gestion de Projet',
-    'Comptabilité',
-    'Ressources Humaines'
-  ];
-
   const handleBadgeToggle = (badgeId: string) => {
     const updatedBadges = formData.financementBadges.includes(badgeId)
       ? formData.financementBadges.filter(id => id !== badgeId)
       : [...formData.financementBadges, badgeId];
-    
+
     setFormData(prev => ({
       ...prev,
       financementBadges: updatedBadges
@@ -169,34 +166,7 @@ export const AddApprenantModal = ({ isOpen, onClose, onAdd, organizationName }: 
       .flatMap(badge => badge.requiredDocuments);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const requiredFields = getRequiredFieldsForSelectedBadges();
-    const missingFields = requiredFields.filter(field => !formData.customFields[field]);
-    
-    if (missingFields.length > 0) {
-      toast({
-        title: "Champs manquants",
-        description: "Veuillez remplir tous les champs obligatoires",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const newApprenant = {
-      ...formData,
-      id: Date.now().toString(),
-      status: 'pending',
-      progression: 0,
-      createdAt: new Date().toISOString(),
-      role: 'Apprenant',
-      documentsToSign: getRequiredDocumentsForSelectedBadges()
-    };
-
-    onAdd(newApprenant);
-    
-    // Reset form
+  const resetForm = () => {
     setFormData({
       prenom: '',
       nom: '',
@@ -204,31 +174,142 @@ export const AddApprenantModal = ({ isOpen, onClose, onAdd, organizationName }: 
       telephone: '',
       adresse: '',
       dateNaissance: '',
-      formation: '',
-      organismeId: 'learneezy',
       financementBadges: [],
       customFields: {},
-      documentsToSign: []
+      documentsToSign: [],
+      selectedCourses: []
     });
-
-    toast({
-      title: "Apprenant ajouté",
-      description: "L'apprenant a été créé avec succès"
-    });
-
-    onClose();
+    setCourseSearch('');
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Validation des champs obligatoires
+    if (!formData.prenom.trim() || !formData.nom.trim() || !formData.email.trim()) {
+      toast({
+        title: "Champs manquants",
+        description: "Le prénom, le nom et l'email sont obligatoires",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validation des champs de financement si nécessaires
+    const requiredFields = getRequiredFieldsForSelectedBadges();
+    const missingFields = requiredFields.filter(field => !formData.customFields[field]);
+
+    if (missingFields.length > 0) {
+      toast({
+        title: "Champs manquants",
+        description: "Veuillez remplir tous les champs obligatoires de financement",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Appel API via useSuperadminRegister ou useCreateOFUser
+    try {
+      let newUser: any;
+
+      if (ofId) {
+        // Mode OF Admin
+        newUser = await createOFUser.mutateAsync({
+          email: formData.email.trim().toLowerCase(),
+          role: 'apprenant', // Role standard OF
+          first_name: formData.prenom.trim(),
+          last_name: formData.nom.trim(),
+          is_major: true,
+          accept_terms: true,
+          phone: formData.telephone || undefined,
+          address: formData.adresse || undefined,
+        });
+      } else {
+        // Mode Superadmin (Platform Direct)
+        newUser = await superadminRegister.mutateAsync({
+          email: formData.email.trim().toLowerCase(),
+          role: 'student',
+          first_name: formData.prenom.trim(),
+          last_name: formData.nom.trim(),
+          is_major: true,
+          accept_terms: true,
+          of_id: null,
+        });
+      }
+
+      const createdUserId = newUser.id;
+
+      // Assignation automatique des cours sélectionnés
+      if (formData.selectedCourses.length > 0 && createdUserId) {
+        toast({
+          title: "Assignation des cours...",
+          description: `Inscription de l'apprenant à ${formData.selectedCourses.length} cours.`,
+        });
+
+        const enrollmentPromises = formData.selectedCourses.map(courseId =>
+          adminEnroll.mutateAsync({
+            courseId,
+            userId: createdUserId
+          }).catch(err => {
+            console.error(`Erreur d'assignation du cours ${courseId}:`, err);
+            return null;
+          })
+        );
+
+        await Promise.all(enrollmentPromises);
+      }
+
+      // Invalider les caches
+      if (ofId) {
+        queryClient.invalidateQueries({ queryKey: ['of-users', ofId.toString()] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ['superadmin-users'] });
+      }
+
+      // Callback parent
+      onAdd({
+        ...formData,
+        id: createdUserId,
+        role: ofId ? 'apprenant' : 'student',
+        documentsToSign: getRequiredDocumentsForSelectedBadges()
+      });
+
+      toast({
+        title: "✅ Apprenant créé avec succès",
+        description: `${formData.prenom} ${formData.nom} a été ajouté ${ofId ? `à l'organisation ${organizationName || ''}` : 'à la plateforme Learneezy'}.`,
+      });
+
+      resetForm();
+      onClose();
+    } catch (error: any) {
+      console.error('Erreur lors de la création de l\'apprenant:', error);
+      // L'erreur est gérée par les hooks (toast)
+    }
+  };
+
+  const isSubmitting = superadminRegister.isPending || createOFUser.isPending || adminEnroll.isPending;
+
+  const filteredCourses = courses.filter(course =>
+    course.title.toLowerCase().includes(courseSearch.toLowerCase()) ||
+    course.description?.toLowerCase().includes(courseSearch.toLowerCase())
+  );
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open && !isSubmitting) onClose(); }}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center">
             <User className="w-5 h-5 mr-2" />
-            Ajouter un apprenant
+            {ofId ? `Inscrire un apprenant - ${organizationName || 'Organisation'}` : 'Ajouter un apprenant (Learneezy Direct)'}
           </DialogTitle>
+          <p className="text-sm text-muted-foreground mt-1">
+            {ofId
+              ? `L'apprenant sera rattaché à votre organisme de formation. Un email d'invitation lui sera envoyé.`
+              : `L'apprenant sera affilié directement à la plateforme Learneezy (pas un organisme de formation). Un mot de passe temporaire sera généré automatiquement.`
+            }
+          </p>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Informations personnelles */}
           <Card>
@@ -243,7 +324,9 @@ export const AddApprenantModal = ({ isOpen, onClose, onAdd, organizationName }: 
                     id="prenom"
                     value={formData.prenom}
                     onChange={(e) => setFormData(prev => ({ ...prev, prenom: e.target.value }))}
+                    placeholder="Ex: Jean"
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
                 <div>
@@ -252,11 +335,13 @@ export const AddApprenantModal = ({ isOpen, onClose, onAdd, organizationName }: 
                     id="nom"
                     value={formData.nom}
                     onChange={(e) => setFormData(prev => ({ ...prev, nom: e.target.value }))}
+                    placeholder="Ex: Dupont"
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="email">Email *</Label>
@@ -265,7 +350,9 @@ export const AddApprenantModal = ({ isOpen, onClose, onAdd, organizationName }: 
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                    placeholder="jean.dupont@email.com"
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
                 <div>
@@ -274,6 +361,8 @@ export const AddApprenantModal = ({ isOpen, onClose, onAdd, organizationName }: 
                     id="telephone"
                     value={formData.telephone}
                     onChange={(e) => setFormData(prev => ({ ...prev, telephone: e.target.value }))}
+                    placeholder="06 12 34 56 78"
+                    disabled={isSubmitting}
                   />
                 </div>
               </div>
@@ -284,6 +373,8 @@ export const AddApprenantModal = ({ isOpen, onClose, onAdd, organizationName }: 
                   id="adresse"
                   value={formData.adresse}
                   onChange={(e) => setFormData(prev => ({ ...prev, adresse: e.target.value }))}
+                  placeholder="Adresse complète de l'apprenant"
+                  disabled={isSubmitting}
                 />
               </div>
 
@@ -294,42 +385,107 @@ export const AddApprenantModal = ({ isOpen, onClose, onAdd, organizationName }: 
                   type="date"
                   value={formData.dateNaissance}
                   onChange={(e) => setFormData(prev => ({ ...prev, dateNaissance: e.target.value }))}
+                  disabled={isSubmitting}
                 />
               </div>
             </CardContent>
           </Card>
 
-          {/* Formation et organisme */}
+          {/* Affiliation / Rôle */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Formation</CardTitle>
+              <CardTitle className="text-lg flex items-center">
+                <CheckCircle className="w-5 h-5 mr-2 text-green-600" />
+                Détails du compte
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="organisme">Organisme de formation</Label>
+              <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                <Badge className={ofId ? "bg-blue-100 text-blue-700" : "bg-pink-100 text-pink-700"}>
+                  {ofId ? organizationName || 'Votre Organisation' : 'Learneezy Direct'}
+                </Badge>
+                <span className="text-sm text-gray-600">
+                  {ofId ? "L'utilisateur sera membre de votre organisation." : "Affiliation directe au domaine principal."}
+                </span>
+              </div>
+              <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <Badge className="bg-green-100 text-green-700">
+                  Apprenant
+                </Badge>
+                <span className="text-sm text-gray-600">
+                  Le rôle "Apprenant" sera automatiquement attribué.
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Sélection des cours (Uniquement pour les OF) */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center">
+                <BookOpen className="w-5 h-5 mr-2" />
+                Assignation des cours
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <Input
-                  id="organisme"
-                  value={organizationName || 'Learneezy'}
-                  disabled
-                  className="bg-muted"
+                  placeholder="Rechercher un cours..."
+                  className="pl-9"
+                  value={courseSearch}
+                  onChange={(e) => setCourseSearch(e.target.value)}
+                  disabled={isSubmitting}
                 />
               </div>
 
-              <div>
-                <Label htmlFor="formation">Formation</Label>
-                <Select value={formData.formation} onValueChange={(value) => setFormData(prev => ({ ...prev, formation: value }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner une formation" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {formations.map((formation) => (
-                      <SelectItem key={formation} value={formation}>
-                        {formation}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="border rounded-lg max-h-48 overflow-y-auto p-2 space-y-1">
+                {filteredCourses.length === 0 ? (
+                  <p className="text-center py-4 text-sm text-muted-foreground">Aucun cours trouvé</p>
+                ) : (
+                  filteredCourses.map(course => (
+                    <div key={course.id} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-md">
+                      <Checkbox
+                        id={`course-${course.id}`}
+                        checked={formData.selectedCourses.includes(course.id)}
+                        onCheckedChange={(checked) => {
+                          setFormData(prev => ({
+                            ...prev,
+                            selectedCourses: checked
+                              ? [...prev.selectedCourses, course.id]
+                              : prev.selectedCourses.filter(id => id !== course.id)
+                          }));
+                        }}
+                        disabled={isSubmitting}
+                      />
+                      <Label htmlFor={`course-${course.id}`} className="flex-1 cursor-pointer text-sm font-medium">
+                        {course.title}
+                      </Label>
+                    </div>
+                  ))
+                )}
               </div>
+
+              {formData.selectedCourses.length > 0 && (
+                <div className="flex flex-wrap gap-2 pt-2">
+                  <span className="text-xs font-semibold uppercase text-gray-400 w-full mb-1">Sélection :</span>
+                  {formData.selectedCourses.map(id => {
+                    const course = courses.find(c => c.id === id);
+                    return (
+                      <Badge key={id} variant="secondary" className="flex items-center gap-1 pr-1">
+                        {course?.title}
+                        <X
+                          className="w-3 h-3 cursor-pointer hover:text-red-500"
+                          onClick={() => setFormData(prev => ({
+                            ...prev,
+                            selectedCourses: prev.selectedCourses.filter(cid => cid !== id)
+                          }))}
+                        />
+                      </Badge>
+                    );
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -347,11 +503,10 @@ export const AddApprenantModal = ({ isOpen, onClose, onAdd, organizationName }: 
                   <Badge
                     key={badge.id}
                     variant={formData.financementBadges.includes(badge.id) ? "default" : "outline"}
-                    className={`cursor-pointer transition-colors ${
-                      formData.financementBadges.includes(badge.id) ? 'bg-primary text-primary-foreground' : ''
-                    }`}
+                    className={`cursor-pointer transition-colors ${formData.financementBadges.includes(badge.id) ? 'bg-primary text-primary-foreground' : ''
+                      }`}
                     style={formData.financementBadges.includes(badge.id) ? { backgroundColor: badge.color } : {}}
-                    onClick={() => handleBadgeToggle(badge.id)}
+                    onClick={() => !isSubmitting && handleBadgeToggle(badge.id)}
                   >
                     {badge.name}
                     {badge.isCustom && <X className="w-3 h-3 ml-1" />}
@@ -365,6 +520,7 @@ export const AddApprenantModal = ({ isOpen, onClose, onAdd, organizationName }: 
                   variant="outline"
                   size="sm"
                   onClick={() => setShowCustomBadgeForm(true)}
+                  disabled={isSubmitting}
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Créer un badge personnalisé
@@ -383,7 +539,7 @@ export const AddApprenantModal = ({ isOpen, onClose, onAdd, organizationName }: 
                         <X className="w-4 h-4" />
                       </Button>
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <Label>Nom du badge</Label>
@@ -433,6 +589,7 @@ export const AddApprenantModal = ({ isOpen, onClose, onAdd, organizationName }: 
                         customFields: { ...prev.customFields, [field]: e.target.value }
                       }))}
                       required
+                      disabled={isSubmitting}
                     />
                   </div>
                 ))}
@@ -466,11 +623,21 @@ export const AddApprenantModal = ({ isOpen, onClose, onAdd, organizationName }: 
           )}
 
           <div className="flex justify-end space-x-3">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
               Annuler
             </Button>
-            <Button type="submit">
-              Créer l'apprenant
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Création en cours...
+                </>
+              ) : (
+                <>
+                  <User className="w-4 h-4 mr-2" />
+                  Créer l'apprenant
+                </>
+              )}
             </Button>
           </div>
         </form>

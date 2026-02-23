@@ -61,6 +61,10 @@ interface EditableCourseData {
   objectives: string[];
   cycle: '' | 'primaire' | 'college' | 'lycee' | 'formation_pro';
   cycleTags: string[];
+  isVisible: boolean;
+  isOpenSource: boolean;
+  tokenPrice: number | string;
+  organisationAccess: 'all' | 'restricted' | 'none';
 }
 
 interface EditableModule {
@@ -132,6 +136,10 @@ const EditCoursePage = () => {
     objectives: [''],
     cycle: '',
     cycleTags: [],
+    isVisible: true,
+    isOpenSource: false,
+    tokenPrice: 0,
+    organisationAccess: 'all',
   });
 
   // Module quiz hooks
@@ -171,7 +179,7 @@ const EditCoursePage = () => {
   // Detect context path
   const isManagerContext = location.pathname.includes('/gestionnaire/');
   const isOFAdminContext = location.pathname.includes('/organisme-formation/');
-  
+
   let coursesBasePath = '/dashboard/superadmin/courses';
   if (isManagerContext) {
     coursesBasePath = '/dashboard/gestionnaire/courses';
@@ -230,6 +238,10 @@ const EditCoursePage = () => {
           // le backend renvoie learning_cycle & levels
           cycle: (courseData as any).learning_cycle || '',
           cycleTags: (courseData as any).levels || [],
+          isVisible: (courseData as any).is_visible ?? true,
+          isOpenSource: (courseData as any).is_open_source ?? false,
+          tokenPrice: (courseData as any).token_price ?? 0,
+          organisationAccess: (courseData as any).organisation_access ?? 'all',
         };
 
         // Récupérer une URL de lecture pour l'image de couverture si disponible
@@ -579,6 +591,11 @@ const EditCoursePage = () => {
       if (data.price && !isNaN(parseFloat(data.price))) {
         updatePayload.price = parseFloat(data.price);
       }
+
+      updatePayload.is_visible = data.isVisible;
+      updatePayload.is_open_source = data.isOpenSource;
+      updatePayload.token_price = data.isOpenSource ? (parseInt(data.tokenPrice.toString()) || 0) : 0;
+      updatePayload.organisation_access = data.organisationAccess;
 
       await fastAPIClient.updateCourse(id, updatePayload);
     } catch (error) {
@@ -1864,6 +1881,56 @@ const EditCoursePage = () => {
                       <Upload className="h-4 w-4 mr-2" />
                       {courseData.programFileName ? 'Remplacer le PDF' : 'Uploader un PDF'}
                     </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-6 pt-6 border-t border-gray-100">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <Check className="h-5 w-5 text-green-600" />
+                    Visibilité et Accès
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
+                      <div>
+                        <Label className="font-bold">Visible par tous</Label>
+                        <p className="text-xs text-gray-500">Rendre le cours visible dans le catalogue</p>
+                      </div>
+                      <Switch
+                        checked={courseData.isVisible}
+                        onCheckedChange={(checked) => setCourseData(prev => ({ ...prev, isVisible: checked }))}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
+                      <div>
+                        <Label className="font-bold">Open Source / Catalogue Global</Label>
+                        <p className="text-xs text-gray-500">Proposer ce cours au catalogue Learneezy</p>
+                      </div>
+                      <Switch
+                        checked={courseData.isOpenSource}
+                        onCheckedChange={(checked) => setCourseData(prev => ({ ...prev, isOpenSource: checked }))}
+                      />
+                    </div>
+
+                    {courseData.isOpenSource && (
+                      <div className="md:col-span-2 p-4 bg-pink-50 rounded-xl border border-pink-100 flex flex-col md:flex-row md:items-center gap-4">
+                        <div className="flex-1">
+                          <Label className="font-bold text-pink-900">Prix en Tokens (catalogue global)</Label>
+                          <p className="text-xs text-pink-700">Prix que les autres organisations paieront pour accéder à ce cours</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="number"
+                            min="0"
+                            value={courseData.tokenPrice}
+                            onChange={(e) => setCourseData(prev => ({ ...prev, tokenPrice: e.target.value }))}
+                            className="w-24 bg-white border-pink-200"
+                          />
+                          <span className="font-bold text-pink-900">Tokens</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardContent>

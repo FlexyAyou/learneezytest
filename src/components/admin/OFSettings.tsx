@@ -6,21 +6,26 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Building, Shield, Bell, Save, Lock, Eye, EyeOff, Info, PenTool } from 'lucide-react';
+import { Building, Shield, Bell, Save, Lock, Eye, EyeOff, Info, PenTool, Upload, Image, Trash, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { OFSignatureManager, getStoredOFSignature } from './OFSignatureManager';
 import { fastAPIClient } from '@/services/fastapi-client';
+import { usePrepareUpload, useCompleteUpload } from '@/hooks/useApi';
+import axios from 'axios';
 
 export const OFSettings = () => {
   const { toast } = useToast();
   const { user } = useFastAPIAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [ofSignatureUrl, setOfSignatureUrl] = useState<string | undefined>(() => {
-    // Load signature from localStorage on mount
     return getStoredOFSignature() || undefined;
   });
+
+  const prepareUpload = usePrepareUpload();
+  const completeUpload = useCompleteUpload();
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
   // Password change state
   const [passwordData, setPasswordData] = useState({
@@ -44,6 +49,7 @@ export const OFSettings = () => {
     phone: '',
     siret: '',
     numero_declaration: '',
+    logo_url: '',
   });
   const [initialOrgData, setInitialOrgData] = useState<any>(null);
 
@@ -74,6 +80,7 @@ export const OFSettings = () => {
             phone: org.phone || '',
             siret: org.siret || '',
             numero_declaration: org.numero_declaration || '',
+            logo_url: org.logo_url || '',
           };
           setOrgData({ ...data });
           setInitialOrgData({ ...data });
@@ -103,6 +110,7 @@ export const OFSettings = () => {
         phone: updated.phone || '',
         siret: updated.siret || '',
         numero_declaration: updated.numero_declaration || '',
+        logo_url: updated.logo_url || '',
       });
       setInitialOrgData(orgData);
       toast({
@@ -201,6 +209,102 @@ export const OFSettings = () => {
     setOfSignatureUrl(undefined);
   };
 
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user?.of_id) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez sélectionner une image (PNG, JPG, etc.).",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsUploadingLogo(true);
+    try {
+      // 1. Préparer l'upload
+      const prepareRes = await prepareUpload.mutateAsync({
+        filename: `of-logo-${user.of_id}-${Date.now()}.${file.name.split('.').pop()}`,
+        content_type: file.type,
+        size: file.size,
+        kind: 'image'
+      });
+
+      // 2. Upload vers S3/Minio via URL présignée
+      await axios.put(prepareRes.url!, file, {
+        headers: { 'Content-Type': file.type }
+      });
+
+      // 3. Finaliser l'upload
+      const completeRes = await completeUpload.mutateAsync({
+        strategy: 'single',
+        key: prepareRes.key,
+        content_type: file.type,
+        size: file.size
+      });
+
+      // Obtenir l'URL de lecture
+      const asset = await fastAPIClient.getAssetByKey(prepareRes.key);
+      const logoUrl = asset.download_url || asset.url; // On préfère l'URL persistante si possible
+
+      // 4. Mettre à jour l'organisation
+      await fastAPIClient.updateOrganization(user.of_id, {
+        ...orgData,
+        logo_url: logoUrl
+      });
+
+      setOrgData(prev => ({ ...prev, logo_url: logoUrl }));
+      setInitialOrgData(prev => ({ ...prev, logo_url: logoUrl }));
+
+      toast({
+        title: "Logo mis à jour",
+        description: "Le logo de votre organisme a été modifié avec succès.",
+      });
+
+      // Optionnel: Recharger la page ou invalider le cache du contexte d'organisation
+      // window.location.reload(); 
+    } catch (error: any) {
+      console.error("Error uploading logo:", error);
+      toast({
+        title: "Erreur d'upload",
+        description: error.response?.data?.detail || "Impossible d'uploader le logo.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  };
+
+  const handleDeleteLogo = async () => {
+    if (!user?.of_id || !orgData.logo_url) return;
+
+    setIsLoading(true);
+    try {
+      await fastAPIClient.updateOrganization(user.of_id, {
+        ...orgData,
+        logo_url: ""
+      });
+
+      setOrgData(prev => ({ ...prev, logo_url: "" }));
+      setInitialOrgData(prev => ({ ...prev, logo_url: "" }));
+
+      toast({
+        title: "Logo supprimé",
+        description: "Le logo a été retiré. Le logo Learneezy par défaut sera affiché.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer le logo.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -242,6 +346,68 @@ export const OFSettings = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* Logo Upload Section */}
+              <div className="space-y-4 pb-6 border-b border-border">
+                <Label className="text-base font-semibold">Logo de l'organisme</Label>
+                <div className="flex flex-col sm:flex-row items-center gap-6">
+                  <div className="relative group">
+                    <div className="w-32 h-32 rounded-lg border-2 border-dashed border-muted-foreground/25 flex items-center justify-center bg-muted/50 overflow-hidden">
+                      {orgData.logo_url ? (
+                        <img src={orgData.logo_url} alt="Logo OF" className="w-full h-full object-contain" />
+                      ) : (
+                        <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                          <Image className="h-8 w-8 opacity-20" />
+                          <span className="text-[10px] uppercase font-bold tracking-wider">Aucun Logo</span>
+                        </div>
+                      )}
+                    </div>
+                    {isUploadingLogo && (
+                      <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
+                        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex-1 space-y-3">
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="relative"
+                        disabled={isUploadingLogo || isLoading}
+                      >
+                        <Upload className="h-4 w-4 mr-2" />
+                        {orgData.logo_url ? "Modifier le logo" : "Ajouter un logo"}
+                        <input
+                          type="file"
+                          className="absolute inset-0 opacity-0 cursor-pointer"
+                          accept="image/*"
+                          onChange={handleLogoUpload}
+                          disabled={isUploadingLogo || isLoading}
+                        />
+                      </Button>
+
+                      {orgData.logo_url && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={handleDeleteLogo}
+                          disabled={isUploadingLogo || isLoading}
+                        >
+                          <Trash className="h-4 w-4 mr-2" />
+                          Supprimer
+                        </Button>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Formats acceptés: PNG, JPG ou SVG. Taille recommandée: 512x512px max.
+                      <br />Ce logo sera affiché dans la barre latérale pour tous les membres de votre organisme.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="orgName">Nom de l'organisme</Label>

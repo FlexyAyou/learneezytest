@@ -6,8 +6,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { CreditCard, Coins, Star, Clock, Users, BookOpen, CheckCircle } from 'lucide-react';
+import { CreditCard, Coins, Star, Clock, Users, BookOpen, CheckCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useOrganization } from '@/contexts/OrganizationContext';
+import { useOrganization as useApiOrganization } from '@/hooks/useApi';
+import { fastAPIClient } from '@/services/fastapi-client';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface CoursePurchaseModalProps {
   isOpen: boolean;
@@ -19,45 +23,55 @@ export const CoursePurchaseModal = ({ isOpen, onClose, course }: CoursePurchaseM
   const { toast } = useToast();
   const [paymentMethod, setPaymentMethod] = useState('tokens');
   const [isProcessing, setIsProcessing] = useState(false);
+  const { organization: contextOrg } = useOrganization();
+  const orgId = contextOrg?.organization_id;
+  const queryClient = useQueryClient();
 
-  // Mock OF data
+  const { data: organizationData } = useApiOrganization(orgId || '');
+
   const ofData = {
-    name: "Formation Pro Academy",
-    availableTokens: 450,
-    subscription: "Business",
-    tokenPrice: 1.5 // 1.5€ per token
+    name: organizationData?.name || "Organisation",
+    availableTokens: organizationData?.tokens_total || 0,
+    subscription: organizationData?.subscription_type || "Premium",
+    tokenPrice: 1.5 // Optional API config
   };
 
   const handlePurchase = async () => {
     setIsProcessing(true);
-    
-    // Simulate purchase process
-    setTimeout(() => {
+
+    try {
       if (paymentMethod === 'tokens') {
         if (ofData.availableTokens >= course.tokenPrice) {
+          await fastAPIClient.purchaseLearneezyCourse(course.id);
           toast({
             title: "Cours acheté avec succès !",
             description: `"${course.title}" a été ajouté à votre catalogue. ${course.tokenPrice} tokens ont été débités.`,
           });
+          queryClient.invalidateQueries({ queryKey: ['organization', orgId] });
+          onClose();
         } else {
           toast({
             title: "Tokens insuffisants",
             description: `Vous avez besoin de ${course.tokenPrice} tokens mais vous n'en avez que ${ofData.availableTokens}.`,
             variant: "destructive"
           });
-          setIsProcessing(false);
-          return;
         }
       } else {
         toast({
-          title: "Cours acheté avec succès !",
-          description: `"${course.title}" a été ajouté à votre catalogue. Paiement de ${course.price}€ effectué.`,
+          title: "Non implémenté",
+          description: "Le paiement par carte n'est pas encore disponible.",
+          variant: "destructive"
         });
       }
-      
+    } catch (err: any) {
+      toast({
+        title: "Erreur",
+        description: err?.response?.data?.detail || "Une erreur est survenue lors de l'achat.",
+        variant: "destructive"
+      });
+    } finally {
       setIsProcessing(false);
-      onClose();
-    }, 2000);
+    }
   };
 
   if (!course) return null;
@@ -113,7 +127,7 @@ export const CoursePurchaseModal = ({ isOpen, onClose, course }: CoursePurchaseM
                   <span className="font-medium">Contenu du cours</span>
                 </div>
                 <div className="space-y-1 text-sm text-gray-600">
-                <div>• {course.modules} modules de formation</div>
+                  <div>• {course.modules} modules de formation</div>
                   <div>• {course.exercises} exercices pratiques</div>
                   <div>• Support instructeur inclus</div>
                   {course.certificates && <div>• Certificat de completion</div>}
@@ -142,7 +156,7 @@ export const CoursePurchaseModal = ({ isOpen, onClose, course }: CoursePurchaseM
           <Card>
             <CardContent className="p-4">
               <h4 className="font-medium mb-4">Choisissez votre méthode de paiement</h4>
-              
+
               <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
                 {course.tokenPrice > 0 && (
                   <div className="flex items-center space-x-3 p-3 border rounded-lg">
@@ -233,7 +247,7 @@ export const CoursePurchaseModal = ({ isOpen, onClose, course }: CoursePurchaseM
             <Button variant="outline" onClick={onClose}>
               Annuler
             </Button>
-            <Button 
+            <Button
               onClick={handlePurchase}
               disabled={isProcessing || (paymentMethod === 'tokens' && ofData.availableTokens < course.tokenPrice)}
               className="bg-purple-600 hover:bg-purple-700"

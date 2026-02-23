@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 
 import { useFastAPIAuth } from "@/hooks/useFastAPIAuth";
 import { useStudentContext } from "@/hooks/useStudentContext";
+import { useOrganization } from "@/contexts/OrganizationContext";
 
 interface NavItem {
   title: string;
@@ -44,15 +45,16 @@ export function StudentSidebar() {
   const currentPath = location.pathname;
   const { user, logout } = useFastAPIAuth();
   const { isOFStudent, ofName, hasAccess } = useStudentContext();
-  
+  const { organization } = useOrganization();
+
   // Utiliser l'image du backend en priorité, fallback sur localStorage pour compatibilité
   const avatar = user?.image || localStorage.getItem('student-avatar') || '';
-  
+
   // Informations utilisateur dynamiques
   const userInfo = {
     name: user ? `${user.first_name || ''} ${user.last_name || ''}`.trim() : "Apprenant",
     email: user?.email || "",
-    initials: user 
+    initials: user
       ? `${user.first_name?.[0] || ''}${user.last_name?.[0] || ''}`.toUpperCase()
       : "A"
   };
@@ -115,13 +117,23 @@ export function StudentSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-border p-4">
-        <Link to="/" className="flex items-center justify-center mb-2">
-          <img 
-            src="/lovable-uploads/52aaa383-7635-46d0-ac37-eb3ee6b878d1.png" 
-            alt="Learneezy" 
-            className={isCollapsed ? "h-8 w-auto" : "h-16 w-auto"}
-          />
-        </Link>
+        {organization?.exists ? (
+          <div className="flex items-center justify-center mb-2">
+            <img
+              src={organization?.logoUrl || "/lovable-uploads/52aaa383-7635-46d0-ac37-eb3ee6b878d1.png"}
+              alt={organization?.organizationName || "Learneezy"}
+              className={isCollapsed ? "h-8 w-auto object-contain" : "h-16 w-auto object-contain"}
+            />
+          </div>
+        ) : (
+          <Link to="/" className="flex items-center justify-center mb-2">
+            <img
+              src={organization?.logoUrl || "/lovable-uploads/52aaa383-7635-46d0-ac37-eb3ee6b878d1.png"}
+              alt={organization?.organizationName || "Learneezy"}
+              className={isCollapsed ? "h-8 w-auto object-contain" : "h-16 w-auto object-contain"}
+            />
+          </Link>
+        )}
         {!isCollapsed && (
           <div className="text-center">
             <h2 className="text-lg font-semibold">Espace Apprenant</h2>
@@ -163,8 +175,8 @@ export function StudentSidebar() {
             <SidebarMenu>
               {navigationItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton 
-                    asChild={!item.disabled} 
+                  <SidebarMenuButton
+                    asChild={!item.disabled}
                     isActive={isActive(item.href)}
                     disabled={item.disabled}
                     className={item.disabled ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}
@@ -194,8 +206,8 @@ export function StudentSidebar() {
             <SidebarMenu>
               {formationItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton 
-                    asChild={!item.disabled} 
+                  <SidebarMenuButton
+                    asChild={!item.disabled}
                     isActive={isActive(item.href)}
                     disabled={item.disabled}
                     className={item.disabled ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}
@@ -225,8 +237,8 @@ export function StudentSidebar() {
             <SidebarMenu>
               {toolsItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton 
-                    asChild={!item.disabled} 
+                  <SidebarMenuButton
+                    asChild={!item.disabled}
                     isActive={isActive(item.href)}
                     disabled={item.disabled}
                     className={item.disabled ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}

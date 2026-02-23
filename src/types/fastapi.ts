@@ -213,6 +213,7 @@ export interface OrganizationUpdate {
   subscription_type?: SubscriptionType;
   logo_url?: string;
   max_users?: number;
+  plan_id?: number;
 }
 
 // ============= CATALOGUES =============
@@ -228,17 +229,51 @@ export interface AssignCatalogueRequest {
   catalogue_ids: string[];
 }
 
+export interface SubscriptionPlanCreate {
+  name: string;
+  price: number;
+  duration_days: number;
+  max_users?: number;
+  storage_limit_gb?: number;
+  features: string[];
+  is_active?: boolean;
+}
+
+export interface SubscriptionPlanUpdate {
+  name?: string;
+  price?: number;
+  duration_days?: number;
+  max_users?: number;
+  storage_limit_gb?: number;
+  features?: string[];
+  is_active?: boolean;
+}
+
+export interface SubscriptionPlanResponse {
+  id: number;
+  name: string;
+  price: number;
+  duration_days: number;
+  max_users?: number;
+  storage_limit_gb?: number;
+  features: string[];
+  is_active: boolean;
+  created_at: string;
+}
+
 export interface SubscriptionCreate {
-  type_: SubscriptionType;
+  plan_id: number;
 }
 
 export interface SubscriptionResponse {
   id: number;
   of_id: number;
-  type_: SubscriptionType;
+  plan_id?: number;
+  type_?: SubscriptionType;
   start_date: string;
   end_date?: string;
   status: string;
+  plan?: SubscriptionPlanResponse;
 }
 
 // ============= CATEGORIES ET NIVEAUX =============
@@ -446,6 +481,13 @@ export interface Course {
   resources_downloadable?: boolean; // Permet aux apprenants de télécharger les ressources
   owner_type?: CourseOwnerType; // 'learneezy' ou 'of'
   owner_id?: number | null; // ID de l'organisation si owner_type === 'of'
+  is_visible?: boolean;
+  is_open_source?: boolean;
+  token_price?: number;
+  minors_allowed?: boolean;
+  organisation_access?: 'all' | 'restricted' | 'none';
+  subscription_restrictions?: string[];
+  specific_organisations?: string[];
 }
 
 /**
@@ -479,6 +521,13 @@ export interface CourseResponse {
   intro_video?: string;
   modules_count?: number;
   resources_downloadable?: boolean;
+  is_visible?: boolean;
+  is_open_source?: boolean;
+  token_price?: number;
+  minors_allowed?: boolean;
+  organisation_access?: 'all' | 'restricted' | 'none';
+  subscription_restrictions?: string[];
+  specific_organisations?: string[];
 }
 
 /**
@@ -502,6 +551,13 @@ export interface CourseSummary {
   status?: CourseStatus;
   created_at?: string;
   updated_at?: string;
+  is_visible?: boolean;
+  is_open_source?: boolean;
+  token_price?: number;
+  minors_allowed?: boolean;
+  organisation_access?: 'all' | 'restricted' | 'none';
+  subscription_restrictions?: string[];
+  specific_organisations?: string[];
 }
 
 export interface CourseUpdate {
@@ -520,6 +576,13 @@ export interface CourseUpdate {
   levels?: string[] | null;
   resources?: Resource[];
   modules?: Module[];
+  is_visible?: boolean;
+  is_open_source?: boolean;
+  token_price?: number;
+  minors_allowed?: boolean;
+  organisation_access?: 'all' | 'restricted' | 'none';
+  subscription_restrictions?: string[];
+  specific_organisations?: string[];
 }
 
 export interface ModuleCreate {
@@ -766,11 +829,22 @@ export interface CourseEvaluationStatsResponse {
 
 export interface EnrollRequest {
   course_id: string;
+  user_id?: number; // Optional: admin enrolling on behalf of a learner
 }
 
 export interface EnrollResponse {
   message: string;
   progress: Record<string, number>;
+}
+
+export interface EnrollmentResponse {
+  id: number;
+  user_id: number;
+  course_id: string;
+  progress: Record<string, number>;
+  enrolled_at: string;
+  status: string;
+  course_title?: string;
 }
 
 export interface CourseStatsResponse {
@@ -800,6 +874,8 @@ export interface CourseFilters {
   category?: string; // legacy
   category_names?: string[];
   has_intro_video?: boolean;
+  is_open_source?: boolean;
+  include_global_open_source?: boolean;
   facets?: boolean;
 }
 

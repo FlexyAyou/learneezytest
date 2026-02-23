@@ -1,11 +1,13 @@
 import React, { useState, useMemo } from 'react';
+import { AssignCourseModal } from './AssignCourseModal';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Users, Search, Filter, Plus, Eye, Edit, MoreHorizontal, UserPlus, AlertCircle, Loader2, MessageSquare } from 'lucide-react';
+import { Users, Search, Filter, Plus, Eye, Edit, MoreHorizontal, UserPlus, AlertCircle, Loader2, MessageSquare, Gift } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { AddApprenantModal } from './AddApprenantModal';
 import { OFAddUtilisateur } from './OFAddUtilisateur';
 import { useOFUsers, useCreateOFUser } from '@/hooks/useApi';
@@ -66,6 +68,8 @@ export const OFUtilisateurs = () => {
   const [selectedRole, setSelectedRole] = useState('all');
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [isAddApprenantOpen, setIsAddApprenantOpen] = useState(false);
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [selectedUserForAssignment, setSelectedUserForAssignment] = useState<any>(null);
 
   // Récupérer l'ID de l'OF depuis le user connecté
   const ofId = user?.of_id?.toString() || undefined;
@@ -76,6 +80,25 @@ export const OFUtilisateurs = () => {
     queryFn: () => fastAPIClient.getOrganization(user!.of_id!),
     enabled: !!user?.of_id,
   });
+
+  // Récupérer les métriques et l'abonnement pour le quota
+  const { data: metrics } = useQuery({
+    queryKey: ['organization-metrics', user?.of_id],
+    queryFn: () => fastAPIClient.getOrganizationMetrics(),
+    enabled: !!user?.of_id,
+  });
+
+  const { data: currentSub } = useQuery({
+    queryKey: ['current-subscription', user?.of_id],
+    queryFn: () => fastAPIClient.getCurrentSubscription(),
+    enabled: !!user?.of_id,
+    retry: false
+  });
+
+  const isFreeTier = !currentSub;
+  const learnerLimit = currentSub?.plan?.max_users || 5;
+  const currentLearnerCount = metrics?.current_students || 0;
+  const isLimitReached = currentLearnerCount >= learnerLimit;
 
   // Nom de l'organisation : priorité contexte subdomain > API org > fallback
   const organizationName = organization?.organizationName || orgDetails?.name || undefined;
@@ -150,7 +173,12 @@ export const OFUtilisateurs = () => {
     navigate(`/dashboard/organisme-formation/utilisateurs/${userType}/${userSlug}`);
   };
 
+  // handleAddUser est maintenant principalement utilisé pour OFAddUtilisateur (autres rôles)
+  // car AddApprenantModal gère désormais son propre appel API
   const handleAddUser = async (newUser: any) => {
+    // Si l'utilisateur est déjà créé (vient de AddApprenantModal), on ne fait rien
+    if (newUser.id) return;
+
     // Mapper les données du formulaire vers le format API
     const apiPayload = {
       email: newUser.email,
@@ -262,6 +290,55 @@ export const OFUtilisateurs = () => {
     return null;
   };
 
+  const renderQuotaAlert = () => {
+    if (isFreeTier && isLimitReached) {
+      return (
+        <Alert className="mb-6 bg-amber-50 border-amber-200">
+          <AlertCircle className="h-4 w-4 text-amber-600" />
+          <AlertTitle className="text-amber-800 font-bold">Limite de l'offre gratuite atteinte</AlertTitle>
+          <AlertDescription className="text-amber-700">
+            Vous avez atteint la limite de <strong>5 apprenants</strong> autorisée par l'offre gratuite.
+            Pour inscrire de nouveaux apprenants, veuillez souscrire à un <Link to="/dashboard/organisme-formation/offres" className="underline font-bold">abonnement</Link>.
+          </AlertDescription>
+        </Alert>
+      );
+    }
+
+    if (isLimitReached) {
+      return (
+        <Alert className="mb-6 bg-red-50 border-red-200">
+          <AlertCircle className="h-4 w-4 text-red-600" />
+          <AlertTitle className="text-red-800 font-bold">Limite de votre abonnement atteinte</AlertTitle>
+          <AlertDescription className="text-red-700">
+            Vous avez atteint la limite de <strong>{learnerLimit} apprenants</strong> de votre plan actuel ({currentSub?.plan?.name}).
+            Passez à l'offre supérieure dans l'onglet <Link to="/dashboard/organisme-formation/offres" className="underline font-bold">offres</Link> pour continuer.
+          </AlertDescription>
+        </Alert>
+      );
+    }
+
+    if (isFreeTier && currentLearnerCount > 0) {
+      return (
+        <div className="mb-6 p-4 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <Gift className="h-4 w-4 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-blue-900">Offre Gratuite : {currentLearnerCount} / 5 apprenants</p>
+              <p className="text-xs text-blue-700">Il vous reste {5 - currentLearnerCount} places gratuites.</p>
+            </div>
+          </div>
+          <Button size="sm" variant="outline" className="bg-white border-blue-200 text-blue-600" onClick={() => navigate('/dashboard/organisme-formation/offres')}>
+            Passer au Premium
+          </Button>
+        </div>
+      )
+    }
+
+    return null;
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -270,11 +347,18 @@ export const OFUtilisateurs = () => {
           <p className="text-gray-600">Gérez les utilisateurs de votre organisme de formation</p>
         </div>
         <div className="flex space-x-2">
-          <Button onClick={() => setIsAddApprenantOpen(true)} variant="outline">
+          <Button
+            onClick={() => setIsAddApprenantOpen(true)}
+            variant="outline"
+            disabled={isLimitReached}
+          >
             <UserPlus className="h-4 w-4 mr-2" />
             Ajouter un apprenant
           </Button>
-          <Button onClick={() => setIsAddUserOpen(true)}>
+          <Button
+            onClick={() => setIsAddUserOpen(true)}
+            disabled={isLimitReached}
+          >
             <Plus className="h-4 w-4 mr-2" />
             Ajouter un utilisateur
           </Button>
@@ -283,6 +367,9 @@ export const OFUtilisateurs = () => {
 
       {/* Notice si API non disponible */}
       {renderBackendNotice()}
+
+      {/* Alerte Quota */}
+      {renderQuotaAlert()}
 
       {/* Statistiques rapides */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -443,6 +530,19 @@ export const OFUtilisateurs = () => {
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
+                        {user.role === 'Apprenant' && (
+                          <Button
+                            size="sm"
+                            variant="default"
+                            className="bg-blue-600 hover:bg-blue-700"
+                            onClick={() => {
+                              setSelectedUserForAssignment(user as any);
+                              setIsAssignModalOpen(true);
+                            }}
+                          >
+                            Assigner
+                          </Button>
+                        )}
                         <Button size="sm" variant="outline">
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -462,14 +562,24 @@ export const OFUtilisateurs = () => {
       <AddApprenantModal
         isOpen={isAddApprenantOpen}
         onClose={() => setIsAddApprenantOpen(false)}
-        onAdd={handleAddUser}
+        onAdd={(newApprenant) => {
+          console.log('Apprenant créé:', newApprenant);
+          // Le modal gère déjà l'appel API et l'invalidation des queries
+        }}
         organizationName={organizationName}
+        ofId={ofId}
       />
 
       <OFAddUtilisateur
         isOpen={isAddUserOpen}
         onClose={() => setIsAddUserOpen(false)}
         onAdd={handleAddUser}
+      />
+
+      <AssignCourseModal
+        open={isAssignModalOpen}
+        onOpenChange={setIsAssignModalOpen}
+        learner={selectedUserForAssignment}
       />
     </div>
   );

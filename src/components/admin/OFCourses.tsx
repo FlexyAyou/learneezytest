@@ -81,6 +81,7 @@ export const OFCourses = () => {
           category_names: categoryFilter !== 'all' ? [categoryFilter] : undefined,
           learning_cycle: cycleFilter !== 'all' ? cycleFilter : undefined,
           sort: sortOption,
+          include_global_open_source: true,
           facets: true,
         };
 
@@ -135,6 +136,7 @@ export const OFCourses = () => {
         category_names: categoryFilter !== 'all' ? [categoryFilter] : undefined,
         learning_cycle: cycleFilter !== 'all' ? cycleFilter : undefined,
         sort: sortOption,
+        include_global_open_source: true,
         facets: true,
       };
       const data = await fastAPIClient.getCourses(filters);
@@ -243,7 +245,7 @@ export const OFCourses = () => {
           <p className="text-gray-600">Gérer les cours de votre organisme de formation</p>
         </div>
         <div className="flex space-x-2">
-          <Button 
+          <Button
             onClick={() => setShowCatalogModal(true)}
             variant="outline"
             className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"

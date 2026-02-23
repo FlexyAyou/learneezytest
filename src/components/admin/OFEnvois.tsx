@@ -7,6 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { Mail, Eye, MessageSquare, Plus } from 'lucide-react';
 import { OFNouvelEnvoi } from './OFNouvelEnvoi';
 import { OFEnvoiDetail } from './OFEnvoiDetail';
+import { useOrganization } from '@/contexts/OrganizationContext';
+import { useCommunications } from '@/hooks/useApi';
+import { Loader2 } from 'lucide-react';
 
 interface Envoi {
   id: string;
@@ -18,14 +21,22 @@ interface Envoi {
 }
 
 export const OFEnvois = () => {
+  const { organization } = useOrganization();
+  const ofId = organization?.organizationId;
   const [showNouvelEnvoi, setShowNouvelEnvoi] = useState(false);
   const [selectedEnvoi, setSelectedEnvoi] = useState<Envoi | null>(null);
   const [showDetail, setShowDetail] = useState(false);
-  const [envois, setEnvois] = useState<Envoi[]>([
-    { id: '1', type: 'convocation', destinataire: 'marie.dupont@email.com', sujet: 'Convocation formation React', status: 'delivered', date: '2024-01-15 08:30:00' },
-    { id: '2', type: 'relance', destinataire: 'jean.martin@email.com', sujet: 'Rappel émargement', status: 'pending', date: '2024-01-15 08:25:00' },
-    { id: '3', type: 'attestation', destinataire: 'sophie.bernard@email.com', sujet: 'Attestation de formation', status: 'read', date: '2024-01-15 08:20:00' },
-  ]);
+
+  const { data: communicationsData, isLoading } = useCommunications(ofId);
+
+  const envois: Envoi[] = (communicationsData?.items || communicationsData || []).map((item: any) => ({
+    id: item.id.toString(),
+    type: item.type,
+    destinataire: item.destinataire || item.recipient_email,
+    sujet: item.sujet || item.subject,
+    status: item.status,
+    date: item.date || item.created_at
+  }));
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -33,7 +44,7 @@ export const OFEnvois = () => {
       pending: { variant: 'outline' as const, label: 'En attente' },
       read: { variant: 'secondary' as const, label: 'Lu' },
     };
-    
+
     const config = statusConfig[status as keyof typeof statusConfig] || { variant: 'outline' as const, label: status };
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
@@ -81,31 +92,46 @@ export const OFEnvois = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {envois.map((envoi) => (
-                <TableRow key={envoi.id}>
-                  <TableCell className="capitalize">{envoi.type}</TableCell>
-                  <TableCell>{envoi.destinataire}</TableCell>
-                  <TableCell className="font-medium">{envoi.sujet}</TableCell>
-                  <TableCell>{getStatusBadge(envoi.status)}</TableCell>
-                  <TableCell>{envoi.date}</TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button size="sm" variant="outline" onClick={() => handleView(envoi)}>
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => handleReply(envoi)}>
-                        <MessageSquare className="h-4 w-4" />
-                      </Button>
-                    </div>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-10">
+                    <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+                    <p className="mt-2 text-muted-foreground">Chargement de l'historique...</p>
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : envois.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                    Aucun envoi trouvé
+                  </TableCell>
+                </TableRow>
+              ) : (
+                envois.map((envoi) => (
+                  <TableRow key={envoi.id}>
+                    <TableCell className="capitalize">{envoi.type}</TableCell>
+                    <TableCell>{envoi.destinataire}</TableCell>
+                    <TableCell className="font-medium">{envoi.sujet}</TableCell>
+                    <TableCell>{getStatusBadge(envoi.status)}</TableCell>
+                    <TableCell>{new Date(envoi.date).toLocaleString('fr-FR')}</TableCell>
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <Button size="sm" variant="outline" onClick={() => handleView(envoi)}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => handleReply(envoi)}>
+                          <MessageSquare className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
 
-      <OFNouvelEnvoi 
+      <OFNouvelEnvoi
         isOpen={showNouvelEnvoi}
         onClose={() => setShowNouvelEnvoi(false)}
       />

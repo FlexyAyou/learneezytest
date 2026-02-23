@@ -1,6 +1,5 @@
-
-import React, { useState } from 'react';
-import { Check, Star, Zap, Crown, Gift, ChevronDown } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Check, Star, Zap, Crown, Gift, ChevronDown, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,510 +7,344 @@ import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { fastAPIClient } from '@/services/fastapi-client';
+import { SubscriptionPlanResponse } from '@/types/fastapi';
+import { useToast } from '@/hooks/use-toast';
 
 const Offers = () => {
   const [isAnnual, setIsAnnual] = useState(false);
-  const [isOF, setIsOF] = useState(false); // false = particulier, true = organisme de formation
+  const [isOF, setIsOF] = useState(false);
+  const [plans, setPlans] = useState<SubscriptionPlanResponse[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubscribing, setIsSubscribing] = useState<number | null>(null);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
-  const particulierOffers = [
-    {
-      id: 1,
-      name: "Pack Starter",
-      credits: 100,
-      monthlyPrice: 29,
-      annualPrice: 290,
-      popular: false,
-      icon: <Gift className="h-8 w-8" />,
-      description: "Parfait pour débuter votre apprentissage",
-      features: [
-        "100 crédits d'apprentissage",
-        "Accès aux cours de base",
-        "Support par email",
-        "Certificats de base"
-      ],
-      gradient: "from-blue-500 to-blue-600",
-      bgColor: "bg-blue-50",
-      borderColor: "border-blue-200",
-      textColor: "text-blue-700"
-    },
-    {
-      id: 2,
-      name: "Pack Growth",
-      credits: 300,
-      monthlyPrice: 79,
-      annualPrice: 790,
-      popular: true,
-      icon: <Zap className="h-8 w-8" />,
-      description: "Le choix idéal pour progresser rapidement",
-      features: [
-        "300 crédits d'apprentissage",
-        "Accès à tous les cours",
-        "Réservation de créneaux formateurs",
-        "Support prioritaire",
-        "Certificats avancés"
-      ],
-      gradient: "from-purple-500 to-purple-600",
-      bgColor: "bg-purple-50",
-      borderColor: "border-purple-200",
-      textColor: "text-purple-700"
-    },
-    {
-      id: 3,
-      name: "Pack Premium",
-      credits: 500,
-      monthlyPrice: 120,
-      annualPrice: 1200,
-      popular: false,
-      icon: <Crown className="h-8 w-8" />,
-      description: "L'excellence pour les apprenants exigeants",
-      features: [
-        "500 crédits d'apprentissage",
-        "Accès illimité à tous les cours",
-        "Réservations prioritaires",
-        "Coaching personnalisé",
-        "Certificats premium",
-        "Support 24/7"
-      ],
-      gradient: "from-amber-500 to-amber-600",
-      bgColor: "bg-amber-50",
-      borderColor: "border-amber-200",
-      textColor: "text-amber-700"
+  useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        const data = await fastAPIClient.getSubscriptionPlans();
+        // Filtrer les plans actifs
+        setPlans(data.filter(p => p.is_active));
+      } catch (err) {
+        console.error('Error fetching plans:', err);
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger les offres pour le moment.",
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchPlans();
+  }, []);
+
+  const handleSubscribe = async (planId: number) => {
+    setIsSubscribing(planId);
+    try {
+      await fastAPIClient.subscribeToPlan(planId);
+      toast({
+        title: "Souscription réussie !",
+        description: "Votre abonnement a été activé avec succès.",
+      });
+      navigate('/dashboard');
+    } catch (err) {
+      toast({
+        title: "Erreur",
+        description: "La souscription a échoué. Veuillez réessayer.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubscribing(null);
     }
-  ];
+  };
 
-  const ofOffers = [
-    {
-      id: 1,
-      name: "OF Starter",
-      students: "Jusqu'à 10 apprenants",
-      monthlyPrice: 199,
-      annualPrice: 1990,
-      popular: false,
-      icon: <Gift className="h-8 w-8" />,
-      description: "Idéal pour les petits organismes",
-      features: [
-        "Gestion de 10 apprenants",
-        "Plateforme LMS intégrée",
-        "Suivi pédagogique",
-        "Émargements numériques",
-        "Support par email",
-        "Certificats automatiques"
-      ],
-      gradient: "from-green-500 to-green-600",
-      bgColor: "bg-green-50",
-      borderColor: "border-green-200",
-      textColor: "text-green-700"
-    },
-    {
-      id: 2,
-      name: "OF Business",
-      students: "Jusqu'à 50 apprenants",
-      monthlyPrice: 449,
-      annualPrice: 4490,
-      popular: true,
-      icon: <Zap className="h-8 w-8" />,
-      description: "Pour les organismes en croissance",
-      features: [
-        "Gestion de 50 apprenants",
-        "Plateforme LMS avancée",
-        "Outils de création de contenu",
-        "Reporting détaillé",
-        "Intégrations CPF/OPCO",
-        "Support prioritaire",
-        "Formation des formateurs"
-      ],
-      gradient: "from-indigo-500 to-indigo-600",
-      bgColor: "bg-indigo-50",
-      borderColor: "border-indigo-200",
-      textColor: "text-indigo-700"
-    },
-    {
-      id: 3,
-      name: "OF Enterprise",
-      students: "Illimité",
-      monthlyPrice: 899,
-      annualPrice: 8990,
-      popular: false,
-      icon: <Crown className="h-8 w-8" />,
-      description: "Solution complète pour grands organismes",
-      features: [
-        "Apprenants illimités",
-        "Plateforme white-label",
-        "API complète",
-        "Intelligence artificielle",
-        "Conformité Qualiopi",
-        "Manager dédié",
-        "Formation sur-mesure"
-      ],
-      gradient: "from-red-500 to-red-600",
-      bgColor: "bg-red-50",
-      borderColor: "border-red-200",
-      textColor: "text-red-700"
-    }
-  ];
-
-  const currentOffers = isOF ? ofOffers : particulierOffers;
-  
-  const calculatePrice = (offer: any) => {
+  const calculatePrice = (price: number) => {
     if (isAnnual) {
-      return Math.round(offer.annualPrice * 0.83);
+      return Math.round(price * 12 * 0.83); // 17% discount on annual
     }
-    return offer.monthlyPrice;
+    return price;
   };
 
-  const calculateCredits = (offer: any) => {
-    if (isOF) return null;
-    return isAnnual ? offer.credits * 12 : offer.credits;
+  const getGradient = (name: string) => {
+    const n = name.toLowerCase();
+    if (n.includes('starter')) return "from-blue-500 to-blue-600 shadow-blue-500/20";
+    if (n.includes('growth') || n.includes('business')) return "from-purple-500 to-purple-600 shadow-purple-500/20";
+    if (n.includes('premium') || n.includes('enterprise')) return "from-amber-500 to-amber-600 shadow-amber-500/20";
+    return "from-slate-500 to-slate-600 shadow-slate-500/20";
   };
 
-  const getDiscountPercentage = () => "17%";
-
-  const handleChoosePack = (offerId: number) => {
-    navigate('/payment', { 
-      state: { 
-        offerId, 
-        isAnnual, 
-        isOF,
-        offerType: isOF ? 'organisme' : 'particulier'
-      } 
-    });
+  const getTextColor = (name: string) => {
+    const n = name.toLowerCase();
+    if (n.includes('starter')) return "text-blue-700";
+    if (n.includes('growth') || n.includes('business')) return "text-purple-700";
+    if (n.includes('premium') || n.includes('enterprise')) return "text-amber-700";
+    return "text-slate-700";
   };
 
-  const ModernToggle = ({ active, onClick, children, badge }: { 
-    active: boolean, 
-    onClick: () => void, 
+  const getBgColor = (name: string) => {
+    const n = name.toLowerCase();
+    if (n.includes('starter')) return "bg-blue-50";
+    if (n.includes('growth') || n.includes('business')) return "bg-purple-50";
+    if (n.includes('premium') || n.includes('enterprise')) return "bg-amber-50";
+    return "bg-slate-50";
+  };
+
+  const getBorderColor = (name: string) => {
+    const n = name.toLowerCase();
+    if (n.includes('starter')) return "border-blue-200";
+    if (n.includes('growth') || n.includes('business')) return "border-purple-200";
+    if (n.includes('premium') || n.includes('enterprise')) return "border-amber-200";
+    return "border-slate-200";
+  };
+
+  const filteredPlans = plans.filter(p => {
+    const isOfPlan = p.name.toLowerCase().includes('of');
+    if (isOF) return isOfPlan;
+    return !isOfPlan;
+  });
+
+  const ModernToggle = ({ active, onClick, children, badge }: {
+    active: boolean,
+    onClick: () => void,
     children: React.ReactNode,
-    badge?: string 
+    badge?: string
   }) => (
     <button
       onClick={onClick}
-      className={`relative px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-300 transform hover:scale-105 ${
-        active 
-          ? 'bg-gradient-to-r from-primary to-primary/80 text-white shadow-lg shadow-primary/30' 
-          : 'bg-white text-muted-foreground hover:bg-gray-50 border border-gray-200 hover:border-gray-300'
-      }`}
+      className={`relative px-8 py-3 rounded-xl font-bold text-sm transition-all duration-300 transform active:scale-95 ${active
+          ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
+          : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 shadow-sm'
+        }`}
     >
       {children}
       {badge && active && (
-        <span className="absolute -top-2 -right-2 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-full">
+        <span className="absolute -top-3 -right-3 bg-yellow-400 text-yellow-900 text-[10px] font-black px-2 py-1 rounded-full border-2 border-white shadow-sm">
           {badge}
         </span>
       )}
     </button>
   );
 
-  const faqData = [
-    {
-      question: "Mes crédits expirent-ils ?",
-      answer: isOF ? "Non, vos accès à la plateforme sont renouvelés automatiquement selon votre abonnement." : "Non, vos crédits n'expirent pas et restent disponibles tant que votre compte est actif."
-    },
-    {
-      question: "Puis-je transférer mes crédits ?",
-      answer: "Les crédits sont liés à votre compte et ne peuvent pas être transférés à un autre utilisateur."
-    },
-    {
-      question: "Que se passe-t-il si j'annule une réservation ?",
-      answer: "Les crédits sont remboursés sur votre compte si vous annulez au moins 24h avant le créneau réservé."
-    },
-    {
-      question: "Comment puis-je changer d'offre ?",
-      answer: "Vous pouvez modifier votre abonnement à tout moment depuis votre espace personnel. Les crédits non utilisés seront conservés lors du changement."
-    },
-    {
-      question: "Y a-t-il des frais cachés ?",
-      answer: "Aucun frais caché ! Le prix affiché inclut toutes les fonctionnalités mentionnées dans votre pack."
-    },
-    {
-      question: "Puis-je annuler mon abonnement ?",
-      answer: "Oui, vous pouvez annuler votre abonnement à tout moment. Vos crédits restent disponibles jusqu'à leur utilisation complète."
-    }
-  ];
-
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-slate-50/50">
       <Header />
-      
+
       <div className="pt-20">
-        {/* Hero Section */}
-        <div className="bg-gradient-to-br from-primary via-primary/90 to-primary/80 text-primary-foreground py-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h1 className="text-4xl md:text-6xl font-bold mb-6">
-                Nos Offres d'Abonnement
-              </h1>
-              <p className="text-xl md:text-2xl opacity-90 max-w-3xl mx-auto">
-                Choisissez le pack de crédits qui correspond à vos besoins d'apprentissage
-              </p>
-            </div>
-          </div>
-        </div>
+        {/* Premium Hero Section */}
+        <section className="relative py-24 px-4 overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-50 via-white to-purple-50 -z-10" />
+          <div className="absolute top-1/4 -right-1/4 w-96 h-96 bg-blue-400/10 rounded-full blur-[120px] -z-10" />
+          <div className="absolute bottom-1/4 -left-1/4 w-96 h-96 bg-purple-400/10 rounded-full blur-[120px] -z-10" />
 
-        {/* How it Works - Particulier */}
-        {!isOF && (
-          <div className="py-16 bg-card">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold text-foreground mb-4">
-                  Comment fonctionnent les crédits ?
-                </h2>
-                <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                  Utilisez vos crédits pour accéder aux formations et réserver des créneaux avec nos formateurs
-                </p>
-              </div>
-              
-              <div className="grid md:grid-cols-3 gap-8">
-                <div className="text-center">
-                  <div className="bg-primary/10 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-                    <Gift className="h-10 w-10 text-primary" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-foreground mb-2">Formations</h3>
-                  <p className="text-muted-foreground">5-20 crédits par cours selon la complexité</p>
-                </div>
-                
-                <div className="text-center">
-                  <div className="bg-primary/10 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-                    <Zap className="h-10 w-10 text-primary" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-foreground mb-2">Coaching</h3>
-                  <p className="text-muted-foreground">30-50 crédits par séance individuelle</p>
-                </div>
-                
-                <div className="text-center">
-                  <div className="bg-primary/10 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-                    <Crown className="h-10 w-10 text-primary" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-foreground mb-2">Ateliers</h3>
-                  <p className="text-muted-foreground">15-35 crédits par atelier en groupe</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+          <div className="max-w-7xl mx-auto text-center">
+            <Badge className="mb-6 bg-blue-100 text-blue-700 hover:bg-blue-100 border-none px-6 py-1.5 text-sm font-bold tracking-wide">
+              NOS OFFRES 2024
+            </Badge>
+            <h1 className="text-5xl md:text-7xl font-black text-slate-900 mb-8 leading-tight tracking-tight">
+              L'excellence pédagogique <br />
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">
+                à portée de clic.
+              </span>
+            </h1>
+            <p className="text-xl text-slate-600 max-w-3xl mx-auto mb-12 font-medium leading-relaxed">
+              Choisissez le pack qui soutient votre croissance, que vous soyez un curieux assoiffé de savoir ou un organisme de formation en pleine expansion.
+            </p>
 
-        {/* How OF Works */}
-        {isOF && (
-          <div className="py-16 bg-card">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold text-foreground mb-4">
-                  Pourquoi choisir Learneezy pour votre OF ?
-                </h2>
-                <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                  Une plateforme complète pour gérer vos formations, apprenants et être conforme aux exigences qualité
-                </p>
-              </div>
-              
-              <div className="grid md:grid-cols-3 gap-8">
-                <div className="text-center">
-                  <div className="bg-primary/10 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-                    <Gift className="h-10 w-10 text-primary" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-foreground mb-2">Gestion LMS</h3>
-                  <p className="text-muted-foreground">Plateforme d'apprentissage complète avec suivi pédagogique</p>
-                </div>
-                
-                <div className="text-center">
-                  <div className="bg-primary/10 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-                    <Zap className="h-10 w-10 text-primary" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-foreground mb-2">Conformité</h3>
-                  <p className="text-muted-foreground">Outils pour respecter les exigences Qualiopi et CPF</p>
-                </div>
-                
-                <div className="text-center">
-                  <div className="bg-primary/10 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-                    <Crown className="h-10 w-10 text-primary" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-foreground mb-2">Automatisation</h3>
-                  <p className="text-muted-foreground">Émargements, certificats et reporting automatisés</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Offers Grid */}
-        <div className="py-20 bg-background">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-foreground mb-4">
-                Choisissez votre pack
-              </h2>
-              <p className="text-xl text-muted-foreground mb-8">
-                Des offres adaptées à tous vos besoins d'apprentissage
-              </p>
-            </div>
-
-            {/* Modern Selection Controls */}
-            <div className="flex flex-col lg:flex-row justify-center items-center gap-4 mb-12">
-              {/* Type Selection */}
-              <div className="flex items-center gap-2 bg-gray-100 rounded-2xl p-2 shadow-inner">
+            <div className="flex flex-col md:flex-row justify-center items-center gap-6 mb-12">
+              <div className="flex items-center gap-3 bg-white/80 backdrop-blur-md p-2 rounded-2xl shadow-xl border border-white">
                 <ModernToggle active={!isOF} onClick={() => setIsOF(false)}>
                   Particulier
                 </ModernToggle>
                 <ModernToggle active={isOF} onClick={() => setIsOF(true)}>
-                  Organisme de Formation
+                  Organisme
                 </ModernToggle>
               </div>
 
-              {/* Billing Period Selection */}
-              <div className="flex items-center gap-2 bg-gray-100 rounded-2xl p-2 shadow-inner">
+              <div className="flex items-center gap-3 bg-white/80 backdrop-blur-md p-2 rounded-2xl shadow-xl border border-white">
                 <ModernToggle active={!isAnnual} onClick={() => setIsAnnual(false)}>
                   Mensuel
                 </ModernToggle>
-                <ModernToggle 
-                  active={isAnnual} 
+                <ModernToggle
+                  active={isAnnual}
                   onClick={() => setIsAnnual(true)}
-                  badge={isAnnual ? `-${getDiscountPercentage()}` : undefined}
+                  badge="-17%"
                 >
                   Annuel
                 </ModernToggle>
               </div>
             </div>
+          </div>
+        </section>
 
-            <div className="grid lg:grid-cols-3 md:grid-cols-2 gap-8">
-              {currentOffers.map((offer) => (
-                <Card 
-                  key={offer.id} 
-                  className={`relative overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl ${offer.bgColor} ${offer.borderColor} border-2 ${
-                    offer.popular ? 'ring-4 ring-primary/20 shadow-xl' : ''
-                  }`}
+        {/* Dynamic Pricing Grid */}
+        <section className="py-20 px-4 max-w-7xl mx-auto">
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-24">
+              <div className="relative">
+                <Loader2 className="h-16 w-16 text-blue-600 animate-spin" />
+                <div className="absolute inset-0 bg-blue-600/10 blur-xl rounded-full" />
+              </div>
+              <p className="mt-6 text-slate-500 font-bold tracking-widest text-sm uppercase">Analyse des meilleures offres...</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+              {filteredPlans.map((offer) => (
+                <Card
+                  key={offer.id}
+                  className={`group relative overflow-hidden transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] hover:-translate-y-3 border-2 ${getBorderColor(offer.name)} ${getBgColor(offer.name)}/30`}
                 >
-                  {offer.popular && (
-                    <Badge className="absolute top-4 right-4 bg-primary text-primary-foreground">
-                      Populaire
-                    </Badge>
-                  )}
-                  
-                  <CardHeader className="text-center pb-2">
-                    <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${offer.gradient} flex items-center justify-center text-white mx-auto mb-4 shadow-lg`}>
-                      {offer.icon}
+                  <div className={`h-2 w-full bg-gradient-to-r ${getGradient(offer.name)}`} />
+
+                  <CardHeader className="pt-10 text-center pb-6">
+                    <div className={`mx-auto w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center mb-6 transition-transform duration-500 group-hover:rotate-6 ${getTextColor(offer.name)}`}>
+                      {offer.name.toLowerCase().includes('starter') ? <Gift className="w-10 h-10" /> :
+                        offer.name.toLowerCase().includes('premium') || offer.name.toLowerCase().includes('enterprise') ? <Crown className="w-10 h-10" /> :
+                          <Zap className="w-10 h-10" />}
                     </div>
-                    <CardTitle className={`text-2xl font-bold ${offer.textColor}`}>{offer.name}</CardTitle>
-                    <CardDescription className="text-muted-foreground">
-                      {offer.description}
+                    <CardTitle className="text-3xl font-black text-slate-900 tracking-tight">{offer.name}</CardTitle>
+                    <CardDescription className="text-slate-500 font-bold uppercase text-xs tracking-widest mt-2 px-6">
+                      {offer.duration_days} jours d'excellence
                     </CardDescription>
                   </CardHeader>
-                  
-                  <CardContent className="text-center">
-                    <div className="mb-6">
-                      {!isOF && (
-                        <div className={`text-4xl font-bold ${offer.textColor} mb-2`}>
-                          {calculateCredits(offer)}
-                          <span className="text-lg text-muted-foreground ml-1">crédits</span>
-                        </div>
-                      )}
-                      {isOF && (
-                        <div className={`text-2xl font-bold ${offer.textColor} mb-2`}>
-                          {offer.students}
-                        </div>
-                      )}
-                      <div className="flex items-center justify-center gap-2 mb-2">
-                        {isAnnual && (
-                          <span className="text-xl text-muted-foreground line-through">
-                            {isOF ? offer.annualPrice : offer.annualPrice}€
-                          </span>
-                        )}
-                        <div className={`text-3xl font-bold ${offer.textColor}`}>
-                          {calculatePrice(offer)}€
-                        </div>
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {isAnnual ? "par an" : "par mois"} {isOF ? "" : `• ${(calculatePrice(offer) / calculateCredits(offer)).toFixed(3)}€ par crédit`}
+
+                  <CardContent className="px-8 pb-10">
+                    <div className="text-center mb-10">
+                      <div className="inline-flex items-baseline gap-1">
+                        <span className="text-5xl font-black text-slate-900 tracking-tighter">
+                          {calculatePrice(offer.price)}€
+                        </span>
+                        <span className="text-slate-400 font-bold text-lg">
+                          /{isAnnual ? 'an' : 'm'}
+                        </span>
                       </div>
                       {isAnnual && (
-                        <div className="text-sm text-green-600 font-medium mt-1">
-                          Économisez {getDiscountPercentage()}
-                        </div>
+                        <p className="text-xs font-black text-green-600 mt-2 tracking-wide uppercase">
+                          Économie annuelle réalisée
+                        </p>
                       )}
                     </div>
-                    
-                    <ul className="space-y-3 mb-8 text-left">
-                      {offer.features.map((feature, index) => (
-                        <li key={index} className="flex items-center text-sm">
-                          <Check className="h-4 w-4 text-green-500 mr-3 flex-shrink-0" />
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    
-                    <Button 
-                      onClick={() => handleChoosePack(offer.id)}
-                      className={`w-full bg-gradient-to-r ${offer.gradient} hover:opacity-90 text-white font-semibold py-3 shadow-lg hover:shadow-xl transition-all duration-300`}
+
+                    <div className="space-y-5 mb-10">
+                      <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Fonctionnalités incluses</h4>
+                      <ul className="space-y-4">
+                        {offer.features.map((feature, idx) => (
+                          <li key={idx} className="flex items-start gap-3 text-slate-600 text-sm font-medium">
+                            <div className={`mt-1 h-5 w-5 rounded-full flex items-center justify-center shrink-0 border border-slate-200 bg-white ${getTextColor(offer.name)}`}>
+                              <Check className="h-3 w-3" />
+                            </div>
+                            <span>{feature}</span>
+                          </li>
+                        ))}
+                        {offer.max_users && (
+                          <li className="flex items-start gap-3 text-slate-900 text-sm font-bold pt-2 border-t border-slate-200/50">
+                            <div className={`mt-1 h-5 w-5 rounded-full flex items-center justify-center shrink-0 border-2 border-slate-900 bg-slate-900 text-white`}>
+                              <Star className="h-2.5 w-2.5" />
+                            </div>
+                            <span>Jusqu'à {offer.max_users} apprenants</span>
+                          </li>
+                        )}
+                      </ul>
+                    </div>
+
+                    <Button
+                      className={`w-full py-8 text-lg font-black tracking-wide rounded-2xl shadow-2xl transition-all duration-300 bg-gradient-to-r ${getGradient(offer.name)} text-white hover:opacity-95 hover:scale-[1.02] active:scale-[0.98] border-none`}
+                      onClick={() => handleSubscribe(offer.id)}
+                      disabled={isSubscribing !== null}
                     >
-                      {isOF ? "Démarrer gratuitement" : "Choisir ce pack"}
+                      {isSubscribing === offer.id ? (
+                        <Loader2 className="h-6 w-6 animate-spin" />
+                      ) : (
+                        "Choisir ce plan"
+                      )}
                     </Button>
                   </CardContent>
                 </Card>
               ))}
             </div>
-          </div>
-        </div>
+          )}
+        </section>
 
-        {/* Enhanced FAQ Section */}
-        <div className="py-20 bg-gradient-to-br from-card via-card/95 to-background">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-6">
-                <ChevronDown className="h-8 w-8 text-primary" />
-              </div>
-              <h2 className="text-4xl font-bold text-foreground mb-4">
-                Questions fréquentes
+        {/* Premium FAQ Section */}
+        <section className="py-24 px-4 bg-white">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-20">
+              <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 tracking-tight">
+                Une question ? <br />
+                <span className="text-slate-400">On vous dit tout.</span>
               </h2>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Trouvez rapidement les réponses aux questions les plus posées sur nos offres
-              </p>
+              <div className="h-1.5 w-24 bg-blue-600 mx-auto rounded-full" />
             </div>
-            
-            <Card className="shadow-xl border-0 bg-card/50 backdrop-blur-sm">
-              <CardContent className="p-8">
-                <Accordion type="single" collapsible className="space-y-4">
-                  {faqData.map((faq, index) => (
-                    <AccordionItem 
-                      key={`faq-${index}`} 
-                      value={`item-${index}`}
-                      className="border border-border/50 rounded-lg px-6 py-2 bg-background/30 hover:bg-background/50 transition-colors"
-                    >
-                      <AccordionTrigger className="text-left hover:no-underline group">
-                        <span className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
-                          {faq.question}
-                        </span>
-                      </AccordionTrigger>
-                      <AccordionContent className="pt-4 pb-2">
-                        <p className="text-muted-foreground leading-relaxed text-base">
-                          {faq.answer}
-                        </p>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              </CardContent>
-            </Card>
 
-            {/* Call to Action */}
-            <div className="text-center mt-12">
-              <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-2xl p-8 border border-primary/20">
-                <h3 className="text-2xl font-bold text-foreground mb-4">
-                  Vous avez d'autres questions ?
-                </h3>
-                <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-                  Notre équipe support est disponible pour vous accompagner dans le choix de votre offre
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Button variant="outline" className="bg-background hover:bg-background/80">
-                    Contactez le support
-                  </Button>
-                  <Button className="bg-gradient-to-r from-primary to-primary/80 hover:opacity-90">
-                    Planifier une démo
-                  </Button>
-                </div>
+            <Accordion type="single" collapsible className="space-y-6">
+              {[
+                {
+                  q: "Puis-je changer de plan en cours de route ?",
+                  a: "Absolument. La flexibilité est au cœur de notre service. Vous pouvez passer à l'offre supérieure à tout moment, et la différence sera ajustée instantanément."
+                },
+                {
+                  q: "Quelles sont les méthodes de paiement acceptées ?",
+                  a: "Nous acceptons toutes les cartes de crédit majeures (Visa, Mastercard, AMEX) ainsi que les virements SEPA pour les comptes organismes. Tous les paiements sont sécurisés par Stripe."
+                },
+                {
+                  q: "L'offre OF est-elle éligible Qualiopi ?",
+                  a: "Oui, notre plateforme est conçue pour répondre point par point aux indicateurs du référentiel national qualité (RNQ / Qualiopi), facilitant grandement vos audits."
+                },
+                {
+                  q: "Y a-t-il une limite de stockage ?",
+                  a: "Selon votre plan, vous bénéficiez d'un espace de stockage généreux pour vos vidéos et documents. Si vous avez besoin de plus, des extensions sont disponibles sur demande."
+                }
+              ].map((faq, i) => (
+                <AccordionItem key={i} value={`item-${i}`} className="border-none bg-slate-50/50 rounded-3xl px-8 transition-all duration-300 hover:bg-slate-50">
+                  <AccordionTrigger className="text-left font-bold text-slate-900 text-lg py-8 hover:no-underline">
+                    {faq.q}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-slate-600 leading-relaxed text-base pb-8 font-medium">
+                    {faq.a}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
+        </section>
+
+        {/* Big CTA */}
+        <section className="py-24 px-4">
+          <div className="max-w-6xl mx-auto relative rounded-[40px] bg-slate-900 overflow-hidden px-8 py-20 text-center">
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600 opacity-20 blur-[120px] -z-0" />
+            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-600 opacity-20 blur-[120px] -z-0" />
+
+            <div className="relative z-10">
+              <h2 className="text-4xl md:text-6xl font-black text-white mb-8">
+                Prêt à redéfinir <br />
+                votre futur ?
+              </h2>
+              <p className="text-blue-100/70 text-xl max-w-2xl mx-auto mb-12 font-medium">
+                Rejoignez la communauté LEARNEEZY et profitez d'outils de pointe pour votre réussite.
+              </p>
+              <div className="flex flex-col sm:flex-row justify-center gap-6">
+                <Button
+                  size="lg"
+                  className="bg-white text-slate-900 hover:bg-white/90 text-lg font-black h-16 px-10 rounded-2xl shadow-2xl"
+                  onClick={() => navigate('/auth/register')}
+                >
+                  Démarrer Gratuitement
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-2 border-white/20 text-white hover:bg-white/10 text-lg font-black h-16 px-10 rounded-2xl"
+                  onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                >
+                  Comparer les offres
+                </Button>
               </div>
             </div>
           </div>
-        </div>
+        </section>
       </div>
-      
+
       <Footer />
     </div>
   );

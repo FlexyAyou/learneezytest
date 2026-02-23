@@ -20,20 +20,20 @@ interface CourseVisibilityModalProps {
 
 // Types d'abonnement OF depuis la page des offres
 const subscriptionTypes = [
-  { 
-    id: 'of_starter', 
-    name: 'OF Starter', 
-    description: 'Idéal pour les petits organismes - Jusqu\'à 10 apprenants' 
+  {
+    id: 'of_starter',
+    name: 'OF Starter',
+    description: 'Idéal pour les petits organismes - Jusqu\'à 10 apprenants'
   },
-  { 
-    id: 'of_business', 
-    name: 'OF Business', 
-    description: 'Pour les organismes en croissance - Jusqu\'à 50 apprenants' 
+  {
+    id: 'of_business',
+    name: 'OF Business',
+    description: 'Pour les organismes en croissance - Jusqu\'à 50 apprenants'
   },
-  { 
-    id: 'of_enterprise', 
-    name: 'OF Enterprise', 
-    description: 'Solution complète pour grands organismes - Apprenants illimités' 
+  {
+    id: 'of_enterprise',
+    name: 'OF Enterprise',
+    description: 'Solution complète pour grands organismes - Apprenants illimités'
   }
 ];
 
@@ -51,13 +51,13 @@ export const CourseVisibilityModal = ({ course, isOpen, onClose, onSave }: Cours
   useEffect(() => {
     if (course) {
       setSettings({
-        isVisible: course.isVisible || false,
-        isOpenSource: course.isOpenSource || false,
-        tokenPrice: course.tokenPrice || 0,
-        minorsAllowed: course.minorsAllowed || false,
-        organisationAccess: course.organisationAccess || 'all',
-        subscriptionRestrictions: course.subscriptionRestrictions || [],
-        specificOrganisations: course.specificOrganisations || []
+        isVisible: course.is_visible !== undefined ? course.is_visible : (course.isVisible || false),
+        isOpenSource: course.is_open_source !== undefined ? course.is_open_source : (course.isOpenSource || false),
+        tokenPrice: course.token_price !== undefined ? course.token_price : (course.tokenPrice || 0),
+        minorsAllowed: course.minors_allowed !== undefined ? course.minors_allowed : (course.minorsAllowed || false),
+        organisationAccess: course.organisation_access !== undefined ? course.organisation_access : (course.organisationAccess || 'all'),
+        subscriptionRestrictions: course.subscription_restrictions !== undefined ? course.subscription_restrictions : (course.subscriptionRestrictions || []),
+        specificOrganisations: course.specific_organisations !== undefined ? course.specific_organisations : (course.specificOrganisations || [])
       });
     }
   }, [course]);
@@ -72,7 +72,7 @@ export const CourseVisibilityModal = ({ course, isOpen, onClose, onSave }: Cours
   const handleSubscriptionChange = (subscriptionId: string, checked: boolean) => {
     setSettings(prev => ({
       ...prev,
-      subscriptionRestrictions: checked 
+      subscriptionRestrictions: checked
         ? [...prev.subscriptionRestrictions, subscriptionId]
         : prev.subscriptionRestrictions.filter(id => id !== subscriptionId)
     }));
@@ -104,7 +104,7 @@ export const CourseVisibilityModal = ({ course, isOpen, onClose, onSave }: Cours
                 </div>
                 <Switch
                   checked={settings.isVisible}
-                  onCheckedChange={(checked) => 
+                  onCheckedChange={(checked) =>
                     setSettings(prev => ({ ...prev, isVisible: checked }))
                   }
                 />
@@ -120,8 +120,8 @@ export const CourseVisibilityModal = ({ course, isOpen, onClose, onSave }: Cours
                 <Switch
                   checked={settings.isOpenSource}
                   onCheckedChange={(checked) => {
-                    setSettings(prev => ({ 
-                      ...prev, 
+                    setSettings(prev => ({
+                      ...prev,
                       isOpenSource: checked,
                       tokenPrice: checked ? 0 : prev.tokenPrice
                     }));
@@ -139,10 +139,10 @@ export const CourseVisibilityModal = ({ course, isOpen, onClose, onSave }: Cours
                     type="number"
                     placeholder="Nombre de tokens requis"
                     value={settings.tokenPrice}
-                    onChange={(e) => 
-                      setSettings(prev => ({ 
-                        ...prev, 
-                        tokenPrice: parseInt(e.target.value) || 0 
+                    onChange={(e) =>
+                      setSettings(prev => ({
+                        ...prev,
+                        tokenPrice: parseInt(e.target.value) || 0
                       }))
                     }
                     min="0"
@@ -162,7 +162,7 @@ export const CourseVisibilityModal = ({ course, isOpen, onClose, onSave }: Cours
                 </div>
                 <Switch
                   checked={settings.minorsAllowed}
-                  onCheckedChange={(checked) => 
+                  onCheckedChange={(checked) =>
                     setSettings(prev => ({ ...prev, minorsAllowed: checked }))
                   }
                 />
@@ -170,11 +170,11 @@ export const CourseVisibilityModal = ({ course, isOpen, onClose, onSave }: Cours
 
               <div className="space-y-2">
                 <Label>Accès pour les organisations</Label>
-                <Select 
-                  value={settings.organisationAccess} 
+                <Select
+                  value={settings.organisationAccess}
                   onValueChange={(value) => {
-                    setSettings(prev => ({ 
-                      ...prev, 
+                    setSettings(prev => ({
+                      ...prev,
                       organisationAccess: value,
                       subscriptionRestrictions: value === 'restricted' ? prev.subscriptionRestrictions : []
                     }));
@@ -224,7 +224,7 @@ export const CourseVisibilityModal = ({ course, isOpen, onClose, onSave }: Cours
                       <Checkbox
                         id={subscription.id}
                         checked={settings.subscriptionRestrictions.includes(subscription.id)}
-                        onCheckedChange={(checked) => 
+                        onCheckedChange={(checked) =>
                           handleSubscriptionChange(subscription.id, checked as boolean)
                         }
                       />
@@ -263,7 +263,7 @@ export const CourseVisibilityModal = ({ course, isOpen, onClose, onSave }: Cours
                   <div className="flex items-center">
                     <AlertTriangle className="h-4 w-4 text-blue-600 mr-2" />
                     <span className="text-sm text-blue-800">
-                      {settings.organisationAccess === 'all' 
+                      {settings.organisationAccess === 'all'
                         ? 'Accessible à tous les types d\'abonnement OF'
                         : 'Aucun organisme de formation n\'aura accès au cours'
                       }
@@ -318,10 +318,10 @@ export const CourseVisibilityModal = ({ course, isOpen, onClose, onSave }: Cours
                 <div className="flex flex-col items-center p-3 bg-gray-50 rounded-lg">
                   <Shield className="h-6 w-6 text-purple-600 mb-2" />
                   <span className="text-sm font-medium">
-                    {settings.organisationAccess === 'restricted' && settings.subscriptionRestrictions.length > 0 
-                      ? 'Restreint' 
-                      : settings.organisationAccess === 'all' 
-                        ? 'Libre' 
+                    {settings.organisationAccess === 'restricted' && settings.subscriptionRestrictions.length > 0
+                      ? 'Restreint'
+                      : settings.organisationAccess === 'all'
+                        ? 'Libre'
                         : 'Aucun accès'
                     }
                   </span>

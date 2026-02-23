@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Progress } from '@/components/ui/progress';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Upload, Plus, X, Save, ArrowLeft, ArrowRight, Video, FileText, Image as ImageIcon, Edit2, Trash2, Check, BookOpen, ClipboardList, HelpCircle, Link as LinkIcon, Loader2 } from 'lucide-react';
+import { Upload, Plus, X, Save, ArrowLeft, ArrowRight, Video, FileText, Image as ImageIcon, Edit2, Trash2, Check, BookOpen, ClipboardList, HelpCircle, Link as LinkIcon, Loader2, Download, ChevronDown, GripVertical } from 'lucide-react';
 import VideoPlayer from '@/components/common/VideoPlayer';
 import { CycleTagSelector } from '@/components/admin/CycleTagSelector';
 import { CategoryTagSelector } from '@/components/admin/CategoryTagSelector';
@@ -72,7 +72,7 @@ const CreateCoursePage = () => {
   // Détecter si on est dans le contexte gestionnaire, OF ou superadmin
   const isManagerContext = location.pathname.includes('/gestionnaire/');
   const isOFAdminContext = location.pathname.includes('/organisme-formation/');
-  
+
   let coursesBasePath = '/dashboard/superadmin/courses';
   if (isManagerContext) {
     coursesBasePath = '/dashboard/gestionnaire/courses';
@@ -109,6 +109,10 @@ const CreateCoursePage = () => {
       url: string | null;
     }>,
     resourcesDownloadable: true, // Par défaut, les ressources sont téléchargeables
+    isVisible: true,
+    isOpenSource: false,
+    tokenPrice: 0,
+    organisationAccess: 'all' as 'all' | 'restricted' | 'none',
   });
 
   // Hooks pour les catégories (après courseData)
@@ -961,6 +965,10 @@ const CreateCoursePage = () => {
         // Propriétaire du cours: OF si contexte OF, sinon Learneezy
         owner_type: (isOFContext && organization?.organizationId) ? 'of' as const : 'learneezy' as const,
         owner_id: (isOFContext && organization?.organizationId) ? organization.organizationId : null,
+        is_visible: courseData.isVisible,
+        is_open_source: courseData.isOpenSource,
+        token_price: courseData.isOpenSource ? (parseInt(courseData.tokenPrice.toString()) || 0) : 0,
+        organisation_access: courseData.organisationAccess,
         modules: modules.map(module => ({
           title: module.title,
           description: module.description || `Description du ${module.title}`,
@@ -1718,43 +1726,64 @@ const CreateCoursePage = () => {
                   </p>
                 </div>
 
-                <div>
-                  <Label className="text-base">Image de couverture</Label>
-                  <div className="mt-2 border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-pink-400 transition-colors">
-                    {courseData.imagePreview ? (
-                      <div className="space-y-4">
-                        <img
-                          src={courseData.imagePreview}
-                          alt="Preview"
-                          className="max-h-48 mx-auto rounded-lg"
-                        />
-                        <Button
-                          variant="outline"
-                          onClick={() => setCourseData(prev => ({ ...prev, image: null, imagePreview: null }))}
-                        >
-                          Changer l'image
-                        </Button>
+                {/* Visibilité et Accès */}
+                <div className="space-y-6 pt-6 border-t border-gray-100">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <Check className="h-5 w-5 text-green-600" />
+                    Visibilité et Accès
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
+                      <div>
+                        <Label className="font-bold">{isOFAdminContext ? "Visible par vos apprenants" : "Visible par tous"}</Label>
+                        <p className="text-xs text-gray-500">
+                          {isOFAdminContext ? "Rendre le cours visible dans votre catalogue interne" : "Rendre le cours visible dans le catalogue global"}
+                        </p>
                       </div>
-                    ) : (
+                      <Switch
+                        checked={courseData.isVisible}
+                        onCheckedChange={(checked) => setCourseData(prev => ({ ...prev, isVisible: checked }))}
+                      />
+                    </div>
+
+                    {!isOFAdminContext && (
                       <>
-                        <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                        <p className="text-gray-600 mb-4">Glissez votre image ici ou cliquez pour sélectionner</p>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageUpload}
-                          className="hidden"
-                          id="course-image-upload"
-                        />
-                        <label htmlFor="course-image-upload">
-                          <Button variant="outline" className="cursor-pointer" type="button" asChild>
-                            <span>Choisir un fichier</span>
-                          </Button>
-                        </label>
+                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
+                          <div>
+                            <Label className="font-bold">Open Source / Catalogue Global</Label>
+                            <p className="text-xs text-gray-500">Proposer ce cours au catalogue Learneezy</p>
+                          </div>
+                          <Switch
+                            checked={courseData.isOpenSource}
+                            onCheckedChange={(checked) => setCourseData(prev => ({ ...prev, isOpenSource: checked }))}
+                          />
+                        </div>
+
+                        {courseData.isOpenSource && (
+                          <div className="md:col-span-2 p-4 bg-pink-50 rounded-xl border border-pink-100 flex flex-col md:flex-row md:items-center gap-4">
+                            <div className="flex-1">
+                              <Label className="font-bold text-pink-900" htmlFor="course-token-price">Prix en Tokens (catalogue global)</Label>
+                              <p className="text-xs text-pink-700">Prix que les autres organisations paieront pour accéder à ce cours</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Input
+                                id="course-token-price"
+                                type="number"
+                                min="0"
+                                value={courseData.tokenPrice}
+                                onChange={(e) => setCourseData(prev => ({ ...prev, tokenPrice: parseInt(e.target.value) || 0 }))}
+                                className="w-24 bg-white border-pink-200"
+                              />
+                              <span className="font-bold text-pink-900">Tokens</span>
+                            </div>
+                          </div>
+                        )}
                       </>
                     )}
                   </div>
                 </div>
+
               </div>
             )}
 
@@ -1826,41 +1855,44 @@ const CreateCoursePage = () => {
                           </div>
                         </div>
 
-                        {module.lessons.length === 0 && module.quizzes.length === 0 ? (
-                          <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed">
-                            <FileText className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                            <p className="text-gray-500">Aucun contenu pour le moment</p>
-                            <p className="text-sm text-gray-400 mt-1">Ajoutez des leçons et des quiz pour construire votre module</p>
-                          </div>
-                        ) : (
-                          <SortableContentList
-                            items={[
-                              ...module.lessons.map((lesson, idx) => ({
-                                id: lesson.id,
-                                type: 'lesson' as const,
-                                originalIndex: idx,
-                                data: lesson
-                              })),
-                              ...module.quizzes.map((quiz, idx) => ({
-                                id: `quiz-${module.id}-${idx}`,
-                                type: 'quiz' as const,
-                                originalIndex: idx,
-                                data: quiz
-                              }))
-                            ]}
-                            onReorder={(newItems) => handleContentReorder(module.id, newItems)}
-                            onEditLesson={(lessonId) => setEditingLesson({ moduleId: module.id, lessonId })}
-                            onDeleteLesson={(lessonId) => removeLesson(module.id, lessonId)}
-                            onEditQuiz={(quizIndex) => {
-                              setShowModuleQuizBuilder(module.id);
-                              setEditingQuizIndex(quizIndex);
-                            }}
-                            onDeleteQuiz={(quizIndex) => handleDeleteModuleQuiz(module.id, quizIndex)}
-                          />
-                        )}
+                        {/* Mixed Content List */}
+                        <div className="space-y-3">
+                          {module.lessons.length === 0 && module.quizzes.length === 0 ? (
+                            <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed">
+                              <FileText className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                              <p className="text-gray-500">Aucun contenu pour le moment</p>
+                              <p className="text-sm text-gray-400 mt-1">Ajoutez des leçons et des quiz pour construire votre module</p>
+                            </div>
+                          ) : (
+                            <SortableContentList
+                              items={[
+                                ...module.lessons.map((lesson, idx) => ({
+                                  id: lesson.id,
+                                  type: 'lesson' as const,
+                                  originalIndex: idx,
+                                  data: lesson
+                                })),
+                                ...module.quizzes.map((quiz, idx) => ({
+                                  id: `quiz-${module.id}-${idx}`,
+                                  type: 'quiz' as const,
+                                  originalIndex: idx,
+                                  data: quiz
+                                }))
+                              ]}
+                              onReorder={(newItems) => handleContentReorder(module.id, newItems)}
+                              onEditLesson={(lessonId) => setEditingLesson({ moduleId: module.id, lessonId })}
+                              onDeleteLesson={(lessonId) => removeLesson(module.id, lessonId)}
+                              onEditQuiz={(quizIndex) => {
+                                setShowModuleQuizBuilder(module.id);
+                                setEditingQuizIndex(quizIndex);
+                              }}
+                              onDeleteQuiz={(quizIndex) => handleDeleteModuleQuiz(module.id, quizIndex)}
+                            />
+                          )}
+                        </div>
                       </div>
 
-                      {/* Lesson Edit Form */}
+                      {/* Lesson Edit Form (Conditional) */}
                       {editingLesson?.moduleId === module.id && editingLesson?.lessonId && (
                         <div className="space-y-4 border-t pt-6">
                           {(() => {
@@ -1911,48 +1943,29 @@ const CreateCoursePage = () => {
                                   />
                                 </div>
 
-                                {/* Media Upload/URL Section - New Design */}
-                                <div>
-                                  <Label className="text-base mb-3 block">Média (Vidéo, PDF ou Image)</Label>
-
-                                  {/* Toggle Buttons: Upload fichier / Lien URL */}
-                                  <div className="flex gap-2 mb-4">
+                                {/* Media Upload/URL Section */}
+                                <div className="space-y-4 pt-4 border-t">
+                                  <Label className="text-base font-semibold">Média (Vidéo, PDF ou Image)</Label>
+                                  <div className="flex gap-2">
                                     <Button
-                                      type="button"
                                       variant={!lesson.useMediaUrl ? "default" : "outline"}
                                       size="sm"
                                       className={!lesson.useMediaUrl ? "bg-pink-500 hover:bg-pink-600 text-white" : ""}
-                                      onClick={() => {
-                                        updateLesson(module.id, lesson.id, {
-                                          useMediaUrl: false
-                                        });
-                                      }}
+                                      onClick={() => updateLesson(module.id, lesson.id, { useMediaUrl: false })}
                                     >
-                                      <Upload className="h-4 w-4 mr-2" />
-                                      Upload fichier
+                                      <Upload className="h-4 w-4 mr-2" /> Upload fichier
                                     </Button>
                                     <Button
-                                      type="button"
                                       variant={lesson.useMediaUrl ? "default" : "outline"}
                                       size="sm"
                                       className={lesson.useMediaUrl ? "bg-purple-500 hover:bg-purple-600 text-white" : ""}
-                                      onClick={() => {
-                                        updateLesson(module.id, lesson.id, {
-                                          useMediaUrl: true,
-                                          file: undefined,
-                                          fileType: null,
-                                          fileName: '',
-                                          filePreview: undefined
-                                        });
-                                      }}
+                                      onClick={() => updateLesson(module.id, lesson.id, { useMediaUrl: true })}
                                     >
-                                      <LinkIcon className="h-4 w-4 mr-2" />
-                                      Lien URL
+                                      <LinkIcon className="h-4 w-4 mr-2" /> Lien URL
                                     </Button>
                                   </div>
 
-                                  {/* Upload File Section */}
-                                  {!lesson.useMediaUrl && (
+                                  {!lesson.useMediaUrl ? (
                                     <>
                                       {!lesson.file && !lesson.filePreview ? (
                                         <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer bg-white hover:bg-gray-50 transition-colors">
@@ -1960,21 +1973,11 @@ const CreateCoursePage = () => {
                                             <Upload className="h-12 w-12 text-gray-400 mb-3" />
                                             <p className="mb-2 text-lg font-semibold text-gray-700">Vidéo, PDF ou Image</p>
                                             <p className="text-xs text-gray-500 mb-2">Glissez-déposez ou cliquez pour parcourir</p>
-                                            <div className="mt-2 px-4 py-2 border border-input rounded-md text-sm font-medium hover:bg-accent hover:text-accent-foreground inline-block">
-                                              Choisir un fichier
-                                            </div>
-                                            <p className="text-xs text-gray-400 mt-3">Limites : Vidéo (500MB) + PDF (50MB) + Image (10MB)</p>
+                                            <input type="file" className="hidden" accept="video/*,.pdf,image/*" onChange={(e) => handleFileUpload(module.id, lesson.id, e)} />
                                           </div>
-                                          <input
-                                            type="file"
-                                            className="hidden"
-                                            accept="video/*,.pdf,image/*"
-                                            onChange={(e) => handleFileUpload(module.id, lesson.id, e)}
-                                          />
                                         </label>
                                       ) : (
                                         <div className="space-y-4">
-                                          {/* Fichier uploadé avec nom et bouton X */}
                                           <div className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg">
                                             <div className="flex items-center gap-3">
                                               {lesson.fileType === 'video' && <Video className="h-5 w-5 text-blue-600" />}
@@ -1982,77 +1985,33 @@ const CreateCoursePage = () => {
                                               {lesson.fileType === 'image' && <ImageIcon className="h-5 w-5 text-green-600" />}
                                               <span className="text-sm font-medium text-gray-700">{lesson.fileName}</span>
                                             </div>
-                                            <Button
-                                              type="button"
-                                              variant="ghost"
-                                              size="sm"
-                                              onClick={() => {
-                                                updateLesson(module.id, lesson.id, {
-                                                  file: undefined,
-                                                  fileType: null,
-                                                  fileName: '',
-                                                  filePreview: undefined
-                                                });
-                                              }}
-                                            >
+                                            <Button variant="ghost" size="sm" onClick={() => updateLesson(module.id, lesson.id, { file: undefined, fileType: null, fileName: '', filePreview: undefined })}>
                                               <X className="h-4 w-4" />
                                             </Button>
                                           </div>
-
-                                          {/* Aperçu du média */}
-                                          <div>
-                                            <Label className="mb-2">Aperçu :</Label>
-                                            {lesson.fileType === 'video' && lesson.filePreview && (
-                                              <div className="rounded-lg overflow-hidden bg-black border">
-                                                <video
-                                                  src={lesson.filePreview}
-                                                  controls
-                                                  className="w-full"
-                                                />
+                                          {lesson.fileType === 'video' && lesson.filePreview && (
+                                            <div className="rounded-lg overflow-hidden bg-black border">
+                                              <video src={lesson.filePreview} controls className="w-full" />
+                                            </div>
+                                          )}
+                                          {lesson.fileType === 'pdf' && (
+                                            <div className="flex items-center gap-3 p-4 bg-red-50 rounded-lg border border-red-200">
+                                              <FileText className="h-8 w-8 text-red-600" />
+                                              <div className="flex-1">
+                                                <p className="font-medium">{lesson.fileName}</p>
+                                                <p className="text-sm text-gray-600">Document PDF</p>
                                               </div>
-                                            )}
-                                            {lesson.fileType === 'pdf' && (
-                                              <div className="flex items-center gap-3 p-4 bg-red-50 rounded-lg border border-red-200">
-                                                <FileText className="h-8 w-8 text-red-600" />
-                                                <div className="flex-1">
-                                                  <p className="font-medium">{lesson.fileName}</p>
-                                                  <p className="text-sm text-gray-600">Document PDF</p>
-                                                </div>
-                                              </div>
-                                            )}
-                                            {lesson.fileType === 'image' && lesson.filePreview && (
-                                              <div className="rounded-lg overflow-hidden border">
-                                                <img
-                                                  src={lesson.filePreview}
-                                                  alt="Preview"
-                                                  className="w-full max-h-64 object-contain bg-gray-100"
-                                                />
-                                              </div>
-                                            )}
-                                          </div>
+                                            </div>
+                                          )}
                                         </div>
                                       )}
                                     </>
-                                  )}
-
-                                  {/* URL Input Section */}
-                                  {lesson.useMediaUrl && (
+                                  ) : (
                                     <div className="space-y-4">
-                                      <Input
-                                        value={lesson.mediaUrl || ''}
-                                        onChange={(e) => updateLesson(module.id, lesson.id, { mediaUrl: e.target.value })}
-                                        placeholder="https://www.youtube.com/watch?v=... ou URL directe"
-                                        className="w-full"
-                                      />
-                                      <p className="text-xs text-gray-500">Formats supportés : YouTube, Vimeo, MP4, PDF ou URL d'image</p>
-
-                                      {/* Video Preview */}
+                                      <Input value={lesson.mediaUrl || ''} onChange={(e) => updateLesson(module.id, lesson.id, { mediaUrl: e.target.value })} placeholder="URL du média (YouTube, Vimeo, MP4, PDF...)" />
                                       {lesson.mediaUrl && (
                                         <div className="mt-4 rounded-lg overflow-hidden border bg-black">
-                                          <VideoPlayer
-                                            videoUrl={lesson.mediaUrl}
-                                            title="Aperçu vidéo"
-                                          />
+                                          <VideoPlayer videoUrl={lesson.mediaUrl} title="Aperçu média" />
                                         </div>
                                       )}
                                     </div>
@@ -2070,180 +2029,160 @@ const CreateCoursePage = () => {
                           <h4 className="font-semibold text-lg">Devoir du module</h4>
                           {module.assignment && (
                             <div className="flex gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setShowAssignmentBuilder(module.id)}
-                              >
-                                <Edit2 className="h-4 w-4 mr-2" />
-                                Modifier
+                              <Button variant="outline" size="sm" onClick={() => setShowAssignmentBuilder(module.id)}>
+                                <Edit2 className="h-4 w-4 mr-2" /> Modifier
                               </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleRemoveAssignment(module.id)}
-                                className="hover:bg-red-50"
-                              >
+                              <Button variant="ghost" size="sm" onClick={() => handleRemoveAssignment(module.id)} className="hover:bg-red-50">
                                 <Trash2 className="h-4 w-4 text-red-500" />
                               </Button>
                             </div>
                           )}
                         </div>
-
                         {module.assignment ? (
-                          <div className="p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border border-orange-200">
-                            <div className="flex items-center gap-3">
-                              <ClipboardList className="h-6 w-6 text-orange-600" />
-                              <div className="flex-1">
-                                <h5 className="font-medium text-gray-900">{module.assignment.title}</h5>
-                                <p className="text-sm text-gray-600">
-                                  {module.assignment.questions.length} question{module.assignment.questions.length > 1 ? 's' : ''} •
-                                  Note de passage: {module.assignment.settings.passingScore}%
-                                </p>
-                              </div>
+                          <div className="p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border border-orange-200 flex items-center gap-3">
+                            <ClipboardList className="h-6 w-6 text-orange-600" />
+                            <div className="flex-1">
+                              <h5 className="font-medium text-gray-900">{module.assignment.title}</h5>
+                              <p className="text-sm text-gray-600">{module.assignment.questions.length} questions • Note de passage: {module.assignment.settings.passingScore}%</p>
                             </div>
                           </div>
                         ) : (
-                          <Button
-                            variant="outline"
-                            onClick={() => setShowAssignmentBuilder(module.id)}
-                            className="w-full"
-                          >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Créer un devoir pour ce module
+                          <Button variant="outline" onClick={() => setShowAssignmentBuilder(module.id)} className="w-full">
+                            <Plus className="h-4 w-4 mr-2" /> Créer un devoir
                           </Button>
                         )}
                       </div>
-
                     </div>
                   )}
                 </SortableModuleList>
               </div>
             )}
 
-            {currentStep === 'review' && (
-              <div className="space-y-6">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">Révision finale</h2>
+            {
+              currentStep === 'review' && (
+                <div className="space-y-6">
+                  <h2 className="text-2xl font-bold text-gray-800 mb-6">Révision finale</h2>
 
-                <Card className="bg-gradient-to-br from-blue-50 to-purple-50">
-                  <CardHeader>
-                    <CardTitle>Informations du cours</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label className="text-gray-600">Titre</Label>
-                        <p className="font-medium">{courseData.title}</p>
+                  <Card className="bg-gradient-to-br from-blue-50 to-purple-50">
+                    <CardHeader>
+                      <CardTitle>Informations du cours</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-gray-600">Titre</Label>
+                          <p className="font-medium">{courseData.title}</p>
+                        </div>
+                        <div>
+                          <Label className="text-gray-600">Catégorie</Label>
+                          <p className="font-medium">{courseData.category || 'Non spécifié'}</p>
+                        </div>
+                        <div>
+                          <Label className="text-gray-600">Prix</Label>
+                          <p className="font-medium">{courseData.price ? `${courseData.price}€` : 'Gratuit'}</p>
+                        </div>
+                        <div>
+                          <Label className="text-gray-600">Niveau</Label>
+                          <p className="font-medium capitalize">{courseData.level}</p>
+                        </div>
+                        {courseData.cycle && (
+                          <>
+                            <div>
+                              <Label className="text-gray-600">Cycle</Label>
+                              <p className="font-medium capitalize">{courseData.cycle.replace('_', ' ')}</p>
+                            </div>
+                            {courseData.cycleTags.length > 0 && (
+                              <div className="col-span-2">
+                                <Label className="text-gray-600">Niveaux du cycle</Label>
+                                <div className="flex flex-wrap gap-2 mt-1">
+                                  {courseData.cycleTags.map(tag => (
+                                    <Badge key={tag} variant="secondary">{tag}</Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </>
+                        )}
                       </div>
                       <div>
-                        <Label className="text-gray-600">Catégorie</Label>
-                        <p className="font-medium">{courseData.category || 'Non spécifié'}</p>
+                        <Label className="text-gray-600">Description</Label>
+                        <div
+                          className="mt-1 prose max-w-none"
+                          // Le HTML provient de l'éditeur riche. On le sanitize avant rendu pour éviter les XSS.
+                          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(courseData.description || '') }}
+                        />
                       </div>
-                      <div>
-                        <Label className="text-gray-600">Prix</Label>
-                        <p className="font-medium">{courseData.price ? `${courseData.price}€` : 'Gratuit'}</p>
-                      </div>
-                      <div>
-                        <Label className="text-gray-600">Niveau</Label>
-                        <p className="font-medium capitalize">{courseData.level}</p>
-                      </div>
-                      {courseData.cycle && (
-                        <>
-                          <div>
-                            <Label className="text-gray-600">Cycle</Label>
-                            <p className="font-medium capitalize">{courseData.cycle.replace('_', ' ')}</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-gradient-to-br from-green-50 to-teal-50">
+                    <CardHeader>
+                      <CardTitle>Structure du cours</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-4 gap-4 text-center">
+                          <div className="p-4 bg-white rounded-lg">
+                            <div className="text-3xl font-bold text-pink-600">{modules.length}</div>
+                            <div className="text-sm text-gray-600">Modules</div>
                           </div>
-                          {courseData.cycleTags.length > 0 && (
-                            <div className="col-span-2">
-                              <Label className="text-gray-600">Niveaux du cycle</Label>
-                              <div className="flex flex-wrap gap-2 mt-1">
-                                {courseData.cycleTags.map(tag => (
-                                  <Badge key={tag} variant="secondary">{tag}</Badge>
-                                ))}
+                          <div className="p-4 bg-white rounded-lg">
+                            <div className="text-3xl font-bold text-blue-600">
+                              {modules.reduce((sum, m) => sum + m.lessons.length, 0)}
+                            </div>
+                            <div className="text-sm text-gray-600">Leçons</div>
+                          </div>
+                          <div className="p-4 bg-white rounded-lg">
+                            <div className="text-3xl font-bold text-purple-600">
+                              {modules.reduce((sum, m) => sum + m.quizzes.length, 0)}
+                            </div>
+                            <div className="text-sm text-gray-600">Quiz</div>
+                          </div>
+                          <div className="p-4 bg-white rounded-lg">
+                            <div className="text-3xl font-bold text-orange-600">
+                              {modules.filter(m => m.assignment).length}
+                            </div>
+                            <div className="text-sm text-gray-600">Devoirs</div>
+                          </div>
+                        </div>
+
+                        <div className="space-y-3">
+                          {modules.map((module, idx) => (
+                            <div key={module.id} className="p-4 bg-white rounded-lg border">
+                              <div className="font-semibold text-lg mb-2">{idx + 1}. {module.title}</div>
+                              <div className="space-y-2 ml-4">
+                                <div className="flex items-center gap-2 text-sm text-gray-600">
+                                  <FileText className="h-4 w-4" />
+                                  <span>{module.lessons.length} leçons</span>
+                                </div>
+                                {module.quizzes.length > 0 && (
+                                  <div className="flex items-center gap-2 text-sm text-blue-600">
+                                    <HelpCircle className="h-4 w-4" />
+                                    <span>{module.quizzes.length} quiz ({module.quizzes.reduce((sum, q) => sum + q.questions.length, 0)} questions)</span>
+                                  </div>
+                                )}
+                                {module.assignment && (
+                                  <div className="flex items-center gap-2 text-sm text-purple-600">
+                                    <ClipboardList className="h-4 w-4" />
+                                    <span>Devoir: {module.assignment.title} ({module.assignment.questions.length} questions)</span>
+                                  </div>
+                                )}
                               </div>
                             </div>
-                          )}
-                        </>
-                      )}
-                    </div>
-                    <div>
-                      <Label className="text-gray-600">Description</Label>
-                      <div
-                        className="mt-1 prose max-w-none"
-                        // Le HTML provient de l'éditeur riche. On le sanitize avant rendu pour éviter les XSS.
-                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(courseData.description || '') }}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-gradient-to-br from-green-50 to-teal-50">
-                  <CardHeader>
-                    <CardTitle>Structure du cours</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-4 gap-4 text-center">
-                        <div className="p-4 bg-white rounded-lg">
-                          <div className="text-3xl font-bold text-pink-600">{modules.length}</div>
-                          <div className="text-sm text-gray-600">Modules</div>
-                        </div>
-                        <div className="p-4 bg-white rounded-lg">
-                          <div className="text-3xl font-bold text-blue-600">
-                            {modules.reduce((sum, m) => sum + m.lessons.length, 0)}
-                          </div>
-                          <div className="text-sm text-gray-600">Leçons</div>
-                        </div>
-                        <div className="p-4 bg-white rounded-lg">
-                          <div className="text-3xl font-bold text-purple-600">
-                            {modules.reduce((sum, m) => sum + m.quizzes.length, 0)}
-                          </div>
-                          <div className="text-sm text-gray-600">Quiz</div>
-                        </div>
-                        <div className="p-4 bg-white rounded-lg">
-                          <div className="text-3xl font-bold text-orange-600">
-                            {modules.filter(m => m.assignment).length}
-                          </div>
-                          <div className="text-sm text-gray-600">Devoirs</div>
+                          ))}
                         </div>
                       </div>
+                    </CardContent>
+                  </Card>
 
-                      <div className="space-y-3">
-                        {modules.map((module, idx) => (
-                          <div key={module.id} className="p-4 bg-white rounded-lg border">
-                            <div className="font-semibold text-lg mb-2">{idx + 1}. {module.title}</div>
-                            <div className="space-y-2 ml-4">
-                              <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <FileText className="h-4 w-4" />
-                                <span>{module.lessons.length} leçons</span>
-                              </div>
-                              {module.quizzes.length > 0 && (
-                                <div className="flex items-center gap-2 text-sm text-blue-600">
-                                  <HelpCircle className="h-4 w-4" />
-                                  <span>{module.quizzes.length} quiz ({module.quizzes.reduce((sum, q) => sum + q.questions.length, 0)} questions)</span>
-                                </div>
-                              )}
-                              {module.assignment && (
-                                <div className="flex items-center gap-2 text-sm text-purple-600">
-                                  <ClipboardList className="h-4 w-4" />
-                                  <span>Devoir: {module.assignment.title} ({module.assignment.questions.length} questions)</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                </div>
+              )
+            }
+          </CardContent >
+        </Card >
 
         {/* Navigation Buttons */}
-        <Card>
+        < Card >
           <CardContent className="pt-6">
             <div className="flex justify-between">
               <Button
@@ -2283,63 +2222,58 @@ const CreateCoursePage = () => {
           </CardContent>
         </Card>
 
-        {/* Upload Progress Modal */}
-        <UploadProgressModal
-          isOpen={uploadProgress.isUploading}
-          currentFile={uploadProgress.currentFile}
-          currentFileType={uploadProgress.currentFileType}
-          uploadedFiles={uploadProgress.uploadedFiles}
-          totalFiles={uploadProgress.totalFiles}
-          progress={uploadProgress.progress}
-        />
 
         {/* Module Quiz Builder Modal */}
-        {showModuleQuizBuilder && (
-          <Dialog open={!!showModuleQuizBuilder} onOpenChange={() => {
-            setShowModuleQuizBuilder(null);
-            setEditingQuizIndex(null);
-          }}>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>
-                  {editingQuizIndex !== null ? "Modifier le quiz" : "Ajouter un quiz au module"}
-                </DialogTitle>
-              </DialogHeader>
-              <QuizBuilder
-                quiz={
-                  editingQuizIndex !== null
-                    ? modules.find(m => m.id === showModuleQuizBuilder)?.quizzes[editingQuizIndex]
-                    : undefined
-                }
-                onSave={(quiz) => handleSaveModuleQuiz(showModuleQuizBuilder, quiz)}
-                onCancel={() => {
-                  setShowModuleQuizBuilder(null);
-                  setEditingQuizIndex(null);
-                }}
-              />
-            </DialogContent>
-          </Dialog>
-        )}
+        {
+          showModuleQuizBuilder && (
+            <Dialog open={!!showModuleQuizBuilder} onOpenChange={() => {
+              setShowModuleQuizBuilder(null);
+              setEditingQuizIndex(null);
+            }}>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingQuizIndex !== null ? "Modifier le quiz" : "Ajouter un quiz au module"}
+                  </DialogTitle>
+                </DialogHeader>
+                <QuizBuilder
+                  quiz={
+                    editingQuizIndex !== null
+                      ? modules.find(m => m.id === showModuleQuizBuilder)?.quizzes[editingQuizIndex]
+                      : undefined
+                  }
+                  onSave={(quiz) => handleSaveModuleQuiz(showModuleQuizBuilder, quiz)}
+                  onCancel={() => {
+                    setShowModuleQuizBuilder(null);
+                    setEditingQuizIndex(null);
+                  }}
+                />
+              </DialogContent>
+            </Dialog>
+          )
+        }
 
         {/* Assignment Builder Modal */}
-        {showAssignmentBuilder && (
-          <Dialog open={!!showAssignmentBuilder} onOpenChange={() => setShowAssignmentBuilder(null)}>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Configurer le devoir du module</DialogTitle>
-              </DialogHeader>
-              <AssignmentBuilder
-                assignment={modules.find(m => m.id === showAssignmentBuilder)?.assignment}
-                onSave={(assignment) => handleSaveAssignment(showAssignmentBuilder, assignment)}
-                onCancel={() => setShowAssignmentBuilder(null)}
-              />
-            </DialogContent>
-          </Dialog>
-        )}
+        {
+          showAssignmentBuilder && (
+            <Dialog open={!!showAssignmentBuilder} onOpenChange={() => setShowAssignmentBuilder(null)}>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Configurer le devoir du module</DialogTitle>
+                </DialogHeader>
+                <AssignmentBuilder
+                  assignment={modules.find(m => m.id === showAssignmentBuilder)?.assignment}
+                  onSave={(assignment) => handleSaveAssignment(showAssignmentBuilder, assignment)}
+                  onCancel={() => setShowAssignmentBuilder(null)}
+                />
+              </DialogContent>
+            </Dialog>
+          )
+        }
       </div>
 
       {/* Upload Progress Modal pour tous les fichiers */}
-      <UploadProgressModal
+      < UploadProgressModal
         isOpen={uploadProgress.isUploading}
         currentFile={uploadProgress.currentFile}
         currentFileType={uploadProgress.currentFileType}
@@ -2349,20 +2283,22 @@ const CreateCoursePage = () => {
       />
 
       {/* Upload Notifications pour uploads individuels (si ajoutés dans le futur) */}
-      <UploadNotification
+      < UploadNotification
         uploads={uploads}
         onRemove={(id) => setUploads(prev => prev.filter(u => u.id !== id))}
       />
 
       {/* Dialog de restauration du brouillon */}
-      {showRestoreDraftDialog && draftToRestore && (
-        <RestoreDraftDialog
-          open={showRestoreDraftDialog}
-          onRestore={handleRestoreDraft}
-          onDiscard={handleDiscardDraft}
-          draftTimestamp={draftToRestore.timestamp}
-        />
-      )}
+      {
+        showRestoreDraftDialog && draftToRestore && (
+          <RestoreDraftDialog
+            open={showRestoreDraftDialog}
+            onRestore={handleRestoreDraft}
+            onDiscard={handleDiscardDraft}
+            draftTimestamp={draftToRestore.timestamp}
+          />
+        )
+      }
 
       {/* Tutoriel slideshow */}
       <CourseTutorialModal

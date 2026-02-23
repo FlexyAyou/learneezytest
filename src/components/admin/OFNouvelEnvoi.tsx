@@ -9,6 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Mail, Users, FileText, Calendar, Plus, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useOrganization } from '@/contexts/OrganizationContext';
+import { useOFUsers } from '@/hooks/useApi';
+import { fastAPIClient } from '@/services/fastapi-client';
+import { Loader2 } from 'lucide-react';
 
 interface OFNouvelEnvoiProps {
   isOpen: boolean;
@@ -16,22 +20,22 @@ interface OFNouvelEnvoiProps {
 }
 
 export const OFNouvelEnvoi: React.FC<OFNouvelEnvoiProps> = ({ isOpen, onClose }) => {
+  const { organization } = useOrganization();
+  const ofId = organization?.organizationId;
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     type: '',
-    destinataires: [] as string[],
+    destinataires: [] as { id: number; email: string; name: string }[],
     sujet: '',
     message: '',
     document: '',
     dateEnvoi: 'immediate'
   });
-  const [newDestinataire, setNewDestinataire] = useState('');
+  const [selectedLearnerId, setSelectedLearnerId] = useState<string>('');
   const { toast } = useToast();
 
-  const apprenants = [
-    { id: '1', nom: 'Marie Dupont', email: 'marie.dupont@email.com', formation: 'React Avancé' },
-    { id: '2', nom: 'Jean Martin', email: 'jean.martin@email.com', formation: 'JavaScript ES6' },
-    { id: '3', nom: 'Sophie Bernard', email: 'sophie.bernard@email.com', formation: 'Vue.js' }
-  ];
+  const { data: learnersData, isLoading: isLoadingLearners } = useOFUsers(ofId, { role: 'learner' });
+  const apprenants = learnersData || [];
 
   const documents = [
     { id: '1', titre: 'Attestation de formation', type: 'attestation' },
@@ -41,23 +45,28 @@ export const OFNouvelEnvoi: React.FC<OFNouvelEnvoiProps> = ({ isOpen, onClose })
   ];
 
   const handleAddDestinataire = () => {
-    if (newDestinataire && !formData.destinataires.includes(newDestinataire)) {
+    const learner = apprenants.find((a: any) => a.id.toString() === selectedLearnerId);
+    if (learner && !formData.destinataires.some(d => d.id === learner.id)) {
       setFormData(prev => ({
         ...prev,
-        destinataires: [...prev.destinataires, newDestinataire]
+        destinataires: [...prev.destinataires, {
+          id: learner.id,
+          email: learner.email,
+          name: `${learner.first_name || ''} ${learner.last_name || ''}`.trim()
+        }]
       }));
-      setNewDestinataire('');
+      setSelectedLearnerId('');
     }
   };
 
-  const handleRemoveDestinataire = (email: string) => {
+  const handleRemoveDestinataire = (id: number) => {
     setFormData(prev => ({
       ...prev,
-      destinataires: prev.destinataires.filter(d => d !== email)
+      destinataires: prev.destinataires.filter(d => d.id !== id)
     }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!formData.type || !formData.sujet || formData.destinataires.length === 0) {
       toast({
         title: "Erreur",
@@ -67,21 +76,42 @@ export const OFNouvelEnvoi: React.FC<OFNouvelEnvoiProps> = ({ isOpen, onClose })
       return;
     }
 
-    toast({
-      title: "Envoi programmé",
-      description: `L'envoi "${formData.sujet}" a été programmé pour ${formData.destinataires.length} destinataire(s)`,
-    });
+    if (!ofId) return;
 
-    // Reset form
-    setFormData({
-      type: '',
-      destinataires: [],
-      sujet: '',
-      message: '',
-      document: '',
-      dateEnvoi: 'immediate'
-    });
-    onClose();
+    setIsSubmitting(true);
+    try {
+      await fastAPIClient.sendCommunication(ofId, {
+        type: formData.type,
+        learner_ids: formData.destinataires.map(d => d.id),
+        subject: formData.sujet,
+        content: formData.message,
+        // template_id: formData.document, // if we want to use template
+      });
+
+      toast({
+        title: "Envoi réussi",
+        description: `L'envoi "${formData.sujet}" a été effectué pour ${formData.destinataires.length} destinataire(s)`,
+      });
+
+      // Reset form
+      setFormData({
+        type: '',
+        destinataires: [],
+        sujet: '',
+        message: '',
+        document: '',
+        dateEnvoi: 'immediate'
+      });
+      onClose();
+    } catch (error) {
+      toast({
+        title: "Erreur lors de l'envoi",
+        description: "Une erreur est survenue lors de l'envoi de la communication.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -117,31 +147,31 @@ export const OFNouvelEnvoi: React.FC<OFNouvelEnvoiProps> = ({ isOpen, onClose })
           <div className="space-y-2">
             <Label>Destinataires *</Label>
             <div className="flex space-x-2">
-              <Select value={newDestinataire} onValueChange={setNewDestinataire}>
+              <Select value={selectedLearnerId} onValueChange={setSelectedLearnerId}>
                 <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Sélectionnez un apprenant" />
+                  <SelectValue placeholder={isLoadingLearners ? "Chargement..." : "Sélectionnez un apprenant"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {apprenants.map(apprenant => (
-                    <SelectItem key={apprenant.id} value={apprenant.email}>
-                      {apprenant.nom} - {apprenant.formation}
+                  {apprenants.map((apprenant: any) => (
+                    <SelectItem key={apprenant.id} value={apprenant.id.toString()}>
+                      {apprenant.first_name} {apprenant.last_name} ({apprenant.email})
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <Button onClick={handleAddDestinataire} disabled={!newDestinataire}>
+              <Button onClick={handleAddDestinataire} disabled={!selectedLearnerId}>
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
-            
+
             {formData.destinataires.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
-                {formData.destinataires.map(email => (
-                  <Badge key={email} variant="secondary" className="flex items-center gap-1">
-                    {email}
-                    <X 
-                      className="h-3 w-3 cursor-pointer" 
-                      onClick={() => handleRemoveDestinataire(email)}
+                {formData.destinataires.map(dest => (
+                  <Badge key={dest.id} variant="secondary" className="flex items-center gap-1">
+                    {dest.name}
+                    <X
+                      className="h-3 w-3 cursor-pointer"
+                      onClick={() => handleRemoveDestinataire(dest.id)}
                     />
                   </Badge>
                 ))}
@@ -218,12 +248,21 @@ export const OFNouvelEnvoi: React.FC<OFNouvelEnvoiProps> = ({ isOpen, onClose })
 
           {/* Actions */}
           <div className="flex justify-end space-x-2">
-            <Button variant="outline" onClick={onClose}>
+            <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
               Annuler
             </Button>
-            <Button onClick={handleSubmit}>
-              <Mail className="h-4 w-4 mr-2" />
-              {formData.dateEnvoi === 'immediate' ? 'Envoyer maintenant' : 'Programmer'}
+            <Button onClick={handleSubmit} disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Envoi en cours...
+                </>
+              ) : (
+                <>
+                  <Mail className="h-4 w-4 mr-2" />
+                  {formData.dateEnvoi === 'immediate' ? 'Envoyer maintenant' : 'Programmer'}
+                </>
+              )}
             </Button>
           </div>
         </div>

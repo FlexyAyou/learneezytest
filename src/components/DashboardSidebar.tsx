@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
+import { useOrganization } from '@/contexts/OrganizationContext';
 
 interface SidebarItem {
   title: string;
@@ -29,7 +30,8 @@ interface DashboardSidebarProps {
 export const DashboardSidebar = ({ title, subtitle, items, userInfo }: DashboardSidebarProps) => {
   const location = useLocation();
   const { logout } = useFastAPIAuth();
-  
+  const { organization } = useOrganization();
+
   const isActiveRoute = (href: string) => {
     return location.pathname === href;
   };
@@ -41,9 +43,23 @@ export const DashboardSidebar = ({ title, subtitle, items, userInfo }: Dashboard
     <div className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen overflow-hidden">
       {/* Header */}
       <div className="flex-shrink-0 p-6 border-b border-gray-200">
-        <Link to="/" className="flex items-center mb-4">
-          <img src="/lovable-uploads/52aaa383-7635-46d0-ac37-eb3ee6b878d1.png" alt="Learneezy" className="h-20 w-auto" />
-        </Link>
+        {organization?.exists ? (
+          <div className="flex items-center mb-4">
+            <img
+              src={organization?.logoUrl || "/lovable-uploads/52aaa383-7635-46d0-ac37-eb3ee6b878d1.png"}
+              alt={organization?.organizationName || "Learneezy"}
+              className="h-20 w-auto object-contain"
+            />
+          </div>
+        ) : (
+          <Link to="/" className="flex items-center mb-4">
+            <img
+              src={organization?.logoUrl || "/lovable-uploads/52aaa383-7635-46d0-ac37-eb3ee6b878d1.png"}
+              alt={organization?.organizationName || "Learneezy"}
+              className="h-20 w-auto object-contain"
+            />
+          </Link>
+        )}
         <div>
           <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
           <p className="text-sm text-gray-600">{subtitle}</p>
@@ -87,8 +103,8 @@ export const DashboardSidebar = ({ title, subtitle, items, userInfo }: Dashboard
                 {item.badge && (
                   <span className={cn(
                     "ml-2 px-2 py-1 text-xs rounded-full flex-shrink-0",
-                    isActive 
-                      ? "bg-white/20 text-white" 
+                    isActive
+                      ? "bg-white/20 text-white"
                       : "bg-pink-100 text-pink-700"
                   )}>
                     {item.badge}

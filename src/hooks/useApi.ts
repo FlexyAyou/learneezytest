@@ -715,12 +715,42 @@ export const useEnrollCourse = () => {
   });
 };
 
+/** Hook for OF admins to assign a course to a learner (no token deduction) */
+export const useAdminEnrollCourse = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ courseId, userId }: { courseId: string; userId: number }) =>
+      fastAPIClient.enrollCourse(courseId, userId),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['userEnrollments'] });
+      queryClient.invalidateQueries({ queryKey: ['courses'] });
+      queryClient.invalidateQueries({ queryKey: ['enrolledCourses'] });
+      queryClient.invalidateQueries({ queryKey: ['orgUsers'] });
+
+      toast({
+        title: '✅ Cours assigné !',
+        description: data.message || 'L\'apprenant a été inscrit au cours avec succès.',
+      });
+    },
+    onError: (error: any) => {
+      const detail = error.response?.data?.detail;
+      const errorMessage = typeof detail === 'string' ? detail : detail?.message || 'Impossible d\'assigner ce cours';
+      toast({
+        title: 'Erreur d\'assignation',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+    },
+  });
+};
+
 // Hook stub pour enrollments (à implémenter plus tard)
 export const useUserEnrollments = (userId: string | number) => {
   return useQuery({
     queryKey: ['userEnrollments', userId],
-    queryFn: () => Promise.resolve([]),
-    enabled: false,
+    queryFn: () => fastAPIClient.getMyEnrollments(),
+    enabled: !!userId,
   });
 };
 
@@ -1488,5 +1518,59 @@ export const useSaveDocument = () => {
         variant: "destructive",
       });
     }
+  });
+};
+
+/**
+ * Hook pour récupérer les statistiques d'un organisme
+ */
+export const useOrganizationStats = (ofId: number | string | null | undefined) => {
+  return useQuery({
+    queryKey: ['organization-stats', ofId],
+    queryFn: () => fastAPIClient.getOrganizationStats(ofId!),
+    enabled: !!ofId,
+    refetchInterval: 30000, // Rafraîchir toutes les 30 secondes pour le temps réel
+  });
+};
+
+/**
+ * Hook pour récupérer le suivi pédagogique des apprenants
+ */
+export const useLearnerProgress = (ofId: number | string | null | undefined, params?: any) => {
+  return useQuery({
+    queryKey: ['learner-progress', ofId, params],
+    queryFn: () => fastAPIClient.getLearnerProgress(ofId!, params),
+    enabled: !!ofId,
+  });
+};
+
+/**
+ * Hook pour lister l'historique des communications (OF)
+ */
+export const useCommunications = (ofId: number | string | null | undefined, params?: any) => {
+  return useQuery({
+    queryKey: ['communications', ofId, params],
+    queryFn: () => fastAPIClient.listCommunications(ofId!, params),
+    enabled: !!ofId,
+  });
+};
+
+/**
+ * Hook pour lister les paiements (Superadmin)
+ */
+export const usePayments = (params?: { page?: number; per_page?: number; status?: string; search?: string }) => {
+  return useQuery({
+    queryKey: ['payments', params],
+    queryFn: () => fastAPIClient.listPayments(params),
+  });
+};
+
+/**
+ * Hook pour les statistiques de paiement (Superadmin)
+ */
+export const usePaymentStats = () => {
+  return useQuery({
+    queryKey: ['payment-stats'],
+    queryFn: () => fastAPIClient.getPaymentStats(),
   });
 };

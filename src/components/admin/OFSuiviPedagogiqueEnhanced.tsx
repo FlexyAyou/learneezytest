@@ -1,15 +1,18 @@
 
 import React, { useState } from 'react';
+import { useOrganization } from '@/contexts/OrganizationContext';
+import { useLearnerProgress } from '@/hooks/useApi';
+import { Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { 
-  TrendingUp, 
-  Users, 
-  Award, 
+import {
+  TrendingUp,
+  Users,
+  Award,
   AlertTriangle,
   Search,
   Filter,
@@ -31,99 +34,74 @@ export const OFSuiviPedagogiqueEnhanced = () => {
   const [selectedFormation, setSelectedFormation] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Données des métriques
+  const { organization } = useOrganization();
+  const ofId = organization?.organizationId;
+  const { data: progressData, isLoading } = useLearnerProgress(ofId, {
+    period: selectedPeriod,
+    formation_id: selectedFormation === 'all' ? undefined : selectedFormation
+  });
+
+  // Mappage des métriques globales
   const globalMetrics = [
-    { title: 'Total Apprenants', value: '127', change: '+12%', icon: Users, trend: 'up' as const },
-    { title: 'Taux de Réussite', value: '87%', change: '+5%', icon: Award, trend: 'up' as const },
-    { title: 'Évaluations Complétées', value: '342', change: '+23%', icon: Target, trend: 'up' as const },
-    { title: 'Apprenants en Difficulté', value: '8', change: '-3', icon: AlertTriangle, trend: 'down' as const },
+    {
+      title: 'Total Apprenants',
+      value: progressData?.metrics?.total_learners?.value || '0',
+      change: progressData?.metrics?.total_learners?.change || '0%',
+      icon: Users,
+      trend: (progressData?.metrics?.total_learners?.trend || 'neutral') as 'up' | 'down' | 'neutral'
+    },
+    {
+      title: 'Taux de Réussite',
+      value: progressData?.metrics?.success_rate?.value || '0%',
+      change: progressData?.metrics?.success_rate?.change || '0%',
+      icon: Award,
+      trend: (progressData?.metrics?.success_rate?.trend || 'neutral') as 'up' | 'down' | 'neutral'
+    },
+    {
+      title: 'Évaluations Complétées',
+      value: progressData?.metrics?.completed_evaluations?.value || '0',
+      change: progressData?.metrics?.completed_evaluations?.change || '0%',
+      icon: Target,
+      trend: (progressData?.metrics?.completed_evaluations?.trend || 'neutral') as 'up' | 'down' | 'neutral'
+    },
+    {
+      title: 'Apprenants en Difficulté',
+      value: progressData?.metrics?.at_risk_learners?.value || '0',
+      change: progressData?.metrics?.at_risk_learners?.change || '0',
+      icon: AlertTriangle,
+      trend: (progressData?.metrics?.at_risk_learners?.trend || 'neutral') as 'up' | 'down' | 'neutral'
+    },
   ];
 
   // Données des graphiques
-  const performanceData = [
-    { name: 'Jan', value: 82 },
-    { name: 'Fév', value: 85 },
-    { name: 'Mar', value: 87 },
-    { name: 'Avr', value: 84 },
-    { name: 'Mai', value: 89 },
-    { name: 'Juin', value: 91 },
-  ];
-
-  const competencesData = [
-    { name: 'Technique', value: 85 },
-    { name: 'Théorique', value: 78 },
-    { name: 'Pratique', value: 92 },
-    { name: 'Soft Skills', value: 88 },
-  ];
-
-  const distributionNotes = [
-    { name: 'A (18-20)', value: 15 },
-    { name: 'B (14-17)', value: 45 },
-    { name: 'C (12-13)', value: 25 },
-    { name: 'D (10-11)', value: 12 },
-    { name: 'E (<10)', value: 3 },
-  ];
+  const performanceData = progressData?.charts?.performance || [];
+  const competencesData = progressData?.charts?.skills || [];
+  const distributionNotes = progressData?.charts?.grades_distribution || [];
 
   // Données des apprenants
-  const apprenants = [
-    {
-      id: '1',
-      name: 'Marie Dupont',
-      photo: '/placeholder.svg',
-      formation: 'React Avancé',
-      progression: 85,
-      dernièreActivité: '2024-01-14',
-      status: 'excellent',
-      moyenneGlobale: 16.5,
-      évaluationsComplétées: 8,
-      totalÉvaluations: 10,
-      compétences: [
-        { nom: 'JavaScript', niveau: 90 },
-        { nom: 'React', niveau: 85 },
-        { nom: 'TypeScript', niveau: 75 }
-      ]
-    },
-    {
-      id: '2',
-      name: 'Jean Martin',
-      photo: '/placeholder.svg',
-      formation: 'JavaScript Fondamentaux',
-      progression: 65,
-      dernièreActivité: '2024-01-13',
-      status: 'bien',
-      moyenneGlobale: 14.2,
-      évaluationsComplétées: 6,
-      totalÉvaluations: 8,
-      compétences: [
-        { nom: 'JavaScript', niveau: 70 },
-        { nom: 'HTML/CSS', niveau: 85 },
-        { nom: 'Git', niveau: 60 }
-      ]
-    },
-    {
-      id: '3',
-      name: 'Sophie Bernard',
-      photo: '/placeholder.svg',
-      formation: 'Angular Développement',
-      progression: 45,
-      dernièreActivité: '2024-01-10',
-      status: 'difficulté',
-      moyenneGlobale: 11.8,
-      évaluationsComplétées: 4,
-      totalÉvaluations: 9,
-      compétences: [
-        { nom: 'TypeScript', niveau: 50 },
-        { nom: 'Angular', niveau: 40 },
-        { nom: 'RxJS', niveau: 35 }
-      ]
-    }
-  ];
+  const apprenantsRaw = progressData?.learners || [];
+
+  // Mapping pour compatibilité UI
+  const apprenants = apprenantsRaw.map((a: any) => ({
+    id: a.id?.toString(),
+    name: `${a.first_name} ${a.last_name}`,
+    formation: a.course_name || 'N/A',
+    progression: a.progress_percentage || 0,
+    dernièreActivité: a.last_activity,
+    status: a.status || 'unknown',
+    moyenneGlobale: a.average_grade || 0,
+    évaluationsComplétées: a.completed_assignments || 0,
+    totalÉvaluations: a.total_assignments || 0
+  }));
+
+  const formationsList = progressData?.available_formations || [];
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'excellent': return 'bg-green-100 text-green-800';
       case 'bien': return 'bg-blue-100 text-blue-800';
       case 'difficulté': return 'bg-red-100 text-red-800';
+      case 'at_risk': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -133,11 +111,12 @@ export const OFSuiviPedagogiqueEnhanced = () => {
       case 'excellent': return 'Excellent';
       case 'bien': return 'Bien';
       case 'difficulté': return 'En difficulté';
+      case 'at_risk': return 'En difficulté';
       default: return 'Non évalué';
     }
   };
 
-  const filteredApprenants = apprenants.filter(apprenant => 
+  const filteredApprenants = apprenants.filter((apprenant: any) =>
     apprenant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     apprenant.formation.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -170,7 +149,7 @@ export const OFSuiviPedagogiqueEnhanced = () => {
               <Filter className="h-4 w-4 text-gray-500" />
               <span className="text-sm font-medium">Filtres:</span>
             </div>
-            
+
             <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
               <SelectTrigger className="w-[150px]">
                 <SelectValue placeholder="Période" />
@@ -189,9 +168,9 @@ export const OFSuiviPedagogiqueEnhanced = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Toutes les formations</SelectItem>
-                <SelectItem value="react">React Avancé</SelectItem>
-                <SelectItem value="js">JavaScript Fondamentaux</SelectItem>
-                <SelectItem value="angular">Angular Développement</SelectItem>
+                {formationsList.map((f: any) => (
+                  <SelectItem key={f.id} value={f.id.toString()}>{f.name}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
@@ -210,35 +189,44 @@ export const OFSuiviPedagogiqueEnhanced = () => {
         </CardContent>
       </Card>
 
-      {/* Métriques globales */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {globalMetrics.map((metric, index) => (
-          <StatsCard
-            key={index}
-            title={metric.title}
-            value={metric.value}
-            change={metric.change}
-            icon={metric.icon}
-            trend={metric.trend}
-          />
-        ))}
-      </div>
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center py-20 space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground animate-pulse">Chargement des données pédagogiques...</p>
+        </div>
+      ) : (
+        <>
+          {/* Métriques globales */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {globalMetrics.map((metric, index) => (
+              <StatsCard
+                key={index}
+                title={metric.title}
+                value={metric.value}
+                change={metric.change}
+                icon={metric.icon}
+                trend={metric.trend}
+              />
+            ))}
+          </div>
 
-      {/* Graphiques et analyses */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <InteractiveChart
-          title="Évolution des Performances"
-          data={performanceData}
-          type="line"
-          color="#10b981"
-        />
-        
-        <InteractiveChart
-          title="Distribution des Notes"
-          data={distributionNotes}
-          type="pie"
-        />
-      </div>
+          {/* Graphiques et analyses */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <InteractiveChart
+              title="Évolution des Performances"
+              data={performanceData}
+              type="line"
+              color="#10b981"
+            />
+
+            <InteractiveChart
+              title="Distribution des Notes"
+              data={distributionNotes}
+              type="pie"
+            />
+          </div>
+        </>
+      )}
 
       {/* Onglets principaux */}
       <Tabs defaultValue="apprenants" className="space-y-4">
@@ -276,7 +264,7 @@ export const OFSuiviPedagogiqueEnhanced = () => {
                     <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
                       {apprenant.name.split(' ').map(n => n[0]).join('')}
                     </div>
-                    
+
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-2">
                         <h4 className="font-semibold">{apprenant.name}</h4>
@@ -284,38 +272,38 @@ export const OFSuiviPedagogiqueEnhanced = () => {
                           {getStatusLabel(apprenant.status)}
                         </Badge>
                       </div>
-                      
+
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
                         <div>
                           <p className="text-gray-600">Formation</p>
                           <p className="font-medium">{apprenant.formation}</p>
                         </div>
-                        
+
                         <div>
                           <p className="text-gray-600">Progression</p>
                           <div className="flex items-center space-x-2">
                             <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div 
-                                className="bg-blue-600 h-2 rounded-full" 
+                              <div
+                                className="bg-blue-600 h-2 rounded-full"
                                 style={{ width: `${apprenant.progression}%` }}
                               ></div>
                             </div>
                             <span className="font-medium">{apprenant.progression}%</span>
                           </div>
                         </div>
-                        
+
                         <div>
                           <p className="text-gray-600">Moyenne</p>
                           <p className="font-medium">{apprenant.moyenneGlobale}/20</p>
                         </div>
-                        
+
                         <div>
                           <p className="text-gray-600">Évaluations</p>
                           <p className="font-medium">{apprenant.évaluationsComplétées}/{apprenant.totalÉvaluations}</p>
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="flex space-x-2">
                       <Button size="sm" variant="outline">
                         <Eye className="h-4 w-4" />
@@ -389,7 +377,7 @@ export const OFSuiviPedagogiqueEnhanced = () => {
               type="bar"
               color="#8b5cf6"
             />
-            
+
             <Card>
               <CardHeader>
                 <CardTitle>Compétences en Difficulté</CardTitle>

@@ -8,22 +8,31 @@ import { FileText, Users, BookOpen, TrendingUp, Calendar, Award, AlertTriangle, 
 import { DashboardChart } from '@/components/common/DashboardChart';
 import { StatsCard } from '@/components/common/StatsCard';
 import { useNavigate } from 'react-router-dom';
+import { useOrganization } from '@/contexts/OrganizationContext';
+import { useOrganizationStats } from '@/hooks/useApi';
+import { Loader2 } from 'lucide-react';
 
 export const OFDashboard = () => {
   const navigate = useNavigate();
 
-  const recentActivity: any[] = [];
+  const { organization } = useOrganization();
+  const ofId = organization?.organizationId;
+  const { data: stats, isLoading } = useOrganizationStats(ofId);
 
-  const upcomingSessions: any[] = [];
+  // Mappage des données depuis l'API ou valeurs par défaut
+  const activeLearners = stats?.active_learners || 0;
+  const ongoingFormations = stats?.ongoing_formations || 0;
+  const successRate = stats?.success_rate || 0;
+  const generatedDocs = stats?.generated_documents || 0;
 
-  const alertes: any[] = [];
+  const recentActivity = stats?.recent_activity || [];
+  const upcomingSessions = stats?.upcoming_sessions || [];
+  const alertes = stats?.alerts || [];
 
-  // Données pour les graphiques spécifiques à l'OF
-  const inscriptionsData: any[] = [];
-
-  const formationsDistribution: any[] = [];
-
-  const satisfactionData: any[] = [];
+  // Données pour les graphiques
+  const inscriptionsData = stats?.inscriptions_series || [];
+  const formationsDistribution = stats?.formations_distribution || [];
+  const satisfactionData = stats?.satisfaction_series || [];
 
   const getAlertColor = (type: string) => {
     const colors = {
@@ -57,69 +66,78 @@ export const OFDashboard = () => {
         </Button>
       </div>
 
-      {/* Statistiques principales */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatsCard
-          title="Apprenants actifs"
-          value="0"
-          change="Aucune donnée"
-          icon={Users}
-          trend="neutral"
-          onClick={() => navigate('/dashboard/organisme-formation/apprenants')}
-        />
-        <StatsCard
-          title="Formations en cours"
-          value="0"
-          change="Aucune donnée"
-          icon={BookOpen}
-          trend="neutral"
-          onClick={() => navigate('/dashboard/organisme-formation/formations')}
-        />
-        <StatsCard
-          title="Taux de réussite"
-          value="0%"
-          change="Aucune donnée"
-          icon={Award}
-          trend="neutral"
-          onClick={() => navigate('/dashboard/organisme-formation/suivi')}
-        />
-        <StatsCard
-          title="Documents générés"
-          value="0"
-          change="Aucune donnée"
-          icon={FileText}
-          trend="neutral"
-          onClick={() => navigate('/dashboard/organisme-formation/documents')}
-        />
-      </div>
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center py-20 space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground animate-pulse">Chargement des métriques temps réel...</p>
+        </div>
+      ) : (
+        <>
+          {/* Statistiques principales */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <StatsCard
+              title="Apprenants actifs"
+              value={activeLearners.toString()}
+              change={stats?.trends?.learners || "En progression"}
+              icon={Users}
+              trend={stats?.trends?.learners_trend || "up"}
+              onClick={() => navigate('/dashboard/organisme-formation/apprenants')}
+            />
+            <StatsCard
+              title="Formations en cours"
+              value={ongoingFormations.toString()}
+              change={stats?.trends?.formations || "Sessions actives"}
+              icon={BookOpen}
+              trend="neutral"
+              onClick={() => navigate('/dashboard/organisme-formation/formations')}
+            />
+            <StatsCard
+              title="Taux de réussite"
+              value={`${successRate}%`}
+              change={stats?.trends?.success || "Moyenne globale"}
+              icon={Award}
+              trend={successRate > 80 ? "up" : "neutral"}
+              onClick={() => navigate('/dashboard/organisme-formation/suivi')}
+            />
+            <StatsCard
+              title="Documents générés"
+              value={generatedDocs.toString()}
+              change={stats?.trends?.documents || "Ce mois-ci"}
+              icon={FileText}
+              trend="up"
+              onClick={() => navigate('/dashboard/organisme-formation/documents')}
+            />
+          </div>
 
-      {/* Graphiques principaux */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <DashboardChart
-          title="Évolution des inscriptions"
-          data={inscriptionsData}
-          type="line"
-          dataKey="value"
-          color="#3b82f6"
-        />
-        <DashboardChart
-          title="Répartition par domaine"
-          data={formationsDistribution}
-          type="pie"
-          dataKey="value"
-        />
-      </div>
+          {/* Graphiques principaux */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <DashboardChart
+              title="Évolution des inscriptions"
+              data={inscriptionsData}
+              type="line"
+              dataKey="value"
+              color="#3b82f6"
+            />
+            <DashboardChart
+              title="Répartition par domaine"
+              data={formationsDistribution}
+              type="pie"
+              dataKey="value"
+            />
+          </div>
 
-      {/* Graphique de satisfaction */}
-      <div className="grid grid-cols-1 gap-6">
-        <DashboardChart
-          title="Évolution de la satisfaction (%)"
-          data={satisfactionData}
-          type="bar"
-          dataKey="value"
-          color="#10b981"
-        />
-      </div>
+          {/* Graphique de satisfaction */}
+          <div className="grid grid-cols-1 gap-6">
+            <DashboardChart
+              title="Évolution de la satisfaction (%)"
+              data={satisfactionData}
+              type="bar"
+              dataKey="value"
+              color="#10b981"
+            />
+          </div>
+        </>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Activité récente */}
@@ -204,7 +222,7 @@ export const OFDashboard = () => {
                   <div key={index} className={`p-3 rounded-lg border ${getAlertColor(alert.type)}`}>
                     <div className="flex items-start justify-between">
                       <p className="text-sm font-medium">{alert.message}</p>
-                      <Badge 
+                      <Badge
                         variant={alert.priority === 'high' ? 'destructive' : alert.priority === 'medium' ? 'default' : 'outline'}
                         className="text-xs"
                       >

@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { 
-  Users, 
-  Search, 
+import {
+  Users,
+  Search,
   Filter,
   Plus,
   Eye,
@@ -15,11 +15,13 @@ import {
   Loader2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { AddApprenantModal } from './AddApprenantModal';
 import { useSuperadminUsers, useOrganizations } from '@/hooks/useApi';
 
 export const AdminUsers = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [orgFilter, setOrgFilter] = useState('all');
@@ -53,19 +55,19 @@ export const AdminUsers = () => {
   // Transformer les données de l'API pour correspondre au format attendu
   const users = useMemo(() => {
     if (!apiUsers) return [];
-    
+
     return apiUsers.map(user => {
       // Formater la dernière connexion depuis le backend
       const formatLastLogin = (lastLogin: string | null) => {
         if (!lastLogin) return 'Jamais connecté';
-        
+
         const date = new Date(lastLogin);
         const day = String(date.getDate()).padStart(2, '0');
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const year = date.getFullYear();
         const hours = String(date.getHours()).padStart(2, '0');
         const minutes = String(date.getMinutes()).padStart(2, '0');
-        
+
         return `${day}/${month}/${year} à ${hours}:${minutes}`;
       };
 
@@ -101,9 +103,9 @@ export const AdminUsers = () => {
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '') // Enlever les accents
       .replace(/\s+/g, '-');
-    
+
     const slug = `${user.id}-${nameSlug}`;
-    
+
     // Si l'utilisateur est d'un OF, router vers les pages OF spécifiques
     if (user.organisationType === 'OF') {
       switch (user.role) {
@@ -121,7 +123,7 @@ export const AdminUsers = () => {
           return `/dashboard/superadmin/users/of-student/${slug}`;
       }
     }
-    
+
     // Pour les utilisateurs Learneezy Direct
     switch (user.role) {
       case 'Apprenant':
@@ -165,10 +167,10 @@ export const AdminUsers = () => {
   // Filtrage des utilisateurs
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
+      user.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
     const matchesOrg = orgFilter === 'all' || user.organisationType === orgFilter;
-    
+
     return matchesSearch && matchesRole && matchesOrg;
   });
 
@@ -200,15 +202,16 @@ export const AdminUsers = () => {
       inactive: { variant: 'destructive' as const, label: 'Inactif' },
       suspended: { variant: 'destructive' as const, label: 'Suspendu' }
     };
-    
+
     const config = configs[status as keyof typeof configs] || configs.active;
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
   const handleAddApprenant = (newApprenant: any) => {
-    console.log('Nouvel apprenant ajouté:', newApprenant);
-    // Ici vous pourriez ajouter l'apprenant à votre liste d'utilisateurs
-    // ou faire un appel API pour l'enregistrer
+    // L'appel API est géré dans le modal AddApprenantModal.
+    // On rafraîchit simplement la liste des utilisateurs.
+    queryClient.invalidateQueries({ queryKey: ['superadmin-users'] });
+    console.log('Nouvel apprenant créé via API:', newApprenant);
   };
 
   // Afficher un loader pendant le chargement
@@ -380,8 +383,8 @@ export const AdminUsers = () => {
               </TableHeader>
               <TableBody>
                 {filteredUsers.map((user) => (
-                  <TableRow 
-                    key={user.id} 
+                  <TableRow
+                    key={user.id}
                     className="cursor-pointer hover:bg-gray-50"
                     onClick={() => navigate(getUserDetailUrl(user))}
                   >
