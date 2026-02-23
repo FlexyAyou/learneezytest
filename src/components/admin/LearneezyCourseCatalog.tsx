@@ -123,6 +123,123 @@ export const LearneezyCourseCatalog = ({ isOpen, onClose }: LearneezyCourseCatal
 
   const categories = ['Développement', 'Intelligence Artificielle', 'Cybersécurité', 'Design', 'Marketing', 'Business'];
 
+  const renderCourseCard = (course: any) => (
+    <Card key={course.id} className="hover:shadow-lg transition-shadow">
+      <CardContent className="p-4">
+        <div className="relative mb-3">
+          <img
+            src={course.thumbnail}
+            alt={course.title}
+            className="w-full h-32 object-cover rounded"
+          />
+          <div className="absolute top-2 left-2">
+            {getTypeBadge(course.type)}
+          </div>
+          <div className="absolute top-2 right-2">
+            <Badge variant="outline" className="bg-white">
+              {course.level}
+            </Badge>
+          </div>
+        </div>
+
+        <h3 className="font-semibold text-sm mb-2 line-clamp-2">
+          {course.title}
+        </h3>
+
+        <p className="text-xs text-gray-600 mb-3 line-clamp-2">
+          {course.description}
+        </p>
+
+        <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
+          <span>Par {course.instructor}</span>
+          <Badge variant="outline" className="text-xs">
+            {course.category}
+          </Badge>
+        </div>
+
+        <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center">
+              <Clock className="h-3 w-3 mr-1" />
+              {course.duration}
+            </div>
+            <div className="flex items-center">
+              <Users className="h-3 w-3 mr-1" />
+              {course.students}
+            </div>
+            <div className="flex items-center">
+              <Star className="h-3 w-3 mr-1 text-yellow-400" />
+              {course.rating}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
+          <div>{course.modules} modules • {course.exercises} exercices</div>
+          {course.certificates && (
+            <Badge variant="outline" className="text-xs">Certificat</Badge>
+          )}
+        </div>
+
+        <div className="flex flex-wrap gap-1 mb-4">
+          {course.tags.slice(0, 3).map((tag: string) => (
+            <Badge key={tag} variant="secondary" className="text-xs">
+              {tag}
+            </Badge>
+          ))}
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div className="text-sm">
+            {course.type === 'open_source' && (
+              <span className="font-bold text-green-600">Gratuit</span>
+            )}
+            {course.type === 'subscription' && (
+              <span className="font-bold text-blue-600">Inclus dans l'abonnement</span>
+            )}
+            {course.type === 'premium' && (
+              <div>
+                {course.price > 0 && (
+                  <span className="font-bold text-purple-600">{course.price}€</span>
+                )}
+                {course.tokenPrice > 0 && (
+                  <div className="text-xs text-gray-600">
+                    ou {course.tokenPrice} tokens
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setSelectedCourse(course)}
+            >
+              <Eye className="h-3 w-3 mr-1" />
+              Voir
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => handleAddToCatalog(course)}
+              className={
+                course.type === 'open_source'
+                  ? 'bg-green-600 hover:bg-green-700'
+                  : course.type === 'subscription'
+                    ? 'bg-blue-600 hover:bg-blue-700'
+                    : 'bg-purple-600 hover:bg-purple-700'
+              }
+            >
+              <Plus className="h-3 w-3 mr-1" />
+              {course.type === 'open_source' ? 'Récupérer le cours' : 'Acheter'}
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -134,9 +251,9 @@ export const LearneezyCourseCatalog = ({ isOpen, onClose }: LearneezyCourseCatal
             </DialogTitle>
           </DialogHeader>
 
-          <div className="flex flex-col h-full">
+          <div className="flex flex-col h-full overflow-hidden">
             {/* Filtres */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 p-4 bg-gray-50 rounded-lg shrink-0">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
@@ -180,8 +297,8 @@ export const LearneezyCourseCatalog = ({ isOpen, onClose }: LearneezyCourseCatal
                 <p className="text-sm text-gray-500">Chargement du catalogue...</p>
               </div>
             ) : (
-              <Tabs defaultValue="all" className="flex-1">
-                <TabsList className="grid w-full grid-cols-4">
+              <Tabs defaultValue="all" className="flex-1 flex flex-col overflow-hidden">
+                <TabsList className="grid w-full grid-cols-4 shrink-0">
                   <TabsTrigger value="all">Tous ({courses.length})</TabsTrigger>
                   <TabsTrigger value="open_source">
                     Gratuits ({courses.filter(c => c.type === 'open_source').length})
@@ -194,156 +311,27 @@ export const LearneezyCourseCatalog = ({ isOpen, onClose }: LearneezyCourseCatal
                   </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="all" className="mt-4 overflow-y-auto max-h-[60vh]">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {filteredCourses.map((course) => (
-                      <Card key={course.id} className="hover:shadow-lg transition-shadow">
-                        <CardContent className="p-4">
-                          <div className="relative mb-3">
-                            <img
-                              src={course.thumbnail}
-                              alt={course.title}
-                              className="w-full h-32 object-cover rounded"
-                            />
-                            <div className="absolute top-2 left-2">
-                              {getTypeBadge(course.type)}
-                            </div>
-                            <div className="absolute top-2 right-2">
-                              <Badge variant="outline" className="bg-white">
-                                {course.level}
-                              </Badge>
-                            </div>
-                          </div>
-
-                          <h3 className="font-semibold text-sm mb-2 line-clamp-2">
-                            {course.title}
-                          </h3>
-
-                          <p className="text-xs text-gray-600 mb-3 line-clamp-2">
-                            {course.description}
-                          </p>
-
-                          <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
-                            <span>Par {course.instructor}</span>
-                            <Badge variant="outline" className="text-xs">
-                              {course.category}
-                            </Badge>
-                          </div>
-
-                          <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
-                            <div className="flex items-center gap-3">
-                              <div className="flex items-center">
-                                <Clock className="h-3 w-3 mr-1" />
-                                {course.duration}
-                              </div>
-                              <div className="flex items-center">
-                                <Users className="h-3 w-3 mr-1" />
-                                {course.students}
-                              </div>
-                              <div className="flex items-center">
-                                <Star className="h-3 w-3 mr-1 text-yellow-400" />
-                                {course.rating}
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
-                            <div>{course.modules} modules • {course.exercises} exercices</div>
-                            {course.certificates && (
-                              <Badge variant="outline" className="text-xs">Certificat</Badge>
-                            )}
-                          </div>
-
-                          <div className="flex flex-wrap gap-1 mb-4">
-                            {course.tags.slice(0, 3).map((tag) => (
-                              <Badge key={tag} variant="secondary" className="text-xs">
-                                {tag}
-                              </Badge>
-                            ))}
-                          </div>
-
-                          <div className="flex items-center justify-between">
-                            <div className="text-sm">
-                              {course.type === 'open_source' && (
-                                <span className="font-bold text-green-600">Gratuit</span>
-                              )}
-                              {course.type === 'subscription' && (
-                                <span className="font-bold text-blue-600">Inclus dans l'abonnement</span>
-                              )}
-                              {course.type === 'premium' && (
-                                <div>
-                                  {course.price > 0 && (
-                                    <span className="font-bold text-purple-600">{course.price}€</span>
-                                  )}
-                                  {course.tokenPrice > 0 && (
-                                    <div className="text-xs text-gray-600">
-                                      ou {course.tokenPrice} tokens
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => setSelectedCourse(course)}
-                              >
-                                <Eye className="h-3 w-3 mr-1" />
-                                Voir
-                              </Button>
-                              <Button
-                                size="sm"
-                                onClick={() => handleAddToCatalog(course)}
-                                className={
-                                  course.type === 'open_source'
-                                    ? 'bg-green-600 hover:bg-green-700'
-                                    : course.type === 'subscription'
-                                      ? 'bg-blue-600 hover:bg-blue-700'
-                                      : 'bg-purple-600 hover:bg-purple-700'
-                                }
-                              >
-                                <Plus className="h-3 w-3 mr-1" />
-                                {course.type === 'open_source' ? 'Ajouter' : 'Acheter'}
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                <TabsContent value="all" className="mt-4 flex-1 overflow-y-auto">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
+                    {filteredCourses.map((course) => renderCourseCard(course))}
                   </div>
                 </TabsContent>
 
-                {/* Repeat similar TabsContent for other tabs with filtered data */}
-                <TabsContent value="open_source" className="mt-4 overflow-y-auto max-h-[60vh]">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {filteredCourses.filter(c => c.type === 'open_source').map((course) => (
-                      // Same card component as above
-                      <Card key={course.id} className="hover:shadow-lg transition-shadow">
-                        {/* Same content as above */}
-                      </Card>
-                    ))}
+                <TabsContent value="open_source" className="mt-4 flex-1 overflow-y-auto">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
+                    {filteredCourses.filter(c => c.type === 'open_source').map((course) => renderCourseCard(course))}
                   </div>
                 </TabsContent>
 
-                <TabsContent value="subscription" className="mt-4 overflow-y-auto max-h-[60vh]">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {filteredCourses.filter(c => c.type === 'subscription').map((course) => (
-                      <Card key={course.id} className="hover:shadow-lg transition-shadow">
-                        {/* Same content as above */}
-                      </Card>
-                    ))}
+                <TabsContent value="subscription" className="mt-4 flex-1 overflow-y-auto">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
+                    {filteredCourses.filter(c => c.type === 'subscription').map((course) => renderCourseCard(course))}
                   </div>
                 </TabsContent>
 
-                <TabsContent value="premium" className="mt-4 overflow-y-auto max-h-[60vh]">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {filteredCourses.filter(c => c.type === 'premium').map((course) => (
-                      <Card key={course.id} className="hover:shadow-lg transition-shadow">
-                        {/* Same content as above */}
-                      </Card>
-                    ))}
+                <TabsContent value="premium" className="mt-4 flex-1 overflow-y-auto">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
+                    {filteredCourses.filter(c => c.type === 'premium').map((course) => renderCourseCard(course))}
                   </div>
                 </TabsContent>
               </Tabs>
