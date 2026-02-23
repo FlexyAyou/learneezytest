@@ -23,6 +23,7 @@ import { useTokenBalance, useEnrollCourse, useUserEnrollments } from '@/hooks/us
 import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 import { CourseCatalogCard } from '@/components/student/catalog/CourseCatalogCard';
 import { CoursePurchaseDialog } from '@/components/student/catalog/CoursePurchaseDialog';
+import { TokenBalanceWidget } from '@/components/student/catalog/TokenBalanceWidget';
 // TokenBalanceWidget is only for Learneezy learners (tokens). OF learners use enrollments only.
 
 

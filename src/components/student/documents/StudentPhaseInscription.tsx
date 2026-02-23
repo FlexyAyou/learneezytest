@@ -61,7 +61,7 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
   const [activeAnalysis, setActiveAnalysis] = useState<PhaseDocument | null>(null);
 
   useEffect(() => {
-    console.log('StudentPhaseInscription: Recieved assignments', assignments);
+    console.log('StudentPhaseInscription: Received assignments', assignments);
     if (assignments) {
       const mappedDocs: PhaseDocument[] = (assignments as any[])
         .filter(a => !a.phase || a.phase === 'inscription' || a.phase === 'phase-inscription')

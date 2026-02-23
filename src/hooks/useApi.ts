@@ -1299,15 +1299,17 @@ export const useMyDocuments = () => {
         const learnerId = user.id;
         const ofId = user.of_id;
 
-        if (!learnerId || !ofId) {
-          console.warn('useMyDocuments: Missing learner_id or of_id');
+        if (!learnerId) {
+          console.warn('useMyDocuments: Missing learner_id');
           return [];
         }
 
-        // Fetch both sources in parallel
+        // Fetch Both sources. New documents system requires ofId.
         const [legacyDocs, newDocs] = await Promise.all([
           fastAPIClient.getMyDocuments().catch(e => { console.error('Legacy docs error:', e); return []; }),
-          fastAPIClient.getLearnerDocuments(ofId, learnerId).catch(e => { console.error('New docs error:', e); return []; })
+          ofId
+            ? fastAPIClient.getLearnerDocuments(ofId, learnerId).catch(e => { console.error('New docs error:', e); return []; })
+            : Promise.resolve([])
         ]);
 
         // Map new docs to legacy format for compatibility
