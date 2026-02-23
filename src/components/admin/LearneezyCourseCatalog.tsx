@@ -232,7 +232,7 @@ export const LearneezyCourseCatalog = ({ isOpen, onClose }: LearneezyCourseCatal
               }
             >
               <Plus className="h-3 w-3 mr-1" />
-              {course.type === 'open_source' ? 'Récupérer le cours' : 'Acheter'}
+              {course.type === 'open_source' ? 'Ajouter au catalogue' : 'Acheter'}
             </Button>
           </div>
         </div>
