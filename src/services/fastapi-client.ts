@@ -431,6 +431,13 @@ class FastAPIClient {
   }
 
   /**
+   * Adopter un cours open-source global pour un OF
+   */
+  async adoptOpenSourceCourse(courseId: string): Promise<any> {
+    return this.post<any>(`/api/subscriptions-and-catalogues/catalogues/adopt-open-source/${courseId}`, {});
+  }
+
+  /**
    * Récupérer un cours par ID
    */
   async getCourse(courseId: string): Promise<CourseResponse> {

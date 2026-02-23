@@ -101,12 +101,21 @@ export const LearneezyCourseCatalog = ({ isOpen, onClose }: LearneezyCourseCatal
     setShowPurchaseModal(true);
   };
 
-  const handleAddToCatalog = (course: any) => {
+  const handleAddToCatalog = async (course: any) => {
     if (course.type === 'open_source') {
-      toast({
-        title: "Cours ajouté",
-        description: `"${course.title}" a été ajouté à votre catalogue gratuitement.`,
-      });
+      try {
+        await fastAPIClient.adoptOpenSourceCourse(course.id);
+        toast({
+          title: "Cours ajouté",
+          description: `"${course.title}" a été ajouté à votre catalogue gratuitement.`,
+        });
+      } catch (err) {
+        toast({
+          title: "Erreur",
+          description: "Impossible d'ajouter ce cours à votre catalogue.",
+          variant: "destructive"
+        });
+      }
     } else {
       handlePurchaseCourse(course);
     }
