@@ -120,12 +120,11 @@ const AdminSettings = () => {
                 legal_representative: legalRepresentative,
                 contact_email: contactEmail,
                 address,
-                postal_code: postalCode,
                 city,
                 phone,
                 siret,
                 numero_declaration: numeroDeclaration,
-            });
+            } as any);
 
             setOrganization(updatedOrg);
 
