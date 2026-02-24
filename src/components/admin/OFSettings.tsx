@@ -13,11 +13,13 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { OFSignatureManager, getStoredOFSignature } from './OFSignatureManager';
 import { fastAPIClient } from '@/services/fastapi-client';
 import { usePrepareUpload, useCompleteUpload } from '@/hooks/useApi';
+import { useOrganization } from '@/contexts/OrganizationContext';
 import axios from 'axios';
 
 export const OFSettings = () => {
   const { toast } = useToast();
   const { user } = useFastAPIAuth();
+  const { refresh: refreshOrg } = useOrganization();
   const [isLoading, setIsLoading] = useState(false);
   const [ofSignatureUrl, setOfSignatureUrl] = useState<string | undefined>(() => {
     return getStoredOFSignature() || undefined;
@@ -263,8 +265,8 @@ export const OFSettings = () => {
         description: "Le logo de votre organisme a été modifié avec succès.",
       });
 
-      // Optionnel: Recharger la page ou invalider le cache du contexte d'organisation
-      // window.location.reload(); 
+      // Rafraîchir le contexte d'organisation pour mettre à jour la sidebar immédiatement
+      refreshOrg();
     } catch (error: any) {
       console.error("Error uploading logo:", error);
       toast({
@@ -294,6 +296,9 @@ export const OFSettings = () => {
         title: "Logo supprimé",
         description: "Le logo a été retiré. Le logo Learneezy par défaut sera affiché.",
       });
+
+      // Rafraîchir le contexte d'organisation pour mettre à jour la sidebar immédiatement
+      refreshOrg();
     } catch (error: any) {
       toast({
         title: "Erreur",

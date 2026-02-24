@@ -353,6 +353,7 @@ export interface OrganizationContextData {
   isOFContext: boolean;
   isLoading: boolean;
   error: string | null;
+  refresh: () => Promise<void>;
 }
 
 // ============= COURSE STRUCTURE =============

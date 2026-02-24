@@ -12,18 +12,20 @@ const defaultContextValue: OrganizationContextData = {
   isOFContext: false,
   isLoading: true,
   error: null,
+  refresh: async () => { },
 };
 
 const OrganizationContext = createContext<OrganizationContextData>(defaultContextValue);
 
 export const OrganizationProvider: React.FC<OrganizationProviderProps> = ({ children }) => {
-  const { verification, isLoading, error, isOFSubdomain } = useSubdomain();
+  const { verification, isLoading, error, isOFSubdomain, refresh } = useSubdomain();
 
   const value: OrganizationContextData = {
     organization: verification,
     isOFContext: isOFSubdomain,
     isLoading,
     error,
+    refresh,
   };
 
   return (
