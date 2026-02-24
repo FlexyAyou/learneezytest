@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Building, Shield, Bell, Save, Lock, Eye, EyeOff, Info, PenTool, Upload, Image, Trash, Loader2 } from 'lucide-react';
+import { Building, Globe, Shield, Bell, Save, Lock, Eye, EyeOff, Info, PenTool, Upload, Image, Trash, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 import { Alert, AlertDescription } from '@/components/ui/alert';
