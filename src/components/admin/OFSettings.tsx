@@ -52,6 +52,7 @@ export const OFSettings = () => {
     siret: '',
     numero_declaration: '',
     logo_url: '',
+    logo_key: '',
   });
   const [initialOrgData, setInitialOrgData] = useState<any>(null);
 
@@ -83,6 +84,7 @@ export const OFSettings = () => {
             siret: org.siret || '',
             numero_declaration: org.numero_declaration || '',
             logo_url: org.logo_url || '',
+            logo_key: org.logo_key || '',
           };
           setOrgData({ ...data });
           setInitialOrgData({ ...data });
@@ -100,8 +102,14 @@ export const OFSettings = () => {
     if (!user?.of_id) return;
     setIsLoading(true);
     try {
-      const updated = await fastAPIClient.updateOrganization(user.of_id, orgData);
-      setOrgData({
+      // On s'assure d'envoyer la CLÉ du logo (logo_key) et non l'URL présignée
+      const updateData = {
+        ...orgData,
+        logo_url: orgData.logo_key || orgData.logo_url // Préférer la clé si elle existe
+      };
+
+      const updated = await fastAPIClient.updateOrganization(user.of_id, updateData);
+      const newData = {
         name: updated.name || '',
         description: updated.description || '',
         legal_representative: updated.legal_representative || '',
@@ -113,8 +121,10 @@ export const OFSettings = () => {
         siret: updated.siret || '',
         numero_declaration: updated.numero_declaration || '',
         logo_url: updated.logo_url || '',
-      });
-      setInitialOrgData(orgData);
+        logo_key: updated.logo_key || '',
+      };
+      setOrgData(newData);
+      setInitialOrgData(newData);
       toast({
         title: "Organisation mise à jour",
         description: "Les informations de votre organisme ont été enregistrées.",
@@ -251,14 +261,23 @@ export const OFSettings = () => {
       const asset = await fastAPIClient.getAssetByKey(prepareRes.key);
       const logoUrl = asset.download_url || asset.url; // On préfère l'URL persistante si possible
 
-      // 4. Mettre à jour l'organisation
+      // 4. Mettre à jour l'organisation avec la CLÉ (key) et non l'URL présignée
+      // Cela permet au backend de générer une nouvelle URL valide à chaque fois
       await fastAPIClient.updateOrganization(user.of_id, {
         ...orgData,
-        logo_url: logoUrl
+        logo_url: prepareRes.key
       });
 
-      setOrgData(prev => ({ ...prev, logo_url: logoUrl }));
-      setInitialOrgData(prev => ({ ...prev, logo_url: logoUrl }));
+      setOrgData(prev => ({
+        ...prev,
+        logo_url: logoUrl, // URL pour l'affichage immédiat
+        logo_key: prepareRes.key // Clé pour la persistance
+      }));
+      setInitialOrgData(prev => ({
+        ...prev,
+        logo_url: logoUrl,
+        logo_key: prepareRes.key
+      }));
 
       toast({
         title: "Logo mis à jour",
@@ -289,8 +308,16 @@ export const OFSettings = () => {
         logo_url: ""
       });
 
-      setOrgData(prev => ({ ...prev, logo_url: "" }));
-      setInitialOrgData(prev => ({ ...prev, logo_url: "" }));
+      setOrgData(prev => ({
+        ...prev,
+        logo_url: "",
+        logo_key: ""
+      }));
+      setInitialOrgData(prev => ({
+        ...prev,
+        logo_url: "",
+        logo_key: ""
+      }));
 
       toast({
         title: "Logo supprimé",

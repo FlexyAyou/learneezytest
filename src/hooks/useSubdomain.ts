@@ -17,7 +17,17 @@ export const useSubdomain = () => {
       const hostname = window.location.hostname;
 
       // Détection locale (développement)
+      const urlParams = new URLSearchParams(window.location.search);
+      const mockSubdomain = urlParams.get('org');
+
       if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        if (mockSubdomain) {
+          setSubdomain(mockSubdomain);
+          const result = await fastAPIClient.verifySubdomain(`${mockSubdomain}.learneezy.com`);
+          setVerification(result);
+          setIsLoading(false);
+          return;
+        }
         setIsLoading(false);
         return;
       }

@@ -1093,6 +1093,7 @@ class FastAPIClient {
     organizationId?: number;
     organizationName?: string;
     logoUrl?: string;
+    logoKey?: string;
     login_url?: string;
     detail?: string;
   }> {
@@ -1103,6 +1104,7 @@ class FastAPIClient {
       organizationId: data.organization_id, // Map snake_case to camelCase
       organizationName: data.organization_name, // Map snake_case to camelCase
       logoUrl: data.logoUrl || data.logo_url,
+      logoKey: data.logo_key,
       login_url: data.login_url,
       detail: data.detail
     };

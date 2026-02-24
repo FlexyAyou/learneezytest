@@ -172,6 +172,8 @@ export interface OrganizationCreate {
   numero_declaration: string;
   agrement: string[];
   tokens_total: number;
+  logo_url?: string;
+  logo_key?: string;
 }
 
 export interface OrganizationResponse {
@@ -197,6 +199,8 @@ export interface OrganizationResponse {
   tokens_total?: number;
   tokens_remaining?: number;
   is_active?: boolean;
+  logo_url?: string;
+  logo_key?: string;
 }
 
 export interface OrganizationUpdate {
@@ -344,6 +348,7 @@ export interface SubdomainVerification {
   organizationId?: number;
   organizationName?: string;
   logoUrl?: string;
+  logoKey?: string;
   login_url?: string;
   detail?: string;
 }
