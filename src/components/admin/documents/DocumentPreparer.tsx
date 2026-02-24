@@ -66,7 +66,7 @@ export const DocumentPreparer: React.FC<DocumentPreparerProps> = ({
       y: 50 - config.defaultHeight / 2,
       width: config.defaultWidth,
       height: config.defaultHeight,
-      required: type === 'signature' || type === 'initials',
+      required: type === 'signature',
     };
     setFields(prev => [...prev, newField]);
   }, [currentPage]);

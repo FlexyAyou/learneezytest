@@ -1,6 +1,6 @@
 import { DocumentPhase } from '@/components/admin/documents/types';
 
-export type SignatureFieldType = 'signature' | 'date' | 'name' | 'initials' | 'text' | 'mention' | 'checkbox';
+export type SignatureFieldType = 'signature' | 'date' | 'name';
 
 export interface SignatureField {
   id: string;
@@ -27,8 +27,4 @@ export const FIELD_CONFIG: Record<SignatureFieldType, { label: string; icon: str
   signature:  { label: 'Signature',          icon: '✍️', color: '#ec4899', defaultWidth: 25, defaultHeight: 8 },
   date:       { label: 'Date de signature',  icon: '📅', color: '#3b82f6', defaultWidth: 20, defaultHeight: 4 },
   name:       { label: 'Nom du signataire',  icon: '👤', color: '#8b5cf6', defaultWidth: 20, defaultHeight: 4 },
-  initials:   { label: 'Paraphes',           icon: '🔤', color: '#f59e0b', defaultWidth: 8,  defaultHeight: 5 },
-  text:       { label: 'Saisie de texte',    icon: '📝', color: '#10b981', defaultWidth: 25, defaultHeight: 4 },
-  mention:    { label: 'Mention',            icon: '📌', color: '#6366f1', defaultWidth: 30, defaultHeight: 4 },
-  checkbox:   { label: 'Case à cocher',      icon: '☑️', color: '#64748b', defaultWidth: 4,  defaultHeight: 4 },
 };

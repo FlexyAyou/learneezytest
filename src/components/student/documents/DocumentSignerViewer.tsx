@@ -176,19 +176,17 @@ export const DocumentSignerViewer: React.FC<DocumentSignerViewerProps> = ({
                           borderRadius: '4px',
                         }}
                         onClick={() => {
-                          if (field.type === 'signature' || field.type === 'initials') {
+                          if (field.type === 'signature') {
                             setActiveSignatureField(field.id);
                           } else if (field.type === 'date') {
                             setFieldValues(prev => ({ ...prev, [field.id]: new Date().toLocaleDateString('fr-FR') }));
                           } else if (field.type === 'name') {
                             setFieldValues(prev => ({ ...prev, [field.id]: 'Signataire' }));
-                          } else if (field.type === 'checkbox') {
-                            setFieldValues(prev => ({ ...prev, [field.id]: prev[field.id] ? '' : '✓' }));
                           }
                         }}
                       >
                         {isFilled ? (
-                          field.type === 'signature' || field.type === 'initials' ? (
+                          field.type === 'signature' ? (
                             <img src={fieldValues[field.id]} alt="signature" className="w-full h-full object-contain" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-xs font-medium" style={{ color: config.color }}>
