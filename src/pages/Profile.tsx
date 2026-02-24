@@ -98,10 +98,11 @@ const Profile = () => {
   }
 
   const userEnrollments = enrollments || [];
-  const completedCourses = userEnrollments.filter(e => e.progress === 100).length;
-  const totalStudyTime = userEnrollments.reduce((total, enrollment) => {
-    return total + (enrollment.course?.duration || 0) * (enrollment.progress / 100);
-  }, 0);
+  const completedCourses = userEnrollments.filter(e => {
+    const prog = typeof e.progress === 'number' ? e.progress : Object.values(e.progress || {}).reduce((a, b) => a + b, 0);
+    return prog >= 100;
+  }).length;
+  const totalStudyTime = 0; // course data not available on EnrollmentResponse
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -207,21 +208,24 @@ const Profile = () => {
                 <LoadingSpinner />
               ) : userEnrollments.length > 0 ? (
                 <div className="space-y-4">
-                  {userEnrollments.filter(e => e.progress < 100).map((enrollment) => (
+                  {userEnrollments.filter(e => {
+                    const prog = typeof e.progress === 'number' ? e.progress : Object.values(e.progress || {}).reduce((a, b) => a + b, 0);
+                    return prog < 100;
+                  }).map((enrollment) => (
                     <div key={enrollment.id} className="border rounded-lg p-4">
                       <div className="flex justify-between items-start mb-2">
                         <div>
-                          <h4 className="font-semibold text-gray-900">{enrollment.course?.title}</h4>
+                          <h4 className="font-semibold text-gray-900">{enrollment.course_title || `Cours #${enrollment.course_id}`}</h4>
                           <p className="text-sm text-gray-600">
-                            par {enrollment.course?.instructor?.firstName} {enrollment.course?.instructor?.lastName}
+                            ID: {enrollment.course_id}
                           </p>
                         </div>
-                        <span className="text-sm font-medium text-pink-600">{enrollment.progress}%</span>
+                        <span className="text-sm font-medium text-pink-600">{typeof enrollment.progress === 'number' ? enrollment.progress : Object.values(enrollment.progress || {}).reduce((a, b) => a + b, 0)}%</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div 
                           className="bg-pink-600 h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${enrollment.progress}%` }}
+                          style={{ width: `${typeof enrollment.progress === 'number' ? enrollment.progress : Object.values(enrollment.progress || {}).reduce((a, b) => a + b, 0)}%` }}
                         ></div>
                       </div>
                     </div>

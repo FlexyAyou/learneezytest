@@ -24,7 +24,7 @@ export const CoursePurchaseModal = ({ isOpen, onClose, course }: CoursePurchaseM
   const [paymentMethod, setPaymentMethod] = useState('tokens');
   const [isProcessing, setIsProcessing] = useState(false);
   const { organization: contextOrg } = useOrganization();
-  const orgId = contextOrg?.organization_id;
+  const orgId = contextOrg?.organizationId;
   const queryClient = useQueryClient();
 
   const { data: organizationData } = useApiOrganization(orgId || '');

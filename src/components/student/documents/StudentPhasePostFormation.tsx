@@ -113,7 +113,7 @@ export const StudentPhasePostFormation = ({ selectedFormation, formations }: Stu
     const template = getTemplateForType(doc.type);
 
     if (template && formation) {
-      const personalizedContent = personalizeDocumentContent(template, formation, doc.learnerSignature);
+      const personalizedContent = personalizeDocumentContent(template, formation, undefined, undefined, doc.learnerSignature);
       setPreviewDocument({
         title: documentTypes[doc.type].label,
         content: personalizedContent
@@ -319,7 +319,7 @@ export const StudentPhasePostFormation = ({ selectedFormation, formations }: Stu
         htmlContent={selectedDocument ? (() => {
           const formation = formations.find(f => f.id === selectedDocument.formationId);
           const template = getTemplateForType(selectedDocument.type);
-          return template && formation ? personalizeDocumentContent(template, formation, selectedDocument.learnerSignature) : undefined;
+          return template && formation ? personalizeDocumentContent(template, formation, undefined, undefined, selectedDocument.learnerSignature) : undefined;
         })() : undefined}
       />
 
