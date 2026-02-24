@@ -30,9 +30,13 @@ export default defineConfig(({ mode }) => ({
     },
   },
   optimizeDeps: {
-    exclude: ['.git', 'node_modules/.cache']
+    exclude: ['.git', 'node_modules/.cache'],
+    esbuildOptions: {
+      target: 'es2022',
+    },
   },
   build: {
+    target: 'es2022',
     rollupOptions: {
       external: [/\.git\//]
     }
