@@ -1,268 +1,162 @@
 
 
-# Specification Backend - Gestion des Documents (FastAPI)
+# Preparateur de Document avec Zones de Signature (style Yousign)
 
-Ce document decrit l'architecture complete du systeme de gestion documentaire implementee cote frontend, que le backend doit supporter.
+## Objectif
 
----
+Transformer le bouton "Envoyer un document" de la page `/dashboard/organisme-formation/documents` en un flux complet de preparation de document inspire de Yousign :
 
-## 1. Architecture generale
+1. **Upload du PDF** -- L'admin OF uploade un document
+2. **Preparation visuelle** -- Le PDF s'affiche au centre avec un panneau lateral de champs draggables (Signature, Date, Nom, Paraphes, etc.)
+3. **Placement des zones** -- L'admin glisse-depose les champs sur le PDF pour definir ou l'apprenant devra signer/parapher
+4. **Configuration finale** -- Selection de la phase et des apprenants destinataires
+5. **Cote apprenant** -- Le document s'affiche avec les zones definies, et l'apprenant pose sa signature exactement a l'emplacement prevu
 
-Le systeme gere les documents de formation en 4 phases, conformement aux exigences Qualiopi :
+## Architecture de la solution
 
 ```text
-Phase Inscription       -> analyse_besoin, test_positionnement, convention
-Phase Formation         -> convocation, programme, cgv, reglement_interieur, attestation_honneur
-Phase Post-formation    -> test_sortie, satisfaction_chaud, certificat, emargement
-Phase +3 mois           -> satisfaction_froid
++------------------------------------------------------------------+
+|  DocumentPreparer (fullscreen dialog)                            |
+|                                                                  |
+|  [Sidebar gauche]   [Viewer central]      [Panneau droit]        |
+|  - Fichier uploade  - PDF rendu via       - Champs draggables:   |
+|  - Ajouter fichier    canvas (pdf.js)       * Signature          |
+|                     - Overlay avec les      * Date de signature   |
+|                       zones placees         * Nom du signataire   |
+|                       (drag & resize)       * Paraphes            |
+|                                             * Mention             |
+|                                             * Case a cocher       |
+|                                           - Signataires           |
++------------------------------------------------------------------+
+|  [Annuler]                              [Suivant ->]             |
++------------------------------------------------------------------+
+
+                            |
+                            v  (Etape 2 : Configuration)
+
++------------------------------------------------------------------+
+|  Selection de phase + Selection des apprenants + Envoi           |
++------------------------------------------------------------------+
 ```
 
----
+## Fichiers a creer
 
-## 2. Tables requises
+### 1. `src/components/admin/documents/DocumentPreparer.tsx`
+Composant principal (dialog fullscreen) orchestrant le flux en 2 etapes :
+- **Etape 1 "Preparation"** : Upload + viewer PDF + placement des zones
+- **Etape 2 "Envoi"** : Selection phase, apprenants, confirmation
 
-### 2.1 `document_templates`
+### 2. `src/components/admin/documents/PDFFieldOverlay.tsx`
+Le viewer central : rendu du PDF page par page via un `<canvas>` (librairie `pdfjs-dist`) avec une couche d'overlay HTML par-dessus pour les zones de champs. Chaque zone est draggable et redimensionnable via `@dnd-kit`.
 
-Stocke les modeles HTML editables par les admins OF et SuperAdmin.
+### 3. `src/components/admin/documents/FieldsPalette.tsx`
+Le panneau droit avec les champs disponibles a glisser :
+- **Signature** (zone rectangle ou l'apprenant signera)
+- **Date de signature** (rempli automatiquement)
+- **Nom du signataire** (rempli automatiquement)
+- **Paraphes** (petite zone de signature par page)
+- **Saisie de texte** (champ libre)
+- **Mention** (texte pre-rempli)
+- **Case a cocher**
 
-| Champ | Type | Description |
-|---|---|---|
-| id | UUID (PK) | Identifiant unique |
-| of_id | UUID (FK -> organizations) | Organisation proprietaire |
-| type | ENUM | Un parmi : `analyse_besoin`, `test_positionnement`, `convention`, `programme`, `reglement_interieur`, `cgv`, `convocation`, `emargement`, `test_sortie`, `satisfaction_chaud`, `attestation`, `certificat`, `satisfaction_froid`, `attestation_honneur` |
-| phase | ENUM | `inscription`, `formation`, `post-formation`, `suivi` |
-| title | VARCHAR | Titre du modele |
-| description | TEXT | Description courte |
-| html_content | TEXT | Code source HTML avec placeholders `{{...}}` |
-| requires_signature | BOOLEAN | Si le document necessite une signature electronique |
-| is_active | BOOLEAN | Actif ou desactive |
-| created_at | TIMESTAMP | Date de creation |
-| updated_at | TIMESTAMP | Derniere modification |
+Chaque champ est un draggable (`@dnd-kit/core`).
 
-**Endpoints :**
-- `GET /api/organizations/{of_id}/document-templates` - Liste des templates (filtrable par `phase`)
-- `GET /api/organizations/{of_id}/document-templates/{id}` - Detail d'un template
-- `POST /api/organizations/{of_id}/document-templates` - Creer un template (body: type, phase, title, description, html_content, requires_signature)
-- `PUT /api/organizations/{of_id}/document-templates/{id}` - Modifier (inclut l'edition du html_content source)
-- `DELETE /api/organizations/{of_id}/document-templates/{id}` - Supprimer
+### 4. `src/components/admin/documents/SignatureZone.tsx`
+Composant representant une zone placee sur le PDF. Draggable + redimensionnable. Affiche un cadre colore avec le type de champ et un bouton de suppression.
 
-### 2.2 `documents` (documents personnalises envoyes)
+### 5. `src/components/student/documents/DocumentSignerViewer.tsx`
+Cote apprenant : affiche le PDF uploade avec les zones de signature positionnees. L'apprenant clique sur la zone "Signature" pour ouvrir le pad de signature existant (`ElectronicSignature`), et la signature est apposee visuellement a l'emplacement exact defini par l'OF.
 
-Trace chaque document envoye a un apprenant apres personnalisation.
+### 6. `src/types/document-fields.ts`
+Types partages pour les zones de champs :
 
-| Champ | Type | Description |
-|---|---|---|
-| id | UUID (PK) | Identifiant unique |
-| template_id | UUID (FK -> document_templates) | Template source (nullable si uploaded) |
-| of_id | UUID (FK -> organizations) | Organisation emettrice |
-| type | ENUM | Meme enum que templates |
-| phase | ENUM | Phase de formation |
-| title | VARCHAR | Titre du document |
-| html_content | TEXT | HTML personnalise avec donnees reelles injectees |
-| learner_id | UUID (FK -> users) | Apprenant destinataire |
-| learner_name | VARCHAR | Nom complet de l'apprenant |
-| learner_email | VARCHAR | Email de l'apprenant |
-| formation_id | UUID (FK -> formations) | Formation associee |
-| formation_name | VARCHAR | Nom de la formation |
-| status | ENUM | `draft`, `sent`, `delivered`, `read`, `signed`, `completed`, `expired` |
-| requires_signature | BOOLEAN | Necessite signature |
-| sent_at | TIMESTAMP | Date d'envoi |
-| read_at | TIMESTAMP | Date de lecture |
-| signed_at | TIMESTAMP | Date de signature |
-| signature_data | TEXT | Donnees base64 de la signature apprenant |
-| unique_code | VARCHAR | Code unique de tracabilite (ex: `CONVENTION-1707123456789`) |
-| created_at | TIMESTAMP | Date de creation |
-| updated_at | TIMESTAMP | Derniere modification |
+```typescript
+interface SignatureField {
+  id: string;
+  type: 'signature' | 'date' | 'name' | 'initials' | 'text' | 'mention' | 'checkbox';
+  page: number;       // numero de page du PDF
+  x: number;          // position X en % de la largeur
+  y: number;          // position Y en % de la hauteur
+  width: number;      // largeur en % 
+  height: number;     // hauteur en %
+  required: boolean;
+  label?: string;
+  value?: string;      // pre-rempli pour mention/texte
+}
 
-**Endpoints :**
-- `POST /api/organizations/{of_id}/documents/send` - Envoi groupe de documents (voir flux ci-dessous)
-- `GET /api/organizations/{of_id}/documents` - Liste des documents envoyes (filtrable par phase, learner_id, status)
-- `GET /api/organizations/{of_id}/documents/{id}` - Detail d'un document
-- `PATCH /api/organizations/{of_id}/documents/{id}/status` - Mettre a jour le statut
-- `GET /api/learners/{learner_id}/documents` - Documents recus par un apprenant (utilise cote dashboard apprenant)
-- `POST /api/learners/{learner_id}/documents/{id}/sign` - Soumettre la signature (body: signature_data base64)
-
-### 2.3 `of_signatures`
-
-Stocke la signature electronique officielle de l'OF.
-
-| Champ | Type | Description |
-|---|---|---|
-| id | UUID (PK) | Identifiant |
-| of_id | UUID (FK -> organizations) | Organisation |
-| signature_data | TEXT | Image base64 de la signature |
-| created_at | TIMESTAMP | Date de creation |
-| updated_at | TIMESTAMP | Derniere modification |
-
-**Endpoints :**
-- `GET /api/organizations/{of_id}/signature` - Recuperer la signature OF
-- `PUT /api/organizations/{of_id}/signature` - Creer/mettre a jour (body: signature_data)
-- `DELETE /api/organizations/{of_id}/signature` - Supprimer
-
-### 2.4 `uploaded_documents`
-
-Documents externes (PDF, DOCX) uploades manuellement par l'admin.
-
-| Champ | Type | Description |
-|---|---|---|
-| id | UUID (PK) | Identifiant |
-| of_id | UUID (FK -> organizations) | Organisation |
-| title | VARCHAR | Titre donne par l'admin |
-| phase | ENUM | Phase associee |
-| file_key | VARCHAR | Cle de stockage blob (S3/MinIO) |
-| file_name | VARCHAR | Nom du fichier original |
-| file_size | VARCHAR | Taille du fichier |
-| mime_type | VARCHAR | Type MIME |
-| uploaded_at | TIMESTAMP | Date d'upload |
-
-**Endpoints :**
-- `POST /api/organizations/{of_id}/uploaded-documents` - Upload (multipart/form-data: file + title + phase)
-- `GET /api/organizations/{of_id}/uploaded-documents` - Liste (filtrable par phase)
-- `DELETE /api/organizations/{of_id}/uploaded-documents/{id}` - Supprimer
-- `POST /api/organizations/{of_id}/uploaded-documents/{id}/send` - Envoyer a des apprenants (body: learner_ids[])
-
----
-
-## 3. Flux d'envoi groupe (PhaseDocumentSender)
-
-L'assistant d'envoi cote frontend suit 4 etapes :
-
-```text
-Etape 1 : Selection d'un apprenant
-Etape 2 : Selection des templates a envoyer (checkboxes, option d'attacher un PDF programme)
-Etape 3 : Personnalisation des champs partages (dates debut/fin, duree, prix)
-          -> Le champ "Lieu" est exclu de la personnalisation manuelle
-Etape 4 : Previsualisation HTML avec tous les champs injectes + signature OF
-          -> Envoi final
-```
-
-**Payload `POST /api/organizations/{of_id}/documents/send` :**
-
-```text
-{
-  "learner_id": "uuid",
-  "formation_id": "uuid",
-  "phase": "inscription" | "formation" | "post-formation" | "suivi",
-  "custom_fields": {
-    "date_debut": "2024-02-01",
-    "date_fin": "2024-02-05",
-    "duree": "35 heures",
-    "prix": "2 500 EUR"
-  },
-  "template_ids": ["uuid1", "uuid2", ...],
-  "uploaded_document_ids": ["uuid3"],  // optionnel, pour les PDFs attaches
-  "include_of_signature": true
+interface PreparedDocument {
+  fileKey: string;       // cle MinIO du PDF uploade
+  fileName: string;
+  fields: SignatureField[];
+  signatories: string[]; // IDs des apprenants
+  phase: DocumentPhase;
 }
 ```
 
-Le backend doit :
-1. Recuperer chaque template par son ID
-2. Injecter les champs dynamiques dans le html_content (voir section 4)
-3. Generer un `unique_code` par document
-4. Creer une entree dans `documents` par template avec status = `sent`
-5. Enregistrer les uploaded_documents envoyes dans le meme systeme de tracking
+## Fichiers a modifier
 
----
+### 1. `src/components/admin/documents/OFDocumentsAdvanced.tsx`
+- Remplacer le dialog simple `showUploadSender` par l'ouverture du nouveau `DocumentPreparer`
+- Le bouton "Envoyer un document" ouvre desormais le flux complet
 
-## 4. Champs dynamiques (placeholders)
+### 2. `src/components/student/documents/DocumentSignatureModal.tsx`
+- Ajouter la gestion des documents uploades avec zones pre-definies
+- Quand un document a des `SignatureField[]`, afficher le PDF avec les zones cliquables au lieu du flux generique actuel
 
-Les templates HTML utilisent des placeholders `{{categorie.champ}}`. Le backend doit les remplacer lors de l'envoi :
+## Dependance a installer
 
-**Categorie `apprenant` :**
-`{{apprenant.prenom}}`, `{{apprenant.nom}}`, `{{apprenant.nom_complet}}`, `{{apprenant.email}}`, `{{apprenant.telephone}}`, `{{apprenant.date_naissance}}`, `{{apprenant.adresse}}`, `{{apprenant.ville}}`, `{{apprenant.code_postal}}`, `{{apprenant.entreprise}}`, `{{apprenant.poste}}`
+- **`pdfjs-dist`** : Necessaire pour rendre les pages PDF en canvas cote client (le `<embed>` actuel ne permet pas de superposer des elements HTML). C'est la librairie standard utilisee par tous les outils type Yousign/DocuSign.
 
-**Categorie `formation` :**
-`{{formation.nom}}`, `{{formation.description}}`, `{{formation.duree}}`, `{{formation.lieu}}`, `{{formation.formateur}}`, `{{formation.prix}}`, `{{formation.certification}}`
+## Detail technique
 
-**Categorie `dates` :**
-`{{dates.inscription}}`, `{{dates.debut}}`, `{{dates.fin}}`, `{{dates.aujourdhui}}`, `{{dates.signature}}`
+### Rendu PDF avec overlay
+Le PDF sera rendu page par page dans un `<canvas>` via `pdfjs-dist`. Par-dessus chaque page, un `<div>` positionne en `position: relative` contiendra les zones de champs en `position: absolute` avec des coordonnees en pourcentage (pour etre responsive).
 
-**Categorie `of` :**
-`{{of.nom}}`, `{{of.siret}}`, `{{of.nda}}`, `{{of.adresse}}`, `{{of.ville}}`, `{{of.code_postal}}`, `{{of.telephone}}`, `{{of.email}}`, `{{of.responsable}}`, `{{of.signature}}`
+### Drag & Drop
+- Le panneau droit utilise `@dnd-kit/core` (deja installe) pour rendre les champs draggables
+- La zone PDF est un droppable qui calcule la position relative du drop
+- Les zones placees sont repositionnables par drag interne
+- Le redimensionnement se fait par les poignees aux coins (implementation CSS `resize` ou handles custom)
 
-**Categorie `evaluation` :**
-`{{evaluation.note_positionnement}}`, `{{evaluation.note_finale}}`, `{{evaluation.progression}}`, `{{evaluation.niveau_acquis}}`, `{{evaluation.commentaire}}`
-
-**Note sur `{{of.signature}}` :** Ce placeholder est remplace par une balise `<img>` contenant la signature base64 de l'OF (depuis `of_signatures`). Si aucune signature n'est configuree, un texte placeholder est insere.
-
----
-
-## 5. Signature electronique apprenant
-
-Cote apprenant, le flux de signature est :
-1. L'apprenant visualise le document HTML personnalise (avec signature OF integree)
-2. Il coche "J'ai lu le document" + "J'accepte les conditions"
-3. Il signe sur un pad Canvas
-4. Le frontend envoie `POST /api/learners/{learner_id}/documents/{id}/sign` avec `signature_data` (base64)
-5. Le backend met a jour : `status = signed`, `signed_at = now()`, `signature_data = ...`
-
----
-
-## 6. Emargements / Audit Qualiopi
-
-La page "Preuve d'emargements" centralise TOUS les documents envoyes (templates + uploaded). C'est la source unique de verite.
-
-**Endpoint requis :**
-- `GET /api/organizations/{of_id}/emargements` - Liste de tous les documents envoyes, groupes par apprenant et par phase
-  - Filtres : `learner_id`, `phase`, `status`, `date_range`
-  - Inclut : horodatage signature, horodatage consentement CGV
-
-**Reponse attendue :**
-```text
+### Stockage des zones
+Les positions des champs sont stockees en JSON dans les metadonnees du document envoye. Structure :
+```json
 {
-  "learners": [
-    {
-      "learner_id": "uuid",
-      "learner_name": "Marie Dupont",
-      "documents": [
-        {
-          "id": "uuid",
-          "type": "convention",
-          "phase": "inscription",
-          "title": "Convention de formation",
-          "status": "signed",
-          "sent_at": "...",
-          "signed_at": "...",
-          "html_content": "...",  // pour previsualisation directe
-          "unique_code": "CONVENTION-123..."
-        }
-      ]
-    }
+  "fileKey": "resources/xxx.pdf",
+  "fields": [
+    { "type": "signature", "page": 1, "x": 65, "y": 80, "width": 25, "height": 8 }
   ]
 }
 ```
+Ce JSON est transmis au backend lors de l'envoi (`POST /api/organizations/{of_id}/documents/send`) et stocke avec l'assignment du document.
 
----
+### Cote apprenant
+Quand l'apprenant ouvre un document avec des `fields`, le `DocumentSignerViewer` :
+1. Charge le PDF via presigned URL
+2. Rend les pages en canvas
+3. Superpose les zones interactives
+4. Au clic sur "Signature", ouvre le pad `ElectronicSignature` existant
+5. La signature base64 est apposee visuellement dans la zone
+6. A la validation, envoie la signature + les valeurs des champs au backend
 
-## 7. Bibliotheque de programmes (PDF)
+## Flux utilisateur complet
 
-Les admins OF gerent des programmes de formation en PDF via une page dediee.
+### OF Admin
+1. Clique "Envoyer un document"
+2. Uploade un PDF (drag & drop ou file picker)
+3. Le PDF s'affiche au centre, panneau de champs a droite
+4. Glisse "Signature" sur le bas du document
+5. Glisse "Date de signature" a cote
+6. Clique "Suivant"
+7. Selectionne la phase (ex: Post-formation)
+8. Selectionne le(s) apprenant(s)
+9. Clique "Envoyer" -- le document est uploade vers MinIO et assigne
 
-**Endpoints :**
-- `POST /api/organizations/{of_id}/programmes` - Upload PDF (multipart: file + formation_id + title)
-- `GET /api/organizations/{of_id}/programmes` - Liste des programmes uploades
-- `DELETE /api/organizations/{of_id}/programmes/{id}` - Supprimer
-- `GET /api/organizations/{of_id}/programmes/{id}/download` - URL presignee de telechargement
-
-Ces programmes sont selectionables dans le PhaseDocumentSender comme alternative aux templates HTML.
-
----
-
-## 8. Securite et RBAC
-
-| Role | Permissions documents |
-|---|---|
-| SuperAdmin | Lecture/ecriture sur tous les OF, suivi global |
-| Admin OF | CRUD templates de son OF, envoi, gestion signature, emargements |
-| Apprenant | Lecture de ses documents recus, signature |
-| Formateur | Lecture seule des documents de ses formations |
-
----
-
-## 9. Points d'attention
-
-1. **Donnees mockees a remplacer** : Le frontend utilise actuellement des donnees mockees dans `OFDocumentsAdvanced.tsx` (apprenants, formations, info OF). Ces donnees doivent venir des endpoints API.
-2. **`personalizeDocumentContent.ts`** : Ce fichier cote apprenant utilise des valeurs en dur (ex: "InfinitiAX Formation"). Il doit etre remplace par les donnees reelles provenant du document `html_content` deja personnalise par le backend lors de l'envoi.
-3. **Signature OF** : Actuellement stockee en localStorage (`of_official_signature`). Doit etre persistee via `PUT /api/organizations/{of_id}/signature` et recuperee via `GET`.
-4. **Documents officiels necessitant la signature OF** : `convention`, `cgv`, `attestation`, `certificat`. Le frontend affiche un avertissement si la signature n'est pas configuree lors de l'envoi.
+### Apprenant
+1. Recoit le document dans son dashboard
+2. Clique "Signer"
+3. Voit le PDF avec la zone de signature en surbrillance
+4. Clique sur la zone -> pad de signature s'ouvre
+5. Signe et valide
+6. La signature est apposee visuellement, le document est marque "Signe"
 
