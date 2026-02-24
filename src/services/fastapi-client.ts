@@ -996,6 +996,15 @@ class FastAPIClient {
   }
 
   /**
+   * Ajouter un cours open-source au catalogue de l'OF
+   */
+  async addCourseToOFCatalogue(courseId: string): Promise<{ message: string; catalogue_id: number }> {
+    return this.post<{ message: string; catalogue_id: number }>('/api/courses/of/catalogue/add', null, {
+      params: { course_id: courseId }
+    });
+  }
+
+  /**
    * Récupérer mes inscriptions (enrollments)
    */
   async getMyEnrollments(): Promise<EnrollmentResponse[]> {

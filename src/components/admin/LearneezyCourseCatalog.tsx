@@ -104,10 +104,10 @@ export const LearneezyCourseCatalog = ({ isOpen, onClose }: LearneezyCourseCatal
   const handleAddToCatalog = async (course: any) => {
     if (course.type === 'open_source') {
       try {
-        await fastAPIClient.adoptOpenSourceCourse(course.id);
+        await fastAPIClient.addCourseToOFCatalogue(course.id);
         toast({
           title: "Cours ajouté",
-          description: `"${course.title}" a été ajouté à votre catalogue gratuitement.`,
+          description: `"${course.title}" a été ajouté à votre offre de formation. Vous pouvez maintenant l'assigner à vos apprenants.`,
         });
       } catch (err) {
         toast({
