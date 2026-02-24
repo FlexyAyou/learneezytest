@@ -9,9 +9,10 @@ import { StudentDocumentPreviewModal } from './StudentDocumentPreviewModal';
 import { StudentAssignedDocuments } from './StudentAssignedDocuments';
 import { StudentNeedsAnalysisModal } from './StudentNeedsAnalysisModal';
 import { personalizeDocumentContent, getTemplateForType } from '@/utils/personalizeDocumentContent';
-import { useMyDocuments, useSignDocument } from '@/hooks/useApi';
+import { useMyDocuments, useSignDocument, useSignDocumentFields } from '@/hooks/useApi';
 import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 import { fastAPIClient } from '@/services/fastapi-client';
+import { DocumentSignerViewer } from './DocumentSignerViewer';
 
 interface Formation {
   id: string;
@@ -35,6 +36,8 @@ interface PhaseDocument {
   learnerSignature?: string;
   signedAt?: string;
   url?: string; // URL directe du fichier
+  signatureFields?: any[];
+  signedFieldValues?: Record<string, string>;
 }
 
 interface StudentPhaseInscriptionProps {
@@ -55,6 +58,7 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
   const [selectedDocument, setSelectedDocument] = useState<PhaseDocument | null>(null);
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [previewDocument, setPreviewDocument] = useState<{ title: string; content: string } | null>(null);
+  const [interactiveViewerOpen, setInteractiveViewerOpen] = useState(false);
 
   // States for interactive Needs Analysis
   const [needsAnalysisOpen, setNeedsAnalysisOpen] = useState(false);
@@ -104,10 +108,12 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
             date: new Date(a.assigned_at).toISOString(),
             size: `${Math.round(a.media_asset.size / 1024)} KB`,
             status: a.is_signed ? 'signed' : 'available',
-            requiresSignature: !a.is_signed,
+            requiresSignature: !a.is_signed && (!!a.signature_fields?.length || type === 'analyse_besoin'),
             url: a.media_asset.url,
             learnerSignature: a.signature_data,
-            signedAt: a.signed_at
+            signedAt: a.signed_at,
+            signatureFields: a.signature_fields,
+            signedFieldValues: a.signed_field_values
           };
         });
 
@@ -147,33 +153,19 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
     if (doc.type === 'analyse_besoin') {
       setActiveAnalysis(doc);
       setNeedsAnalysisOpen(true);
+    } else if (doc.signatureFields && doc.signatureFields.length > 0) {
+      setSelectedDocument(doc);
+      setInteractiveViewerOpen(true);
     } else {
       setSelectedDocument(doc);
       setSignatureModalOpen(true);
     }
   };
 
+  const signFieldsMutation = useSignDocumentFields();
+
   const handleSignatureComplete = (documentId: string, signatureData: string) => {
     const doc = localDocuments.find(d => d.id === documentId);
-
-    // New system document
-    if (doc && (doc as any)._isNewSystem) {
-      return new Promise<void>(async (resolve, reject) => {
-        try {
-          const user = await fastAPIClient.getCurrentUser();
-          await fastAPIClient.signLearnerDocument(user.of_id, user.id, documentId, signatureData);
-          refetchDocs();
-          setSignatureModalOpen(false);
-          setSelectedDocument(null);
-          toast({ title: "Document signé", description: "Votre signature a été enregistrée." });
-          resolve();
-        } catch (error) {
-          console.error("Erreur signature (new system):", error);
-          toast({ title: "Erreur", description: "Impossible de signer le document.", variant: "destructive" });
-          reject(error);
-        }
-      });
-    }
 
     // Legacy system
     if (selectedDocument && selectedDocument.assignmentId) {
@@ -194,26 +186,39 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
           }
         });
       });
-    } else {
-      // Fallback local
-      setLocalDocuments(prev => prev.map(doc =>
-        doc.id === documentId
-          ? {
-            ...doc,
-            status: 'signed' as const,
-            requiresSignature: false,
-            learnerSignature: signatureData,
-            signedAt: new Date().toISOString()
-          }
-          : doc
-      ));
-      setSignatureModalOpen(false);
+    }
+
+    return Promise.resolve();
+  };
+
+  const handleInteractiveSignatureComplete = async (fieldValues: Record<string, string>) => {
+    if (!selectedDocument || !selectedDocument.assignmentId) return;
+
+    try {
+      await signFieldsMutation.mutateAsync({
+        assignment_id: selectedDocument.assignmentId,
+        field_values: fieldValues
+      });
+      refetchDocs();
+      setInteractiveViewerOpen(false);
       setSelectedDocument(null);
-      return Promise.resolve();
+    } catch (error) {
+      console.error("Erreur signature interactive:", error);
+      throw error;
     }
   };
 
-  const handleDownload = (doc: PhaseDocument) => {
+  const handleDownload = async (doc: PhaseDocument) => {
+    if (doc.status === 'signed' && doc.signatureFields && doc.signatureFields.length > 0 && doc.assignmentId) {
+      try {
+        await fastAPIClient.downloadSignedPdf(doc.assignmentId);
+        return;
+      } catch (error) {
+        console.error("Erreur téléchargement PDF signé:", error);
+        toast({ title: "Erreur", description: "Impossible de générer le PDF signé.", variant: "destructive" });
+      }
+    }
+
     if (doc.url) {
       window.open(doc.url, '_blank');
     } else {
@@ -458,6 +463,20 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
           onSuccess={() => {
             refetchDocs();
           }}
+        />
+      )}
+      {/* Interactive PDF Signer Viewer */}
+      {selectedDocument && selectedDocument.url && (
+        <DocumentSignerViewer
+          isOpen={interactiveViewerOpen}
+          onClose={() => {
+            setInteractiveViewerOpen(false);
+            setSelectedDocument(null);
+          }}
+          pdfUrl={selectedDocument.url}
+          fields={selectedDocument.signatureFields || []}
+          documentName={selectedDocument.name}
+          onComplete={handleInteractiveSignatureComplete}
         />
       )}
     </div>

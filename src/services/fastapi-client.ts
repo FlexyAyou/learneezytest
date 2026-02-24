@@ -1459,6 +1459,7 @@ class FastAPIClient {
     media_asset_id: number;
     message?: string;
     phase?: string;
+    signature_fields?: any[];
   }): Promise<any> {
     return this.post('/api/storage/assign', assignmentData);
   }
@@ -1482,6 +1483,33 @@ class FastAPIClient {
    */
   async signDocument(assignmentId: number, signatureData: string): Promise<any> {
     return this.post(`/api/storage/assignments/${assignmentId}/sign`, { signature_data: signatureData });
+  }
+
+  /**
+   * Signer un document par zones interactives
+   */
+  async signDocumentFields(assignmentId: number, fieldValues: Record<string, string>): Promise<any> {
+    return this.post(`/api/storage/assignments/${assignmentId}/sign-fields`, { field_values: fieldValues });
+  }
+
+  /**
+   * Générer et télécharger le PDF final signé avec les zones incrustées
+   */
+  async downloadSignedPdf(assignmentId: number): Promise<void> {
+    const response = await this.axiosInstance.post(
+      `/api/storage/assignments/${assignmentId}/generate-signed-pdf`,
+      {},
+      { responseType: 'blob' }
+    );
+
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `document_signe_${assignmentId}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
   }
 
   /**

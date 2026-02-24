@@ -347,7 +347,8 @@ export const OFDocumentsAdvanced: React.FC = () => {
       await assign.mutateAsync({
         user_id: parseInt(learnerId),
         media_asset_id: completeRes.id!,
-        message: `Document à signer : ${title} | __fields__:${JSON.stringify(fields)}`,
+        message: `Document à signer : ${title}`,
+        signature_fields: fields,
         phase,
       });
     }

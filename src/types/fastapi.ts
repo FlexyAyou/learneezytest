@@ -972,6 +972,39 @@ export interface UserMediaAssignmentResponse {
   assigned_by_of_id: number | null;
   assigned_at: string;
   is_viewed: boolean;
+  is_signed: boolean;
+  signature_data?: string;
+  signed_at?: string;
   message: string | null;
   phase?: string;
+  signature_fields?: any[];
+  signed_field_values?: Record<string, string>;
+}
+
+export interface SignFieldsRequest {
+  field_values: Record<string, string>;
+}
+
+export interface EmargementItem {
+  id: string;
+  type: string | null;
+  phase: string;
+  title: string;
+  status: 'sent' | 'signed' | 'read' | 'pending';
+  sent_at: string;
+  signed_at?: string;
+  html_content?: string;
+  unique_code?: string;
+  requires_signature: boolean;
+  has_signature_fields: boolean;
+}
+
+export interface LearnerEmargement {
+  learner_id: number;
+  learner_name: string;
+  documents: EmargementItem[];
+}
+
+export interface EmargementsResponse {
+  learners: LearnerEmargement[];
 }

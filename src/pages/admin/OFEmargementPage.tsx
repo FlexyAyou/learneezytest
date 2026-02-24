@@ -51,6 +51,7 @@ interface SentDocument {
   documentUrl?: string;
   htmlContent?: string;
   requiresSignature?: boolean;
+  hasSignatureFields?: boolean;
 }
 
 const OFEmargementPage: React.FC = () => {
@@ -127,6 +128,7 @@ const OFEmargementPage: React.FC = () => {
           signatureData: d.signature_data,
           documentUrl: d.document_url,
           htmlContent: d.html_content,
+          hasSignatureFields: d.has_signature_fields
         }));
       });
     }
@@ -187,7 +189,7 @@ const OFEmargementPage: React.FC = () => {
     return labels[phase] || phase;
   };
 
-  const handleDownload = (doc: SentDocument) => {
+  const handleDownload = async (doc: SentDocument) => {
     // 1. Si on a une URL, on l'utilise
     if (doc.documentUrl) {
       const link = document.createElement('a');
@@ -210,9 +212,19 @@ const OFEmargementPage: React.FC = () => {
       return;
     }
 
-    // 3. Sinon, on essaie de générer le contenu (si possible, c'est mieux que rien)
+    // 3. Cas spécial : PDF Interactif signé
+    if (doc.hasSignatureFields && doc.status === 'signed') {
+      try {
+        await fastAPIClient.downloadSignedPdf(Number(doc.id));
+        return;
+      } catch (error) {
+        console.error("Error downloading signed PDF:", error);
+      }
+    }
+
+    // 4. Sinon, on essaie de générer le contenu (si possible, c'est mieux que rien)
     // Mais attention, cela demande d'avoir accès au template et aux données contextuelles.
-    // Pour l'instant on se contente des cas 1 et 2 qui couvrent 99% des besoins réels.
+    // Pour l'instant on se contente des cas 1, 2 et 3 qui couvrent 99% des besoins réels.
     alert("Impossible de télécharger ce document : le contenu n'est pas disponible.");
   };
 

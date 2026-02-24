@@ -10,8 +10,11 @@ import {
     TableHeader,
     TableRow
 } from '@/components/ui/table';
-import { FileText, Download, Eye, Clock, CheckCircle, Loader2 } from 'lucide-react';
-import { useMyDocuments } from '@/hooks/useApi';
+import { FileText, Download, Eye, Clock, CheckCircle, Loader2, FileSignature } from 'lucide-react';
+import { useMyDocuments, useSignDocumentFields } from '@/hooks/useApi';
+import { fastAPIClient } from '@/services/fastapi-client';
+import { DocumentSignerViewer } from './DocumentSignerViewer';
+import { useToast } from '@/hooks/use-toast';
 
 interface MediaAsset {
     id: number;
@@ -29,6 +32,9 @@ interface UserMediaAssignment {
     assigned_at: string;
     message?: string;
     phase?: string;
+    is_signed: boolean;
+    signature_fields?: any[];
+    signed_field_values?: Record<string, string>;
 }
 
 interface StudentAssignedDocumentsProps {
@@ -43,6 +49,49 @@ export const StudentAssignedDocuments: React.FC<StudentAssignedDocumentsProps> =
         if (!targetPhase) return allAssignments as UserMediaAssignment[];
         return (allAssignments as UserMediaAssignment[]).filter((a) => a.phase === targetPhase);
     }, [allAssignments, targetPhase]);
+
+    const { toast } = useToast();
+    const [selectedAssignment, setSelectedAssignment] = React.useState<UserMediaAssignment | null>(null);
+    const [viewerOpen, setViewerOpen] = React.useState(false);
+    const signFieldsMutation = useSignDocumentFields();
+
+    const handleSign = (assignment: UserMediaAssignment) => {
+        setSelectedAssignment(assignment);
+        setViewerOpen(true);
+    };
+
+    const handleDownload = async (assignment: UserMediaAssignment) => {
+        if (assignment.is_signed && assignment.signature_fields && assignment.signature_fields.length > 0) {
+            try {
+                await fastAPIClient.downloadSignedPdf(assignment.id);
+                return;
+            } catch (error) {
+                console.error("Download error:", error);
+                toast({ title: "Erreur", description: "Impossible de télécharger le document signé.", variant: "destructive" });
+            }
+        }
+
+        if (assignment.media_asset.url) {
+            window.open(assignment.media_asset.url, '_blank');
+        }
+    };
+
+    const handleSignatureComplete = async (fieldValues: Record<string, string>) => {
+        if (!selectedAssignment) return;
+
+        try {
+            await signFieldsMutation.mutateAsync({
+                assignment_id: selectedAssignment.id,
+                field_values: fieldValues
+            });
+            setViewerOpen(false);
+            setSelectedAssignment(null);
+            // Invalidate queries will handle refetch
+        } catch (error) {
+            console.error("Sign error:", error);
+            throw error;
+        }
+    };
 
     if (isLoading) {
         return (
@@ -114,18 +163,22 @@ export const StudentAssignedDocuments: React.FC<StudentAssignedDocumentsProps> =
                                     </div>
                                 )}
 
-                                <div className="mt-6 flex gap-3">
-                                    <Button asChild>
-                                        <a href={assignment.media_asset.url} target="_blank" rel="noopener noreferrer">
-                                            <Eye className="h-4 w-4 mr-2" />
-                                            Consulter
-                                        </a>
+                                <div className="mt-6 flex flex-wrap gap-3">
+                                    <Button variant="outline" onClick={() => window.open(assignment.media_asset.url, '_blank')}>
+                                        <Eye className="h-4 w-4 mr-2" />
+                                        Consulter
                                     </Button>
-                                    <Button variant="outline" asChild>
-                                        <a href={assignment.media_asset.url} download={assignment.media_asset.filename}>
-                                            <Download className="h-4 w-4 mr-2" />
-                                            Télécharger
-                                        </a>
+
+                                    {!assignment.is_signed && assignment.signature_fields && assignment.signature_fields.length > 0 && (
+                                        <Button className="bg-pink-600 hover:bg-pink-700" onClick={() => handleSign(assignment)}>
+                                            <FileSignature className="h-4 w-4 mr-2" />
+                                            Signer
+                                        </Button>
+                                    )}
+
+                                    <Button variant="outline" onClick={() => handleDownload(assignment)}>
+                                        <Download className="h-4 w-4 mr-2" />
+                                        Télécharger
                                     </Button>
                                 </div>
                             </div>
@@ -133,6 +186,20 @@ export const StudentAssignedDocuments: React.FC<StudentAssignedDocumentsProps> =
                     </Card>
                 ))}
             </div>
+
+            {selectedAssignment && (
+                <DocumentSignerViewer
+                    isOpen={viewerOpen}
+                    onClose={() => {
+                        setViewerOpen(false);
+                        setSelectedAssignment(null);
+                    }}
+                    pdfUrl={selectedAssignment.media_asset.url || ''}
+                    fields={selectedAssignment.signature_fields || []}
+                    documentName={selectedAssignment.media_asset.filename}
+                    onComplete={handleSignatureComplete}
+                />
+            )}
         </div>
     );
 };

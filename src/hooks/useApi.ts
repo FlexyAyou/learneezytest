@@ -1268,7 +1268,13 @@ export const useBuyTokens = () => {
 export const useAssignMedia = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { user_id: number; media_asset_id: number; message?: string; phase?: string }) =>
+    mutationFn: (data: {
+      user_id: number;
+      media_asset_id: number;
+      message?: string;
+      phase?: string;
+      signature_fields?: any[];
+    }) =>
       fastAPIClient.assignMediaToUser(data),
     onSuccess: () => {
       toast({
@@ -1476,7 +1482,31 @@ export const useSignDocument = () => {
       });
     }
   });
+};
 
+/**
+ * Hook pour signer un document par zones interactives
+ */
+export const useSignDocumentFields = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { assignment_id: number; field_values: Record<string, string> }) =>
+      fastAPIClient.signDocumentFields(data.assignment_id, data.field_values),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-documents'] });
+      toast({
+        title: "Document signé",
+        description: "Toutes les zones ont été signées avec succès.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erreur",
+        description: error.response?.data?.detail || "Impossible de signer le document.",
+        variant: "destructive",
+      });
+    }
+  });
 };
 
 /**
