@@ -23,6 +23,7 @@ import { useOFUsers, useAssignments, useOrganization } from '@/hooks/useApi';
 import { Skeleton } from '@/components/ui/skeleton';
 import axios from 'axios';
 import { getTemplateForType, personalizeDocumentContent } from '@/utils/personalizeDocumentContent';
+import { DocumentSignerViewer } from '@/components/student/documents/DocumentSignerViewer';
 
 interface Learner {
   id: string;
@@ -52,6 +53,8 @@ interface SentDocument {
   htmlContent?: string;
   requiresSignature?: boolean;
   hasSignatureFields?: boolean;
+  signatureFields?: any[];
+  signedFieldValues?: Record<string, string>;
 }
 
 const OFEmargementPage: React.FC = () => {
@@ -65,6 +68,8 @@ const OFEmargementPage: React.FC = () => {
   const [previewDocument, setPreviewDocument] = useState<SentDocument | null>(null);
   const [previewContent, setPreviewContent] = useState<string | null>(null);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+  const [showSignerViewer, setShowSignerViewer] = useState(false);
+  const [signerViewerDoc, setSignerViewerDoc] = useState<SentDocument | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
 
   // Fetch real data
@@ -169,6 +174,8 @@ const OFEmargementPage: React.FC = () => {
         signedAt: a.signed_at,
         documentUrl: mediaAsset.url || a.url,
         hasSignatureFields: hasFields,
+        signatureFields: a.signature_fields,
+        signedFieldValues: a.signed_field_values,
       };
 
       if (!map[learnerId]) map[learnerId] = [];
@@ -288,7 +295,16 @@ const OFEmargementPage: React.FC = () => {
     setPreviewError(null);
     setIsPreviewLoading(true);
 
-    // 0. Si c'est un PDF (uploadé), on utilise directement l'URL dans l'iframe (pas de fetch texte)
+    // 0. Si c'est un PDF avec des champs de signature, ouvrir le DocumentSignerViewer en lecture seule
+    if (isPdfDocument(doc) && doc.documentUrl && doc.hasSignatureFields && doc.signatureFields?.length) {
+      setSignerViewerDoc(doc);
+      setShowSignerViewer(true);
+      setPreviewDocument(null);
+      setIsPreviewLoading(false);
+      return;
+    }
+
+    // 0b. Si c'est un PDF (uploadé) sans champs interactifs, on utilise directement l'URL dans l'iframe
     if (isPdfDocument(doc) && doc.documentUrl) {
       // previewContent reste null => l'iframe src sera utilisé
       setIsPreviewLoading(false);
@@ -953,6 +969,22 @@ const OFEmargementPage: React.FC = () => {
           )}
         </DialogContent>
       </Dialog>
+      {/* Document Signer Viewer (lecture seule pour l'OF) */}
+      {signerViewerDoc && signerViewerDoc.documentUrl && (
+        <DocumentSignerViewer
+          isOpen={showSignerViewer}
+          onClose={() => {
+            setShowSignerViewer(false);
+            setSignerViewerDoc(null);
+          }}
+          pdfUrl={signerViewerDoc.documentUrl}
+          fields={signerViewerDoc.signatureFields || []}
+          documentName={`${signerViewerDoc.title}${signerViewerDoc.status === 'signed' ? ' - Document signé' : ''}`}
+          onComplete={async () => {}}
+          readOnly={true}
+          initialFieldValues={signerViewerDoc.signedFieldValues || {}}
+        />
+      )}
     </div>
   );
 };
