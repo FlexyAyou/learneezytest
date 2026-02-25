@@ -1,14 +1,18 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { School, FileText, BookOpen, Calendar, ScrollText, Shield, AlertCircle, CheckCircle } from 'lucide-react';
+import { School, FileText, BookOpen, Calendar, ScrollText, Shield, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DocumentCard } from './DocumentCard';
 import { DocumentSignatureModal } from './DocumentSignatureModal';
 import { StudentDocumentPreviewModal } from './StudentDocumentPreviewModal';
 import { StudentAssignedDocuments } from './StudentAssignedDocuments';
 import { personalizeDocumentContent, getTemplateForType } from '@/utils/personalizeDocumentContent';
+import { useMyDocuments, useSignDocument, useSignDocumentFields } from '@/hooks/useApi';
+import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
+import { fastAPIClient } from '@/services/fastapi-client';
+import { DocumentSignerViewer } from './DocumentSignerViewer';
 
 interface Formation {
   id: string;
@@ -20,6 +24,7 @@ interface Formation {
 
 interface PhaseDocument {
   id: string;
+  assignmentId?: number;
   name: string;
   formationId: string;
   type: 'convocation' | 'programme' | 'cgv' | 'reglement_interieur' | 'attestation_honneur';
@@ -27,8 +32,12 @@ interface PhaseDocument {
   size: string;
   status: 'available' | 'signed' | 'received';
   requiresSignature?: boolean;
+  htmlContent?: string;
   learnerSignature?: string;
   signedAt?: string;
+  url?: string;
+  signatureFields?: any[];
+  signedFieldValues?: Record<string, string>;
 }
 
 interface StudentPhaseFormationProps {
@@ -38,114 +47,201 @@ interface StudentPhaseFormationProps {
 
 export const StudentPhaseFormation = ({ selectedFormation, formations }: StudentPhaseFormationProps) => {
   const { toast } = useToast();
+  const { user: currentUser } = useFastAPIAuth();
 
-  const [documents, setDocuments] = useState<PhaseDocument[]>([]);
+  const { data: assignments, isLoading: isLoadingDocs, refetch: refetchDocs } = useMyDocuments();
+  const signDocumentMutation = useSignDocument();
+  const signFieldsMutation = useSignDocumentFields();
 
+  const [localDocuments, setLocalDocuments] = useState<PhaseDocument[]>([]);
   const [signatureModalOpen, setSignatureModalOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<PhaseDocument | null>(null);
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [previewDocument, setPreviewDocument] = useState<{ title: string; content: string } | null>(null);
+  const [interactiveViewerOpen, setInteractiveViewerOpen] = useState(false);
+  const [interactiveViewerReadOnly, setInteractiveViewerReadOnly] = useState(false);
+
+  useEffect(() => {
+    if (assignments) {
+      const mappedDocs: PhaseDocument[] = (assignments as any[])
+        .filter(a => a.phase === 'formation' || a.phase === 'phase-formation')
+        .map(a => {
+          if (a._isNewSystem) {
+            const lowerName = (a.media_asset.filename || '').toLowerCase();
+            let type: PhaseDocument['type'] = 'programme';
+            if (lowerName.includes('convocation')) type = 'convocation';
+            else if (lowerName.includes('cgv') || lowerName.includes('conditions')) type = 'cgv';
+            else if (lowerName.includes('règlement') || lowerName.includes('reglement')) type = 'reglement_interieur';
+            else if (lowerName.includes('attestation') || lowerName.includes('honneur') || lowerName.includes('cpf')) type = 'attestation_honneur';
+
+            return {
+              id: a._docId,
+              assignmentId: undefined,
+              name: a.media_asset.filename,
+              formationId: formations.length > 0 ? formations[0].id : '',
+              type,
+              date: new Date(a.assigned_at).toISOString(),
+              size: `${Math.round(a.media_asset.size / 1024)} KB`,
+              status: a.is_signed ? 'signed' : 'available',
+              requiresSignature: a._requiresSignature && !a.is_signed,
+              htmlContent: a._htmlContent,
+              learnerSignature: a.signature_data,
+              signedAt: a.signed_at,
+              url: undefined,
+            } as PhaseDocument;
+          }
+
+          const lowerName = (a.media_asset.filename || '').toLowerCase();
+          let type: PhaseDocument['type'] = 'programme';
+          if (lowerName.includes('convocation')) type = 'convocation';
+          else if (lowerName.includes('cgv') || lowerName.includes('conditions')) type = 'cgv';
+          else if (lowerName.includes('règlement') || lowerName.includes('reglement')) type = 'reglement_interieur';
+          else if (lowerName.includes('attestation') || lowerName.includes('honneur') || lowerName.includes('cpf')) type = 'attestation_honneur';
+
+          return {
+            id: `api-${a.id}`,
+            assignmentId: a.id,
+            name: a.media_asset.filename,
+            formationId: formations.length > 0 ? formations[0].id : '',
+            type,
+            date: new Date(a.assigned_at).toISOString(),
+            size: `${Math.round(a.media_asset.size / 1024)} KB`,
+            status: a.is_signed ? 'signed' : 'available',
+            requiresSignature: !a.is_signed && !!a.signature_fields?.length,
+            url: a.media_asset.url,
+            learnerSignature: a.signature_data,
+            signedAt: a.signed_at,
+            signatureFields: a.signature_fields,
+            signedFieldValues: a.signed_field_values,
+          } as PhaseDocument;
+        });
+
+      setLocalDocuments(mappedDocs);
+    }
+  }, [assignments, formations]);
 
   const documentTypes = {
-    convocation: {
-      label: 'Convocation',
-      icon: Calendar,
-      description: 'Invitation à la formation',
-      color: 'text-orange-500'
-    },
-    programme: {
-      label: 'Programme de formation',
-      icon: BookOpen,
-      description: 'Détails du programme pédagogique',
-      color: 'text-emerald-500'
-    },
-    cgv: {
-      label: 'Conditions Générales de Vente',
-      icon: FileText,
-      description: 'Conditions commerciales et légales',
-      color: 'text-blue-500'
-    },
-    reglement_interieur: {
-      label: 'Règlement intérieur',
-      icon: ScrollText,
-      description: 'Règles de fonctionnement de la formation',
-      color: 'text-violet-500'
-    },
-    attestation_honneur: {
-      label: 'Attestation sur l\'honneur (CPF)',
-      icon: Shield,
-      description: 'Déclaration pour financement CPF',
-      color: 'text-amber-500'
-    }
+    convocation: { label: 'Convocation', icon: Calendar, description: 'Invitation à la formation', color: 'text-orange-500' },
+    programme: { label: 'Programme de formation', icon: BookOpen, description: 'Détails du programme pédagogique', color: 'text-emerald-500' },
+    cgv: { label: 'Conditions Générales de Vente', icon: FileText, description: 'Conditions commerciales et légales', color: 'text-blue-500' },
+    reglement_interieur: { label: 'Règlement intérieur', icon: ScrollText, description: 'Règles de fonctionnement de la formation', color: 'text-violet-500' },
+    attestation_honneur: { label: "Attestation sur l'honneur (CPF)", icon: Shield, description: 'Déclaration pour financement CPF', color: 'text-amber-500' }
   };
 
-  const filteredDocuments = documents.filter(doc =>
-    selectedFormation === 'all' || doc.formationId === selectedFormation
+  const filteredDocuments = localDocuments.filter(doc =>
+    selectedFormation === 'all' || doc.formationId === selectedFormation || true
   );
 
   const pendingSignatures = filteredDocuments.filter(doc => doc.requiresSignature && doc.status === 'available');
   const signedCount = filteredDocuments.filter(doc => doc.status === 'signed' || doc.status === 'received').length;
 
   const handleSign = (doc: PhaseDocument) => {
-    setSelectedDocument(doc);
-    setSignatureModalOpen(true);
+    if (doc.signatureFields && doc.signatureFields.length > 0) {
+      setSelectedDocument(doc);
+      setInteractiveViewerReadOnly(false);
+      setInteractiveViewerOpen(true);
+    } else {
+      setSelectedDocument(doc);
+      setSignatureModalOpen(true);
+    }
   };
 
   const handleSignatureComplete = (documentId: string, signatureData: string) => {
-    setDocuments(prev => prev.map(doc =>
-      doc.id === documentId
-        ? {
-          ...doc,
-          status: 'signed' as const,
-          requiresSignature: false,
-          learnerSignature: signatureData,
-          signedAt: new Date().toISOString()
-        }
-        : doc
-    ));
-    setSignatureModalOpen(false);
-    setSelectedDocument(null);
+    const doc = localDocuments.find(d => d.id === documentId);
+    if (selectedDocument && selectedDocument.assignmentId) {
+      return new Promise<void>((resolve, reject) => {
+        signDocumentMutation.mutate({
+          assignment_id: selectedDocument.assignmentId!,
+          signature_data: signatureData
+        }, {
+          onSuccess: () => {
+            refetchDocs();
+            setSignatureModalOpen(false);
+            setSelectedDocument(null);
+            resolve();
+          },
+          onError: (error) => {
+            console.error("Erreur signature:", error);
+            reject(error);
+          }
+        });
+      });
+    }
+    return Promise.resolve();
   };
 
-  const handleDownload = (doc: PhaseDocument) => {
-    toast({
-      title: "Téléchargement",
-      description: `Téléchargement de ${doc.name} en cours...`,
-    });
+  const handleInteractiveSignatureComplete = async (fieldValues: Record<string, string>) => {
+    if (!selectedDocument || !selectedDocument.assignmentId) return;
+    try {
+      await signFieldsMutation.mutateAsync({
+        assignment_id: selectedDocument.assignmentId,
+        field_values: fieldValues
+      });
+      refetchDocs();
+      setInteractiveViewerOpen(false);
+      setSelectedDocument(null);
+    } catch (error) {
+      console.error("Erreur signature interactive:", error);
+      throw error;
+    }
+  };
+
+  const handleDownload = async (doc: PhaseDocument) => {
+    if (doc.status === 'signed' && doc.signatureFields && doc.signatureFields.length > 0 && doc.assignmentId) {
+      try {
+        await fastAPIClient.downloadSignedPdf(doc.assignmentId);
+        return;
+      } catch (error) {
+        console.error("Erreur téléchargement PDF signé:", error);
+        toast({ title: "Erreur", description: "Impossible de générer le PDF signé.", variant: "destructive" });
+      }
+    }
+    if (doc.url) {
+      window.open(doc.url, '_blank');
+    } else {
+      toast({ title: "Téléchargement", description: `Téléchargement de ${doc.name} en cours...` });
+    }
   };
 
   const handlePreview = (doc: PhaseDocument) => {
-    const formation = formations.find(f => f.id === doc.formationId);
-    const template = getTemplateForType(doc.type);
-
-    if (template && formation) {
-      const personalizedContent = personalizeDocumentContent(template, formation, undefined, undefined, doc.learnerSignature);
-      setPreviewDocument({
-        title: documentTypes[doc.type].label,
-        content: personalizedContent
-      });
+    if (doc.htmlContent) {
+      setPreviewDocument({ title: documentTypes[doc.type]?.label || doc.name, content: doc.htmlContent });
       setPreviewModalOpen(true);
       return;
     }
-
-    toast({
-      title: "Aperçu",
-      description: `Ouverture de ${doc.name}...`,
-    });
+    if (doc.status === 'signed' && doc.signatureFields && doc.signatureFields.length > 0) {
+      setSelectedDocument(doc);
+      setInteractiveViewerReadOnly(true);
+      setInteractiveViewerOpen(true);
+      return;
+    }
+    if (doc.url) {
+      window.open(doc.url, '_blank');
+      return;
+    }
+    const formation = formations.find(f => f.id === doc.formationId);
+    const template = getTemplateForType(doc.type);
+    if (template && formation) {
+      const personalizedContent = personalizeDocumentContent(template, formation, undefined, undefined, doc.learnerSignature);
+      setPreviewDocument({ title: documentTypes[doc.type].label, content: personalizedContent });
+      setPreviewModalOpen(true);
+      return;
+    }
+    toast({ title: "Aperçu", description: `Ouverture de ${doc.name}...` });
   };
 
   const getFormationName = (formationId: string) => {
     const formation = formations.find(f => f.id === formationId);
-    return formation ? `${formation.name} - ${formation.level}` : '';
+    return formation ? `${formation.name} - ${formation.level}` : 'Formation';
   };
 
-  const groupedByFormation = formations.reduce((acc, formation) => {
-    const formationDocs = filteredDocuments.filter(doc => doc.formationId === formation.id);
-    if (formationDocs.length > 0) {
-      acc[formation.id] = { formation, documents: formationDocs };
-    }
-    return acc;
-  }, {} as Record<string, { formation: Formation; documents: PhaseDocument[] }>);
+  if (isLoadingDocs) {
+    return (
+      <div className="flex justify-center p-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -160,7 +256,6 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
             <p className="text-muted-foreground">Convocation, programme, CGV, règlement intérieur et attestation sur l'honneur</p>
           </div>
         </div>
-
         <div className="flex items-center gap-4">
           {pendingSignatures.length > 0 && (
             <Badge variant="destructive" className="gap-1.5 py-1.5 px-3">
@@ -181,7 +276,6 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
           const Icon = info.icon;
           const count = filteredDocuments.filter(doc => doc.type === type).length;
           const pending = filteredDocuments.filter(doc => doc.type === type && doc.status === 'available' && doc.requiresSignature).length;
-
           return (
             <Card key={type} className="border-l-4 border-l-primary/50">
               <CardContent className="p-4">
@@ -193,9 +287,7 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
                     <div className="flex items-center justify-between">
                       <p className="font-medium text-xs">{info.label}</p>
                       <div className="flex items-center gap-1">
-                        {pending > 0 && (
-                          <Badge variant="destructive" className="text-[10px] px-1.5">{pending}</Badge>
-                        )}
+                        {pending > 0 && <Badge variant="destructive" className="text-[10px] px-1.5">{pending}</Badge>}
                         <Badge variant="outline" className="text-[10px] px-1.5">{count}</Badge>
                       </div>
                     </div>
@@ -209,70 +301,15 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
       </div>
 
       {/* Documents list */}
-      {selectedFormation === 'all' ? (
-        <div className="space-y-6">
-          {Object.values(groupedByFormation).map(({ formation, documents }) => {
-            const pendingDocs = documents.filter(d => d.requiresSignature && d.status === 'available');
-
-            return (
-              <Card key={formation.id}>
-                <CardHeader className="pb-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-lg">{formation.name} - {formation.level}</CardTitle>
-                      <CardDescription>{formation.category}</CardDescription>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {pendingDocs.length > 0 && (
-                        <Badge variant="destructive" className="gap-1">
-                          <AlertCircle className="h-3 w-3" />
-                          {pendingDocs.length} à signer
-                        </Badge>
-                      )}
-                      <Badge variant="outline">{documents.length} document(s)</Badge>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {documents.map((doc) => {
-                    const typeInfo = documentTypes[doc.type];
-
-                    return (
-                      <DocumentCard
-                        key={doc.id}
-                        id={doc.id}
-                        name={doc.name}
-                        type={doc.type}
-                        typeLabel={typeInfo.label}
-                        typeIcon={typeInfo.icon}
-                        typeColor={typeInfo.color}
-                        date={doc.date}
-                        size={doc.size}
-                        status={doc.status}
-                        requiresSignature={doc.requiresSignature}
-                        onSign={() => handleSign(doc)}
-                        onDownload={() => handleDownload(doc)}
-                        onPreview={() => handlePreview(doc)}
-                      />
-                    );
-                  })}
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      ) : (
+      {filteredDocuments.length > 0 ? (
         <Card>
           <CardHeader>
             <CardTitle>Documents de la phase formation</CardTitle>
-            <CardDescription>
-              {filteredDocuments.length} document(s) pour la formation sélectionnée
-            </CardDescription>
+            <CardDescription>{filteredDocuments.length} document(s) assignés</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {filteredDocuments.map((doc) => {
               const typeInfo = documentTypes[doc.type];
-
               return (
                 <DocumentCard
                   key={doc.id}
@@ -294,6 +331,10 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
             })}
           </CardContent>
         </Card>
+      ) : (
+        <div className="text-center p-12 bg-muted/20 rounded-lg">
+          <p className="text-muted-foreground">Aucun document assigné pour cette phase.</p>
+        </div>
       )}
 
       {/* Additional Assigned Documents */}
@@ -308,10 +349,7 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
       {/* Signature Modal */}
       <DocumentSignatureModal
         isOpen={signatureModalOpen}
-        onClose={() => {
-          setSignatureModalOpen(false);
-          setSelectedDocument(null);
-        }}
+        onClose={() => { setSignatureModalOpen(false); setSelectedDocument(null); }}
         document={selectedDocument ? {
           id: selectedDocument.id,
           name: selectedDocument.name,
@@ -321,6 +359,7 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
           date: selectedDocument.date,
           size: selectedDocument.size
         } : null}
+        //@ts-ignore
         onSignatureComplete={handleSignatureComplete}
         htmlContent={selectedDocument ? (() => {
           const formation = formations.find(f => f.id === selectedDocument.formationId);
@@ -332,19 +371,26 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
       {/* Preview Modal */}
       <StudentDocumentPreviewModal
         isOpen={previewModalOpen}
-        onClose={() => {
-          setPreviewModalOpen(false);
-          setPreviewDocument(null);
-        }}
+        onClose={() => { setPreviewModalOpen(false); setPreviewDocument(null); }}
         title={previewDocument?.title || ''}
         htmlContent={previewDocument?.content || ''}
-        onDownload={() => {
-          toast({
-            title: "Téléchargement",
-            description: "Document téléchargé avec succès",
-          });
-        }}
+        onDownload={() => { toast({ title: "Téléchargement", description: "Document téléchargé avec succès" }); }}
       />
+
+      {/* Interactive Signer Viewer */}
+      {selectedDocument && interactiveViewerOpen && (
+        <DocumentSignerViewer
+          isOpen={interactiveViewerOpen}
+          onClose={() => { setInteractiveViewerOpen(false); setSelectedDocument(null); }}
+          pdfUrl={selectedDocument.url || ''}
+          fields={selectedDocument.signatureFields || []}
+          documentName={selectedDocument.name}
+          learnerName={currentUser ? `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() : undefined}
+          readOnly={interactiveViewerReadOnly}
+          initialFieldValues={selectedDocument.signedFieldValues}
+          onComplete={handleInteractiveSignatureComplete}
+        />
+      )}
     </div>
   );
 };
