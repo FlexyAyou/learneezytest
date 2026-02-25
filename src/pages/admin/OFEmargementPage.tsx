@@ -13,11 +13,13 @@ import {
   Users, Search, ChevronRight, FileSignature, CheckCircle2,
   XCircle, Clock, FileText, ArrowLeft, Shield, Mail,
   Phone, Building2, Calendar, Download, Eye, Printer,
-  AlertTriangle, Filter, SortAsc, X, Loader2
+  AlertTriangle, Filter, SortAsc, X, Loader2, Upload,
+  GraduationCap, BookOpen, ClipboardCheck, CalendarDays
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 import { useOFUsers, useAssignments, useOrganization } from '@/hooks/useApi';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -56,6 +58,7 @@ interface SentDocument {
   hasSignatureFields?: boolean;
   signatureFields?: any[];
   signedFieldValues?: Record<string, string>;
+  source?: 'template' | 'upload';
 }
 
 const OFEmargementPage: React.FC = () => {
@@ -73,6 +76,9 @@ const OFEmargementPage: React.FC = () => {
   const [showSignerViewer, setShowSignerViewer] = useState(false);
   const [signerViewerDoc, setSignerViewerDoc] = useState<SentDocument | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
+  const [activeDetailTab, setActiveDetailTab] = useState<string>('phases');
+  const [emargementDateFrom, setEmargementDateFrom] = useState<string>('');
+  const [emargementDateTo, setEmargementDateTo] = useState<string>('');
 
   // Fetch real data
   // Fetch learners and their documents via the dedicated emargements endpoint
@@ -143,7 +149,8 @@ const OFEmargementPage: React.FC = () => {
           signatureData: d.signature_data,
           documentUrl: d.document_url,
           htmlContent: d.html_content,
-          hasSignatureFields: d.has_signature_fields
+          hasSignatureFields: d.has_signature_fields,
+          source: 'template' as const,
         }));
       });
     }
@@ -178,6 +185,7 @@ const OFEmargementPage: React.FC = () => {
         hasSignatureFields: hasFields,
         signatureFields: a.signature_fields,
         signedFieldValues: a.signed_field_values,
+        source: 'upload' as const,
       };
 
       if (!map[learnerId]) map[learnerId] = [];
@@ -606,18 +614,173 @@ const OFEmargementPage: React.FC = () => {
   }
 
   // Learner detail view
-  const groupedDocs = learnerAssignments.reduce((acc, doc) => {
-    if (!acc[doc.phase]) acc[doc.phase] = [];
-    acc[doc.phase].push(doc);
+  const PHASE_ORDER = ['inscription', 'phase-inscription', 'formation', 'post-formation', 'suivi'];
+  const PHASE_ICONS: Record<string, React.ElementType> = {
+    'inscription': ClipboardCheck,
+    'phase-inscription': ClipboardCheck,
+    'formation': BookOpen,
+    'post-formation': GraduationCap,
+    'suivi': CalendarDays,
+  };
+
+  // Separate template docs (by phase) from uploaded docs
+  const templateDocs = learnerAssignments.filter(d => d.source !== 'upload');
+  const uploadedDocs = learnerAssignments.filter(d => d.source === 'upload');
+
+  // Group template docs by phase
+  const groupedByPhase = templateDocs.reduce((acc, doc) => {
+    const phase = doc.phase || 'formation';
+    if (!acc[phase]) acc[phase] = [];
+    acc[phase].push(doc);
     return acc;
   }, {} as Record<string, SentDocument[]>);
+
+  // Sort phases
+  const sortedPhases = Object.keys(groupedByPhase).sort((a, b) => {
+    const ia = PHASE_ORDER.indexOf(a);
+    const ib = PHASE_ORDER.indexOf(b);
+    return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+  });
+
+  // Émargement docs (type contains 'emargement' or 'attestation_realisation')
+  const emargementDocs = learnerAssignments.filter(d =>
+    d.type?.includes('emargement') || d.type?.includes('attestation_realisation') || d.type?.includes('feuille')
+  );
+
+  // Date filter for émargements
+  const filteredEmargements = emargementDocs.filter(d => {
+    if (!emargementDateFrom && !emargementDateTo) return true;
+    const docDate = d.sentAt ? new Date(d.sentAt) : null;
+    if (!docDate) return true;
+    if (emargementDateFrom && docDate < new Date(emargementDateFrom)) return false;
+    if (emargementDateTo && docDate > new Date(emargementDateTo + 'T23:59:59')) return false;
+    return true;
+  });
+
+  const renderDocTable = (docs: SentDocument[]) => (
+    <Table>
+      <TableHeader>
+        <TableRow className="bg-muted/50">
+          <TableHead className="font-semibold">Document</TableHead>
+          <TableHead className="font-semibold">Envoyé le</TableHead>
+          <TableHead className="font-semibold">Statut</TableHead>
+          <TableHead className="font-semibold">Signé le</TableHead>
+          <TableHead className="text-right font-semibold">Actions</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {docs.map((doc) => {
+          const isSigned = doc.status === 'signed';
+          const needsSignature = doc.requiresSignature !== false && !isSigned;
+          const effectiveStatus = (doc.status === 'pending' && !doc.requiresSignature) ? 'sent' : doc.status;
+          const statusConfig = { ...getStatusConfig(effectiveStatus) };
+          if (!doc.requiresSignature && doc.status === 'pending') {
+            statusConfig.label = 'Disponible';
+          }
+          const StatusIcon = statusConfig.icon;
+          return (
+            <TableRow
+              key={doc.id}
+              className={cn(
+                "transition-colors hover:bg-muted/30",
+                isSigned && "bg-green-50/30"
+              )}
+            >
+              <TableCell>
+                <div className="flex items-start gap-3">
+                  <div className={cn(
+                    "w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0",
+                    isSigned ? "bg-green-100" : (needsSignature ? "bg-amber-100" : "bg-blue-100")
+                  )}>
+                    {doc.source === 'upload' ? (
+                      <Upload className={cn("h-5 w-5", isSigned ? "text-green-600" : "text-amber-600")} />
+                    ) : (
+                      <FileText className={cn("h-5 w-5", isSigned ? "text-green-600" : (needsSignature ? "text-amber-600" : "text-blue-600"))} />
+                    )}
+                  </div>
+                  <div>
+                    <div className="font-medium text-sm">{doc.title}</div>
+                    <div className="text-xs text-muted-foreground capitalize mt-0.5">
+                      {doc.source === 'upload' ? 'Document uploadé' : (doc.type ? doc.type.replace(/_/g, ' ') : 'Ressource')}
+                    </div>
+                  </div>
+                </div>
+              </TableCell>
+              <TableCell>
+                {doc.sentAt ? (
+                  <>
+                    <div className="text-sm">
+                      {new Date(doc.sentAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {new Date(doc.sentAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  </>
+                ) : (
+                  <span className="text-sm text-muted-foreground">—</span>
+                )}
+              </TableCell>
+              <TableCell>
+                <Badge
+                  variant={statusConfig.variant}
+                  className={cn(
+                    "gap-1.5 px-3 py-1",
+                    isSigned
+                      ? "bg-green-100 text-green-800 border-green-300 hover:bg-green-200"
+                      : (needsSignature
+                        ? "bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-200"
+                        : "bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200")
+                  )}
+                >
+                  <StatusIcon className="h-3.5 w-3.5" />
+                  {statusConfig.label}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                {doc.signedAt ? (
+                  <div>
+                    <div className="text-sm font-medium text-green-700">
+                      {new Date(doc.signedAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    </div>
+                    <div className="text-xs text-green-600">
+                      {new Date(doc.signedAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  </div>
+                ) : (
+                  <span className="text-sm text-muted-foreground">—</span>
+                )}
+              </TableCell>
+              <TableCell className="text-right">
+                <div className="flex justify-end gap-2">
+                  {doc.documentUrl || doc.htmlContent ? (
+                    <>
+                      <Button size="sm" variant="outline" onClick={() => handleOpenPreview(doc)} className="gap-1.5">
+                        <Eye className="h-4 w-4" />
+                        Visualiser
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => handleDownload(doc)} className="gap-1.5">
+                        <Download className="h-4 w-4" />
+                        Télécharger
+                      </Button>
+                    </>
+                  ) : (
+                    <span className="text-xs text-muted-foreground italic">Document indisponible</span>
+                  )}
+                </div>
+              </TableCell>
+            </TableRow>
+          );
+        })}
+      </TableBody>
+    </Table>
+  );
 
   return (
     <div className="space-y-6">
       {/* Header with back button */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="outline" onClick={() => setSelectedLearnerId(null)}>
+          <Button variant="outline" onClick={() => { setSelectedLearnerId(null); setActiveDetailTab('phases'); }}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Retour à la liste
           </Button>
@@ -673,175 +836,153 @@ const OFEmargementPage: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Documents by Phase */}
-      <div className="space-y-4">
-        {Object.entries(groupedDocs).length === 0 ? (
-          <Card>
-            <CardContent className="p-10 text-center text-muted-foreground">
-              Aucun document assigné à cet apprenant.
-            </CardContent>
-          </Card>
-        ) : (
-          Object.entries(groupedDocs).map(([phase, docs]) => (
-            <Card key={phase}>
+      {/* Tabs: Phases / Documents uploadés / Émargements */}
+      <Tabs value={activeDetailTab} onValueChange={setActiveDetailTab}>
+        <TabsList className="w-full grid grid-cols-3">
+          <TabsTrigger value="phases" className="gap-2">
+            <FileText className="h-4 w-4" />
+            Par phase
+          </TabsTrigger>
+          <TabsTrigger value="uploads" className="gap-2">
+            <Upload className="h-4 w-4" />
+            Documents uploadés
+            {uploadedDocs.length > 0 && (
+              <Badge variant="secondary" className="ml-1 text-xs">{uploadedDocs.length}</Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="emargements" className="gap-2">
+            <FileSignature className="h-4 w-4" />
+            Feuilles d'émargement
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Tab: Par phase */}
+        <TabsContent value="phases" className="space-y-4 mt-4">
+          {sortedPhases.length === 0 && uploadedDocs.length === 0 ? (
+            <Card>
+              <CardContent className="p-10 text-center text-muted-foreground">
+                Aucun document assigné à cet apprenant.
+              </CardContent>
+            </Card>
+          ) : (
+            sortedPhases.map((phase) => {
+              const docs = groupedByPhase[phase];
+              const PhaseIcon = PHASE_ICONS[phase] || FileText;
+              const signedCount = docs.filter(d => d.status === 'signed').length;
+              return (
+                <Card key={phase}>
+                  <CardHeader className="py-4">
+                    <CardTitle className="text-lg flex items-center justify-between">
+                      <span className="flex items-center gap-2">
+                        <PhaseIcon className="h-5 w-5 text-primary" />
+                        {getPhaseLabel(phase)}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={signedCount === docs.length ? 'default' : 'secondary'} className={signedCount === docs.length ? 'bg-green-600' : ''}>
+                          {signedCount}/{docs.length} signé{signedCount > 1 ? 's' : ''}
+                        </Badge>
+                      </div>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    {renderDocTable(docs)}
+                  </CardContent>
+                </Card>
+              );
+            })
+          )}
+        </TabsContent>
+
+        {/* Tab: Documents uploadés */}
+        <TabsContent value="uploads" className="space-y-4 mt-4">
+          {uploadedDocs.length === 0 ? (
+            <Card>
+              <CardContent className="p-10 text-center text-muted-foreground">
+                <Upload className="h-12 w-12 mx-auto mb-3 text-muted-foreground/50" />
+                <p>Aucun document uploadé pour cet apprenant.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
               <CardHeader className="py-4">
                 <CardTitle className="text-lg flex items-center justify-between">
                   <span className="flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
-                    {getPhaseLabel(phase)}
+                    <Upload className="h-5 w-5 text-primary" />
+                    Documents uploadés
                   </span>
-                  <Badge variant="secondary">{docs.length} document(s)</Badge>
+                  <Badge variant="secondary">{uploadedDocs.length} document(s)</Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-muted/50">
-                      <TableHead className="font-semibold">Document</TableHead>
-                      <TableHead className="font-semibold">Envoyé le</TableHead>
-                      <TableHead className="font-semibold">Statut</TableHead>
-                      <TableHead className="font-semibold">Signé le</TableHead>
-                      <TableHead className="text-right font-semibold">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {docs.map((doc) => {
-                      const isSigned = doc.status === 'signed';
-                      const needsSignature = doc.requiresSignature !== false && !isSigned;
-
-                      // If signature not required and not signed, show as 'sent'
-                      const effectiveStatus = (doc.status === 'pending' && !doc.requiresSignature) ? 'sent' : doc.status;
-                      const statusConfig = getStatusConfig(effectiveStatus);
-
-                      // Custom labels for non-signature docs
-                      if (!doc.requiresSignature && doc.status === 'pending') {
-                        statusConfig.label = 'Disponible';
-                      }
-
-                      const StatusIcon = statusConfig.icon;
-                      return (
-                        <TableRow
-                          key={doc.id}
-                          className={cn(
-                            "transition-colors hover:bg-muted/30",
-                            isSigned && "bg-green-50/30"
-                          )}
-                        >
-                          <TableCell>
-                            <div className="flex items-start gap-3">
-                              <div className={cn(
-                                "w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0",
-                                isSigned ? "bg-green-100" : (needsSignature ? "bg-amber-100" : "bg-blue-100")
-                              )}>
-                                <FileText className={cn(
-                                  "h-5 w-5",
-                                  isSigned ? "text-green-600" : (needsSignature ? "text-amber-600" : "text-blue-600")
-                                )} />
-                              </div>
-                              <div>
-                                <div className="font-medium text-sm">{doc.title}</div>
-                                <div className="text-xs text-muted-foreground capitalize mt-0.5">
-                                  {doc.type ? doc.type.replace(/_/g, ' ') : 'Ressource'}
-                                </div>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {doc.sentAt ? (
-                              <>
-                                <div className="text-sm">
-                                  {new Date(doc.sentAt).toLocaleDateString('fr-FR', {
-                                    day: '2-digit',
-                                    month: 'short',
-                                    year: 'numeric'
-                                  })}
-                                </div>
-                                <div className="text-xs text-muted-foreground">
-                                  {new Date(doc.sentAt).toLocaleTimeString('fr-FR', {
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                  })}
-                                </div>
-                              </>
-                            ) : (
-                              <span className="text-sm text-muted-foreground">—</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              variant={statusConfig.variant}
-                              className={cn(
-                                "gap-1.5 px-3 py-1",
-                                isSigned
-                                  ? "bg-green-100 text-green-800 border-green-300 hover:bg-green-200"
-                                  : (needsSignature
-                                    ? "bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-200"
-                                    : "bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200")
-                              )}
-                            >
-                              <StatusIcon className="h-3.5 w-3.5" />
-                              {statusConfig.label}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {doc.signedAt ? (
-                              <div>
-                                <div className="text-sm font-medium text-green-700">
-                                  {new Date(doc.signedAt).toLocaleDateString('fr-FR', {
-                                    day: '2-digit',
-                                    month: 'short',
-                                    year: 'numeric'
-                                  })}
-                                </div>
-                                <div className="text-xs text-green-600">
-                                  {new Date(doc.signedAt).toLocaleTimeString('fr-FR', {
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                  })}
-                                </div>
-                              </div>
-                            ) : (
-                              <span className="text-sm text-muted-foreground">—</span>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              {doc.documentUrl || doc.htmlContent ? (
-                                <>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleOpenPreview(doc)}
-                                    className="gap-1.5"
-                                  >
-                                    <Eye className="h-4 w-4" />
-                                    Visualiser
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleDownload(doc)}
-                                    className="gap-1.5 text-blue-700 border-blue-300 hover:bg-blue-50"
-                                  >
-                                    <Download className="h-4 w-4" />
-                                    Télécharger
-                                  </Button>
-                                </>
-                              ) : (
-                                <span className="text-xs text-muted-foreground italic">Document indisponible</span>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
+                {renderDocTable(uploadedDocs)}
               </CardContent>
             </Card>
-          ))
-        )}
-      </div>
+          )}
+        </TabsContent>
+
+        {/* Tab: Feuilles d'émargement */}
+        <TabsContent value="emargements" className="space-y-4 mt-4">
+          {/* Date filters */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Filter className="h-4 w-4" />
+                  Filtrer par date :
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-sm text-muted-foreground">Du</label>
+                  <input
+                    type="date"
+                    value={emargementDateFrom}
+                    onChange={e => setEmargementDateFrom(e.target.value)}
+                    className="border rounded-md px-3 py-1.5 text-sm bg-background"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-sm text-muted-foreground">Au</label>
+                  <input
+                    type="date"
+                    value={emargementDateTo}
+                    onChange={e => setEmargementDateTo(e.target.value)}
+                    className="border rounded-md px-3 py-1.5 text-sm bg-background"
+                  />
+                </div>
+                {(emargementDateFrom || emargementDateTo) && (
+                  <Button variant="ghost" size="sm" onClick={() => { setEmargementDateFrom(''); setEmargementDateTo(''); }}>
+                    <X className="h-4 w-4 mr-1" />
+                    Réinitialiser
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {filteredEmargements.length === 0 ? (
+            <Card>
+              <CardContent className="p-10 text-center text-muted-foreground">
+                <FileSignature className="h-12 w-12 mx-auto mb-3 text-muted-foreground/50" />
+                <p>Aucune feuille d'émargement trouvée{(emargementDateFrom || emargementDateTo) ? ' pour cette période' : ''}.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardHeader className="py-4">
+                <CardTitle className="text-lg flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <FileSignature className="h-5 w-5 text-primary" />
+                    Feuilles d'émargement
+                  </span>
+                  <Badge variant="secondary">{filteredEmargements.length} document(s)</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                {renderDocTable(filteredEmargements)}
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+      </Tabs>
 
       {/* Document Preview Dialog */}
       <Dialog open={!!previewDocument} onOpenChange={() => setPreviewDocument(null)}>
