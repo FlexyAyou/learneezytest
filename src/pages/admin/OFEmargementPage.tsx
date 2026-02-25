@@ -76,6 +76,13 @@ const OFEmargementPage: React.FC = () => {
     enabled: !!ofId
   });
 
+  // Fetch uploaded/assigned documents (PDFs envoyés via le système de media)
+  const { data: assignmentsData, isLoading: assignmentsLoading } = useQuery({
+    queryKey: ['assignments-of', ofId],
+    queryFn: () => fastAPIClient.listAssignments({ of_id: Number(ofId), per_page: 500 }),
+    enabled: !!ofId
+  });
+
   // Fetch templates to use user-edited versions for preview fallback
   const { data: templates = [] } = useQuery({
     queryKey: ['documentTemplates', ofId],
@@ -113,6 +120,7 @@ const OFEmargementPage: React.FC = () => {
   const assignmentsMap = useMemo(() => {
     const map: Record<string, SentDocument[]> = {};
 
+    // 1. Documents from emargements (template-based)
     if (emargementData?.learners) {
       emargementData.learners.forEach((l: any) => {
         const learnerId = l.learner_id.toString();
@@ -122,7 +130,7 @@ const OFEmargementPage: React.FC = () => {
           type: d.type || 'document',
           phase: d.phase,
           sentAt: d.sent_at,
-          status: d.status, // already mapped to 'sent' | 'signed' | etc by backend
+          status: d.status,
           requiresSignature: d.requires_signature,
           signedAt: d.signed_at,
           signatureData: d.signature_data,
@@ -133,8 +141,42 @@ const OFEmargementPage: React.FC = () => {
       });
     }
 
+    // 2. Merge uploaded/assigned documents (media assets)
+    const rawAssignments = Array.isArray(assignmentsData) ? assignmentsData : assignmentsData?.items || assignmentsData?.results || [];
+    rawAssignments.forEach((a: any) => {
+      const learnerId = (a.user_id || a.learner_id)?.toString();
+      if (!learnerId) return;
+
+      // Avoid duplicates: skip if same id already exists
+      const existing = map[learnerId] || [];
+      const assignmentId = `media-${a.id}`;
+      if (existing.some(d => d.id === assignmentId || d.id === a.id?.toString())) return;
+
+      const mediaAsset = a.media_asset || {};
+      const title = a.message || mediaAsset.original_filename || mediaAsset.filename || 'Document uploadé';
+      const phase = a.phase || a.metadata?.phase || 'formation';
+      const isSigned = a.is_signed || a.status === 'signed';
+      const hasFields = Array.isArray(a.signature_fields) && a.signature_fields.length > 0;
+
+      const doc: SentDocument = {
+        id: assignmentId,
+        title: title.replace(/^Document (à signer|envoyé par l'OF) : /, ''),
+        type: mediaAsset.content_type?.includes('pdf') ? 'pdf' : 'document',
+        phase,
+        sentAt: a.assigned_at || a.created_at,
+        status: isSigned ? 'signed' : 'pending',
+        requiresSignature: hasFields,
+        signedAt: a.signed_at,
+        documentUrl: mediaAsset.url || a.url,
+        hasSignatureFields: hasFields,
+      };
+
+      if (!map[learnerId]) map[learnerId] = [];
+      map[learnerId].push(doc);
+    });
+
     return map;
-  }, [emargementData]);
+  }, [emargementData, assignmentsData]);
 
   const selectedLearner = useMemo(() =>
     learners.find(l => l.id === selectedLearnerId),
