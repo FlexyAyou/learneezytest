@@ -166,15 +166,21 @@ export const StudentAssignedDocuments: React.FC<StudentAssignedDocumentsProps> =
                                 )}
 
                                 <div className="mt-6 flex flex-wrap gap-3">
-                                    <Button variant="outline" onClick={() => window.open(assignment.media_asset.url, '_blank')}>
-                                        <Eye className="h-4 w-4 mr-2" />
-                                        Consulter
-                                    </Button>
-
-                                    {!assignment.is_signed && assignment.signature_fields && assignment.signature_fields.length > 0 && (
-                                        <Button className="bg-pink-600 hover:bg-pink-700" onClick={() => handleSign(assignment)}>
-                                            <FileSignature className="h-4 w-4 mr-2" />
-                                            Signer
+                                    {!assignment.is_signed && assignment.signature_fields && assignment.signature_fields.length > 0 ? (
+                                        <>
+                                            <Button className="bg-pink-600 hover:bg-pink-700" onClick={() => handleSign(assignment)}>
+                                                <FileSignature className="h-4 w-4 mr-2" />
+                                                Signer le document
+                                            </Button>
+                                            <Button variant="outline" onClick={() => handleSign(assignment)}>
+                                                <Eye className="h-4 w-4 mr-2" />
+                                                Consulter
+                                            </Button>
+                                        </>
+                                    ) : (
+                                        <Button variant="outline" onClick={() => window.open(assignment.media_asset.url, '_blank')}>
+                                            <Eye className="h-4 w-4 mr-2" />
+                                            Consulter
                                         </Button>
                                     )}
 
