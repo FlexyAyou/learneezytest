@@ -59,6 +59,13 @@ interface SentDocument {
   signatureFields?: any[];
   signedFieldValues?: Record<string, string>;
   source?: 'template' | 'upload';
+  signatureMetadata?: {
+    ip?: string;
+    user_agent?: string;
+    identity_verified_at?: string;
+    honor_declaration?: boolean;
+    fingerprint?: string;
+  };
 }
 
 const OFEmargementPage: React.FC = () => {
@@ -157,6 +164,7 @@ const OFEmargementPage: React.FC = () => {
           htmlContent: d.html_content,
           hasSignatureFields: d.has_signature_fields,
           source: 'template' as const,
+          signatureMetadata: d.signature_metadata,
         }));
       });
     }
@@ -192,6 +200,7 @@ const OFEmargementPage: React.FC = () => {
         signatureFields: a.signature_fields,
         signedFieldValues: a.signed_field_values,
         source: 'upload' as const,
+        signatureMetadata: a.signature_metadata,
       };
 
       if (!map[learnerId]) map[learnerId] = [];
@@ -1107,6 +1116,58 @@ const OFEmargementPage: React.FC = () => {
                             <p className="text-[10px] text-muted-foreground mt-2">
                               Signé électroniquement le {new Date(previewDocument.signedAt!).toLocaleString('fr-FR')}
                             </p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Identity Proof Card */}
+                    {previewDocument.signatureMetadata && (
+                      <Card className="border-blue-200 bg-blue-50/50">
+                        <CardHeader className="py-3">
+                          <CardTitle className="text-sm flex items-center gap-2">
+                            <Shield className="h-4 w-4 text-blue-600" />
+                            Preuve d'identité
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="pt-0">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            {previewDocument.signatureMetadata.honor_declaration && (
+                              <div className="flex items-start gap-2 col-span-full">
+                                <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                                <span className="text-green-700 font-medium">
+                                  Déclaration sur l'honneur confirmée
+                                </span>
+                              </div>
+                            )}
+                            {previewDocument.signatureMetadata.identity_verified_at && (
+                              <div>
+                                <div className="text-muted-foreground">Vérification le</div>
+                                <div className="font-medium">
+                                  {new Date(previewDocument.signatureMetadata.identity_verified_at).toLocaleString('fr-FR')}
+                                </div>
+                              </div>
+                            )}
+                            {previewDocument.signatureMetadata.ip && (
+                              <div>
+                                <div className="text-muted-foreground">Adresse IP</div>
+                                <div className="font-mono font-medium">{previewDocument.signatureMetadata.ip}</div>
+                              </div>
+                            )}
+                            {previewDocument.signatureMetadata.user_agent && (
+                              <div className="col-span-full">
+                                <div className="text-muted-foreground">Navigateur (User-Agent)</div>
+                                <div className="font-mono text-xs break-all mt-1 p-2 bg-background rounded border">
+                                  {previewDocument.signatureMetadata.user_agent}
+                                </div>
+                              </div>
+                            )}
+                            {previewDocument.signatureMetadata.fingerprint && (
+                              <div>
+                                <div className="text-muted-foreground">Empreinte session</div>
+                                <div className="font-mono text-xs">{previewDocument.signatureMetadata.fingerprint}</div>
+                              </div>
+                            )}
                           </div>
                         </CardContent>
                       </Card>
