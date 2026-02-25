@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
 import { SignatureField, FIELD_CONFIG } from '@/types/document-fields';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ElectronicSignature } from '@/components/common/ElectronicSignature';
@@ -118,6 +118,11 @@ export const DocumentSignerViewer: React.FC<DocumentSignerViewerProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-[90vw] max-h-[90vh] w-full h-[85vh] p-0 flex flex-col overflow-hidden">
+        <DialogTitle className="sr-only">{documentName}</DialogTitle>
+        <DialogDescription className="sr-only">
+          {readOnly ? "Aperçu du document en lecture seule. " : "Signer les champs obligatoires du document. "}
+          {requiredFields.length} champ{requiredFields.length > 1 ? 's' : ''} à remplir.
+        </DialogDescription>
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-3 border-b">
           <div className="flex items-center gap-3">

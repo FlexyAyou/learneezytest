@@ -5,8 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { FileText, CheckCircle, Clock, Eye, PenTool, Download } from 'lucide-react';
-import { useMyDocuments, useSignDocument, useSaveDocument, useOrganization } from '@/hooks/useApi';
+import { useMyDocuments, useSignDocument, useSaveDocument, useOrganization, useSignDocumentFields } from '@/hooks/useApi';
 import { SignatureCanvas } from '@/components/signature/SignatureCanvas';
+import { DocumentSignerViewer } from '@/components/student/documents/DocumentSignerViewer';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Loader2, Save } from 'lucide-react';
@@ -16,11 +17,13 @@ export const StudentDocumentsPage: React.FC = () => {
     const { user } = useFastAPIAuth();
     const { data: documents, isLoading } = useMyDocuments();
     const signDocument = useSignDocument();
+    const signDocumentFields = useSignDocumentFields();
     const saveDocument = useSaveDocument();
 
     const [selectedDocument, setSelectedDocument] = useState<any | null>(null);
     const [showSignatureDialog, setShowSignatureDialog] = useState(false);
     const [showDocumentDialog, setShowDocumentDialog] = useState(false);
+    const [showSignerViewer, setShowSignerViewer] = useState(false);
 
     const [htmlContent, setHtmlContent] = useState<string | null>(null);
     const documentContainerRef = React.useRef<HTMLDivElement>(null);
@@ -71,18 +74,38 @@ export const StudentDocumentsPage: React.FC = () => {
 
     const handleSignDocument = async (doc: any) => {
         setSelectedDocument(doc);
-        if (doc.html_content) {
-            setHtmlContent(replacePlaceholders(doc.html_content));
-        } else if (doc.media_asset && doc.media_asset.content_type === 'text/html') {
-            try {
-                const response = await fetch(doc.media_asset.download_url);
-                const text = await response.text();
-                setHtmlContent(replacePlaceholders(text));
-            } catch (error) {
-                console.error("Erreur chargement document HTML", error);
+        // Si le document a des signature_fields, ouvrir le DocumentSignerViewer
+        if (doc.signature_fields && doc.signature_fields.length > 0) {
+            setShowSignerViewer(true);
+        } else {
+            // Sinon, utiliser l'ancien système de signature
+            if (doc.html_content) {
+                setHtmlContent(replacePlaceholders(doc.html_content));
+            } else if (doc.media_asset && doc.media_asset.content_type === 'text/html') {
+                try {
+                    const response = await fetch(doc.media_asset.download_url);
+                    const text = await response.text();
+                    setHtmlContent(replacePlaceholders(text));
+                } catch (error) {
+                    console.error("Erreur chargement document HTML", error);
+                }
             }
+            setShowSignatureDialog(true);
         }
-        setShowSignatureDialog(true);
+    };
+
+    const handleSignerComplete = async (fieldValues: Record<string, string>) => {
+        if (!selectedDocument) return;
+        try {
+            await signDocumentFields.mutateAsync({
+                assignment_id: selectedDocument.id,
+                field_values: fieldValues
+            });
+            setShowSignerViewer(false);
+            setSelectedDocument(null);
+        } catch (error) {
+            console.error('Erreur lors de la signature', error);
+        }
     };
 
     const captureHtmlContent = (freeze: boolean = false): string | null => {
@@ -322,15 +345,17 @@ export const StudentDocumentsPage: React.FC = () => {
                                                     onClick={() => handleViewDocument(doc)}
                                                 >
                                                     <Eye className="h-4 w-4 mr-1" />
-                                                    Voir
+                                                    Consulter
                                                 </Button>
-                                                <Button
-                                                    size="sm"
-                                                    onClick={() => handleSignDocument(doc)}
-                                                >
-                                                    <PenTool className="h-4 w-4 mr-1" />
-                                                    Signer
-                                                </Button>
+                                                {doc.signature_fields && doc.signature_fields.length > 0 && (
+                                                    <Button
+                                                        size="sm"
+                                                        onClick={() => handleSignDocument(doc)}
+                                                    >
+                                                        <PenTool className="h-4 w-4 mr-1" />
+                                                        Signer le document
+                                                    </Button>
+                                                )}
                                             </div>
                                         </TableCell>
                                     </TableRow>
@@ -528,6 +553,23 @@ export const StudentDocumentsPage: React.FC = () => {
                     )}
                 </DialogContent>
             </Dialog>
+
+            {/* Document Signer Viewer */}
+            {selectedDocument && (
+                <DocumentSignerViewer
+                    isOpen={showSignerViewer}
+                    onClose={() => {
+                        setShowSignerViewer(false);
+                        setSelectedDocument(null);
+                    }}
+                    pdfUrl={selectedDocument.media_asset?.download_url || ''}
+                    fields={selectedDocument.signature_fields || []}
+                    documentName={selectedDocument.media_asset?.key?.split('/').pop() || 'Document'}
+                    onComplete={handleSignerComplete}
+                    learnerName={user ? `${user.first_name} ${user.last_name}` : undefined}
+                    initialFieldValues={selectedDocument.signed_field_values || {}}
+                />
+            )}
         </div>
     );
 };
