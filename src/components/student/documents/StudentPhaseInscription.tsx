@@ -59,6 +59,7 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [previewDocument, setPreviewDocument] = useState<{ title: string; content: string } | null>(null);
   const [interactiveViewerOpen, setInteractiveViewerOpen] = useState(false);
+  const [interactiveViewerReadOnly, setInteractiveViewerReadOnly] = useState(false);
 
   // States for interactive Needs Analysis
   const [needsAnalysisOpen, setNeedsAnalysisOpen] = useState(false);
@@ -155,6 +156,7 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
       setNeedsAnalysisOpen(true);
     } else if (doc.signatureFields && doc.signatureFields.length > 0) {
       setSelectedDocument(doc);
+      setInteractiveViewerReadOnly(false);
       setInteractiveViewerOpen(true);
     } else {
       setSelectedDocument(doc);
@@ -239,10 +241,17 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
     // New system: show HTML content
     if (doc.htmlContent) {
       setPreviewDocument({
-        title: documentTypes[doc.type].label,
+        title: documentTypes[doc.type as keyof typeof documentTypes]?.label || doc.name,
         content: doc.htmlContent
       });
       setPreviewModalOpen(true);
+      return;
+    }
+
+    if (doc.status === 'signed' && doc.signatureFields && doc.signatureFields.length > 0) {
+      setSelectedDocument(doc);
+      setInteractiveViewerReadOnly(true);
+      setInteractiveViewerOpen(true);
       return;
     }
 
@@ -477,6 +486,8 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
           fields={selectedDocument.signatureFields || []}
           documentName={selectedDocument.name}
           learnerName={currentUser ? `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() : undefined}
+          readOnly={interactiveViewerReadOnly}
+          initialFieldValues={selectedDocument.signedFieldValues}
           onComplete={handleInteractiveSignatureComplete}
         />
       )}

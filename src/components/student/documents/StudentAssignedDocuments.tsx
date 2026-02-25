@@ -55,11 +55,23 @@ export const StudentAssignedDocuments: React.FC<StudentAssignedDocumentsProps> =
     const { user: currentUser } = useFastAPIAuth();
     const [selectedAssignment, setSelectedAssignment] = React.useState<UserMediaAssignment | null>(null);
     const [viewerOpen, setViewerOpen] = React.useState(false);
+    const [viewerReadOnly, setViewerReadOnly] = React.useState(false);
     const signFieldsMutation = useSignDocumentFields();
 
     const handleSign = (assignment: UserMediaAssignment) => {
         setSelectedAssignment(assignment);
+        setViewerReadOnly(false);
         setViewerOpen(true);
+    };
+
+    const handleView = (assignment: UserMediaAssignment) => {
+        if (assignment.is_signed && assignment.signature_fields && assignment.signature_fields.length > 0) {
+            setSelectedAssignment(assignment);
+            setViewerReadOnly(true);
+            setViewerOpen(true);
+        } else if (assignment.media_asset.url) {
+            window.open(assignment.media_asset.url, '_blank');
+        }
     };
 
     const handleDownload = async (assignment: UserMediaAssignment) => {
@@ -172,13 +184,13 @@ export const StudentAssignedDocuments: React.FC<StudentAssignedDocumentsProps> =
                                                 <FileSignature className="h-4 w-4 mr-2" />
                                                 Signer le document
                                             </Button>
-                                            <Button variant="outline" onClick={() => handleSign(assignment)}>
+                                            <Button variant="outline" onClick={() => handleView(assignment)}>
                                                 <Eye className="h-4 w-4 mr-2" />
                                                 Consulter
                                             </Button>
                                         </>
                                     ) : (
-                                        <Button variant="outline" onClick={() => window.open(assignment.media_asset.url, '_blank')}>
+                                        <Button variant="outline" onClick={() => handleView(assignment)}>
                                             <Eye className="h-4 w-4 mr-2" />
                                             Consulter
                                         </Button>
@@ -206,6 +218,8 @@ export const StudentAssignedDocuments: React.FC<StudentAssignedDocumentsProps> =
                     fields={selectedAssignment.signature_fields || []}
                     documentName={selectedAssignment.media_asset.filename}
                     learnerName={currentUser ? `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() : undefined}
+                    readOnly={viewerReadOnly}
+                    initialFieldValues={selectedAssignment.signed_field_values}
                     onComplete={handleSignatureComplete}
                 />
             )}

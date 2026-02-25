@@ -18,6 +18,8 @@ interface DocumentSignerViewerProps {
   documentName: string;
   onComplete: (fieldValues: Record<string, string>) => Promise<void>;
   learnerName?: string;
+  readOnly?: boolean;
+  initialFieldValues?: Record<string, string>;
 }
 
 export const DocumentSignerViewer: React.FC<DocumentSignerViewerProps> = ({
@@ -28,6 +30,8 @@ export const DocumentSignerViewer: React.FC<DocumentSignerViewerProps> = ({
   documentName,
   onComplete,
   learnerName,
+  readOnly = false,
+  initialFieldValues,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [pdfDoc, setPdfDoc] = useState<pdfjsLib.PDFDocumentProxy | null>(null);
@@ -39,6 +43,12 @@ export const DocumentSignerViewer: React.FC<DocumentSignerViewerProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (isOpen) {
+      setFieldValues(initialFieldValues || {});
+    }
+  }, [isOpen, initialFieldValues]);
 
   // Load PDF
   useEffect(() => {
@@ -112,11 +122,13 @@ export const DocumentSignerViewer: React.FC<DocumentSignerViewerProps> = ({
         <div className="flex items-center justify-between px-6 py-3 border-b">
           <div className="flex items-center gap-3">
             <FileSignature className="h-5 w-5 text-pink-600" />
-            <h2 className="font-semibold">{documentName}</h2>
+            <h2 className="font-semibold">{documentName} {readOnly && "(Lecture seule)"}</h2>
           </div>
-          <Badge variant={allRequiredFilled ? 'default' : 'secondary'}>
-            {Object.keys(fieldValues).length} / {requiredFields.length} champs remplis
-          </Badge>
+          {!readOnly && (
+            <Badge variant={allRequiredFilled ? 'default' : 'secondary'}>
+              {Object.keys(fieldValues).length} / {requiredFields.length} champs remplis
+            </Badge>
+          )}
         </div>
 
         {/* Body */}
@@ -167,7 +179,7 @@ export const DocumentSignerViewer: React.FC<DocumentSignerViewerProps> = ({
                     return (
                       <div
                         key={field.id}
-                        className={`absolute cursor-pointer transition-all ${isFilled ? 'opacity-90' : 'animate-pulse'}`}
+                        className={`absolute transition-all ${!readOnly ? 'cursor-pointer' : ''} ${isFilled ? 'opacity-100' : (!readOnly ? 'animate-pulse' : 'hidden')}`}
                         style={{
                           left: `${field.x}%`,
                           top: `${field.y}%`,
@@ -178,6 +190,8 @@ export const DocumentSignerViewer: React.FC<DocumentSignerViewerProps> = ({
                           borderRadius: '4px',
                         }}
                         onClick={() => {
+                          if (readOnly) return;
+
                           if (field.type === 'signature') {
                             setActiveSignatureField(field.id);
                           } else if (field.type === 'date') {
@@ -210,7 +224,7 @@ export const DocumentSignerViewer: React.FC<DocumentSignerViewerProps> = ({
         </div>
 
         {/* Footer */}
-        {!isComplete && (
+        {!isComplete && !readOnly && (
           <div className="flex items-center justify-between px-6 py-3 border-t">
             <Button variant="ghost" onClick={handleClose}>Annuler</Button>
             <Button onClick={handleSubmit} disabled={!allRequiredFilled || isSubmitting} className="gap-2">
