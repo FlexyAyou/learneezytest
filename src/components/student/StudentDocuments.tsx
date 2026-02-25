@@ -179,9 +179,6 @@ export const StudentDocuments = () => {
                 formations={formations}
               />
             )}
-            {activeTab === 'phase-assigned' && (
-              <StudentAssignedDocuments />
-            )}
           </div>
         </div>
       </div>

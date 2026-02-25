@@ -61,12 +61,6 @@ export const StudentDocumentsSidebar = ({
       label: 'Phase +3 mois',
       icon: Clock,
       description: 'Questionnaire à froid'
-    },
-    {
-      id: 'phase-assigned',
-      label: "Feuilles d'émargement",
-      icon: FileText,
-      description: 'Feuilles de présence et émargements'
     }
   ];
 
