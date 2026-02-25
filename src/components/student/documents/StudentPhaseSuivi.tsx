@@ -1,12 +1,16 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, MessageSquare, Info, AlertCircle, CheckCircle } from 'lucide-react';
+import { Clock, MessageSquare, Info, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DocumentCard } from './DocumentCard';
 import { DocumentSignatureModal } from './DocumentSignatureModal';
 import { StudentAssignedDocuments } from './StudentAssignedDocuments';
+import { useMyDocuments, useSignDocument, useSignDocumentFields } from '@/hooks/useApi';
+import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
+import { fastAPIClient } from '@/services/fastapi-client';
+import { DocumentSignerViewer } from './DocumentSignerViewer';
 
 interface Formation {
   id: string;
@@ -18,6 +22,7 @@ interface Formation {
 
 interface PhaseDocument {
   id: string;
+  assignmentId?: number;
   name: string;
   formationId: string;
   type: 'satisfaction_froid';
@@ -25,6 +30,12 @@ interface PhaseDocument {
   size: string;
   status: 'available' | 'completed' | 'pending';
   requiresSignature?: boolean;
+  htmlContent?: string;
+  learnerSignature?: string;
+  signedAt?: string;
+  url?: string;
+  signatureFields?: any[];
+  signedFieldValues?: Record<string, string>;
 }
 
 interface StudentPhaseSuiviProps {
@@ -34,11 +45,62 @@ interface StudentPhaseSuiviProps {
 
 export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhaseSuiviProps) => {
   const { toast } = useToast();
+  const { user: currentUser } = useFastAPIAuth();
 
-  const [documents, setDocuments] = useState<PhaseDocument[]>([]);
+  const { data: assignments, isLoading: isLoadingDocs, refetch: refetchDocs } = useMyDocuments();
+  const signDocumentMutation = useSignDocument();
+  const signFieldsMutation = useSignDocumentFields();
 
+  const [localDocuments, setLocalDocuments] = useState<PhaseDocument[]>([]);
   const [signatureModalOpen, setSignatureModalOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<PhaseDocument | null>(null);
+  const [interactiveViewerOpen, setInteractiveViewerOpen] = useState(false);
+  const [interactiveViewerReadOnly, setInteractiveViewerReadOnly] = useState(false);
+
+  useEffect(() => {
+    if (assignments) {
+      const mappedDocs: PhaseDocument[] = (assignments as any[])
+        .filter(a => a.phase === 'suivi' || a.phase === 'phase-suivi')
+        .map(a => {
+          if (a._isNewSystem) {
+            return {
+              id: a._docId,
+              assignmentId: undefined,
+              name: a.media_asset.filename,
+              formationId: formations.length > 0 ? formations[0].id : '',
+              type: 'satisfaction_froid' as const,
+              date: new Date(a.assigned_at).toISOString(),
+              size: `${Math.round(a.media_asset.size / 1024)} KB`,
+              status: a.is_signed ? 'completed' : 'available',
+              requiresSignature: a._requiresSignature && !a.is_signed,
+              htmlContent: a._htmlContent,
+              learnerSignature: a.signature_data,
+              signedAt: a.signed_at,
+              url: undefined,
+            } as PhaseDocument;
+          }
+
+          return {
+            id: `api-${a.id}`,
+            assignmentId: a.id,
+            name: a.media_asset.filename,
+            formationId: formations.length > 0 ? formations[0].id : '',
+            type: 'satisfaction_froid' as const,
+            date: new Date(a.assigned_at).toISOString(),
+            size: `${Math.round(a.media_asset.size / 1024)} KB`,
+            status: a.is_signed ? 'completed' : 'available',
+            requiresSignature: !a.is_signed && !!a.signature_fields?.length,
+            url: a.media_asset.url,
+            learnerSignature: a.signature_data,
+            signedAt: a.signed_at,
+            signatureFields: a.signature_fields,
+            signedFieldValues: a.signed_field_values,
+          } as PhaseDocument;
+        });
+
+      setLocalDocuments(mappedDocs);
+    }
+  }, [assignments, formations]);
 
   const documentTypes = {
     satisfaction_froid: {
@@ -49,71 +111,110 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
     }
   };
 
-  const filteredDocuments = documents.filter(doc =>
-    selectedFormation === 'all' || doc.formationId === selectedFormation
+  const filteredDocuments = localDocuments.filter(doc =>
+    selectedFormation === 'all' || doc.formationId === selectedFormation || true
   );
 
   const pendingSignatures = filteredDocuments.filter(doc => doc.requiresSignature && doc.status === 'available');
   const completedCount = filteredDocuments.filter(doc => doc.status === 'completed').length;
 
   const handleSign = (doc: PhaseDocument) => {
-    setSelectedDocument(doc);
-    setSignatureModalOpen(true);
+    if (doc.signatureFields && doc.signatureFields.length > 0) {
+      setSelectedDocument(doc);
+      setInteractiveViewerReadOnly(false);
+      setInteractiveViewerOpen(true);
+    } else {
+      setSelectedDocument(doc);
+      setSignatureModalOpen(true);
+    }
   };
 
   const handleSignatureComplete = (documentId: string, signatureData: string) => {
-    setDocuments(prev => prev.map(doc =>
-      doc.id === documentId
-        ? { ...doc, status: 'completed' as const, requiresSignature: false }
-        : doc
-    ));
-    setSignatureModalOpen(false);
-    setSelectedDocument(null);
+    if (selectedDocument && selectedDocument.assignmentId) {
+      return new Promise<void>((resolve, reject) => {
+        signDocumentMutation.mutate({
+          assignment_id: selectedDocument.assignmentId!,
+          signature_data: signatureData
+        }, {
+          onSuccess: () => {
+            refetchDocs();
+            setSignatureModalOpen(false);
+            setSelectedDocument(null);
+            resolve();
+          },
+          onError: (error) => {
+            console.error("Erreur signature:", error);
+            reject(error);
+          }
+        });
+      });
+    }
+    return Promise.resolve();
   };
 
-  const handleDownload = (doc: PhaseDocument) => {
-    if (doc.status === 'pending') {
-      toast({
-        title: "Document non disponible",
-        description: "Ce questionnaire ne sera disponible que 3 mois après la fin de votre formation.",
-        variant: "destructive"
+  const handleInteractiveSignatureComplete = async (fieldValues: Record<string, string>) => {
+    if (!selectedDocument || !selectedDocument.assignmentId) return;
+    try {
+      await signFieldsMutation.mutateAsync({
+        assignment_id: selectedDocument.assignmentId,
+        field_values: fieldValues
       });
-      return;
+      refetchDocs();
+      setInteractiveViewerOpen(false);
+      setSelectedDocument(null);
+    } catch (error) {
+      console.error("Erreur signature interactive:", error);
+      throw error;
     }
+  };
 
-    toast({
-      title: "Questionnaire",
-      description: `Accès au questionnaire ${doc.name}`,
-    });
+  const handleDownload = async (doc: PhaseDocument) => {
+    if (doc.status === 'completed' && doc.signatureFields && doc.signatureFields.length > 0 && doc.assignmentId) {
+      try {
+        await fastAPIClient.downloadSignedPdf(doc.assignmentId);
+        return;
+      } catch (error) {
+        console.error("Erreur téléchargement PDF signé:", error);
+        toast({ title: "Erreur", description: "Impossible de générer le PDF signé.", variant: "destructive" });
+      }
+    }
+    if (doc.url) {
+      window.open(doc.url, '_blank');
+    } else {
+      toast({ title: "Téléchargement", description: `Téléchargement de ${doc.name} en cours...` });
+    }
   };
 
   const handlePreview = (doc: PhaseDocument) => {
     if (doc.status === 'pending') {
-      toast({
-        title: "Document non disponible",
-        description: "Ce questionnaire ne sera disponible que 3 mois après la fin de votre formation.",
-        variant: "destructive"
-      });
+      toast({ title: "Document non disponible", description: "Ce questionnaire ne sera disponible que 3 mois après la fin de votre formation.", variant: "destructive" });
       return;
     }
-    toast({
-      title: "Aperçu",
-      description: `Ouverture de ${doc.name}...`,
-    });
+    if (doc.status === 'completed' && doc.signatureFields && doc.signatureFields.length > 0) {
+      setSelectedDocument(doc);
+      setInteractiveViewerReadOnly(true);
+      setInteractiveViewerOpen(true);
+      return;
+    }
+    if (doc.url) {
+      window.open(doc.url, '_blank');
+      return;
+    }
+    toast({ title: "Aperçu", description: `Ouverture de ${doc.name}...` });
   };
 
   const getFormationName = (formationId: string) => {
     const formation = formations.find(f => f.id === formationId);
-    return formation ? `${formation.name} - ${formation.level}` : '';
+    return formation ? `${formation.name} - ${formation.level}` : 'Formation';
   };
 
-  const groupedByFormation = formations.reduce((acc, formation) => {
-    const formationDocs = filteredDocuments.filter(doc => doc.formationId === formation.id);
-    if (formationDocs.length > 0) {
-      acc[formation.id] = { formation, documents: formationDocs };
-    }
-    return acc;
-  }, {} as Record<string, { formation: Formation; documents: PhaseDocument[] }>);
+  if (isLoadingDocs) {
+    return (
+      <div className="flex justify-center p-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -128,7 +229,6 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
             <p className="text-muted-foreground">Questionnaire à froid</p>
           </div>
         </div>
-
         <div className="flex items-center gap-4">
           {pendingSignatures.length > 0 && (
             <Badge variant="destructive" className="gap-1.5 py-1.5 px-3">
@@ -149,7 +249,6 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
           const Icon = info.icon;
           const count = filteredDocuments.filter(doc => doc.type === type).length;
           const pending = filteredDocuments.filter(doc => doc.type === type && doc.status === 'available' && doc.requiresSignature).length;
-
           return (
             <Card key={type} className="border-l-4 border-l-primary/50">
               <CardContent className="p-4">
@@ -161,9 +260,7 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
                     <div className="flex items-center justify-between">
                       <p className="font-medium text-sm">{info.label}</p>
                       <div className="flex items-center gap-2">
-                        {pending > 0 && (
-                          <Badge variant="destructive" className="text-xs">{pending}</Badge>
-                        )}
+                        {pending > 0 && <Badge variant="destructive" className="text-xs">{pending}</Badge>}
                         <Badge variant="outline" className="text-xs">{count}</Badge>
                       </div>
                     </div>
@@ -176,7 +273,7 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
         })}
       </div>
 
-      {/* Informations importantes */}
+      {/* Info notice */}
       <Card className="border-amber-200 bg-amber-50">
         <CardContent className="p-4">
           <div className="flex items-center space-x-2">
@@ -189,70 +286,15 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
       </Card>
 
       {/* Documents list */}
-      {selectedFormation === 'all' ? (
-        <div className="space-y-6">
-          {Object.values(groupedByFormation).map(({ formation, documents }) => {
-            const pendingDocs = documents.filter(d => d.requiresSignature && d.status === 'available');
-
-            return (
-              <Card key={formation.id}>
-                <CardHeader className="pb-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-lg">{formation.name} - {formation.level}</CardTitle>
-                      <CardDescription>{formation.category}</CardDescription>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {pendingDocs.length > 0 && (
-                        <Badge variant="destructive" className="gap-1">
-                          <AlertCircle className="h-3 w-3" />
-                          {pendingDocs.length} à remplir
-                        </Badge>
-                      )}
-                      <Badge variant="outline">{documents.length} questionnaire(s)</Badge>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {documents.map((doc) => {
-                    const typeInfo = documentTypes[doc.type];
-
-                    return (
-                      <DocumentCard
-                        key={doc.id}
-                        id={doc.id}
-                        name={doc.name}
-                        type={doc.type}
-                        typeLabel={typeInfo.label}
-                        typeIcon={typeInfo.icon}
-                        typeColor={typeInfo.color}
-                        date={doc.date}
-                        size={doc.size}
-                        status={doc.status}
-                        requiresSignature={doc.requiresSignature}
-                        onSign={() => handleSign(doc)}
-                        onDownload={() => handleDownload(doc)}
-                        onPreview={() => handlePreview(doc)}
-                      />
-                    );
-                  })}
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      ) : (
+      {filteredDocuments.length > 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle>Questionnaires de la phase +3 mois</CardTitle>
-            <CardDescription>
-              {filteredDocuments.length} questionnaire(s) pour la formation sélectionnée
-            </CardDescription>
+            <CardTitle>Documents de la phase +3 mois</CardTitle>
+            <CardDescription>{filteredDocuments.length} document(s) assignés</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {filteredDocuments.map((doc) => {
               const typeInfo = documentTypes[doc.type];
-
               return (
                 <DocumentCard
                   key={doc.id}
@@ -274,6 +316,10 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
             })}
           </CardContent>
         </Card>
+      ) : (
+        <div className="text-center p-12 bg-muted/20 rounded-lg">
+          <p className="text-muted-foreground">Aucun document assigné pour cette phase.</p>
+        </div>
       )}
 
       {/* Additional Assigned Documents */}
@@ -288,10 +334,7 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
       {/* Signature Modal */}
       <DocumentSignatureModal
         isOpen={signatureModalOpen}
-        onClose={() => {
-          setSignatureModalOpen(false);
-          setSelectedDocument(null);
-        }}
+        onClose={() => { setSignatureModalOpen(false); setSelectedDocument(null); }}
         document={selectedDocument ? {
           id: selectedDocument.id,
           name: selectedDocument.name,
@@ -301,8 +344,24 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
           date: selectedDocument.date,
           size: selectedDocument.size
         } : null}
+        //@ts-ignore
         onSignatureComplete={handleSignatureComplete}
       />
+
+      {/* Interactive Signer Viewer */}
+      {selectedDocument && interactiveViewerOpen && (
+        <DocumentSignerViewer
+          isOpen={interactiveViewerOpen}
+          onClose={() => { setInteractiveViewerOpen(false); setSelectedDocument(null); }}
+          pdfUrl={selectedDocument.url || ''}
+          fields={selectedDocument.signatureFields || []}
+          documentName={selectedDocument.name}
+          learnerName={currentUser ? `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() : undefined}
+          readOnly={interactiveViewerReadOnly}
+          initialFieldValues={selectedDocument.signedFieldValues}
+          onComplete={handleInteractiveSignatureComplete}
+        />
+      )}
     </div>
   );
 };

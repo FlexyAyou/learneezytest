@@ -64,9 +64,9 @@ export const StudentDocumentsSidebar = ({
     },
     {
       id: 'phase-assigned',
-      label: 'Documents Spécifiques',
+      label: "Feuilles d'émargement",
       icon: FileText,
-      description: 'Documents personnels envoyés par votre organisme'
+      description: 'Feuilles de présence et émargements'
     }
   ];
 
