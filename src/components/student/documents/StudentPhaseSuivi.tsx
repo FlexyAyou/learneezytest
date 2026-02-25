@@ -322,14 +322,6 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
         </div>
       )}
 
-      {/* Additional Assigned Documents */}
-      <div className="pt-8 border-t">
-        <div className="flex items-center gap-2 mb-4">
-          <Clock className="h-5 w-5 text-primary" />
-          <h3 className="text-xl font-bold">Documents envoyés par l'organisme</h3>
-        </div>
-        <StudentAssignedDocuments targetPhase="suivi" />
-      </div>
 
       {/* Signature Modal */}
       <DocumentSignatureModal

@@ -337,14 +337,6 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
         </div>
       )}
 
-      {/* Additional Assigned Documents */}
-      <div className="pt-8 border-t">
-        <div className="flex items-center gap-2 mb-4">
-          <School className="h-5 w-5 text-primary" />
-          <h3 className="text-xl font-bold">Documents envoyés par l'organisme</h3>
-        </div>
-        <StudentAssignedDocuments targetPhase="formation" />
-      </div>
 
       {/* Signature Modal */}
       <DocumentSignatureModal
