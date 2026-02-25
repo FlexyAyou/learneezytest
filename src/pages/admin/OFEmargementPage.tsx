@@ -275,11 +275,25 @@ const OFEmargementPage: React.FC = () => {
     window.open(doc.documentUrl, '_blank')?.print();
   };
 
+  const isPdfDocument = (doc: SentDocument) => {
+    if (doc.type === 'pdf') return true;
+    if (doc.documentUrl?.match(/\.pdf(\?|$)/i)) return true;
+    if (doc.type === 'document' && doc.documentUrl && !doc.htmlContent) return true;
+    return false;
+  };
+
   const handleOpenPreview = async (doc: SentDocument) => {
     setPreviewDocument(doc);
     setPreviewContent(null);
     setPreviewError(null);
     setIsPreviewLoading(true);
+
+    // 0. Si c'est un PDF (uploadé), on utilise directement l'URL dans l'iframe (pas de fetch texte)
+    if (isPdfDocument(doc) && doc.documentUrl) {
+      // previewContent reste null => l'iframe src sera utilisé
+      setIsPreviewLoading(false);
+      return;
+    }
 
     // 1. Si le contenu HTML est déjà disponible (envoyé par le backend), on l'utilise directement.
     if (doc.htmlContent) {
