@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fastAPIClient } from '@/services/fastapi-client';
 import { Link } from 'react-router-dom';
@@ -24,6 +24,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import axios from 'axios';
 import { getTemplateForType, personalizeDocumentContent } from '@/utils/personalizeDocumentContent';
 import { DocumentSignerViewer } from '@/components/student/documents/DocumentSignerViewer';
+import { useToast } from '@/hooks/use-toast';
 
 interface Learner {
   id: string;
@@ -58,6 +59,7 @@ interface SentDocument {
 }
 
 const OFEmargementPage: React.FC = () => {
+  const { toast } = useToast();
   const { user: currentUser } = useFastAPIAuth();
   const ofId = currentUser?.of_id;
   const { data: ofData } = useOrganization(ofId || '');
@@ -971,19 +973,44 @@ const OFEmargementPage: React.FC = () => {
       </Dialog>
       {/* Document Signer Viewer (lecture seule pour l'OF) */}
       {signerViewerDoc && signerViewerDoc.documentUrl && (
-        <DocumentSignerViewer
-          isOpen={showSignerViewer}
-          onClose={() => {
-            setShowSignerViewer(false);
-            setSignerViewerDoc(null);
-          }}
-          pdfUrl={signerViewerDoc.documentUrl}
-          fields={signerViewerDoc.signatureFields || []}
-          documentName={`${signerViewerDoc.title}${signerViewerDoc.status === 'signed' ? ' - Document signé' : ''}`}
-          onComplete={async () => {}}
-          readOnly={true}
-          initialFieldValues={signerViewerDoc.signedFieldValues || {}}
-        />
+        <>
+          <DocumentSignerViewer
+            isOpen={showSignerViewer}
+            onClose={() => {
+              setShowSignerViewer(false);
+              setSignerViewerDoc(null);
+            }}
+            pdfUrl={signerViewerDoc.documentUrl}
+            fields={signerViewerDoc.signatureFields || []}
+            documentName={`${signerViewerDoc.title}${signerViewerDoc.status === 'signed' ? ' - Document signé' : ''}`}
+            onComplete={async () => {}}
+            readOnly={true}
+            initialFieldValues={signerViewerDoc.signedFieldValues || {}}
+            extraHeaderActions={
+              signerViewerDoc.status === 'signed' ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={async () => {
+                    const numericId = signerViewerDoc.id?.toString().replace('media-', '');
+                    if (!numericId) return;
+                    try {
+                      await fastAPIClient.downloadSignedPdf(Number(numericId));
+                      toast({ title: '✅ Téléchargement du PDF signé démarré' });
+                    } catch (err) {
+                      console.error('Erreur téléchargement PDF signé:', err);
+                      toast({ title: 'Erreur', description: "Impossible de télécharger le PDF signé", variant: 'destructive' });
+                    }
+                  }}
+                >
+                  <Download className="h-4 w-4" />
+                  Télécharger PDF signé
+                </Button>
+              ) : undefined
+            }
+          />
+        </>
       )}
     </div>
   );
