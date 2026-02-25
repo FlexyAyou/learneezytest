@@ -20,6 +20,7 @@ interface DocumentSignerViewerProps {
   learnerName?: string;
   readOnly?: boolean;
   initialFieldValues?: Record<string, string>;
+  extraHeaderActions?: React.ReactNode;
 }
 
 export const DocumentSignerViewer: React.FC<DocumentSignerViewerProps> = ({
@@ -32,6 +33,7 @@ export const DocumentSignerViewer: React.FC<DocumentSignerViewerProps> = ({
   learnerName,
   readOnly = false,
   initialFieldValues,
+  extraHeaderActions,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [pdfDoc, setPdfDoc] = useState<pdfjsLib.PDFDocumentProxy | null>(null);
@@ -129,11 +131,14 @@ export const DocumentSignerViewer: React.FC<DocumentSignerViewerProps> = ({
             <FileSignature className="h-5 w-5 text-pink-600" />
             <h2 className="font-semibold">{documentName} {readOnly && "(Lecture seule)"}</h2>
           </div>
-          {!readOnly && (
-            <Badge variant={allRequiredFilled ? 'default' : 'secondary'}>
-              {Object.keys(fieldValues).length} / {requiredFields.length} champs remplis
-            </Badge>
-          )}
+          <div className="flex items-center gap-2">
+            {extraHeaderActions}
+            {!readOnly && (
+              <Badge variant={allRequiredFilled ? 'default' : 'secondary'}>
+                {Object.keys(fieldValues).length} / {requiredFields.length} champs remplis
+              </Badge>
+            )}
+          </div>
         </div>
 
         {/* Body */}
