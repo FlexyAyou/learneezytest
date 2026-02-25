@@ -15,6 +15,7 @@ import { useMyDocuments, useSignDocumentFields } from '@/hooks/useApi';
 import { fastAPIClient } from '@/services/fastapi-client';
 import { DocumentSignerViewer } from './DocumentSignerViewer';
 import { useToast } from '@/hooks/use-toast';
+import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 
 interface MediaAsset {
     id: number;
@@ -51,6 +52,7 @@ export const StudentAssignedDocuments: React.FC<StudentAssignedDocumentsProps> =
     }, [allAssignments, targetPhase]);
 
     const { toast } = useToast();
+    const { user: currentUser } = useFastAPIAuth();
     const [selectedAssignment, setSelectedAssignment] = React.useState<UserMediaAssignment | null>(null);
     const [viewerOpen, setViewerOpen] = React.useState(false);
     const signFieldsMutation = useSignDocumentFields();
@@ -197,6 +199,7 @@ export const StudentAssignedDocuments: React.FC<StudentAssignedDocumentsProps> =
                     pdfUrl={selectedAssignment.media_asset.url || ''}
                     fields={selectedAssignment.signature_fields || []}
                     documentName={selectedAssignment.media_asset.filename}
+                    learnerName={currentUser ? `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() : undefined}
                     onComplete={handleSignatureComplete}
                 />
             )}

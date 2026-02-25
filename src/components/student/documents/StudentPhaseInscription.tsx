@@ -476,6 +476,7 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
           pdfUrl={selectedDocument.url}
           fields={selectedDocument.signatureFields || []}
           documentName={selectedDocument.name}
+          learnerName={currentUser ? `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() : undefined}
           onComplete={handleInteractiveSignatureComplete}
         />
       )}

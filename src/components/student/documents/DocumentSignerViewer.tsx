@@ -17,6 +17,7 @@ interface DocumentSignerViewerProps {
   fields: SignatureField[];
   documentName: string;
   onComplete: (fieldValues: Record<string, string>) => Promise<void>;
+  learnerName?: string;
 }
 
 export const DocumentSignerViewer: React.FC<DocumentSignerViewerProps> = ({
@@ -26,6 +27,7 @@ export const DocumentSignerViewer: React.FC<DocumentSignerViewerProps> = ({
   fields,
   documentName,
   onComplete,
+  learnerName,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [pdfDoc, setPdfDoc] = useState<pdfjsLib.PDFDocumentProxy | null>(null);
@@ -181,7 +183,7 @@ export const DocumentSignerViewer: React.FC<DocumentSignerViewerProps> = ({
                           } else if (field.type === 'date') {
                             setFieldValues(prev => ({ ...prev, [field.id]: new Date().toLocaleDateString('fr-FR') }));
                           } else if (field.type === 'name') {
-                            setFieldValues(prev => ({ ...prev, [field.id]: 'Signataire' }));
+                            setFieldValues(prev => ({ ...prev, [field.id]: learnerName || 'Signataire' }));
                           }
                         }}
                       >
