@@ -1299,6 +1299,57 @@ export const useMyDocuments = () => {
   return useQuery({
     queryKey: ['my-documents'],
     queryFn: async () => {
+      const parseJsonIfNeeded = (value: unknown): unknown => {
+        if (typeof value === 'string') {
+          try {
+            return JSON.parse(value);
+          } catch {
+            return value;
+          }
+        }
+        return value;
+      };
+
+      const normalizeLegacyAssignment = (assignment: any) => {
+        const signatureFieldCandidates = [
+          assignment?.signature_fields,
+          assignment?.metadata?.signature_fields,
+          assignment?.meta?.signature_fields,
+          assignment?.assignment_metadata?.signature_fields,
+          assignment?.media_asset?.signature_fields,
+        ];
+
+        const signedValuesCandidates = [
+          assignment?.signed_field_values,
+          assignment?.metadata?.signed_field_values,
+          assignment?.meta?.signed_field_values,
+          assignment?.assignment_metadata?.signed_field_values,
+          assignment?.media_asset?.signed_field_values,
+        ];
+
+        const signatureFields = signatureFieldCandidates
+          .map(parseJsonIfNeeded)
+          .find((candidate) => Array.isArray(candidate));
+
+        const signedFieldValues = signedValuesCandidates
+          .map(parseJsonIfNeeded)
+          .find(
+            (candidate) =>
+              !!candidate &&
+              typeof candidate === 'object' &&
+              !Array.isArray(candidate)
+          );
+
+        return {
+          ...assignment,
+          signature_fields: Array.isArray(signatureFields)
+            ? signatureFields
+            : assignment?.signature_fields,
+          signed_field_values:
+            (signedFieldValues as Record<string, string> | undefined) ?? assignment?.signed_field_values,
+        };
+      };
+
       try {
         // Get current user to extract learner_id and of_id
         const user = await fastAPIClient.getCurrentUser();
@@ -1312,7 +1363,7 @@ export const useMyDocuments = () => {
 
         // Fetch Both sources. New documents system requires ofId.
         const [legacyDocs, newDocs] = await Promise.all([
-          fastAPIClient.getMyDocuments().catch(e => { console.error('Legacy docs error:', e); return []; }),
+          fastAPIClient.getMyDocuments().then((docs) => (docs || []).map(normalizeLegacyAssignment)).catch(e => { console.error('Legacy docs error:', e); return []; }),
           ofId
             ? fastAPIClient.getLearnerDocuments(ofId, learnerId).catch(e => { console.error('New docs error:', e); return []; })
             : Promise.resolve([])
@@ -1353,7 +1404,10 @@ export const useMyDocuments = () => {
       } catch (error) {
         console.error('useMyDocuments error:', error);
         // Fallback to legacy only
-        return fastAPIClient.getMyDocuments().catch(() => []);
+        return fastAPIClient
+          .getMyDocuments()
+          .then((docs) => (docs || []).map(normalizeLegacyAssignment))
+          .catch(() => []);
       }
     },
   });
