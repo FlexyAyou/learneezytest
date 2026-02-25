@@ -112,7 +112,13 @@ const OFEmargementPage: React.FC = () => {
   const learners: Learner[] = useMemo(() => {
     if (!rawUsers) return [];
 
-    return rawUsers.map((u: any) => {
+    // Filter to only show learners/students, exclude admins and other roles
+    const learnersOnly = rawUsers.filter((u: any) => {
+      const role = (u.role || '').toLowerCase();
+      return ['apprenant', 'student', 'learner'].includes(role);
+    });
+
+    return learnersOnly.map((u: any) => {
       // Find learner in emargement data to get their formation info
       const emargementLearner = emargementData?.learners?.find((l: any) => l.learner_id === u.id);
       const formationName = emargementLearner?.documents?.[0]?.formation_name || 'Formation';
