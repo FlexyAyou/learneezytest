@@ -147,17 +147,25 @@ export const DocumentPreparer: React.FC<DocumentPreparerProps> = ({
         <div className="flex-1 flex overflow-hidden">
           {/* Step 1: Upload */}
           {step === 'upload' && (
-            <div className="flex-1 flex items-center justify-center p-8">
+            <div className="flex-1 flex items-center justify-center p-8 bg-gradient-to-br from-background via-accent/20 to-background">
               <div
-                className="w-full max-w-lg border-2 border-dashed border-border rounded-2xl p-12 text-center hover:border-primary/50 hover:bg-accent/50 transition-colors cursor-pointer"
+                className="group w-full max-w-xl border-2 border-dashed border-primary/20 rounded-3xl p-16 text-center hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 cursor-pointer bg-card/50 backdrop-blur-sm relative overflow-hidden"
                 onDrop={handleDrop}
                 onDragOver={(e) => e.preventDefault()}
                 onClick={() => document.getElementById('pdf-upload')?.click()}
               >
-                <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">Déposez votre PDF ici</h3>
-                <p className="text-sm text-muted-foreground mb-4">ou cliquez pour sélectionner un fichier</p>
-                <Button variant="outline">Parcourir</Button>
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="relative z-10">
+                  <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6 group-hover:bg-primary/15 group-hover:scale-110 transition-all duration-300">
+                    <Upload className="h-9 w-9 text-primary/70 group-hover:text-primary transition-colors duration-300" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-foreground mb-2">Déposez votre PDF ici</h3>
+                  <p className="text-sm text-muted-foreground mb-6">Glissez-déposez ou cliquez pour sélectionner</p>
+                  <Button variant="outline" className="rounded-full px-6 border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-200">
+                    Parcourir les fichiers
+                  </Button>
+                  <p className="text-xs text-muted-foreground/60 mt-4">Format accepté : PDF uniquement</p>
+                </div>
                 <input
                   id="pdf-upload"
                   type="file"
