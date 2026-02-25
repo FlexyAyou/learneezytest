@@ -1481,15 +1481,21 @@ class FastAPIClient {
   /**
    * Signer un document électroniquement
    */
-  async signDocument(assignmentId: number, signatureData: string): Promise<any> {
-    return this.post(`/api/storage/assignments/${assignmentId}/sign`, { signature_data: signatureData });
+  async signDocument(assignmentId: number, signatureData: string, signatureMetadata?: Record<string, any>): Promise<any> {
+    return this.post(`/api/storage/assignments/${assignmentId}/sign`, {
+      signature_data: signatureData,
+      ...(signatureMetadata ? { signature_metadata: signatureMetadata } : {}),
+    });
   }
 
   /**
    * Signer un document par zones interactives
    */
-  async signDocumentFields(assignmentId: number, fieldValues: Record<string, string>): Promise<any> {
-    return this.post(`/api/storage/assignments/${assignmentId}/sign-fields`, { field_values: fieldValues });
+  async signDocumentFields(assignmentId: number, fieldValues: Record<string, string>, signatureMetadata?: Record<string, any>): Promise<any> {
+    return this.post(`/api/storage/assignments/${assignmentId}/sign-fields`, {
+      field_values: fieldValues,
+      ...(signatureMetadata ? { signature_metadata: signatureMetadata } : {}),
+    });
   }
 
   /**

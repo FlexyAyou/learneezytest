@@ -13,6 +13,7 @@ import { useMyDocuments, useSignDocument, useSignDocumentFields } from '@/hooks/
 import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 import { fastAPIClient } from '@/services/fastapi-client';
 import { DocumentSignerViewer } from './DocumentSignerViewer';
+import { IdentityVerificationModal, IdentityProof } from './IdentityVerificationModal';
 
 interface Formation {
   id: string;
@@ -60,6 +61,11 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
   const [previewDocument, setPreviewDocument] = useState<{ title: string; content: string } | null>(null);
   const [interactiveViewerOpen, setInteractiveViewerOpen] = useState(false);
   const [interactiveViewerReadOnly, setInteractiveViewerReadOnly] = useState(false);
+
+  // Identity verification
+  const [identityModalOpen, setIdentityModalOpen] = useState(false);
+  const [identityProof, setIdentityProof] = useState<IdentityProof | null>(null);
+  const [pendingSignDoc, setPendingSignDoc] = useState<PhaseDocument | null>(null);
 
   // States for interactive Needs Analysis
   const [needsAnalysisOpen, setNeedsAnalysisOpen] = useState(false);
@@ -151,6 +157,14 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
   const signedCount = filteredDocuments.filter(doc => doc.status === 'signed' || doc.status === 'completed').length;
 
   const handleSign = (doc: PhaseDocument) => {
+    setPendingSignDoc(doc);
+    setIdentityModalOpen(true);
+  };
+
+  const handleIdentityVerified = (proof: IdentityProof) => {
+    setIdentityProof(proof);
+    const doc = pendingSignDoc;
+    if (!doc) return;
     if (doc.type === 'analyse_besoin') {
       setActiveAnalysis(doc);
       setNeedsAnalysisOpen(true);
@@ -174,7 +188,8 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
       return new Promise<void>((resolve, reject) => {
         signDocumentMutation.mutate({
           assignment_id: selectedDocument.assignmentId!,
-          signature_data: signatureData
+          signature_data: signatureData,
+          signature_metadata: identityProof || undefined,
         }, {
           onSuccess: () => {
             refetchDocs();
@@ -199,7 +214,8 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
     try {
       await signFieldsMutation.mutateAsync({
         assignment_id: selectedDocument.assignmentId,
-        field_values: fieldValues
+        field_values: fieldValues,
+        signature_metadata: identityProof || undefined,
       });
       refetchDocs();
       setInteractiveViewerOpen(false);
@@ -404,6 +420,13 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
           <p className="text-muted-foreground">Aucun document assigné pour cette phase.</p>
         </div>
       )}
+
+      {/* Identity Verification Modal */}
+      <IdentityVerificationModal
+        isOpen={identityModalOpen}
+        onClose={() => { setIdentityModalOpen(false); setPendingSignDoc(null); }}
+        onVerified={handleIdentityVerified}
+      />
 
       {/* Signature Modal */}
       <DocumentSignatureModal

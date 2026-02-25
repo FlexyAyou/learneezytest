@@ -1494,18 +1494,15 @@ export const useDeleteMedia = () => {
 export const useSignDocument = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: { assignment_id: number | string; signature_data: string; html_content?: string }) => {
+    mutationFn: async (data: { assignment_id: number | string; signature_data: string; html_content?: string; signature_metadata?: Record<string, any> }) => {
       // Check if it's a new system document (UUID string) or legacy (number)
-      // The frontend might pass a string "new-uuid" or just "uuid" depending on how it was mapped
       const idStr = String(data.assignment_id);
 
       if (idStr.length > 20 || idStr.includes('-')) {
         // It's likely a UUID (new system)
-        // We need user context (of_id, learner_id)
         const user = await fastAPIClient.getCurrentUser();
         if (!user.of_id) throw new Error("Impossible de trouver l'organisation de l'utilisateur");
 
-        // Remove "new-" prefix if present (added in useMyDocuments mapping)
         const realDocId = idStr.replace(/^new-/, '');
 
         return fastAPIClient.signLearnerDocument(
@@ -1517,7 +1514,7 @@ export const useSignDocument = () => {
         );
       } else {
         // Legacy system (integer ID)
-        return fastAPIClient.signDocument(Number(data.assignment_id), data.signature_data);
+        return fastAPIClient.signDocument(Number(data.assignment_id), data.signature_data, data.signature_metadata);
       }
     },
     onSuccess: () => {
@@ -1544,8 +1541,8 @@ export const useSignDocument = () => {
 export const useSignDocumentFields = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { assignment_id: number; field_values: Record<string, string> }) =>
-      fastAPIClient.signDocumentFields(data.assignment_id, data.field_values),
+    mutationFn: (data: { assignment_id: number; field_values: Record<string, string>; signature_metadata?: Record<string, any> }) =>
+      fastAPIClient.signDocumentFields(data.assignment_id, data.field_values, data.signature_metadata),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-documents'] });
       toast({

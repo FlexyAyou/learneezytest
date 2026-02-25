@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Award, FileCheck, MessageSquare, CheckCircle, CheckSquare, AlertCircle, Loader2 } from 'lucide-react';
+import { Award, FileText, BookOpen, Calendar, ClipboardCheck, CheckCircle, AlertCircle, Loader2, FileCheck, MessageSquare, CheckSquare } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DocumentCard } from './DocumentCard';
 import { DocumentSignatureModal } from './DocumentSignatureModal';
@@ -13,6 +13,7 @@ import { useMyDocuments, useSignDocument, useSignDocumentFields } from '@/hooks/
 import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 import { fastAPIClient } from '@/services/fastapi-client';
 import { DocumentSignerViewer } from './DocumentSignerViewer';
+import { IdentityVerificationModal, IdentityProof } from './IdentityVerificationModal';
 
 interface Formation {
   id: string;
@@ -60,6 +61,9 @@ export const StudentPhasePostFormation = ({ selectedFormation, formations }: Stu
   const [previewDocument, setPreviewDocument] = useState<{ title: string; content: string } | null>(null);
   const [interactiveViewerOpen, setInteractiveViewerOpen] = useState(false);
   const [interactiveViewerReadOnly, setInteractiveViewerReadOnly] = useState(false);
+  const [identityModalOpen, setIdentityModalOpen] = useState(false);
+  const [identityProof, setIdentityProof] = useState<IdentityProof | null>(null);
+  const [pendingSignDoc, setPendingSignDoc] = useState<PhaseDocument | null>(null);
 
   useEffect(() => {
     if (assignments) {
@@ -127,6 +131,14 @@ export const StudentPhasePostFormation = ({ selectedFormation, formations }: Stu
   const completedCount = filteredDocuments.filter(doc => doc.status === 'completed' || doc.status === 'received').length;
 
   const handleSign = (doc: PhaseDocument) => {
+    setPendingSignDoc(doc);
+    setIdentityModalOpen(true);
+  };
+
+  const handleIdentityVerified = (proof: IdentityProof) => {
+    setIdentityProof(proof);
+    const doc = pendingSignDoc;
+    if (!doc) return;
     if (doc.signatureFields && doc.signatureFields.length > 0) {
       setSelectedDocument(doc);
       setInteractiveViewerReadOnly(false);
@@ -142,7 +154,8 @@ export const StudentPhasePostFormation = ({ selectedFormation, formations }: Stu
       return new Promise<void>((resolve, reject) => {
         signDocumentMutation.mutate({
           assignment_id: selectedDocument.assignmentId!,
-          signature_data: signatureData
+          signature_data: signatureData,
+          signature_metadata: identityProof || undefined,
         }, {
           onSuccess: () => {
             refetchDocs();
@@ -165,7 +178,8 @@ export const StudentPhasePostFormation = ({ selectedFormation, formations }: Stu
     try {
       await signFieldsMutation.mutateAsync({
         assignment_id: selectedDocument.assignmentId,
-        field_values: fieldValues
+        field_values: fieldValues,
+        signature_metadata: identityProof || undefined,
       });
       refetchDocs();
       setInteractiveViewerOpen(false);
@@ -327,6 +341,13 @@ export const StudentPhasePostFormation = ({ selectedFormation, formations }: Stu
         </div>
       )}
 
+
+      {/* Identity Verification Modal */}
+      <IdentityVerificationModal
+        isOpen={identityModalOpen}
+        onClose={() => { setIdentityModalOpen(false); setPendingSignDoc(null); }}
+        onVerified={handleIdentityVerified}
+      />
 
       {/* Signature Modal */}
       <DocumentSignatureModal

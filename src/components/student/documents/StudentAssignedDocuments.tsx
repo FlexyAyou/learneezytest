@@ -16,6 +16,7 @@ import { fastAPIClient } from '@/services/fastapi-client';
 import { DocumentSignerViewer } from './DocumentSignerViewer';
 import { useToast } from '@/hooks/use-toast';
 import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
+import { IdentityVerificationModal, IdentityProof } from './IdentityVerificationModal';
 
 interface MediaAsset {
     id: number;
@@ -56,10 +57,20 @@ export const StudentAssignedDocuments: React.FC<StudentAssignedDocumentsProps> =
     const [selectedAssignment, setSelectedAssignment] = React.useState<UserMediaAssignment | null>(null);
     const [viewerOpen, setViewerOpen] = React.useState(false);
     const [viewerReadOnly, setViewerReadOnly] = React.useState(false);
+    const [identityModalOpen, setIdentityModalOpen] = React.useState(false);
+    const [identityProof, setIdentityProof] = React.useState<IdentityProof | null>(null);
+    const [pendingAssignment, setPendingAssignment] = React.useState<UserMediaAssignment | null>(null);
     const signFieldsMutation = useSignDocumentFields();
 
     const handleSign = (assignment: UserMediaAssignment) => {
-        setSelectedAssignment(assignment);
+        setPendingAssignment(assignment);
+        setIdentityModalOpen(true);
+    };
+
+    const handleIdentityVerified = (proof: IdentityProof) => {
+        setIdentityProof(proof);
+        if (!pendingAssignment) return;
+        setSelectedAssignment(pendingAssignment);
         setViewerReadOnly(false);
         setViewerOpen(true);
     };
@@ -96,7 +107,8 @@ export const StudentAssignedDocuments: React.FC<StudentAssignedDocumentsProps> =
         try {
             await signFieldsMutation.mutateAsync({
                 assignment_id: selectedAssignment.id,
-                field_values: fieldValues
+                field_values: fieldValues,
+                signature_metadata: identityProof || undefined,
             });
             setViewerOpen(false);
             setSelectedAssignment(null);
@@ -206,6 +218,13 @@ export const StudentAssignedDocuments: React.FC<StudentAssignedDocumentsProps> =
                     </Card>
                 ))}
             </div>
+
+            {/* Identity Verification Modal */}
+            <IdentityVerificationModal
+                isOpen={identityModalOpen}
+                onClose={() => { setIdentityModalOpen(false); setPendingAssignment(null); }}
+                onVerified={handleIdentityVerified}
+            />
 
             {selectedAssignment && (
                 <DocumentSignerViewer
