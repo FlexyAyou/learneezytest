@@ -183,46 +183,73 @@ export const DEFAULT_TEMPLATES: Partial<Record<DocumentType, string>> = {
 `,
 
   convention: `
-<div style="font-family: 'Times New Roman', Times, serif; max-width: 800px; margin: 0 auto; padding: 20px;">
-  <h1 style="text-align: center; font-size: 22px;">CONVENTION DE FORMATION PROFESSIONNELLE</h1>
-  <p style="text-align: center; font-size: 14px; color: #666;">Articles L.6353-1 et suivants du Code du travail</p>
-  
-  <h2 style="font-size: 16px; margin-top: 30px;">Entre les soussignés :</h2>
-  
-  <div style="padding: 15px; border: 1px solid #ddd; margin: 15px 0;">
-    <p><strong>L'organisme de formation :</strong> {{of.nom}}</p>
-    <p>SIRET : {{of.siret}} | N° DA : {{of.nda}}</p>
-    <p>Représenté par : {{of.responsable}}</p>
+<div style="font-family: 'Times New Roman', Times, serif; max-width: 800px; margin: 0 auto; padding: 20px; background: white; color: #333; line-height: 1.6;">
+
+  <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 15px;">
+    <h1 style="font-size: 24px; margin-bottom: 10px;">CONVENTION DE FORMATION PROFESSIONNELLE</h1>
+    <p style="font-size: 14px; color: #666; font-style: italic;">Articles L.6353-1 et suivants du Code du travail</p>
   </div>
-  
-  <div style="padding: 15px; border: 1px solid #ddd; margin: 15px 0;">
-    <p><strong>Le bénéficiaire :</strong> {{apprenant.prenom}} {{apprenant.nom}}</p>
-    <p>Entreprise : {{apprenant.entreprise}}</p>
-    <p>Adresse : {{apprenant.adresse}}, {{apprenant.codePostal}} {{apprenant.ville}}</p>
-  </div>
-  
-  <h2 style="font-size: 16px;">Il est convenu ce qui suit :</h2>
-  
-  <h3>Article 1 - Objet</h3>
-  <p>{{of.nom}} s'engage à organiser l'action de formation : <strong>{{formation.nom}}</strong></p>
-  
-  <h3>Article 2 - Modalités</h3>
-  <p><strong>Durée :</strong> {{formation.duree}}</p>
-  <p><strong>Dates :</strong> du {{dates.debut}} au {{dates.fin}}</p>
-  <p><strong>Lieu :</strong> {{formation.lieu}}</p>
-  
-  <h3>Article 3 - Prix</h3>
-  <p>Le coût de la formation est fixé à <strong>{{formation.prix}}</strong> nets de taxes.</p>
-  
-  <div style="margin-top: 40px; display: flex; justify-content: space-between;">
-    <div style="width: 45%;">
-      <p><strong>L'organisme de formation</strong></p>
-      <div style="min-height: 60px; margin: 15px 0;">{{of.signature}}</div>
-      <p>{{of.responsable}}<br/>Date : {{date.jour}}</p>
+
+  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px; color: #1a1a1a;">Entre les soussignés</h2>
+
+  <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; background: #f9f9f9; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+    <div>
+      <p style="margin: 0; font-size: 13px; color: #888; text-transform: uppercase;">Organisme de formation</p>
+      <p style="margin: 5px 0 0 0;"><strong>{{of.nom}}</strong></p>
+      <p style="margin: 3px 0 0 0; font-size: 14px;">SIRET : {{of.siret}}</p>
+      <p style="margin: 3px 0 0 0; font-size: 14px;">N° DA : {{of.nda}}</p>
+      <p style="margin: 3px 0 0 0; font-size: 14px;">{{of.adresse}}, {{of.codePostal}} {{of.ville}}</p>
+      <p style="margin: 3px 0 0 0; font-size: 14px;">Représenté par : {{of.responsable}}</p>
     </div>
-    <div style="width: 45%;">
-      <p><strong>Le bénéficiaire</strong></p>
-      <p style="margin-top: 50px;">{{apprenant.prenom}} {{apprenant.nom}}<br/>Date : {{date.jour}}</p>
+    <div>
+      <p style="margin: 0; font-size: 13px; color: #888; text-transform: uppercase;">Bénéficiaire</p>
+      <p style="margin: 5px 0 0 0;"><strong>{{apprenant.prenom}} {{apprenant.nom}}</strong></p>
+      <p style="margin: 3px 0 0 0; font-size: 14px;">Entreprise : {{apprenant.entreprise}}</p>
+      <p style="margin: 3px 0 0 0; font-size: 14px;">{{apprenant.adresse}}, {{apprenant.codePostal}} {{apprenant.ville}}</p>
+      <p style="margin: 3px 0 0 0; font-size: 14px;">Tél : {{apprenant.telephone}} | Email : {{apprenant.email}}</p>
+    </div>
+  </div>
+
+  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px; color: #1a1a1a;">Article 1 – Objet</h2>
+  <p style="text-align: justify;">{{of.nom}} s'engage à organiser l'action de formation suivante :</p>
+  <div style="padding: 15px; border-left: 4px solid #333; background: #fafafa; margin-bottom: 20px;">
+    <p style="margin: 0;"><strong>Intitulé :</strong> {{formation.nom}}</p>
+    <p style="margin: 5px 0 0 0;"><strong>Durée :</strong> {{formation.duree}}</p>
+    <p style="margin: 5px 0 0 0;"><strong>Dates :</strong> du {{dates.debut}} au {{dates.fin}}</p>
+    <p style="margin: 5px 0 0 0;"><strong>Lieu :</strong> {{formation.lieu}}</p>
+    <p style="margin: 5px 0 0 0;"><strong>Formateur :</strong> {{formation.formateur}}</p>
+  </div>
+
+  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px; color: #1a1a1a;">Article 2 – Prix et modalités de paiement</h2>
+  <p style="text-align: justify;">Le coût de la formation est fixé à <strong>{{formation.prix}}</strong> nets de taxes. Le règlement s'effectue par virement bancaire ou chèque à l'ordre de {{of.nom}}.</p>
+
+  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px; color: #1a1a1a;">Article 3 – Obligations des parties</h2>
+  <p style="text-align: justify;"><strong>L'organisme s'engage à :</strong> dispenser la formation conformément au programme communiqué, fournir les supports pédagogiques, et délivrer une attestation de fin de formation.</p>
+  <p style="text-align: justify;"><strong>Le bénéficiaire s'engage à :</strong> suivre la formation avec assiduité, respecter le règlement intérieur, et procéder au paiement dans les délais convenus.</p>
+
+  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px; color: #1a1a1a;">Article 4 – Rétractation et annulation</h2>
+  <p style="text-align: justify;">Conformément à l'article L.6353-5 du Code du travail, le stagiaire dispose d'un délai de rétractation de 10 jours à compter de la signature de la présente convention.</p>
+
+  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px; color: #1a1a1a;">Article 5 – Protection des données</h2>
+  <p style="text-align: justify;">Conformément au RGPD, les données personnelles collectées sont traitées pour la gestion administrative de la formation. Contact : {{of.email}}</p>
+
+  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px; color: #1a1a1a;">Observations complémentaires</h2>
+  <textarea name="observations" style="width: 100%; min-height: 80px; padding: 10px; border: 1px solid #ccc; margin-bottom: 20px; font-family: inherit;" placeholder="Ajoutez ici toute observation ou condition particulière..."></textarea>
+
+  <div style="margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+    <div style="border: 1px dashed #666; padding: 20px; text-align: center;">
+      <p><strong>L'organisme de formation</strong></p>
+      <div style="min-height: 60px; margin: 10px 0;">{{of.signature}}</div>
+      <p>{{of.responsable}}</p>
+      <p style="font-size: 12px; color: #666;">Date : {{date.jour}}</p>
+    </div>
+    <div style="border: 1px dashed #666; padding: 20px; text-align: center;">
+      <p><strong>Le bénéficiaire</strong> (mention "Lu et approuvé")</p>
+      <div id="signature-zone" style="min-height: 100px; border: 1px solid #eee; background: #fafafa; margin: 10px auto; max-width: 300px; display: flex; align-items: center; justify-content: center; color: #aaa;">
+        La signature sera apposée ici
+      </div>
+      <p><strong>{{apprenant.prenom}} {{apprenant.nom}}</strong></p>
+      <p style="font-size: 12px;">Fait le {{date.jour}}</p>
     </div>
   </div>
 </div>
@@ -425,49 +452,103 @@ export const DEFAULT_TEMPLATES: Partial<Record<DocumentType, string>> = {
 `,
 
   test_positionnement: `
-<div style="font-family: 'Times New Roman', Times, serif; max-width: 800px; margin: 0 auto; padding: 20px;">
-  <div style="text-align: center; margin-bottom: 30px;">
+<div style="font-family: 'Times New Roman', Times, serif; max-width: 800px; margin: 0 auto; padding: 20px; background: white; color: #333; line-height: 1.6;">
+
+  <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 15px;">
     <h1 style="font-size: 24px; margin-bottom: 10px;">TEST DE POSITIONNEMENT</h1>
-    <h2 style="font-size: 18px; color: #444;">{{formation.nom}}</h2>
+    <p style="font-size: 14px; color: #666; font-style: italic;">Évaluation des compétences initiales avant l'entrée en formation</p>
   </div>
 
-  <div style="display: flex; justify-content: space-between; margin-bottom: 20px; padding: 15px; background: #f5f5f5;">
+  <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; background: #f9f9f9; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
     <div>
-      <p style="margin: 0;"><strong>Apprenant :</strong> {{apprenant.prenom}} {{apprenant.nom}}</p>
-      <p style="margin: 5px 0 0 0;"><strong>Date :</strong> {{date.jour}}</p>
-    </div>
-    <div style="text-align: right;">
       <p style="margin: 0;"><strong>Organisme :</strong> {{of.nom}}</p>
       <p style="margin: 5px 0 0 0;"><strong>Formateur :</strong> {{formation.formateur}}</p>
     </div>
+    <div>
+      <p style="margin: 0;"><strong>Apprenant :</strong> {{apprenant.prenom}} {{apprenant.nom}}</p>
+      <p style="margin: 5px 0 0 0;"><strong>Formation :</strong> {{formation.nom}}</p>
+    </div>
   </div>
 
-  <div style="padding: 15px; border: 1px solid #ddd; margin-bottom: 20px; background: #fffde7;">
-    <p style="margin: 0;"><strong>Instructions :</strong> Ce test permet d'évaluer votre niveau initial avant la formation. Répondez aux questions ci-dessous au mieux de vos connaissances. Il n'y a pas de mauvaise réponse, l'objectif est d'adapter la formation à votre profil.</p>
+  <div style="padding: 15px; border: 1px solid #ddd; margin-bottom: 25px; background: #fffde7; border-left: 4px solid #f59e0b;">
+    <p style="margin: 0;"><strong>📋 Instructions :</strong> Ce test permet d'évaluer votre niveau initial. Répondez au mieux de vos connaissances. Il n'y a pas de mauvaise réponse, l'objectif est d'adapter la formation à votre profil.</p>
   </div>
 
-  <h2 style="font-size: 16px; background: #333; color: white; padding: 8px 15px;">Question 1</h2>
-  <div style="padding: 15px; border: 1px solid #ddd; margin-bottom: 15px;">
-    <p>[Question à personnaliser selon la formation]</p>
-    <div style="border: 1px solid #ccc; min-height: 60px; padding: 10px;"></div>
+  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px; color: #1a1a1a;">1. Connaissances générales du domaine</h2>
+  <p style="margin-bottom: 8px;">Comment évaluez-vous votre connaissance actuelle du sujet de la formation ?</p>
+  <div style="margin-bottom: 20px;">
+    <label style="display: block; margin-bottom: 8px;"><input type="radio" name="connaissance" value="aucune"> Aucune connaissance</label>
+    <label style="display: block; margin-bottom: 8px;"><input type="radio" name="connaissance" value="notions"> Quelques notions de base</label>
+    <label style="display: block; margin-bottom: 8px;"><input type="radio" name="connaissance" value="bonne"> Bonne connaissance théorique</label>
+    <label style="display: block; margin-bottom: 8px;"><input type="radio" name="connaissance" value="expert"> Maîtrise avancée / Expert</label>
   </div>
 
-  <h2 style="font-size: 16px; background: #333; color: white; padding: 8px 15px;">Question 2</h2>
-  <div style="padding: 15px; border: 1px solid #ddd; margin-bottom: 15px;">
-    <p>[Question à personnaliser selon la formation]</p>
-    <div style="border: 1px solid #ccc; min-height: 60px; padding: 10px;"></div>
+  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px; color: #1a1a1a;">2. Expérience pratique</h2>
+  <p style="margin-bottom: 8px;">Avez-vous déjà mis en pratique les compétences visées par cette formation ?</p>
+  <div style="margin-bottom: 10px;">
+    <label style="display: block; margin-bottom: 8px;"><input type="radio" name="experience" value="jamais"> Jamais</label>
+    <label style="display: block; margin-bottom: 8px;"><input type="radio" name="experience" value="rarement"> Rarement (quelques fois)</label>
+    <label style="display: block; margin-bottom: 8px;"><input type="radio" name="experience" value="regulierement"> Régulièrement</label>
+    <label style="display: block; margin-bottom: 8px;"><input type="radio" name="experience" value="quotidien"> Au quotidien</label>
   </div>
+  <p style="margin-bottom: 8px;">Précisez dans quel contexte :</p>
+  <textarea name="contexte_experience" style="width: 100%; min-height: 80px; padding: 10px; border: 1px solid #ccc; margin-bottom: 20px; font-family: inherit;" placeholder="Décrivez brièvement votre expérience pratique..."></textarea>
 
-  <h2 style="font-size: 16px; background: #333; color: white; padding: 8px 15px;">Question 3</h2>
-  <div style="padding: 15px; border: 1px solid #ddd; margin-bottom: 15px;">
-    <p>[Question à personnaliser selon la formation]</p>
-    <div style="border: 1px solid #ccc; min-height: 60px; padding: 10px;"></div>
+  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px; color: #1a1a1a;">3. Compétences spécifiques</h2>
+  <p style="margin-bottom: 8px;">Pour chaque compétence ci-dessous, évaluez votre niveau :</p>
+  <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+    <thead>
+      <tr style="background: #f5f5f5;">
+        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Compétence</th>
+        <th style="border: 1px solid #ddd; padding: 8px; text-align: center; width: 80px;">Débutant</th>
+        <th style="border: 1px solid #ddd; padding: 8px; text-align: center; width: 100px;">Intermédiaire</th>
+        <th style="border: 1px solid #ddd; padding: 8px; text-align: center; width: 80px;">Avancé</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="border: 1px solid #ddd; padding: 8px;">Compétence 1 (à personnaliser)</td>
+        <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><input type="radio" name="comp1" value="debutant"></td>
+        <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><input type="radio" name="comp1" value="intermediaire"></td>
+        <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><input type="radio" name="comp1" value="avance"></td>
+      </tr>
+      <tr>
+        <td style="border: 1px solid #ddd; padding: 8px;">Compétence 2 (à personnaliser)</td>
+        <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><input type="radio" name="comp2" value="debutant"></td>
+        <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><input type="radio" name="comp2" value="intermediaire"></td>
+        <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><input type="radio" name="comp2" value="avance"></td>
+      </tr>
+      <tr>
+        <td style="border: 1px solid #ddd; padding: 8px;">Compétence 3 (à personnaliser)</td>
+        <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><input type="radio" name="comp3" value="debutant"></td>
+        <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><input type="radio" name="comp3" value="intermediaire"></td>
+        <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><input type="radio" name="comp3" value="avance"></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px; color: #1a1a1a;">4. Attentes et objectifs personnels</h2>
+  <p style="margin-bottom: 8px;">Quels sont vos principaux objectifs en suivant cette formation ?</p>
+  <textarea name="objectifs" style="width: 100%; min-height: 100px; padding: 10px; border: 1px solid #ccc; margin-bottom: 20px; font-family: inherit;" placeholder="Décrivez vos objectifs et ce que vous espérez acquérir..."></textarea>
+
+  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px; color: #1a1a1a;">5. Difficultés anticipées</h2>
+  <p style="margin-bottom: 8px;">Identifiez-vous des difficultés potentielles pour cette formation ?</p>
+  <div style="margin-bottom: 10px;">
+    <label style="display: block; margin-bottom: 6px;"><input type="checkbox" name="difficulte_temps" value="oui"> Manque de temps disponible</label>
+    <label style="display: block; margin-bottom: 6px;"><input type="checkbox" name="difficulte_technique" value="oui"> Difficultés techniques (matériel, logiciel)</label>
+    <label style="display: block; margin-bottom: 6px;"><input type="checkbox" name="difficulte_prerequis" value="oui"> Prérequis insuffisants</label>
+    <label style="display: block; margin-bottom: 6px;"><input type="checkbox" name="difficulte_aucune" value="oui"> Aucune difficulté anticipée</label>
   </div>
+  <p style="margin-bottom: 8px;">Précisions éventuelles :</p>
+  <textarea name="precisions_difficultes" style="width: 100%; min-height: 60px; padding: 10px; border: 1px solid #ccc; margin-bottom: 20px; font-family: inherit;" placeholder="Détails supplémentaires..."></textarea>
 
-  <div style="margin-top: 30px; padding: 15px; background: #f9f9f9;">
-    <p><strong>Résultat du positionnement :</strong> {{evaluation.note_positionnement}}</p>
-    <p><strong>Niveau identifié :</strong> {{evaluation.niveau_acquis}}</p>
-    <p><strong>Commentaire du formateur :</strong> {{evaluation.commentaire}}</p>
+  <div style="margin-top: 30px; border: 1px dashed #666; padding: 20px; text-align: center;">
+    <p><strong>Signature de l'apprenant :</strong></p>
+    <div id="signature-zone" style="min-height: 100px; border: 1px solid #eee; background: #fafafa; margin: 10px auto; max-width: 300px; display: flex; align-items: center; justify-content: center; color: #aaa;">
+      La signature sera apposée ici
+    </div>
+    <p><strong>{{apprenant.prenom}} {{apprenant.nom}}</strong></p>
+    <p style="font-size: 12px;">Fait le {{date.jour}}</p>
   </div>
 </div>
 `,
