@@ -28,6 +28,7 @@ import { usePrepareUpload, useCompleteUpload, useSignDocument, useSaveDocument, 
 import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 import { fastAPIClient } from '@/services/fastapi-client';
 import axios from 'axios';
+import { IdentityVerificationModal, IdentityProof } from './IdentityVerificationModal';
 
 interface StudentNeedsAnalysisModalProps {
     isOpen: boolean;
@@ -65,6 +66,8 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
     const [step, setStep] = useState<'edit' | 'sign' | 'success'>('edit');
     const [isSaving, setIsSaving] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
+    const [identityModalOpen, setIdentityModalOpen] = useState(false);
+    const [identityProof, setIdentityProof] = useState<IdentityProof | null>(null);
 
     // Hooks API for "sending back"
     const prepareUpload = usePrepareUpload();
@@ -302,6 +305,11 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
     };
 
     const handleSaveAndSign = async () => {
+        setIdentityModalOpen(true);
+    };
+
+    const handleIdentityVerified = (proof: IdentityProof) => {
+        setIdentityProof(proof);
         setStep('sign');
     };
 
@@ -428,7 +436,8 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
                     user.id,
                     assignmentId,
                     signatureData,
-                    finalHtml // Send updated HTML to be stored in DB
+                    finalHtml, // Send updated HTML to be stored in DB
+                    identityProof || undefined
                 );
             }
 
@@ -618,6 +627,11 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
                     )}
                 </div>
             </DialogContent>
+            <IdentityVerificationModal
+                isOpen={identityModalOpen}
+                onClose={() => setIdentityModalOpen(false)}
+                onVerified={handleIdentityVerified}
+            />
         </Dialog>
     );
 };

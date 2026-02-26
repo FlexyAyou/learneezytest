@@ -59,6 +59,7 @@ interface SentDocument {
   signatureFields?: any[];
   signedFieldValues?: Record<string, string>;
   source?: 'template' | 'upload';
+  signatureIp?: string;
   signatureMetadata?: {
     ip?: string;
     user_agent?: string;
@@ -164,6 +165,7 @@ const OFEmargementPage: React.FC = () => {
           htmlContent: d.html_content,
           hasSignatureFields: d.has_signature_fields,
           source: 'template' as const,
+          signatureIp: d.signature_ip,
           signatureMetadata: d.signature_metadata,
         }));
       });
@@ -201,6 +203,7 @@ const OFEmargementPage: React.FC = () => {
         signedFieldValues: a.signed_field_values,
         source: 'upload' as const,
         signatureMetadata: a.signature_metadata,
+        signatureIp: a.signature_ip || a.signatureMetadata?.ip,
       };
 
       if (!map[learnerId]) map[learnerId] = [];
@@ -1148,10 +1151,10 @@ const OFEmargementPage: React.FC = () => {
                                 </div>
                               </div>
                             )}
-                            {previewDocument.signatureMetadata.ip && (
+                            {(previewDocument.signatureMetadata.ip || previewDocument.signatureIp) && (
                               <div>
                                 <div className="text-muted-foreground">Adresse IP</div>
-                                <div className="font-mono font-medium">{previewDocument.signatureMetadata.ip}</div>
+                                <div className="font-mono font-medium">{previewDocument.signatureMetadata.ip || previewDocument.signatureIp}</div>
                               </div>
                             )}
                             {previewDocument.signatureMetadata.user_agent && (
@@ -1191,7 +1194,7 @@ const OFEmargementPage: React.FC = () => {
             pdfUrl={signerViewerDoc.documentUrl}
             fields={signerViewerDoc.signatureFields || []}
             documentName={`${signerViewerDoc.title}${signerViewerDoc.status === 'signed' ? ' - Document signé' : ''}`}
-            onComplete={async () => {}}
+            onComplete={async () => { }}
             readOnly={true}
             initialFieldValues={signerViewerDoc.signedFieldValues || {}}
             extraHeaderActions={

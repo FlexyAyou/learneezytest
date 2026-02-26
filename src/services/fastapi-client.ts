@@ -1638,10 +1638,11 @@ class FastAPIClient {
     return this.get<any[]>(`/api/organizations/${ofId}/learners/${learnerId}/documents`);
   }
 
-  async signLearnerDocument(ofId: number, learnerId: number, docId: string, signatureData: string, htmlContent?: string) {
+  async signLearnerDocument(ofId: number, learnerId: number, docId: string, signatureData: string, htmlContent?: string, signatureMetadata?: Record<string, any>) {
     return this.post<any>(`/api/organizations/${ofId}/learners/${learnerId}/documents/${docId}/sign`, {
       signature_data: signatureData,
-      html_content: htmlContent
+      html_content: htmlContent,
+      ...(signatureMetadata ? { signature_metadata: signatureMetadata } : {}),
     });
   }
 
