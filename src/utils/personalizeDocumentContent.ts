@@ -100,15 +100,25 @@ export const personalizeDocumentContent = (
     'apprenant.entreprise': learnerData?.company,
   };
 
-  // Fonction de remplacement intelligente qui ignore les tags HTML à l'intérieur des double accolades
+  // Fonction de remplacement intelligente qui ignore les tags HTML, les espaces insécables et les entités
   Object.entries(replacements).forEach(([key, value]) => {
     const parts = key.split('.');
     const prefix = parts[0];
     const suffix = parts[1];
 
-    // Regex qui autorise des tags HTML n'importe où entre les lettres et autour du point
-    // Ex: {{of.<span>nom</span>}} sera trouvé
-    const regexStr = `\\{\\{\\s*(<[^>]+>)*${prefix}(<[^>]+>)*[\\._](<[^>]+>)*${suffix}(<[^>]+>)*\\s*\\}\\}`;
+    // Regex ultra-résiliente :
+    // - Gère les tags HTML entre chaque caractère (ex: {{of<span>.</span>nom}})
+    // - Gère les espaces et espaces insécables (&nbsp;)
+    // - Gère les tags entre les accolades : {<span>{</span> of.nom <span>}</span>}
+
+    // On construit une regex pour chaque caractère du tag pour être sûr de tout attraper
+    const makeResilient = (str: string) => str.split('').join('(?:<[^>]+>|&nbsp;|\\s)*');
+
+    const prefixResilient = makeResilient(prefix);
+    const suffixResilient = makeResilient(suffix);
+    const dotResilient = '[\\._]';
+
+    const regexStr = `\\{(?:<[^>]+>|&nbsp;|\\s)*\\{(?:<[^>]+>|&nbsp;|\\s)*${prefixResilient}(?:<[^>]+>|&nbsp;|\\s)*${dotResilient}(?:<[^>]+>|&nbsp;|\\s)*${suffixResilient}(?:<[^>]+>|&nbsp;|\\s)*\\}(?:<[^>]+>|&nbsp;|\\s)*\\}`;
     const regex = new RegExp(regexStr, 'gi');
 
     content = content.replace(regex, value || `[${key}]`);

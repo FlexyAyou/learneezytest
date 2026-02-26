@@ -186,7 +186,8 @@ export const DEFAULT_TEMPLATES: Partial<Record<DocumentType, string>> = {
 <div style="font-family: 'Times New Roman', Times, serif; max-width: 800px; margin: 0 auto; padding: 20px; background: white; color: #333; line-height: 1.6;">
 
   <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 15px;">
-    <h1 style="font-size: 24px; margin-bottom: 10px;">CONVENTION DE FORMATION PROFESSIONNELLE</h1>
+    <h1 style="font-size: 24px; margin-bottom: 10px; color: #003366;">CONVENTION DE FORMATION PROFESSIONNELLE</h1>
+    <p style="font-size: 16px; margin-bottom: 5px;">N° {{of.nda}}</p>
     <p style="font-size: 14px; color: #666; font-style: italic;">Articles L.6353-1 et suivants du Code du travail</p>
   </div>
 
