@@ -7,7 +7,7 @@ import { DocumentCard } from './DocumentCard';
 import { DocumentSignatureModal } from './DocumentSignatureModal';
 import { StudentDocumentPreviewModal } from './StudentDocumentPreviewModal';
 import { StudentAssignedDocuments } from './StudentAssignedDocuments';
-import { StudentNeedsAnalysisModal } from './StudentNeedsAnalysisModal';
+import { StudentInteractiveDocumentModal } from './StudentInteractiveDocumentModal';
 import { personalizeDocumentContent, getTemplateForType } from '@/utils/personalizeDocumentContent';
 import { useMyDocuments, useSignDocument, useSignDocumentFields } from '@/hooks/useApi';
 import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
@@ -165,7 +165,7 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
     setIdentityProof(proof);
     const doc = pendingSignDoc;
     if (!doc) return;
-    if (doc.type === 'analyse_besoin') {
+    if (doc.type === 'analyse_besoin' || doc.type === 'convention') {
       setActiveAnalysis(doc);
       setNeedsAnalysisOpen(true);
     } else if (doc.signatureFields && doc.signatureFields.length > 0) {
@@ -474,9 +474,9 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
         }}
       />
 
-      {/* Interactive Needs Analysis Modal */}
+      {/* Interactive Document Modal (Analyse Besoin, Convention, etc.) */}
       {activeAnalysis && (
-        <StudentNeedsAnalysisModal
+        <StudentInteractiveDocumentModal
           isOpen={needsAnalysisOpen}
           onClose={() => {
             setNeedsAnalysisOpen(false);

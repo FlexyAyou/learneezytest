@@ -66,6 +66,7 @@ export const personalizeDocumentContent = (
     .replace(/\{\{\s*of\.nda\s*\}\}/g, ofData?.nda || 'NDA non renseigné')
     .replace(/\{\{\s*of\.adresse\s*\}\}/g, ofData?.address || '')
     .replace(/\{\{\s*of\.codePostal\s*\}\}/g, ofData?.postalCode || '')
+    .replace(/\{\{\s*of\.code_postal\s*\}\}/g, ofData?.postalCode || '')
     .replace(/\{\{\s*of\.ville\s*\}\}/g, ofData?.city || '')
     .replace(/\{\{\s*of\.telephone\s*\}\}/g, ofData?.phone || '')
     .replace(/\{\{\s*of\.email\s*\}\}/g, ofData?.email || '')
@@ -91,6 +92,7 @@ export const personalizeDocumentContent = (
       .replace(/\{\{\s*apprenant\.entreprise\s*\}\}/g, learnerData.company || '')
       .replace(/\{\{\s*apprenant\.adresse\s*\}\}/g, learnerData.address || '')
       .replace(/\{\{\s*apprenant\.codePostal\s*\}\}/g, learnerData.postalCode || '')
+      .replace(/\{\{\s*apprenant\.code_postal\s*\}\}/g, learnerData.postalCode || '')
       .replace(/\{\{\s*apprenant\.ville\s*\}\}/g, learnerData.city || '')
       .replace(/\{\{\s*apprenant\.telephone\s*\}\}/g, learnerData.phone || '')
       .replace(/\{\{\s*apprenant\.email\s*\}\}/g, learnerData.email || '');

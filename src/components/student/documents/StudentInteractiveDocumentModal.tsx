@@ -30,7 +30,7 @@ import { fastAPIClient } from '@/services/fastapi-client';
 import axios from 'axios';
 import { IdentityVerificationModal, IdentityProof } from './IdentityVerificationModal';
 
-interface StudentNeedsAnalysisModalProps {
+interface StudentInteractiveDocumentModalProps {
     isOpen: boolean;
     onClose: () => void;
     assignmentId: string | number;
@@ -48,7 +48,7 @@ interface StudentNeedsAnalysisModalProps {
     onSuccess?: () => void;
 }
 
-export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps> = ({
+export const StudentInteractiveDocumentModal: React.FC<StudentInteractiveDocumentModalProps> = ({
     isOpen,
     onClose,
     assignmentId,
@@ -153,8 +153,6 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
     const fetchContent = async () => {
         setIsLoading(true);
         try {
-            let rawHtml = '';
-
             if (url) {
                 try {
                     const response = await axios.get(url, { responseType: 'text' });
@@ -226,7 +224,7 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
                 const key = `field_${index}`;
                 values[key] = input.type === 'checkbox' ? input.checked : input.value;
             });
-            localStorage.setItem(`draft_analysis_${assignmentId}`, JSON.stringify(values));
+            localStorage.setItem(`draft_${docType}_${assignmentId}`, JSON.stringify(values));
             toast({
                 title: "Sauvegarde locale",
                 description: "Le serveur n'a pas pu être joint. Vos réponses sont sauvées sur ce navigateur.",
@@ -240,7 +238,7 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
     useEffect(() => {
         // Apply draft values when component is ready
         if (!isLoading && step === 'edit' && containerRef.current) {
-            const draftKey = `draft_analysis_${assignmentId}`;
+            const draftKey = `draft_${docType}_${assignmentId}`;
             const savedDraft = localStorage.getItem(draftKey);
             if (savedDraft) {
                 try {
@@ -256,7 +254,7 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
                 } catch (e) { console.error("Error loading draft", e); }
             }
         }
-    }, [isLoading, step, assignmentId]);
+    }, [isLoading, step, assignmentId, docType]);
 
     const handlePrint = () => {
         const printWindow = window.open('', '_blank');
@@ -314,7 +312,7 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
     };
 
     const handleSignatureComplete = async (signatureData: string) => {
-        if (assignmentId === undefined || assignmentId === null || assignmentId === '') {
+        if (!assignmentId) {
             toast({
                 title: "Erreur interne",
                 description: "Identifiant du document manquant. Impossible d'envoyer.",
@@ -325,7 +323,7 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
 
         setIsSaving(true);
         try {
-            console.log("Starting Needs Analysis submission for assignment:", assignmentId);
+            console.log(`Starting ${docType} submission for assignment:`, assignmentId);
 
             // 1. Extract filled content and "freeze" it
             const completedHtml = extractFormResults();
@@ -384,7 +382,7 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
       `;
 
             // 3. Upload the completed document
-            const fileName = `Analyse_Besoin_Apprenant_${assignmentId}_${Date.now()}.html`;
+            const fileName = `${docType}_Apprenant_${assignmentId}_${Date.now()}.html`;
             const blob = new Blob([finalHtml], { type: 'text/html' });
 
             console.log("Preparing upload for:", fileName);
@@ -397,11 +395,8 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
 
             console.log("Uploading to S3...");
             try {
-                // Use .url from PrepareUploadResponse (not .upload_url)
                 const uploadUrl = (prepareData as any).url || (prepareData as any).upload_url;
-                if (!uploadUrl) {
-                    throw new Error("URL d'upload non reçue du serveur.");
-                }
+                if (!uploadUrl) throw new Error("URL d'upload non reçue du serveur.");
 
                 await axios.put(uploadUrl, blob, {
                     headers: { 'Content-Type': 'text/html' }
@@ -423,20 +418,18 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
             // 4. Update the assignment status by signing it
             console.log("Signing document...");
             if (typeof assignmentId === 'number') {
-                // Legacy system: uses integer assignmentId and S3 file
                 await signDocument.mutateAsync({
                     assignment_id: assignmentId,
                     signature_data: signatureData
                 });
             } else {
-                // New system: uses string UUID for SentDocument and stores HTML in DB
                 const user = await fastAPIClient.getCurrentUser();
                 await fastAPIClient.signLearnerDocument(
                     user.of_id,
                     user.id,
                     assignmentId,
                     signatureData,
-                    finalHtml, // Send updated HTML to be stored in DB
+                    finalHtml,
                     identityProof || undefined
                 );
             }
@@ -445,7 +438,7 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
             setStep('success');
             toast({
                 title: "Document envoyé !",
-                description: "Votre analyse de besoin a été complétée, signée et renvoyée avec succès.",
+                description: `${title} a été complété, signé et renvoyé avec succès.`,
                 variant: "default"
             });
 
@@ -473,8 +466,8 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
                             {title}
                         </DialogTitle>
                         <DialogDescription>
-                            {step === 'edit' ? "Veuillez répondre aux questions ci-dessous et signer le document." :
-                                step === 'sign' ? "Apposez votre signature pour valider vos réponses." :
+                            {step === 'edit' ? "Veuillez vérifier les informations ci-dessous et signer le document." :
+                                step === 'sign' ? "Apposez votre signature pour valider le document." :
                                     "Document envoyé avec succès."}
                         </DialogDescription>
                     </div>
@@ -511,7 +504,7 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
                     {isLoading ? (
                         <div className="flex flex-col items-center justify-center h-full gap-4">
                             <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-                            <p className="text-muted-foreground animate-pulse">Chargement du questionnaire...</p>
+                            <p className="text-muted-foreground animate-pulse">Chargement du document...</p>
                         </div>
                     ) : step === 'success' ? (
                         <div className="flex flex-col items-center justify-center h-full p-12 text-center space-y-6">
@@ -521,7 +514,7 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
                             <div className="space-y-2">
                                 <h3 className="text-2xl font-bold">C'est envoyé !</h3>
                                 <p className="text-muted-foreground max-w-md mx-auto">
-                                    Votre analyse de besoin a été transmise à votre organisme de formation.
+                                    Votre {title.toLowerCase()} a été transmise à votre organisme de formation.
                                     Vous recevrez une notification dès que celle-ci sera validée.
                                 </p>
                             </div>
@@ -553,7 +546,7 @@ export const StudentNeedsAnalysisModal: React.FC<StudentNeedsAnalysisModalProps>
                             )}
 
                             <Button variant="outline" onClick={() => setStep('edit')} disabled={isSaving}>
-                                Retour au questionnaire
+                                Retour au document
                             </Button>
                         </div>
                     ) : (

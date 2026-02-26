@@ -13,6 +13,7 @@ import { useMyDocuments, useSignDocument, useSignDocumentFields } from '@/hooks/
 import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
 import { fastAPIClient } from '@/services/fastapi-client';
 import { DocumentSignerViewer } from './DocumentSignerViewer';
+import { StudentInteractiveDocumentModal } from './StudentInteractiveDocumentModal';
 import { IdentityVerificationModal, IdentityProof } from './IdentityVerificationModal';
 
 interface Formation {
@@ -64,6 +65,10 @@ export const StudentPhasePostFormation = ({ selectedFormation, formations }: Stu
   const [identityModalOpen, setIdentityModalOpen] = useState(false);
   const [identityProof, setIdentityProof] = useState<IdentityProof | null>(null);
   const [pendingSignDoc, setPendingSignDoc] = useState<PhaseDocument | null>(null);
+
+  // States for interactive documents
+  const [needsAnalysisOpen, setNeedsAnalysisOpen] = useState(false);
+  const [activeAnalysis, setActiveAnalysis] = useState<PhaseDocument | null>(null);
 
   useEffect(() => {
     if (assignments) {
@@ -139,7 +144,11 @@ export const StudentPhasePostFormation = ({ selectedFormation, formations }: Stu
     setIdentityProof(proof);
     const doc = pendingSignDoc;
     if (!doc) return;
-    if (doc.signatureFields && doc.signatureFields.length > 0) {
+
+    if (doc.type === 'test_sortie' || doc.type === 'satisfaction_chaud') {
+      setActiveAnalysis(doc);
+      setNeedsAnalysisOpen(true);
+    } else if (doc.signatureFields && doc.signatureFields.length > 0) {
       setSelectedDocument(doc);
       setInteractiveViewerReadOnly(false);
       setInteractiveViewerOpen(true);
@@ -208,6 +217,11 @@ export const StudentPhasePostFormation = ({ selectedFormation, formations }: Stu
   };
 
   const handlePreview = (doc: PhaseDocument) => {
+    if (doc.type === 'test_sortie' || doc.type === 'satisfaction_chaud') {
+      setActiveAnalysis(doc);
+      setNeedsAnalysisOpen(true);
+      return;
+    }
     if (doc.htmlContent) {
       setPreviewDocument({ title: documentTypes[doc.type]?.label || doc.name, content: doc.htmlContent });
       setPreviewModalOpen(true);
@@ -379,6 +393,30 @@ export const StudentPhasePostFormation = ({ selectedFormation, formations }: Stu
         htmlContent={previewDocument?.content || ''}
         onDownload={() => { toast({ title: "Téléchargement", description: "Document téléchargé avec succès" }); }}
       />
+
+      {/* Interactive Document Modal (Test Sortie, Satisfaction, etc.) */}
+      {activeAnalysis && (
+        <StudentInteractiveDocumentModal
+          isOpen={needsAnalysisOpen}
+          onClose={() => {
+            setNeedsAnalysisOpen(false);
+            setActiveAnalysis(null);
+          }}
+          assignmentId={activeAnalysis.assignmentId || activeAnalysis.id}
+          title={documentTypes[activeAnalysis.type].label}
+          url={activeAnalysis.url}
+          docType={activeAnalysis.type}
+          learnerData={currentUser ? {
+            firstName: currentUser.first_name || '',
+            lastName: currentUser.last_name || ''
+          } : undefined}
+          formationData={formations.find(f => f.id === activeAnalysis.formationId) || (formations.length > 0 ? formations[0] : undefined)}
+          initialHtmlContent={activeAnalysis.htmlContent}
+          onSuccess={() => {
+            refetchDocs();
+          }}
+        />
+      )}
 
       {/* Interactive Signer Viewer */}
       {selectedDocument && interactiveViewerOpen && (
