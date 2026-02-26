@@ -43,6 +43,11 @@ interface StudentInteractiveDocumentModalProps {
     };
     formationData?: {
         name: string;
+        description?: string;
+        duree?: string;
+        lieu?: string;
+        prix?: string;
+        formateur?: string;
     };
     initialHtmlContent?: string;
     onSuccess?: () => void;
@@ -125,7 +130,15 @@ export const StudentInteractiveDocumentModal: React.FC<StudentInteractiveDocumen
 
         const personalized = personalizeDocumentContent(
             rawHtml,
-            { id: '0', name: formationData?.name || 'Ma Formation' },
+            {
+                id: '0',
+                name: formationData?.name || 'Ma Formation',
+                description: (formationData as any)?.description,
+                duree: (formationData as any)?.duree,
+                lieu: (formationData as any)?.lieu,
+                prix: (formationData as any)?.prix,
+                formateur: (formationData as any)?.formateur
+            },
             mappedOFData,
             mappedLearnerData
         );

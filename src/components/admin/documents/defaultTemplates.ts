@@ -183,77 +183,65 @@ export const DEFAULT_TEMPLATES: Partial<Record<DocumentType, string>> = {
 `,
 
   convention: `
-<div style="font-family: 'Times New Roman', Times, serif; max-width: 800px; margin: 0 auto; padding: 20px; background: white; color: #333; line-height: 1.6;">
+      <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 40px;">
+        <div style="text-align: center; margin-bottom: 40px;">
+          <h1 style="color: #1e40af; margin-bottom: 10px;">CONVENTION DE FORMATION PROFESSIONNELLE</h1>
+          <p style="color: #6b7280;">N° {{of.nda}}</p>
+        </div>
 
-  <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 15px;">
-    <h1 style="font-size: 24px; margin-bottom: 10px; color: #003366;">CONVENTION DE FORMATION PROFESSIONNELLE</h1>
-    <p style="font-size: 16px; margin-bottom: 5px;">N° {{of.nda}}</p>
-    <p style="font-size: 14px; color: #666; font-style: italic;">Articles L.6353-1 et suivants du Code du travail</p>
-  </div>
+        <h2 style="color: #374151; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;">ENTRE LES SOUSSIGNÉS</h2>
+        
+        <div style="margin: 20px 0; padding: 20px; background: #f9fafb; border-radius: 8px;">
+          <p><strong>{{of.nom}}</strong></p>
+          <p>SIRET : {{of.siret}}</p>
+          <p>Numéro de déclaration d'activité : {{of.nda}}</p>
+          <p>Adresse : {{of.adresse}}, {{of.code_postal}} {{of.ville}}</p>
+          <p>Représenté par : {{of.responsable}}</p>
+          <p style="margin-top: 10px;"><em>Ci-après dénommé&nbsp;<span class="dynamic-field" contenteditable="false" style="background-color: rgb(224, 242, 254); color: rgb(3, 105, 161); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.875rem;">{{of.nom}}</span></em></p>
+        </div>
 
-  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px; color: #1a1a1a;">Entre les soussignés</h2>
+        <p style="text-align: center; font-weight: bold; margin: 20px 0;">ET</p>
 
-  <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; background: #f9f9f9; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-    <div>
-      <p style="margin: 0; font-size: 13px; color: #888; text-transform: uppercase;">Organisme de formation</p>
-      <p style="margin: 5px 0 0 0;"><strong>{{of.nom}}</strong></p>
-      <p style="margin: 3px 0 0 0; font-size: 14px;">SIRET : {{of.siret}}</p>
-      <p style="margin: 3px 0 0 0; font-size: 14px;">N° DA : {{of.nda}}</p>
-      <p style="margin: 3px 0 0 0; font-size: 14px;">{{of.adresse}}, {{of.codePostal}} {{of.ville}}</p>
-      <p style="margin: 3px 0 0 0; font-size: 14px;">Représenté par : {{of.responsable}}</p>
-    </div>
-    <div>
-      <p style="margin: 0; font-size: 13px; color: #888; text-transform: uppercase;">Bénéficiaire</p>
-      <p style="margin: 5px 0 0 0;"><strong>{{apprenant.prenom}} {{apprenant.nom}}</strong></p>
-      <p style="margin: 3px 0 0 0; font-size: 14px;">Entreprise : {{apprenant.entreprise}}</p>
-      <p style="margin: 3px 0 0 0; font-size: 14px;">{{apprenant.adresse}}, {{apprenant.codePostal}} {{apprenant.ville}}</p>
-      <p style="margin: 3px 0 0 0; font-size: 14px;">Tél : {{apprenant.telephone}} | Email : {{apprenant.email}}</p>
-    </div>
-  </div>
+        <div style="margin: 20px 0; padding: 20px; background: #f9fafb; border-radius: 8px;">
+          <p><span class="dynamic-field" contenteditable="false" style="background-color: rgb(224, 242, 254); color: rgb(3, 105, 161); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.875rem;">{{apprenant.prenom}}</span> <span class="dynamic-field" contenteditable="false" style="background-color: rgb(224, 242, 254); color: rgb(3, 105, 161); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.875rem;">{{apprenant.nom}}</span><br></p>
+          <p>Email : {{apprenant.email}}</p>
+          <p>Téléphone : {{apprenant.telephone}}</p>
+          <p>Adresse : {{apprenant.adresse}}, {{apprenant.code_postal}} {{apprenant.ville}}</p>
+          <p style="margin-top: 10px;"><em>Ci-après dénommé "le Stagiaire"</em></p>
+        </div>
 
-  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px; color: #1a1a1a;">Article 1 – Objet</h2>
-  <p style="text-align: justify;">{{of.nom}} s'engage à organiser l'action de formation suivante :</p>
-  <div style="padding: 15px; border-left: 4px solid #333; background: #fafafa; margin-bottom: 20px;">
-    <p style="margin: 0;"><strong>Intitulé :</strong> {{formation.nom}}</p>
-    <p style="margin: 5px 0 0 0;"><strong>Durée :</strong> {{formation.duree}}</p>
-    <p style="margin: 5px 0 0 0;"><strong>Dates :</strong> du {{dates.debut}} au {{dates.fin}}</p>
-    <p style="margin: 5px 0 0 0;"><strong>Lieu :</strong> {{formation.lieu}}</p>
-    <p style="margin: 5px 0 0 0;"><strong>Formateur :</strong> {{formation.formateur}}</p>
-  </div>
+        <h2 style="color: #374151; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; margin-top: 30px;">ARTICLE 1 - OBJET DE LA CONVENTION</h2>
+        <p>La présente convention a pour objet la formation suivante :</p>
+        <div style="margin: 20px 0; padding: 20px; background: #eff6ff; border-radius: 8px; border-left: 4px solid #3b82f6;">
+          <p><strong>Formation : {{formation.nom}}</strong></p>
+          <p>{{formation.description}}</p>
+          <p>Durée : {{formation.duree}}</p>
+          <p>Lieu : {{formation.lieu}}</p>
+          <p>Formateur : {{formation.formateur}}</p>
+        </div>
 
-  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px; color: #1a1a1a;">Article 2 – Prix et modalités de paiement</h2>
-  <p style="text-align: justify;">Le coût de la formation est fixé à <strong>{{formation.prix}}</strong> nets de taxes. Le règlement s'effectue par virement bancaire ou chèque à l'ordre de {{of.nom}}.</p>
+        <h2 style="color: #374151; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; margin-top: 30px;">ARTICLE 2 - PÉRIODE DE FORMATION</h2>
+        <p>La formation se déroulera du <strong>{{dates.debut}}</strong> au <strong>{{dates.fin}}</strong>.</p>
 
-  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px; color: #1a1a1a;">Article 3 – Obligations des parties</h2>
-  <p style="text-align: justify;"><strong>L'organisme s'engage à :</strong> dispenser la formation conformément au programme communiqué, fournir les supports pédagogiques, et délivrer une attestation de fin de formation.</p>
-  <p style="text-align: justify;"><strong>Le bénéficiaire s'engage à :</strong> suivre la formation avec assiduité, respecter le règlement intérieur, et procéder au paiement dans les délais convenus.</p>
+        <h2 style="color: #374151; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; margin-top: 30px;">ARTICLE 3 - COÛT DE LA FORMATION</h2>
+        <p>Le coût total de la formation s'élève à <strong>{{formation.prix}}</strong> net de taxes.</p>
 
-  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px; color: #1a1a1a;">Article 4 – Rétractation et annulation</h2>
-  <p style="text-align: justify;">Conformément à l'article L.6353-5 du Code du travail, le stagiaire dispose d'un délai de rétractation de 10 jours à compter de la signature de la présente convention.</p>
-
-  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px; color: #1a1a1a;">Article 5 – Protection des données</h2>
-  <p style="text-align: justify;">Conformément au RGPD, les données personnelles collectées sont traitées pour la gestion administrative de la formation. Contact : {{of.email}}</p>
-
-  <h2 style="font-size: 16px; border-bottom: 2px solid #333; padding-bottom: 5px; color: #1a1a1a;">Observations complémentaires</h2>
-  <textarea name="observations" style="width: 100%; min-height: 80px; padding: 10px; border: 1px solid #ccc; margin-bottom: 20px; font-family: inherit;" placeholder="Ajoutez ici toute observation ou condition particulière..."></textarea>
-
-  <div style="margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
-    <div style="border: 1px dashed #666; padding: 20px; text-align: center;">
-      <p><strong>L'organisme de formation</strong></p>
-      <div style="min-height: 60px; margin: 10px 0;">{{of.signature}}</div>
-      <p>{{of.responsable}}</p>
-      <p style="font-size: 12px; color: #666;">Date : {{date.jour}}</p>
-    </div>
-    <div style="border: 1px dashed #666; padding: 20px; text-align: center;">
-      <p><strong>Le bénéficiaire</strong> (mention "Lu et approuvé")</p>
-      <div id="signature-zone" style="min-height: 100px; border: 1px solid #eee; background: #fafafa; margin: 10px auto; max-width: 300px; display: flex; align-items: center; justify-content: center; color: #aaa;">
-        La signature sera apposée ici
+        <div style="margin-top: 50px; display: flex; justify-content: space-between;">
+          <div style="width: 45%;">
+            <p><strong>Pour l'Organisme de formation</strong></p>
+            <p>Fait à {{of.ville}}, le {{dates.aujourdhui}}</p>
+            <div style="height: 80px; border: 1px dashed #d1d5db; margin-top: 10px; border-radius: 4px;"></div>
+          </div>
+          <div style="width: 45%;">
+            <p><strong>Pour le Stagiaire</strong></p>
+            <div id="signature-zone" style="height: 100px; border: 1px dashed #d1d5db; margin-top: 10px; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #6b7280; font-size: 0.875rem;">
+              Emplacement de la signature
+            </div>
+            <p>Lu et approuvé, le {{dates.signature}}</p>
+            <p><strong>{{apprenant.prenom}} {{apprenant.nom}}</strong></p>
+          </div>
+        </div>
       </div>
-      <p><strong>{{apprenant.prenom}} {{apprenant.nom}}</strong></p>
-      <p style="font-size: 12px;">Fait le {{date.jour}}</p>
-    </div>
-  </div>
-</div>
 `,
 
   convocation: `

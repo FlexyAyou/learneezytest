@@ -3,6 +3,11 @@ import { DEFAULT_TEMPLATES } from '@/components/admin/documents/defaultTemplates
 interface FormationBasic {
   id: string;
   name: string;
+  description?: string;
+  duree?: string;
+  lieu?: string;
+  prix?: string;
+  formateur?: string;
 }
 
 /**
@@ -75,16 +80,18 @@ export const personalizeDocumentContent = (
 
     // Formation
     'formation.nom': formation.name,
-    'formation.duree': 'Selon parcours',
-    'formation.lieu': 'À distance / Centre',
-    'formation.prix': '-',
-    'formation.formateur': '-',
+    'formation.description': formation.description || 'Action de formation professionnelle',
+    'formation.duree': formation.duree || 'Selon parcours',
+    'formation.lieu': formation.lieu || 'À distance / Centre',
+    'formation.prix': formation.prix || '-',
+    'formation.formateur': formation.formateur || '-',
 
     // Dates
     'dates.debut': today,
     'dates.fin': '-',
     'date.jour': today,
     'dates.aujourdhui': today,
+    'dates.signature': today,
 
     // Apprenant
     'apprenant.nom': learnerData?.lastName,
