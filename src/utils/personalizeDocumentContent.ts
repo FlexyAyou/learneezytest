@@ -44,69 +44,83 @@ export const personalizeDocumentContent = (
   learnerData?: LearnerDetails,
   learnerSignature?: string
 ): string => {
-  // Récupérer la signature OF depuis localStorage ou utiliser celle fournie
   const storedSignature = localStorage.getItem('of_official_signature');
   const signatureHtml = storedSignature
     ? `<img src="${storedSignature}" alt="Signature OF" style="max-height: 60px; max-width: 200px;" />`
     : '<span style="color: #999; font-style: italic;">[Signature OF]</span>';
 
-  // Signature de l'apprenant
   const learnerSignatureHtml = learnerSignature
     ? `<div style="margin-top: 10px;"><img src="${learnerSignature}" alt="Signature apprenant" style="max-height: 60px; max-width: 200px;" /><p style="font-size: 12px; color: #666; margin-top: 5px;">Signé électroniquement</p></div>`
     : '';
 
   let content = template || '';
-
   if (!content) return '';
 
-  // Remplacement des données de l'OF
-  content = content
-    .replace(/\{\{\s*of\.nom\s*\}\}/g, ofData?.na || 'Nom de l\'OF')
-    .replace(/\{\{\s*of\.siret\s*\}\}/g, ofData?.siret || 'SIRET non renseigné')
-    .replace(/\{\{\s*of\.nda\s*\}\}/g, ofData?.nda || 'NDA non renseigné')
-    .replace(/\{\{\s*of\.adresse\s*\}\}/g, ofData?.address || '')
-    .replace(/\{\{\s*of\.codePostal\s*\}\}/g, ofData?.postalCode || '')
-    .replace(/\{\{\s*of\.code_postal\s*\}\}/g, ofData?.postalCode || '')
-    .replace(/\{\{\s*of\.ville\s*\}\}/g, ofData?.city || '')
-    .replace(/\{\{\s*of\.telephone\s*\}\}/g, ofData?.phone || '')
-    .replace(/\{\{\s*of\.email\s*\}\}/g, ofData?.email || '')
-    .replace(/\{\{\s*of\.responsable\s*\}\}/g, ofData?.managerName || 'Responsable de formation')
-    .replace(/\{\{\s*of\.signature\s*\}\}/g, signatureHtml);
+  const today = new Date().toLocaleDateString('fr-FR');
 
-  // Remplacement des données de la formation
-  content = content
-    .replace(/\{\{\s*formation\.nom\s*\}\}/g, formation.name || 'Formation')
-    .replace(/\{\{\s*formation\.duree\s*\}\}/g, 'Variable')
-    .replace(/\{\{\s*formation\.lieu\s*\}\}/g, 'À distance / E-learning')
-    .replace(/\{\{\s*formation\.prix\s*\}\}/g, '-')
-    .replace(/\{\{\s*formation\.formateur\s*\}\}/g, '-')
-    .replace(/\{\{\s*dates\.debut\s*\}\}/g, new Date().toLocaleDateString('fr-FR'))
-    .replace(/\{\{\s*dates\.fin\s*\}\}/g, '-')
-    .replace(/\{\{\s*date\.jour\s*\}\}/g, new Date().toLocaleDateString('fr-FR'));
+  // Dictionnaire de remplacement
+  const replacements: Record<string, string | undefined> = {
+    // Organisme
+    'of.nom': ofData?.na,
+    'of.siret': ofData?.siret,
+    'of.nda': ofData?.nda,
+    'of.adresse': ofData?.address,
+    'of.code_postal': ofData?.postalCode,
+    'of.codePostal': ofData?.postalCode,
+    'of.ville': ofData?.city,
+    'of.telephone': ofData?.phone,
+    'of.email': ofData?.email,
+    'of.responsable': ofData?.managerName,
+    'of.signature': signatureHtml,
 
-  // Remplacement des données de l'apprenant
+    // Formation
+    'formation.nom': formation.name,
+    'formation.duree': 'Selon parcours',
+    'formation.lieu': 'À distance / Centre',
+    'formation.prix': '-',
+    'formation.formateur': '-',
+
+    // Dates
+    'dates.debut': today,
+    'dates.fin': '-',
+    'date.jour': today,
+    'dates.aujourdhui': today,
+
+    // Apprenant
+    'apprenant.nom': learnerData?.lastName,
+    'apprenant.prenom': learnerData?.firstName,
+    'apprenant.nom_complet': `${learnerData?.firstName || ''} ${learnerData?.lastName || ''}`.trim(),
+    'apprenant.nomComplet': `${learnerData?.firstName || ''} ${learnerData?.lastName || ''}`.trim(),
+    'apprenant.email': learnerData?.email,
+    'apprenant.telephone': learnerData?.phone,
+    'apprenant.adresse': learnerData?.address,
+    'apprenant.code_postal': learnerData?.postalCode,
+    'apprenant.codePostal': learnerData?.postalCode,
+    'apprenant.ville': learnerData?.city,
+    'apprenant.entreprise': learnerData?.company,
+  };
+
+  // Fonction de remplacement intelligente qui ignore les tags HTML à l'intérieur des double accolades
+  Object.entries(replacements).forEach(([key, value]) => {
+    const parts = key.split('.');
+    const prefix = parts[0];
+    const suffix = parts[1];
+
+    // Regex qui autorise des tags HTML n'importe où entre les lettres et autour du point
+    // Ex: {{of.<span>nom</span>}} sera trouvé
+    const regexStr = `\\{\\{\\s*(<[^>]+>)*${prefix}(<[^>]+>)*[\\._](<[^>]+>)*${suffix}(<[^>]+>)*\\s*\\}\\}`;
+    const regex = new RegExp(regexStr, 'gi');
+
+    content = content.replace(regex, value || `[${key}]`);
+  });
+
+  // Gestion spécifique de la zone de signature classique (fallback)
   if (learnerData) {
-    content = content
-      .replace(/\{\{\s*apprenant\.nom\s*\}\}/g, learnerData.lastName || '')
-      .replace(/\{\{\s*apprenant\.prenom\s*\}\}/g, learnerData.firstName || '')
-      .replace(/\{\{\s*apprenant\.entreprise\s*\}\}/g, learnerData.company || '')
-      .replace(/\{\{\s*apprenant\.adresse\s*\}\}/g, learnerData.address || '')
-      .replace(/\{\{\s*apprenant\.codePostal\s*\}\}/g, learnerData.postalCode || '')
-      .replace(/\{\{\s*apprenant\.code_postal\s*\}\}/g, learnerData.postalCode || '')
-      .replace(/\{\{\s*apprenant\.ville\s*\}\}/g, learnerData.city || '')
-      .replace(/\{\{\s*apprenant\.telephone\s*\}\}/g, learnerData.phone || '')
-      .replace(/\{\{\s*apprenant\.email\s*\}\}/g, learnerData.email || '');
-
-    // Remplacement zone de signature
     content = content
       .replace(/<p style="margin-bottom: 60px;"><strong>Le stagiaire<\/strong> \(mention "Lu et approuvé"\)<\/p>/g,
         `<p><strong>Le stagiaire</strong> (mention "Lu et approuvé")</p>${learnerSignatureHtml}`)
       .replace(/<p style="margin-top: 50px;">\{\{\s*apprenant\.prenom\s*\}\} \{\{\s*apprenant\.nom\s*\}\}<br\/>Date : \{\{\s*date\.jour\s*\}\}<\/p>/g,
-        `${learnerSignatureHtml}<p>${learnerData.firstName} ${learnerData.lastName}<br/>Date : ${new Date().toLocaleDateString('fr-FR')}</p>`);
-  } else {
-    // Nettoyage des placeholders si pas de données apprenant
-    content = content
-      .replace(/\{\{\s*apprenant\..*?\s*\}\}/g, '....................');
+        `${learnerSignatureHtml}<p>${learnerData.firstName} ${learnerData.lastName}<br/>Date : ${today}</p>`);
   }
 
   return content;

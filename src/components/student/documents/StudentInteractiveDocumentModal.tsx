@@ -116,6 +116,11 @@ export const StudentInteractiveDocumentModal: React.FC<StudentInteractiveDocumen
             email: currentUser?.email || '',
             phone: currentUser?.phone || '',
             address: currentUser?.address || '',
+            // These properties don't exist on UserResponse type, 
+            // but might be available if learnerData is extended in the future
+            postalCode: (learnerData as any)?.postalCode || '',
+            city: (learnerData as any)?.city || '',
+            company: (learnerData as any)?.company || '',
         };
 
         const personalized = personalizeDocumentContent(
