@@ -8,6 +8,8 @@ interface FormationBasic {
   lieu?: string;
   prix?: string;
   formateur?: string;
+  startDate?: string;
+  endDate?: string;
 }
 
 /**
@@ -82,7 +84,7 @@ export const personalizeDocumentContent = (
     'of.telephone': ofData?.phone,
     'of.email': ofData?.email,
     'of.responsable': ofData?.managerName,
-    'of.signature': signatureHtml,
+    'of.signature': ofData?.logo || signatureHtml,
 
     // Formation
     'formation.nom': formation.name,
@@ -93,8 +95,8 @@ export const personalizeDocumentContent = (
     'formation.formateur': formation.formateur || '-',
 
     // Dates
-    'dates.debut': today,
-    'dates.fin': '-',
+    'dates.debut': formation.startDate || undefined,
+    'dates.fin': formation.endDate || undefined,
     'date.jour': today,
     'dates.aujourdhui': today,
     'dates.signature': today,

@@ -85,9 +85,11 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
               name: a.media_asset?.filename || 'Document',
               formationId: formations.length > 0 ? formations[0].id : '',
               type: a._type || (
-                a.message?.includes('convention') ? 'convention' :
-                  a.message?.includes('analyse') ? 'analyse_besoin' :
-                    a.message?.includes('test') ? 'test_positionnement' : 'convention'
+                a.message?.toLowerCase().includes('convention') ? 'convention' :
+                  a.message?.toLowerCase().includes('cgv') ? 'cgv' :
+                    a.message?.toLowerCase().includes('vente') ? 'cgv' :
+                      a.message?.toLowerCase().includes('analyse') ? 'analyse_besoin' :
+                        a.message?.toLowerCase().includes('test') ? 'test_positionnement' : 'convention'
               ),
               date: new Date(a.assigned_at).toISOString(),
               size: a.media_asset ? `${Math.round(a.media_asset.size / 1024)} KB` : '0 KB',
@@ -148,6 +150,12 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
       icon: FileSignature,
       description: 'Accord contractuel de formation',
       color: 'text-violet-500'
+    },
+    cgv: {
+      label: 'Conditions Générales de Vente',
+      icon: FileText,
+      description: 'CGV de l\'organisme de formation',
+      color: 'text-orange-500'
     }
   };
 

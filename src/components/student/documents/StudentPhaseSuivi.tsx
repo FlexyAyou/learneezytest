@@ -77,7 +77,11 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
               assignmentId: undefined,
               name: a.media_asset?.filename || 'Document',
               formationId: formations.length > 0 ? formations[0].id : '',
-              type: a._type || 'satisfaction_froid',
+              type: a._type || (
+                a.message?.toLowerCase().includes('satisfaction') ? 'satisfaction_froid' :
+                  a.message?.toLowerCase().includes('cgv') ? 'cgv' :
+                    a.message?.toLowerCase().includes('vente') ? 'cgv' : 'satisfaction_froid'
+              ),
               date: new Date(a.assigned_at).toISOString(),
               size: a.media_asset ? `${Math.round(a.media_asset.size / 1024)} KB` : '0 KB',
               status: a.is_signed ? 'completed' : 'available',
@@ -119,6 +123,12 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
       icon: MessageSquare,
       description: 'Évaluation 3 mois après la formation',
       color: 'text-blue-500'
+    },
+    cgv: {
+      label: 'Conditions Générales de Vente',
+      icon: FileText,
+      description: 'CGV de l\'organisme de formation',
+      color: 'text-orange-500'
     }
   };
 

@@ -48,6 +48,8 @@ interface StudentInteractiveDocumentModalProps {
         lieu?: string;
         prix?: string;
         formateur?: string;
+        startDate?: string;
+        endDate?: string;
     };
     initialHtmlContent?: string;
     onSuccess?: () => void;
@@ -137,7 +139,9 @@ export const StudentInteractiveDocumentModal: React.FC<StudentInteractiveDocumen
                 duree: (formationData as any)?.duree,
                 lieu: (formationData as any)?.lieu,
                 prix: (formationData as any)?.prix,
-                formateur: (formationData as any)?.formateur
+                formateur: (formationData as any)?.formateur,
+                startDate: (formationData as any)?.startDate,
+                endDate: (formationData as any)?.endDate
             },
             mappedOFData,
             mappedLearnerData

@@ -155,7 +155,17 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
   const personalizeContent = (htmlContent: string): string => {
     if (!selectedLearner) return htmlContent;
 
-    const formationSafe = selectedFormation || { id: '0', name: 'Formation non définie', description: '', trainer: '' };
+    const formationSafe = (selectedFormation || {
+      id: '0',
+      name: 'Formation non définie',
+      description: '',
+      trainer: '',
+      duration: '',
+      location: '',
+      price: 0,
+      startDate: '',
+      endDate: ''
+    }) as Formation;
 
 
     // Map data for shared utility
@@ -183,7 +193,17 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
     // 1. Use centralized personalization
     let result = personalizeDocumentContent(
       htmlContent,
-      { id: formationSafe.id || '0', name: formationSafe.name || 'Formation non définie' },
+      {
+        id: formationSafe.id || '0',
+        name: formationSafe.name || 'Formation non définie',
+        description: formationSafe.description,
+        duree: customFields.duree || formationSafe.duration,
+        lieu: formationSafe.location,
+        prix: customFields.prix || (typeof formationSafe.price === 'number' ? `${formationSafe.price} €` : formationSafe.price),
+        formateur: formationSafe.trainer,
+        startDate: customFields.dateDebut ? format(customFields.dateDebut, 'dd/MM/yyyy', { locale: fr }) : formationSafe.startDate,
+        endDate: customFields.dateFin ? format(customFields.dateFin, 'dd/MM/yyyy', { locale: fr }) : formationSafe.endDate
+      },
       mappedOFData,
       mappedLearnerData
     );
