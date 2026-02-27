@@ -126,10 +126,10 @@ export const personalizeDocumentContent = (
 
     const [prefix, suffix] = parts;
 
-    // Enhanced Robust Regex: handles any number of HTML tags and spaces/entities between braces
-    // It specifically targets {{ (tags) prefix (tags) [._] (tags) suffix (tags) }}
+    // Extremely Robust Regex: handles any number of HTML tags, spaces, entities, dots, underscores between prefix and suffix
+    // Match {{ (tags/spaces) prefix (tags/spaces/dots/underscores) suffix (tags/spaces) }}
     const regex = new RegExp(
-      `\\{\\{[\\s\\u00A0&nbsp;]*(?:<[^>]+>)*${prefix}(?:<[^>]+>)*[\\._\\s](?:<[^>]+>)*${suffix}(?:<[^>]+>)*[\\s\\u00A0&nbsp;]*\\}\\}`,
+      `\\{\\{[\\s\\u00A0&nbsp;]*(?:<[^>]+>|[\\s\\u00A0&nbsp;])*${prefix}(?:<[^>]+>|[\\s\\u00A0&nbsp;\\._])+${suffix}(?:<[^>]+>|[\\s\\u00A0&nbsp;])*\\}\\}`,
       'gi'
     );
 
