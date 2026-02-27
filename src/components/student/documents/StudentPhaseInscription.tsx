@@ -205,7 +205,12 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
         signDocumentMutation.mutate({
           assignment_id: idToSign,
           signature_data: signatureData,
-          signature_metadata: identityProof || undefined,
+          signature_metadata: {
+            ...identityProof,
+            ip_address: '127.0.0.1', // Récupéré par le serveur, mais passé ici pour cohérence log
+            signed_at: new Date().toISOString(),
+            agreed_on_terms: true
+          }
         }, {
           onSuccess: () => {
             refetchDocs();

@@ -87,6 +87,7 @@ const OFEmargementPage: React.FC = () => {
   const [activeDetailTab, setActiveDetailTab] = useState<string>('phases');
   const [emargementDateFrom, setEmargementDateFrom] = useState<string>('');
   const [emargementDateTo, setEmargementDateTo] = useState<string>('');
+  const [showIdentityProofDoc, setShowIdentityProofDoc] = useState<SentDocument | null>(null);
 
   // Fetch real data
   // Fetch learners and their documents via the dedicated emargements endpoint
@@ -1199,29 +1200,92 @@ const OFEmargementPage: React.FC = () => {
             initialFieldValues={signerViewerDoc.signedFieldValues || {}}
             extraHeaderActions={
               signerViewerDoc.status === 'signed' ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-2"
-                  onClick={async () => {
-                    const numericId = signerViewerDoc.id?.toString().replace('media-', '');
-                    if (!numericId) return;
-                    try {
-                      await fastAPIClient.downloadSignedPdf(Number(numericId));
-                      toast({ title: '✅ Téléchargement du PDF signé démarré' });
-                    } catch (err) {
-                      console.error('Erreur téléchargement PDF signé:', err);
-                      toast({ title: 'Erreur', description: "Impossible de télécharger le PDF signé", variant: 'destructive' });
-                    }
-                  }}
-                >
-                  <Download className="h-4 w-4" />
-                  Télécharger PDF signé
-                </Button>
+                <div className="flex items-center gap-2">
+                  {signerViewerDoc.signatureMetadata && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2 text-blue-600 border-blue-200 bg-blue-50 hover:bg-blue-100"
+                      onClick={() => setShowIdentityProofDoc(signerViewerDoc)}
+                    >
+                      <Shield className="h-4 w-4" />
+                      Preuve d'identité
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                    onClick={async () => {
+                      const numericId = signerViewerDoc.id?.toString().replace('media-', '');
+                      if (!numericId) return;
+                      try {
+                        await fastAPIClient.downloadSignedPdf(Number(numericId));
+                        toast({ title: '✅ Téléchargement du PDF signé démarré' });
+                      } catch (err) {
+                        console.error('Erreur téléchargement PDF signé:', err);
+                        toast({ title: 'Erreur', description: "Impossible de télécharger le PDF signé", variant: 'destructive' });
+                      }
+                    }}
+                  >
+                    <Download className="h-4 w-4" />
+                    Télécharger PDF signé
+                  </Button>
+                </div>
               ) : undefined
             }
           />
         </>
+      )}
+
+      {/* Identity Proof Dialog for uploaded docs */}
+      {showIdentityProofDoc?.signatureMetadata && (
+        <Dialog open={!!showIdentityProofDoc} onOpenChange={() => setShowIdentityProofDoc(null)}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-blue-600" />
+                Preuve d'identité
+              </DialogTitle>
+            </DialogHeader>
+            <div className="grid grid-cols-1 gap-4 text-sm bg-blue-50/50 p-4 rounded-lg border border-blue-200">
+              {showIdentityProofDoc.signatureMetadata.honor_declaration && (
+                <div className="flex items-start gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-green-700 font-medium">Déclaration sur l'honneur confirmée</span>
+                </div>
+              )}
+              {showIdentityProofDoc.signatureMetadata.identity_verified_at && (
+                <div>
+                  <div className="text-muted-foreground">Vérification le</div>
+                  <div className="font-medium">
+                    {new Date(showIdentityProofDoc.signatureMetadata.identity_verified_at).toLocaleString('fr-FR')}
+                  </div>
+                </div>
+              )}
+              {(showIdentityProofDoc.signatureMetadata.ip || showIdentityProofDoc.signatureIp) && (
+                <div>
+                  <div className="text-muted-foreground">Adresse IP</div>
+                  <div className="font-mono font-medium">{showIdentityProofDoc.signatureMetadata.ip || showIdentityProofDoc.signatureIp}</div>
+                </div>
+              )}
+              {showIdentityProofDoc.signatureMetadata.user_agent && (
+                <div>
+                  <div className="text-muted-foreground">Navigateur (User-Agent)</div>
+                  <div className="font-mono text-xs break-all mt-1 p-2 bg-background rounded border">
+                    {showIdentityProofDoc.signatureMetadata.user_agent}
+                  </div>
+                </div>
+              )}
+              {showIdentityProofDoc.signatureMetadata.fingerprint && (
+                <div>
+                  <div className="text-muted-foreground">Empreinte session</div>
+                  <div className="font-mono text-xs">{showIdentityProofDoc.signatureMetadata.fingerprint}</div>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );
