@@ -11,8 +11,10 @@ export const useSubdomain = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const detectSubdomain = async () => {
-    setIsLoading(true);
+  const detectSubdomain = async (isBackground = false) => {
+    if (!isBackground) {
+      setIsLoading(true);
+    }
     try {
       const hostname = window.location.hostname;
 
@@ -70,14 +72,14 @@ export const useSubdomain = () => {
   useEffect(() => {
     detectSubdomain();
 
-    // Rafraîchissement périodique toutes les 5 minutes pour synchroniser les changements (logo, etc.)
-    // entre les différents utilisateurs affiliés.
-    const interval = setInterval(detectSubdomain, 5 * 60 * 1000);
+    // Rafraîchissement périodique toutes les 5 minutes en arrière-plan
+    // On passe isBackground=true pour ne pas déclencher le LoadingSpinner
+    const interval = setInterval(() => detectSubdomain(true), 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
   const refresh = () => {
-    return detectSubdomain();
+    return detectSubdomain(true); // Rafraîchissement manuel sans bloquer l'UI
   };
 
   return {
