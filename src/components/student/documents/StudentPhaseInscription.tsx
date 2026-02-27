@@ -67,9 +67,9 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
   const [identityProof, setIdentityProof] = useState<IdentityProof | null>(null);
   const [pendingSignDoc, setPendingSignDoc] = useState<PhaseDocument | null>(null);
 
-  // States for interactive Needs Analysis
-  const [needsAnalysisOpen, setNeedsAnalysisOpen] = useState(false);
-  const [activeAnalysis, setActiveAnalysis] = useState<PhaseDocument | null>(null);
+  // States for interactive documents
+  const [interactiveModalOpen, setInteractiveModalOpen] = useState(false);
+  const [activeInteractiveDoc, setActiveInteractiveDoc] = useState<PhaseDocument | null>(null);
 
   useEffect(() => {
     console.log('StudentPhaseInscription: Received assignments', assignments);
@@ -81,12 +81,14 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
           if (a._isNewSystem) {
             return {
               id: a._docId,
-              assignmentId: undefined, // No assignment ID for new system
+              assignmentId: undefined,
               name: a.media_asset.filename,
               formationId: formations.length > 0 ? formations[0].id : '',
-              type: a.message?.includes('convention') ? 'convention' :
-                a.message?.includes('analyse') ? 'analyse_besoin' :
-                  a.message?.includes('test') ? 'test_positionnement' : 'convention',
+              type: a._type || (
+                a.message?.includes('convention') ? 'convention' :
+                  a.message?.includes('analyse') ? 'analyse_besoin' :
+                    a.message?.includes('test') ? 'test_positionnement' : 'convention'
+              ),
               date: new Date(a.assigned_at).toISOString(),
               size: `${Math.round(a.media_asset.size / 1024)} KB`,
               status: a.is_signed ? 'signed' : 'available',
@@ -94,7 +96,7 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
               htmlContent: a._htmlContent,
               learnerSignature: a.signature_data,
               signedAt: a.signed_at,
-              url: undefined, // New system uses HTML content
+              url: undefined,
               _isNewSystem: true,
               _uniqueCode: a._uniqueCode
             };
@@ -166,8 +168,8 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
     const doc = pendingSignDoc;
     if (!doc) return;
     if (doc.type === 'analyse_besoin' || doc.type === 'convention') {
-      setActiveAnalysis(doc);
-      setNeedsAnalysisOpen(true);
+      setActiveInteractiveDoc(doc);
+      setInteractiveModalOpen(true);
     } else if (doc.signatureFields && doc.signatureFields.length > 0) {
       setSelectedDocument(doc);
       setInteractiveViewerReadOnly(false);
@@ -249,8 +251,8 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
 
   const handlePreview = (doc: PhaseDocument) => {
     if (doc.type === 'analyse_besoin') {
-      setActiveAnalysis(doc);
-      setNeedsAnalysisOpen(true);
+      setActiveInteractiveDoc(doc);
+      setInteractiveModalOpen(true);
       return;
     }
 
@@ -475,23 +477,23 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
       />
 
       {/* Interactive Document Modal (Analyse Besoin, Convention, etc.) */}
-      {activeAnalysis && (
+      {activeInteractiveDoc && (
         <StudentInteractiveDocumentModal
-          isOpen={needsAnalysisOpen}
+          isOpen={interactiveModalOpen}
           onClose={() => {
-            setNeedsAnalysisOpen(false);
-            setActiveAnalysis(null);
+            setInteractiveModalOpen(false);
+            setActiveInteractiveDoc(null);
           }}
-          assignmentId={activeAnalysis.assignmentId || activeAnalysis.id}
-          title={documentTypes[activeAnalysis.type].label}
-          url={activeAnalysis.url}
-          docType={activeAnalysis.type}
+          assignmentId={activeInteractiveDoc.assignmentId || activeInteractiveDoc.id}
+          title={documentTypes[activeInteractiveDoc.type].label}
+          url={activeInteractiveDoc.url}
+          docType={activeInteractiveDoc.type}
           learnerData={currentUser ? {
             firstName: currentUser.first_name || '',
             lastName: currentUser.last_name || ''
           } : undefined}
-          formationData={formations.find(f => f.id === activeAnalysis.formationId) || (formations.length > 0 ? formations[0] : undefined)}
-          initialHtmlContent={activeAnalysis.htmlContent}
+          formationData={formations.find(f => f.id === activeInteractiveDoc.formationId) || (formations.length > 0 ? formations[0] : undefined)}
+          initialHtmlContent={activeInteractiveDoc.htmlContent}
           onSuccess={() => {
             refetchDocs();
           }}

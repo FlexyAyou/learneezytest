@@ -67,8 +67,8 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
   const [pendingSignDoc, setPendingSignDoc] = useState<PhaseDocument | null>(null);
 
   // States for interactive documents
-  const [needsAnalysisOpen, setNeedsAnalysisOpen] = useState(false);
-  const [activeAnalysis, setActiveAnalysis] = useState<PhaseDocument | null>(null);
+  const [interactiveModalOpen, setInteractiveModalOpen] = useState(false);
+  const [activeInteractiveDoc, setActiveInteractiveDoc] = useState<PhaseDocument | null>(null);
 
   useEffect(() => {
     if (assignments) {
@@ -76,19 +76,17 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
         .filter(a => a.phase === 'formation' || a.phase === 'phase-formation')
         .map(a => {
           if (a._isNewSystem) {
-            const lowerName = (a.media_asset.filename || '').toLowerCase();
-            let type: PhaseDocument['type'] = 'programme';
-            if (lowerName.includes('convocation')) type = 'convocation';
-            else if (lowerName.includes('cgv') || lowerName.includes('conditions')) type = 'cgv';
-            else if (lowerName.includes('règlement') || lowerName.includes('reglement')) type = 'reglement_interieur';
-            else if (lowerName.includes('attestation') || lowerName.includes('honneur') || lowerName.includes('cpf')) type = 'attestation_honneur';
-
             return {
               id: a._docId,
               assignmentId: undefined,
               name: a.media_asset.filename,
               formationId: formations.length > 0 ? formations[0].id : '',
-              type,
+              type: a._type || (
+                (a.media_asset.filename || '').toLowerCase().includes('convocation') ? 'convocation' :
+                  (a.media_asset.filename || '').toLowerCase().includes('cgv') || (a.media_asset.filename || '').toLowerCase().includes('conditions') ? 'cgv' :
+                    (a.media_asset.filename || '').toLowerCase().includes('reglement') ? 'reglement_interieur' :
+                      (a.media_asset.filename || '').toLowerCase().includes('attestation') || (a.media_asset.filename || '').toLowerCase().includes('honneur') ? 'attestation_honneur' : 'programme'
+              ),
               date: new Date(a.assigned_at).toISOString(),
               size: `${Math.round(a.media_asset.size / 1024)} KB`,
               status: a.is_signed ? 'signed' : 'available',
@@ -97,6 +95,8 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
               learnerSignature: a.signature_data,
               signedAt: a.signed_at,
               url: undefined,
+              _isNewSystem: true,
+              _uniqueCode: a._uniqueCode
             } as PhaseDocument;
           }
 
@@ -155,8 +155,8 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
     if (!doc) return;
 
     if (doc.type === 'cgv' || doc.type === 'reglement_interieur' || doc.type === 'attestation_honneur') {
-      setActiveAnalysis(doc);
-      setNeedsAnalysisOpen(true);
+      setActiveInteractiveDoc(doc);
+      setInteractiveModalOpen(true);
     } else if (doc.signatureFields && doc.signatureFields.length > 0) {
       setSelectedDocument(doc);
       setInteractiveViewerReadOnly(false);
@@ -228,8 +228,8 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
 
   const handlePreview = (doc: PhaseDocument) => {
     if (doc.type === 'cgv' || doc.type === 'reglement_interieur' || doc.type === 'attestation_honneur') {
-      setActiveAnalysis(doc);
-      setNeedsAnalysisOpen(true);
+      setActiveInteractiveDoc(doc);
+      setInteractiveModalOpen(true);
       return;
     }
     if (doc.htmlContent) {
@@ -404,23 +404,23 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
       />
 
       {/* Interactive Document Modal (CGV, Règlement, etc.) */}
-      {activeAnalysis && (
+      {activeInteractiveDoc && (
         <StudentInteractiveDocumentModal
-          isOpen={needsAnalysisOpen}
+          isOpen={interactiveModalOpen}
           onClose={() => {
-            setNeedsAnalysisOpen(false);
-            setActiveAnalysis(null);
+            setInteractiveModalOpen(false);
+            setActiveInteractiveDoc(null);
           }}
-          assignmentId={activeAnalysis.assignmentId || activeAnalysis.id}
-          title={documentTypes[activeAnalysis.type].label}
-          url={activeAnalysis.url}
-          docType={activeAnalysis.type}
+          assignmentId={activeInteractiveDoc.assignmentId || activeInteractiveDoc.id}
+          title={documentTypes[activeInteractiveDoc.type].label}
+          url={activeInteractiveDoc.url}
+          docType={activeInteractiveDoc.type}
           learnerData={currentUser ? {
             firstName: currentUser.first_name || '',
             lastName: currentUser.last_name || ''
           } : undefined}
-          formationData={formations.find(f => f.id === activeAnalysis.formationId) || (formations.length > 0 ? formations[0] : undefined)}
-          initialHtmlContent={activeAnalysis.htmlContent}
+          formationData={formations.find(f => f.id === activeInteractiveDoc.formationId) || (formations.length > 0 ? formations[0] : undefined)}
+          initialHtmlContent={activeInteractiveDoc.htmlContent}
           onSuccess={() => {
             refetchDocs();
           }}

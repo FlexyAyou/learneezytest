@@ -1394,6 +1394,7 @@ export const useMyDocuments = () => {
           // Add custom fields for new system
           _isNewSystem: true,
           _docId: doc.id,
+          _type: doc.type,
           _htmlContent: doc.html_content,
           _requiresSignature: doc.requires_signature,
           _uniqueCode: doc.unique_code

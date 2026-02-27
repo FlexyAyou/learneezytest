@@ -63,8 +63,8 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
   const [pendingSignDoc, setPendingSignDoc] = useState<PhaseDocument | null>(null);
 
   // States for interactive documents
-  const [needsAnalysisOpen, setNeedsAnalysisOpen] = useState(false);
-  const [activeAnalysis, setActiveAnalysis] = useState<PhaseDocument | null>(null);
+  const [interactiveModalOpen, setInteractiveModalOpen] = useState(false);
+  const [activeInteractiveDoc, setActiveInteractiveDoc] = useState<PhaseDocument | null>(null);
 
   useEffect(() => {
     if (assignments) {
@@ -77,7 +77,7 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
               assignmentId: undefined,
               name: a.media_asset.filename,
               formationId: formations.length > 0 ? formations[0].id : '',
-              type: 'satisfaction_froid' as const,
+              type: a._type || 'satisfaction_froid',
               date: new Date(a.assigned_at).toISOString(),
               size: `${Math.round(a.media_asset.size / 1024)} KB`,
               status: a.is_signed ? 'completed' : 'available',
@@ -86,6 +86,8 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
               learnerSignature: a.signature_data,
               signedAt: a.signed_at,
               url: undefined,
+              _isNewSystem: true,
+              _uniqueCode: a._uniqueCode
             } as PhaseDocument;
           }
 
@@ -138,8 +140,8 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
     if (!doc) return;
 
     if (doc.type === 'satisfaction_froid') {
-      setActiveAnalysis(doc);
-      setNeedsAnalysisOpen(true);
+      setActiveInteractiveDoc(doc);
+      setInteractiveModalOpen(true);
     } else if (doc.signatureFields && doc.signatureFields.length > 0) {
       setSelectedDocument(doc);
       setInteractiveViewerReadOnly(false);
@@ -214,8 +216,8 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
       return;
     }
     if (doc.type === 'satisfaction_froid') {
-      setActiveAnalysis(doc);
-      setNeedsAnalysisOpen(true);
+      setActiveInteractiveDoc(doc);
+      setInteractiveModalOpen(true);
       return;
     }
     if (doc.status === 'completed' && doc.signatureFields && doc.signatureFields.length > 0) {
@@ -375,24 +377,24 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
         onSignatureComplete={handleSignatureComplete}
       />
 
-      {/* Interactive Document Modal (Satisfaction à froid) */}
-      {activeAnalysis && (
+      {/* Interactive Document Modal (Questionnaire Suivi) */}
+      {activeInteractiveDoc && (
         <StudentInteractiveDocumentModal
-          isOpen={needsAnalysisOpen}
+          isOpen={interactiveModalOpen}
           onClose={() => {
-            setNeedsAnalysisOpen(false);
-            setActiveAnalysis(null);
+            setInteractiveModalOpen(false);
+            setActiveInteractiveDoc(null);
           }}
-          assignmentId={activeAnalysis.assignmentId || activeAnalysis.id}
-          title={documentTypes[activeAnalysis.type].label}
-          url={activeAnalysis.url}
-          docType={activeAnalysis.type}
+          assignmentId={activeInteractiveDoc.assignmentId || activeInteractiveDoc.id}
+          title={documentTypes[activeInteractiveDoc.type].label}
+          url={activeInteractiveDoc.url}
+          docType={activeInteractiveDoc.type}
           learnerData={currentUser ? {
             firstName: currentUser.first_name || '',
             lastName: currentUser.last_name || ''
           } : undefined}
-          formationData={formations.find(f => f.id === activeAnalysis.formationId) || (formations.length > 0 ? formations[0] : undefined)}
-          initialHtmlContent={activeAnalysis.htmlContent}
+          formationData={formations.find(f => f.id === activeInteractiveDoc.formationId) || (formations.length > 0 ? formations[0] : undefined)}
+          initialHtmlContent={activeInteractiveDoc.htmlContent}
           onSuccess={() => {
             refetchDocs();
           }}

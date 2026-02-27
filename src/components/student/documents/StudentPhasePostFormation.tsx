@@ -67,27 +67,25 @@ export const StudentPhasePostFormation = ({ selectedFormation, formations }: Stu
   const [pendingSignDoc, setPendingSignDoc] = useState<PhaseDocument | null>(null);
 
   // States for interactive documents
-  const [needsAnalysisOpen, setNeedsAnalysisOpen] = useState(false);
-  const [activeAnalysis, setActiveAnalysis] = useState<PhaseDocument | null>(null);
+  const [interactiveModalOpen, setInteractiveModalOpen] = useState(false);
+  const [activeInteractiveDoc, setActiveInteractiveDoc] = useState<PhaseDocument | null>(null);
 
   useEffect(() => {
     if (assignments) {
       const mappedDocs: PhaseDocument[] = (assignments as any[])
         .filter(a => a.phase === 'post-formation' || a.phase === 'phase-post-formation')
         .map(a => {
-          const lowerName = (a.media_asset.filename || '').toLowerCase();
-          let type: PhaseDocument['type'] = 'certificat';
-          if (lowerName.includes('test') || lowerName.includes('sortie')) type = 'test_sortie';
-          else if (lowerName.includes('satisfaction') || lowerName.includes('chaud')) type = 'satisfaction_chaud';
-          else if (lowerName.includes('emargement') || lowerName.includes('émargement') || lowerName.includes('realisation') || lowerName.includes('réalisation')) type = 'emargement';
-
           if (a._isNewSystem) {
             return {
               id: a._docId,
               assignmentId: undefined,
               name: a.media_asset.filename,
               formationId: formations.length > 0 ? formations[0].id : '',
-              type,
+              type: a._type || (
+                (a.media_asset.filename || '').toLowerCase().includes('test') || (a.media_asset.filename || '').toLowerCase().includes('sortie') ? 'test_sortie' :
+                  (a.media_asset.filename || '').toLowerCase().includes('satisfaction') || (a.media_asset.filename || '').toLowerCase().includes('chaud') ? 'satisfaction_chaud' :
+                    (a.media_asset.filename || '').toLowerCase().includes('emargement') || (a.media_asset.filename || '').toLowerCase().includes('émargement') || (a.media_asset.filename || '').toLowerCase().includes('réalisation') ? 'emargement' : 'certificat'
+              ),
               date: new Date(a.assigned_at).toISOString(),
               size: `${Math.round(a.media_asset.size / 1024)} KB`,
               status: a.is_signed ? 'completed' : 'available',
@@ -96,15 +94,23 @@ export const StudentPhasePostFormation = ({ selectedFormation, formations }: Stu
               learnerSignature: a.signature_data,
               signedAt: a.signed_at,
               url: undefined,
+              _isNewSystem: true,
+              _uniqueCode: a._uniqueCode
             } as PhaseDocument;
           }
+
+          const lowerName = (a.media_asset.filename || '').toLowerCase();
+          let legacyType: PhaseDocument['type'] = 'certificat';
+          if (lowerName.includes('test') || lowerName.includes('sortie')) legacyType = 'test_sortie';
+          else if (lowerName.includes('satisfaction') || lowerName.includes('chaud')) legacyType = 'satisfaction_chaud';
+          else if (lowerName.includes('emargement') || lowerName.includes('émargement')) legacyType = 'emargement';
 
           return {
             id: `api-${a.id}`,
             assignmentId: a.id,
             name: a.media_asset.filename,
             formationId: formations.length > 0 ? formations[0].id : '',
-            type,
+            type: legacyType,
             date: new Date(a.assigned_at).toISOString(),
             size: `${Math.round(a.media_asset.size / 1024)} KB`,
             status: a.is_signed ? 'completed' : 'available',
@@ -145,9 +151,9 @@ export const StudentPhasePostFormation = ({ selectedFormation, formations }: Stu
     const doc = pendingSignDoc;
     if (!doc) return;
 
-    if (doc.type === 'test_sortie' || doc.type === 'satisfaction_chaud') {
-      setActiveAnalysis(doc);
-      setNeedsAnalysisOpen(true);
+    if (doc.type === 'test_sortie' || doc.type === 'satisfaction_chaud' || doc.type === 'emargement') {
+      setActiveInteractiveDoc(doc);
+      setInteractiveModalOpen(true);
     } else if (doc.signatureFields && doc.signatureFields.length > 0) {
       setSelectedDocument(doc);
       setInteractiveViewerReadOnly(false);
@@ -217,9 +223,9 @@ export const StudentPhasePostFormation = ({ selectedFormation, formations }: Stu
   };
 
   const handlePreview = (doc: PhaseDocument) => {
-    if (doc.type === 'test_sortie' || doc.type === 'satisfaction_chaud') {
-      setActiveAnalysis(doc);
-      setNeedsAnalysisOpen(true);
+    if (doc.type === 'test_sortie' || doc.type === 'satisfaction_chaud' || doc.type === 'emargement') {
+      setActiveInteractiveDoc(doc);
+      setInteractiveModalOpen(true);
       return;
     }
     if (doc.htmlContent) {
@@ -394,24 +400,24 @@ export const StudentPhasePostFormation = ({ selectedFormation, formations }: Stu
         onDownload={() => { toast({ title: "Téléchargement", description: "Document téléchargé avec succès" }); }}
       />
 
-      {/* Interactive Document Modal (Test Sortie, Satisfaction, etc.) */}
-      {activeAnalysis && (
+      {/* Interactive Document Modal (Tests, Satisfaction, etc.) */}
+      {activeInteractiveDoc && (
         <StudentInteractiveDocumentModal
-          isOpen={needsAnalysisOpen}
+          isOpen={interactiveModalOpen}
           onClose={() => {
-            setNeedsAnalysisOpen(false);
-            setActiveAnalysis(null);
+            setInteractiveModalOpen(false);
+            setActiveInteractiveDoc(null);
           }}
-          assignmentId={activeAnalysis.assignmentId || activeAnalysis.id}
-          title={documentTypes[activeAnalysis.type].label}
-          url={activeAnalysis.url}
-          docType={activeAnalysis.type}
+          assignmentId={activeInteractiveDoc.assignmentId || activeInteractiveDoc.id}
+          title={documentTypes[activeInteractiveDoc.type].label}
+          url={activeInteractiveDoc.url}
+          docType={activeInteractiveDoc.type}
           learnerData={currentUser ? {
             firstName: currentUser.first_name || '',
             lastName: currentUser.last_name || ''
           } : undefined}
-          formationData={formations.find(f => f.id === activeAnalysis.formationId) || (formations.length > 0 ? formations[0] : undefined)}
-          initialHtmlContent={activeAnalysis.htmlContent}
+          formationData={formations.find(f => f.id === activeInteractiveDoc.formationId) || (formations.length > 0 ? formations[0] : undefined)}
+          initialHtmlContent={activeInteractiveDoc.htmlContent}
           onSuccess={() => {
             refetchDocs();
           }}
