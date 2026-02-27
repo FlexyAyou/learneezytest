@@ -175,7 +175,11 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
     setIdentityProof(proof);
     const doc = pendingSignDoc;
     if (!doc) return;
-    if (doc.type === 'analyse_besoin' || doc.type === 'convention') {
+    // Décider quel modal ouvrir
+    const isInteractive = !!doc.htmlContent ||
+      (['analyse_besoin', 'cgv', 'satisfaction_froid', 'test_positionnement'].includes(doc.type) && !doc.url);
+
+    if (isInteractive) {
       setActiveInteractiveDoc(doc);
       setInteractiveModalOpen(true);
     } else if (doc.signatureFields && doc.signatureFields.length > 0) {
@@ -193,11 +197,13 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
   const handleSignatureComplete = (documentId: string, signatureData: string) => {
     const doc = localDocuments.find(d => d.id === documentId);
 
-    // Legacy system
-    if (selectedDocument && selectedDocument.assignmentId) {
+    // Use assignmentId for legacy, id (UUID) for new system
+    const idToSign = selectedDocument?.assignmentId || selectedDocument?.id;
+
+    if (selectedDocument && idToSign) {
       return new Promise<void>((resolve, reject) => {
         signDocumentMutation.mutate({
-          assignment_id: selectedDocument.assignmentId!,
+          assignment_id: idToSign,
           signature_data: signatureData,
           signature_metadata: identityProof || undefined,
         }, {
@@ -219,11 +225,12 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
   };
 
   const handleInteractiveSignatureComplete = async (fieldValues: Record<string, string>) => {
-    if (!selectedDocument || !selectedDocument.assignmentId) return;
+    const idToSign = selectedDocument?.assignmentId || selectedDocument?.id;
+    if (!selectedDocument || !idToSign) return;
 
     try {
       await signFieldsMutation.mutateAsync({
-        assignment_id: selectedDocument.assignmentId,
+        assignment_id: idToSign as any,
         field_values: fieldValues,
         signature_metadata: identityProof || undefined,
       });
@@ -258,7 +265,10 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
   };
 
   const handlePreview = (doc: PhaseDocument) => {
-    if (doc.type === 'analyse_besoin') {
+    const isInteractive = !!doc.htmlContent ||
+      (['analyse_besoin', 'cgv', 'satisfaction_froid', 'test_positionnement'].includes(doc.type) && !doc.url);
+
+    if (isInteractive) {
       setActiveInteractiveDoc(doc);
       setInteractiveModalOpen(true);
       return;

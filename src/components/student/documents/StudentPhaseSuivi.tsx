@@ -149,7 +149,11 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
     const doc = pendingSignDoc;
     if (!doc) return;
 
-    if (doc.type === 'satisfaction_froid') {
+    // Décider quel modal ouvrir
+    const isInteractive = !!doc.htmlContent ||
+      (['analyse_besoin', 'cgv', 'satisfaction_froid', 'test_positionnement'].includes(doc.type) && !doc.url);
+
+    if (isInteractive) {
       setActiveInteractiveDoc(doc);
       setInteractiveModalOpen(true);
     } else if (doc.signatureFields && doc.signatureFields.length > 0) {
@@ -163,10 +167,12 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
   };
 
   const handleSignatureComplete = (documentId: string, signatureData: string) => {
-    if (selectedDocument && selectedDocument.assignmentId) {
+    const idToSign = selectedDocument?.assignmentId || selectedDocument?.id;
+
+    if (selectedDocument && idToSign) {
       return new Promise<void>((resolve, reject) => {
         signDocumentMutation.mutate({
-          assignment_id: selectedDocument.assignmentId!,
+          assignment_id: idToSign,
           signature_data: signatureData,
           signature_metadata: identityProof || undefined,
         }, {
@@ -187,10 +193,11 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
   };
 
   const handleInteractiveSignatureComplete = async (fieldValues: Record<string, string>) => {
-    if (!selectedDocument || !selectedDocument.assignmentId) return;
+    const idToSign = selectedDocument?.assignmentId || selectedDocument?.id;
+    if (!selectedDocument || !idToSign) return;
     try {
       await signFieldsMutation.mutateAsync({
-        assignment_id: selectedDocument.assignmentId,
+        assignment_id: idToSign as any,
         field_values: fieldValues,
         signature_metadata: identityProof || undefined,
       });
@@ -225,7 +232,10 @@ export const StudentPhaseSuivi = ({ selectedFormation, formations }: StudentPhas
       toast({ title: "Document non disponible", description: "Ce questionnaire ne sera disponible que 3 mois après la fin de votre formation.", variant: "destructive" });
       return;
     }
-    if (doc.type === 'satisfaction_froid') {
+    const isInteractive = !!doc.htmlContent ||
+      (['analyse_besoin', 'cgv', 'satisfaction_froid', 'test_positionnement'].includes(doc.type) && !doc.url);
+
+    if (isInteractive) {
       setActiveInteractiveDoc(doc);
       setInteractiveModalOpen(true);
       return;
