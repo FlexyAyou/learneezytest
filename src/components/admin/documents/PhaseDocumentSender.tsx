@@ -188,27 +188,37 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
       mappedLearnerData
     );
 
-    // 2. Apply local specific replacements (Signature, Dates, Price)
+    // 2. Apply local specific replacements (Signature, Dates, Price) with ROBUST regex
     const signatureHtml = effectiveSignatureUrl
       ? `<img src="${effectiveSignatureUrl}" alt="Signature officielle ${ofInfo.name}" style="max-height: 80px; display: inline-block;" />`
       : '<span style="color: #999; font-style: italic;">[Signature OF non configurée]</span>';
 
-    const additionalReplacements: Record<string, string> = {
-      '{{of.signature}}': signatureHtml,
-      '{{dates.debut}}': customFields.dateDebut ? format(customFields.dateDebut, 'dd/MM/yyyy', { locale: fr }) : '',
-      '{{dates.fin}}': customFields.dateFin ? format(customFields.dateFin, 'dd/MM/yyyy', { locale: fr }) : '',
-      '{{formation.duree}}': customFields.duree,
-      '{{formation.prix}}': customFields.prix,
-      '{{date.jour}}': format(new Date(), 'dd/MM/yyyy', { locale: fr }),
-      '{{formation.description}}': formationSafe.description || '',
-      '{{formation.formateur}}': formationSafe.trainer || '',
+    const additionalReplacements: Record<string, string | undefined> = {
+      'of.signature': signatureHtml,
+      'dates.debut': customFields.dateDebut ? format(customFields.dateDebut, 'dd/MM/yyyy', { locale: fr }) : '',
+      'dates.fin': customFields.dateFin ? format(customFields.dateFin, 'dd/MM/yyyy', { locale: fr }) : '',
+      'formation.duree': customFields.duree,
+      'formation.prix': customFields.prix,
+      'date.jour': format(new Date(), 'dd/MM/yyyy', { locale: fr }),
+      'formation.description': formationSafe.description || '',
+      'formation.formateur': formationSafe.trainer || '',
     };
 
+    let finalHtml = result;
     Object.entries(additionalReplacements).forEach(([key, value]) => {
-      result = result.replace(new RegExp(key.replace(/[{}]/g, '\\$&'), 'g'), value || '');
+      const parts = key.split('.');
+      const [prefix, suffix] = parts;
+
+      // Use the same robust regex as the utility
+      const regex = new RegExp(
+        `\\{\\{[\\s\\u00A0&nbsp;]*(?:<[^>]+>|[\\s\\u00A0&nbsp;])*${prefix}(?:<[^>]+>|[\\s\\u00A0&nbsp;\\._])+${suffix}(?:<[^>]+>|[\\s\\u00A0&nbsp;])*\\}\\}`,
+        'gi'
+      );
+
+      finalHtml = finalHtml.replace(regex, value !== undefined && value !== null ? String(value) : '');
     });
 
-    return result;
+    return finalHtml;
   };
 
   const handleTemplateToggle = (templateId: string) => {
