@@ -58,10 +58,10 @@ export const personalizeDocumentContent = (
     ? `<div style="margin-top: 10px;"><img src="${learnerSignature}" alt="Signature apprenant" style="max-height: 60px; max-width: 200px;" /><p style="font-size: 12px; color: #666; margin-top: 5px;">Signé électroniquement</p></div>`
     : '';
 
+  // 1. Initial cleanup
   let content = template || '';
   if (!content) return '';
 
-  // Nettoyage au cas où le template contient accidentellement la clé (bug d'import ou de sauvegarde)
   content = content.trim();
   if (content.startsWith('convention:')) {
     content = content.replace(/^convention:\s*[`'"]?/, '').replace(/[`'"]?$/, '');
@@ -69,7 +69,7 @@ export const personalizeDocumentContent = (
 
   const today = new Date().toLocaleDateString('fr-FR');
 
-  // Dictionnaire de remplacement
+  // 2. Prepare Replacements Map
   const replacements: Record<string, string | undefined> = {
     // Organisme
     'of.nom': ofData?.na,
@@ -111,32 +111,45 @@ export const personalizeDocumentContent = (
     'apprenant.codePostal': learnerData?.postalCode,
     'apprenant.ville': learnerData?.city,
     'apprenant.entreprise': learnerData?.company,
+    'apprenant.societe': learnerData?.company,
   };
 
-  // Fonction de remplacement intelligente qui ignore les tags HTML, les espaces insécables et les entités
+  // 3. Execution of smart replacements
   Object.entries(replacements).forEach(([key, value]) => {
     const parts = key.split('.');
-    if (parts.length !== 2) return;
+    if (parts.length !== 2) {
+      // Handle simple keys like {{date_jour}}
+      const regex = new RegExp(`\\{\\{[\\s\\u00A0&nbsp;]*(?:<[^>]+>)*${key}(?:<[^>]+>)*[\\s\\u00A0&nbsp;]*\\}\\}`, 'gi');
+      content = content.replace(regex, value !== undefined && value !== null ? String(value) : '');
+      return;
+    }
 
-    const prefix = parts[0];
-    const suffix = parts[1];
+    const [prefix, suffix] = parts;
 
-    // Regex qui attrape {{ ... prefix ... . ... suffix ... }}
-    // Les (?:<[^>]+>)* permettent d'ignorer les tags HTML injectés par les éditeurs
-    const regex = new RegExp(`\\{\\{[\\s\\u00A0&nbsp;]*(?:<[^>]+>)*${prefix}(?:<[^>]+>)*[\\._](?:<[^>]+>)*${suffix}(?:<[^>]+>)*[\\s\\u00A0&nbsp;]*\\}\\}`, 'gi');
+    // Enhanced Robust Regex: handles any number of HTML tags and spaces/entities between braces
+    // It specifically targets {{ (tags) prefix (tags) [._] (tags) suffix (tags) }}
+    const regex = new RegExp(
+      `\\{\\{[\\s\\u00A0&nbsp;]*(?:<[^>]+>)*${prefix}(?:<[^>]+>)*[\\._\\s](?:<[^>]+>)*${suffix}(?:<[^>]+>)*[\\s\\u00A0&nbsp;]*\\}\\}`,
+      'gi'
+    );
 
-    // Remplacement par la valeur ou vide si non défini (évite les [object Object] ou undefined)
     const replacementValue = value !== undefined && value !== null ? String(value) : '';
     content = content.replace(regex, replacementValue);
   });
 
-  // Gestion spécifique de la zone de signature classique (fallback)
+  // 4. Specific signature zone handling
   if (learnerData) {
+    const fullName = `${learnerData.firstName} ${learnerData.lastName}`;
     content = content
       .replace(/<p style="margin-bottom: 60px;"><strong>Le stagiaire<\/strong> \(mention "Lu et approuvé"\)<\/p>/g,
         `<p><strong>Le stagiaire</strong> (mention "Lu et approuvé")</p>${learnerSignatureHtml}`)
       .replace(/<p style="margin-top: 50px;">\{\{\s*apprenant\.prenom\s*\}\} \{\{\s*apprenant\.nom\s*\}\}<br\/>Date : \{\{\s*date\.jour\s*\}\}<\/p>/g,
-        `${learnerSignatureHtml}<p>${learnerData.firstName} ${learnerData.lastName}<br/>Date : ${today}</p>`);
+        `${learnerSignatureHtml}<p>${fullName}<br/>Date : ${today}</p>`);
+
+    // Fallback for non-braced names if they are static in some templates
+    if (content.includes('La signature sera apposée ici') && learnerSignatureHtml) {
+      content = content.replace('La signature sera apposée ici', learnerSignatureHtml);
+    }
   }
 
   return content;
