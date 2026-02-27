@@ -79,15 +79,15 @@ export const StudentPhasePostFormation = ({ selectedFormation, formations }: Stu
             return {
               id: a._docId,
               assignmentId: undefined,
-              name: a.media_asset.filename,
+              name: a.media_asset?.filename || 'Document',
               formationId: formations.length > 0 ? formations[0].id : '',
               type: a._type || (
-                (a.media_asset.filename || '').toLowerCase().includes('test') || (a.media_asset.filename || '').toLowerCase().includes('sortie') ? 'test_sortie' :
-                  (a.media_asset.filename || '').toLowerCase().includes('satisfaction') || (a.media_asset.filename || '').toLowerCase().includes('chaud') ? 'satisfaction_chaud' :
-                    (a.media_asset.filename || '').toLowerCase().includes('emargement') || (a.media_asset.filename || '').toLowerCase().includes('émargement') || (a.media_asset.filename || '').toLowerCase().includes('réalisation') ? 'emargement' : 'certificat'
+                (a.media_asset?.filename || '').toLowerCase().includes('test') || (a.media_asset?.filename || '').toLowerCase().includes('sortie') ? 'test_sortie' :
+                  (a.media_asset?.filename || '').toLowerCase().includes('satisfaction') || (a.media_asset?.filename || '').toLowerCase().includes('chaud') ? 'satisfaction_chaud' :
+                    (a.media_asset?.filename || '').toLowerCase().includes('emargement') || (a.media_asset?.filename || '').toLowerCase().includes('émargement') || (a.media_asset?.filename || '').toLowerCase().includes('réalisation') ? 'emargement' : 'certificat'
               ),
               date: new Date(a.assigned_at).toISOString(),
-              size: `${Math.round(a.media_asset.size / 1024)} KB`,
+              size: a.media_asset ? `${Math.round(a.media_asset.size / 1024)} KB` : '0 KB',
               status: a.is_signed ? 'completed' : 'available',
               requiresSignature: a._requiresSignature && !a.is_signed,
               htmlContent: a._htmlContent,

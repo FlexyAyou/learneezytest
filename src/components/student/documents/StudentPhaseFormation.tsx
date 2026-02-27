@@ -79,16 +79,16 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
             return {
               id: a._docId,
               assignmentId: undefined,
-              name: a.media_asset.filename,
+              name: a.media_asset?.filename || 'Document',
               formationId: formations.length > 0 ? formations[0].id : '',
               type: a._type || (
-                (a.media_asset.filename || '').toLowerCase().includes('convocation') ? 'convocation' :
-                  (a.media_asset.filename || '').toLowerCase().includes('cgv') || (a.media_asset.filename || '').toLowerCase().includes('conditions') ? 'cgv' :
-                    (a.media_asset.filename || '').toLowerCase().includes('reglement') ? 'reglement_interieur' :
-                      (a.media_asset.filename || '').toLowerCase().includes('attestation') || (a.media_asset.filename || '').toLowerCase().includes('honneur') ? 'attestation_honneur' : 'programme'
+                (a.media_asset?.filename || '').toLowerCase().includes('convocation') ? 'convocation' :
+                  (a.media_asset?.filename || '').toLowerCase().includes('cgv') || (a.media_asset?.filename || '').toLowerCase().includes('conditions') ? 'cgv' :
+                    (a.media_asset?.filename || '').toLowerCase().includes('reglement') ? 'reglement_interieur' :
+                      (a.media_asset?.filename || '').toLowerCase().includes('attestation') || (a.media_asset?.filename || '').toLowerCase().includes('honneur') ? 'attestation_honneur' : 'programme'
               ),
               date: new Date(a.assigned_at).toISOString(),
-              size: `${Math.round(a.media_asset.size / 1024)} KB`,
+              size: a.media_asset ? `${Math.round(a.media_asset.size / 1024)} KB` : '0 KB',
               status: a.is_signed ? 'signed' : 'available',
               requiresSignature: a._requiresSignature && !a.is_signed,
               htmlContent: a._htmlContent,
