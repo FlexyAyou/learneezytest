@@ -29,7 +29,7 @@ interface PhaseDocument {
   assignmentId?: number;
   name: string;
   formationId: string;
-  type: 'test_sortie' | 'satisfaction_chaud' | 'certificat' | 'emargement';
+  type: string;
   date: string;
   size: string;
   status: 'available' | 'completed' | 'received';
@@ -333,7 +333,12 @@ export const StudentPhasePostFormation = ({ selectedFormation, formations }: Stu
           </CardHeader>
           <CardContent className="space-y-3">
             {filteredDocuments.map((doc) => {
-              const typeInfo = documentTypes[doc.type];
+              const typeInfo = documentTypes[doc.type as keyof typeof documentTypes] || {
+                label: 'Document',
+                icon: FileText,
+                description: 'Document post-formation',
+                color: 'text-gray-500'
+              };
               return (
                 <DocumentCard
                   key={doc.id}
@@ -377,7 +382,7 @@ export const StudentPhasePostFormation = ({ selectedFormation, formations }: Stu
           id: selectedDocument.id,
           name: selectedDocument.name,
           type: selectedDocument.type,
-          typeLabel: documentTypes[selectedDocument.type].label,
+          typeLabel: (documentTypes[selectedDocument.type as keyof typeof documentTypes] || { label: 'Document' }).label,
           formationName: getFormationName(selectedDocument.formationId),
           date: selectedDocument.date,
           size: selectedDocument.size

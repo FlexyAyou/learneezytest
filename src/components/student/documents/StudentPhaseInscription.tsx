@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { UserPlus, ClipboardList, BookOpen, FileSignature, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
+import { UserPlus, ClipboardList, BookOpen, FileSignature, AlertCircle, CheckCircle, Loader2, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DocumentCard } from './DocumentCard';
 import { DocumentSignatureModal } from './DocumentSignatureModal';
@@ -28,7 +28,7 @@ interface PhaseDocument {
   assignmentId?: number; // Lien avec l'API
   name: string;
   formationId: string;
-  type: 'analyse_besoin' | 'test_positionnement' | 'convention';
+  type: string;
   date: string;
   size: string;
   status: 'available' | 'signed' | 'completed';
@@ -394,7 +394,12 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
           </CardHeader>
           <CardContent className="space-y-3">
             {filteredDocuments.map((doc) => {
-              const typeInfo = documentTypes[doc.type];
+              const typeInfo = documentTypes[doc.type as keyof typeof documentTypes] || {
+                label: 'Document',
+                icon: FileText,
+                description: 'Document administratif',
+                color: 'text-gray-500'
+              };
 
               return (
                 <DocumentCard
@@ -441,7 +446,7 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
           id: selectedDocument.id,
           name: selectedDocument.name,
           type: selectedDocument.type,
-          typeLabel: documentTypes[selectedDocument.type].label,
+          typeLabel: (documentTypes[selectedDocument.type as keyof typeof documentTypes] || { label: 'Document' }).label,
           formationName: getFormationName(selectedDocument.formationId),
           date: selectedDocument.date,
           size: selectedDocument.size
