@@ -100,7 +100,7 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
             } as PhaseDocument;
           }
 
-          const lowerName = (a.media_asset.filename || '').toLowerCase();
+          const lowerName = (a.media_asset?.filename || '').toLowerCase();
           let type: PhaseDocument['type'] = 'programme';
           if (lowerName.includes('convocation')) type = 'convocation';
           else if (lowerName.includes('cgv') || lowerName.includes('conditions')) type = 'cgv';
@@ -110,14 +110,14 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
           return {
             id: `api-${a.id}`,
             assignmentId: a.id,
-            name: a.media_asset.filename,
+            name: a.media_asset?.filename || 'Document',
             formationId: formations.length > 0 ? formations[0].id : '',
             type,
             date: new Date(a.assigned_at).toISOString(),
-            size: `${Math.round(a.media_asset.size / 1024)} KB`,
+            size: a.media_asset ? `${Math.round(a.media_asset.size / 1024)} KB` : '0 KB',
             status: a.is_signed ? 'signed' : 'available',
             requiresSignature: !a.is_signed && !!a.signature_fields?.length,
-            url: a.media_asset.url,
+            url: a.media_asset?.url,
             learnerSignature: a.signature_data,
             signedAt: a.signed_at,
             signatureFields: a.signature_fields,

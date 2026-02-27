@@ -104,21 +104,21 @@ export const StudentPhaseInscription = ({ selectedFormation, formations }: Stude
 
           // Legacy system
           let type: 'analyse_besoin' | 'test_positionnement' | 'convention' = 'convention';
-          const lowerName = a.media_asset.filename.toLowerCase();
+          const lowerName = (a.media_asset?.filename || '').toLowerCase();
           if (lowerName.includes('analyse') || lowerName.includes('besoin')) type = 'analyse_besoin';
           else if (lowerName.includes('test') || lowerName.includes('positionnement')) type = 'test_positionnement';
 
           return {
             id: `api-${a.id}`,
             assignmentId: a.id,
-            name: a.media_asset.filename,
+            name: a.media_asset?.filename || 'Document',
             formationId: formations.length > 0 ? formations[0].id : '',
             type: type,
             date: new Date(a.assigned_at).toISOString(),
-            size: `${Math.round(a.media_asset.size / 1024)} KB`,
+            size: a.media_asset ? `${Math.round(a.media_asset.size / 1024)} KB` : '0 KB',
             status: a.is_signed ? 'signed' : 'available',
             requiresSignature: !a.is_signed && (!!a.signature_fields?.length || type === 'analyse_besoin'),
-            url: a.media_asset.url,
+            url: a.media_asset?.url,
             learnerSignature: a.signature_data,
             signedAt: a.signed_at,
             signatureFields: a.signature_fields,

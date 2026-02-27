@@ -99,7 +99,7 @@ export const StudentPhasePostFormation = ({ selectedFormation, formations }: Stu
             } as PhaseDocument;
           }
 
-          const lowerName = (a.media_asset.filename || '').toLowerCase();
+          const lowerName = (a.media_asset?.filename || '').toLowerCase();
           let legacyType: PhaseDocument['type'] = 'certificat';
           if (lowerName.includes('test') || lowerName.includes('sortie')) legacyType = 'test_sortie';
           else if (lowerName.includes('satisfaction') || lowerName.includes('chaud')) legacyType = 'satisfaction_chaud';
@@ -108,14 +108,14 @@ export const StudentPhasePostFormation = ({ selectedFormation, formations }: Stu
           return {
             id: `api-${a.id}`,
             assignmentId: a.id,
-            name: a.media_asset.filename,
+            name: a.media_asset?.filename || 'Document',
             formationId: formations.length > 0 ? formations[0].id : '',
             type: legacyType,
             date: new Date(a.assigned_at).toISOString(),
-            size: `${Math.round(a.media_asset.size / 1024)} KB`,
+            size: a.media_asset ? `${Math.round(a.media_asset.size / 1024)} KB` : '0 KB',
             status: a.is_signed ? 'completed' : 'available',
             requiresSignature: !a.is_signed && !!a.signature_fields?.length,
-            url: a.media_asset.url,
+            url: a.media_asset?.url,
             learnerSignature: a.signature_data,
             signedAt: a.signed_at,
             signatureFields: a.signature_fields,
