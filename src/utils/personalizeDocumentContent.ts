@@ -61,6 +61,12 @@ export const personalizeDocumentContent = (
   let content = template || '';
   if (!content) return '';
 
+  // Nettoyage au cas où le template contient accidentellement la clé (bug d'import ou de sauvegarde)
+  content = content.trim();
+  if (content.startsWith('convention:')) {
+    content = content.replace(/^convention:\s*[`'"]?/, '').replace(/[`'"]?$/, '');
+  }
+
   const today = new Date().toLocaleDateString('fr-FR');
 
   // Dictionnaire de remplacement
@@ -110,25 +116,18 @@ export const personalizeDocumentContent = (
   // Fonction de remplacement intelligente qui ignore les tags HTML, les espaces insécables et les entités
   Object.entries(replacements).forEach(([key, value]) => {
     const parts = key.split('.');
+    if (parts.length !== 2) return;
+
     const prefix = parts[0];
     const suffix = parts[1];
 
-    // Regex ultra-résiliente :
-    // - Gère les tags HTML entre chaque caractère (ex: {{of<span>.</span>nom}})
-    // - Gère les espaces et espaces insécables (&nbsp;)
-    // - Gère les tags entre les accolades : {<span>{</span> of.nom <span>}</span>}
+    // Regex qui attrape {{ ... prefix ... . ... suffix ... }}
+    // Les (?:<[^>]+>)* permettent d'ignorer les tags HTML injectés par les éditeurs
+    const regex = new RegExp(`\\{\\{[\\s\\u00A0&nbsp;]*(?:<[^>]+>)*${prefix}(?:<[^>]+>)*[\\._](?:<[^>]+>)*${suffix}(?:<[^>]+>)*[\\s\\u00A0&nbsp;]*\\}\\}`, 'gi');
 
-    // On construit une regex pour chaque caractère du tag pour être sûr de tout attraper
-    const makeResilient = (str: string) => str.split('').join('(?:<[^>]+>|&nbsp;|\\s)*');
-
-    const prefixResilient = makeResilient(prefix);
-    const suffixResilient = makeResilient(suffix);
-    const dotResilient = '[\\._]';
-
-    const regexStr = `\\{(?:<[^>]+>|&nbsp;|\\s)*\\{(?:<[^>]+>|&nbsp;|\\s)*${prefixResilient}(?:<[^>]+>|&nbsp;|\\s)*${dotResilient}(?:<[^>]+>|&nbsp;|\\s)*${suffixResilient}(?:<[^>]+>|&nbsp;|\\s)*\\}(?:<[^>]+>|&nbsp;|\\s)*\\}`;
-    const regex = new RegExp(regexStr, 'gi');
-
-    content = content.replace(regex, value || `[${key}]`);
+    // Remplacement par la valeur ou vide si non défini (évite les [object Object] ou undefined)
+    const replacementValue = value !== undefined && value !== null ? String(value) : '';
+    content = content.replace(regex, replacementValue);
   });
 
   // Gestion spécifique de la zone de signature classique (fallback)

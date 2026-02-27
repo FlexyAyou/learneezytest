@@ -183,62 +183,61 @@ export const DEFAULT_TEMPLATES: Partial<Record<DocumentType, string>> = {
 `,
 
   convention: `
-      <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 40px;">
+      <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 40px; background: white; line-height: 1.5;">
         <div style="text-align: center; margin-bottom: 40px;">
-          <h1 style="color: #1e40af; margin-bottom: 10px;">CONVENTION DE FORMATION PROFESSIONNELLE</h1>
-          <p style="color: #6b7280;">N° {{of.nda}}</p>
+          <h1 style="color: #1e40af; margin-bottom: 10px; font-size: 24px;">CONVENTION DE FORMATION PROFESSIONNELLE</h1>
+          <p style="color: #6b7280; font-size: 14px;">Articles L.6353-1 et suivants du Code du travail</p>
+          <p style="color: #374151; font-weight: bold; margin-top: 5px;">N° {{of.nda}}</p>
         </div>
 
-        <h2 style="color: #374151; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;">ENTRE LES SOUSSIGNÉS</h2>
+        <h2 style="color: #374151; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; font-size: 18px; text-transform: uppercase;">ENTRE LES SOUSSIGNÉS</h2>
         
-        <div style="margin: 20px 0; padding: 20px; background: #f9fafb; border-radius: 8px;">
-          <p><strong>{{of.nom}}</strong></p>
-          <p>SIRET : {{of.siret}}</p>
-          <p>Numéro de déclaration d'activité : {{of.nda}}</p>
-          <p>Adresse : {{of.adresse}}, {{of.code_postal}} {{of.ville}}</p>
-          <p>Représenté par : {{of.responsable}}</p>
-          <p style="margin-top: 10px;"><em>Ci-après dénommé&nbsp;<span class="dynamic-field" contenteditable="false" style="background-color: rgb(224, 242, 254); color: rgb(3, 105, 161); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.875rem;">{{of.nom}}</span></em></p>
+        <div style="margin: 20px 0; padding: 20px; background: #f9fafb; border-radius: 8px; border: 1px solid #f1f5f9;">
+          <p style="margin: 0 0 10px 0;"><strong>L'Organisme de Formation :</strong></p>
+          <p style="margin: 2px 0;"><strong>{{of.nom}}</strong></p>
+          <p style="margin: 2px 0; font-size: 14px;">SIRET : {{of.siret}} | N° DA : {{of.nda}}</p>
+          <p style="margin: 2px 0; font-size: 14px;">Adresse : {{of.adresse}}, {{of.code_postal}} {{of.ville}}</p>
+          <p style="margin: 2px 0; font-size: 14px;">Représenté par : {{of.responsable}}</p>
         </div>
 
-        <p style="text-align: center; font-weight: bold; margin: 20px 0;">ET</p>
+        <p style="text-align: center; font-weight: bold; margin: 20px 0; color: #94a3b8;">ET</p>
 
-        <div style="margin: 20px 0; padding: 20px; background: #f9fafb; border-radius: 8px;">
-          <p><span class="dynamic-field" contenteditable="false" style="background-color: rgb(224, 242, 254); color: rgb(3, 105, 161); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.875rem;">{{apprenant.prenom}}</span> <span class="dynamic-field" contenteditable="false" style="background-color: rgb(224, 242, 254); color: rgb(3, 105, 161); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.875rem;">{{apprenant.nom}}</span><br></p>
-          <p>Email : {{apprenant.email}}</p>
-          <p>Téléphone : {{apprenant.telephone}}</p>
-          <p>Adresse : {{apprenant.adresse}}, {{apprenant.code_postal}} {{apprenant.ville}}</p>
-          <p style="margin-top: 10px;"><em>Ci-après dénommé "le Stagiaire"</em></p>
+        <div style="margin: 20px 0; padding: 20px; background: #f9fafb; border-radius: 8px; border: 1px solid #f1f5f9;">
+          <p style="margin: 0 0 10px 0;"><strong>Le Bénéficiaire (Le Stagiaire) :</strong></p>
+          <p style="margin: 2px 0;"><strong>{{apprenant.prenom}} {{apprenant.nom}}</strong></p>
+          <p style="margin: 2px 0; font-size: 14px;">Email : {{apprenant.email}} | Tél : {{apprenant.telephone}}</p>
+          <p style="margin: 2px 0; font-size: 14px;">Adresse : {{apprenant.adresse}}, {{apprenant.code_postal}} {{apprenant.ville}}</p>
+          <p style="margin: 2px 0; font-size: 14px;">Entreprise : {{apprenant.entreprise}}</p>
         </div>
 
-        <h2 style="color: #374151; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; margin-top: 30px;">ARTICLE 1 - OBJET DE LA CONVENTION</h2>
-        <p>La présente convention a pour objet la formation suivante :</p>
+        <h2 style="color: #374151; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; margin-top: 30px; font-size: 18px;">ARTICLE 1 - OBJET ET DURÉE</h2>
+        <p>La présente convention a pour objet l'action de formation suivante :</p>
         <div style="margin: 20px 0; padding: 20px; background: #eff6ff; border-radius: 8px; border-left: 4px solid #3b82f6;">
-          <p><strong>Formation : {{formation.nom}}</strong></p>
-          <p>{{formation.description}}</p>
-          <p>Durée : {{formation.duree}}</p>
-          <p>Lieu : {{formation.lieu}}</p>
-          <p>Formateur : {{formation.formateur}}</p>
+          <p style="margin: 2px 0;"><strong>Formation : {{formation.nom}}</strong></p>
+          <p style="margin: 5px 0; font-size: 14px; color: #4b5563;">{{formation.description}}</p>
+          <p style="margin: 8px 0 2px 0; font-size: 14px;"><strong>Période :</strong> du {{dates.debut}} au {{dates.fin}}</p>
+          <p style="margin: 2px 0; font-size: 14px;"><strong>Durée totale :</strong> {{formation.duree}}</p>
+          <p style="margin: 2px 0; font-size: 14px;"><strong>Lieu :</strong> {{formation.lieu}}</p>
         </div>
 
-        <h2 style="color: #374151; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; margin-top: 30px;">ARTICLE 2 - PÉRIODE DE FORMATION</h2>
-        <p>La formation se déroulera du <strong>{{dates.debut}}</strong> au <strong>{{dates.fin}}</strong>.</p>
+        <h2 style="color: #374151; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; margin-top: 30px; font-size: 18px;">ARTICLE 2 - COÛT ET FINANCEMENT</h2>
+        <p>Le coût total de la formation est fixé à <strong>{{formation.prix}}</strong> net de taxes.</p>
 
-        <h2 style="color: #374151; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; margin-top: 30px;">ARTICLE 3 - COÛT DE LA FORMATION</h2>
-        <p>Le coût total de la formation s'élève à <strong>{{formation.prix}}</strong> net de taxes.</p>
-
-        <div style="margin-top: 50px; display: flex; justify-content: space-between;">
-          <div style="width: 45%;">
-            <p><strong>Pour l'Organisme de formation</strong></p>
-            <p>Fait à {{of.ville}}, le {{dates.aujourdhui}}</p>
-            <div style="height: 80px; border: 1px dashed #d1d5db; margin-top: 10px; border-radius: 4px;"></div>
-          </div>
-          <div style="width: 45%;">
-            <p><strong>Pour le Stagiaire</strong></p>
-            <div id="signature-zone" style="height: 100px; border: 1px dashed #d1d5db; margin-top: 10px; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #6b7280; font-size: 0.875rem;">
-              Emplacement de la signature
+        <div style="margin-top: 60px; display: flex; justify-content: space-between; gap: 40px;">
+          <div style="flex: 1; min-width: 0;">
+            <p style="margin-bottom: 15px;"><strong>Pour l'Organisme de Formation</strong></p>
+            <div style="min-height: 100px; display: flex; align-items: center; justify-content: center; border: 1px dashed #cbd5e1; border-radius: 6px; background: #f8fafc;">
+               {{of.signature}}
             </div>
-            <p>Lu et approuvé, le {{dates.signature}}</p>
-            <p><strong>{{apprenant.prenom}} {{apprenant.nom}}</strong></p>
+            <p style="font-size: 12px; margin-top: 5px;">{{of.responsable}}<br/>Fait à {{of.ville}}, le {{dates.aujourdhui}}</p>
+          </div>
+          
+          <div style="flex: 1; min-width: 0;">
+            <p style="margin-bottom: 15px;"><strong>Pour le Stagiaire</strong></p>
+            <div id="signature-zone" style="min-height: 100px; display: flex; align-items: center; justify-content: center; border: 1px dashed #cbd5e1; border-radius: 6px; background: #f8fafc; color: #94a3b8; font-size: 13px;">
+               La signature sera apposée ici
+            </div>
+            <p style="font-size: 12px; margin-top: 5px;">Lu et approuvé<br/>Le {{dates.signature}}</p>
           </div>
         </div>
       </div>
