@@ -247,19 +247,26 @@ export const OFDocumentsAdvanced: React.FC = () => {
     console.log('handleSendPhaseDocuments: Call Backend API', { count: docs.length });
     setIsUploading(true);
     try {
-      // Extract learnerId from first doc
       const learnerId = docs[0]?.learnerId;
       if (!learnerId) throw new Error("Aucun apprenant identifié");
 
-      const templateIds = docs.map(d => d.templateId).filter(Boolean);
-
       if (!ofId || isNaN(ofId)) throw new Error("ID de l'organisation introuvable");
 
-      // Call Send API
+      const templateIds = docs.map(d => d.templateId).filter(Boolean);
+
+      // Build documents array with personalized HTML content
+      const documents = docs.map(d => ({
+        template_id: d.templateId,
+        type: d.type,
+        title: d.title,
+        html_content: d.htmlContent || undefined,
+      }));
+
       await fastAPIClient.sendDocuments(ofId, {
         learner_id: Number(learnerId),
         phase: activePhase,
         template_ids: templateIds,
+        documents,
         custom_fields: customFields,
         include_of_signature: true
       });
