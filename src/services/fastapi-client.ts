@@ -1342,17 +1342,37 @@ class FastAPIClient {
   /**
    * Créer un utilisateur pour un OF
    * POST /api/organizations/{of_id}/users
+   * Schema: OfUserCreate (required: email, role)
    */
   async createOFUser(ofId: number | string, userData: {
     email: string;
-    first_name: string;
-    last_name: string;
     role: string;
-    phone?: string;
+    password?: string | null;
+    first_name?: string | null;
+    last_name?: string | null;
+    is_major?: boolean | null;
+    accept_terms?: boolean;
+    accessible_catalogues?: string[] | null;
+    phone?: string | null;
+    status?: string;
+    is_verified?: boolean;
   }): Promise<any> {
+    const payload = {
+      email: userData.email,
+      role: userData.role,
+      first_name: userData.first_name || null,
+      last_name: userData.last_name || null,
+      phone: userData.phone || null,
+      accept_terms: userData.accept_terms ?? true,
+      is_major: userData.is_major ?? true,
+      password: userData.password || null,
+      accessible_catalogues: userData.accessible_catalogues || null,
+      status: userData.status || 'inactive',
+      is_verified: userData.is_verified ?? false,
+    };
     const response = await this.axiosInstance.post(
       `/api/organizations/${ofId}/users`,
-      userData
+      payload
     );
     return response.data;
   }
