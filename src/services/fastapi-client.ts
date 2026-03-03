@@ -1374,6 +1374,240 @@ class FastAPIClient {
     );
     return response.data;
   }
+
+  // ============= DOCUMENT TEMPLATES =============
+
+  /**
+   * Lister les modèles de documents d'un OF
+   * GET /api/organizations/{of_id}/document-templates
+   */
+  async listDocumentTemplates(ofId: number | string): Promise<any[]> {
+    return this.get(`/api/organizations/${ofId}/document-templates`);
+  }
+
+  /**
+   * Créer un modèle de document
+   * POST /api/organizations/{of_id}/document-templates
+   */
+  async createDocumentTemplate(ofId: number | string, data: {
+    type: string;
+    phase: string;
+    title: string;
+    description?: string;
+    html_content: string;
+    requires_signature?: boolean;
+    is_active?: boolean;
+  }): Promise<any> {
+    return this.post(`/api/organizations/${ofId}/document-templates`, data);
+  }
+
+  /**
+   * Récupérer un modèle de document
+   * GET /api/organizations/{of_id}/document-templates/{template_id}
+   */
+  async getDocumentTemplate(ofId: number | string, templateId: number | string): Promise<any> {
+    return this.get(`/api/organizations/${ofId}/document-templates/${templateId}`);
+  }
+
+  /**
+   * Mettre à jour un modèle de document
+   * PUT /api/organizations/{of_id}/document-templates/{template_id}
+   */
+  async updateDocumentTemplate(ofId: number | string, templateId: number | string, data: {
+    title?: string;
+    description?: string;
+    html_content?: string;
+    requires_signature?: boolean;
+    is_active?: boolean;
+    type?: string;
+    phase?: string;
+  }): Promise<any> {
+    return this.put(`/api/organizations/${ofId}/document-templates/${templateId}`, data);
+  }
+
+  /**
+   * Supprimer un modèle de document
+   * DELETE /api/organizations/{of_id}/document-templates/{template_id}
+   */
+  async deleteDocumentTemplate(ofId: number | string, templateId: number | string): Promise<void> {
+    return this.delete(`/api/organizations/${ofId}/document-templates/${templateId}`);
+  }
+
+  // ============= DOCUMENT SEND =============
+
+  /**
+   * Envoyer un document (1 template → N apprenants)
+   * POST /api/organizations/{of_id}/documents/send
+   */
+  async sendDocument(ofId: number | string, data: {
+    template_id: number;
+    learner_ids: number[];
+    html_content?: string;
+    custom_fields?: Record<string, string>;
+  }): Promise<any> {
+    return this.post(`/api/organizations/${ofId}/documents/send`, data);
+  }
+
+  /**
+   * Envoyer des documents en bulk (N templates → 1 apprenant)
+   * POST /api/organizations/{of_id}/documents/send-bulk
+   */
+  async sendDocumentsBulk(ofId: number | string, data: {
+    learner_id: number;
+    template_ids: number[];
+    html_contents?: Record<number, string>;
+    custom_fields?: Record<string, string>;
+  }): Promise<any> {
+    return this.post(`/api/organizations/${ofId}/documents/send-bulk`, data);
+  }
+
+  // ============= DOCUMENT MANAGEMENT =============
+
+  /**
+   * Lister les documents envoyés par l'OF
+   * GET /api/organizations/{of_id}/documents
+   */
+  async listDocuments(ofId: number | string, params?: {
+    status?: string;
+    phase?: string;
+    type?: string;
+    learner_id?: number;
+    search?: string;
+    page?: number;
+    per_page?: number;
+  }): Promise<any[]> {
+    return this.get(`/api/organizations/${ofId}/documents`, { params });
+  }
+
+  /**
+   * Récupérer un document spécifique
+   * GET /api/organizations/{of_id}/documents/{document_id}
+   */
+  async getDocument(ofId: number | string, documentId: number | string): Promise<any> {
+    return this.get(`/api/organizations/${ofId}/documents/${documentId}`);
+  }
+
+  /**
+   * Mettre à jour le statut d'un document
+   * PATCH /api/organizations/{of_id}/documents/{document_id}/status
+   */
+  async updateDocumentStatus(ofId: number | string, documentId: number | string, data: {
+    status: string;
+  }): Promise<any> {
+    return this.patch(`/api/organizations/${ofId}/documents/${documentId}/status`, data);
+  }
+
+  // ============= LEARNER DOCUMENTS =============
+
+  /**
+   * Récupérer les documents d'un apprenant
+   * GET /api/organizations/learners/{learner_id}/documents
+   */
+  async getLearnerDocuments(learnerId: number | string): Promise<any[]> {
+    return this.get(`/api/organizations/learners/${learnerId}/documents`);
+  }
+
+  /**
+   * Signer un document (côté apprenant)
+   * POST /api/organizations/learners/{learner_id}/documents/{document_id}/sign
+   */
+  async signDocument(learnerId: number | string, documentId: number | string, data: {
+    signature_data: string;
+    signature_metadata?: {
+      ip_address?: string;
+      user_agent?: string;
+      timestamp?: string;
+      session_fingerprint?: string;
+      honor_declaration?: boolean;
+    };
+  }): Promise<any> {
+    return this.post(`/api/organizations/learners/${learnerId}/documents/${documentId}/sign`, data);
+  }
+
+  // ============= OF SIGNATURE =============
+
+  /**
+   * Récupérer la signature officielle de l'OF
+   * GET /api/organizations/{of_id}/signature
+   */
+  async getOFSignature(ofId: number | string): Promise<any> {
+    return this.get(`/api/organizations/${ofId}/signature`);
+  }
+
+  /**
+   * Créer ou mettre à jour la signature de l'OF
+   * PUT /api/organizations/{of_id}/signature
+   */
+  async upsertOFSignature(ofId: number | string, data: {
+    signature_data: string;
+  }): Promise<any> {
+    return this.put(`/api/organizations/${ofId}/signature`, data);
+  }
+
+  /**
+   * Supprimer la signature de l'OF
+   * DELETE /api/organizations/{of_id}/signature
+   */
+  async deleteOFSignature(ofId: number | string): Promise<void> {
+    return this.delete(`/api/organizations/${ofId}/signature`);
+  }
+
+  // ============= UPLOADED DOCUMENTS (PDF) =============
+
+  /**
+   * Upload un document PDF
+   * POST /api/organizations/{of_id}/uploaded-documents (multipart)
+   */
+  async uploadDocument(ofId: number | string, formData: FormData): Promise<any> {
+    return this.post(`/api/organizations/${ofId}/uploaded-documents`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  }
+
+  /**
+   * Lister les documents uploadés
+   * GET /api/organizations/{of_id}/uploaded-documents
+   */
+  async listUploadedDocuments(ofId: number | string): Promise<any[]> {
+    return this.get(`/api/organizations/${ofId}/uploaded-documents`);
+  }
+
+  /**
+   * Supprimer un document uploadé
+   * DELETE /api/organizations/{of_id}/uploaded-documents/{document_id}
+   */
+  async deleteUploadedDocument(ofId: number | string, documentId: number | string): Promise<void> {
+    return this.delete(`/api/organizations/${ofId}/uploaded-documents/${documentId}`);
+  }
+
+  /**
+   * Envoyer un document uploadé à des apprenants
+   * POST /api/organizations/{of_id}/uploaded-documents/{document_id}/send
+   */
+  async sendUploadedDocument(ofId: number | string, documentId: number | string, data: {
+    learner_ids: number[];
+    signature_fields?: Array<{
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+      page: number;
+      type: 'signature' | 'name' | 'date';
+      label?: string;
+    }>;
+  }): Promise<any> {
+    return this.post(`/api/organizations/${ofId}/uploaded-documents/${documentId}/send`, data);
+  }
+
+  // ============= EMARGEMENTS =============
+
+  /**
+   * Récupérer les émargements d'un OF
+   * GET /api/organizations/{of_id}/emargements
+   */
+  async getEmargements(ofId: number | string): Promise<any> {
+    return this.get(`/api/organizations/${ofId}/emargements`);
+  }
 }
 
 // Instance singleton

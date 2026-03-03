@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,8 +21,21 @@ import {
   PHASES_CONFIG, DOCUMENT_TYPE_LABELS
 } from './types';
 import { useToast } from '@/hooks/use-toast';
+import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
+import {
+  useDocumentTemplates,
+  useCreateDocumentTemplate,
+  useUpdateDocumentTemplate,
+  useDeleteDocumentTemplate,
+  useSendDocumentsBulk,
+  useUploadedDocuments,
+  useUploadDocument,
+  useDeleteUploadedDocument,
+  useSendUploadedDocument,
+} from '@/hooks/useDocuments';
+import { useOFUsers } from '@/hooks/useApi';
 
-// Mock data
+// Mock data (fallback quand l'API n'est pas encore connectée)
 const mockLearners: Learner[] = [
   { id: '1', firstName: 'Marie', lastName: 'Dupont', email: 'marie.dupont@email.com', phone: '06 12 34 56 78', formationId: '1', formationName: 'React Avancé', enrollmentDate: '2024-01-01', company: 'TechCorp', city: 'Paris', postalCode: '75001', address: '12 rue de la Formation' },
   { id: '2', firstName: 'Jean', lastName: 'Martin', email: 'jean.martin@email.com', phone: '06 98 76 54 32', formationId: '1', formationName: 'React Avancé', enrollmentDate: '2024-01-02', company: 'StartupXYZ', city: 'Lyon', postalCode: '69001', address: '5 place Bellecour' },
@@ -54,6 +67,44 @@ const phaseIcons = {
 };
 
 export const OFDocumentsAdvanced: React.FC = () => {
+  const { user } = useFastAPIAuth();
+  const ofId = user?.of_id;
+
+  // ============= API HOOKS =============
+  const { data: apiTemplates, isLoading: templatesLoading } = useDocumentTemplates(ofId);
+  const createTemplateMutation = useCreateDocumentTemplate(ofId);
+  const updateTemplateMutation = useUpdateDocumentTemplate(ofId);
+  const deleteTemplateMutation = useDeleteDocumentTemplate(ofId);
+  const { data: apiUploadedDocs } = useUploadedDocuments(ofId);
+  const uploadDocMutation = useUploadDocument(ofId);
+  const deleteUploadedDocMutation = useDeleteUploadedDocument(ofId);
+  const sendUploadedDocMutation = useSendUploadedDocument(ofId);
+  const sendBulkMutation = useSendDocumentsBulk(ofId);
+  const { data: apiOFUsers } = useOFUsers(ofId);
+
+  // Map API learners to Learner format for PhaseDocumentSender compatibility
+  const learners: Learner[] = useMemo(() => {
+    if (apiOFUsers && apiOFUsers.length > 0) {
+      return apiOFUsers
+        .filter((u: any) => ['student', 'apprenant', 'learner'].includes(u.role))
+        .map((u: any) => ({
+          id: String(u.id),
+          firstName: u.first_name || '',
+          lastName: u.last_name || '',
+          email: u.email,
+          phone: u.phone,
+          formationId: '',
+          formationName: '',
+          enrollmentDate: u.created_at || '',
+          company: '',
+          city: '',
+          postalCode: '',
+          address: u.address || '',
+        }));
+    }
+    return mockLearners;
+  }, [apiOFUsers]);
+
   const [activePhase, setActivePhase] = useState<DocumentPhase>('inscription');
   const [searchTerm, setSearchTerm] = useState('');
   const [showEditor, setShowEditor] = useState(false);
@@ -63,33 +114,62 @@ export const OFDocumentsAdvanced: React.FC = () => {
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadTitle, setUploadTitle] = useState('');
   const [uploadPhase, setUploadPhase] = useState<DocumentPhase>('inscription');
-  const [uploadedDocuments, setUploadedDocuments] = useState<Array<{ id: string; title: string; phase: DocumentPhase; fileName: string; uploadedAt: string; fileSize: string }>>([]);
-  const [templates, setTemplates] = useState<DocumentTemplate[]>([
-    // Phase Inscription
-    { id: '1', type: 'analyse_besoin', phase: 'inscription', title: 'Analyse du besoin', description: 'Formulaire d\'évaluation préalable du besoin de formation', htmlContent: DEFAULT_TEMPLATES.analyse_besoin || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-    { id: '2', type: 'test_positionnement', phase: 'inscription', title: 'Test de positionnement', description: 'Évaluation du niveau initial de l\'apprenant', htmlContent: DEFAULT_TEMPLATES.test_positionnement || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-    { id: '3', type: 'convention', phase: 'inscription', title: 'Convention de formation', description: 'Convention tripartite de formation professionnelle', htmlContent: DEFAULT_TEMPLATES.convention || '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-    // Phase Formation
-    { id: '4', type: 'convocation', phase: 'formation', title: 'Convocation', description: 'Convocation à la session de formation', htmlContent: DEFAULT_TEMPLATES.convocation || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-    { id: '5', type: 'programme', phase: 'formation', title: 'Programme de formation', description: 'Programme détaillé de la formation', htmlContent: DEFAULT_TEMPLATES.programme || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-    { id: '6', type: 'cgv', phase: 'formation', title: 'Conditions Générales de Vente', description: 'CGV à signer par l\'apprenant', htmlContent: DEFAULT_TEMPLATES.cgv || '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-    { id: '7', type: 'reglement_interieur', phase: 'formation', title: 'Règlement intérieur', description: 'Règlement intérieur applicable aux stagiaires', htmlContent: DEFAULT_TEMPLATES.reglement_interieur || '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-    { id: '8', type: 'attestation_honneur', phase: 'formation', title: 'Attestation sur l\'honneur (CPF)', description: 'Attestation sur l\'honneur pour les formations financées par le CPF', htmlContent: DEFAULT_TEMPLATES.attestation_honneur || '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-    // Phase Post-formation
-    { id: '9', type: 'test_sortie', phase: 'post-formation', title: 'Test de sortie', description: 'Évaluation des acquis en fin de formation', htmlContent: DEFAULT_TEMPLATES.test_sortie || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-    { id: '10', type: 'satisfaction_chaud', phase: 'post-formation', title: 'Questionnaire de satisfaction à chaud', description: 'Évaluation de la satisfaction immédiate', htmlContent: DEFAULT_TEMPLATES.satisfaction_chaud || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-    { id: '11', type: 'certificat', phase: 'post-formation', title: 'Certificat de réalisation', description: 'Certificat attestant la réalisation de la formation', htmlContent: DEFAULT_TEMPLATES.certificat || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-    { id: '12', type: 'emargement', phase: 'post-formation', title: 'Attestation de réalisation (émargements)', description: 'Feuille d\'émargement attestant la présence', htmlContent: DEFAULT_TEMPLATES.emargement || '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-    // Phase +3 mois
-    { id: '13', type: 'satisfaction_froid', phase: 'suivi', title: 'Questionnaire à froid', description: 'Évaluation de l\'impact à +3 mois', htmlContent: DEFAULT_TEMPLATES.satisfaction_froid || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-  ]);
   const [showUploadSendDialog, setShowUploadSendDialog] = useState(false);
   const [uploadDocToSend, setUploadDocToSend] = useState<string | null>(null);
   const [selectedLearnersForUpload, setSelectedLearnersForUpload] = useState<string[]>([]);
   const { toast } = useToast();
 
+  // ============= TEMPLATES (API with fallback) =============
+  const templates: DocumentTemplate[] = useMemo(() => {
+    if (apiTemplates && apiTemplates.length > 0) {
+      return apiTemplates.map((t: any) => ({
+        id: String(t.id),
+        type: t.type as DocumentType,
+        phase: t.phase as DocumentPhase,
+        title: t.title,
+        description: t.description || '',
+        htmlContent: t.html_content || '',
+        requiresSignature: t.requires_signature || false,
+        isActive: t.is_active !== false,
+        createdAt: t.created_at || '',
+        updatedAt: t.updated_at || '',
+      }));
+    }
+    // Fallback: default templates
+    return [
+      { id: '1', type: 'analyse_besoin' as DocumentType, phase: 'inscription' as DocumentPhase, title: 'Analyse du besoin', description: 'Formulaire d\'évaluation préalable du besoin de formation', htmlContent: DEFAULT_TEMPLATES.analyse_besoin || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+      { id: '2', type: 'test_positionnement' as DocumentType, phase: 'inscription' as DocumentPhase, title: 'Test de positionnement', description: 'Évaluation du niveau initial de l\'apprenant', htmlContent: DEFAULT_TEMPLATES.test_positionnement || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+      { id: '3', type: 'convention' as DocumentType, phase: 'inscription' as DocumentPhase, title: 'Convention de formation', description: 'Convention tripartite de formation professionnelle', htmlContent: DEFAULT_TEMPLATES.convention || '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+      { id: '4', type: 'convocation' as DocumentType, phase: 'formation' as DocumentPhase, title: 'Convocation', description: 'Convocation à la session de formation', htmlContent: DEFAULT_TEMPLATES.convocation || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+      { id: '5', type: 'programme' as DocumentType, phase: 'formation' as DocumentPhase, title: 'Programme de formation', description: 'Programme détaillé de la formation', htmlContent: DEFAULT_TEMPLATES.programme || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+      { id: '6', type: 'cgv' as DocumentType, phase: 'formation' as DocumentPhase, title: 'Conditions Générales de Vente', description: 'CGV à signer par l\'apprenant', htmlContent: DEFAULT_TEMPLATES.cgv || '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+      { id: '7', type: 'reglement_interieur' as DocumentType, phase: 'formation' as DocumentPhase, title: 'Règlement intérieur', description: 'Règlement intérieur applicable aux stagiaires', htmlContent: DEFAULT_TEMPLATES.reglement_interieur || '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+      { id: '8', type: 'attestation_honneur' as DocumentType, phase: 'formation' as DocumentPhase, title: 'Attestation sur l\'honneur (CPF)', description: 'Attestation sur l\'honneur pour les formations financées par le CPF', htmlContent: DEFAULT_TEMPLATES.attestation_honneur || '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+      { id: '9', type: 'test_sortie' as DocumentType, phase: 'post-formation' as DocumentPhase, title: 'Test de sortie', description: 'Évaluation des acquis en fin de formation', htmlContent: DEFAULT_TEMPLATES.test_sortie || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+      { id: '10', type: 'satisfaction_chaud' as DocumentType, phase: 'post-formation' as DocumentPhase, title: 'Questionnaire de satisfaction à chaud', description: 'Évaluation de la satisfaction immédiate', htmlContent: DEFAULT_TEMPLATES.satisfaction_chaud || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+      { id: '11', type: 'certificat' as DocumentType, phase: 'post-formation' as DocumentPhase, title: 'Certificat de réalisation', description: 'Certificat attestant la réalisation de la formation', htmlContent: DEFAULT_TEMPLATES.certificat || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+      { id: '12', type: 'emargement' as DocumentType, phase: 'post-formation' as DocumentPhase, title: 'Attestation de réalisation (émargements)', description: 'Feuille d\'émargement attestant la présence', htmlContent: DEFAULT_TEMPLATES.emargement || '', requiresSignature: true, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+      { id: '13', type: 'satisfaction_froid' as DocumentType, phase: 'suivi' as DocumentPhase, title: 'Questionnaire à froid', description: 'Évaluation de l\'impact à +3 mois', htmlContent: DEFAULT_TEMPLATES.satisfaction_froid || '', requiresSignature: false, isActive: true, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+    ];
+  }, [apiTemplates]);
+
+  // Uploaded documents from API or local state fallback
+  const [localUploadedDocs, setLocalUploadedDocs] = useState<Array<{ id: string; title: string; phase: DocumentPhase; fileName: string; uploadedAt: string; fileSize: string }>>([]);
+  const uploadedDocuments = useMemo(() => {
+    if (apiUploadedDocs && apiUploadedDocs.length > 0) {
+      return apiUploadedDocs.map((d: any) => ({
+        id: String(d.id),
+        title: d.title || d.file_name,
+        phase: (d.phase || 'inscription') as DocumentPhase,
+        fileName: d.file_name,
+        uploadedAt: d.created_at,
+        fileSize: d.file_size ? `${(d.file_size / 1024).toFixed(0)} Ko` : '—',
+      }));
+    }
+    return localUploadedDocs;
+  }, [apiUploadedDocs, localUploadedDocs]);
+
   const handleCreateTemplate = () => {
-    // Pre-set phase to active phase for new template
     setSelectedTemplate({
       id: '',
       type: PHASES_CONFIG[activePhase].documents[0] as DocumentType || 'convention',
@@ -111,18 +191,32 @@ export const OFDocumentsAdvanced: React.FC = () => {
   };
 
   const handleSaveTemplate = (template: any) => {
-    if (template.id) {
-      setTemplates(prev => prev.map(t => t.id === template.id ? { ...t, ...template } : t));
-    } else {
-      const newTemplate: DocumentTemplate = {
-        ...template,
-        id: `t-${Date.now()}`,
-        description: template.description || template.title,
-        isActive: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      setTemplates(prev => [...prev, newTemplate]);
+    if (ofId) {
+      // Use API
+      if (template.id && !template.id.startsWith('t-')) {
+        updateTemplateMutation.mutate({
+          templateId: template.id,
+          data: {
+            title: template.title,
+            description: template.description,
+            html_content: template.htmlContent,
+            requires_signature: template.requiresSignature,
+            is_active: template.isActive,
+            type: template.type,
+            phase: template.phase,
+          },
+        });
+      } else {
+        createTemplateMutation.mutate({
+          type: template.type,
+          phase: template.phase,
+          title: template.title,
+          description: template.description || template.title,
+          html_content: template.htmlContent,
+          requires_signature: template.requiresSignature || false,
+          is_active: true,
+        });
+      }
     }
     setShowEditor(false);
   };
@@ -132,6 +226,8 @@ export const OFDocumentsAdvanced: React.FC = () => {
   };
 
   const handleDocumentsSent = (docs: any[]) => {
+    // If API is available, the PhaseDocumentSender should call sendBulkMutation
+    // For now we just show a toast
     toast({ title: 'Documents envoyés', description: `${docs.length} document(s) envoyé(s). Consultez la gestion des émargements.` });
   };
 
@@ -147,18 +243,30 @@ export const OFDocumentsAdvanced: React.FC = () => {
       toast({ title: 'Champs requis', description: 'Veuillez saisir un titre et sélectionner un fichier.', variant: 'destructive' });
       return;
     }
-    const sizeStr = uploadFile.size > 1024 * 1024
-      ? `${(uploadFile.size / (1024 * 1024)).toFixed(1)} Mo`
-      : `${(uploadFile.size / 1024).toFixed(0)} Ko`;
-    setUploadedDocuments(prev => [...prev, {
-      id: `up-${Date.now()}`,
-      title: uploadTitle.trim(),
-      phase: uploadPhase,
-      fileName: uploadFile.name,
-      uploadedAt: new Date().toISOString(),
-      fileSize: sizeStr,
-    }]);
-    toast({ title: 'Document uploadé', description: `"${uploadTitle}" ajouté à la phase ${PHASES_CONFIG[uploadPhase].label}` });
+
+    if (ofId) {
+      // Use real API upload
+      const formData = new FormData();
+      formData.append('file', uploadFile);
+      formData.append('title', uploadTitle.trim());
+      formData.append('phase', uploadPhase);
+      uploadDocMutation.mutate(formData);
+    } else {
+      // Fallback: local state
+      const sizeStr = uploadFile.size > 1024 * 1024
+        ? `${(uploadFile.size / (1024 * 1024)).toFixed(1)} Mo`
+        : `${(uploadFile.size / 1024).toFixed(0)} Ko`;
+      setLocalUploadedDocs(prev => [...prev, {
+        id: `up-${Date.now()}`,
+        title: uploadTitle.trim(),
+        phase: uploadPhase,
+        fileName: uploadFile.name,
+        uploadedAt: new Date().toISOString(),
+        fileSize: sizeStr,
+      }]);
+      toast({ title: 'Document uploadé', description: `"${uploadTitle}" ajouté à la phase ${PHASES_CONFIG[uploadPhase].label}` });
+    }
+
     setUploadFile(null);
     setUploadTitle('');
     setShowUploadDialog(false);
@@ -173,10 +281,30 @@ export const OFDocumentsAdvanced: React.FC = () => {
   const handleSendUploadedDocument = () => {
     const doc = uploadedDocuments.find(d => d.id === uploadDocToSend);
     if (!doc || selectedLearnersForUpload.length === 0) return;
-    toast({ title: 'Document envoyé', description: `"${doc.title}" envoyé à ${selectedLearnersForUpload.length} apprenant(s). Consultez la gestion des émargements.` });
+
+    if (ofId) {
+      sendUploadedDocMutation.mutate({
+        documentId: uploadDocToSend!,
+        data: {
+          learner_ids: selectedLearnersForUpload.map(id => Number(id)),
+        },
+      });
+    } else {
+      toast({ title: 'Document envoyé', description: `"${doc.title}" envoyé à ${selectedLearnersForUpload.length} apprenant(s).` });
+    }
+
     setShowUploadSendDialog(false);
     setUploadDocToSend(null);
     setSelectedLearnersForUpload([]);
+  };
+
+  const handleDeleteUploadedDoc = (docId: string) => {
+    if (ofId) {
+      deleteUploadedDocMutation.mutate(docId);
+    } else {
+      setLocalUploadedDocs(prev => prev.filter(d => d.id !== docId));
+      toast({ title: 'Document supprimé' });
+    }
   };
 
   const toggleLearnerForUpload = (learnerId: string) => {
@@ -369,10 +497,7 @@ export const OFDocumentsAdvanced: React.FC = () => {
                                 Envoyer
                               </Button>
                               <Button size="sm" variant="outline" className="text-destructive hover:text-destructive"
-                                onClick={() => {
-                                  setUploadedDocuments(prev => prev.filter(d => d.id !== doc.id));
-                                  toast({ title: 'Document supprimé' });
-                                }}>
+                                onClick={() => handleDeleteUploadedDoc(doc.id)}>
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
@@ -417,7 +542,7 @@ export const OFDocumentsAdvanced: React.FC = () => {
         onClose={() => setShowPhaseSender(false)}
         phase={activePhase}
         templates={phaseTemplates}
-        learners={mockLearners}
+        learners={learners}
         formations={mockFormations}
         ofInfo={mockOF}
         onSend={handleDocumentsSent}
@@ -493,6 +618,7 @@ export const OFDocumentsAdvanced: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
       {/* Upload Send Dialog */}
       <Dialog open={showUploadSendDialog} onOpenChange={setShowUploadSendDialog}>
         <DialogContent className="sm:max-w-md">
@@ -519,7 +645,7 @@ export const OFDocumentsAdvanced: React.FC = () => {
             <div className="space-y-2">
               <label className="text-sm font-medium">Sélectionner les apprenants</label>
               <div className="border rounded-lg divide-y max-h-60 overflow-auto">
-                {mockLearners.map(learner => (
+                {learners.map(learner => (
                   <label key={learner.id} className="flex items-center gap-3 p-3 hover:bg-muted/50 cursor-pointer">
                     <input
                       type="checkbox"
@@ -531,7 +657,9 @@ export const OFDocumentsAdvanced: React.FC = () => {
                       <div className="font-medium text-sm">{learner.firstName} {learner.lastName}</div>
                       <div className="text-xs text-muted-foreground">{learner.email}</div>
                     </div>
-                    <Badge variant="outline" className="text-xs">{learner.formationName}</Badge>
+                    {learner.formationName && (
+                      <Badge variant="outline" className="text-xs">{learner.formationName}</Badge>
+                    )}
                   </label>
                 ))}
               </div>
