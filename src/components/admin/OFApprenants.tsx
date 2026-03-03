@@ -4,26 +4,37 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Users, Eye, Edit, Plus } from 'lucide-react';
+import { Users, Eye, Edit, Plus, Loader2, AlertCircle } from 'lucide-react';
 import { OFApprenantDetail } from './OFApprenantDetail';
 import { OFAddApprenant } from './OFAddApprenant';
+import { useOFUsers, useCreateOFUser } from '@/hooks/useApi';
+import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
+import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export const OFApprenants = () => {
   const [selectedApprenant, setSelectedApprenant] = useState<any>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isAddOpen, setIsAddOpen] = useState(false);
-  const [apprenants, setApprenants] = useState([
-    { id: '1', nom: 'Dupont', prenom: 'Marie', email: 'marie.dupont@email.com', status: 'active', formation: 'React Avancé', progression: 78 },
-    { id: '2', nom: 'Martin', prenom: 'Jean', email: 'jean.martin@email.com', status: 'completed', formation: 'JavaScript', progression: 100 },
-    { id: '3', nom: 'Bernard', prenom: 'Sophie', email: 'sophie.bernard@email.com', status: 'pending', formation: 'Angular', progression: 45 },
-    { id: '4', nom: 'Durand', prenom: 'Pierre', email: 'pierre.durand@email.com', status: 'active', formation: 'Vue.js', progression: 62 },
-  ]);
+  const { toast } = useToast();
+
+  const { user } = useFastAPIAuth();
+  const ofId = user?.of_id;
+
+  const { data: apiUsers, isLoading, isError, error } = useOFUsers(ofId);
+  const createOFUser = useCreateOFUser(ofId);
+
+  // Filtrer uniquement les apprenants
+  const apprenants = (apiUsers || []).filter(
+    (u: any) => u.role === 'apprenant' || u.role === 'learner'
+  );
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       active: { variant: 'default' as const, label: 'Actif' },
       completed: { variant: 'secondary' as const, label: 'Terminé' },
       pending: { variant: 'outline' as const, label: 'En attente' },
+      inactive: { variant: 'destructive' as const, label: 'Inactif' },
     };
     
     const config = statusConfig[status as keyof typeof statusConfig] || { variant: 'outline' as const, label: status };
@@ -35,78 +46,117 @@ export const OFApprenants = () => {
     setIsDetailOpen(true);
   };
 
-  const handleAddApprenant = (newApprenant: any) => {
-    setApprenants(prev => [...prev, newApprenant]);
+  const handleAddApprenant = async (apprenantData: any) => {
+    try {
+      await createOFUser.mutateAsync({
+        email: apprenantData.email,
+        first_name: apprenantData.prenom,
+        last_name: apprenantData.nom,
+        role: 'apprenant',
+        phone: apprenantData.telephone || undefined,
+      });
+      toast({
+        title: "Apprenant créé",
+        description: "L'apprenant a été créé avec succès. Un email avec ses identifiants lui a été envoyé.",
+      });
+    } catch (err: any) {
+      toast({
+        title: "Erreur",
+        description: err?.response?.data?.detail || "Impossible de créer l'apprenant",
+        variant: "destructive",
+      });
+    }
   };
+
+  if (!ofId) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>Impossible de déterminer l'organisme de formation.</AlertDescription>
+      </Alert>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestion des apprenants</h1>
-          <p className="text-gray-600">Suivi et gestion des apprenants</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Gestion des apprenants</h1>
+          <p className="text-muted-foreground">Suivi et gestion des apprenants</p>
         </div>
-        <Button onClick={() => setIsAddOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
+        <Button onClick={() => setIsAddOpen(true)} disabled={createOFUser.isPending}>
+          {createOFUser.isPending ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <Plus className="h-4 w-4 mr-2" />
+          )}
           Ajouter un apprenant
         </Button>
       </div>
+
+      {isError && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Erreur lors du chargement : {(error as any)?.message || 'Erreur inconnue'}
+          </AlertDescription>
+        </Alert>
+      )}
 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
             <Users className="h-5 w-5 mr-2" />
-            Liste des apprenants
+            Liste des apprenants ({apprenants.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nom</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Formation</TableHead>
-                <TableHead>Progression</TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {apprenants.map((apprenant) => (
-                <TableRow key={apprenant.id}>
-                  <TableCell className="font-medium">{apprenant.prenom} {apprenant.nom}</TableCell>
-                  <TableCell>{apprenant.email}</TableCell>
-                  <TableCell>{apprenant.formation}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-16 bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-blue-600 h-2 rounded-full" 
-                          style={{ width: `${apprenant.progression}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-sm">{apprenant.progression}%</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{getStatusBadge(apprenant.status)}</TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => handleViewApprenant(apprenant)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              <span className="ml-2 text-muted-foreground">Chargement...</span>
+            </div>
+          ) : apprenants.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              Aucun apprenant pour le moment.
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nom</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Statut</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {apprenants.map((apprenant: any) => (
+                  <TableRow key={apprenant.id}>
+                    <TableCell className="font-medium">
+                      {apprenant.first_name || apprenant.prenom} {apprenant.last_name || apprenant.nom}
+                    </TableCell>
+                    <TableCell>{apprenant.email}</TableCell>
+                    <TableCell>{getStatusBadge(apprenant.status || 'pending')}</TableCell>
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleViewApprenant(apprenant)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="outline">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
 

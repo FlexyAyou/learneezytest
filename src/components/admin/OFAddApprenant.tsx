@@ -4,58 +4,40 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { UserPlus, Mail, User, BookOpen } from 'lucide-react';
+import { UserPlus, Mail, User, Phone, Loader2 } from 'lucide-react';
 
 interface OFAddApprenantProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (apprenant: any) => void;
+  onAdd: (apprenant: any) => Promise<void> | void;
 }
 
 export const OFAddApprenant = ({ isOpen, onClose, onAdd }: OFAddApprenantProps) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     prenom: '',
     nom: '',
     email: '',
-    formation: '',
-    status: 'active'
+    telephone: '',
   });
 
-  const formations = [
-    'React Avancé',
-    'JavaScript',
-    'Angular',
-    'Vue.js',
-    'Node.js',
-    'Python',
-    'Java'
-  ];
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newApprenant = {
-      ...formData,
-      id: Date.now().toString(),
-      progression: 0
-    };
-    onAdd(newApprenant);
-    setFormData({
-      prenom: '',
-      nom: '',
-      email: '',
-      formation: '',
-      status: 'active'
-    });
-    onClose();
+    setIsSubmitting(true);
+    try {
+      await onAdd(formData);
+      setFormData({ prenom: '', nom: '', email: '', telephone: '' });
+      onClose();
+    } catch {
+      // Error handled by parent
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   return (
@@ -85,6 +67,7 @@ export const OFAddApprenant = ({ isOpen, onClose, onAdd }: OFAddApprenantProps) 
                     value={formData.prenom}
                     onChange={(e) => handleChange('prenom', e.target.value)}
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
                 <div>
@@ -94,6 +77,7 @@ export const OFAddApprenant = ({ isOpen, onClose, onAdd }: OFAddApprenantProps) 
                     value={formData.nom}
                     onChange={(e) => handleChange('nom', e.target.value)}
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
               </div>
@@ -101,7 +85,7 @@ export const OFAddApprenant = ({ isOpen, onClose, onAdd }: OFAddApprenantProps) 
               <div>
                 <Label htmlFor="email">Email *</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                   <Input
                     id="email"
                     type="email"
@@ -109,58 +93,45 @@ export const OFAddApprenant = ({ isOpen, onClose, onAdd }: OFAddApprenantProps) 
                     onChange={(e) => handleChange('email', e.target.value)}
                     className="pl-10"
                     required
+                    disabled={isSubmitting}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="telephone">Téléphone</Label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                  <Input
+                    id="telephone"
+                    type="tel"
+                    value={formData.telephone}
+                    onChange={(e) => handleChange('telephone', e.target.value)}
+                    className="pl-10"
+                    disabled={isSubmitting}
                   />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center">
-                <BookOpen className="w-5 h-5 mr-2" />
-                Formation
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="formation">Formation assignée *</Label>
-                <Select value={formData.formation} onValueChange={(value) => handleChange('formation', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner une formation" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {formations.map((formation) => (
-                      <SelectItem key={formation} value={formation}>
-                        {formation}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label htmlFor="status">Statut</Label>
-                <Select value={formData.status} onValueChange={(value) => handleChange('status', value)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Actif</SelectItem>
-                    <SelectItem value="pending">En attente</SelectItem>
-                    <SelectItem value="inactive">Inactif</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
+          <p className="text-sm text-muted-foreground">
+            Un email avec les identifiants de connexion sera envoyé automatiquement à l'apprenant.
+          </p>
 
           <div className="flex justify-end space-x-3">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
               Annuler
             </Button>
-            <Button type="submit">
-              Ajouter l'apprenant
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Création en cours...
+                </>
+              ) : (
+                "Ajouter l'apprenant"
+              )}
             </Button>
           </div>
         </form>
