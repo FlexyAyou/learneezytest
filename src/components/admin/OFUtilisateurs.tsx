@@ -139,8 +139,8 @@ export const OFUtilisateurs = () => {
       email: newUser.email,
       first_name: newUser.prenom || newUser.first_name || '',
       last_name: newUser.nom || newUser.last_name || '',
-      role: mapRoleToBackend(newUser.role),
-      phone: newUser.phone || newUser.telephone || undefined,
+      role: mapRoleToBackend(newUser.role) || 'apprenant',
+      phone: newUser.phone || newUser.telephone || null,
     };
 
     try {
