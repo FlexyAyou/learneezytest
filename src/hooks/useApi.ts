@@ -881,10 +881,16 @@ export const useCreateOFUser = (ofId: number | string | undefined) => {
   return useMutation({
     mutationFn: (userData: {
       email: string;
-      first_name: string;
-      last_name: string;
       role: string;
-      phone?: string;
+      first_name?: string | null;
+      last_name?: string | null;
+      phone?: string | null;
+      accept_terms?: boolean;
+      is_major?: boolean | null;
+      password?: string | null;
+      accessible_catalogues?: string[] | null;
+      status?: string;
+      is_verified?: boolean;
     }) => {
       if (!ofId) throw new Error('OF ID is required');
       return fastAPIClient.createOFUser(ofId, userData);
