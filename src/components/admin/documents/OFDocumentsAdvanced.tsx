@@ -33,31 +33,7 @@ import {
   useDeleteUploadedDocument,
   useSendUploadedDocument,
 } from '@/hooks/useDocuments';
-import { useOFUsers } from '@/hooks/useApi';
-
-// Mock data (fallback quand l'API n'est pas encore connectée)
-const mockLearners: Learner[] = [
-  { id: '1', firstName: 'Marie', lastName: 'Dupont', email: 'marie.dupont@email.com', phone: '06 12 34 56 78', formationId: '1', formationName: 'React Avancé', enrollmentDate: '2024-01-01', company: 'TechCorp', city: 'Paris', postalCode: '75001', address: '12 rue de la Formation' },
-  { id: '2', firstName: 'Jean', lastName: 'Martin', email: 'jean.martin@email.com', phone: '06 98 76 54 32', formationId: '1', formationName: 'React Avancé', enrollmentDate: '2024-01-02', company: 'StartupXYZ', city: 'Lyon', postalCode: '69001', address: '5 place Bellecour' },
-  { id: '3', firstName: 'Sophie', lastName: 'Bernard', email: 'sophie.bernard@email.com', phone: '06 55 44 33 22', formationId: '2', formationName: 'Vue.js Débutant', enrollmentDate: '2024-01-03', company: 'DigitalAgency', city: 'Marseille', postalCode: '13001', address: '8 cours Julien' },
-];
-
-const mockFormations: Formation[] = [
-  { id: '1', name: 'React Avancé', description: 'Formation approfondie React', duration: '35 heures', startDate: '2024-02-01', endDate: '2024-02-05', location: 'Paris', trainer: 'Jean Martin', price: 2500 },
-  { id: '2', name: 'Vue.js Débutant', description: 'Initiation à Vue.js', duration: '21 heures', startDate: '2024-02-10', endDate: '2024-02-12', location: 'Lyon', trainer: 'Sophie Durand', price: 1800 },
-];
-
-const mockOF: OF = {
-  name: 'FormaPro',
-  siret: '123 456 789 00010',
-  nda: '11 75 12345 67',
-  address: '1 avenue de la Formation',
-  city: 'Paris',
-  postalCode: '75008',
-  phone: '01 23 45 67 89',
-  email: 'contact@formapro.fr',
-  responsable: 'Pierre Durant'
-};
+import { useOFUsers, useOrganization } from '@/hooks/useApi';
 
 const phaseIcons = {
   inscription: UserPlus,
@@ -81,29 +57,45 @@ export const OFDocumentsAdvanced: React.FC = () => {
   const sendUploadedDocMutation = useSendUploadedDocument(ofId);
   const sendBulkMutation = useSendDocumentsBulk(ofId);
   const { data: apiOFUsers } = useOFUsers(ofId);
+  const { data: orgData } = useOrganization(ofId || 0);
 
-  // Map API learners to Learner format for PhaseDocumentSender compatibility
+  // Map API users to Learner format
   const learners: Learner[] = useMemo(() => {
-    if (apiOFUsers && apiOFUsers.length > 0) {
-      return apiOFUsers
-        .filter((u: any) => ['student', 'apprenant', 'learner'].includes(u.role))
-        .map((u: any) => ({
-          id: String(u.id),
-          firstName: u.first_name || '',
-          lastName: u.last_name || '',
-          email: u.email,
-          phone: u.phone,
-          formationId: '',
-          formationName: '',
-          enrollmentDate: u.created_at || '',
-          company: '',
-          city: '',
-          postalCode: '',
-          address: u.address || '',
-        }));
-    }
-    return mockLearners;
+    if (!apiOFUsers || apiOFUsers.length === 0) return [];
+    return apiOFUsers
+      .filter((u: any) => ['student', 'apprenant', 'learner'].includes(u.role))
+      .map((u: any) => ({
+        id: String(u.id),
+        firstName: u.first_name || '',
+        lastName: u.last_name || '',
+        email: u.email,
+        phone: u.phone,
+        formationId: '',
+        formationName: '',
+        enrollmentDate: u.created_at || '',
+        company: '',
+        city: '',
+        postalCode: '',
+        address: u.address || '',
+      }));
   }, [apiOFUsers]);
+
+  // Map API org to OF format
+  const ofInfo: OF = useMemo(() => ({
+    name: orgData?.name || '',
+    siret: orgData?.siret || '',
+    nda: orgData?.numero_declaration || '',
+    address: orgData?.address || '',
+    city: '',
+    postalCode: '',
+    phone: orgData?.phone || '',
+    email: orgData?.email || orgData?.contact_email || '',
+    responsable: orgData?.legal_representative || '',
+    website: orgData?.website,
+  }), [orgData]);
+
+  // Formations vides — à connecter à l'API formations quand disponible
+  const formations: Formation[] = useMemo(() => [], []);
 
   const [activePhase, setActivePhase] = useState<DocumentPhase>('inscription');
   const [searchTerm, setSearchTerm] = useState('');
@@ -543,8 +535,8 @@ export const OFDocumentsAdvanced: React.FC = () => {
         phase={activePhase}
         templates={phaseTemplates}
         learners={learners}
-        formations={mockFormations}
-        ofInfo={mockOF}
+        formations={formations}
+        ofInfo={ofInfo}
         onSend={handleDocumentsSent}
       />
 
