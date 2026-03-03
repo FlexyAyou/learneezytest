@@ -5,208 +5,6 @@
     "version": "0.1.0"
   },
   "paths": {
-    "/api/courses/enrolled": {
-      "get": {
-        "tags": ["learner-courses"],
-        "summary": "Get Enrolled Courses",
-        "description": "Retourne la liste des cours auxquels l'utilisateur est inscrit, avec sa progression.",
-        "operationId": "get_enrolled_courses_api_courses_enrolled_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "type": "object"
-                  },
-                  "type": "array",
-                  "title": "Response Get Enrolled Courses Api Courses Enrolled Get"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ]
-      }
-    },
-    "/api/courses/{course_id}/content-learner": {
-      "get": {
-        "tags": ["learner-courses"],
-        "summary": "Get Course Content For Learner",
-        "description": "Retourne le contenu complet du cours pour un apprenant inscrit.\nInclut les informations de progression (leçons terminées).",
-        "operationId": "get_course_content_for_learner_api_courses__course_id__content_learner_get",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "course_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Course Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/courses/browse": {
-      "get": {
-        "tags": ["learner-courses"],
-        "summary": "Browse Courses",
-        "description": "Permet aux apprenants de parcourir tous les cours publiés sur la plateforme.",
-        "operationId": "browse_courses_api_courses_browse_get",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1,
-              "title": "Page"
-            }
-          },
-          {
-            "name": "per_page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 100,
-              "minimum": 1,
-              "default": 10,
-              "title": "Per Page"
-            }
-          },
-          {
-            "name": "search",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Search"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CourseSummaryPage"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/courses/{course_id}/lessons/{lesson_id}/complete": {
-      "post": {
-        "tags": ["learner-courses"],
-        "summary": "Complete Lesson",
-        "description": "Marque une leçon comme terminée pour l'utilisateur.\nMet à jour la progression dans Enrollment.",
-        "operationId": "complete_lesson_api_courses__course_id__lessons__lesson_id__complete_post",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "course_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Course Id"
-            }
-          },
-          {
-            "name": "lesson_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Lesson Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/auth/me": {
       "get": {
         "tags": ["auth"],
@@ -1168,36 +966,6 @@
               "title": "Sort"
             },
             "description": "Tri: newest|price_asc|price_desc"
-          },
-          {
-            "name": "is_open_source",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "boolean"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Filtrer par statut open-source",
-              "title": "Is Open Source"
-            },
-            "description": "Filtrer par statut open-source"
-          },
-          {
-            "name": "include_global_open_source",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "boolean",
-              "description": "Inclure les cours open-source globaux dans les résultats (OR avec owner)",
-              "default": false,
-              "title": "Include Global Open Source"
-            },
-            "description": "Inclure les cours open-source globaux dans les résultats (OR avec owner)"
           },
           {
             "name": "facets",
@@ -4058,35 +3826,6 @@
         ]
       }
     },
-    "/api/courses/enrollments/my": {
-      "get": {
-        "tags": ["courses"],
-        "summary": "Get My Enrollments",
-        "description": "Return all active enrollments for the authenticated user, enriched with course titles from Mongo.",
-        "operationId": "get_my_enrollments_api_courses_enrollments_my_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/EnrollmentResponse"
-                  },
-                  "type": "array",
-                  "title": "Response Get My Enrollments Api Courses Enrollments My Get"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ]
-      }
-    },
     "/api/organizations/": {
       "post": {
         "tags": ["organizations"],
@@ -4242,89 +3981,6 @@
         }
       }
     },
-    "/api/organizations/check-availability": {
-      "get": {
-        "tags": ["organizations"],
-        "summary": "Check Availability",
-        "description": "Vérifie si un sous-domaine, email ou SIRET est déjà utilisé.",
-        "operationId": "check_availability_api_organizations_check_availability_get",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "subdomain",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Subdomain"
-            }
-          },
-          {
-            "name": "email",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Email"
-            }
-          },
-          {
-            "name": "siret",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Siret"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/organizations/{organization_id}": {
       "get": {
         "tags": ["organizations"],
@@ -4375,7 +4031,7 @@
       "put": {
         "tags": ["organizations"],
         "summary": "Update Organization",
-        "description": "Update organisation.\n- Superadmin: peut tout modifier.\n- OF Admin: peut modifier infos de contact/légales de son OF uniquement.",
+        "description": "Update abonnement OF par superadmin.",
         "operationId": "update_organization_api_organizations__org_id__put",
         "security": [
           {
@@ -4527,12 +4183,14 @@
             }
           }
         }
-      },
+      }
+    },
+    "/api/organizations/{of_id}/document-templates": {
       "get": {
         "tags": ["organizations"],
-        "summary": "Get Of Users",
-        "description": "Liste des utilisateurs d'un OF.",
-        "operationId": "get_of_users_api_organizations__of_id__users_get",
+        "summary": "List Document Templates",
+        "description": "Liste des templates de documents (OF-scoped + globaux).",
+        "operationId": "list_document_templates_api_organizations__of_id__document_templates_get",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -4547,6 +4205,24 @@
               "type": "integer",
               "title": "Of Id"
             }
+          },
+          {
+            "name": "phase",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/DocumentTemplatePhase"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filtrer par phase",
+              "title": "Phase"
+            },
+            "description": "Filtrer par phase"
           }
         ],
         "responses": {
@@ -4557,9 +4233,9 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/UserResponse"
+                    "$ref": "#/components/schemas/DocumentTemplateResponse"
                   },
-                  "title": "Response Get Of Users Api Organizations  Of Id  Users Get"
+                  "title": "Response List Document Templates Api Organizations  Of Id  Document Templates Get"
                 }
               }
             }
@@ -4575,113 +4251,12 @@
             }
           }
         }
-      }
-    },
-    "/api/organizations/{of_id}/communications/history": {
-      "get": {
-        "tags": ["organizations"],
-        "summary": "Get Communication History",
-        "description": "Lister l'historique des communications d'un OF.",
-        "operationId": "get_communication_history_api_organizations__of_id__communications_history_get",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "of_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Of Id"
-            }
-          },
-          {
-            "name": "type",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Type"
-            }
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Status"
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1,
-              "title": "Page"
-            }
-          },
-          {
-            "name": "per_page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 100,
-              "minimum": 1,
-              "default": 10,
-              "title": "Per Page"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/organizations/{of_id}/communications/send": {
+      },
       "post": {
         "tags": ["organizations"],
-        "summary": "Send Communication",
-        "description": "Envoyer une communication (simulé pour l'instant avec enregistrement en DB).",
-        "operationId": "send_communication_api_organizations__of_id__communications_send_post",
+        "summary": "Create Document Template",
+        "description": "Création d'un template (OF-scoped ou global si SuperAdmin).",
+        "operationId": "create_document_template_api_organizations__of_id__document_templates_post",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -4703,7 +4278,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CommunicationCreate"
+                "$ref": "#/components/schemas/DocumentTemplateCreate"
               }
             }
           }
@@ -4713,7 +4288,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentTemplateResponse"
+                }
               }
             }
           },
@@ -4730,12 +4307,12 @@
         }
       }
     },
-    "/api/organizations/{of_id}/stats": {
+    "/api/organizations/{of_id}/document-templates/{template_id}": {
       "get": {
         "tags": ["organizations"],
-        "summary": "Get Of Stats",
-        "description": "Calcul des statistiques globales pour un OF.",
-        "operationId": "get_of_stats_api_organizations__of_id__stats_get",
+        "summary": "Get Document Template",
+        "description": "Détail d'un template.",
+        "operationId": "get_document_template_api_organizations__of_id__document_templates__template_id__get",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -4750,6 +4327,15 @@
               "type": "integer",
               "title": "Of Id"
             }
+          },
+          {
+            "name": "template_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Template Id"
+            }
           }
         ],
         "responses": {
@@ -4757,7 +4343,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentTemplateResponse"
+                }
               }
             }
           },
@@ -4767,86 +4355,17 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/subscriptions-and-catalogues/plans": {
-      "get": {
-        "tags": ["subscriptions-catalogues"],
-        "summary": "List Plans",
-        "description": "Liste tous les plans d'abonnement actifs.",
-        "operationId": "list_plans_api_subscriptions_and_catalogues_plans_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/SubscriptionPlanResponse"
-                  },
-                  "type": "array",
-                  "title": "Response List Plans Api Subscriptions And Catalogues Plans Get"
                 }
               }
             }
           }
         }
       },
-      "post": {
-        "tags": ["subscriptions-catalogues"],
-        "summary": "Create Plan",
-        "description": "Création d'un plan d'abonnement (Superadmin uniquement).",
-        "operationId": "create_plan_api_subscriptions_and_catalogues_plans_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SubscriptionPlanCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SubscriptionPlanResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ]
-      }
-    },
-    "/api/subscriptions-and-catalogues/plans/{plan_id}": {
       "put": {
-        "tags": ["subscriptions-catalogues"],
-        "summary": "Update Plan",
-        "description": "Mise à jour d'un plan (Superadmin uniquement).",
-        "operationId": "update_plan_api_subscriptions_and_catalogues_plans__plan_id__put",
+        "tags": ["organizations"],
+        "summary": "Update Document Template",
+        "description": "Modification d'un template.",
+        "operationId": "update_document_template_api_organizations__of_id__document_templates__template_id__put",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -4854,12 +4373,21 @@
         ],
         "parameters": [
           {
-            "name": "plan_id",
+            "name": "of_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "integer",
-              "title": "Plan Id"
+              "title": "Of Id"
+            }
+          },
+          {
+            "name": "template_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Template Id"
             }
           }
         ],
@@ -4868,7 +4396,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SubscriptionPlanUpdate"
+                "$ref": "#/components/schemas/DocumentTemplateUpdate"
               }
             }
           }
@@ -4879,7 +4407,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SubscriptionPlanResponse"
+                  "$ref": "#/components/schemas/DocumentTemplateResponse"
                 }
               }
             }
@@ -4897,10 +4425,10 @@
         }
       },
       "delete": {
-        "tags": ["subscriptions-catalogues"],
-        "summary": "Delete Plan",
-        "description": "Désactivation (soft delete) d'un plan (Superadmin uniquement).",
-        "operationId": "delete_plan_api_subscriptions_and_catalogues_plans__plan_id__delete",
+        "tags": ["organizations"],
+        "summary": "Delete Document Template",
+        "description": "Suppression (soft delete) d'un template.",
+        "operationId": "delete_document_template_api_organizations__of_id__document_templates__template_id__delete",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -4908,12 +4436,21 @@
         ],
         "parameters": [
           {
-            "name": "plan_id",
+            "name": "of_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "integer",
-              "title": "Plan Id"
+              "title": "Of Id"
+            }
+          },
+          {
+            "name": "template_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Template Id"
             }
           }
         ],
@@ -4934,11 +4471,982 @@
         }
       }
     },
+    "/api/organizations/{of_id}/documents/send": {
+      "post": {
+        "tags": ["organizations"],
+        "summary": "Send Documents",
+        "description": "Envoi groupé de documents à plusieurs apprenants depuis un template.",
+        "operationId": "send_documents_api_organizations__of_id__documents_send_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "of_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Of Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentSendRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DocumentResponse"
+                  },
+                  "title": "Response Send Documents Api Organizations  Of Id  Documents Send Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/organizations/{of_id}/documents/send-bulk": {
+      "post": {
+        "tags": ["organizations"],
+        "summary": "Send Documents Bulk",
+        "description": "Envoi groupé de plusieurs templates et uploaded documents à un apprenant.\n\nCette route permet d'envoyer en une seule requête:\n- Plusieurs templates avec injection de custom_fields\n- Des uploaded documents (PDF, DOCX) joints\n- La signature officielle de l'OF si demandé\n\nBackend process:\n1. Récupère chaque template par ID\n2. Injecte les custom_fields dans le html_content\n3. Génère un unique_code par document\n4. Crée une entrée dans documents pour chaque template avec status = sent\n5. Enregistre les uploaded_documents envoyés dans le tracking",
+        "operationId": "send_documents_bulk_api_organizations__of_id__documents_send_bulk_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "of_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Of Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentBulkSendRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DocumentResponse"
+                  },
+                  "title": "Response Send Documents Bulk Api Organizations  Of Id  Documents Send Bulk Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/organizations/{of_id}/documents": {
+      "get": {
+        "tags": ["organizations"],
+        "summary": "List Documents",
+        "description": "Liste des documents envoyés (filtrable par phase, learner_id, status).",
+        "operationId": "list_documents_api_organizations__of_id__documents_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "of_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Of Id"
+            }
+          },
+          {
+            "name": "phase",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/DocumentTemplatePhase"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filtrer par phase",
+              "title": "Phase"
+            },
+            "description": "Filtrer par phase"
+          },
+          {
+            "name": "learner_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filtrer par apprenant",
+              "title": "Learner Id"
+            },
+            "description": "Filtrer par apprenant"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/DocumentStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filtrer par statut",
+              "title": "Status"
+            },
+            "description": "Filtrer par statut"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DocumentResponse"
+                  },
+                  "title": "Response List Documents Api Organizations  Of Id  Documents Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/organizations/{of_id}/documents/{document_id}": {
+      "get": {
+        "tags": ["organizations"],
+        "summary": "Get Document",
+        "description": "Détail d'un document.",
+        "operationId": "get_document_api_organizations__of_id__documents__document_id__get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "of_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Of Id"
+            }
+          },
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Document Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/organizations/{of_id}/documents/{document_id}/status": {
+      "patch": {
+        "tags": ["organizations"],
+        "summary": "Update Document Status",
+        "description": "Mettre à jour le statut d'un document.",
+        "operationId": "update_document_status_api_organizations__of_id__documents__document_id__status_patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "of_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Of Id"
+            }
+          },
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Document Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentUpdateStatus"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/organizations/learners/{learner_id}/documents": {
+      "get": {
+        "tags": ["organizations"],
+        "summary": "Get Learner Documents",
+        "description": "Documents reçus par un apprenant (utilisé côté dashboard apprenant).",
+        "operationId": "get_learner_documents_api_organizations_learners__learner_id__documents_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "learner_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Learner Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DocumentResponse"
+                  },
+                  "title": "Response Get Learner Documents Api Organizations Learners  Learner Id  Documents Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/organizations/learners/{learner_id}/documents/{document_id}/sign": {
+      "post": {
+        "tags": ["organizations"],
+        "summary": "Sign Document",
+        "description": "Soumettre la signature d'un document (utilisé par l'apprenant).",
+        "operationId": "sign_document_api_organizations_learners__learner_id__documents__document_id__sign_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "learner_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Learner Id"
+            }
+          },
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Document Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentSignRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/organizations/{of_id}/signature": {
+      "get": {
+        "tags": ["organizations"],
+        "summary": "Get Of Signature",
+        "description": "Récupérer la signature officielle d'un OF.\n\nPermissions:\n- SuperAdmin : peut récupérer n'importe quelle signature\n- OF Admin : peut récupérer uniquement la signature de son OF",
+        "operationId": "get_of_signature_api_organizations__of_id__signature_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "of_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Of Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OfSignatureResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["organizations"],
+        "summary": "Create Or Update Of Signature",
+        "description": "Créer ou mettre à jour la signature officielle d'un OF.\n\nPermissions:\n- SuperAdmin : peut gérer n'importe quelle signature\n- OF Admin : peut gérer uniquement la signature de son OF",
+        "operationId": "create_or_update_of_signature_api_organizations__of_id__signature_put",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "of_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Of Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OfSignatureUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OfSignatureResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["organizations"],
+        "summary": "Delete Of Signature",
+        "description": "Supprimer la signature officielle d'un OF.\n\nPermissions:\n- SuperAdmin : peut supprimer n'importe quelle signature\n- OF Admin : peut supprimer uniquement la signature de son OF",
+        "operationId": "delete_of_signature_api_organizations__of_id__signature_delete",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "of_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Of Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/organizations/{of_id}/uploaded-documents": {
+      "post": {
+        "tags": ["organizations"],
+        "summary": "Upload Document",
+        "description": "Upload un document externe (PDF, DOCX, etc.) manuellement par l'admin.\n\nPermissions:\n- SuperAdmin : peut uploader pour n'importe quelle organisation\n- OF Admin : peut uploader uniquement pour son organisation\n\nForm data:\n- file: Fichier à uploader (multipart/form-data)\n- title: Titre du document\n- phase: Phase du parcours (inscription, formation, post-formation, suivi)",
+        "operationId": "upload_document_api_organizations__of_id__uploaded_documents_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "of_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Of Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_document_api_organizations__of_id__uploaded_documents_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadedDocumentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": ["organizations"],
+        "summary": "List Uploaded Documents",
+        "description": "Liste les documents uploadés pour une organisation.\n\nPermissions:\n- SuperAdmin : peut lister pour n'importe quelle organisation\n- OF Admin : peut lister uniquement pour son organisation\n\nQuery params:\n- phase: Filtrer par phase (optionnel)",
+        "operationId": "list_uploaded_documents_api_organizations__of_id__uploaded_documents_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "of_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Of Id"
+            }
+          },
+          {
+            "name": "phase",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filtrer par phase",
+              "title": "Phase"
+            },
+            "description": "Filtrer par phase"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UploadedDocumentResponse"
+                  },
+                  "title": "Response List Uploaded Documents Api Organizations  Of Id  Uploaded Documents Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/organizations/{of_id}/uploaded-documents/{document_id}": {
+      "delete": {
+        "tags": ["organizations"],
+        "summary": "Delete Uploaded Document",
+        "description": "Supprimer un document uploadé et le fichier associé sur MinIO.\n\nPermissions:\n- SuperAdmin : peut supprimer n'importe quel document\n- OF Admin : peut supprimer uniquement les documents de son organisation",
+        "operationId": "delete_uploaded_document_api_organizations__of_id__uploaded_documents__document_id__delete",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "of_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Of Id"
+            }
+          },
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Document Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/organizations/{of_id}/uploaded-documents/{document_id}/send": {
+      "post": {
+        "tags": ["organizations"],
+        "summary": "Send Uploaded Document To Learners",
+        "description": "Envoyer un document uploadé à des apprenants.\n\nCrée des enregistrements `documents` pour chaque apprenant avec le lien vers le fichier uploadé.\n\nPermissions:\n- SuperAdmin : peut envoyer pour n'importe quelle organisation\n- OF Admin : peut envoyer uniquement pour son organisation",
+        "operationId": "send_uploaded_document_to_learners_api_organizations__of_id__uploaded_documents__document_id__send_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "of_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Of Id"
+            }
+          },
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Document Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadedDocumentSendRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DocumentResponse"
+                  },
+                  "title": "Response Send Uploaded Document To Learners Api Organizations  Of Id  Uploaded Documents  Document Id  Send Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/organizations/{of_id}/emargements": {
+      "get": {
+        "tags": ["organizations"],
+        "summary": "Get Emargements",
+        "description": "Liste centralisée de TOUS les documents envoyés (templates + uploaded) pour audit Qualiopi.\n\nCette page centralise la preuve d'emargements avec:\n- Tous les documents envoyés aux apprenants\n- Groupés par apprenant et par phase\n- Horodatage signature et consentement CGV\n- Prévisualisation directe du contenu HTML\n\nPermissions:\n- SuperAdmin : peut voir tous les emargements\n- OF Admin : peut voir uniquement les emargements de son organisation\n\nQuery params:\n- learner_id: Filtrer par apprenant spécifique\n- phase: Filtrer par phase (inscription, formation, post-formation, suivi)\n- status: Filtrer par statut (draft, sent, delivered, read, signed, completed, expired)\n- date_from: Date de début (format YYYY-MM-DD)\n- date_to: Date de fin (format YYYY-MM-DD)",
+        "operationId": "get_emargements_api_organizations__of_id__emargements_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "of_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Of Id"
+            }
+          },
+          {
+            "name": "learner_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filtrer par apprenant",
+              "title": "Learner Id"
+            },
+            "description": "Filtrer par apprenant"
+          },
+          {
+            "name": "phase",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filtrer par phase",
+              "title": "Phase"
+            },
+            "description": "Filtrer par phase"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filtrer par statut",
+              "title": "Status"
+            },
+            "description": "Filtrer par statut"
+          },
+          {
+            "name": "date_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Date de début (YYYY-MM-DD)",
+              "title": "Date From"
+            },
+            "description": "Date de début (YYYY-MM-DD)"
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Date de fin (YYYY-MM-DD)",
+              "title": "Date To"
+            },
+            "description": "Date de fin (YYYY-MM-DD)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmargementListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/subscriptions-and-catalogues/subscriptions": {
       "post": {
         "tags": ["subscriptions-catalogues"],
         "summary": "Create Subscription",
-        "description": "Création abonnement par OF_ADMIN via un Plan dynamique.",
+        "description": "Création abonnement par OF_ADMIN (end_date calculée, Stripe stub).",
         "operationId": "create_subscription_api_subscriptions_and_catalogues_subscriptions_post",
         "requestBody": {
           "content": {
@@ -4968,62 +5476,6 @@
                 "schema": {
                   "$ref": "#/components/schemas/HTTPValidationError"
                 }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ]
-      }
-    },
-    "/api/subscriptions-and-catalogues/subscriptions/current": {
-      "get": {
-        "tags": ["subscriptions-catalogues"],
-        "summary": "Get Current Subscription",
-        "description": "Récupère l'abonnement actif pour l'organisation actuelle.",
-        "operationId": "get_current_subscription_api_subscriptions_and_catalogues_subscriptions_current_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/SubscriptionResponse"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ],
-                  "title": "Response Get Current Subscription Api Subscriptions And Catalogues Subscriptions Current Get"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ]
-      }
-    },
-    "/api/subscriptions-and-catalogues/organizations/metrics": {
-      "get": {
-        "tags": ["subscriptions-catalogues"],
-        "summary": "Get Organization Metrics",
-        "description": "Calcule les métriques d'utilisation pour l'organisation actuelle (apprenants, cours).",
-        "operationId": "get_organization_metrics_api_subscriptions_and_catalogues_organizations_metrics_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
               }
             }
           }
@@ -5151,52 +5603,6 @@
                     "type": "string"
                   },
                   "title": "Response Assign Catalogue To User Api Subscriptions And Catalogues Organizations  Of Id  Assign Catalogue  User Id  Put"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/subscriptions-and-catalogues/catalogues/adopt-open-source/{course_id}": {
-      "post": {
-        "tags": ["subscriptions-catalogues"],
-        "summary": "Adopt Open Source Course",
-        "description": "Permet à un OF d'ajouter un cours open-source global à son catalogue propre.",
-        "operationId": "adopt_open_source_course_api_subscriptions_and_catalogues_catalogues_adopt_open_source__course_id__post",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "course_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Course Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CatalogueResponse"
                 }
               }
             }
@@ -6160,7 +6566,7 @@
       "get": {
         "tags": ["storage"],
         "summary": "List Assets",
-        "description": "Liste paginée des media assets.",
+        "description": "Liste paginée des media assets.\n- Superadmin: voit tous les assets\n- OF admin: voit uniquement les assets de son organisation\n- Filtres: status (uploaded|processing|ready|failed), recherche par key (substring)\n- Tri: created_at asc/desc (par défaut desc)",
         "operationId": "list_assets_api_storage_assets_get",
         "security": [
           {
@@ -6189,7 +6595,7 @@
             }
           },
           {
-            "name": "status",
+            "name": "status_filter",
             "in": "query",
             "required": false,
             "schema": {
@@ -6201,7 +6607,7 @@
                   "type": "null"
                 }
               ],
-              "title": "Status"
+              "title": "Status Filter"
             }
           },
           {
@@ -7020,917 +7426,6 @@
         }
       }
     },
-    "/api/storage/assign": {
-      "post": {
-        "tags": ["storage"],
-        "summary": "Assign Media To User",
-        "description": "Assigne un MediaAsset à un utilisateur. Réservé aux admins de l'OF.",
-        "operationId": "assign_media_to_user_api_storage_assign_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UserMediaAssignmentCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserMediaAssignmentResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ]
-      }
-    },
-    "/api/storage/my-documents": {
-      "get": {
-        "tags": ["storage"],
-        "summary": "Get My Documents",
-        "description": "Récupère les documents assignés à l'utilisateur actuel.",
-        "operationId": "get_my_documents_api_storage_my_documents_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/UserMediaAssignmentResponse"
-                  },
-                  "type": "array",
-                  "title": "Response Get My Documents Api Storage My Documents Get"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ]
-      }
-    },
-    "/api/storage/assignments/{assignment_id}/sign": {
-      "post": {
-        "tags": ["storage"],
-        "summary": "Sign Document",
-        "description": "Permet à un apprenant de signer électroniquement un document assigné.\n- Enregistre la signature (base64)\n- Marque le document comme signé\n- Enregistre l'IP et la date de signature",
-        "operationId": "sign_document_api_storage_assignments__assignment_id__sign_post",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "assignment_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Assignment Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SignAssignmentRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/storage/assignments": {
-      "get": {
-        "tags": ["storage"],
-        "summary": "List Assignments",
-        "description": "Lister les documents assignés (vue admin/OF).\nFiltres: of_id, user_id, status.",
-        "operationId": "list_assignments_api_storage_assignments_get",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "of_id",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "integer"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Of Id"
-            }
-          },
-          {
-            "name": "user_id",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "integer"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "User Id"
-            }
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Status"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/UserMediaAssignmentResponse"
-                  },
-                  "title": "Response List Assignments Api Storage Assignments Get"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/organizations/{of_id}/document-templates": {
-      "get": {
-        "tags": ["Documents"],
-        "summary": "List Templates",
-        "operationId": "list_templates_api_organizations__of_id__document_templates_get",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "of_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Of Id"
-            }
-          },
-          {
-            "name": "phase",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "$ref": "#/components/schemas/DocumentPhase"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Phase"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/DocumentTemplateResponse"
-                  },
-                  "title": "Response List Templates Api Organizations  Of Id  Document Templates Get"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": ["Documents"],
-        "summary": "Create Template",
-        "operationId": "create_template_api_organizations__of_id__document_templates_post",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "of_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Of Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/DocumentTemplateCreate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DocumentTemplateResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/organizations/{of_id}/document-templates/{template_id}": {
-      "put": {
-        "tags": ["Documents"],
-        "summary": "Update Template",
-        "operationId": "update_template_api_organizations__of_id__document_templates__template_id__put",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "of_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Of Id"
-            }
-          },
-          {
-            "name": "template_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Template Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/DocumentTemplateCreate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DocumentTemplateResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": ["Documents"],
-        "summary": "Delete Template",
-        "operationId": "delete_template_api_organizations__of_id__document_templates__template_id__delete",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "of_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Of Id"
-            }
-          },
-          {
-            "name": "template_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Template Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/organizations/{of_id}/signature": {
-      "get": {
-        "tags": ["Documents"],
-        "summary": "Get Signature",
-        "operationId": "get_signature_api_organizations__of_id__signature_get",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "of_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Of Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/OFSignatureResponse"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ],
-                  "title": "Response Get Signature Api Organizations  Of Id  Signature Get"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": ["Documents"],
-        "summary": "Update Signature",
-        "operationId": "update_signature_api_organizations__of_id__signature_put",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "of_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Of Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/OFSignatureCreate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OFSignatureResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/organizations/{of_id}/documents/send": {
-      "post": {
-        "tags": ["Documents"],
-        "summary": "Send Documents",
-        "operationId": "send_documents_api_organizations__of_id__documents_send_post",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "of_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Of Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SendDocumentRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/organizations/{of_id}/emargements": {
-      "get": {
-        "tags": ["Documents"],
-        "summary": "Get Emargements",
-        "operationId": "get_emargements_api_organizations__of_id__emargements_get",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "of_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Of Id"
-            }
-          },
-          {
-            "name": "phase",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "$ref": "#/components/schemas/DocumentPhase"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Phase"
-            }
-          },
-          {
-            "name": "learner_id",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "integer"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Learner Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EmargementsResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/organizations/{of_id}/learners/{learner_id}/documents": {
-      "get": {
-        "tags": ["Documents", "Learner"],
-        "summary": "Get Learner Documents",
-        "operationId": "get_learner_documents_api_organizations__of_id__learners__learner_id__documents_get",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "learner_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Learner Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/organizations/{of_id}/learners/{learner_id}/documents/{doc_id}/sign": {
-      "post": {
-        "tags": ["Documents", "Learner"],
-        "summary": "Sign Learner Document",
-        "operationId": "sign_learner_document_api_organizations__of_id__learners__learner_id__documents__doc_id__sign_post",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "learner_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Learner Id"
-            }
-          },
-          {
-            "name": "doc_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Doc Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SignDocumentRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/organizations/{of_id}/learners/{learner_id}/documents/{doc_id}/save": {
-      "post": {
-        "tags": ["Documents", "Learner"],
-        "summary": "Save Learner Document",
-        "operationId": "save_learner_document_api_organizations__of_id__learners__learner_id__documents__doc_id__save_post",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "learner_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Learner Id"
-            }
-          },
-          {
-            "name": "doc_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Doc Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SaveDocumentRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/organizations/{of_id}/documents/cleanup": {
-      "delete": {
-        "tags": ["Documents", "Admin", "Learner"],
-        "summary": "Cleanup Documents",
-        "operationId": "cleanup_documents_api_organizations__of_id__documents_cleanup_delete",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "of_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Of Id"
-            }
-          },
-          {
-            "name": "learner_id",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "integer"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Learner Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/videos/{asset_id}/play": {
       "get": {
         "tags": ["videos"],
@@ -8541,417 +8036,6 @@
                 "schema": {
                   "$ref": "#/components/schemas/ProLevelItem"
                 }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/messaging/": {
-      "post": {
-        "tags": ["messaging"],
-        "summary": "Send Message",
-        "operationId": "send_message_api_messaging__post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MessageCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MessageResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ]
-      }
-    },
-    "/api/messaging/conversations": {
-      "get": {
-        "tags": ["messaging"],
-        "summary": "Get Conversations",
-        "operationId": "get_conversations_api_messaging_conversations_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/ConversationResponse"
-                  },
-                  "type": "array",
-                  "title": "Response Get Conversations Api Messaging Conversations Get"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ]
-      }
-    },
-    "/api/messaging/messages/{other_user_id}": {
-      "get": {
-        "tags": ["messaging"],
-        "summary": "Get Messages",
-        "operationId": "get_messages_api_messaging_messages__other_user_id__get",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "other_user_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Other User Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/MessageResponse"
-                  },
-                  "title": "Response Get Messages Api Messaging Messages  Other User Id  Get"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/messaging/contacts": {
-      "get": {
-        "tags": ["messaging"],
-        "summary": "Get Contacts",
-        "operationId": "get_contacts_api_messaging_contacts_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/ConversationResponse"
-                  },
-                  "type": "array",
-                  "title": "Response Get Contacts Api Messaging Contacts Get"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ]
-      }
-    },
-    "/api/catalogue/learneezy": {
-      "get": {
-        "tags": ["catalogue"],
-        "summary": "Get Learneezy Catalogue",
-        "description": "Retourne tous les cours publiés appartenant à Learneezy (pour achat par les OFs).",
-        "operationId": "get_learneezy_catalogue_api_catalogue_learneezy_get",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1,
-              "title": "Page"
-            }
-          },
-          {
-            "name": "per_page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 100,
-              "minimum": 1,
-              "default": 10,
-              "title": "Per Page"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object"
-                  },
-                  "title": "Response Get Learneezy Catalogue Api Catalogue Learneezy Get"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/catalogue/learneezy/purchase": {
-      "post": {
-        "tags": ["catalogue"],
-        "summary": "Purchase Learneezy Course",
-        "description": "Permet à un OF d'acheter un cours Learneezy en utilisant ses tokens.",
-        "operationId": "purchase_learneezy_course_api_catalogue_learneezy_purchase_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "title": "Data"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ]
-      }
-    },
-    "/api/payments/": {
-      "get": {
-        "tags": ["payments"],
-        "summary": "List Payments",
-        "operationId": "list_payments_api_payments__get",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1,
-              "title": "Page"
-            }
-          },
-          {
-            "name": "per_page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 100,
-              "minimum": 1,
-              "default": 10,
-              "title": "Per Page"
-            }
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Status"
-            }
-          },
-          {
-            "name": "search",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Search"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/payments/stats": {
-      "get": {
-        "tags": ["payments"],
-        "summary": "Get Payment Stats",
-        "operationId": "get_payment_stats_api_payments_stats_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ]
-      }
-    },
-    "/api/payments/{payment_id}/invoice": {
-      "get": {
-        "tags": ["payments"],
-        "summary": "Download Invoice",
-        "operationId": "download_invoice_api_payments__payment_id__invoice_get",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "payment_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Payment Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
               }
             }
           },
@@ -9698,6 +8782,26 @@
         "title": "AttachMediaRequest",
         "description": "Attach a managed storage key or an external URL to a lesson.\n\nClient compat:\n        - Accept both `key` and legacy aliases (`video_key`, `pdf_key`, `image_key`) for the managed storage identifier.\n        - Accept both `url` and legacy aliases (`video_url`, `pdf_url`, `image_url`) for an external reference.\nExactly one of key/url must be provided."
       },
+      "Body_upload_document_api_organizations__of_id__uploaded_documents_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "title": "File"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "phase": {
+            "type": "string",
+            "title": "Phase"
+          }
+        },
+        "type": "object",
+        "required": ["file", "title", "phase"],
+        "title": "Body_upload_document_api_organizations__of_id__uploaded_documents_post"
+      },
       "CatalogueResponse": {
         "properties": {
           "id": {
@@ -9832,43 +8936,6 @@
         "type": "object",
         "title": "CategoryUpdateActive"
       },
-      "CommunicationCreate": {
-        "properties": {
-          "type": {
-            "type": "string",
-            "title": "Type"
-          },
-          "learner_ids": {
-            "items": {
-              "type": "integer"
-            },
-            "type": "array",
-            "title": "Learner Ids"
-          },
-          "subject": {
-            "type": "string",
-            "title": "Subject"
-          },
-          "content": {
-            "type": "string",
-            "title": "Content"
-          },
-          "template_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Template Id"
-          }
-        },
-        "type": "object",
-        "required": ["type", "learner_ids", "subject", "content"],
-        "title": "CommunicationCreate"
-      },
       "CompleteUploadMultipartRequest": {
         "properties": {
           "strategy": {
@@ -9932,17 +8999,6 @@
           "key": {
             "type": "string",
             "title": "Key"
-          },
-          "id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Id"
           },
           "etag": {
             "anyOf": [
@@ -10097,43 +9153,6 @@
         "type": "object",
         "required": ["title", "duration", "description"],
         "title": "Content"
-      },
-      "ConversationResponse": {
-        "properties": {
-          "user_id": {
-            "type": "integer",
-            "title": "User Id"
-          },
-          "name": {
-            "type": "string",
-            "title": "Name"
-          },
-          "last_message": {
-            "type": "string",
-            "title": "Last Message"
-          },
-          "timestamp": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Timestamp"
-          },
-          "unread_count": {
-            "type": "integer",
-            "title": "Unread Count"
-          },
-          "role": {
-            "type": "string",
-            "title": "Role"
-          },
-          "online": {
-            "type": "boolean",
-            "title": "Online",
-            "default": false
-          }
-        },
-        "type": "object",
-        "required": ["user_id", "name", "last_message", "timestamp", "unread_count", "role"],
-        "title": "ConversationResponse"
       },
       "Course": {
         "properties": {
@@ -10315,103 +9334,6 @@
             ],
             "title": "Objectives",
             "description": "List of pedagogical objectives (short bullet points) for the course"
-          },
-          "is_visible": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Is Visible",
-            "description": "Whether the course is visible to others",
-            "default": true
-          },
-          "is_open_source": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Is Open Source",
-            "description": "Whether the course is free and available to all organizations",
-            "default": false
-          },
-          "token_price": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Token Price",
-            "description": "Price in tokens for access",
-            "default": 0
-          },
-          "minors_allowed": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Minors Allowed",
-            "description": "Whether the course is allowed for minors",
-            "default": false
-          },
-          "organisation_access": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Organisation Access",
-            "description": "Access level: all, restricted, none",
-            "default": "all"
-          },
-          "subscription_restrictions": {
-            "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Subscription Restrictions",
-            "description": "List of allowed subscription types",
-            "default": []
-          },
-          "specific_organisations": {
-            "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Specific Organisations",
-            "description": "List of specific organization IDs/Slugs allowed",
-            "default": []
           },
           "resources": {
             "items": {
@@ -10703,103 +9625,6 @@
             ],
             "title": "Objectives",
             "description": "List of pedagogical objectives (short bullet points) for the course"
-          },
-          "is_visible": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Is Visible",
-            "description": "Whether the course is visible to others",
-            "default": true
-          },
-          "is_open_source": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Is Open Source",
-            "description": "Whether the course is free and available to all organizations",
-            "default": false
-          },
-          "token_price": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Token Price",
-            "description": "Price in tokens for access",
-            "default": 0
-          },
-          "minors_allowed": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Minors Allowed",
-            "description": "Whether the course is allowed for minors",
-            "default": false
-          },
-          "organisation_access": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Organisation Access",
-            "description": "Access level: all, restricted, none",
-            "default": "all"
-          },
-          "subscription_restrictions": {
-            "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Subscription Restrictions",
-            "description": "List of allowed subscription types",
-            "default": []
-          },
-          "specific_organisations": {
-            "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Specific Organisations",
-            "description": "List of specific organization IDs/Slugs allowed",
-            "default": []
           },
           "resources": {
             "items": {
@@ -11143,47 +9968,6 @@
               }
             ],
             "title": "Status"
-          },
-          "is_visible": {
-            "type": "boolean",
-            "title": "Is Visible",
-            "default": true
-          },
-          "is_open_source": {
-            "type": "boolean",
-            "title": "Is Open Source",
-            "default": false
-          },
-          "token_price": {
-            "type": "integer",
-            "title": "Token Price",
-            "default": 0
-          },
-          "minors_allowed": {
-            "type": "boolean",
-            "title": "Minors Allowed",
-            "default": false
-          },
-          "organisation_access": {
-            "type": "string",
-            "title": "Organisation Access",
-            "default": "all"
-          },
-          "subscription_restrictions": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Subscription Restrictions",
-            "default": []
-          },
-          "specific_organisations": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Specific Organisations",
-            "default": []
           }
         },
         "type": "object",
@@ -11512,32 +10296,115 @@
             ],
             "title": "Image Url",
             "description": "[Deprecated] Public URL of the course cover image"
+          }
+        },
+        "type": "object",
+        "title": "CourseUpdate"
+      },
+      "DocumentBulkSendRequest": {
+        "properties": {
+          "learner_id": {
+            "type": "integer",
+            "title": "Learner Id",
+            "description": "ID de l'apprenant destinataire"
           },
-          "is_visible": {
+          "formation_id": {
             "anyOf": [
               {
-                "type": "boolean"
+                "type": "string"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Is Visible",
-            "description": "Toggle course visibility"
+            "title": "Formation Id",
+            "description": "ID de la formation (MongoDB)"
           },
-          "is_open_source": {
+          "formation_name": {
             "anyOf": [
               {
-                "type": "boolean"
+                "type": "string"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Is Open Source",
-            "description": "Toggle open source status"
+            "title": "Formation Name",
+            "description": "Nom de la formation"
           },
-          "token_price": {
+          "phase": {
+            "$ref": "#/components/schemas/DocumentTemplatePhase",
+            "description": "Phase du parcours"
+          },
+          "custom_fields": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Custom Fields",
+            "description": "Champs dynamiques pour injection dans les templates"
+          },
+          "template_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Template Ids",
+            "description": "IDs des templates à envoyer"
+          },
+          "uploaded_document_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Uploaded Document Ids",
+            "description": "IDs des documents uploadés à joindre"
+          },
+          "include_of_signature": {
+            "type": "boolean",
+            "title": "Include Of Signature",
+            "description": "Inclure la signature officielle de l'OF dans les documents",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": ["learner_id", "phase"],
+        "title": "DocumentBulkSendRequest",
+        "description": "Schéma pour envoyer plusieurs templates et uploaded documents à un apprenant.",
+        "example": {
+          "custom_fields": {
+            "date_debut": "2024-02-01",
+            "date_fin": "2024-02-05",
+            "duree": "35 heures",
+            "prix": "2 500 EUR"
+          },
+          "formation_id": "60a1b2c3d4e5f6789012345",
+          "formation_name": "Formation Python Avancé",
+          "include_of_signature": true,
+          "learner_id": 10,
+          "phase": "inscription",
+          "template_ids": [1, 2, 3],
+          "uploaded_document_ids": [5]
+        }
+      },
+      "DocumentResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "template_id": {
             "anyOf": [
               {
                 "type": "integer"
@@ -11546,22 +10413,39 @@
                 "type": "null"
               }
             ],
-            "title": "Token Price",
-            "description": "New token price"
+            "title": "Template Id"
           },
-          "minors_allowed": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Minors Allowed",
-            "description": "Toggle minors allowance"
+          "of_id": {
+            "type": "integer",
+            "title": "Of Id"
           },
-          "organisation_access": {
+          "type": {
+            "$ref": "#/components/schemas/DocumentTemplateType"
+          },
+          "phase": {
+            "$ref": "#/components/schemas/DocumentTemplatePhase"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "html_content": {
+            "type": "string",
+            "title": "Html Content"
+          },
+          "learner_id": {
+            "type": "integer",
+            "title": "Learner Id"
+          },
+          "learner_name": {
+            "type": "string",
+            "title": "Learner Name"
+          },
+          "learner_email": {
+            "type": "string",
+            "title": "Learner Email"
+          },
+          "formation_id": {
             "anyOf": [
               {
                 "type": "string"
@@ -11570,64 +10454,222 @@
                 "type": "null"
               }
             ],
-            "title": "Organisation Access",
-            "description": "Access level"
+            "title": "Formation Id"
           },
-          "subscription_restrictions": {
+          "formation_name": {
             "anyOf": [
               {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
+                "type": "string"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Subscription Restrictions",
-            "description": "Restricted subscription types"
+            "title": "Formation Name"
           },
-          "specific_organisations": {
+          "status": {
+            "$ref": "#/components/schemas/DocumentStatus"
+          },
+          "requires_signature": {
+            "type": "boolean",
+            "title": "Requires Signature"
+          },
+          "sent_at": {
             "anyOf": [
               {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
+                "type": "string",
+                "format": "date-time"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Specific Organisations",
-            "description": "Specific organizations"
+            "title": "Sent At"
+          },
+          "read_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Read At"
+          },
+          "signed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signed At"
+          },
+          "signature_data": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signature Data"
+          },
+          "unique_code": {
+            "type": "string",
+            "title": "Unique Code"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
           }
         },
         "type": "object",
-        "title": "CourseUpdate"
+        "required": [
+          "id",
+          "template_id",
+          "of_id",
+          "type",
+          "phase",
+          "title",
+          "html_content",
+          "learner_id",
+          "learner_name",
+          "learner_email",
+          "formation_id",
+          "formation_name",
+          "status",
+          "requires_signature",
+          "sent_at",
+          "read_at",
+          "signed_at",
+          "signature_data",
+          "unique_code",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "DocumentResponse",
+        "description": "Schéma de réponse pour un document."
       },
-      "DocumentPhase": {
-        "type": "string",
-        "enum": ["inscription", "formation", "post-formation", "suivi"],
-        "title": "DocumentPhase"
+      "DocumentSendRequest": {
+        "properties": {
+          "template_id": {
+            "type": "integer",
+            "title": "Template Id",
+            "description": "ID du template à utiliser"
+          },
+          "learner_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Learner Ids",
+            "description": "IDs des apprenants destinataires"
+          },
+          "formation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Formation Id",
+            "description": "ID de la formation (MongoDB)"
+          },
+          "formation_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Formation Name",
+            "description": "Nom de la formation"
+          },
+          "custom_data": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Custom Data",
+            "description": "Données personnalisées pour remplir les placeholders"
+          }
+        },
+        "type": "object",
+        "required": ["template_id", "learner_ids"],
+        "title": "DocumentSendRequest",
+        "description": "Schéma pour envoyer des documents à un ou plusieurs apprenants.",
+        "example": {
+          "custom_data": {
+            "formation_duree": "40 heures",
+            "formation_lieu": "Paris"
+          },
+          "formation_id": "60a1b2c3d4e5f6789012345",
+          "formation_name": "Formation Python Avancé",
+          "learner_ids": [10, 11, 12],
+          "template_id": 1
+        }
+      },
+      "DocumentSignRequest": {
+        "properties": {
+          "signature_data": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Signature Data",
+            "description": "Signature en base64"
+          }
+        },
+        "type": "object",
+        "required": ["signature_data"],
+        "title": "DocumentSignRequest",
+        "description": "Schéma pour soumettre la signature d'un document.",
+        "example": {
+          "signature_data": "data:image/png;base64,iVBORw0KGgoAAAANS..."
+        }
       },
       "DocumentStatus": {
         "type": "string",
         "enum": ["draft", "sent", "delivered", "read", "signed", "completed", "expired"],
-        "title": "DocumentStatus"
+        "title": "DocumentStatus",
+        "description": "Statuts possibles pour un document envoyé."
       },
       "DocumentTemplateCreate": {
         "properties": {
           "type": {
-            "$ref": "#/components/schemas/DocumentType"
+            "$ref": "#/components/schemas/DocumentTemplateType",
+            "description": "Type de document"
           },
           "phase": {
-            "$ref": "#/components/schemas/DocumentPhase"
+            "$ref": "#/components/schemas/DocumentTemplatePhase",
+            "description": "Phase du parcours"
           },
           "title": {
             "type": "string",
-            "title": "Title"
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Title",
+            "description": "Titre du template"
           },
           "description": {
             "anyOf": [
@@ -11638,41 +10680,70 @@
                 "type": "null"
               }
             ],
-            "title": "Description"
+            "title": "Description",
+            "description": "Description du template"
           },
-          "htmlContent": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Htmlcontent"
+          "html_content": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Html Content",
+            "description": "Contenu HTML avec placeholders {{...}}"
           },
-          "requiresSignature": {
+          "requires_signature": {
             "type": "boolean",
-            "title": "Requiressignature",
+            "title": "Requires Signature",
+            "description": "Nécessite signature électronique",
             "default": false
           },
-          "isActive": {
+          "is_active": {
             "type": "boolean",
-            "title": "Isactive",
+            "title": "Is Active",
+            "description": "Template actif",
             "default": true
           }
         },
         "type": "object",
-        "required": ["type", "phase", "title"],
-        "title": "DocumentTemplateCreate"
+        "required": ["type", "phase", "title", "html_content"],
+        "title": "DocumentTemplateCreate",
+        "description": "Schéma pour créer un template de document.",
+        "example": {
+          "description": "Template standard pour convention OF",
+          "html_content": "\u003Ch1\u003EConvention de Formation\u003C/h1\u003E\u003Cp\u003EEntre {{of_name}} et {{apprenant_nom}}\u003C/p\u003E",
+          "is_active": true,
+          "phase": "inscription",
+          "requires_signature": true,
+          "title": "Convention de formation professionnelle",
+          "type": "convention"
+        }
+      },
+      "DocumentTemplatePhase": {
+        "type": "string",
+        "enum": ["inscription", "formation", "post-formation", "suivi"],
+        "title": "DocumentTemplatePhase",
+        "description": "Phases du parcours de formation."
       },
       "DocumentTemplateResponse": {
         "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "of_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Of Id"
+          },
           "type": {
-            "$ref": "#/components/schemas/DocumentType"
+            "$ref": "#/components/schemas/DocumentTemplateType"
           },
           "phase": {
-            "$ref": "#/components/schemas/DocumentPhase"
+            "$ref": "#/components/schemas/DocumentTemplatePhase"
           },
           "title": {
             "type": "string",
@@ -11689,51 +10760,47 @@
             ],
             "title": "Description"
           },
-          "htmlContent": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Htmlcontent"
-          },
-          "requiresSignature": {
-            "type": "boolean",
-            "title": "Requiressignature",
-            "default": false
-          },
-          "isActive": {
-            "type": "boolean",
-            "title": "Isactive",
-            "default": true
-          },
-          "id": {
+          "html_content": {
             "type": "string",
-            "title": "Id"
+            "title": "Html Content"
           },
-          "ofId": {
-            "type": "integer",
-            "title": "Ofid"
+          "requires_signature": {
+            "type": "boolean",
+            "title": "Requires Signature"
           },
-          "createdAt": {
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "created_at": {
             "type": "string",
             "format": "date-time",
-            "title": "Createdat"
+            "title": "Created At"
           },
-          "updatedAt": {
+          "updated_at": {
             "type": "string",
             "format": "date-time",
-            "title": "Updatedat"
+            "title": "Updated At"
           }
         },
         "type": "object",
-        "required": ["type", "phase", "title", "id", "ofId", "createdAt", "updatedAt"],
-        "title": "DocumentTemplateResponse"
+        "required": [
+          "id",
+          "of_id",
+          "type",
+          "phase",
+          "title",
+          "description",
+          "html_content",
+          "requires_signature",
+          "is_active",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "DocumentTemplateResponse",
+        "description": "Schéma de réponse pour un template de document."
       },
-      "DocumentType": {
+      "DocumentTemplateType": {
         "type": "string",
         "enum": [
           "analyse_besoin",
@@ -11751,26 +10818,105 @@
           "satisfaction_froid",
           "attestation_honneur"
         ],
-        "title": "DocumentType"
+        "title": "DocumentTemplateType",
+        "description": "Types de documents disponibles pour les templates."
       },
-      "EmargementItem": {
+      "DocumentTemplateUpdate": {
         "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "type": {
+          "title": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/DocumentType"
+                "type": "string",
+                "maxLength": 255,
+                "minLength": 1
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Title",
+            "description": "Nouveau titre"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "Nouvelle description"
+          },
+          "html_content": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Html Content",
+            "description": "Nouveau contenu HTML"
+          },
+          "requires_signature": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requires Signature",
+            "description": "Modifier l'exigence de signature"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active",
+            "description": "Activer/désactiver le template"
+          }
+        },
+        "type": "object",
+        "title": "DocumentTemplateUpdate",
+        "description": "Schéma pour modifier un template de document."
+      },
+      "DocumentUpdateStatus": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/DocumentStatus",
+            "description": "Nouveau statut"
+          }
+        },
+        "type": "object",
+        "required": ["status"],
+        "title": "DocumentUpdateStatus",
+        "description": "Schéma pour mettre à jour le statut d'un document.",
+        "example": {
+          "status": "sent"
+        }
+      },
+      "EmargementDocumentResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "type": {
+            "$ref": "#/components/schemas/DocumentTemplateType"
           },
           "phase": {
-            "$ref": "#/components/schemas/DocumentPhase"
+            "$ref": "#/components/schemas/DocumentTemplatePhase"
           },
           "title": {
             "type": "string",
@@ -11780,9 +10926,28 @@
             "$ref": "#/components/schemas/DocumentStatus"
           },
           "sent_at": {
-            "type": "string",
-            "format": "date-time",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Sent At"
+          },
+          "read_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Read At"
           },
           "signed_at": {
             "anyOf": [
@@ -11797,50 +10962,154 @@
             "title": "Signed At"
           },
           "html_content": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
             "title": "Html Content"
           },
           "unique_code": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
             "title": "Unique Code"
           },
           "requires_signature": {
             "type": "boolean",
-            "title": "Requires Signature",
-            "default": false
+            "title": "Requires Signature"
+          },
+          "signature_data": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signature Data"
+          },
+          "formation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Formation Id"
+          },
+          "formation_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Formation Name"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
           }
         },
         "type": "object",
-        "required": ["id", "type", "phase", "title", "status", "sent_at", "signed_at"],
-        "title": "EmargementItem"
+        "required": [
+          "id",
+          "type",
+          "phase",
+          "title",
+          "status",
+          "sent_at",
+          "read_at",
+          "signed_at",
+          "html_content",
+          "unique_code",
+          "requires_signature",
+          "signature_data",
+          "formation_id",
+          "formation_name",
+          "created_at"
+        ],
+        "title": "EmargementDocumentResponse",
+        "description": "Schéma pour un document dans la liste d'emargements."
       },
-      "EmargementsResponse": {
+      "EmargementLearnerResponse": {
+        "properties": {
+          "learner_id": {
+            "type": "integer",
+            "title": "Learner Id"
+          },
+          "learner_name": {
+            "type": "string",
+            "title": "Learner Name"
+          },
+          "learner_email": {
+            "type": "string",
+            "title": "Learner Email"
+          },
+          "documents": {
+            "items": {
+              "$ref": "#/components/schemas/EmargementDocumentResponse"
+            },
+            "type": "array",
+            "title": "Documents"
+          }
+        },
+        "type": "object",
+        "required": ["learner_id", "learner_name", "learner_email", "documents"],
+        "title": "EmargementLearnerResponse",
+        "description": "Schéma pour un apprenant avec ses documents.",
+        "example": {
+          "documents": [
+            {
+              "created_at": "2026-02-20T09:00:00",
+              "formation_id": "60a1b2c3d4e5f6789012345",
+              "formation_name": "Formation Python",
+              "html_content": "\u003Ch1\u003EConvention...\u003C/h1\u003E",
+              "id": 1,
+              "phase": "inscription",
+              "requires_signature": true,
+              "sent_at": "2026-02-20T10:00:00",
+              "signature_data": "data:image/png;base64,...",
+              "signed_at": "2026-02-20T14:30:00",
+              "status": "signed",
+              "title": "Convention de formation",
+              "type": "convention",
+              "unique_code": "CONVENTION-123456789"
+            }
+          ],
+          "learner_email": "marie.dupont@example.com",
+          "learner_id": 10,
+          "learner_name": "Marie Dupont"
+        }
+      },
+      "EmargementListResponse": {
         "properties": {
           "learners": {
             "items": {
-              "$ref": "#/components/schemas/LearnerEmargement"
+              "$ref": "#/components/schemas/EmargementLearnerResponse"
             },
             "type": "array",
             "title": "Learners"
+          },
+          "total_learners": {
+            "type": "integer",
+            "title": "Total Learners"
+          },
+          "total_documents": {
+            "type": "integer",
+            "title": "Total Documents"
           }
         },
         "type": "object",
-        "required": ["learners"],
-        "title": "EmargementsResponse"
+        "required": ["learners", "total_learners", "total_documents"],
+        "title": "EmargementListResponse",
+        "description": "Schéma de réponse pour la liste complète des emargements.",
+        "example": {
+          "learners": [],
+          "total_documents": 25,
+          "total_learners": 5
+        }
       },
       "EnrollRequest": {
         "properties": {
@@ -11848,18 +11117,6 @@
             "type": "string",
             "title": "Course Id",
             "description": "Mongo course ID"
-          },
-          "user_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "User Id",
-            "description": "Target user ID (admin enrollment on behalf of learner). If null, enrolls the authenticated user."
           }
         },
         "type": "object",
@@ -11883,53 +11140,6 @@
         "type": "object",
         "required": ["message", "progress"],
         "title": "EnrollResponse"
-      },
-      "EnrollmentResponse": {
-        "properties": {
-          "id": {
-            "type": "integer",
-            "title": "Id"
-          },
-          "user_id": {
-            "type": "integer",
-            "title": "User Id"
-          },
-          "course_id": {
-            "type": "string",
-            "title": "Course Id"
-          },
-          "progress": {
-            "additionalProperties": {
-              "type": "integer"
-            },
-            "type": "object",
-            "title": "Progress"
-          },
-          "enrolled_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Enrolled At"
-          },
-          "status": {
-            "type": "string",
-            "title": "Status",
-            "default": "active"
-          },
-          "course_title": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Course Title"
-          }
-        },
-        "type": "object",
-        "required": ["id", "user_id", "course_id", "progress", "enrolled_at"],
-        "title": "EnrollmentResponse"
       },
       "EvaluationResultResponse": {
         "properties": {
@@ -12336,35 +11546,6 @@
         "type": "object",
         "required": ["title", "description", "questions"],
         "title": "InlineAssignment"
-      },
-      "LearnerEmargement": {
-        "properties": {
-          "learner_id": {
-            "type": "integer",
-            "title": "Learner Id"
-          },
-          "learner_name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Learner Name"
-          },
-          "documents": {
-            "items": {
-              "$ref": "#/components/schemas/EmargementItem"
-            },
-            "type": "array",
-            "title": "Documents"
-          }
-        },
-        "type": "object",
-        "required": ["learner_id", "learner_name", "documents"],
-        "title": "LearnerEmargement"
       },
       "LessonCreate": {
         "properties": {
@@ -13016,39 +12197,6 @@
             "type": "string",
             "title": "Key"
           },
-          "filename": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Filename"
-          },
-          "kind": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Kind"
-          },
-          "url": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Url"
-          },
           "content_type": {
             "anyOf": [
               {
@@ -13166,53 +12314,6 @@
         "type": "object",
         "required": ["id", "key", "status", "created_at", "updated_at"],
         "title": "MediaAssetResponse"
-      },
-      "MessageCreate": {
-        "properties": {
-          "content": {
-            "type": "string",
-            "title": "Content"
-          },
-          "receiver_id": {
-            "type": "integer",
-            "title": "Receiver Id"
-          }
-        },
-        "type": "object",
-        "required": ["content", "receiver_id"],
-        "title": "MessageCreate"
-      },
-      "MessageResponse": {
-        "properties": {
-          "id": {
-            "type": "integer",
-            "title": "Id"
-          },
-          "sender_id": {
-            "type": "integer",
-            "title": "Sender Id"
-          },
-          "receiver_id": {
-            "type": "integer",
-            "title": "Receiver Id"
-          },
-          "content": {
-            "type": "string",
-            "title": "Content"
-          },
-          "timestamp": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Timestamp"
-          },
-          "is_read": {
-            "type": "boolean",
-            "title": "Is Read"
-          }
-        },
-        "type": "object",
-        "required": ["id", "sender_id", "receiver_id", "content", "timestamp", "is_read"],
-        "title": "MessageResponse"
       },
       "MixedReorderItem": {
         "properties": {
@@ -13887,21 +12988,10 @@
         "required": ["ids"],
         "title": "NewIdsResponse"
       },
-      "OFSignatureCreate": {
-        "properties": {
-          "signature_data": {
-            "type": "string",
-            "title": "Signature Data"
-          }
-        },
-        "type": "object",
-        "required": ["signature_data"],
-        "title": "OFSignatureCreate"
-      },
-      "OFSignatureResponse": {
+      "OfSignatureResponse": {
         "properties": {
           "id": {
-            "type": "string",
+            "type": "integer",
             "title": "Id"
           },
           "of_id": {
@@ -13925,7 +13015,25 @@
         },
         "type": "object",
         "required": ["id", "of_id", "signature_data", "created_at", "updated_at"],
-        "title": "OFSignatureResponse"
+        "title": "OfSignatureResponse",
+        "description": "Schéma de réponse pour la signature officielle d'un OF."
+      },
+      "OfSignatureUpdate": {
+        "properties": {
+          "signature_data": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Signature Data",
+            "description": "Signature en base64"
+          }
+        },
+        "type": "object",
+        "required": ["signature_data"],
+        "title": "OfSignatureUpdate",
+        "description": "Schéma pour créer ou mettre à jour la signature officielle d'un OF.",
+        "example": {
+          "signature_data": "data:image/png;base64,iVBORw0KGgoAAAANS..."
+        }
       },
       "OrderingQuestion": {
         "properties": {
@@ -14052,30 +13160,6 @@
             "title": "Address",
             "description": "Adresse complète"
           },
-          "postal_code": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Postal Code",
-            "description": "Code Postal"
-          },
-          "city": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "City",
-            "description": "Ville"
-          },
           "phone": {
             "type": "string",
             "title": "Phone",
@@ -14134,22 +13218,20 @@
           },
           "subscription_type": {
             "$ref": "#/components/schemas/SubscriptionType",
-            "description": "Type d'abonnement initial (par défaut starter)",
-            "default": "starter"
+            "description": "Type d'abonnement initial"
           },
           "tokens_total": {
             "type": "integer",
             "minimum": 0,
             "title": "Tokens Total",
-            "description": "Nombre de tokens IA inclus",
-            "default": 0
+            "description": "Nombre de tokens IA inclus"
           },
           "subscription_duration": {
             "type": "integer",
-            "minimum": 0,
+            "minimum": 1,
             "title": "Subscription Duration",
             "description": "Durée en mois",
-            "default": 0
+            "default": 12
           },
           "logo_url": {
             "anyOf": [
@@ -14175,15 +13257,16 @@
           "email",
           "siret",
           "numero_declaration",
-          "agrement"
+          "agrement",
+          "subscription_type",
+          "tokens_total"
         ],
         "title": "OrganizationCreate",
         "example": {
-          "address": "123 Rue de la Formation",
+          "address": "123 Rue de la Formation, 75001 Paris",
           "advanced_reporting": true,
           "agrement": ["Qualiopi"],
           "api_access": false,
-          "city": "Paris",
           "custom_branding": true,
           "description": "Organisme spécialisé dans la formation digitale",
           "email": "contact@organisme.fr",
@@ -14193,7 +13276,6 @@
           "name": "Centre de Formation Digital",
           "numero_declaration": "11-75-12345-75",
           "phone": "01 23 45 67 89",
-          "postal_code": "75001",
           "siret": "12345678901234",
           "subscription_duration": 12,
           "subscription_type": "premium",
@@ -14212,174 +13294,74 @@
             "title": "Name"
           },
           "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
             "title": "Description"
           },
           "website": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
             "title": "Website"
           },
           "legal_representative": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
             "title": "Legal Representative"
           },
           "contact_email": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
             "title": "Contact Email"
           },
           "address": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
             "title": "Address"
           },
-          "postal_code": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Postal Code"
-          },
-          "city": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "City"
-          },
           "phone": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
             "title": "Phone"
           },
           "siret": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
             "title": "Siret"
           },
           "numero_declaration": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
             "title": "Numero Declaration"
           },
           "agrement": {
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/Agrement"
             },
             "type": "array",
-            "title": "Agrement",
-            "default": []
+            "title": "Agrement"
           },
           "max_users": {
             "type": "integer",
-            "title": "Max Users",
-            "default": 50
+            "title": "Max Users"
           },
           "custom_branding": {
             "type": "boolean",
-            "title": "Custom Branding",
-            "default": false
+            "title": "Custom Branding"
           },
           "api_access": {
             "type": "boolean",
-            "title": "Api Access",
-            "default": false
+            "title": "Api Access"
           },
           "advanced_reporting": {
             "type": "boolean",
-            "title": "Advanced Reporting",
-            "default": false
+            "title": "Advanced Reporting"
           },
           "subdomain": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
             "title": "Subdomain"
           },
           "subscription_type": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Subscription Type"
+            "$ref": "#/components/schemas/SubscriptionType"
           },
           "tokens_total": {
             "type": "integer",
-            "title": "Tokens Total",
-            "default": 0
+            "title": "Tokens Total"
           },
           "subscription_duration": {
             "type": "integer",
-            "title": "Subscription Duration",
-            "default": 12
+            "title": "Subscription Duration"
           },
           "logo_url": {
             "anyOf": [
@@ -14393,146 +13375,44 @@
             "title": "Logo Url"
           },
           "created_at": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
+            "format": "date-time",
             "title": "Created At"
           },
           "created_by": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "integer",
             "title": "Created By"
           }
         },
         "type": "object",
-        "required": ["id", "name"],
+        "required": [
+          "id",
+          "name",
+          "description",
+          "website",
+          "legal_representative",
+          "contact_email",
+          "address",
+          "phone",
+          "siret",
+          "numero_declaration",
+          "agrement",
+          "max_users",
+          "custom_branding",
+          "api_access",
+          "advanced_reporting",
+          "subdomain",
+          "subscription_type",
+          "tokens_total",
+          "subscription_duration",
+          "logo_url",
+          "created_at",
+          "created_by"
+        ],
         "title": "OrganizationResponse"
       },
       "OrganizationUpdate": {
         "properties": {
-          "name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Name"
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "legal_representative": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Legal Representative"
-          },
-          "contact_email": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "email"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Contact Email"
-          },
-          "address": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Address"
-          },
-          "postal_code": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Postal Code"
-          },
-          "city": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "City"
-          },
-          "phone": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Phone"
-          },
-          "siret": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Siret"
-          },
-          "numero_declaration": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Numero Declaration"
-          },
           "subscription_type": {
             "anyOf": [
               {
@@ -15682,74 +14562,6 @@
         "required": ["name"],
         "title": "ResourceItem"
       },
-      "SaveDocumentRequest": {
-        "properties": {
-          "html_content": {
-            "type": "string",
-            "title": "Html Content"
-          }
-        },
-        "type": "object",
-        "required": ["html_content"],
-        "title": "SaveDocumentRequest"
-      },
-      "SendDocumentRequest": {
-        "properties": {
-          "learner_id": {
-            "type": "integer",
-            "title": "Learner Id"
-          },
-          "formation_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Formation Id"
-          },
-          "phase": {
-            "$ref": "#/components/schemas/DocumentPhase"
-          },
-          "custom_fields": {
-            "anyOf": [
-              {
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Custom Fields"
-          },
-          "template_ids": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Template Ids",
-            "default": []
-          },
-          "uploaded_document_ids": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Uploaded Document Ids",
-            "default": []
-          },
-          "include_of_signature": {
-            "type": "boolean",
-            "title": "Include Of Signature",
-            "default": true
-          }
-        },
-        "type": "object",
-        "required": ["learner_id", "phase"],
-        "title": "SendDocumentRequest"
-      },
       "ShortAnswerQuestion": {
         "properties": {
           "id": {
@@ -15840,50 +14652,6 @@
         "type": "object",
         "required": ["question", "points", "correctAnswers"],
         "title": "ShortAnswerQuestion"
-      },
-      "SignAssignmentRequest": {
-        "properties": {
-          "signature_data": {
-            "type": "string",
-            "title": "Signature Data"
-          },
-          "metadata": {
-            "anyOf": [
-              {
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Metadata"
-          }
-        },
-        "type": "object",
-        "required": ["signature_data"],
-        "title": "SignAssignmentRequest"
-      },
-      "SignDocumentRequest": {
-        "properties": {
-          "signature_data": {
-            "type": "string",
-            "title": "Signature Data"
-          },
-          "html_content": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Html Content"
-          }
-        },
-        "type": "object",
-        "required": ["signature_data"],
-        "title": "SignDocumentRequest"
       },
       "SingleChoiceQuestion": {
         "properties": {
@@ -15995,215 +14763,14 @@
       },
       "SubscriptionCreate": {
         "properties": {
-          "plan_id": {
-            "type": "integer",
-            "title": "Plan Id",
-            "description": "ID du plan choisi"
+          "type_": {
+            "$ref": "#/components/schemas/SubscriptionType",
+            "description": "Type d'abonnement"
           }
         },
         "type": "object",
-        "required": ["plan_id"],
+        "required": ["type_"],
         "title": "SubscriptionCreate"
-      },
-      "SubscriptionPlanCreate": {
-        "properties": {
-          "name": {
-            "type": "string",
-            "title": "Name"
-          },
-          "price": {
-            "type": "number",
-            "title": "Price"
-          },
-          "duration_days": {
-            "type": "integer",
-            "title": "Duration Days"
-          },
-          "max_users": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Max Users"
-          },
-          "storage_limit_gb": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Storage Limit Gb"
-          },
-          "features": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Features"
-          },
-          "is_active": {
-            "type": "boolean",
-            "title": "Is Active",
-            "default": true
-          }
-        },
-        "type": "object",
-        "required": ["name", "price", "duration_days"],
-        "title": "SubscriptionPlanCreate"
-      },
-      "SubscriptionPlanResponse": {
-        "properties": {
-          "id": {
-            "type": "integer",
-            "title": "Id"
-          },
-          "name": {
-            "type": "string",
-            "title": "Name"
-          },
-          "price": {
-            "type": "number",
-            "title": "Price"
-          },
-          "duration_days": {
-            "type": "integer",
-            "title": "Duration Days"
-          },
-          "max_users": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Max Users"
-          },
-          "storage_limit_gb": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Storage Limit Gb"
-          },
-          "features": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Features"
-          },
-          "is_active": {
-            "type": "boolean",
-            "title": "Is Active"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Created At"
-          }
-        },
-        "type": "object",
-        "required": ["id", "name", "price", "duration_days", "features", "is_active", "created_at"],
-        "title": "SubscriptionPlanResponse"
-      },
-      "SubscriptionPlanUpdate": {
-        "properties": {
-          "name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Name"
-          },
-          "price": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Price"
-          },
-          "duration_days": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Duration Days"
-          },
-          "max_users": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Max Users"
-          },
-          "storage_limit_gb": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Storage Limit Gb"
-          },
-          "features": {
-            "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Features"
-          },
-          "is_active": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Is Active"
-          }
-        },
-        "type": "object",
-        "title": "SubscriptionPlanUpdate"
       },
       "SubscriptionResponse": {
         "properties": {
@@ -16215,26 +14782,8 @@
             "type": "integer",
             "title": "Of Id"
           },
-          "plan_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Plan Id"
-          },
           "type_": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/SubscriptionType"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "$ref": "#/components/schemas/SubscriptionType"
           },
           "start_date": {
             "type": "string",
@@ -16256,20 +14805,10 @@
           "status": {
             "type": "string",
             "title": "Status"
-          },
-          "plan": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/SubscriptionPlanResponse"
-              },
-              {
-                "type": "null"
-              }
-            ]
           }
         },
         "type": "object",
-        "required": ["id", "of_id", "start_date", "end_date", "status"],
+        "required": ["id", "of_id", "type_", "start_date", "end_date", "status"],
         "title": "SubscriptionResponse"
       },
       "SubscriptionType": {
@@ -16592,6 +15131,96 @@
         "required": ["url"],
         "title": "UploadResponse"
       },
+      "UploadedDocumentResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "of_id": {
+            "type": "integer",
+            "title": "Of Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "phase": {
+            "$ref": "#/components/schemas/DocumentTemplatePhase"
+          },
+          "file_key": {
+            "type": "string",
+            "title": "File Key"
+          },
+          "file_name": {
+            "type": "string",
+            "title": "File Name"
+          },
+          "file_size": {
+            "type": "integer",
+            "title": "File Size"
+          },
+          "mime_type": {
+            "type": "string",
+            "title": "Mime Type"
+          },
+          "uploaded_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Uploaded At"
+          }
+        },
+        "type": "object",
+        "required": ["id", "of_id", "title", "phase", "file_key", "file_name", "file_size", "mime_type", "uploaded_at"],
+        "title": "UploadedDocumentResponse",
+        "description": "Schéma de réponse pour un document uploadé."
+      },
+      "UploadedDocumentSendRequest": {
+        "properties": {
+          "learner_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Learner Ids",
+            "description": "IDs des apprenants destinataires"
+          },
+          "formation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Formation Id",
+            "description": "ID de la formation (MongoDB)"
+          },
+          "formation_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Formation Name",
+            "description": "Nom de la formation"
+          }
+        },
+        "type": "object",
+        "required": ["learner_ids"],
+        "title": "UploadedDocumentSendRequest",
+        "description": "Schéma pour envoyer un document uploadé à des apprenants.",
+        "example": {
+          "formation_id": "60a1b2c3d4e5f6789012345",
+          "formation_name": "Formation Python Avancé",
+          "learner_ids": [10, 11, 12]
+        }
+      },
       "UserCreate": {
         "properties": {
           "email": {
@@ -16627,17 +15256,6 @@
               }
             ],
             "title": "Last Name"
-          },
-          "address": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Address"
           },
           "is_major": {
             "anyOf": [
@@ -16728,153 +15346,6 @@
           "email": "user@example.com",
           "password": "StrongPass123"
         }
-      },
-      "UserMediaAssignmentCreate": {
-        "properties": {
-          "user_id": {
-            "type": "integer",
-            "title": "User Id"
-          },
-          "media_asset_id": {
-            "type": "integer",
-            "title": "Media Asset Id"
-          },
-          "message": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Message"
-          },
-          "phase": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Phase"
-          }
-        },
-        "type": "object",
-        "required": ["user_id", "media_asset_id"],
-        "title": "UserMediaAssignmentCreate"
-      },
-      "UserMediaAssignmentResponse": {
-        "properties": {
-          "id": {
-            "type": "integer",
-            "title": "Id"
-          },
-          "user_id": {
-            "type": "integer",
-            "title": "User Id"
-          },
-          "media_asset_id": {
-            "type": "integer",
-            "title": "Media Asset Id"
-          },
-          "media_asset": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/MediaAssetResponse"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "assigned_by_of_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Assigned By Of Id"
-          },
-          "assigned_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Assigned At"
-          },
-          "is_viewed": {
-            "type": "boolean",
-            "title": "Is Viewed"
-          },
-          "message": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Message"
-          },
-          "phase": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Phase"
-          },
-          "is_signed": {
-            "type": "boolean",
-            "title": "Is Signed",
-            "default": false
-          },
-          "signed_at": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Signed At"
-          },
-          "signature_data": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Signature Data"
-          },
-          "signature_ip": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Signature Ip"
-          }
-        },
-        "type": "object",
-        "required": ["id", "user_id", "media_asset_id", "assigned_at", "is_viewed"],
-        "title": "UserMediaAssignmentResponse"
       },
       "UserResetPassword": {
         "properties": {
