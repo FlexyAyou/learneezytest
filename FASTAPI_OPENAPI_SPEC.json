@@ -4156,7 +4156,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UserCreate"
+                "$ref": "#/components/schemas/OfUserCreate"
               }
             }
           }
@@ -4168,6 +4168,1263 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/organizations/{of_id}/document-templates": {
+      "get": {
+        "tags": ["organizations"],
+        "summary": "List Document Templates",
+        "description": "Liste des templates de documents (OF-scoped + globaux).",
+        "operationId": "list_document_templates_api_organizations__of_id__document_templates_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "of_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Of Id"
+            }
+          },
+          {
+            "name": "phase",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/DocumentTemplatePhase"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filtrer par phase",
+              "title": "Phase"
+            },
+            "description": "Filtrer par phase"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DocumentTemplateResponse"
+                  },
+                  "title": "Response List Document Templates Api Organizations  Of Id  Document Templates Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["organizations"],
+        "summary": "Create Document Template",
+        "description": "Création d'un template (OF-scoped ou global si SuperAdmin).",
+        "operationId": "create_document_template_api_organizations__of_id__document_templates_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "of_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Of Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentTemplateCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentTemplateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/organizations/{of_id}/document-templates/{template_id}": {
+      "get": {
+        "tags": ["organizations"],
+        "summary": "Get Document Template",
+        "description": "Détail d'un template.",
+        "operationId": "get_document_template_api_organizations__of_id__document_templates__template_id__get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "of_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Of Id"
+            }
+          },
+          {
+            "name": "template_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Template Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentTemplateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["organizations"],
+        "summary": "Update Document Template",
+        "description": "Modification d'un template.",
+        "operationId": "update_document_template_api_organizations__of_id__document_templates__template_id__put",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "of_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Of Id"
+            }
+          },
+          {
+            "name": "template_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Template Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentTemplateUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentTemplateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["organizations"],
+        "summary": "Delete Document Template",
+        "description": "Suppression (soft delete) d'un template.",
+        "operationId": "delete_document_template_api_organizations__of_id__document_templates__template_id__delete",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "of_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Of Id"
+            }
+          },
+          {
+            "name": "template_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Template Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/organizations/{of_id}/documents/send": {
+      "post": {
+        "tags": ["organizations"],
+        "summary": "Send Documents",
+        "description": "Envoi groupé de documents à plusieurs apprenants depuis un template.",
+        "operationId": "send_documents_api_organizations__of_id__documents_send_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "of_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Of Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentSendRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DocumentResponse"
+                  },
+                  "title": "Response Send Documents Api Organizations  Of Id  Documents Send Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/organizations/{of_id}/documents/send-bulk": {
+      "post": {
+        "tags": ["organizations"],
+        "summary": "Send Documents Bulk",
+        "description": "Envoi groupé de plusieurs templates et uploaded documents à un apprenant.\n\nCette route permet d'envoyer en une seule requête:\n- Plusieurs templates avec injection de custom_fields\n- Des uploaded documents (PDF, DOCX) joints\n- La signature officielle de l'OF si demandé\n\nBackend process:\n1. Récupère chaque template par ID\n2. Injecte les custom_fields dans le html_content\n3. Génère un unique_code par document\n4. Crée une entrée dans documents pour chaque template avec status = sent\n5. Enregistre les uploaded_documents envoyés dans le tracking",
+        "operationId": "send_documents_bulk_api_organizations__of_id__documents_send_bulk_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "of_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Of Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentBulkSendRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DocumentResponse"
+                  },
+                  "title": "Response Send Documents Bulk Api Organizations  Of Id  Documents Send Bulk Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/organizations/{of_id}/documents": {
+      "get": {
+        "tags": ["organizations"],
+        "summary": "List Documents",
+        "description": "Liste des documents envoyés (filtrable par phase, learner_id, status).",
+        "operationId": "list_documents_api_organizations__of_id__documents_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "of_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Of Id"
+            }
+          },
+          {
+            "name": "phase",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/DocumentTemplatePhase"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filtrer par phase",
+              "title": "Phase"
+            },
+            "description": "Filtrer par phase"
+          },
+          {
+            "name": "learner_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filtrer par apprenant",
+              "title": "Learner Id"
+            },
+            "description": "Filtrer par apprenant"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/DocumentStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filtrer par statut",
+              "title": "Status"
+            },
+            "description": "Filtrer par statut"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DocumentResponse"
+                  },
+                  "title": "Response List Documents Api Organizations  Of Id  Documents Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/organizations/{of_id}/documents/{document_id}": {
+      "get": {
+        "tags": ["organizations"],
+        "summary": "Get Document",
+        "description": "Détail d'un document.",
+        "operationId": "get_document_api_organizations__of_id__documents__document_id__get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "of_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Of Id"
+            }
+          },
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Document Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/organizations/{of_id}/documents/{document_id}/status": {
+      "patch": {
+        "tags": ["organizations"],
+        "summary": "Update Document Status",
+        "description": "Mettre à jour le statut d'un document.",
+        "operationId": "update_document_status_api_organizations__of_id__documents__document_id__status_patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "of_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Of Id"
+            }
+          },
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Document Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentUpdateStatus"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/organizations/learners/{learner_id}/documents": {
+      "get": {
+        "tags": ["organizations"],
+        "summary": "Get Learner Documents",
+        "description": "Documents reçus par un apprenant (utilisé côté dashboard apprenant).",
+        "operationId": "get_learner_documents_api_organizations_learners__learner_id__documents_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "learner_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Learner Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DocumentResponse"
+                  },
+                  "title": "Response Get Learner Documents Api Organizations Learners  Learner Id  Documents Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/organizations/learners/{learner_id}/documents/{document_id}/sign": {
+      "post": {
+        "tags": ["organizations"],
+        "summary": "Sign Document",
+        "description": "Soumettre la signature d'un document (utilisé par l'apprenant).",
+        "operationId": "sign_document_api_organizations_learners__learner_id__documents__document_id__sign_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "learner_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Learner Id"
+            }
+          },
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Document Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentSignRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/organizations/{of_id}/signature": {
+      "get": {
+        "tags": ["organizations"],
+        "summary": "Get Of Signature",
+        "description": "Récupérer la signature officielle d'un OF.\n\nPermissions:\n- SuperAdmin : peut récupérer n'importe quelle signature\n- OF Admin : peut récupérer uniquement la signature de son OF",
+        "operationId": "get_of_signature_api_organizations__of_id__signature_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "of_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Of Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OfSignatureResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["organizations"],
+        "summary": "Create Or Update Of Signature",
+        "description": "Créer ou mettre à jour la signature officielle d'un OF.\n\nPermissions:\n- SuperAdmin : peut gérer n'importe quelle signature\n- OF Admin : peut gérer uniquement la signature de son OF",
+        "operationId": "create_or_update_of_signature_api_organizations__of_id__signature_put",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "of_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Of Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OfSignatureUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OfSignatureResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["organizations"],
+        "summary": "Delete Of Signature",
+        "description": "Supprimer la signature officielle d'un OF.\n\nPermissions:\n- SuperAdmin : peut supprimer n'importe quelle signature\n- OF Admin : peut supprimer uniquement la signature de son OF",
+        "operationId": "delete_of_signature_api_organizations__of_id__signature_delete",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "of_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Of Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/organizations/{of_id}/uploaded-documents": {
+      "post": {
+        "tags": ["organizations"],
+        "summary": "Upload Document",
+        "description": "Upload un document externe (PDF, DOCX, etc.) manuellement par l'admin.\n\nPermissions:\n- SuperAdmin : peut uploader pour n'importe quelle organisation\n- OF Admin : peut uploader uniquement pour son organisation\n\nForm data:\n- file: Fichier à uploader (multipart/form-data)\n- title: Titre du document\n- phase: Phase du parcours (inscription, formation, post-formation, suivi)",
+        "operationId": "upload_document_api_organizations__of_id__uploaded_documents_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "of_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Of Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_document_api_organizations__of_id__uploaded_documents_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadedDocumentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": ["organizations"],
+        "summary": "List Uploaded Documents",
+        "description": "Liste les documents uploadés pour une organisation.\n\nPermissions:\n- SuperAdmin : peut lister pour n'importe quelle organisation\n- OF Admin : peut lister uniquement pour son organisation\n\nQuery params:\n- phase: Filtrer par phase (optionnel)",
+        "operationId": "list_uploaded_documents_api_organizations__of_id__uploaded_documents_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "of_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Of Id"
+            }
+          },
+          {
+            "name": "phase",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filtrer par phase",
+              "title": "Phase"
+            },
+            "description": "Filtrer par phase"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UploadedDocumentResponse"
+                  },
+                  "title": "Response List Uploaded Documents Api Organizations  Of Id  Uploaded Documents Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/organizations/{of_id}/uploaded-documents/{document_id}": {
+      "delete": {
+        "tags": ["organizations"],
+        "summary": "Delete Uploaded Document",
+        "description": "Supprimer un document uploadé et le fichier associé sur MinIO.\n\nPermissions:\n- SuperAdmin : peut supprimer n'importe quel document\n- OF Admin : peut supprimer uniquement les documents de son organisation",
+        "operationId": "delete_uploaded_document_api_organizations__of_id__uploaded_documents__document_id__delete",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "of_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Of Id"
+            }
+          },
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Document Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/organizations/{of_id}/uploaded-documents/{document_id}/send": {
+      "post": {
+        "tags": ["organizations"],
+        "summary": "Send Uploaded Document To Learners",
+        "description": "Envoyer un document uploadé à des apprenants.\n\nCrée des enregistrements `documents` pour chaque apprenant avec le lien vers le fichier uploadé.\n\nPermissions:\n- SuperAdmin : peut envoyer pour n'importe quelle organisation\n- OF Admin : peut envoyer uniquement pour son organisation",
+        "operationId": "send_uploaded_document_to_learners_api_organizations__of_id__uploaded_documents__document_id__send_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "of_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Of Id"
+            }
+          },
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Document Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadedDocumentSendRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DocumentResponse"
+                  },
+                  "title": "Response Send Uploaded Document To Learners Api Organizations  Of Id  Uploaded Documents  Document Id  Send Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/organizations/{of_id}/emargements": {
+      "get": {
+        "tags": ["organizations"],
+        "summary": "Get Emargements",
+        "description": "Liste centralisée de TOUS les documents envoyés (templates + uploaded) pour audit Qualiopi.\n\nCette page centralise la preuve d'emargements avec:\n- Tous les documents envoyés aux apprenants\n- Groupés par apprenant et par phase\n- Horodatage signature et consentement CGV\n- Prévisualisation directe du contenu HTML\n\nPermissions:\n- SuperAdmin : peut voir tous les emargements\n- OF Admin : peut voir uniquement les emargements de son organisation\n\nQuery params:\n- learner_id: Filtrer par apprenant spécifique\n- phase: Filtrer par phase (inscription, formation, post-formation, suivi)\n- status: Filtrer par statut (draft, sent, delivered, read, signed, completed, expired)\n- date_from: Date de début (format YYYY-MM-DD)\n- date_to: Date de fin (format YYYY-MM-DD)",
+        "operationId": "get_emargements_api_organizations__of_id__emargements_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "of_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Of Id"
+            }
+          },
+          {
+            "name": "learner_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filtrer par apprenant",
+              "title": "Learner Id"
+            },
+            "description": "Filtrer par apprenant"
+          },
+          {
+            "name": "phase",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filtrer par phase",
+              "title": "Phase"
+            },
+            "description": "Filtrer par phase"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filtrer par statut",
+              "title": "Status"
+            },
+            "description": "Filtrer par statut"
+          },
+          {
+            "name": "date_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Date de début (YYYY-MM-DD)",
+              "title": "Date From"
+            },
+            "description": "Date de début (YYYY-MM-DD)"
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Date de fin (YYYY-MM-DD)",
+              "title": "Date To"
+            },
+            "description": "Date de fin (YYYY-MM-DD)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmargementListResponse"
                 }
               }
             }
@@ -7525,6 +8782,26 @@
         "title": "AttachMediaRequest",
         "description": "Attach a managed storage key or an external URL to a lesson.\n\nClient compat:\n        - Accept both `key` and legacy aliases (`video_key`, `pdf_key`, `image_key`) for the managed storage identifier.\n        - Accept both `url` and legacy aliases (`video_url`, `pdf_url`, `image_url`) for an external reference.\nExactly one of key/url must be provided."
       },
+      "Body_upload_document_api_organizations__of_id__uploaded_documents_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "title": "File"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "phase": {
+            "type": "string",
+            "title": "Phase"
+          }
+        },
+        "type": "object",
+        "required": ["file", "title", "phase"],
+        "title": "Body_upload_document_api_organizations__of_id__uploaded_documents_post"
+      },
       "CatalogueResponse": {
         "properties": {
           "id": {
@@ -9023,6 +10300,816 @@
         },
         "type": "object",
         "title": "CourseUpdate"
+      },
+      "DocumentBulkSendRequest": {
+        "properties": {
+          "learner_id": {
+            "type": "integer",
+            "title": "Learner Id",
+            "description": "ID de l'apprenant destinataire"
+          },
+          "formation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Formation Id",
+            "description": "ID de la formation (MongoDB)"
+          },
+          "formation_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Formation Name",
+            "description": "Nom de la formation"
+          },
+          "phase": {
+            "$ref": "#/components/schemas/DocumentTemplatePhase",
+            "description": "Phase du parcours"
+          },
+          "custom_fields": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Custom Fields",
+            "description": "Champs dynamiques pour injection dans les templates"
+          },
+          "template_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Template Ids",
+            "description": "IDs des templates à envoyer"
+          },
+          "uploaded_document_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Uploaded Document Ids",
+            "description": "IDs des documents uploadés à joindre"
+          },
+          "include_of_signature": {
+            "type": "boolean",
+            "title": "Include Of Signature",
+            "description": "Inclure la signature officielle de l'OF dans les documents",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": ["learner_id", "phase"],
+        "title": "DocumentBulkSendRequest",
+        "description": "Schéma pour envoyer plusieurs templates et uploaded documents à un apprenant.",
+        "example": {
+          "custom_fields": {
+            "date_debut": "2024-02-01",
+            "date_fin": "2024-02-05",
+            "duree": "35 heures",
+            "prix": "2 500 EUR"
+          },
+          "formation_id": "60a1b2c3d4e5f6789012345",
+          "formation_name": "Formation Python Avancé",
+          "include_of_signature": true,
+          "learner_id": 10,
+          "phase": "inscription",
+          "template_ids": [1, 2, 3],
+          "uploaded_document_ids": [5]
+        }
+      },
+      "DocumentResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "template_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Template Id"
+          },
+          "of_id": {
+            "type": "integer",
+            "title": "Of Id"
+          },
+          "type": {
+            "$ref": "#/components/schemas/DocumentTemplateType"
+          },
+          "phase": {
+            "$ref": "#/components/schemas/DocumentTemplatePhase"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "html_content": {
+            "type": "string",
+            "title": "Html Content"
+          },
+          "learner_id": {
+            "type": "integer",
+            "title": "Learner Id"
+          },
+          "learner_name": {
+            "type": "string",
+            "title": "Learner Name"
+          },
+          "learner_email": {
+            "type": "string",
+            "title": "Learner Email"
+          },
+          "formation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Formation Id"
+          },
+          "formation_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Formation Name"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DocumentStatus"
+          },
+          "requires_signature": {
+            "type": "boolean",
+            "title": "Requires Signature"
+          },
+          "sent_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sent At"
+          },
+          "read_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Read At"
+          },
+          "signed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signed At"
+          },
+          "signature_data": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signature Data"
+          },
+          "unique_code": {
+            "type": "string",
+            "title": "Unique Code"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "template_id",
+          "of_id",
+          "type",
+          "phase",
+          "title",
+          "html_content",
+          "learner_id",
+          "learner_name",
+          "learner_email",
+          "formation_id",
+          "formation_name",
+          "status",
+          "requires_signature",
+          "sent_at",
+          "read_at",
+          "signed_at",
+          "signature_data",
+          "unique_code",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "DocumentResponse",
+        "description": "Schéma de réponse pour un document."
+      },
+      "DocumentSendRequest": {
+        "properties": {
+          "template_id": {
+            "type": "integer",
+            "title": "Template Id",
+            "description": "ID du template à utiliser"
+          },
+          "learner_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Learner Ids",
+            "description": "IDs des apprenants destinataires"
+          },
+          "formation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Formation Id",
+            "description": "ID de la formation (MongoDB)"
+          },
+          "formation_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Formation Name",
+            "description": "Nom de la formation"
+          },
+          "custom_data": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Custom Data",
+            "description": "Données personnalisées pour remplir les placeholders"
+          }
+        },
+        "type": "object",
+        "required": ["template_id", "learner_ids"],
+        "title": "DocumentSendRequest",
+        "description": "Schéma pour envoyer des documents à un ou plusieurs apprenants.",
+        "example": {
+          "custom_data": {
+            "formation_duree": "40 heures",
+            "formation_lieu": "Paris"
+          },
+          "formation_id": "60a1b2c3d4e5f6789012345",
+          "formation_name": "Formation Python Avancé",
+          "learner_ids": [10, 11, 12],
+          "template_id": 1
+        }
+      },
+      "DocumentSignRequest": {
+        "properties": {
+          "signature_data": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Signature Data",
+            "description": "Signature en base64"
+          }
+        },
+        "type": "object",
+        "required": ["signature_data"],
+        "title": "DocumentSignRequest",
+        "description": "Schéma pour soumettre la signature d'un document.",
+        "example": {
+          "signature_data": "data:image/png;base64,iVBORw0KGgoAAAANS..."
+        }
+      },
+      "DocumentStatus": {
+        "type": "string",
+        "enum": ["draft", "sent", "delivered", "read", "signed", "completed", "expired"],
+        "title": "DocumentStatus",
+        "description": "Statuts possibles pour un document envoyé."
+      },
+      "DocumentTemplateCreate": {
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/DocumentTemplateType",
+            "description": "Type de document"
+          },
+          "phase": {
+            "$ref": "#/components/schemas/DocumentTemplatePhase",
+            "description": "Phase du parcours"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Title",
+            "description": "Titre du template"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "Description du template"
+          },
+          "html_content": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Html Content",
+            "description": "Contenu HTML avec placeholders {{...}}"
+          },
+          "requires_signature": {
+            "type": "boolean",
+            "title": "Requires Signature",
+            "description": "Nécessite signature électronique",
+            "default": false
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active",
+            "description": "Template actif",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": ["type", "phase", "title", "html_content"],
+        "title": "DocumentTemplateCreate",
+        "description": "Schéma pour créer un template de document.",
+        "example": {
+          "description": "Template standard pour convention OF",
+          "html_content": "\u003Ch1\u003EConvention de Formation\u003C/h1\u003E\u003Cp\u003EEntre {{of_name}} et {{apprenant_nom}}\u003C/p\u003E",
+          "is_active": true,
+          "phase": "inscription",
+          "requires_signature": true,
+          "title": "Convention de formation professionnelle",
+          "type": "convention"
+        }
+      },
+      "DocumentTemplatePhase": {
+        "type": "string",
+        "enum": ["inscription", "formation", "post-formation", "suivi"],
+        "title": "DocumentTemplatePhase",
+        "description": "Phases du parcours de formation."
+      },
+      "DocumentTemplateResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "of_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Of Id"
+          },
+          "type": {
+            "$ref": "#/components/schemas/DocumentTemplateType"
+          },
+          "phase": {
+            "$ref": "#/components/schemas/DocumentTemplatePhase"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "html_content": {
+            "type": "string",
+            "title": "Html Content"
+          },
+          "requires_signature": {
+            "type": "boolean",
+            "title": "Requires Signature"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "of_id",
+          "type",
+          "phase",
+          "title",
+          "description",
+          "html_content",
+          "requires_signature",
+          "is_active",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "DocumentTemplateResponse",
+        "description": "Schéma de réponse pour un template de document."
+      },
+      "DocumentTemplateType": {
+        "type": "string",
+        "enum": [
+          "analyse_besoin",
+          "test_positionnement",
+          "convention",
+          "programme",
+          "reglement_interieur",
+          "cgv",
+          "convocation",
+          "emargement",
+          "test_sortie",
+          "satisfaction_chaud",
+          "attestation",
+          "certificat",
+          "satisfaction_froid",
+          "attestation_honneur"
+        ],
+        "title": "DocumentTemplateType",
+        "description": "Types de documents disponibles pour les templates."
+      },
+      "DocumentTemplateUpdate": {
+        "properties": {
+          "title": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title",
+            "description": "Nouveau titre"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "Nouvelle description"
+          },
+          "html_content": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Html Content",
+            "description": "Nouveau contenu HTML"
+          },
+          "requires_signature": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requires Signature",
+            "description": "Modifier l'exigence de signature"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active",
+            "description": "Activer/désactiver le template"
+          }
+        },
+        "type": "object",
+        "title": "DocumentTemplateUpdate",
+        "description": "Schéma pour modifier un template de document."
+      },
+      "DocumentUpdateStatus": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/DocumentStatus",
+            "description": "Nouveau statut"
+          }
+        },
+        "type": "object",
+        "required": ["status"],
+        "title": "DocumentUpdateStatus",
+        "description": "Schéma pour mettre à jour le statut d'un document.",
+        "example": {
+          "status": "sent"
+        }
+      },
+      "EmargementDocumentResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "type": {
+            "$ref": "#/components/schemas/DocumentTemplateType"
+          },
+          "phase": {
+            "$ref": "#/components/schemas/DocumentTemplatePhase"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DocumentStatus"
+          },
+          "sent_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sent At"
+          },
+          "read_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Read At"
+          },
+          "signed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signed At"
+          },
+          "html_content": {
+            "type": "string",
+            "title": "Html Content"
+          },
+          "unique_code": {
+            "type": "string",
+            "title": "Unique Code"
+          },
+          "requires_signature": {
+            "type": "boolean",
+            "title": "Requires Signature"
+          },
+          "signature_data": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signature Data"
+          },
+          "formation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Formation Id"
+          },
+          "formation_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Formation Name"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "phase",
+          "title",
+          "status",
+          "sent_at",
+          "read_at",
+          "signed_at",
+          "html_content",
+          "unique_code",
+          "requires_signature",
+          "signature_data",
+          "formation_id",
+          "formation_name",
+          "created_at"
+        ],
+        "title": "EmargementDocumentResponse",
+        "description": "Schéma pour un document dans la liste d'emargements."
+      },
+      "EmargementLearnerResponse": {
+        "properties": {
+          "learner_id": {
+            "type": "integer",
+            "title": "Learner Id"
+          },
+          "learner_name": {
+            "type": "string",
+            "title": "Learner Name"
+          },
+          "learner_email": {
+            "type": "string",
+            "title": "Learner Email"
+          },
+          "documents": {
+            "items": {
+              "$ref": "#/components/schemas/EmargementDocumentResponse"
+            },
+            "type": "array",
+            "title": "Documents"
+          }
+        },
+        "type": "object",
+        "required": ["learner_id", "learner_name", "learner_email", "documents"],
+        "title": "EmargementLearnerResponse",
+        "description": "Schéma pour un apprenant avec ses documents.",
+        "example": {
+          "documents": [
+            {
+              "created_at": "2026-02-20T09:00:00",
+              "formation_id": "60a1b2c3d4e5f6789012345",
+              "formation_name": "Formation Python",
+              "html_content": "\u003Ch1\u003EConvention...\u003C/h1\u003E",
+              "id": 1,
+              "phase": "inscription",
+              "requires_signature": true,
+              "sent_at": "2026-02-20T10:00:00",
+              "signature_data": "data:image/png;base64,...",
+              "signed_at": "2026-02-20T14:30:00",
+              "status": "signed",
+              "title": "Convention de formation",
+              "type": "convention",
+              "unique_code": "CONVENTION-123456789"
+            }
+          ],
+          "learner_email": "marie.dupont@example.com",
+          "learner_id": 10,
+          "learner_name": "Marie Dupont"
+        }
+      },
+      "EmargementListResponse": {
+        "properties": {
+          "learners": {
+            "items": {
+              "$ref": "#/components/schemas/EmargementLearnerResponse"
+            },
+            "type": "array",
+            "title": "Learners"
+          },
+          "total_learners": {
+            "type": "integer",
+            "title": "Total Learners"
+          },
+          "total_documents": {
+            "type": "integer",
+            "title": "Total Documents"
+          }
+        },
+        "type": "object",
+        "required": ["learners", "total_learners", "total_documents"],
+        "title": "EmargementListResponse",
+        "description": "Schéma de réponse pour la liste complète des emargements.",
+        "example": {
+          "learners": [],
+          "total_documents": 25,
+          "total_learners": 5
+        }
       },
       "EnrollRequest": {
         "properties": {
@@ -10900,6 +12987,165 @@
         "type": "object",
         "required": ["ids"],
         "title": "NewIdsResponse"
+      },
+      "OfSignatureResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "of_id": {
+            "type": "integer",
+            "title": "Of Id"
+          },
+          "signature_data": {
+            "type": "string",
+            "title": "Signature Data"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": ["id", "of_id", "signature_data", "created_at", "updated_at"],
+        "title": "OfSignatureResponse",
+        "description": "Schéma de réponse pour la signature officielle d'un OF."
+      },
+      "OfSignatureUpdate": {
+        "properties": {
+          "signature_data": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Signature Data",
+            "description": "Signature en base64"
+          }
+        },
+        "type": "object",
+        "required": ["signature_data"],
+        "title": "OfSignatureUpdate",
+        "description": "Schéma pour créer ou mettre à jour la signature officielle d'un OF.",
+        "example": {
+          "signature_data": "data:image/png;base64,iVBORw0KGgoAAAANS..."
+        }
+      },
+      "OfUserCreate": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "password": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Password"
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRole"
+          },
+          "first_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Name"
+          },
+          "last_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Name"
+          },
+          "is_major": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Major"
+          },
+          "accept_terms": {
+            "type": "boolean",
+            "title": "Accept Terms",
+            "default": false
+          },
+          "accessible_catalogues": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accessible Catalogues"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Statut initial active",
+            "default": "inactive"
+          },
+          "is_verified": {
+            "type": "boolean",
+            "title": "Is Verified",
+            "description": "Default False for global users",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": ["email", "role"],
+        "title": "OfUserCreate",
+        "description": "Schema pour créer un user OF sans mot de passe obligatoire.\nSi password est absent, un mot de passe aléatoire est généré et envoyé par email.",
+        "example": {
+          "accept_terms": true,
+          "accessible_catalogues": [],
+          "email": "apprenant@example.com",
+          "first_name": "Alice",
+          "is_major": true,
+          "last_name": "Martin",
+          "phone": "0612345678",
+          "role": "apprenant"
+        }
       },
       "OrderingQuestion": {
         "properties": {
@@ -12996,6 +15242,96 @@
         "type": "object",
         "required": ["url"],
         "title": "UploadResponse"
+      },
+      "UploadedDocumentResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "of_id": {
+            "type": "integer",
+            "title": "Of Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "phase": {
+            "$ref": "#/components/schemas/DocumentTemplatePhase"
+          },
+          "file_key": {
+            "type": "string",
+            "title": "File Key"
+          },
+          "file_name": {
+            "type": "string",
+            "title": "File Name"
+          },
+          "file_size": {
+            "type": "integer",
+            "title": "File Size"
+          },
+          "mime_type": {
+            "type": "string",
+            "title": "Mime Type"
+          },
+          "uploaded_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Uploaded At"
+          }
+        },
+        "type": "object",
+        "required": ["id", "of_id", "title", "phase", "file_key", "file_name", "file_size", "mime_type", "uploaded_at"],
+        "title": "UploadedDocumentResponse",
+        "description": "Schéma de réponse pour un document uploadé."
+      },
+      "UploadedDocumentSendRequest": {
+        "properties": {
+          "learner_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Learner Ids",
+            "description": "IDs des apprenants destinataires"
+          },
+          "formation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Formation Id",
+            "description": "ID de la formation (MongoDB)"
+          },
+          "formation_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Formation Name",
+            "description": "Nom de la formation"
+          }
+        },
+        "type": "object",
+        "required": ["learner_ids"],
+        "title": "UploadedDocumentSendRequest",
+        "description": "Schéma pour envoyer un document uploadé à des apprenants.",
+        "example": {
+          "formation_id": "60a1b2c3d4e5f6789012345",
+          "formation_name": "Formation Python Avancé",
+          "learner_ids": [10, 11, 12]
+        }
       },
       "UserCreate": {
         "properties": {
