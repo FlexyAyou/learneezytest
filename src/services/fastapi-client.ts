@@ -1475,6 +1475,7 @@ class FastAPIClient {
   async sendDocumentsBulk(ofId: number | string, data: {
     learner_id: number;
     template_ids: number[];
+    phase: string;
     html_contents?: Record<number, string>;
     custom_fields?: Record<string, string>;
   }): Promise<any> {
