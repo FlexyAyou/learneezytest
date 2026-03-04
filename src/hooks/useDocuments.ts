@@ -5,6 +5,29 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fastAPIClient } from '@/services/fastapi-client';
 import { toast } from '@/hooks/use-toast';
+
+/** Extract a safe, human-readable error message from an Axios error */
+function safeErrorMessage(error: any, fallback: string): string {
+  const detail = error?.response?.data?.detail;
+  if (typeof detail === 'string') {
+    // Reject if it looks like HTML (template content leaked into error)
+    if (detail.length > 300 || detail.startsWith('<')) return fallback;
+    return detail;
+  }
+  if (detail && typeof detail === 'object') {
+    // FastAPI validation: detail might be an array of { msg }
+    if (Array.isArray(detail)) {
+      const msgs = detail.map((d: any) => d.msg || d.message || JSON.stringify(d)).join(', ');
+      return msgs.length > 300 ? fallback : msgs;
+    }
+    if (detail.message && typeof detail.message === 'string') return detail.message;
+    if (detail.msg && typeof detail.msg === 'string') return detail.msg;
+  }
+  if (error?.message && typeof error.message === 'string' && error.message.length < 200) {
+    return error.message;
+  }
+  return fallback;
+}
 import type {
   DocumentTemplateCreate,
   DocumentTemplateResponse,
@@ -59,7 +82,7 @@ export const useCreateDocumentTemplate = (ofId: number | string | undefined) => 
     onError: (error: any) => {
       toast({
         title: 'Erreur',
-        description: error.response?.data?.detail || 'Impossible de créer le modèle.',
+        description: safeErrorMessage(error, 'Impossible de créer le modèle.'),
         variant: 'destructive',
       });
     },
@@ -81,7 +104,7 @@ export const useUpdateDocumentTemplate = (ofId: number | string | undefined) => 
     onError: (error: any) => {
       toast({
         title: 'Erreur',
-        description: error.response?.data?.detail || 'Impossible de mettre à jour le modèle.',
+        description: safeErrorMessage(error, 'Impossible de mettre à jour le modèle.'),
         variant: 'destructive',
       });
     },
@@ -102,7 +125,7 @@ export const useDeleteDocumentTemplate = (ofId: number | string | undefined) => 
     onError: (error: any) => {
       toast({
         title: 'Erreur',
-        description: error.response?.data?.detail || 'Impossible de supprimer le modèle.',
+        description: safeErrorMessage(error, 'Impossible de supprimer le modèle.'),
         variant: 'destructive',
       });
     },
@@ -126,7 +149,7 @@ export const useSendDocument = (ofId: number | string | undefined) => {
     onError: (error: any) => {
       toast({
         title: 'Erreur d\'envoi',
-        description: error.response?.data?.detail || 'Impossible d\'envoyer les documents.',
+        description: safeErrorMessage(error, 'Impossible d\'envoyer les documents.'),
         variant: 'destructive',
       });
     },
@@ -148,7 +171,7 @@ export const useSendDocumentsBulk = (ofId: number | string | undefined) => {
     onError: (error: any) => {
       toast({
         title: 'Erreur d\'envoi',
-        description: error.response?.data?.detail || 'Impossible d\'envoyer les documents.',
+        description: safeErrorMessage(error, 'Impossible d\'envoyer les documents.'),
         variant: 'destructive',
       });
     },
@@ -193,7 +216,7 @@ export const useUpdateDocumentStatus = (ofId: number | string | undefined) => {
     onError: (error: any) => {
       toast({
         title: 'Erreur',
-        description: error.response?.data?.detail || 'Impossible de mettre à jour le statut.',
+        description: safeErrorMessage(error, 'Impossible de mettre à jour le statut.'),
         variant: 'destructive',
       });
     },
@@ -230,7 +253,7 @@ export const useSignDocument = () => {
     onError: (error: any) => {
       toast({
         title: 'Erreur de signature',
-        description: error.response?.data?.detail || 'Impossible de signer le document.',
+        description: safeErrorMessage(error, 'Impossible de signer le document.'),
         variant: 'destructive',
       });
     },
@@ -265,7 +288,7 @@ export const useUpsertOFSignature = (ofId: number | string | undefined) => {
     onError: (error: any) => {
       toast({
         title: 'Erreur',
-        description: error.response?.data?.detail || 'Impossible de sauvegarder la signature.',
+        description: safeErrorMessage(error, 'Impossible de sauvegarder la signature.'),
         variant: 'destructive',
       });
     },
@@ -313,7 +336,7 @@ export const useUploadDocument = (ofId: number | string | undefined) => {
     onError: (error: any) => {
       toast({
         title: 'Erreur d\'upload',
-        description: error.response?.data?.detail || 'Impossible d\'uploader le document.',
+        description: safeErrorMessage(error, 'Impossible d\'uploader le document.'),
         variant: 'destructive',
       });
     },
@@ -349,7 +372,7 @@ export const useSendUploadedDocument = (ofId: number | string | undefined) => {
     onError: (error: any) => {
       toast({
         title: 'Erreur d\'envoi',
-        description: error.response?.data?.detail || 'Impossible d\'envoyer le document.',
+        description: safeErrorMessage(error, 'Impossible d\'envoyer le document.'),
         variant: 'destructive',
       });
     },
