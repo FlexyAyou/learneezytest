@@ -78,22 +78,28 @@ export const DocumentSignatureModal = ({
     });
   };
 
-  const handleSignatureComplete = (signatureData: string) => {
+  const handleSignatureComplete = async (signatureData: string) => {
     if (!document) return;
     
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      onSignatureComplete(document.id, signatureData);
+    try {
+      await onSignatureComplete(document.id, signatureData);
       setStep('success');
-      setIsLoading(false);
       
       toast({
         title: "✅ Document signé !",
         description: `${document.name} a été signé avec succès.`,
       });
-    }, 1500);
+    } catch {
+      toast({
+        title: "Erreur",
+        description: "Impossible de signer le document. Veuillez réessayer.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleClose = () => {
