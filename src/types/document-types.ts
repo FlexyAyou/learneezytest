@@ -84,6 +84,7 @@ export interface DocumentSendRequest {
 export interface DocumentBulkSendRequest {
   learner_id: number;
   template_ids: number[];
+  phase: string;
   html_contents?: Record<number, string>; // template_id → html personnalisé
   custom_fields?: Record<string, string>;
 }

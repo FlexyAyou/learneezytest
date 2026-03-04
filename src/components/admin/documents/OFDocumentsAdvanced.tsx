@@ -237,9 +237,12 @@ export const OFDocumentsAdvanced: React.FC = () => {
       });
 
       if (templateIds.length > 0 && !isNaN(learnerId) && learnerId > 0) {
+        // Determine phase from the first document or fallback to active phase
+        const phase = firstDoc.phase || activePhase;
         sendBulkMutation.mutate({
           learner_id: learnerId,
           template_ids: templateIds,
+          phase: phase,
           html_contents: htmlContents,
         });
         return;
