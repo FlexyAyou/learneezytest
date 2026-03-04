@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext } from 'react';
 import { OrganizationContextData, SubdomainVerification } from '@/types/fastapi';
 import { useSubdomain } from '@/hooks/useSubdomain';
 
@@ -18,16 +18,10 @@ const OrganizationContext = createContext<OrganizationContextData>(defaultContex
 
 export const OrganizationProvider: React.FC<OrganizationProviderProps> = ({ children }) => {
   const { verification, isLoading, error, isOFSubdomain } = useSubdomain();
-  const [currentOrganization, setCurrentOrganization] = useState<SubdomainVerification | null>(null);
 
-  useEffect(() => {
-    if (verification && verification.exists) {
-      setCurrentOrganization(verification);
-    }
-  }, [verification]);
-
+  // Dériver directement depuis verification pour éviter le décalage de timing
   const value: OrganizationContextData = {
-    organization: currentOrganization,
+    organization: verification && verification.exists ? verification : null,
     isOFContext: isOFSubdomain,
     isLoading,
     error,
