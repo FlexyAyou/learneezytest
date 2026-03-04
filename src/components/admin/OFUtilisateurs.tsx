@@ -52,10 +52,24 @@ export const OFUtilisateurs = () => {
   // Données locales temporaires (utilisées quand l'API n'est pas disponible)
   const [localUsers, setLocalUsers] = useState<OFUser[]>([]);
 
+  // Mapper les rôles anglais vers français (doit être défini AVANT useMemo qui l'utilise)
+  const mapRoleToFrench = (role: string): string => {
+    const roleMap: Record<string, string> = {
+      'learner': 'Apprenant',
+      'apprenant': 'Apprenant',
+      'trainer': 'Formateur',
+      'formateur_interne': 'Formateur',
+      'manager': 'Gestionnaire',
+      'gestionnaire': 'Gestionnaire',
+      'of_admin': 'Administrateur',
+      'admin': 'Administrateur',
+    };
+    return roleMap[role?.toLowerCase()] || role || 'Apprenant';
+  };
+
   // Combiner les utilisateurs API avec les utilisateurs ajoutés localement
   const users = useMemo(() => {
     if (apiUsers && Array.isArray(apiUsers)) {
-      // Mapper les données API vers le format attendu
       return [...apiUsers.map((u: any) => ({
         id: u.id,
         nom: u.last_name || u.nom || '',
@@ -70,18 +84,6 @@ export const OFUtilisateurs = () => {
     }
     return localUsers;
   }, [apiUsers, localUsers]);
-
-  // Mapper les rôles anglais vers français
-  const mapRoleToFrench = (role: string): string => {
-    const roleMap: Record<string, string> = {
-      'learner': 'Apprenant',
-      'trainer': 'Formateur',
-      'manager': 'Gestionnaire',
-      'of_admin': 'Administrateur',
-      'admin': 'Administrateur',
-    };
-    return roleMap[role?.toLowerCase()] || role || 'Apprenant';
-  };
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
