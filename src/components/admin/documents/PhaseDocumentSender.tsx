@@ -279,7 +279,7 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
           {/* Progress Steps */}
           <div className="flex items-center justify-center gap-2 py-4 border-b">
             {steps.map((step, idx) => (
-              <React.Fragment key={step.num}>
+              <span key={step.num} className="contents">
                 <div 
                   className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-colors ${
                     currentStep === step.num 
@@ -299,7 +299,7 @@ export const PhaseDocumentSender: React.FC<PhaseDocumentSenderProps> = ({
                 {idx < steps.length - 1 && (
                   <ChevronRight className="h-4 w-4 text-muted-foreground" />
                 )}
-              </React.Fragment>
+              </span>
             ))}
           </div>
 
