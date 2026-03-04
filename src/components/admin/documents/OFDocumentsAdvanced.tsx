@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   FileText, Plus, Send, Search, Eye, Edit, Download, Upload,
@@ -574,6 +574,9 @@ export const OFDocumentsAdvanced: React.FC = () => {
               <Upload className="h-5 w-5" />
               Uploader un document
             </DialogTitle>
+            <DialogDescription>
+              Ajoutez un document externe à une phase afin de pouvoir l'envoyer ensuite aux apprenants.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
@@ -645,6 +648,9 @@ export const OFDocumentsAdvanced: React.FC = () => {
               <Send className="h-5 w-5" />
               Envoyer le document
             </DialogTitle>
+            <DialogDescription>
+              Sélectionnez les apprenants destinataires pour l'envoi de ce document uploadé.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             {uploadDocToSend && (
