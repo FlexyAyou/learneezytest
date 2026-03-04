@@ -118,10 +118,12 @@ const SubdomainRouter: React.FC<SubdomainRouterProps> = ({ children }) => {
 
     if (!wasAuthenticated && isAuthenticated && user && !orgLoading && !authLoading) {
       // L'utilisateur vient de se connecter
+      // Si orgId n'est pas encore chargé mais isOFContext est true, on fait confiance au of_id du user
       const userBelongsToOF = userRole === 'superadmin' || 
-        (userOfId !== null && userOfId !== undefined && 
-         orgId !== null && orgId !== undefined &&
-         Number(userOfId) === Number(orgId));
+        (userOfId !== null && userOfId !== undefined && (
+          (orgId !== null && orgId !== undefined && Number(userOfId) === Number(orgId)) ||
+          (isOFContext && orgId === undefined)
+        ));
 
       if (!location.pathname.startsWith('/dashboard/superadmin')) {
         console.log('[SubdomainRouter - Belongs Check]', {
@@ -133,7 +135,7 @@ const SubdomainRouter: React.FC<SubdomainRouterProps> = ({ children }) => {
         });
       }
 
-      if (isOFContext && orgExists && userBelongsToOF) {
+      if (isOFContext && (orgExists || orgExists === undefined) && userBelongsToOF) {
         const roleRedirects: Record<string, string> = {
           of_admin: '/dashboard/organisme-formation',
           gestionnaire: '/dashboard/gestionnaire',
