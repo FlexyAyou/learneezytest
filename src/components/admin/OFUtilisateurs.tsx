@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Users, Search, Filter, Plus, Eye, Edit, MoreHorizontal, UserPlus, AlertCircle, Loader2 } from 'lucide-react';
-import { AddApprenantModal } from './AddApprenantModal';
+import { OFAddApprenant } from './OFAddApprenant';
 import { OFAddUtilisateur } from './OFAddUtilisateur';
 import { useOFUsers, useCreateOFUser } from '@/hooks/useApi';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -171,7 +171,29 @@ export const OFUtilisateurs = () => {
     }
   };
 
-  // Mapper les rôles français du formulaire vers les rôles backend
+  const handleAddApprenant = async (apprenantData: any) => {
+    try {
+      await createOFUser.mutateAsync({
+        email: apprenantData.email,
+        first_name: apprenantData.prenom,
+        last_name: apprenantData.nom,
+        role: 'apprenant',
+        phone: apprenantData.telephone || undefined,
+      });
+      toast({
+        title: "Apprenant créé",
+        description: "L'apprenant a été créé avec succès. Un email avec ses identifiants lui a été envoyé.",
+      });
+    } catch (err: any) {
+      toast({
+        title: "Erreur",
+        description: err?.response?.data?.detail || "Impossible de créer l'apprenant",
+        variant: "destructive",
+      });
+      throw err;
+    }
+  };
+
   const mapRoleToBackend = (role: string): string => {
     const roleMap: Record<string, string> = {
       'Apprenant': 'apprenant',
@@ -428,11 +450,10 @@ export const OFUtilisateurs = () => {
         </CardContent>
       </Card>
 
-      <AddApprenantModal
+      <OFAddApprenant
         isOpen={isAddApprenantOpen}
         onClose={() => setIsAddApprenantOpen(false)}
-        onAdd={handleAddUser}
-        organizationName={organizationName}
+        onAdd={handleAddApprenant}
       />
 
       <OFAddUtilisateur
