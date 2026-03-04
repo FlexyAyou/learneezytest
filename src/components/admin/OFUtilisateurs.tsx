@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Users, Search, Filter, Plus, Eye, Edit, MoreHorizontal, UserPlus, AlertCircle, Loader2 } from 'lucide-react';
-import { OFAddApprenant } from './OFAddApprenant';
+import { AddApprenantModal } from './AddApprenantModal';
 import { OFAddUtilisateur } from './OFAddUtilisateur';
 import { useOFUsers, useCreateOFUser } from '@/hooks/useApi';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -450,10 +450,11 @@ export const OFUtilisateurs = () => {
         </CardContent>
       </Card>
 
-      <OFAddApprenant
+      <AddApprenantModal
         isOpen={isAddApprenantOpen}
         onClose={() => setIsAddApprenantOpen(false)}
         onAdd={handleAddApprenant}
+        organizationName={organizationName}
       />
 
       <OFAddUtilisateur
