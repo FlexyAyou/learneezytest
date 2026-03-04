@@ -33,7 +33,8 @@ import {
   useDeleteUploadedDocument,
   useSendUploadedDocument,
 } from '@/hooks/useDocuments';
-import { useOFUsers, useOrganization } from '@/hooks/useApi';
+import { useOFUsers } from '@/hooks/useApi';
+import { useOrganization as useOrganizationContext } from '@/contexts/OrganizationContext';
 
 const phaseIcons = {
   inscription: UserPlus,
@@ -57,7 +58,7 @@ export const OFDocumentsAdvanced: React.FC = () => {
   const sendUploadedDocMutation = useSendUploadedDocument(ofId);
   const sendBulkMutation = useSendDocumentsBulk(ofId);
   const { data: apiOFUsers } = useOFUsers(ofId);
-  const { data: orgData } = useOrganization(ofId || 0);
+  const { organization: orgCtx } = useOrganizationContext();
 
   // Map API users to Learner format
   const learners: Learner[] = useMemo(() => {
@@ -82,17 +83,17 @@ export const OFDocumentsAdvanced: React.FC = () => {
 
   // Map API org to OF format
   const ofInfo: OF = useMemo(() => ({
-    name: orgData?.name || '',
-    siret: orgData?.siret || '',
-    nda: orgData?.numero_declaration || '',
-    address: orgData?.address || '',
+    name: orgCtx?.organizationName || '',
+    siret: '',
+    nda: '',
+    address: '',
     city: '',
     postalCode: '',
-    phone: orgData?.phone || '',
-    email: orgData?.email || orgData?.contact_email || '',
-    responsable: orgData?.legal_representative || '',
-    website: orgData?.website,
-  }), [orgData]);
+    phone: '',
+    email: '',
+    responsable: '',
+    website: undefined,
+  }), [orgCtx]);
 
   // Formations vides — à connecter à l'API formations quand disponible
   const formations: Formation[] = useMemo(() => [], []);
@@ -218,8 +219,33 @@ export const OFDocumentsAdvanced: React.FC = () => {
   };
 
   const handleDocumentsSent = (docs: any[]) => {
-    // If API is available, the PhaseDocumentSender should call sendBulkMutation
-    // For now we just show a toast
+    if (ofId && docs.length > 0) {
+      // Build bulk send request from the personalized documents
+      const firstDoc = docs[0];
+      const learnerId = Number(firstDoc.learnerId);
+      const templateIds = docs
+        .map((d: any) => Number(d.templateId))
+        .filter((id: number) => !isNaN(id) && id > 0);
+      
+      // Build html_contents map: template_id → personalized HTML
+      const htmlContents: Record<number, string> = {};
+      docs.forEach((d: any) => {
+        const tid = Number(d.templateId);
+        if (!isNaN(tid) && tid > 0 && d.htmlContent) {
+          htmlContents[tid] = d.htmlContent;
+        }
+      });
+
+      if (templateIds.length > 0 && !isNaN(learnerId) && learnerId > 0) {
+        sendBulkMutation.mutate({
+          learner_id: learnerId,
+          template_ids: templateIds,
+          html_contents: htmlContents,
+        });
+        return;
+      }
+    }
+    // Fallback toast if no API
     toast({ title: 'Documents envoyés', description: `${docs.length} document(s) envoyé(s). Consultez la gestion des émargements.` });
   };
 
