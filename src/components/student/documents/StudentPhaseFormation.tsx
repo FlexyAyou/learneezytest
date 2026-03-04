@@ -7,156 +7,88 @@ import { useToast } from '@/hooks/use-toast';
 import { DocumentCard } from './DocumentCard';
 import { DocumentSignatureModal } from './DocumentSignatureModal';
 import { StudentDocumentPreviewModal } from './StudentDocumentPreviewModal';
-import { personalizeDocumentContent, getTemplateForType } from '@/utils/personalizeDocumentContent';
-
-interface Formation {
-  id: string;
-  name: string;
-  category: string;
-  level: string;
-  status: 'active' | 'completed' | 'pending';
-}
-
-interface PhaseDocument {
-  id: string;
-  name: string;
-  formationId: string;
-  type: 'convocation' | 'programme' | 'cgv' | 'reglement_interieur' | 'attestation_honneur';
-  date: string;
-  size: string;
-  status: 'available' | 'signed' | 'received';
-  requiresSignature?: boolean;
-  learnerSignature?: string;
-  signedAt?: string;
-}
+import { useSignDocument } from '@/hooks/useDocuments';
+import type { MappedPhaseDocument, MappedFormation } from '@/hooks/useMyDocuments';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface StudentPhaseFormationProps {
   selectedFormation: string;
-  formations: Formation[];
+  formations: MappedFormation[];
+  documents: MappedPhaseDocument[];
+  learnerId?: number;
 }
 
-export const StudentPhaseFormation = ({ selectedFormation, formations }: StudentPhaseFormationProps) => {
+export const StudentPhaseFormation = ({ selectedFormation, formations, documents: apiDocuments, learnerId }: StudentPhaseFormationProps) => {
   const { toast } = useToast();
-  
-  const [documents, setDocuments] = useState<PhaseDocument[]>([
-    { id: '1', name: 'Convocation_Math.pdf', formationId: '1', type: 'convocation', date: '2024-01-23', size: '0.8 MB', status: 'received' },
-    { id: '2', name: 'Programme_Formation_Math.pdf', formationId: '1', type: 'programme', date: '2024-01-24', size: '3.2 MB', status: 'received' },
-    { id: '3', name: 'CGV_Math.pdf', formationId: '1', type: 'cgv', date: '2024-01-25', size: '2.1 MB', status: 'available', requiresSignature: true },
-    { id: '4', name: 'Reglement_Interieur_Math.pdf', formationId: '1', type: 'reglement_interieur', date: '2024-01-26', size: '1.1 MB', status: 'signed' },
-    { id: '5', name: 'Attestation_Honneur_Math.pdf', formationId: '1', type: 'attestation_honneur', date: '2024-01-27', size: '0.6 MB', status: 'available', requiresSignature: true },
-    { id: '6', name: 'Programme_Formation_Francais.pdf', formationId: '2', type: 'programme', date: '2024-01-20', size: '2.9 MB', status: 'received' },
-    { id: '7', name: 'CGV_Francais.pdf', formationId: '2', type: 'cgv', date: '2024-01-21', size: '2.0 MB', status: 'available', requiresSignature: true },
-  ]);
+  const queryClient = useQueryClient();
+  const signDocumentMutation = useSignDocument();
 
   const [signatureModalOpen, setSignatureModalOpen] = useState(false);
-  const [selectedDocument, setSelectedDocument] = useState<PhaseDocument | null>(null);
+  const [selectedDocument, setSelectedDocument] = useState<MappedPhaseDocument | null>(null);
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [previewDocument, setPreviewDocument] = useState<{ title: string; content: string } | null>(null);
 
-  const documentTypes = {
-    convocation: {
-      label: 'Convocation',
-      icon: Calendar,
-      description: 'Invitation à la formation',
-      color: 'text-orange-500'
-    },
-    programme: {
-      label: 'Programme de formation',
-      icon: BookOpen,
-      description: 'Détails du programme pédagogique',
-      color: 'text-emerald-500'
-    },
-    cgv: {
-      label: 'Conditions Générales de Vente',
-      icon: FileText,
-      description: 'Conditions commerciales et légales',
-      color: 'text-blue-500'
-    },
-    reglement_interieur: {
-      label: 'Règlement intérieur',
-      icon: ScrollText,
-      description: 'Règles de fonctionnement de la formation',
-      color: 'text-violet-500'
-    },
-    attestation_honneur: {
-      label: 'Attestation sur l\'honneur (CPF)',
-      icon: Shield,
-      description: 'Déclaration pour financement CPF',
-      color: 'text-amber-500'
-    }
+  const documentTypes: Record<string, { label: string; icon: React.ElementType; description: string; color: string }> = {
+    convocation: { label: 'Convocation', icon: Calendar, description: 'Invitation à la formation', color: 'text-orange-500' },
+    programme: { label: 'Programme de formation', icon: BookOpen, description: 'Détails du programme pédagogique', color: 'text-emerald-500' },
+    cgv: { label: 'Conditions Générales de Vente', icon: FileText, description: 'Conditions commerciales et légales', color: 'text-blue-500' },
+    reglement_interieur: { label: 'Règlement intérieur', icon: ScrollText, description: 'Règles de fonctionnement de la formation', color: 'text-violet-500' },
+    attestation_honneur: { label: 'Attestation sur l\'honneur (CPF)', icon: Shield, description: 'Déclaration pour financement CPF', color: 'text-amber-500' },
+    emargement: { label: 'Feuille d\'émargement', icon: FileText, description: 'Suivi de présence', color: 'text-gray-500' },
   };
 
-  const filteredDocuments = documents.filter(doc => 
+  const filteredDocuments = apiDocuments.filter(doc => 
     selectedFormation === 'all' || doc.formationId === selectedFormation
   );
 
   const pendingSignatures = filteredDocuments.filter(doc => doc.requiresSignature && doc.status === 'available');
   const signedCount = filteredDocuments.filter(doc => doc.status === 'signed' || doc.status === 'received').length;
 
-  const handleSign = (doc: PhaseDocument) => {
+  const handleSign = (doc: MappedPhaseDocument) => {
     setSelectedDocument(doc);
     setSignatureModalOpen(true);
   };
 
-  const handleSignatureComplete = (documentId: string, signatureData: string) => {
-    setDocuments(prev => prev.map(doc => 
-      doc.id === documentId 
-        ? { 
-            ...doc, 
-            status: 'signed' as const, 
-            requiresSignature: false,
-            learnerSignature: signatureData,
-            signedAt: new Date().toISOString()
-          }
-        : doc
-    ));
+  const handleSignatureComplete = async (documentId: string, signatureData: string) => {
+    if (!learnerId) return;
+    try {
+      await signDocumentMutation.mutateAsync({
+        learnerId, documentId,
+        data: {
+          signature_data: signatureData,
+          signature_metadata: { ip_address: 'auto', user_agent: navigator.userAgent, timestamp: new Date().toISOString(), honor_declaration: true },
+        },
+      });
+      queryClient.invalidateQueries({ queryKey: ['my-documents', learnerId] });
+    } catch { /* handled by hook */ }
     setSignatureModalOpen(false);
     setSelectedDocument(null);
   };
 
-  const handleDownload = (doc: PhaseDocument) => {
-    toast({
-      title: "Téléchargement",
-      description: `Téléchargement de ${doc.name} en cours...`,
-    });
+  const handleDownload = (doc: MappedPhaseDocument) => {
+    toast({ title: "Téléchargement", description: `Téléchargement de ${doc.name} en cours...` });
   };
 
-  const handlePreview = (doc: PhaseDocument) => {
-    const formation = formations.find(f => f.id === doc.formationId);
-    const template = getTemplateForType(doc.type);
-    
-    if (template && formation) {
-      const personalizedContent = personalizeDocumentContent(template, formation, doc.learnerSignature);
-      setPreviewDocument({
-        title: documentTypes[doc.type].label,
-        content: personalizedContent
-      });
+  const handlePreview = (doc: MappedPhaseDocument) => {
+    if (doc.htmlContent) {
+      const typeInfo = documentTypes[doc.type];
+      setPreviewDocument({ title: typeInfo?.label || doc.name, content: doc.htmlContent });
       setPreviewModalOpen(true);
       return;
     }
-    
-    toast({
-      title: "Aperçu",
-      description: `Ouverture de ${doc.name}...`,
-    });
+    toast({ title: "Aperçu", description: `Ouverture de ${doc.name}...` });
   };
 
-  const getFormationName = (formationId: string) => {
-    const formation = formations.find(f => f.id === formationId);
-    return formation ? `${formation.name} - ${formation.level}` : '';
-  };
+  const getFormationName = (formationId: string) => formations.find(f => f.id === formationId)?.name || '';
 
   const groupedByFormation = formations.reduce((acc, formation) => {
     const formationDocs = filteredDocuments.filter(doc => doc.formationId === formation.id);
-    if (formationDocs.length > 0) {
-      acc[formation.id] = { formation, documents: formationDocs };
-    }
+    if (formationDocs.length > 0) acc[formation.id] = { formation, documents: formationDocs };
     return acc;
-  }, {} as Record<string, { formation: Formation; documents: PhaseDocument[] }>);
+  }, {} as Record<string, { formation: MappedFormation; documents: MappedPhaseDocument[] }>);
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <div className="p-2 bg-emerald-100 rounded-xl">
@@ -167,42 +99,34 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
             <p className="text-muted-foreground">Convocation, programme, CGV, règlement intérieur et attestation sur l'honneur</p>
           </div>
         </div>
-        
         <div className="flex items-center gap-4">
           {pendingSignatures.length > 0 && (
             <Badge variant="destructive" className="gap-1.5 py-1.5 px-3">
-              <AlertCircle className="h-4 w-4" />
-              {pendingSignatures.length} document(s) à signer
+              <AlertCircle className="h-4 w-4" />{pendingSignatures.length} document(s) à signer
             </Badge>
           )}
           <Badge variant="outline" className="gap-1.5 py-1.5 px-3 bg-background">
-            <CheckCircle className="h-4 w-4 text-green-500" />
-            {signedCount}/{filteredDocuments.length} complétés
+            <CheckCircle className="h-4 w-4 text-green-500" />{signedCount}/{filteredDocuments.length} complétés
           </Badge>
         </div>
       </div>
 
-      {/* Types de documents */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {Object.entries(documentTypes).map(([type, info]) => {
           const Icon = info.icon;
           const count = filteredDocuments.filter(doc => doc.type === type).length;
+          if (count === 0) return null;
           const pending = filteredDocuments.filter(doc => doc.type === type && doc.status === 'available' && doc.requiresSignature).length;
-          
           return (
             <Card key={type} className="border-l-4 border-l-primary/50">
               <CardContent className="p-4">
                 <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-muted rounded-lg">
-                    <Icon className={`h-5 w-5 ${info.color}`} />
-                  </div>
+                  <div className="p-2 bg-muted rounded-lg"><Icon className={`h-5 w-5 ${info.color}`} /></div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <p className="font-medium text-xs">{info.label}</p>
                       <div className="flex items-center gap-1">
-                        {pending > 0 && (
-                          <Badge variant="destructive" className="text-[10px] px-1.5">{pending}</Badge>
-                        )}
+                        {pending > 0 && <Badge variant="destructive" className="text-[10px] px-1.5">{pending}</Badge>}
                         <Badge variant="outline" className="text-[10px] px-1.5">{count}</Badge>
                       </div>
                     </div>
@@ -215,133 +139,80 @@ export const StudentPhaseFormation = ({ selectedFormation, formations }: Student
         })}
       </div>
 
-      {/* Documents list */}
-      {selectedFormation === 'all' ? (
-        <div className="space-y-6">
-          {Object.values(groupedByFormation).map(({ formation, documents }) => {
-            const pendingDocs = documents.filter(d => d.requiresSignature && d.status === 'available');
-            
-            return (
-              <Card key={formation.id}>
-                <CardHeader className="pb-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-lg">{formation.name} - {formation.level}</CardTitle>
-                      <CardDescription>{formation.category}</CardDescription>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {pendingDocs.length > 0 && (
-                        <Badge variant="destructive" className="gap-1">
-                          <AlertCircle className="h-3 w-3" />
-                          {pendingDocs.length} à signer
-                        </Badge>
-                      )}
-                      <Badge variant="outline">{documents.length} document(s)</Badge>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {documents.map((doc) => {
-                    const typeInfo = documentTypes[doc.type];
-                    
-                    return (
-                      <DocumentCard
-                        key={doc.id}
-                        id={doc.id}
-                        name={doc.name}
-                        type={doc.type}
-                        typeLabel={typeInfo.label}
-                        typeIcon={typeInfo.icon}
-                        typeColor={typeInfo.color}
-                        date={doc.date}
-                        size={doc.size}
-                        status={doc.status}
-                        requiresSignature={doc.requiresSignature}
-                        onSign={() => handleSign(doc)}
-                        onDownload={() => handleDownload(doc)}
-                        onPreview={() => handlePreview(doc)}
-                      />
-                    );
-                  })}
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>Documents de la phase formation</CardTitle>
-            <CardDescription>
-              {filteredDocuments.length} document(s) pour la formation sélectionnée
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {filteredDocuments.map((doc) => {
-              const typeInfo = documentTypes[doc.type];
-              
-              return (
-                <DocumentCard
-                  key={doc.id}
-                  id={doc.id}
-                  name={doc.name}
-                  type={doc.type}
-                  typeLabel={typeInfo.label}
-                  typeIcon={typeInfo.icon}
-                  typeColor={typeInfo.color}
-                  date={doc.date}
-                  size={doc.size}
-                  status={doc.status}
-                  requiresSignature={doc.requiresSignature}
-                  onSign={() => handleSign(doc)}
-                  onDownload={() => handleDownload(doc)}
-                  onPreview={() => handlePreview(doc)}
-                />
-              );
-            })}
+      {filteredDocuments.length === 0 && (
+        <Card className="border-dashed">
+          <CardContent className="p-8 text-center">
+            <School className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-medium mb-2">Aucun document</h3>
+            <p className="text-muted-foreground">Aucun document disponible pour cette phase.</p>
           </CardContent>
         </Card>
       )}
 
-      {/* Signature Modal */}
-      <DocumentSignatureModal
-        isOpen={signatureModalOpen}
-        onClose={() => {
-          setSignatureModalOpen(false);
-          setSelectedDocument(null);
-        }}
+      {selectedFormation === 'all' ? (
+        <div className="space-y-6">
+          {Object.values(groupedByFormation).map(({ formation, documents }) => (
+            <Card key={formation.id}>
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">{formation.name}</CardTitle>
+                  <Badge variant="outline">{documents.length} document(s)</Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {documents.map((doc) => {
+                  const typeInfo = documentTypes[doc.type] || { label: doc.type, icon: FileText, color: 'text-gray-500' };
+                  return (
+                    <DocumentCard key={doc.id} id={doc.id} name={doc.name} type={doc.type} typeLabel={typeInfo.label}
+                      typeIcon={typeInfo.icon} typeColor={typeInfo.color} date={doc.date} size={doc.size}
+                      status={doc.status} requiresSignature={doc.requiresSignature}
+                      onSign={() => handleSign(doc)} onDownload={() => handleDownload(doc)} onPreview={() => handlePreview(doc)}
+                    />
+                  );
+                })}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        filteredDocuments.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Documents de la phase formation</CardTitle>
+              <CardDescription>{filteredDocuments.length} document(s)</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {filteredDocuments.map((doc) => {
+                const typeInfo = documentTypes[doc.type] || { label: doc.type, icon: FileText, color: 'text-gray-500' };
+                return (
+                  <DocumentCard key={doc.id} id={doc.id} name={doc.name} type={doc.type} typeLabel={typeInfo.label}
+                    typeIcon={typeInfo.icon} typeColor={typeInfo.color} date={doc.date} size={doc.size}
+                    status={doc.status} requiresSignature={doc.requiresSignature}
+                    onSign={() => handleSign(doc)} onDownload={() => handleDownload(doc)} onPreview={() => handlePreview(doc)}
+                  />
+                );
+              })}
+            </CardContent>
+          </Card>
+        )
+      )}
+
+      <DocumentSignatureModal isOpen={signatureModalOpen}
+        onClose={() => { setSignatureModalOpen(false); setSelectedDocument(null); }}
         document={selectedDocument ? {
-          id: selectedDocument.id,
-          name: selectedDocument.name,
-          type: selectedDocument.type,
-          typeLabel: documentTypes[selectedDocument.type].label,
+          id: selectedDocument.id, name: selectedDocument.name, type: selectedDocument.type,
+          typeLabel: documentTypes[selectedDocument.type]?.label || selectedDocument.type,
           formationName: getFormationName(selectedDocument.formationId),
-          date: selectedDocument.date,
-          size: selectedDocument.size
+          date: selectedDocument.date, size: selectedDocument.size
         } : null}
         onSignatureComplete={handleSignatureComplete}
-        htmlContent={selectedDocument ? (() => {
-          const formation = formations.find(f => f.id === selectedDocument.formationId);
-          const template = getTemplateForType(selectedDocument.type);
-          return template && formation ? personalizeDocumentContent(template, formation, selectedDocument.learnerSignature) : undefined;
-        })() : undefined}
+        htmlContent={selectedDocument?.htmlContent}
       />
 
-      {/* Preview Modal */}
-      <StudentDocumentPreviewModal
-        isOpen={previewModalOpen}
-        onClose={() => {
-          setPreviewModalOpen(false);
-          setPreviewDocument(null);
-        }}
-        title={previewDocument?.title || ''}
-        htmlContent={previewDocument?.content || ''}
-        onDownload={() => {
-          toast({
-            title: "Téléchargement",
-            description: "Document téléchargé avec succès",
-          });
-        }}
+      <StudentDocumentPreviewModal isOpen={previewModalOpen}
+        onClose={() => { setPreviewModalOpen(false); setPreviewDocument(null); }}
+        title={previewDocument?.title || ''} htmlContent={previewDocument?.content || ''}
+        onDownload={() => { toast({ title: "Téléchargement", description: "Document téléchargé avec succès" }); }}
       />
     </div>
   );
