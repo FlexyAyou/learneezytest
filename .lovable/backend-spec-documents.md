@@ -1,9 +1,3 @@
-# Spécification Backend — Endpoints Manquants pour le Module Documents
-
-> Référence frontend : types alignés sur `src/types/document-types.ts`
-> Backend existant : `https://api.plateforme-test-infinitiax.com/openapi.json`
-> Date : 2026-03-05
-
 ---
 
 ## 1. Stockage des métadonnées de signature (PRIORITÉ P0)
@@ -48,6 +42,7 @@ Le frontend supporte les documents PDF avec des **zones de signature interactive
 Retourne les documents PDF assignés à l'utilisateur connecté.
 
 **Response :**
+
 ```python
 class UserMediaAssignment(BaseModel):
     id: int
@@ -75,6 +70,7 @@ class SignatureField(BaseModel):
 ```
 
 **Route :**
+
 ```
 GET /api/users/me/documents
 Authorization: Bearer <token>
@@ -86,6 +82,7 @@ Authorization: Bearer <token>
 Soumet les valeurs des zones interactives (signature base64, nom, date).
 
 **Request :**
+
 ```python
 class SignFieldsRequest(BaseModel):
     field_values: dict[str, str]                    # field_id → valeur (base64 pour signatures, texte pour nom/date)
@@ -93,6 +90,7 @@ class SignFieldsRequest(BaseModel):
 ```
 
 **Route :**
+
 ```
 POST /api/users/assignments/{assignment_id}/sign-fields
 Authorization: Bearer <token>
@@ -101,6 +99,7 @@ Body: SignFieldsRequest
 ```
 
 **Logique backend :**
+
 1. Vérifier que l'assignment appartient à l'utilisateur connecté
 2. Valider que tous les champs `required: true` ont une valeur
 3. Stocker `signed_field_values` (JSONB) et `signature_metadata` (JSONB)
@@ -111,6 +110,7 @@ Body: SignFieldsRequest
 Signature simple via pad (legacy, pour les PDF sans zones définies).
 
 **Request :**
+
 ```python
 class SignAssignmentRequest(BaseModel):
     signature_data: str                             # Base64 de la signature
@@ -118,6 +118,7 @@ class SignAssignmentRequest(BaseModel):
 ```
 
 **Route :**
+
 ```
 POST /api/users/assignments/{assignment_id}/sign
 Authorization: Bearer <token>
@@ -130,6 +131,7 @@ Body: SignAssignmentRequest
 Télécharge un PDF aplati avec les signatures intégrées.
 
 **Route :**
+
 ```
 GET /api/users/assignments/{assignment_id}/download-signed
 Authorization: Bearer <token>
@@ -137,6 +139,7 @@ Authorization: Bearer <token>
 ```
 
 **Logique backend :**
+
 1. Récupérer le PDF original depuis MinIO via `file_key`
 2. Injecter les signatures (images base64) aux coordonnées définies dans `signature_fields`
 3. Aplatir le PDF (flatten) pour empêcher toute modification
@@ -177,9 +180,11 @@ CREATE INDEX idx_uma_status ON user_media_assignments(status);
 ## 4. Support `signature_fields` dans `uploaded_documents` (PRIORITÉ P1)
 
 ### Problème
+
 Le `UploadedDocumentSendRequest` accepte `signature_fields` mais le backend ne semble pas les stocker ni les propager aux assignments créés.
 
 ### Solution
+
 Quand `POST /api/organizations/{of_id}/uploaded-documents/{document_id}/send` est appelé avec `signature_fields`, le backend doit :
 
 1. Créer une entrée `user_media_assignments` par learner_id
@@ -187,6 +192,7 @@ Quand `POST /api/organizations/{of_id}/uploaded-documents/{document_id}/send` es
 3. Définir `status = 'pending'`
 
 **`UploadedDocumentSendRequest` mis à jour :**
+
 ```python
 class UploadedDocumentSendRequest(BaseModel):
     learner_ids: list[int]
@@ -202,6 +208,7 @@ class UploadedDocumentSendRequest(BaseModel):
 Export CSV de tous les émargements (pour audit Qualiopi).
 
 **Route :**
+
 ```
 GET /api/organizations/{of_id}/emargements/export-csv
 Authorization: Bearer <token>
@@ -211,6 +218,7 @@ Query params: ?phase=inscription&learner_id=123 (optionnels)
 ```
 
 **Colonnes CSV :**
+
 ```
 Apprenant,Email,Document,Type,Phase,Statut,Date d'envoi,Date de signature,Code unique
 ```
@@ -220,6 +228,7 @@ Apprenant,Email,Document,Type,Phase,Statut,Date d'envoi,Date de signature,Code u
 Téléchargement du document signé en PDF (version aplatie avec signature intégrée).
 
 **Route :**
+
 ```
 GET /api/organizations/{of_id}/documents/{document_id}/download-pdf
 Authorization: Bearer <token>
@@ -227,6 +236,7 @@ Authorization: Bearer <token>
 ```
 
 **Logique :**
+
 1. Récupérer le `html_content` du document (déjà personnalisé)
 2. Convertir en PDF (avec `weasyprint` ou `wkhtmltopdf`)
 3. Si signé, intégrer la signature base64 dans le HTML avant conversion
@@ -260,18 +270,18 @@ Le frontend utilise actuellement **deux chemins** pour signer un document learne
 
 ## 7. Récapitulatif des priorités
 
-| Priorité | Endpoint / Feature | Effort estimé |
-|----------|-------------------|---------------|
-| **P0** | Ajouter `signature_metadata` JSONB au sign endpoint | 1h |
-| **P1** | Créer table `user_media_assignments` | 2h |
-| **P1** | `GET /api/users/me/documents` | 2h |
-| **P1** | `POST /api/users/assignments/{id}/sign-fields` | 3h |
-| **P1** | `GET /api/users/assignments/{id}/download-signed` (PDF flatten) | 4h |
-| **P1** | Propager `signature_fields` dans send uploaded documents | 2h |
-| **P2** | `GET .../emargements/export-csv` | 2h |
-| **P2** | `GET .../documents/{id}/download-pdf` (HTML→PDF) | 3h |
-| **P2** | `PATCH .../documents/{id}` (sauvegarde brouillon) | 1h |
-| **Total** | | **~20h** |
+| Priorité  | Endpoint / Feature                                              | Effort estimé |
+| --------- | --------------------------------------------------------------- | ------------- |
+| **P0**    | Ajouter `signature_metadata` JSONB au sign endpoint             | 1h            |
+| **P1**    | Créer table `user_media_assignments`                            | 2h            |
+| **P1**    | `GET /api/users/me/documents`                                   | 2h            |
+| **P1**    | `POST /api/users/assignments/{id}/sign-fields`                  | 3h            |
+| **P1**    | `GET /api/users/assignments/{id}/download-signed` (PDF flatten) | 4h            |
+| **P1**    | Propager `signature_fields` dans send uploaded documents        | 2h            |
+| **P2**    | `GET .../emargements/export-csv`                                | 2h            |
+| **P2**    | `GET .../documents/{id}/download-pdf` (HTML→PDF)                | 3h            |
+| **P2**    | `PATCH .../documents/{id}` (sauvegarde brouillon)               | 1h            |
+| **Total** |                                                                 | **~20h**      |
 
 ---
 
