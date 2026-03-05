@@ -231,7 +231,7 @@ export const StudentDocumentsPage: React.FC = () => {
         await signDocument.mutateAsync({
             assignment_id: selectedDocument.id,
             signature_data: signatureData,
-            html_content: finalHtmlContent
+            honor_declaration: true
         });
 
         setShowSignatureDialog(false);

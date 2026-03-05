@@ -244,7 +244,7 @@ export const OFDocumentsAdvanced: React.FC = () => {
 
 
   const handleSendPhaseDocuments = async (docs: any[], customFields?: any) => {
-    console.log('handleSendPhaseDocuments: Call Backend API', { count: docs.length });
+    console.log('handleSendPhaseDocuments: Call Backend API (send-bulk)', { count: docs.length });
     setIsUploading(true);
     try {
       const learnerId = docs[0]?.learnerId;
@@ -252,21 +252,19 @@ export const OFDocumentsAdvanced: React.FC = () => {
 
       if (!ofId || isNaN(ofId)) throw new Error("ID de l'organisation introuvable");
 
-      const templateIds = docs.map(d => d.templateId).filter(Boolean);
+      const templateIds = docs.map(d => Number(d.templateId)).filter(Boolean);
 
-      // Build documents array with personalized HTML content
-      const documents = docs.map(d => ({
-        template_id: d.templateId,
-        type: d.type,
-        title: d.title,
-        html_content: d.htmlContent || undefined,
-      }));
-
-      await fastAPIClient.sendDocuments(ofId, {
+      // Use the bulk send endpoint aligned with OpenAPI DocumentBulkSendRequest
+      await fastAPIClient.sendDocumentsBulk(ofId, {
         learner_id: Number(learnerId),
         phase: activePhase,
         template_ids: templateIds,
-        documents,
+        date_debut: customFields?.date_debut || customFields?.['dates.debut'],
+        date_fin: customFields?.date_fin || customFields?.['dates.fin'],
+        duree: customFields?.duree || customFields?.['formation.duree'],
+        lieu: customFields?.lieu || customFields?.['formation.lieu'],
+        prix: customFields?.prix || customFields?.['formation.prix'],
+        date_signature: customFields?.date_signature,
         custom_fields: customFields,
         include_of_signature: true
       });

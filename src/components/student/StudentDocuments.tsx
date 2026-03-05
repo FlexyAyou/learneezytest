@@ -1,19 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
 import { StudentDocumentsSidebar } from './StudentDocumentsSidebar';
 import { StudentPhaseInscription } from './documents/StudentPhaseInscription';
 import { StudentPhaseFormation } from './documents/StudentPhaseFormation';
 import { StudentPhasePostFormation } from './documents/StudentPhasePostFormation';
 import { StudentPhaseSuivi } from './documents/StudentPhaseSuivi';
-import { StudentAssignedDocuments } from './documents/StudentAssignedDocuments';
 import { Badge } from '@/components/ui/badge';
-import { FileText, AlertCircle, Trash2, Loader2, Sparkles } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { useMyDocuments } from '@/hooks/useApi';
 import { useFastAPIAuth } from '@/hooks/useFastAPIAuth';
-import { useQueryClient } from '@tanstack/react-query';
-import { fastAPIClient } from '@/services/fastapi-client';
-import { useToast } from '@/hooks/use-toast';
 
 interface Formation {
   id: string;
@@ -28,28 +23,8 @@ export const StudentDocuments = () => {
   const [activeTab, setActiveTab] = useState('phase-inscription');
   const { data: assignments = [] } = useMyDocuments();
   const { user } = useFastAPIAuth();
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-  const [isCleaning, setIsCleaning] = useState(false);
 
-  const handleCleanup = async () => {
-    if (!user?.id || !user?.of_id) {
-      toast({ title: "Erreur", description: "Impossible d'identifier l'utilisateur.", variant: "destructive" });
-      return;
-    }
 
-    setIsCleaning(true);
-    try {
-      await fastAPIClient.cleanupDocuments(user.of_id, user.id);
-      await queryClient.invalidateQueries({ queryKey: ['my-documents'] });
-      toast({ title: "Nettoyage terminé", description: "Tous vos documents de test ont été supprimés." });
-    } catch (e) {
-      console.error(e);
-      toast({ title: "Erreur", description: "Échec du nettoyage.", variant: "destructive" });
-    } finally {
-      setIsCleaning(false);
-    }
-  };
 
   const formations: Formation[] = [
     { id: '1', name: 'Mathématiques Avancées', category: 'Mathématiques', level: 'Niveau 3', status: 'active' },
@@ -126,16 +101,6 @@ export const StudentDocuments = () => {
               </p>
             </div>
             <div className="flex items-center space-x-3">
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-destructive hover:text-destructive border-dashed border-destructive/50"
-                onClick={handleCleanup}
-                disabled={isCleaning}
-              >
-                {isCleaning ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Trash2 className="h-4 w-4 mr-2" />}
-                Nettoyage Express (Test)
-              </Button>
 
               <Select value={selectedFormation} onValueChange={setSelectedFormation}>
                 <SelectTrigger className="w-64 bg-background">

@@ -1543,7 +1543,7 @@ class FastAPIClient {
   }
 
 
-  // --- DOCUMENTS ---
+  // --- DOCUMENT TEMPLATES ---
   async listDocumentTemplates(ofId: number, phase?: string) {
     const query = phase ? `?phase=${phase}` : '';
     const res = await this.get<any[]>(`/api/organizations/${ofId}/document-templates${query}`);
@@ -1571,7 +1571,7 @@ class FastAPIClient {
     return this.post<any>(`/api/organizations/${ofId}/document-templates`, payload);
   }
 
-  async updateDocumentTemplate(ofId: number, templateId: string, data: any) {
+  async updateDocumentTemplate(ofId: number, templateId: string | number, data: any) {
     const payload = {
       ...data,
       html_content: data.htmlContent,
@@ -1581,10 +1581,11 @@ class FastAPIClient {
     return this.put<any>(`/api/organizations/${ofId}/document-templates/${templateId}`, payload);
   }
 
-  async deleteDocumentTemplate(ofId: number, templateId: string) {
+  async deleteDocumentTemplate(ofId: number, templateId: string | number) {
     return this.delete<any>(`/api/organizations/${ofId}/document-templates/${templateId}`);
   }
 
+  // --- OF SIGNATURE ---
   async getOFSignature(ofId: number) {
     return this.get<any>(`/api/organizations/${ofId}/signature`);
   }
@@ -1593,13 +1594,128 @@ class FastAPIClient {
     return this.put<any>(`/api/organizations/${ofId}/signature`, data);
   }
 
-  async sendDocuments(ofId: number, data: any) {
-    return this.post<any>(`/api/organizations/${ofId}/documents/send`, data);
+  async deleteOFSignature(ofId: number) {
+    return this.delete<void>(`/api/organizations/${ofId}/signature`);
+  }
+
+  // --- DOCUMENT SENDING ---
+
+  /**
+   * Envoi simple : 1 template → N apprenants
+   * POST /api/organizations/{of_id}/documents/send
+   * Body: DocumentSendRequest { template_id, learner_ids, formation_id?, formation_name?, custom_data? }
+   */
+  async sendDocuments(ofId: number, data: {
+    template_id: number;
+    learner_ids: number[];
+    formation_id?: string;
+    formation_name?: string;
+    custom_data?: Record<string, any>;
+  }) {
+    return this.post<any[]>(`/api/organizations/${ofId}/documents/send`, data);
   }
 
   /**
-   * Lister l'historique des communications d'un OF
+   * Envoi groupé : N templates + uploaded docs → 1 apprenant
+   * POST /api/organizations/{of_id}/documents/send-bulk
+   * Body: DocumentBulkSendRequest
    */
+  async sendDocumentsBulk(ofId: number, data: {
+    learner_id: number;
+    phase: string;
+    template_ids?: number[];
+    uploaded_document_ids?: number[];
+    formation_id?: string;
+    formation_name?: string;
+    date_debut?: string;
+    date_fin?: string;
+    duree?: string;
+    date_signature?: string;
+    lieu?: string;
+    prix?: string;
+    custom_fields?: Record<string, any>;
+    include_of_signature?: boolean;
+  }) {
+    return this.post<any[]>(`/api/organizations/${ofId}/documents/send-bulk`, data);
+  }
+
+  // --- DOCUMENTS (sent) ---
+
+  /**
+   * Liste des documents envoyés (filtrable par phase, learner_id, status)
+   * GET /api/organizations/{of_id}/documents
+   */
+  async listDocuments(ofId: number, params?: {
+    phase?: string;
+    learner_id?: number;
+    status?: string;
+  }) {
+    return this.get<any[]>(`/api/organizations/${ofId}/documents`, { params });
+  }
+
+  /**
+   * Détail d'un document envoyé
+   * GET /api/organizations/{of_id}/documents/{document_id}
+   */
+  async getDocument(ofId: number, documentId: number) {
+    return this.get<any>(`/api/organizations/${ofId}/documents/${documentId}`);
+  }
+
+  /**
+   * Mettre à jour le statut d'un document
+   * PATCH /api/organizations/{of_id}/documents/{document_id}/status
+   */
+  async updateDocumentStatus(ofId: number, documentId: number, status: string) {
+    return this.patch<any>(`/api/organizations/${ofId}/documents/${documentId}/status`, { status });
+  }
+
+  // --- UPLOADED DOCUMENTS ---
+
+  /**
+   * Upload un document externe (PDF, DOCX) manuellement
+   * POST /api/organizations/{of_id}/uploaded-documents (multipart/form-data)
+   */
+  async uploadDocument(ofId: number, file: File, title: string, phase: string) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('title', title);
+    formData.append('phase', phase);
+    return this.post<any>(`/api/organizations/${ofId}/uploaded-documents`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  }
+
+  /**
+   * Lister les documents uploadés
+   * GET /api/organizations/{of_id}/uploaded-documents
+   */
+  async listUploadedDocuments(ofId: number, phase?: string) {
+    return this.get<any[]>(`/api/organizations/${ofId}/uploaded-documents`, {
+      params: phase ? { phase } : undefined
+    });
+  }
+
+  /**
+   * Supprimer un document uploadé
+   * DELETE /api/organizations/{of_id}/uploaded-documents/{document_id}
+   */
+  async deleteUploadedDocument(ofId: number, documentId: number) {
+    return this.delete<void>(`/api/organizations/${ofId}/uploaded-documents/${documentId}`);
+  }
+
+  /**
+   * Envoyer un document uploadé à des apprenants
+   * POST /api/organizations/{of_id}/uploaded-documents/{document_id}/send
+   */
+  async sendUploadedDocumentToLearners(ofId: number, documentId: number, data: {
+    learner_ids: number[];
+    formation_id?: string;
+    formation_name?: string;
+  }) {
+    return this.post<any[]>(`/api/organizations/${ofId}/uploaded-documents/${documentId}/send`, data);
+  }
+
+  // --- COMMUNICATIONS ---
   async listCommunications(ofId: number | string, params?: {
     type?: string;
     status?: string;
@@ -1609,9 +1725,6 @@ class FastAPIClient {
     return this.get(`/api/organizations/${ofId}/communications/history`, { params });
   }
 
-  /**
-   * Envoyer une communication (email/relance)
-   */
   async sendCommunication(ofId: number | string, data: {
     type: string;
     learner_ids: number[];
@@ -1622,33 +1735,36 @@ class FastAPIClient {
     return this.post(`/api/organizations/${ofId}/communications/send`, data);
   }
 
-  async getEmargements(ofId: number, params?: { phase?: string; learner_id?: number }) {
-    let query = '';
-    if (params) {
-      const sp = new URLSearchParams();
-      if (params.phase) sp.append('phase', params.phase);
-      if (params.learner_id) sp.append('learner_id', params.learner_id.toString());
-      query = '?' + sp.toString();
-    }
-    return this.get<any>(`/api/organizations/${ofId}/emargements${query}`);
+  // --- EMARGEMENTS ---
+  async getEmargements(ofId: number, params?: {
+    phase?: string;
+    learner_id?: number;
+    status?: string;
+    date_from?: string;
+    date_to?: string;
+  }) {
+    return this.get<any>(`/api/organizations/${ofId}/emargements`, { params });
   }
 
   // --- LEARNER DOCUMENTS ---
-  async getLearnerDocuments(ofId: number, learnerId: number) {
-    return this.get<any[]>(`/api/organizations/${ofId}/learners/${learnerId}/documents`);
+  /**
+   * Documents reçus par un apprenant (côté dashboard apprenant)
+   * GET /api/organizations/learners/{learner_id}/documents
+   * Note: pas de {of_id} dans l'URL selon l'OpenAPI
+   */
+  async getLearnerDocuments(_ofId: number, learnerId: number) {
+    return this.get<any[]>(`/api/organizations/learners/${learnerId}/documents`);
   }
 
-  async signLearnerDocument(ofId: number, learnerId: number, docId: string, signatureData: string, htmlContent?: string, signatureMetadata?: Record<string, any>) {
-    return this.post<any>(`/api/organizations/${ofId}/learners/${learnerId}/documents/${docId}/sign`, {
+  /**
+   * Signer un document (côté apprenant)
+   * POST /api/organizations/learners/{learner_id}/documents/{document_id}/sign
+   * Body: DocumentSignRequest { signature_data, honor_declaration? }
+   */
+  async signLearnerDocument(_ofId: number, learnerId: number, docId: string | number, signatureData: string, honorDeclaration: boolean = true) {
+    return this.post<any>(`/api/organizations/learners/${learnerId}/documents/${docId}/sign`, {
       signature_data: signatureData,
-      html_content: htmlContent,
-      ...(signatureMetadata ? { signature_metadata: signatureMetadata } : {}),
-    });
-  }
-
-  async saveLearnerDocument(ofId: number, learnerId: number, docId: string, htmlContent: string) {
-    return this.post<any>(`/api/organizations/${ofId}/learners/${learnerId}/documents/${docId}/save`, {
-      html_content: htmlContent
+      honor_declaration: honorDeclaration,
     });
   }
 
@@ -1667,13 +1783,6 @@ class FastAPIClient {
 
   async sendMessage(data: { receiver_id: number, content: string }): Promise<any> {
     return this.post('/api/messaging/', data);
-  }
-
-  // --- ADMIN/LEARNER CLEANUP ---
-  async cleanupDocuments(ofId: number, learnerId?: number) {
-    let url = `/api/organizations/${ofId}/documents/cleanup`;
-    if (learnerId) url += `?learner_id=${learnerId}`;
-    return this.delete<any>(url);
   }
 
   // --- SUBSCRIPTIONS & PLANS ---
@@ -1707,9 +1816,6 @@ class FastAPIClient {
 
   // ============= PAYMENTS (Superadmin) =============
 
-  /**
-   * Lister les paiements avec pagination et filtres
-   */
   async listPayments(params?: {
     page?: number;
     per_page?: number;
@@ -1719,16 +1825,10 @@ class FastAPIClient {
     return this.get('/api/payments', { params });
   }
 
-  /**
-   * Récupérer les statistiques de paiement global
-   */
   async getPaymentStats(): Promise<any> {
     return this.get('/api/payments/stats');
   }
 
-  /**
-   * Télécharger la facture d'un paiement
-   */
   async downloadPaymentInvoice(paymentId: number | string): Promise<void> {
     const response = await this.axiosInstance.get(
       `/api/payments/${paymentId}/invoice`,
