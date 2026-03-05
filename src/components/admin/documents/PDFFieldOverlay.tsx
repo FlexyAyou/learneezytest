@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import * as pdfjsLib from 'pdfjs-dist';
+import * as pdfjsLib from 'pdfjs-dist/build/pdf.mjs';
 import { SignatureField } from '@/types/document-fields';
 import { SignatureZone } from './SignatureZone';
 import { Button } from '@/components/ui/button';
