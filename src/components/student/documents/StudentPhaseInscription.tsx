@@ -58,7 +58,7 @@ export const StudentPhaseInscription = ({ selectedFormation, formations, documen
       learnerId, documentId,
       data: {
         signature_data: signatureData,
-        signature_metadata: metadata,
+        honor_declaration: metadata.honor_declaration,
       },
     });
     queryClient.invalidateQueries({ queryKey: ['my-documents', learnerId] });

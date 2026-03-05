@@ -50,7 +50,7 @@ const tabToPhases: Record<string, DocumentTemplatePhase[]> = {
   'phase-suivi': ['suivi'],
 };
 
-const getStatusConfig = (status: DocumentStatusEnum) => {
+const getStatusConfig = (status: string) => {
   const configs: Record<string, { icon: React.ElementType; label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' }> = {
     signed: { icon: CheckCircle2, label: 'Signé', variant: 'default' },
     completed: { icon: CheckCircle2, label: 'Complété', variant: 'default' },
