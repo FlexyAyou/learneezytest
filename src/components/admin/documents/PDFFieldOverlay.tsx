@@ -1,11 +1,9 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import * as pdfjsLib from 'pdfjs-dist/build/pdf.mjs';
+import { loadPdfJs, PDFDocumentProxyLike } from '@/lib/pdfjs';
 import { SignatureField } from '@/types/document-fields';
 import { SignatureZone } from './SignatureZone';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react';
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 
 interface PDFFieldOverlayProps {
   pdfFile: File;
@@ -30,7 +28,7 @@ export const PDFFieldOverlay: React.FC<PDFFieldOverlayProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [pdfDoc, setPdfDoc] = useState<pdfjsLib.PDFDocumentProxy | null>(null);
+  const [pdfDoc, setPdfDoc] = useState<PDFDocumentProxyLike | null>(null);
   const [scale, setScale] = useState(1.2);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const [isLoading, setIsLoading] = useState(true);
@@ -40,6 +38,7 @@ export const PDFFieldOverlay: React.FC<PDFFieldOverlayProps> = ({
     const loadPDF = async () => {
       setIsLoading(true);
       try {
+        const pdfjsLib = await loadPdfJs();
         const arrayBuffer = await pdfFile.arrayBuffer();
         const doc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
         setPdfDoc(doc);
