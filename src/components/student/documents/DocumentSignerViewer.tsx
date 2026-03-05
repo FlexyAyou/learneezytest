@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import * as pdfjsLib from 'pdfjs-dist/build/pdf.mjs';
+import { loadPdfJs, PDFDocumentProxyLike } from '@/lib/pdfjs';
 import { SignatureField, FIELD_CONFIG } from '@/types/document-fields';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -7,8 +7,6 @@ import { Badge } from '@/components/ui/badge';
 import { ElectronicSignature } from '@/components/common/ElectronicSignature';
 import { ChevronLeft, ChevronRight, CheckCircle, FileSignature, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 
 interface DocumentSignerViewerProps {
   isOpen: boolean;
@@ -36,7 +34,7 @@ export const DocumentSignerViewer: React.FC<DocumentSignerViewerProps> = ({
   extraHeaderActions,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [pdfDoc, setPdfDoc] = useState<pdfjsLib.PDFDocumentProxy | null>(null);
+  const [pdfDoc, setPdfDoc] = useState<PDFDocumentProxyLike | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
@@ -57,6 +55,7 @@ export const DocumentSignerViewer: React.FC<DocumentSignerViewerProps> = ({
     if (!isOpen || !pdfUrl) return;
     const load = async () => {
       try {
+        const pdfjsLib = await loadPdfJs();
         const doc = await pdfjsLib.getDocument(pdfUrl).promise;
         setPdfDoc(doc);
         setTotalPages(doc.numPages);
