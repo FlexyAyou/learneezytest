@@ -1462,8 +1462,9 @@ class FastAPIClient {
   async sendDocument(ofId: number | string, data: {
     template_id: number;
     learner_ids: number[];
-    html_content?: string;
-    custom_fields?: Record<string, string>;
+    formation_id?: string | null;
+    formation_name?: string | null;
+    custom_data?: Record<string, any> | null;
   }): Promise<any> {
     return this.post(`/api/organizations/${ofId}/documents/send`, data);
   }
@@ -1476,8 +1477,17 @@ class FastAPIClient {
     learner_id: number;
     template_ids: number[];
     phase: string;
-    html_contents?: Record<number, string>;
-    custom_fields?: Record<string, string>;
+    formation_id?: string | null;
+    formation_name?: string | null;
+    date_debut?: string | null;
+    date_fin?: string | null;
+    duree?: string | null;
+    date_signature?: string | null;
+    lieu?: string | null;
+    prix?: string | null;
+    custom_fields?: Record<string, any> | null;
+    uploaded_document_ids?: number[] | null;
+    include_of_signature?: boolean;
   }): Promise<any> {
     return this.post(`/api/organizations/${ofId}/documents/send-bulk`, data);
   }
@@ -1534,13 +1544,7 @@ class FastAPIClient {
    */
   async signDocument(learnerId: number | string, documentId: number | string, data: {
     signature_data: string;
-    signature_metadata?: {
-      ip_address?: string;
-      user_agent?: string;
-      timestamp?: string;
-      session_fingerprint?: string;
-      honor_declaration?: boolean;
-    };
+    honor_declaration: boolean;
   }): Promise<any> {
     return this.post(`/api/organizations/learners/${learnerId}/documents/${documentId}/sign`, data);
   }

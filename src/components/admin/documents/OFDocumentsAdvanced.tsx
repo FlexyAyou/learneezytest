@@ -195,8 +195,6 @@ export const OFDocumentsAdvanced: React.FC = () => {
             html_content: template.htmlContent,
             requires_signature: template.requiresSignature,
             is_active: template.isActive,
-            type: template.type,
-            phase: template.phase,
           },
         });
       } else {
@@ -243,7 +241,7 @@ export const OFDocumentsAdvanced: React.FC = () => {
           learner_id: learnerId,
           template_ids: templateIds,
           phase: phase,
-          html_contents: htmlContents,
+          custom_fields: htmlContents as any,
         });
         return;
       }
