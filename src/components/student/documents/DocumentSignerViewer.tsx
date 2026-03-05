@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
+import * as pdfjsLib from 'pdfjs-dist';
 import { SignatureField, FIELD_CONFIG } from '@/types/document-fields';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
