@@ -1629,6 +1629,150 @@ class FastAPIClient {
   async getEmargements(ofId: number | string): Promise<any> {
     return this.get(`/api/organizations/${ofId}/emargements`);
   }
+
+  // ============= LEARNER DOCUMENT OPERATIONS (Branch: feat/apprenant-ui) =============
+
+  /**
+   * Récupérer les documents assignés à l'utilisateur actuel (legacy media assignments)
+   * GET /api/users/me/documents
+   */
+  async getMyDocuments(): Promise<any[]> {
+    return this.get('/api/users/me/documents');
+  }
+
+  /**
+   * Signer un document par zones interactives (PDF)
+   * POST /api/users/assignments/{assignment_id}/sign-fields
+   */
+  async signDocumentFields(assignmentId: number | string, fieldValues: Record<string, string>, signatureMetadata?: Record<string, any>): Promise<any> {
+    return this.post(`/api/users/assignments/${assignmentId}/sign-fields`, {
+      field_values: fieldValues,
+      signature_metadata: signatureMetadata,
+    });
+  }
+
+  /**
+   * Signer un document via le pad de signature (legacy)
+   * POST /api/users/assignments/{assignment_id}/sign
+   */
+  async signAssignment(assignmentId: number | string, signatureData: string, signatureMetadata?: Record<string, any>): Promise<any> {
+    return this.post(`/api/users/assignments/${assignmentId}/sign`, {
+      signature_data: signatureData,
+      signature_metadata: signatureMetadata,
+    });
+  }
+
+  /**
+   * Télécharger un PDF signé aplati
+   * GET /api/users/assignments/{assignment_id}/download-signed
+   */
+  async downloadSignedPdf(assignmentId: number | string): Promise<void> {
+    const response = await this.axiosInstance.get(`/api/users/assignments/${assignmentId}/download-signed`, {
+      responseType: 'blob',
+    });
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `document-signe-${assignmentId}.pdf`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  }
+
+  /**
+   * Signer un document du nouveau système (OF documents)
+   * POST /api/organizations/{of_id}/learners/{user_id}/documents/{doc_id}/sign
+   */
+  async signLearnerDocument(ofId: number | string, userId: number | string, docId: string, signatureData: string, htmlContent?: string): Promise<any> {
+    return this.post(`/api/organizations/${ofId}/learners/${userId}/documents/${docId}/sign`, {
+      signature_data: signatureData,
+      html_content: htmlContent,
+    });
+  }
+
+  /**
+   * Sauvegarder un document (brouillon) sans le signer
+   * PATCH /api/organizations/{of_id}/learners/{user_id}/documents/{doc_id}
+   */
+  async saveLearnerDocument(ofId: number | string, userId: number | string, docId: string, htmlContent: string): Promise<any> {
+    return this.patch(`/api/organizations/${ofId}/learners/${userId}/documents/${docId}`, {
+      html_content: htmlContent,
+    });
+  }
+
+  /**
+   * Nettoyer les documents de test
+   * DELETE /api/organizations/{of_id}/users/{user_id}/documents/cleanup
+   */
+  async cleanupDocuments(ofId: number | string, userId: number | string): Promise<any> {
+    return this.delete(`/api/organizations/${ofId}/users/${userId}/documents/cleanup`);
+  }
+
+  /**
+   * Récupérer les documents d'un apprenant (nouveau système)
+   * GET /api/organizations/{of_id}/learners/{learner_id}/documents
+   */
+  async getLearnerDocumentsNew(ofId: number | string, learnerId: number | string): Promise<any[]> {
+    return this.get(`/api/organizations/${ofId}/learners/${learnerId}/documents`);
+  }
+
+  /**
+   * Lister les assignments
+   * GET /api/users/assignments
+   */
+  async listAssignments(params: Record<string, any>): Promise<any> {
+    return this.get('/api/users/assignments', { params });
+  }
+
+  // listAssets, prepareUpload, completeUpload already exist above (presigned upload flow)
+
+  /**
+   * Supprimer un asset
+   * DELETE /api/assets/{asset_id}
+   */
+  async deleteAsset(assetId: number, force?: boolean): Promise<any> {
+    return this.delete(`/api/assets/${assetId}`, { params: { force } });
+  }
+
+  /**
+   * Récupérer les statistiques d'un organisme
+   * GET /api/organizations/{of_id}/stats
+   */
+  async getOrganizationStats(ofId: number | string): Promise<any> {
+    return this.get(`/api/organizations/${ofId}/stats`);
+  }
+
+  /**
+   * Récupérer le suivi pédagogique des apprenants
+   * GET /api/organizations/{of_id}/learners/progress
+   */
+  async getLearnerProgress(ofId: number | string, params?: any): Promise<any> {
+    return this.get(`/api/organizations/${ofId}/learners/progress`, { params });
+  }
+
+  /**
+   * Lister les communications
+   * GET /api/organizations/{of_id}/communications
+   */
+  async listCommunications(ofId: number | string, params?: any): Promise<any> {
+    return this.get(`/api/organizations/${ofId}/communications`, { params });
+  }
+
+  /**
+   * Lister les paiements
+   * GET /api/admin/payments
+   */
+  async listPayments(params?: any): Promise<any> {
+    return this.get('/api/admin/payments', { params });
+  }
+
+  /**
+   * Stats de paiement
+   * GET /api/admin/payments/stats
+   */
+  async getPaymentStats(): Promise<any> {
+    return this.get('/api/admin/payments/stats');
+  }
 }
 
 // Instance singleton
