@@ -1495,12 +1495,12 @@ export const useDeleteMedia = () => {
 export const useSignDocument = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: { assignment_id: number | string; signature_data: string; html_content?: string; signature_metadata?: Record<string, any> }) => {
-      // Check if it's a new system document (UUID string) or legacy (number)
+    mutationFn: async (data: { assignment_id: number | string; signature_data: string; honor_declaration?: boolean; signature_metadata?: Record<string, any> }) => {
+      // Check if it's a new system document (UUID string or prefixed) or legacy (number)
       const idStr = String(data.assignment_id);
 
       if (idStr.length > 20 || idStr.includes('-')) {
-        // It's likely a UUID (new system)
+        // New documents system
         const user = await fastAPIClient.getCurrentUser();
         if (!user.of_id) throw new Error("Impossible de trouver l'organisation de l'utilisateur");
 
@@ -1511,7 +1511,7 @@ export const useSignDocument = () => {
           user.id,
           realDocId,
           data.signature_data,
-          data.html_content
+          data.honor_declaration ?? true
         );
       } else {
         // Legacy system (integer ID)
@@ -1562,43 +1562,19 @@ export const useSignDocumentFields = () => {
 };
 
 /**
- * Hook pour sauvegarder un document (texte/html) sans le signer
+ * @deprecated L'endpoint saveLearnerDocument n'existe pas dans l'API backend.
+ * Les documents sont figés au moment de l'envoi et ne peuvent pas être modifiés côté apprenant.
  */
 export const useSaveDocument = () => {
-  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: { assignment_id: number | string; html_content: string }) => {
-      const idStr = String(data.assignment_id);
-
-      if (idStr.length > 20 || idStr.includes('-')) {
-        const user = await fastAPIClient.getCurrentUser();
-        if (!user.of_id) throw new Error("Impossible de trouver l'organisation de l'utilisateur");
-
-        const realDocId = idStr.replace(/^new-/, '');
-
-        return fastAPIClient.saveLearnerDocument(
-          user.of_id,
-          user.id,
-          realDocId,
-          data.html_content
-        );
-      } else {
-        throw new Error("La sauvegarde n'est pas supportée pour les anciens types de documents.");
-      }
-    },
-    onSuccess: () => {
-      // Invalidate queries to refresh content
-      queryClient.invalidateQueries({ queryKey: ['my-documents'] });
-      toast({
-        title: "Brouillon enregistré",
-        description: "Vos modifications ont été sauvegardées.",
-      });
+    mutationFn: async (_data: { assignment_id: number | string; html_content: string }) => {
+      throw new Error("La sauvegarde de documents n'est pas supportée par le backend.");
     },
     onError: (error: any) => {
       console.error("Save Error:", error);
       toast({
         title: "Erreur de sauvegarde",
-        description: error.response?.data?.detail || "Impossible de sauvegarder le document.",
+        description: "Cette fonctionnalité n'est pas disponible.",
         variant: "destructive",
       });
     }

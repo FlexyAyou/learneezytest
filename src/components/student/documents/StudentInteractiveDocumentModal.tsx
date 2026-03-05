@@ -451,8 +451,7 @@ export const StudentInteractiveDocumentModal: React.FC<StudentInteractiveDocumen
                     user.id,
                     assignmentId,
                     signatureData,
-                    finalHtml,
-                    identityProof || undefined
+                    !!(identityProof)
                 );
             }
 
